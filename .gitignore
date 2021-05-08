@@ -1,0 +1,15 @@
+.vscode/
+.idea/
+*.bat
+*.exe
+.env
+.env.*
+!.env.example
+runserver
+migrate
+makemigrations
+*.sqlite3
+__pycache__
+backup/
+createsuperuser
+migrations
