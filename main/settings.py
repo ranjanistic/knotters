@@ -1,4 +1,5 @@
 from pathlib import Path
+import platform
 import os
 from . import env
 
@@ -103,6 +104,14 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+if platform.system() == "Windows":
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static')
+    ]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_UNIQUE_EMAIL = True
