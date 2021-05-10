@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
-    "userauth",
     "corsheaders"
 ]
 
@@ -118,6 +117,9 @@ CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST = env.CORSTUPLE
 
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_DOMAIN = env.COOKIEDOM
+
 if platform.system() == "Windows":
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 else:
@@ -210,9 +212,9 @@ SITE_ID = 1
 
 
 AUTHENTICATION_BACKENDS = (
- 'django.contrib.auth.backends.ModelBackend',
- 'allauth.account.auth_backends.AuthenticationBackend',
- )
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -224,7 +226,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'access_type': 'online',
         }
     },
-        'github': {
+    'github': {
         'SCOPE': [
             'user',
             'repo',

@@ -1,6 +1,7 @@
 
 {% load i18n %}
 {% load static %}
+{% load socialaccount %}
 {% block head_title %}<title>Login | Mycrobites</title>{% endblock%}
 
 {% block content %}
@@ -18,14 +19,11 @@
 		<form method="POST" action="{% url 'account_login' %}">
       {% csrf_token %}
 			<h1>Sign in</h1>
- <div class="social-container">
-        <a href="/accounts/google/login/?process=login"
-                  class="btn btn-block btn-outline-danger"> <i class="fab fa-google-plus-g  "></i>&nbsp;Login via Google</a>
+ 		<div class="social-container">
+ 		<a href="{% provider_login_url 'google' method='oauth2' %}">&nbsp;Login via Google</a>
 			</div>
       <div class="social-container">
-        <a href="/accounts/github/login/?process=login"
-                  class="btn btn-block btn-outline-danger"> <i class="fa fa-github  "></i>&nbsp;Login via Github</a>
-			</div>
+	  <a href="{% provider_login_url 'github' method='oauth2' %}">Login via Github</a>
 			<span>or use your account</span>
 			<input type="text" name="login" placeholder="Username" autofocus="autofocus"
       maxlength="150" required id="id_login" />

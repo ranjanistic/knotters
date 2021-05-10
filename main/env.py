@@ -14,6 +14,8 @@ DBPASS = env('DBPASS')
 MAILUSER = env('MAILUSER')
 MAILPASS = env('MAILPASS')
 ADMINPATH = env('ADMINPATH')
-CORSTUPLE = tuple(env('CORSTUPLE').split(','))
+CORSLIST = env('CORSLIST').split(',')
+CORSTUPLE = tuple(CORSLIST)
+COOKIEDOM = str(env('COOKIEDOM'))
 
 ISPRODUCTION = ENV == 'production'
