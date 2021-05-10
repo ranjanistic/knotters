@@ -16,5 +16,3 @@ def index(request):
 @login_required
 def index2(request):
     return HttpResponse("hello")
-
-    

@@ -14,5 +14,6 @@ DBPASS = env('DBPASS')
 MAILUSER = env('MAILUSER')
 MAILPASS = env('MAILPASS')
 ADMINPATH = env('ADMINPATH')
+CORSTUPLE = tuple(env('CORSTUPLE').split(','))
 
 ISPRODUCTION = ENV == 'production'

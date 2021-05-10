@@ -6,5 +6,6 @@ urlpatterns = [
     path(env.ADMINPATH, admin.site.urls),
     path('', index),
     path('party', index2),
-    path('accounts/', include('allauth.urls'))
+    path('accounts/', include('allauth.urls')),
+    path('auth/', include('userauth.urls')),
 ]
