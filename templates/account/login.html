@@ -2,43 +2,27 @@
 {% load i18n %}
 {% load static %}
 {% load socialaccount %}
-{% block head_title %}<title>Login | Mycrobites</title>{% endblock%}
+{% block head_title %}<title>Login · Knotters</title>{% endblock %}
 
 {% block content %}
 
-<link rel="stylesheet" href="{% static  'login.css' %}">
-
-<div class="mainsec">
-{% if request.method == "POST" %}
-<script>
- showSnackbar("Login Failed. Please check your username or password","error");
-</script>
-{%endif%}
-  <div class="login-container" id="container">
-	<div class="form-container sign-in-container">
-		<form method="POST" action="{% url 'account_login' %}">
-      {% csrf_token %}
-			<h1>Sign in</h1>
- 		<div class="social-container">
- 		<a href="{% provider_login_url 'google' method='oauth2' %}">&nbsp;Login via Google</a>
-			</div>
-      <div class="social-container">
-	  <a href="{% provider_login_url 'github' method='oauth2' %}">Login via Github</a>
-			<span>or use your account</span>
-			<input type="text" name="login" placeholder="Username" autofocus="autofocus"
-      maxlength="150" required id="id_login" />
-			<input type="password" name="password" placeholder="Password"
-      required id="id_password" />
-			<a href="{% url 'account_reset_password' %}">Forgot your password?</a>
-			<button type="submit">Sign In</button>
-      <input type="hidden" name="next" value="{{request.GET.next}}">
-      {% comment %} <a  href="/accounts/signup"><b>Create an account</b></a> {% endcomment %}
-		</form>
-	</div>
-
+<div>
+	<h1>Sign in</h1>
+	<form method="POST" action="{% url 'account_login' %}">
+		{% csrf_token %}
+		<div>
+			<a href="{% provider_login_url 'google' method='oauth2' %}">&nbsp;Login via Google</a>
+			<a href="{% provider_login_url 'github' method='oauth2' %}">Login via Github</a>
+		</div>
+		<div>or use your account</div>
+		<input type="text" name="login" placeholder="Username" autofocus="autofocus" maxlength="150" required id="id_login" />
+		<input type="password" name="password" placeholder="Password" required id="id_password" />
+		<br/>
+		<a href="{% url 'account_reset_password' %}">Forgot your password?</a>
+		<button type="submit">Sign In</button>
+		<input type="hidden" name="next" value="{{request.GET.next}}" />
+	</form>
+	<a href="/accounts/signup"><b>Create an account</b></a>
 </div>
-</div>
-
-<script src="{% static 'login.js' %}"></script>
 
 {% endblock %}

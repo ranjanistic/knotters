@@ -2,27 +2,19 @@
 
 {% load i18n %}
 {% load static %}
-{% block head_title %}<title>Logout | Mycrobites</title>{% endblock%}
+{% block head_title %}<title>Logout · Knotters</title>{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static  'logout.css' %}">
-<center>
-<div class="mainsec">
-<div class="login-container" id="container">
-	<div class="form-container sign-in-container">
-
-<h1>{% trans "Sign Out" %}</h1>
-
-<p>{% trans 'Are you sure you want to sign out?' %}</p>
-
-<form method="post" action="{% url 'account_logout' %}">
-  {% csrf_token %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-  <button type="submit">{% trans 'Sign Out' %}</button>
-</form>
+<div>
+  <h1>Sign Out</h1>
+  <div>Are you sure you want to sign out?</div>
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+    {% endif %}
+    <button type="submit">Sign Out</button>
+  </form>
 </div>
-</div>
-</div>
-</center>
 
 {% endblock %}
