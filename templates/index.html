@@ -28,7 +28,7 @@
                 <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
                 {% else %}
                 <a href="{% url 'account_login' %}?next=/"><button class="accent"><i class="material-icons">volunteer_activism</i>Login</button></a>
-                <a href="{% url 'account_signup' %}"><button class="positive"><i class="material-icons">person_add</i>Join community</button></a>
+                <a href="{% url 'account_signup' %}?next=/"><button class="positive"><i class="material-icons">person_add</i>Join community</button></a>
                 {% endif %}
                 {% endblock %}
             </span>
@@ -42,7 +42,7 @@
                 <a href="{{service.url}}">
                 <div class="w3-col w3-third pallete primary">
                     <div class="w3-row">
-                        <img src="{{service.imgsrc}}" width="50" />
+                        <img src="/media/{{service.image}}" width="150" />
                     </div>
                     <h2>{{service.name}}</h2>
                     <span>{{service.description}}</span>

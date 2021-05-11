@@ -11,7 +11,7 @@
 
 {% block nav_links %}
 <a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
-<a href="{% url 'account_signup' %}"><button class="positive"><i class="material-icons">volunteer_activism</i>Join Knotters</button>
+<a href="{% url 'account_signup' %}?next={{request.GET.next}}"><button class="positive"><i class="material-icons">volunteer_activism</i>Join Knotters</button>
 {% endblock %}
 {% block content %}
 <div class="w3-row w3-padding w3-center w3-light-grey">
