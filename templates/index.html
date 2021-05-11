@@ -1,15 +1,58 @@
 {% load static %}
-
+{% load socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
+    {% block head %}
     <head>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{% static 'index.css' %}" />
-        <title>{{appname}}</title>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Questrial&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href="{% static 'styles/index.css' %}"  rel="stylesheet">
+        {% block title %}<title>{{appname}}</title>{% endblock %}
     </head>
+    {% endblock %}
     <body>
-        {{appname}}
+        {% block nav %}
+        <nav class="w3-row">
+            {% block nav_title %}
+            <span class="w3-left w3-padding-small"><h3>{{appname}}</h3></span>
+            {% endblock %}
+            <span class="w3-right w3-row w3-padding">
+                {% block nav_links %}
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
+                {% else %}
+                <a href="{% url 'account_login' %}?next=/"><button class="accent"><i class="material-icons">volunteer_activism</i>Login</button></a>
+                <a href="{% url 'account_signup' %}"><button class="positive"><i class="material-icons">person_add</i>Join community</button></a>
+                {% endif %}
+                {% endblock %}
+            </span>
+        </nav>
+        {% endblock %}
+        {% block content %}
+        <div class="w3-row">
+            <center><h2>Solving problems together.</h2></center>
+            <div class="w3-row w3-center w3-padding w3-light-grey">
+                {% for service in services %}
+                <a href="{{service.url}}">
+                <div class="w3-col w3-third pallete primary">
+                    <div class="w3-row">
+                        <img src="{{service.imgsrc}}" width="50" />
+                    </div>
+                    <h2>{{service.name}}</h2>
+                    <span>{{service.description}}</span>
+                </div>
+                </a>
+                {% empty %}
+                <h2>Waiting for services.</h2>
+                {% endfor %}
+            </div>
+        </div>
+        {% endblock %}
     </body>
 </html>

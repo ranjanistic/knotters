@@ -1,0 +1,133 @@
+:root {
+    --primary: #ffffff;
+    --secondary: #000000;
+    --accent: #f5d702;
+    --sub-accent: #12e49d;
+    --positive: #1657ce;
+    --negative: #cc352a;
+    --head-font: "Poppins", sans-serif;
+    --body-font: "Questrial", sans-serif;
+    --delay:0.3s;
+  }
+  a{
+      text-decoration: none;
+      transition: var(--delay);
+  }
+  a:hover{
+      opacity: 0.8;
+  }
+  a:active{
+      opacity: 0.4;
+  }
+  body {
+    background-color: var(--primary);
+    color: var(--secondary);
+    font-family: var(--body-font);
+  }
+  
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--head-font);
+    color: var(--secondary);
+    font-weight: bolder;
+  }
+  
+  .primary {
+    background-color: var(--primary) !important;
+    color: var(--secondary);
+  }
+  
+  .secondary {
+    background-color: var(--secondary) !important;
+    color: var(--primary);
+  }
+  
+  .accent {
+    background-color: var(--accent) !important;
+    color: var(--secondary);
+  }
+  .negative {
+    background-color: var(--negative) !important;
+    color: var(--primary);
+  }
+  .positive {
+    background-color: var(--positive) !important;
+    color: var(--primary);
+  }
+  .positive-text {
+    color: var(--positive) !important;
+  }
+  .negative-text {
+    color: var(--negative) !important;
+  }
+  
+  .sub-accent {
+    background-color: var(--sub-accent) !important;
+    color: var(--secondary);
+  }
+  
+  nav {
+    padding: 4px 12px;
+  }
+  
+  button{
+      padding:4px 12px;
+      border-radius: 22px;
+      margin: 0px 2px;
+      font-family: var(--head-font);
+      outline: none;
+      cursor: pointer;
+      font-size: 18px;
+      transition: var(--delay);
+      border: 0;
+      box-shadow: 2px 1px 12px 1px #0000001f;
+  }
+  button>i{
+      vertical-align: middle;
+      padding: 0px 4px 2px 0px;
+      font-size: 20px !important;
+  }
+  
+  button:hover{
+      outline: none;
+      padding:4px 18px;
+  }
+  button:active{
+      outline: none;
+      opacity: 0.6;
+      box-shadow: 0 0 0 0 #00000000;
+  }
+  
+  .pallete{
+      padding: 12px;
+      box-shadow: 2px 1px 24px 1px #0000001f;
+      border-radius: 12px;
+      background-color: var(--sub-accent);
+      transition: var(--delay);
+  }
+  .pallete:active{
+      padding: 12px;
+      opacity: 0.8;
+      box-shadow: 0 0 0 0 #00000000;
+      border-radius: 12px;
+      background-color: var(--sub-accent);
+  }
+  
+  .scroll-x{
+      overflow-x: scroll;
+  }
+
+  input{
+    border:0;
+    outline: 0;
+    padding: 8px 8px;
+    font-size: 18px;
+    border-radius: 8px;
+  }
+
+  input:focus{
+    border:0px
+  }
