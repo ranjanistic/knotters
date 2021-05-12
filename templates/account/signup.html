@@ -51,6 +51,7 @@
 	</a>
 	</div>
 </div>
+{% block errors %}
 <div class="w3-row w3-light-grey w3-padding negative-text w3-center">
 {% if form.errors %}
 		{% for field in form %}
@@ -68,3 +69,4 @@
 	{% endif %}
 {% endblock %}
 </div>
+{%endblock%}

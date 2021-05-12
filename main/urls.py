@@ -9,6 +9,5 @@ from django.conf import settings
 urlpatterns = [
     path(env.ADMINPATH, admin.site.urls),
     path('', index),
-    path('party', index2),
-    path('accounts/', include('allauth.urls'))
+    path('accounts/', include('allauth.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

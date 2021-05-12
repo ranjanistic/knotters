@@ -12,6 +12,7 @@
   a{
       text-decoration: none;
       transition: var(--delay);
+      cursor: pointer;
   }
   a:hover{
       opacity: 0.8;
@@ -38,6 +39,9 @@
   .primary {
     background-color: var(--primary) !important;
     color: var(--secondary);
+  }
+  .primary-text {
+    color: var(--primary) !important;
   }
   
   .secondary {

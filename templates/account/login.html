@@ -13,6 +13,7 @@
 <a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
 <a href="{% url 'account_signup' %}?next={{request.GET.next}}"><button class="positive"><i class="material-icons">volunteer_activism</i>Join Knotters</button>
 {% endblock %}
+
 {% block content %}
 <div class="w3-row w3-padding w3-center w3-light-grey">
 	<h4>Let's solve our problems, together.</h4>
@@ -20,33 +21,34 @@
 <div class="w3-row w3-padding w3-center w3-light-grey">
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half  accent pallete">
-	<form method="POST" action="{% url 'account_login' %}">
-		{% csrf_token %}
-		<div>
-			<button class="primary w3-padding"><a href="{% provider_login_url 'google' method='oauth2' %}">&nbsp;Continue via Google</a></button>
-			<button class="secondary w3-padding"><a href="{% provider_login_url 'github' method='oauth2' next='bruh' %}">Continue via Github</a></button>
-		</div>
+		<form method="POST" action="{% url 'account_login' %}">
+			{% csrf_token %}
+			<div>
+				<button class="primary w3-padding"><a href="{% provider_login_url 'google' method='oauth2' %}">&nbsp;Continue via Google</a></button>
+				<button class="secondary w3-padding"><a href="{% provider_login_url 'github' method='oauth2' next='bruh' %}">Continue via Github</a></button>
+			</div>
+			<br/>
+			<h3>or use your Knotters account</h3>
+			<br/>
+			<div class="w3-row">
+			<input type="text" name="login" placeholder="Email address" autocomplete="email" autofocus="autofocus" maxlength="150" required id="id_login" />
+			<br/><br/>
+			<input type="password" name="password" placeholder="Password" required id="id_password" />
+			</div>
+			<br/>
+			<button class="positive" type="submit"><i class="material-icons">login</i>Sign In</button>
+			<a href="{% url 'account_reset_password' %}"><button class="primary"><i class="material-icons">help</i>Forgot?</button></a>
+			<input type="hidden" name="next" value="{{request.GET.next}}" />
+		</form>
 		<br/>
-		<h3>or use your Knotters account</h3>
-		<br/>
-		<div class="w3-row">
-		<input type="text" name="login" placeholder="Email address" autocomplete="email" autofocus="autofocus" maxlength="150" required id="id_login" />
-		<br/><br/>
-		<input type="password" name="password" placeholder="Password" required id="id_password" />
-		</div>
-		<br/>
-		<button class="positive" type="submit"><i class="material-icons">login</i>Sign In</button>
-		<a href="{% url 'account_reset_password' %}"><button class="primary"><i class="material-icons">help</i>Forgot?</button></a>
-		<input type="hidden" name="next" value="{{request.GET.next}}" />
-	</form>
-	<br/>
-	<a href="/accounts/signup?next={{request.GET.next}}">
-	<button class="positive">
-	<i class="material-icons">person_add</i>Create an account
-	</button>
-	</a>
+		<a href="/accounts/signup?next={{request.GET.next}}">
+		<button class="positive">
+		<i class="material-icons">person_add</i>Create an account
+		</button>
+		</a>
 	</div>
 </div>
+{% block errors %}
 <div class="w3-row w3-light-grey w3-padding negative-text w3-center">
 {% if form.errors %}
 		{% for field in form %}
@@ -64,3 +66,4 @@
 	{% endif %}
 {% endblock %}
 </div>
+{% endblock %}

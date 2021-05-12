@@ -7,6 +7,5 @@ def index(request):
     services = Service.objects.all()
     return renderView(request, 'index.html', {"services":services})
 
-@login_required
-def index2(request):
-    return HttpResponse("hello")
+def cancelled():
+    return HttpResponse("asfsdf")
