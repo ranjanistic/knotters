@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load socialaccount %}
+{% block title %}<title>Verification</title>{% endblock %}
+{% block nav_title %}
+<a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
+<span class="w3-left"><h3>Verification</h3></span>
+{% endblock %}
+
+{% block nav_links %}
+  {% if request.user.is_authenticated %}
+  <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="w3-row w3-padding w3-center w3-light-grey">
+	<div class="w3-padding"><i class="material-icons w3-jumbo">mark_email_unread</i></div>
+	<h1>Check your mailbox.</h1>
+</div>
+<div class="w3-row w3-padding w3-center w3-light-grey">
+	<div class="w3-col w3-quarter w3-padding"></div>
+	<div class="w3-col w3-half">
+    <h3>We've sent you a link to verify your authenticity.</h3>
+    <form method="POST" action="{% url 'account_logout' %}">
+      {% csrf_token %}
+      {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+      {% endif %}
+      <a href="/"><button class="positive" type="button"><i class="material-icons">home</i>Return home</button></a>
+      </form>
+    <br/>
+  </div>
+</div>
+{% endblock %}
