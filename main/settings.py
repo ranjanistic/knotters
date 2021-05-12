@@ -123,10 +123,10 @@ CORS_ORIGIN_WHITELIST = env.CORSTUPLE
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_DOMAIN = env.COOKIEDOM
 
-if platform.system() == "Windows":
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+if not env.ISPRODUCTION:
+  STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 else:
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+  STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 
 ACCOUNT_AUTHENTICATION_METHOD = "username"

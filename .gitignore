@@ -14,3 +14,4 @@ backup/
 createsuperuser
 migrations
 media/
+static/admin
