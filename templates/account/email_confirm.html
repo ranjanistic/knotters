@@ -1,10 +1,10 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}<title>email confirm</title>{% endblock %}
+{% block title %}<title>Email confirm</title>{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>email confirm</h3></span>
+<span class="w3-left"><h3>Email confirm</h3></span>
 {% endblock %}
 
 {% block nav_links %}
@@ -16,13 +16,12 @@
 
 
 {% block content %}
-<h1> "Confirm E-mail Address"</h1>
-
+<div class="w3-row w3-padding w3-center">
+<br/><br/><br/>
+<h1>Confirm E-mail Address</h1>
+<br/><br/>
 {% if confirmation %}
-
-
-
-<p> blocktrans with confirmation.email_address.email as email Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.</p>
+<h4>Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.</h4>
 
 <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
 {% csrf_token %}
@@ -32,9 +31,9 @@
 {% else %}
 
 {% url 'account_email' as email_url %}
-
-<p>This e-mail confirmation link expired or is invalid. Please <a href="{{ email_url }}">issue a new e-mail confirmation request</a></p>
+<h4>This e-mail confirmation link expired or is invalid </h4>.<br/>
+<a href="{{ email_url }}"><button class="accent">Resend Email</button></a>
 
 {% endif %}
-
+</div>
 {% endblock %}

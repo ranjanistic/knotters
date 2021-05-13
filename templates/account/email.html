@@ -4,66 +4,52 @@
 {% block title %}<title>email</title>{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>email</h3></span>
-{% endblock %}
-
-{% block nav_links %}
-  {% if request.user.is_authenticated %}
-  <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
-  {% endif %}
+<span class="w3-left"><h3>Email</h3></span>
 {% endblock %}
 
 {% block content %}
-    <h1>"E-mail Addresses"</h1>
+<div class="w3-row w3-padding">
+<h1>E-mail Addresses</h1>
 {% if user.emailaddress_set.all %}
-<p>'The following e-mail addresses are associated with your account:'</p>
-
+<h5>The following e-mail addresses are associated with your account:</h5>
 <form action="{% url 'account_email' %}" class="email_list" method="post">
-{% csrf_token %}
-<fieldset class="blockLabels">
-
-  {% for emailaddress in user.emailaddress_set.all %}
-<div class="ctrlHolder">
+  {% csrf_token %}
+  <fieldset class="pallete primary">
+    {% for emailaddress in user.emailaddress_set.all %}
+    <div class="ctrlHolder">
       <label for="email_radio_{{forloop.counter}}" class="{% if emailaddress.primary %}primary_email{%endif%}">
-
-      <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
-
-{{ emailaddress.email }}
-    {% if emailaddress.verified %}
-    <span class="verified">verified</span>
-    {% else %}
-    <span class="unverified">unverified</span>
-    {% endif %}
-      <span class="primary">primary</span>
-     
-</label>
-</div>
-  {% endfor %}
-
-<div class="buttonHolder">
-      <button class="secondaryAction" type="submit" name="action_primary" >'Make Primary'</button>
-      <button class="secondaryAction" type="submit" name="action_send" >'Re-send Verification'</button>
-      <button class="primaryAction" type="submit" name="action_remove" > trans 'Remove'</button>
-</div>
-
-</fieldset>
+        <h5>Primary</h5>
+        <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
+        {{ emailaddress.email }}
+        {% if emailaddress.verified %}
+        <i class="material-icons positive-text">verified</i>
+        {% else %}
+        <i class="material-icons negative-text">warning</i>
+        {% endif %}
+      </label>
+    </div>
+    {% endfor %}
+    <br/>
+    <div class="w3-row w3-padding">
+      <button class="accent" type="submit" name="action_primary" >Make Primary</button>
+      <button class="primary" type="submit" name="action_send" >Re-send Verification</button>
+      <button class="negative" type="submit" name="action_remove" >Remove</button>
+    </div>
+  </fieldset>
 </form>
-
 {% else %}
-<p><strong></strong> "You currently do not have any e-mail address set up. You should really add an e-mail address so you can receive notifications, reset your password, etc."</p>
-
+<h4>You currently do not have any e-mail address set up. You should really add an e-mail address so you can receive notifications, reset your password, etc.</h4>
+<br/>
 {% endif %}
-
-  {% if can_add_email %}
-    <h2> "Add E-mail Address" </h2>
-
-    <form method="post" action="{% url 'account_email' %}" class="add_email">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button name="action_add" type="submit"> "Add E-mail" </button>
-    </form>
-  {% endif %}
-
+{% if can_add_email %}
+  <h2>Add new email Address</h2>
+  <form method="post" action="{% url 'account_email' %}" class="add_email">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="accent" name="action_add" type="submit">Add email</button>
+  </form>
+{% endif %}
+</div>
 {% endblock %}
 
 

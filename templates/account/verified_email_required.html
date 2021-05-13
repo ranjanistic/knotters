@@ -1,10 +1,10 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}<title>verified email required</title>{% endblock %}
+{% block title %}<title>Email verification</title>{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>verified email required</h3></span>
+<span class="w3-left"><h3>Email verification</h3></span>
 {% endblock %}
 
 {% block nav_links %}
@@ -16,19 +16,21 @@
 
 
 {% block content %}
-<h1>"Verify Your E-mail Address"</h1>
+<div class="w3-row w3-padding w3-center">
+<h1>Verify your email address.</h1>
 
 {% url 'account_email' as email_url %}
 
-<p>This part of the site requires us to verify that
+<h5>This part of the site requires us to verify that
 you are who you claim to be. For this purpose, we require that you
-verify ownership of your e-mail address. </p>
-
-<p>We have sent an e-mail to you for
-verification. Please click on the link inside this e-mail. Please
-contact us if you do not receive it within a few minutes.</p>
-
-<p><strong>Note:</strong> you can still <a href="{{ email_url }}">change your e-mail address</a>.</p>
-
+verify ownership of your e-mail address. </h5>
+<br/>
+<span>We have sent an e-mail to you for
+verification. Please click on the link inside that e-mail.</span>
+<br/><br/>
+<h4>If your email address is not correct, then</h4>
+<br/>
+<a href="{{ email_url }}"><button class="accent">Change email address</button></a>
+</div>
 
 {% endblock %}

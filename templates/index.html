@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 {% load socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
@@ -7,6 +8,7 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#000000" >
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -36,10 +38,10 @@
         {% endblock %}
         {% block content %}
         <div class="w3-row">
-            <center>
+            <div class="w3-row w3-center w3-padding">
                 <h1>Solving problems together.</h1>
                 <h3>A community for need of any hour.</h3>
-            </center>
+            </div>
             <div class="w3-row w3-center w3-padding w3-light-grey">
                 <br/>
                 <h5>Currently engaged actively in following services.</h5>

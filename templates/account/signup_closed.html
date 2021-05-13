@@ -1,23 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}<title>signup closed</title>{% endblock %}
+{% block title %}<title>Signup closed</title>{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>signup closed</h3></span>
+<span class="w3-left"><h3>Signup suspended</h3></span>
 {% endblock %}
-
-{% block nav_links %}
-  {% if request.user.is_authenticated %}
-  <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
-  {% endif %}
-{% endblock %}
-
-
-
 
 {% block content %}
-<h1> "Sign Up Closed" </h1>
-
-<p>"We are sorry, but the sign up is currently closed."</p>
+<div class="w3-row w3-padding w3-center">
+<i class="material-icons w3-jumbo">construction</i>
+<h1>Sign Up unavailable</h1>
+<h4>We are sorry, but sign up is currently suspended.</h4>
+</div>
 {% endblock %}

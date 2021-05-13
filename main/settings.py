@@ -147,6 +147,8 @@ EMAIL_HOST_PASSWORD = env.MAILPASS
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+LOGIN_REDIRECT_URL = '/'
+
 if not DEBUG:
     os.environ["HTTPS"] = "on"
     os.environ["wsgi.url_scheme"] = "https"

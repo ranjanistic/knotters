@@ -1,57 +1,74 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}<title>connections</title>{% endblock %}
+{% block title %}<title>Linked Accounts</title>{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>connections</h3></span>
+<span class="w3-left"><h3>Linked Accounts</h3></span>
 {% endblock %}
 
 {% block content %}
-<h1>"Account Connections"</h1>
-
+<div class="w3-row w3-padding">
+<br/>
+<h1>Linked Accounts</h1>
+<br/>
 {% if form.accounts %}
-<p>You can sign in to your account using any of the following third party accounts:</p>
-
-
+<h4>You can sign in to your account using any of the following third party accounts:</h4>
+<br/>
 <form method="post" action="{% url 'socialaccount_connections' %}">
-{% csrf_token %}
+    {% csrf_token %}
+    <fieldset>
+    {% if form.non_field_errors %}
+    <div id="errorMsg">{{ form.non_field_errors }}</div>
+    {% endif %}
 
-<fieldset>
-{% if form.non_field_errors %}
-<div id="errorMsg">{{ form.non_field_errors }}</div>
-{% endif %}
+    {% for base_account in form.accounts %}
+        {% with base_account.get_provider_account as account %}
+        <div class="w3-row w3-padding">
+            <label for="id_account_{{ base_account.id }}">
+                <input id="id_account_{{ base_account.id }}" type="radio" name="account" value="{{ base_account.id }}"/>
+                <span class="socialaccount_provider {{ base_account.provider }} {{ account.get_brand.id }}">{{account.get_brand.name}}</span>
+            {{ account }}
+            </label>
+        </div>
+        {% endwith %}
+    {% endfor %}
 
-{% for base_account in form.accounts %}
-{% with base_account.get_provider_account as account %}
-<div>
-<label for="id_account_{{ base_account.id }}">
-<input id="id_account_{{ base_account.id }}" type="radio" name="account" value="{{ base_account.id }}"/>
-<span class="socialaccount_provider {{ base_account.provider }} {{ account.get_brand.id }}">{{account.get_brand.name}}</span>
-{{ account }}
-</label>
-</div>
-{% endwith %}
-{% endfor %}
-
-<div>
-<button type="submit">"Remove"</button>
-</div>
-
-</fieldset>
-
+    <div class="w3-row w3-padding">
+        <button class="negative" type="submit">Remove</button>
+    </div>
+    </fieldset>
 </form>
 
 {% else %}
-<p>'You currently have no social network accounts connected to this account.'</p>
+<h4>You currently have no 3rd party accounts linked.</h4>
 {% endif %}
+<br/>
+<h2>Link a 3rd Party Account</h2>
 
-<h2>'Add a 3rd Party Account'</h2>
+<div class="w3-row w3-padding">
+{% get_providers as socialaccount_providers %}
 
-<ul class="socialaccount_providers">
-{% include "socialaccount/snippets/provider_list.html" with process="connect" %}
-</ul>
+{% for provider in socialaccount_providers %}
+{% if provider.id == "openid" %}
+{% for brand in provider.get_brands %}
+<div class="w3-col w3-half">
+  <a title="{{brand.name}}"
+     class="socialaccount_provider {{provider.id}} {{brand.id}}"
+     href="{% provider_login_url provider.id openid=brand.openid_url process=connect %}"
+     ><button class="primary">{{brand.name}}</button></a>
+</div>
+{% endfor %}
+{% endif %}
+<span class="w3-padding">
+  <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}"
+     href="{% provider_login_url provider.id process=connect scope=scope auth_params=auth_params %}">
+     <button class="primary">{{provider.name}}</button>
+    </a>
+</span>
+{% endfor %}
+</div>
 
 {% include "socialaccount/snippets/login_extra.html" %}
-
+</div>
 {% endblock %}
