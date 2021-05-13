@@ -9,3 +9,6 @@ def index(request):
 
 def cancelled():
     return HttpResponse("asfsdf")
+
+def test(request):
+    return renderView(request, 'account/password_change.html')

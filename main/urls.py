@@ -10,4 +10,5 @@ urlpatterns = [
     path(env.ADMINPATH, admin.site.urls),
     path('', index),
     path('accounts/', include('allauth.urls')),
+    path('test', test)
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
