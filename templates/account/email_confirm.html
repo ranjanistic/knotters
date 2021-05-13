@@ -1,0 +1,40 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load socialaccount %}
+{% block title %}<title>email confirm</title>{% endblock %}
+{% block nav_title %}
+<a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
+<span class="w3-left"><h3>email confirm</h3></span>
+{% endblock %}
+
+{% block nav_links %}
+  {% if request.user.is_authenticated %}
+  <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
+  {% endif %}
+{% endblock %}
+
+
+
+{% block content %}
+<h1> "Confirm E-mail Address"</h1>
+
+{% if confirmation %}
+
+
+
+<p> blocktrans with confirmation.email_address.email as email Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.</p>
+
+<form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+{% csrf_token %}
+    <button type="submit">email confirm</button>
+</form>
+
+{% else %}
+
+{% url 'account_email' as email_url %}
+
+<p>This e-mail confirmation link expired or is invalid. Please <a href="{{ email_url }}">issue a new e-mail confirmation request</a></p>
+
+{% endif %}
+
+{% endblock %}
