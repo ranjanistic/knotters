@@ -4,7 +4,7 @@ cffi==1.14.5
 chardet==4.0.0
 cryptography==3.4.7
 defusedxml==0.7.1
-Django==3.0.14
+Django==3.0.5
 django-allauth==0.44.0
 django-cors-headers==3.7.0
 django-dbbackup==3.3.0
