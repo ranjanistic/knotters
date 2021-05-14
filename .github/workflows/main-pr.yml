@@ -27,20 +27,20 @@ jobs:
         pip install -r requirements.txt
     - name: Setup Environment
       run: |
-        touch .env
-        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> .env
-        echo "PUBNAME=${{ secrets.PUBNAME }}" >> .env
-        echo "ENV=${{ secrets.ENV }}" >> .env
-        echo "HOSTS=${{ secrets.HOSTS }}" >> .env
-        echo "DBNAME=${{ secrets.DBNAME }}" >> .env
-        echo "DBLINK=${{ secrets.DBLINK }}" >> .env
-        echo "DBUSER=${{ secrets.DBUSER }}" >> .env
-        echo "DBPASS=${{ secrets.DBPASS }}" >> .env
-        echo "MAILUSER=${{ secrets.MAILUSER }}" >> .env
-        echo "MAILPASS=${{ secrets.MAILPASS }}" >> .env
-        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> .env
-        echo "CORSLIST=${{ secrets.CORSLIST }}" >> .env
-        echo "COOKIEDOM=${{ secrets.COOKIEDOM }}" >> .env
+        touch main/.env
+        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> main/.env
+        echo "PUBNAME=${{ secrets.PUBNAME }}" >> main/.env
+        echo "ENV=${{ secrets.ENV }}" >> main/.env
+        echo "HOSTS=${{ secrets.HOSTS }}" >> main/.env
+        echo "DBNAME=${{ secrets.DBNAME }}" >> main/.env
+        echo "DBLINK=${{ secrets.DBLINK }}" >> main/.env
+        echo "DBUSER=${{ secrets.DBUSER }}" >> main/.env
+        echo "DBPASS=${{ secrets.DBPASS }}" >> main/.env
+        echo "MAILUSER=${{ secrets.MAILUSER }}" >> main/.env
+        echo "MAILPASS=${{ secrets.MAILPASS }}" >> main/.env
+        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> main/.env
+        echo "CORSLIST=${{ secrets.CORSLIST }}" >> main/.env
+        echo "COOKIEDOM=${{ secrets.COOKIEDOM }}" >> main/.env
     - name: Unit Testing
       run: |
         python manage.py test
