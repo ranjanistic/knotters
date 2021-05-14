@@ -5,4 +5,6 @@ from service.models import Service
 
 def index(request):
     services = Service.objects.all()
-    return renderView(request, 'index.html', {"services":services})
+    return renderView(request, 'index.html', {
+        "services":services
+    })
