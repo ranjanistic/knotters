@@ -53,19 +53,23 @@
     background-color: var(--accent) !important;
     color: var(--secondary);
   }
+  .accent-text {
+    color: var(--accent) !important;
+  }
   .negative {
     background-color: var(--negative) !important;
     color: var(--primary);
   }
+  .negative-text {
+    color: var(--negative) !important;
+  }
+  
   .positive {
     background-color: var(--positive) !important;
     color: var(--primary);
   }
   .positive-text {
     color: var(--positive) !important;
-  }
-  .negative-text {
-    color: var(--negative) !important;
   }
   
   .sub-accent {
@@ -80,7 +84,7 @@
   button{
       padding:4px 12px;
       border-radius: 22px;
-      margin: 0px 2px;
+      margin: 1px 2px;
       font-family: var(--head-font);
       outline: none;
       cursor: pointer;
@@ -93,6 +97,10 @@
       vertical-align: middle;
       padding: 0px 4px 2px 0px;
       font-size: 20px !important;
+  }
+  button>img{
+      vertical-align: middle;
+      padding: 0px 4px 2px 0px;
   }
   
   button:hover{

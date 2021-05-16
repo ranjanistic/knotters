@@ -1,0 +1,50 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}<title>{{project.name}} | {{appname}}</title>{% endblock %}
+
+{% block nav_title %}
+<a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
+<span class="w3-left"><h3>{{project.name}}</h3></span>
+{% endblock %}
+{% block content %}
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-quarter">
+        <div class="w3-row w3-center">
+            <div class="pallete w3-transparent">
+                <img src="/media/{{project.image}}" width="300" />
+            </div>
+            <center><h5>{{project.description}}</h5></center><br/>
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-row">
+            {% for tag in project.tags %}
+            <button class="positive">#{{tag}}</button>
+            {% empty %}
+                <button class="primary">No tags assigned</button>
+            {% endfor %}
+            </div>
+            <br/>
+            <div class="w3-row">
+                <a target="_blank" rel="noreferrer" href="{{project.githuburl}}">
+                    <button class="secondary"><img src="{% static 'graphics/thirdparty/github.png' %}" width="25"/>Gihtub</button>
+                </a>
+                {% if project.url %}
+                <a target="_blank" rel="noreferrer" href="{{project.url}}">
+                    <button class="positive"><i class="material-icons">launch</i>Open</button>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="w3-col w3-threequarter">
+        <div class="w3-col w3-half">
+        
+        </div>
+        <div class="w3-col w3-half">
+        
+        </div>
+    </div>
+</div>
+
+{% endblock %}

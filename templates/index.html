@@ -27,7 +27,8 @@
             <span class="w3-right w3-row w3-padding">
                 {% block nav_links %}
                 {% if request.user.is_authenticated %}
-                <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
+                <a href="/projects/create"><button class="positive"><i class="material-icons">add_circle</i>New project</button></a>
+                <a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
                 {% else %}
                 <a href="{% url 'account_login' %}?next=/"><button class="accent"><i class="material-icons">login</i>Login</button></a>
                 <a href="{% url 'account_signup' %}?next=/"><button class="positive"><i class="material-icons">person_add</i>Join community</button></a>
@@ -40,26 +41,27 @@
         <div class="w3-row">
             <div class="w3-row w3-center w3-padding">
                 <h1>Solving problems together.</h1>
-                <h3>A community for need of any hour.</h3>
             </div>
             <div class="w3-row w3-center w3-padding w3-light-grey">
                 <br/>
-                <h5>Currently engaged actively in following services.</h5>
+                <h5>Most active projects of this week</h5>
                 <br/>
                 <div class="w3-col w3-third w3-padding">
                 </div>
-                {% for service in services %}
-                <a href="{{service.url}}">
+                {% for project in projects %}
+                <a href="/projects/profile/{{project.id}}">
                 <div class="w3-col w3-third pallete primary">
                     <div class="w3-row">
-                        <img src="/media/{{service.image}}" width="150" />
+                        <img src="/media/{{project.image}}" width="150" />
                     </div>
-                    <h2>{{service.name}}</h2>
-                    <span>{{service.description}}</span>
+                    <h2>{{project.name}}</h2>
+                    <span>{{project.description}}</span>
                 </div>
                 </a>
                 {% empty %}
-                <h2>Waiting for services.</h2>
+                <div class="w3-row w3-center">
+                <h2>Waiting for projects.</h2>
+                </div>
                 {% endfor %}
                 <br/>
             </div>
