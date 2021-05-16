@@ -24,7 +24,7 @@
 		<form method="POST" action="{% url 'account_login' %}">
 			{% csrf_token %}
 			<div>
-				<button class="primary w3-padding"><a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">&nbsp;Continue via Google</a></button>
+				<button class="primary w3-padding"><a href="/accounts/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">Continue via Google</a></button>
 				<button class="secondary w3-padding"><a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">Continue via Github</a></button>
 			</div>
 			<br/>
