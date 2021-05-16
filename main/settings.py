@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "service"
 ]
 
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
 DBBACKUP_STORAGE_OPTIONS = {"location": os.path.join(BASE_DIR, "backup")}
 
