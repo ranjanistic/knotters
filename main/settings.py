@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
     "corsheaders",
-    "service"
+    "project"
 ]
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"

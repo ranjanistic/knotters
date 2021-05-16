@@ -24,8 +24,8 @@
 		<form method="POST" action="{% url 'account_login' %}">
 			{% csrf_token %}
 			<div>
-				<button class="primary w3-padding"><a href="{% provider_login_url 'google' method='oauth2' %}">&nbsp;Continue via Google</a></button>
-				<button class="secondary w3-padding"><a href="{% provider_login_url 'github' method='oauth2' next='bruh' %}">Continue via Github</a></button>
+				<button class="primary w3-padding"><a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">&nbsp;Continue via Google</a></button>
+				<button class="secondary w3-padding"><a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">Continue via Github</a></button>
 			</div>
 			<br/>
 			<h3>or use your Knotters account</h3>
@@ -38,7 +38,7 @@
 			<br/>
 			<button class="positive" type="submit"><i class="material-icons">login</i>Sign In</button>
 			<a href="{% url 'account_reset_password' %}"><button class="primary"><i class="material-icons">help</i>Forgot?</button></a>
-			<input type="hidden" name="next" value="{{request.GET.next}}" />
+			<input type="hidden" name="next" value="/redirector?n={{request.GET.next}}" />
 		</form>
 		<br/>
 		<a href="/accounts/signup?next={{request.GET.next}}">
