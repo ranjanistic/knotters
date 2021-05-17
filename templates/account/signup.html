@@ -21,22 +21,22 @@
 <div class="w3-row w3-padding w3-center w3-light-grey">
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half  accent pallete">
+	<div class="w3-row">
+		<a href="/accounts/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+			<button class="primary w3-padding">
+				<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
+				Continue via Google
+			</button>
+		</a>
+		<a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+			<button class="secondary w3-padding">
+				<img src="{% static 'graphics/thirdparty/github.png' %}" width="25" />
+				Continue via Github
+			</button>
+		</a>
+	</div>
 	<form method="POST" action="{% url 'account_signup' %}">
 		{% csrf_token %}
-		<div class="w3-row">
-			<a href="/accounts/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
-				<button class="primary w3-padding">
-					<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
-					Continue via Google
-				</button>
-			</a>
-			<a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
-				<button class="secondary w3-padding">
-					<img src="{% static 'graphics/thirdparty/github.png' %}" width="25" />
-					Continue via Github
-				</button>
-			</a>
-		</div>
 		<br/>
 		<h3>or create a Knotters account</h3>
 		<br/>
