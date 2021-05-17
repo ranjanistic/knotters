@@ -1,0 +1,101 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block nav %}
+
+<nav class="w3-row accent">
+{% block nav_title %}
+<a href="/" class="w3-left w3-padding"><button title="abort" class="primary"><i class="material-icons">close</i></button></a>
+<span class="w3-left"><h3>Create Project</h3></span>
+{% endblock %}
+
+<span class="w3-right w3-row w3-padding">
+{% block nav_links %}
+<a href="{% url 'account_logout' %}"><button class="primary"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
+{% endblock %}
+</span>
+</nav>
+{% endblock %}
+
+
+{% block content %}
+<div class="w3-row w3-padding w3-light-grey">
+<br/><br/>
+<div class="w3-row w3-padding">
+    {% if step != 1 %}
+        <form method="POST">
+        <input type="hidden" name="nextstep" value="{{step|add:"-1"}}" />
+        {% csrf_token %}
+        {% if step == 3 %}
+        <input type="hidden" name="projectabout" value="{{projectabout}}" />
+        <input type="hidden" name="tags" value="{{tags}}" />
+        {% endif %}
+        <input type="hidden" name="projectname" value="{{projectname}}" />
+        <input type="hidden" name="reponame" value="{{reponame}}" />
+        <button type="submit" class="primary"><i class="material-icons">navigate_before</i>Previous</button></a>
+        <button type="button" class="positive">Step {{step}} of {{totalsteps}}</button>
+        </form>
+    {% else %}
+    <button type="button" class="positive">Step {{step}} of {{totalsteps}}</button>
+    {% endif %}
+</div>
+<br/>
+<form class="w3-col w3-half w3-padding" method="POST">
+    {% csrf_token %}
+    {% if step == 1 %}
+    <h3>Display name</h3>
+    <input required class="big-input" name="projectname" placeholder="Project title" 
+        {% if projectname %}
+        value="{{projectname}}"
+        {% endif %}
+    />
+    <br/><br/>
+    <h3>Repository name</h3>
+    <input required class="big-input" name="reponame" placeholder="Project username"
+        {% if reponame %}
+        value="{{reponame}}"
+        {% endif %}
+    />
+    {% elif step == 2 %}
+    <input type="hidden" name="projectname" value="{{projectname}}" />
+    <input type="hidden" name="reponame" value="{{reponame}}" />
+    <h3>About {% if projectname %}
+        {{projectname}}
+        {% endif %}</h3>
+    <textarea required class="big-input" maxlength="3000" name="projectabout" placeholder="What's your project about?">{% if projectabout %}{{projectabout}}{% endif %}</textarea>
+    <br/><br/>
+    <h3>Tags</h3>
+    <input required class="big-input" name="tags" maxlength="50" placeholder="Separate by comma"
+        {% if tags %}
+        value="{{tags}}"
+        {% endif %}
+    />
+    {% elif step == 3 %}
+    <div class="w3-row pallete primary">
+    <input type="hidden" name="projectname" value="{{projectname}}" />
+    <input type="hidden" name="reponame" value="{{reponame}}" />
+    <input type="hidden" name="projectabout" value="{{projectabout}}" />
+    <input type="hidden" name="tags" value="{{tags}}" />
+    <h1 class="positive-text">Project : {{projectname}}</h1>
+    <h5>Description : {{projectabout}}</h5>
+    <h5>Github repository : github.com/Knotters/{{reponame}}</h5>
+    <h5>Tags : {{tags}}</h5>
+    </div>
+    {% endif %}
+    <br/><br/><br/>
+    <input type="hidden" name="nextstep" value="{{step|add:"1"}}" />
+    <div class="w3-row">
+        {% if step == 3 %}
+        <button type="submit" class="w3-right big-button sub-accent">
+        Create {{projectname}} <i class="material-icons big-icon">add_circle</i>
+        {% else %}
+        <button type="submit" class="w3-right big-button positive">
+        Next <i class="material-icons big-icon">navigate_next</i>
+        {% endif %}
+        </button>
+    </div>
+</form>
+<div class="w3-row"></div>
+<br/><br/><br/><br/>
+</div>
+{% endblock %}

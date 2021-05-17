@@ -11,7 +11,7 @@
 
 {% block nav_links %}
 <a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
-<a href="{% url 'account_signup' %}?next={{request.GET.next}}"><button class="positive"><i class="material-icons">volunteer_activism</i>Join Knotters</button>
+<a href="{% url 'account_signup' %}?next={{request.GET.next}}"><button class="positive"><i class="material-icons">volunteer_activism</i>Join Knotters</button></a>
 {% endblock %}
 
 {% block content %}
@@ -23,9 +23,19 @@
 	<div class="w3-col w3-half  accent pallete">
 		<form method="POST" action="{% url 'account_login' %}">
 			{% csrf_token %}
-			<div>
-				<button class="primary w3-padding"><a href="/accounts/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">Continue via Google</a></button>
-				<button class="secondary w3-padding"><a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">Continue via Github</a></button>
+			<div class="w3-row">
+				<a href="/accounts/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+					<button class="primary w3-padding">
+						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
+						Continue via Google
+					</button>
+				</a>
+				<a href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+					<button class="secondary w3-padding">
+						<img src="{% static 'graphics/thirdparty/github.png' %}" width="25" />
+						Continue via Github
+					</button>
+				</a>
 			</div>
 			<br/>
 			<h3>or use your Knotters account</h3>
@@ -42,7 +52,7 @@
 		</form>
 		<br/>
 		<a href="/accounts/signup?next={{request.GET.next}}">
-		<button class="positive">
+		<button class="primary">
 		<i class="material-icons">person_add</i>Create an account
 		</button>
 		</a>

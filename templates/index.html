@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load socialaccount %}
+{% load account %}
 <!DOCTYPE html>
 <html lang="en">
     {% block head %}
@@ -44,7 +45,7 @@
             </div>
             <div class="w3-row w3-center w3-padding w3-light-grey">
                 <br/>
-                <h5>Most active projects of this week</h5>
+                <h3>Most active projects of this week</h3>
                 <br/>
                 <div class="w3-col w3-third w3-padding">
                 </div>
@@ -63,7 +64,11 @@
                 <h2>Waiting for projects.</h2>
                 </div>
                 {% endfor %}
-                <br/>
+            <div class="w3-row">
+            <br/>
+                <a href="/projects"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
+            </div>
+            <br/>
             </div>
         </div>
         {% endblock %}
@@ -72,12 +77,16 @@
         <footer class="w3-row secondary w3-padding" style="min-height: 50vh;">
             <br/><br/>
             <div class="w3-col w3-half primary-text w3-padding">
+                {% if contactmail %}
                 <a href="mailto:{{contactmail}}"><button class="primary"><i class="material-icons">mail</i>{{contactmail}}</button></a><br/><br/>
-                Github <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary">Knotters</button></a><br/><br/>
-                Twitter <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="w3-blue">knottersdotorg</button></a><br/><br/>
-                Instagram <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="w3-pink">knottersdotorg</button></a>
+                {% endif %}
+                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />Knotters</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="25" />knottersdotorg</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/instagram.png' %}" width="25" />knottersdotorg</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="22" />knottersdotorg</button></a><br/><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small">
+                <br/><br/>
                 <div class="w3-row">
                     <h2 class="primary-text w3-right"><a href="/">Knotters Community</a>.</h2>
                 </div>

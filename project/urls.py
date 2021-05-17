@@ -6,6 +6,6 @@ from .views import *
 
 urlpatterns = [
     path('', allProjects),
-    path('create', profile),
+    path('create', create),
     path('profile/<str:id>', profile)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -4,7 +4,7 @@
 {% block title %}<title>{{project.name}} | {{appname}}</title>{% endblock %}
 
 {% block nav_title %}
-<a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
+<a href="/projects" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
 <span class="w3-left"><h3>{{project.name}}</h3></span>
 {% endblock %}
 {% block content %}
@@ -18,7 +18,7 @@
         </div>
         <div class="w3-row w3-padding">
             <div class="w3-row">
-            {% for tag in project.tags %}
+            {% for tag in project.tags.all %}
             <button class="positive">#{{tag}}</button>
             {% empty %}
                 <button class="primary">No tags assigned</button>
@@ -27,11 +27,11 @@
             <br/>
             <div class="w3-row">
                 <a target="_blank" rel="noreferrer" href="{{project.githuburl}}">
-                    <button class="secondary"><img src="{% static 'graphics/thirdparty/github.png' %}" width="25"/>Gihtub</button>
+                    <button class="secondary"><img src="{% static 'graphics/thirdparty/github.png' %}" width="25"/>Contribute</button>
                 </a>
                 {% if project.url %}
                 <a target="_blank" rel="noreferrer" href="{{project.url}}">
-                    <button class="positive"><i class="material-icons">launch</i>Open</button>
+                    <button class="sub-accent"><i class="material-icons">launch</i>Open</button>
                 </a>
                 {% endif %}
             </div>
