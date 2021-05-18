@@ -13,7 +13,7 @@ jobs:
   testing:
     runs-on: ubuntu-20.04
     strategy:
-      max-parallel: 4
+      max-parallel: 1
       matrix:
         python-version: [3.9]
 
@@ -46,12 +46,13 @@ jobs:
         echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> main/.env
     - name: Unit Testing
       run: |
-        python manage.py test
+        python manag.py test
 
   building:
+    needs: [ testing ]
     runs-on: self-hosted
     strategy:
-      max-parallel: 4
+      max-parallel: 1
       matrix:
         python-version: [3.9]
 
