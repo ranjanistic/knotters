@@ -49,6 +49,7 @@
         value="{{projectname}}"
         {% endif %}
     />
+    <span class="w3-right negative-text">{{errorprojectname}}</span>
     <br/><br/>
     <h3>Repository name</h3>
     <input required class="big-input" name="reponame" placeholder="Project username"
@@ -56,6 +57,7 @@
         value="{{reponame}}"
         {% endif %}
     />
+    <span class="w3-right negative-text">{{errorreponame}}</span>
     {% elif step == 2 %}
     <input type="hidden" name="projectname" value="{{projectname}}" />
     <input type="hidden" name="reponame" value="{{reponame}}" />
@@ -63,6 +65,7 @@
         {{projectname}}
         {% endif %}</h3>
     <textarea required class="big-input" maxlength="3000" name="projectabout" placeholder="What's your project about?">{% if projectabout %}{{projectabout}}{% endif %}</textarea>
+    <span class="w3-right negative-text">{{errorprojectabout}}</span>
     <br/><br/>
     <h3>Tags</h3>
     <input required class="big-input" name="tags" maxlength="50" placeholder="Separate by comma"
@@ -70,6 +73,7 @@
         value="{{tags}}"
         {% endif %}
     />
+    <span class="w3-right negative-text">{{errortags}}</span>
     {% elif step == 3 %}
     <div class="w3-row pallete primary">
     <input type="hidden" name="projectname" value="{{projectname}}" />
@@ -81,7 +85,10 @@
     <h5>Github repository : github.com/Knotters/{{reponame}}</h5>
     <h5>Tags : {{tags}}</h5>
     </div>
+    <span class="w3-right negative-text">{{errorfinal}}</span>
     {% endif %}
+    
+    
     <br/><br/><br/>
     <input type="hidden" name="nextstep" value="{{step|add:"1"}}" />
     <div class="w3-row">

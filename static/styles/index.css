@@ -89,6 +89,9 @@ h6 {
   background-color: var(--negative) !important;
   color: var(--primary);
 }
+.negative-text {
+  color: var(--negative) !important;
+}
 .positive {
   background-color: var(--positive) !important;
   color: var(--primary);
