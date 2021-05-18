@@ -46,9 +46,9 @@ jobs:
         echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> main/.env
     - name: Unit Testing
       run: |
-        python manag.py test
+        python manage.py test
 
-  building:
+  build_deploy:
     needs: [ testing ]
     runs-on: self-hosted
     strategy:
