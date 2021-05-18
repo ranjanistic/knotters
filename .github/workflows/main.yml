@@ -43,6 +43,7 @@ jobs:
         echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> main/.env
         echo "CORSLIST=${{ secrets.CORSLIST }}" >> main/.env
         echo "COOKIEDOM=${{ secrets.COOKIEDOM }}" >> main/.env
+        echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> main/.env
     - name: Unit Testing
       run: |
         python manage.py test
