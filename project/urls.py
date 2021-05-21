@@ -7,5 +7,5 @@ from .views import *
 urlpatterns = [
     path('', allProjects),
     path('create', create),
-    path('profile/<str:id>', profile)
+    path('profile/<str:reponame>', profile)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

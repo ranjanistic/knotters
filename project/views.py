@@ -10,13 +10,14 @@ def allProjects(request):
     projects = Project.objects.all()
     return renderView(request,'project/all.html',{"projects":projects})
 
-def profile(request,id):
-    project = Project.objects.get(id=id)
+def profile(request,reponame):
+    project = Project.objects.get(reponame=reponame)
     return renderView(request,'project/profile.html',{"project":project})
 
 @login_required
 def create(request):
-    # user = User.objects.get()
+    print(request.user.email)
+    # user = User.objects.get(id=request.user.id)
     data = {'step':1, 'totalsteps':3 }
     try:
         # step 3 submit
