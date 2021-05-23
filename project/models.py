@@ -73,12 +73,11 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50,null=False,blank=False)
     url = models.CharField(max_length=500,null=True,blank=True)
-    creator = models.UUIDField(editable=False, null=False, blank=False)
     image = models.FileField(upload_to=projectImagePath,null=True,blank=True,max_length=500)
     reponame = models.CharField(max_length=500,null=False,blank=False,unique=True)
     description = models.CharField(max_length=5000,null=False,blank=False)
     tags = models.ManyToManyField(Tag)
-    creator = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    creator = models.ForeignKey("User", on_delete=models.CASCADE)
     def __str__(self):
         return self.name
 
