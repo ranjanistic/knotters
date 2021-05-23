@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 class UserAccountManager(BaseUserManager):
@@ -30,7 +31,7 @@ class UserAccountManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser,PermissionsMixin):
     USERNAME_FIELD = 'email'
     id = models.BigAutoField(primary_key=True)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
