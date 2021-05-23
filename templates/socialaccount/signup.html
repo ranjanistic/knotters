@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 {% load i18n %}
-{% block title %}<title>OAuth Link Signup</title>{% endblock %}
+{% block title %}OAuth Link Signup{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
 <span class="w3-left"><h3>OAuth Link Signup</h3></span>
@@ -11,11 +11,13 @@
 
 {% block content %}
 <div class="w3-row w3-padding w3-center">
+<br/>
+  <div class="material-icons w3-jumbo">link</div>
   <h1>OAuth Link Signup</h1>
   <br/>
   <h5>{% blocktrans with provider_name=account.get_provider.name site_name=site.name %}
   You are about to use your {{provider_name}} account to login to {{site_name}}. This is the final step.{% endblocktrans %}</h5>
-  <form class="pallete primary" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+  <form id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
     {% csrf_token %}
     {{ form.as_p }}
     {% if redirect_field_value %}

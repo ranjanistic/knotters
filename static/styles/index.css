@@ -1,15 +1,39 @@
 :root {
   --primary: #ffffff;
+  --primary-text: #000000;
   --secondary: #000000;
+  --secondary-text: #ffffff;
+  --tertiary: #efefef;
+  --tertiary-text: #141414;
   --accent: #f5d702;
-  --sub-accent: #12e49d;
+  --accent-text: #000000;
+  --active: #12e49d;
+  --active-text: #000000;
   --positive: #1657ce;
+  --positive-text: #ffffff;
   --negative: #cc352a;
+  --negative-text: #ffffff;
   --head-font: "Poppins", sans-serif;
   --body-font: "Questrial", sans-serif;
   --delay: 0.3s;
 }
 
+[data-theme="dark"] {
+  --primary: #000000;
+  --primary-text: #ffffff;
+  --secondary: #0a0909;
+  --secondary-text: #ffffff;
+  --tertiary: #141313;
+  --tertiary-text: #dfdfdf;
+  --accent: #ca6d02;
+  --accent-text: #000000;
+  --active: #36c998;
+  --active-text: #000000;
+  --positive: #7696d3;
+  --positive-text: #000000;
+  --negative: #e0756d;
+  --negative-text: #000000;
+}
 ::-webkit-scrollbar {
   width: 8px;
   transition: 0.4s ease;
@@ -23,7 +47,7 @@
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--sub-accent);
+  background: var(--active);
   transition: 0.4s ease;
 }
 
@@ -50,7 +74,7 @@ a:active {
 }
 body {
   background-color: var(--primary);
-  color: var(--secondary);
+  color: var(--primary-text);
   font-family: var(--body-font);
 }
 
@@ -61,51 +85,93 @@ h4,
 h5,
 h6 {
   font-family: var(--head-font);
-  color: var(--secondary);
+  color: var(--primary-text);
   font-weight: bolder;
 }
 
 .primary {
   background-color: var(--primary) !important;
-  color: var(--secondary);
+  color: var(--primary-text);
 }
 .primary-text {
   color: var(--primary) !important;
 }
+.text-primary {
+  color: var(--primary-text) !important;
+}
 
 .secondary {
   background-color: var(--secondary) !important;
-  color: var(--primary);
+  color: var(--secondary-text);
+}
+.secondary-text {
+  color: var(--secondary) !important;
+}
+.text-secondary {
+  color: var(--secondary-text) !important;
+}
+
+.tertiary {
+  background-color: var(--tertiary) !important;
+  color: var(--tertiary-text);
+}
+.tertiary-text {
+  color: var(--tertiary) !important;
+}
+.text-tertiary {
+  color: var(--tertiary-text) !important;
 }
 
 .accent {
   background-color: var(--accent) !important;
-  color: var(--secondary);
+  color: var(--accent-text);
 }
 .accent-text {
   color: var(--accent) !important;
 }
+.text-accent {
+  color: var(--accent-text) !important;
+}
+
 .negative {
   background-color: var(--negative) !important;
-  color: var(--primary);
+  color: var(--negative-text);
 }
 .negative-text {
   color: var(--negative) !important;
 }
+.text-negative {
+  color: var(--negative-text) !important;
+}
+
 .positive {
   background-color: var(--positive) !important;
-  color: var(--primary);
+  color: var(--positive-text);
 }
 .positive-text {
   color: var(--positive) !important;
 }
+.text-positive {
+  color: var(--positive-text) !important;
+}
+
+.active {
+  background-color: var(--active) !important;
+  color: var(--active-text);
+}
+.active-text {
+  color: var(--active) !important;
+}
+.text-active {
+  color: var(--active-text) !important;
+}
 
 .sub-accent {
-  background-color: var(--sub-accent) !important;
-  color: var(--secondary);
+  background-color: var(--active) !important;
+  color: var(--active-text);
 }
 .sub-accent-text {
-  color: var(--sub-accent) !important;
+  color: var(--active) !important;
 }
 
 nav {
@@ -148,7 +214,7 @@ button:active {
   padding: 12px;
   box-shadow: 2px 1px 24px 1px #0000001f;
   border-radius: 12px;
-  background-color: var(--sub-accent);
+  background-color: var(--active);
   transition: var(--delay);
 }
 .pallete:active {
@@ -156,7 +222,6 @@ button:active {
   opacity: 0.8;
   box-shadow: 0 0 0 0 #00000000;
   border-radius: 12px;
-  background-color: var(--sub-accent);
 }
 
 .scroll-x {
@@ -166,8 +231,8 @@ button:active {
 summary {
   font-size: 1.25rem;
   font-weight: 600;
-  background-color: #fff;
-  color: #333;
+  background-color: var(--primary);
+  color: var(--primary-text);
   padding: 1rem;
   margin-bottom: 1rem;
   outline: none;
@@ -203,12 +268,15 @@ details[open] > summary::after {
 details > summary::-webkit-details-marker {
   display: none;
 }
+
 input,textarea {
   border: 0;
   outline: 0;
   padding: 8px 8px;
   font-size: 18px;
   border-radius: 8px;
+  background-color: var(--tertiary);
+  color: var(--tertiary-text);
   transition: var(--delay);
 }
 
@@ -221,12 +289,11 @@ textarea:focus {
   width: 100%;
   font-size: 40px;
   font-family: var(--head-font);
-  border: 2px solid var(--sub-accent);
+  border: 2px solid var(--active);
 }
 .big-input:focus {
   width: 100%;
   font-size: 44px;
-
   font-family: var(--head-font);
   border: 4px solid var(--positive);
 }

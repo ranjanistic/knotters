@@ -1,5 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
+
+{% block og %}
+<meta property="og:title" content="{{appname}} Terms of Service" />
+<meta
+property="og:description"
+content="{{appname}} community is meant for betterment of everyone, terms are meant for betterment of this community."
+/>
+<meta property="og:site_name" content="{{appname}}" />
+{% endblock %}
+
+{% block title %}Terms of Service{% endblock %}
 {% block nav_href %}
 /docs
 {% endblock %}
@@ -13,7 +24,7 @@ Docs
     <center>
         <div class="material-icons w3-jumbo">gavel</div>
         <h1>Terms of Service</h1>
-        <h3>Knotters community is meant for betterment of everyone, terms are meant for betterment of this community.</h3>
+        <h3>{{appname}} community is meant for betterment of everyone, terms are meant for betterment of this community.</h3>
     </center><br/>
 </div>
 {% endblock %}

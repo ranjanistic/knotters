@@ -1,0 +1,17 @@
+{
+    "short_name": "Knotters",
+    "name": "Knotters",
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "icons": [
+      {
+        "src": "/static/graphics/icon.svg",
+        "type": "image/png",
+        "sizes":"1000x1000",
+        "purpose": "any"
+      }
+    ]
+  }
+  

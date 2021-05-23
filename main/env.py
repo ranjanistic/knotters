@@ -18,4 +18,7 @@ CORSLIST = env('CORSLIST').split(',')
 CORSTUPLE = tuple(CORSLIST)
 COOKIEDOM = str(env('COOKIEDOM'))
 GITHUBBOTTOKEN = env('GITHUBBOTTOKEN')
+SITE = env('SITE')
+
+
 ISPRODUCTION = ENV == 'production'

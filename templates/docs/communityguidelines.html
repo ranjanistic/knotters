@@ -1,5 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
+
+{% block og %}
+<meta property="og:title" content="{{appname}} Community Guidelines" />
+<meta
+property="og:description"
+content="Liberty to create & contribute for betterment of each other is the central aspect of our guidelines."
+/>
+<meta property="og:site_name" content="{{appname}}" />
+{% endblock %}
+{% block title %}Community Guidelines{% endblock %}
+
 {% block nav_href %}
 /docs
 {% endblock %}

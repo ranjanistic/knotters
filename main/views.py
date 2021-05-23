@@ -11,8 +11,10 @@ def index(request):
     })
 
 def redirector(request):
-    next = request.GET['n']
-
+    try:
+        next = request.GET['n']
+    except:
+        next = '/'
     if str(next).strip()=='' or next == None:
         next = '/'
     return HttpResponse(f"<h1>Redirecting...</h1><script>window.location.replace('{next}')</script>")

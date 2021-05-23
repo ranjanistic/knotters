@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}<title>Logout</title>{% endblock %}
+{% block title %}Logout{% endblock %}
 
 {% block nav_title %}
 <a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
@@ -17,11 +17,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="w3-row w3-padding w3-center w3-light-grey">
+<div class="w3-row w3-padding w3-center tertiary">
 	<div class="w3-padding"><i class="material-icons w3-jumbo">logout</i></div>
 	<h1>{{request.user|capfirst}}, are you sure you want to log out?</h1>
 </div>
-<div class="w3-row w3-padding w3-center w3-light-grey">
+<div class="w3-row w3-padding w3-center tertiary">
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half">
     <form method="POST" action="{% url 'account_logout' %}">

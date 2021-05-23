@@ -2,7 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}<title>Signup</title>{% endblock %}
+{% block title %}Signup{% endblock %}
 
 {% block nav_title %}
 <a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
@@ -15,10 +15,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="w3-row w3-padding w3-center w3-light-grey">
+<div class="w3-row w3-padding w3-center tertiary">
 	<h4>Be a part of a community that's always there for you.</h4>
 </div>
-<div class="w3-row w3-padding w3-center w3-light-grey">
+<div class="w3-row w3-padding w3-center tertiary">
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half  accent pallete">
 	<div class="w3-row">
@@ -62,7 +62,7 @@
 	</div>
 </div>
 {% block errors %}
-<div class="w3-row w3-light-grey w3-padding negative-text w3-center">
+<div class="w3-row tertiary w3-padding negative-text w3-center">
 {% if form.errors %}
 		{% for field in form %}
 			{% for error in field.errors %}

@@ -9,14 +9,75 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="theme-color" content="#000000" >
+        <meta name="theme-color" content="#000000" id="themecolor">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+        />
+        <link
+        rel="apple-touch-startup-image"
+        href="{% static 'graphics/icon.png' %}"
+        />
+        <meta
+        name="description"
+        content="{{description}}"
+        />
+        <link rel="manifest" href="{% static 'manifest.json' %%}" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="{{appname}}" />
+        <meta property="og:url" content="{{site}}" />
+        <meta property="og:locale" content="en-US" />
+        <meta
+        name="image"
+        property="og:image"
+        content="{{site}}/static/graphics/icon.png"
+        />
+        <meta property="og:type" content="tools" />
+        {% block og %}
+        <meta property="og:title" content="{{appname}}" />
+        <meta
+        property="og:description"
+        content="{{description}}"
+        />
+        <meta property="og:site_name" content="{{appname}}" />
+        {% endblock %}
+        <meta name="author" content="Knotters Community">
+        <meta
+        name="favicon"
+        content="{{site}}/static/graphics/icon.png"
+        />
+        <meta name="twitter:title" content="{{appname}}" />
+        <meta
+        name="twitter:description"
+        content="{{description}}"
+        />
+        <meta
+        name="twitter:image"
+        content="{{site}}/static/graphics/icon.png"
+        />
+        <meta name="twitter:site" content="@knottersdotorg" />
+        <meta name="twitter:creator" content="@ranjanistic" />
+        <meta name="twitter:url" content="{{site}}" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+        name="linkedin:card"
+        content="{{site}}/static/graphics/icon.png"
+        />
+        <link rel="apple-touch-icon" href="{% static 'graphics/icon.png' %}" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff" />
+        <meta name="apple-mobile-web-app-title" content="{{appname}}" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-TileImage" content="{% static 'graphics/icon.png' %}" />
+
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
         <link rel="stylesheet" href="{% static 'icons/material.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="icon" href="{% static 'graphics/icon.svg' %}">
-        {% block title %}<title>{{appname}}</title>{% endblock %}
+        <title>{% block title %}{{appname}}{% endblock %}</title>
     </head>
     {% endblock %}
     <body>
@@ -26,13 +87,14 @@
             <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/icon.svg' %}" width="40" />&nbsp;{% block nav_text %}{{appname}}{% endblock %}</h3></a>
             {% endblock %}
             <span class="w3-right w3-row w3-padding">
+                <button class="primary themeswitch"><i class="material-icons">dark_mode</i></button>
                 {% block nav_links %}
                 {% if request.user.is_authenticated %}
                 <a href="/projects/create"><button class="positive"><i class="material-icons">add_circle</i>New project</button></a>
                 <a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
                 {% else %}
                 <a href="{% url 'account_login' %}?next=/"><button class="accent"><i class="material-icons">login</i>Login</button></a>
-                <a href="{% url 'account_signup' %}?next=/"><button class="positive"><i class="material-icons">person_add</i>Join community</button></a>
+                <a href="{% url 'account_signup' %}?next=/"><button class="positive"><i class="material-icons">person_add</i>Join</button></a>
                 {% endif %}
                 {% endblock %}
             </span>
@@ -43,7 +105,7 @@
             <div class="w3-row w3-center w3-padding">
                 <h1>Solving problems together.</h1>
             </div>
-            <div class="w3-row w3-center w3-padding w3-light-grey">
+            <div class="w3-row w3-center w3-padding tertiary">
                 <br/>
                 <h3>Most active projects of this week</h3>
                 <br/>
@@ -88,7 +150,7 @@
             <div class="w3-col w3-half w3-padding-small">
                 <br/><br/>
                 <div class="w3-row">
-                    <h2 class="primary-text w3-right"><a href="/">Knotters Community</a>.</h2>
+                    <h2 class="text-secondary w3-right"><a href="/">Knotters Community</a>.</h2>
                 </div>
                 <div class="w3-row">
                     <img class="w3-right" src="{% static 'graphics/icon.svg' %}" width="100" />
@@ -99,6 +161,9 @@
             <center>Copyright 2021 &#183; <a href="/docs">Docs &amp; Statements</a></center>
             </div>
         </footer>
+        {% endblock %}
+        {% block endscripts %}
+        <script src="{% static 'scripts/theme.js' %}" type="text/javascript"></script>
         {% endblock %}
     </body>
 </html>
