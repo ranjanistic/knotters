@@ -11,6 +11,8 @@ DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS
 
+
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -27,6 +29,13 @@ INSTALLED_APPS = [
     "corsheaders",
     "project"
 ]
+
+AUTH_USER_MODEL = 'project.User'
+SOCIALACCOUNT_ADAPTER = 'project.adapter.CustomSocialAccountAdapter'
+
+ACCOUNT_FORMS = {
+    'signup': 'project.forms.CustomSignupForm',
+}
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -129,14 +138,15 @@ if not env.ISPRODUCTION:
 else:
   STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-
-ACCOUNT_AUTHENTICATION_METHOD = "username"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -145,7 +155,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env.MAILUSER
 EMAIL_HOST_PASSWORD = env.MAILPASS
-
+EMAIL_SUBJECT_PREFIX = 'Knotters Community'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_REDIRECT_URL = '/'
@@ -162,57 +172,7 @@ if not DEBUG:
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_HSTS_PRELOAD = True
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {
-        "require_debug_false": {
-            "()": "django.utils.log.RequireDebugFalse",
-        },
-        "require_debug_true": {
-            "()": "django.utils.log.RequireDebugTrue",
-        },
-    },
-    "formatters": {
-        "django.server": {
-            "()": "django.utils.log.ServerFormatter",
-            "format": "[%(server_time)s] %(message)s",
-        }
-    },
-    "handlers": {
-        "console": {
-            "level": "INFO",
-            "filters": ["require_debug_true"],
-            "class": "logging.StreamHandler",
-        },
-        "console_debug_false": {
-            "level": "ERROR",
-            "filters": ["require_debug_false"],
-            "class": "logging.StreamHandler",
-        },
-        "django.server": {
-            "level": "INFO",
-            "class": "logging.StreamHandler",
-            "formatter": "django.server",
-        },
-        "mail_admins": {
-            "level": "ERROR",
-            "filters": ["require_debug_false"],
-            "class": "django.utils.log.AdminEmailHandler",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console", "console_debug_false", "mail_admins"],
-            "level": "INFO",
-        },
-        "django.server": {
-            "handlers": ["django.server"],
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-}
+
 
 SITE_ID = 2
 
