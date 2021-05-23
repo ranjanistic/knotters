@@ -18,6 +18,7 @@ oauthlib==3.1.0
 pycparser==2.20
 PyGithub==1.55
 PyJWT==2.1.0
+Pillow
 pymongo==3.11.4
 PyNaCl==1.4.0
 python3-openid==3.2.0

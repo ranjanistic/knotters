@@ -15,6 +15,11 @@
 {% endblock %}
 
 {% block content %}
+<style>
+	input{
+		margin: 10px 0px;	
+	}
+</style>
 <div class="w3-row w3-padding w3-center w3-light-grey">
 	<h4>Be a part of a community that's always there for you.</h4>
 </div>
@@ -35,18 +40,19 @@
 			</button>
 		</a>
 	</div>
-	<form method="POST" action="{% url 'account_signup' %}">
+	<form method="POST" action="{% url 'account_signup' %}" enctype="multipart/form-data">
 		{% csrf_token %}
 		<br/>
 		<h3>or create a Knotters account</h3>
 		<br/>
-		<div class="w3-row">
-		<input type="email" name="email" placeholder="Email address" autocomplete="email" autofocus="autofocus" maxlength="150" required id="id_email" />
-		<br/><br/>
-		<input type="text" name="first_name" placeholder="Your name" autocomplete="name" maxlength="150" required id="id_name" />
-		<br/><br/>
-		<input type="password" name="password" placeholder="Create password" autocomplete="new-password" required id="id_password1" />
-		</div>
+		{{ form.media }}
+		{% for field in form %}
+                    {{ field }}
+					<br>
+                    {% for error in field.errors %}
+                      <span style="color: red">{{ error }}</span>
+                    {% endfor %}
+                {% endfor %}
 		<br/>
 		<button class="positive" type="submit"><i class="material-icons">person_add</i>Create account</button>
 		<input type="hidden" name="next" value="/redirector?n={{request.GET.next}}" />
