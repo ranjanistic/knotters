@@ -23,7 +23,7 @@
         {% block nav %}
         <nav class="w3-row">
             {% block nav_title %}
-            <a href="/" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/icon.svg' %}" width="40" />&nbsp;{{appname}}</h3></a>
+            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/icon.svg' %}" width="40" />&nbsp;{% block nav_text %}{{appname}}{% endblock %}</h3></a>
             {% endblock %}
             <span class="w3-right w3-row w3-padding">
                 {% block nav_links %}
@@ -93,6 +93,10 @@
                 <div class="w3-row">
                     <img class="w3-right" src="{% static 'graphics/icon.svg' %}" width="100" />
                 </div>
+            </div>
+            <div class="w3-row">
+            <br/>
+            <center>Copyright 2021 &#183; <a href="/docs">Docs &amp; Statements</a></center>
             </div>
         </footer>
         {% endblock %}

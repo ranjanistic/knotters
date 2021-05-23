@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block nav_text %}
+Docs
+{% endblock %}
+
+{% block content %}
+
+<div class="w3-row w3-padding">
+    <br/>
+    <center>
+        <div class="material-icons w3-jumbo">policy</div>
+        <h1>Knotters Docs</h1>
+        <h3>Refer these in case of any legal or moral doubts.</h3>
+    </center><br/>
+    <a href="/docs/communityguidelines"><div class="w3-row pallete">
+        <h1 class="w3-padding ">Community Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+    </div>
+    </a><br/>
+    <a href="/docs/termsofservice"><div class="w3-row accent pallete">
+        <h1 class="w3-padding ">Terms of service<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+    </div>
+    </a><br/>
+    <a href="/docs/privacypolicy"><div class="w3-row primary pallete">
+        <h1 class="w3-padding">Privacy Policy<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+    </div>
+    </a><br/>
+    <a href="/docs/copyright"><div class="w3-row secondary pallete">
+        <h1 class="w3-padding primary-text">Copyright 2021<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+    </div>
+    </a><br/>
+    
+</div>
+
+{% endblock %}
