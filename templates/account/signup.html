@@ -15,12 +15,8 @@
 {% endblock %}
 
 {% block content %}
-<style>
-	input{
-		margin: 10px 0px;	
-	}
-</style>
-<div class="w3-row w3-padding w3-center w3-light-grey">
+
+<div class="w3-row w3-padding w3-center tertiary">
 	<h4>Be a part of a community that's always there for you.</h4>
 </div>
 <div class="w3-row w3-padding w3-center tertiary">
@@ -47,12 +43,13 @@
 		<br/>
 		{{ form.media }}
 		{% for field in form %}
-                    {{ field }}
-					<br>
-                    {% for error in field.errors %}
-                      <span style="color: red">{{ error }}</span>
-                    {% endfor %}
-                {% endfor %}
+			{{ field }}
+			<br>
+			{% for error in field.errors %}
+			<span class="negative-text">{{ error }}</span>
+			{% endfor %}
+			<br/>
+        {% endfor %}
 		<br/>
 		<button class="positive" type="submit"><i class="material-icons">person_add</i>Create account</button>
 		<input type="hidden" name="next" value="/redirector?n={{request.GET.next}}" />

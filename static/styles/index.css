@@ -280,6 +280,10 @@ input,textarea {
   transition: var(--delay);
 }
 
+input[type=file]{
+  font-size: 4px;
+}
+
 input:focus,
 textarea:focus {
   border: 0px;

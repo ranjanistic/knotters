@@ -16,7 +16,6 @@ def profile(request,reponame):
 
 @login_required
 def create(request):
-    print(request.user.email)
     # user = User.objects.get(id=request.user.id)
     data = {'step':1, 'totalsteps':3 }
     try:
