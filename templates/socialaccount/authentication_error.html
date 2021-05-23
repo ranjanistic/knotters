@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}<title>OAuth error</title>{% endblock %}
+{% block title %}OAuth error{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
 <span class="w3-left"><h3>OAuth error</h3></span>
@@ -15,7 +15,9 @@
 <i class="material-icons w3-jumbo negative-text">error</i>
 <br/>
 <h1>OAuth login failed</h1>
-<br/><br/>
+<br/>
 <h4>An error occurred while attempting to login via your oauth.</h4>
+<br/>
+<a href="/"><button class="positive" type="button"><i class="material-icons">home</i>Return home</button></a>
 </div>
 {% endblock %}

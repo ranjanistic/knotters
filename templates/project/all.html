@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title %}<title>All projects</title>{% endblock %}
+{% block title %}All projects &#183; {{appname}}{% endblock %}
 
 {% block nav_title %}
 <a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="w3-row w3-light-grey">
+<div class="w3-row tertiary">
 <div class="w3-col w3-quarter w3-center">
     <br/>
     <form method="GET">

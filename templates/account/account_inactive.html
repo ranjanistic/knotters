@@ -1,0 +1,28 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Inactive{% endblock %}
+
+{% block nav_title %}
+<a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
+<span class="w3-left"><h3>Account Inactive</h3></span>
+{% endblock %}
+
+{% block nav_links %}
+<a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
+{% if request.user.is_authenticated %}
+  <a href="/"><button class="positive"><i class="material-icons">person</i>{{request.user|capfirst}}</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="w3-row w3-padding w3-center">
+<br/>
+	<div class="w3-padding"><i class="material-icons w3-jumbo">not_interested</i></div>
+	<h1>This account is inactive.</h1>
+    <br/>
+    <a href="/"><button class="positive" type="button"><i class="material-icons">home</i>Return home</button></a>
+    <br/><br/>
+</div>
+{% endblock %}

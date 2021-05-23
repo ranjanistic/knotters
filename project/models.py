@@ -74,7 +74,7 @@ class Project(models.Model):
     name = models.CharField(max_length=50,null=False,blank=False)
     url = models.CharField(max_length=500,null=True,blank=True)
     image = models.FileField(upload_to=projectImagePath,null=True,blank=True,max_length=500)
-    reponame = models.CharField(max_length=500,null=False,blank=False,unique=True)
+    reponame = models.CharField(max_length=500,unique=True,null=False,blank=False)
     description = models.CharField(max_length=5000,null=False,blank=False)
     tags = models.ManyToManyField(Tag)
     creator = models.ForeignKey("User", on_delete=models.CASCADE)

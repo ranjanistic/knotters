@@ -1,8 +1,8 @@
 {% extends 'index.html' %}
 {% load static %}
 
+{% block title%}Create project{% endblock%}
 {% block nav %}
-
 <nav class="w3-row accent">
 {% block nav_title %}
 <a href="/" class="w3-left w3-padding"><button title="abort" class="primary"><i class="material-icons">close</i></button></a>
@@ -19,7 +19,7 @@
 
 
 {% block content %}
-<div class="w3-row w3-padding w3-light-grey">
+<div class="w3-row w3-padding">
 <br/><br/>
 <div class="w3-row w3-padding">
     {% if step != 1 %}

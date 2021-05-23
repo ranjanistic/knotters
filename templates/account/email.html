@@ -1,56 +1,80 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}<title>email</title>{% endblock %}
+{% block title %}Email addresses{% endblock %}
 {% block nav_title %}
 <a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>Email</h3></span>
+<span class="w3-left"><h3>Account email</h3></span>
 {% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
+<br/>
 <h1>E-mail Addresses</h1>
 {% if user.emailaddress_set.all %}
-<h5>The following e-mail addresses are associated with your account:</h5>
+<h5>The following e-mail addresses are associated with your account.</h5>
+<br/>
 <form action="{% url 'account_email' %}" class="email_list" method="post">
   {% csrf_token %}
-  <fieldset class="pallete primary">
+  <div class="w3-row">
     {% for emailaddress in user.emailaddress_set.all %}
-    <div class="ctrlHolder">
-      <label for="email_radio_{{forloop.counter}}" class="{% if emailaddress.primary %}primary_email{%endif%}">
-        <h5>Primary</h5>
-        <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
+    <div class="w3-row  w3-padding-small">
+      <label for="email_radio_{{forloop.counter}}" class="w3-padding">
+        <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{% endif %} value="{{emailaddress.email}}"/>
         {{ emailaddress.email }}
+        {% if emailaddress.primary %}
+        <i title="Primary email address" class="material-icons positive-text">mark_email_unread</i>
+        {%endif%}
         {% if emailaddress.verified %}
-        <i class="material-icons positive-text">verified</i>
+        <i title="Verified" class="material-icons active-text">verified</i>
         {% else %}
-        <i class="material-icons negative-text">warning</i>
+        <i title="Unverified" class="material-icons negative-text">warning</i>
         {% endif %}
       </label>
+    {% if not emailaddress.verified %}
+      <button class="secondary" type="submit" name="action_send"><i class="material-icons">send</i>Re-send Verification</button>
+    {%endif%}
     </div>
     {% endfor %}
     <br/>
     <div class="w3-row w3-padding">
-      <button class="accent" type="submit" name="action_primary" >Make Primary</button>
-      <button class="primary" type="submit" name="action_send" >Re-send Verification</button>
-      <button class="negative" type="submit" name="action_remove" >Remove</button>
+      <button class="accent" type="submit" name="action_primary"><i class="material-icons">mark_email_unread</i>Make Primary</button>
+      <button class="negative" type="submit" name="action_remove"><i class="material-icons">remove_circle</i>Remove</button>
     </div>
-  </fieldset>
+  </div>
 </form>
 {% else %}
-<h4>You currently do not have any e-mail address set up. You should really add an e-mail address so you can receive notifications, reset your password, etc.</h4>
+<h4>You currently do not have any e-mail address set up. You should add an e-mail address so you can receive notifications, reset your password, etc.</h4>
 <br/>
 {% endif %}
 {% if can_add_email %}
-  <h2>Add new email Address</h2>
+<br/>
+  <h2>Add new email address.</h2>
+  <br/>
   <form method="post" action="{% url 'account_email' %}" class="add_email">
       {% csrf_token %}
-      {{ form.as_p }}
+      <input type="email" name="email" placeholder="E-mail address" required="" id="id_email"><br/><br/>
       <button class="accent" name="action_add" type="submit">Add email</button>
   </form>
 {% endif %}
+{% if form.errors %}
+<br/><br/>
+  {% for field in form %}
+      {% for error in field.errors %}
+          <div class="alert alert-error negative-text">
+              <strong>{{ error|escape }}</strong>
+          </div>
+      {% endfor %}
+  {% endfor %}
+  {% for error in form.non_field_errors %}
+      <div class="alert alert-error">
+          <strong>{{ error|escape }}</strong>
+      </div>
+  {% endfor %}
+{% endif %}
 </div>
 {% endblock %}
+
 
 
 {% block extra_body %}

@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block og %}
+<meta property="og:title" content="{{appname}} Privacy Policy" />
+<meta
+property="og:description"
+content="Nothing here is for sale, leave alone your privacy."
+/>
+<meta property="og:site_name" content="{{appname}}" />
+{% endblock %}
+{% block title %}Privacy Policy{% endblock %}
+
+{% block nav_href %}
+/docs
+{% endblock %}
+{% block nav_text %}
+Docs
+{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-padding">
+    <center>
+        <div class="material-icons w3-jumbo">security</div>
+        <h1>Privacy Policy</h1>
+        <h3>Nothing here is for sale, leave alone your privacy.</h3>
+    </center><br/>
+</div>
+{% endblock %}

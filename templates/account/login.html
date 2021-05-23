@@ -2,8 +2,7 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}<title>Login</title>{% endblock %}
-
+{% block title %}Login{% endblock %}
 {% block nav_title %}
 <a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
 <span class="w3-left"><h3>Login</h3></span>
@@ -11,14 +10,14 @@
 
 {% block nav_links %}
 <a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
-<a href="{% url 'account_signup' %}?next={{request.GET.next}}"><button class="positive"><i class="material-icons">volunteer_activism</i>Join Knotters</button></a>
+<a href="{% url 'account_signup' %}?next={{request.GET.next}}"><button class="positive"><i class="material-icons">person_add</i>Join Knotters</button></a>
 {% endblock %}
 
 {% block content %}
-<div class="w3-row w3-padding w3-center w3-light-grey">
+<div class="w3-row w3-padding w3-center tertiary">
 	<h4>Let's solve our problems, together.</h4>
 </div>
-<div class="w3-row w3-padding w3-center w3-light-grey">
+<div class="w3-row w3-padding w3-center tertiary">
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half  accent pallete">
 		<div class="w3-row">
@@ -47,7 +46,7 @@
 			</div>
 			<br/>
 			<button class="positive" type="submit"><i class="material-icons">login</i>Sign In</button>
-			<a href="{% url 'account_reset_password' %}"><button class="primary"><i class="material-icons">help</i>Forgot?</button></a>
+			<a href="{% url 'account_reset_password' %}"><button type="button" class="primary"><i class="material-icons">help</i>Forgot?</button></a>
 			<input type="hidden" name="next" value="/redirector?n={{request.GET.next}}" />
 		</form>
 		<br/>
@@ -59,21 +58,21 @@
 	</div>
 </div>
 {% block errors %}
-<div class="w3-row w3-light-grey w3-padding negative-text w3-center">
+<div class="w3-row tertiary w3-padding negative-text w3-center">
 {% if form.errors %}
-		{% for field in form %}
-			{% for error in field.errors %}
-				<div class="alert alert-error">
-					<strong>{{ error|escape }}</strong>
-				</div>
-			{% endfor %}
-		{% endfor %}
-		{% for error in form.non_field_errors %}
+	{% for field in form %}
+		{% for error in field.errors %}
 			<div class="alert alert-error">
 				<strong>{{ error|escape }}</strong>
 			</div>
 		{% endfor %}
-	{% endif %}
+	{% endfor %}
+	{% for error in form.non_field_errors %}
+		<div class="alert alert-error">
+			<strong>{{ error|escape }}</strong>
+		</div>
+	{% endfor %}
+{% endif %}
 {% endblock %}
 </div>
 {% endblock %}
