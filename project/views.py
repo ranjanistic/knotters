@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from main.renderer import renderView
-from .models import Project, Tag
+from .models import *
 from main.env import GITHUBBOTTOKEN, PUBNAME
 from github import Github
 
@@ -114,3 +114,9 @@ def createProject(name,reponame,description,tags,user):
         return project
     except:
         return False
+
+def rajat():
+    user = User.objects.all()
+    print(user.count())
+
+rajat()

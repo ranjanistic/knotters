@@ -33,7 +33,7 @@ class UserAccountManager(BaseUserManager):
 
 class User(AbstractBaseUser,PermissionsMixin):
     USERNAME_FIELD = 'email'
-    id = models.BigAutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
     username =  None
     first_name = models.CharField(max_length=100, default="first_name")
