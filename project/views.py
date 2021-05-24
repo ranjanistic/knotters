@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from main.renderer import renderView
 from .models import *
@@ -16,7 +15,6 @@ def profile(request,reponame):
 
 @login_required
 def create(request):
-    print(request.user.email)
     # user = User.objects.get(id=request.user.id)
     data = {'step':1, 'totalsteps':3 }
     try:
@@ -102,6 +100,7 @@ def createProject(name,reponame,description,tags,user):
     try:
         project = Project.objects.create(creator=user,name=name,reponame=reponame,description=description)
         for tag in tags:
+            tag = str(tag).strip().replace(" ","_")
             if uniqueTag(tag):
                 tagobj = Tag.objects.create(name=tag)
             else:
@@ -114,9 +113,3 @@ def createProject(name,reponame,description,tags,user):
         return project
     except:
         return False
-
-def rajat():
-    user = User.objects.all()
-    print(user.count())
-
-rajat()
