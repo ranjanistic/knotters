@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.sessions.models import Session
-from .models import Project, Moderator,Tag
+from .models import Project, Tag
 from django import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -79,7 +79,6 @@ class ProjectAdmin(admin.ModelAdmin):
         ordering = ("")
 
 
-admin.site.register(Moderator)
 admin.site.register(Tag)
 
 admin.site.register(Session)

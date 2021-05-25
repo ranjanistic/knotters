@@ -31,6 +31,9 @@ class UserAccountManager(BaseUserManager):
         return user
 
 
+def profileImagePath(instance,filename):
+    return 'users/{}/'.format(str(instance.id))+'/profile/{}'.format(filename)
+
 class User(AbstractBaseUser,PermissionsMixin):
     USERNAME_FIELD = 'email'
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -38,7 +41,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     username =  None
     first_name = models.CharField(max_length=100, default="first_name")
     last_name = models.CharField(max_length=100, default="last_name")
-    profile_pic = models.ImageField(upload_to="users/images",default="/users/images/default.png")
+    profile_pic = models.ImageField(upload_to=profileImagePath,default="/users/images/default.png")
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_verified = models.BooleanField(default=False)
@@ -80,7 +83,3 @@ class Project(models.Model):
     creator = models.ForeignKey("User", on_delete=models.CASCADE)
     def __str__(self):
         return self.name
-
-class Moderator(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    projects = models.ManyToManyField(Project)

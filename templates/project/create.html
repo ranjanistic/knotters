@@ -11,7 +11,7 @@
 
 <span class="w3-right w3-row w3-padding">
 {% block nav_links %}
-<a href="{% url 'account_logout' %}"><button class="primary"><i class="material-icons">person</i>{{request.user|capfirst}}</button></a>
+<a href="{% url 'account_logout' %}"><button class="primary"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button></a>
 {% endblock %}
 </span>
 </nav>

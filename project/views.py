@@ -37,7 +37,7 @@ def create(request):
                 data['errorfinal'] = 'An error occurred while creating your project.'
                 return renderView(request,'project/create.html', data)
             else:
-                return redirect(f"/projects/profile/{project.id}")
+                return redirect(f"/projects/profile/{project.reponame}")
     except:
         try:
             # step 2 submit
@@ -106,10 +106,12 @@ def createProject(name,reponame,description,tags,user):
             else:
                 tagobj = Tag.objects.get(name=tag)
             project.tags.add(tagobj)
-
-        g = Github(GITHUBBOTTOKEN)
-        org = g.get_organization(PUBNAME)
-        repo = org.create_repo(name,private=False,description=description, auto_init=True)
+            
         return project
     except:
         return False
+
+def createRepository(reponame,description):
+    g = Github(GITHUBBOTTOKEN)
+    org = g.get_organization(PUBNAME)
+    repo = org.create_repo(name=reponame,private=False,description=description, auto_init=True)
