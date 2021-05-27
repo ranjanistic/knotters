@@ -41,7 +41,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     username =  None
     first_name = models.CharField(max_length=100, default="first_name")
     last_name = models.CharField(max_length=100, default="last_name")
-    profile_pic = models.ImageField(upload_to=profileImagePath,default="/users/images/default.png")
+    profile_pic = models.ImageField(upload_to=profileImagePath,default="/users/default.png")
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_verified = models.BooleanField(default=False)
@@ -76,7 +76,7 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50,null=False,blank=False)
     url = models.CharField(max_length=500,null=True,blank=True)
-    image = models.FileField(upload_to=projectImagePath,null=True,blank=True,max_length=500)
+    image = models.FileField(upload_to=projectImagePath,max_length=500, default='/projects/default.png')
     reponame = models.CharField(max_length=500,unique=True,null=False,blank=False)
     description = models.CharField(max_length=5000,null=False,blank=False)
     tags = models.ManyToManyField(Tag)

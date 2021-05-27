@@ -89,9 +89,10 @@
             <span class="w3-right w3-row w3-padding">
                 <button class="primary themeswitch"><i class="material-icons">dark_mode</i></button>
                 {% block nav_links %}
+                <a href="/competitions"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>
                 {% if request.user.is_authenticated %}
-                <a href="/projects/create"><button class="positive"><i class="material-icons">add_circle</i>New project</button></a>
-                <a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button></a>
+                <a href="/projects/create"><button title="New project" class="positive"><i class="material-icons">add_circle</i><span class="w3-hide-small">New project</span></button></a>
+                <a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i><span class="w3-hide-small">{{request.user.first_name|capfirst}}</span></button></a>
                 {% else %}
                 <a href="{% url 'account_login' %}?next=/"><button class="accent"><i class="material-icons">login</i>Login</button></a>
                 <a href="{% url 'account_signup' %}?next=/"><button class="positive"><i class="material-icons">person_add</i>Join</button></a>
@@ -107,13 +108,12 @@
             </div>
             <div class="w3-row w3-center w3-padding tertiary">
                 <br/>
-                <h3>Most active projects of this week</h3>
+                <h3>Active projects of this month</h3>
                 <br/>
-                <div class="w3-col w3-third w3-padding">
-                </div>
                 {% for project in projects %}
+                <div class="w3-col w3-third w3-padding-small">
                 <a href="/projects/profile/{{project.reponame}}">
-                <div class="w3-col w3-third pallete primary">
+                <div class="pallete primary">
                     <div class="w3-row">
                         <img src="/media/{{project.image}}" width="150" />
                     </div>
@@ -121,20 +121,49 @@
                     <span>{{project.description}}</span>
                 </div>
                 </a>
+                </div>
                 {% empty %}
                 <div class="w3-row w3-center">
                 <h2>Waiting for projects.</h2>
                 </div>
                 {% endfor %}
-            <div class="w3-row">
-            <br/>
-                <a href="/projects"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
+                <div class="w3-row">
+                    <br/>
+                    <a href="/projects"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
+                </div>
+                <br/>
             </div>
-            <br/>
+
+            <div class="w3-row w3-center w3-padding accent">
+                <br/>
+                <h3 class="text-accent">Top contributors of this month</h3>
+                <br/>
+                {% for person in topcontributors %}
+                <div class="w3-col w3-third w3-padding-small">
+                <a href="/projects/profile/{{project.reponame}}">
+                <div class="pallete primary">
+                    <div class="w3-row">
+                        <img src="/media/{{person.image}}" width="150" />
+                    </div>
+                    <h2>{{person.name}}</h2>
+                    <span>{{person.description}}</span>
+                </div>
+                </a>
+                </div>
+                {% empty %}
+                <div class="w3-row w3-center">
+                <h2 class="text-accent">Waiting for contributors.</h2>
+                </div>
+                {% endfor %}
+                <div class="w3-row">
+                    <br/>
+                    <a href="/projects"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
+                </div>
+                <br/>
             </div>
         </div>
         {% endblock %}
-        <br/><br/>
+        
         {% block footer %}
         <footer class="w3-row secondary w3-padding" style="min-height: 50vh;">
             <br/><br/>
