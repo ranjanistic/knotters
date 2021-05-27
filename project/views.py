@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from main.renderer import renderView
 from .models import *
-from main.env import GITHUBBOTTOKEN, PUBNAME
+from main.env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
 from github import Github
 
 def allProjects(request):
@@ -15,7 +15,10 @@ def profile(request,reponame):
 
 @login_required
 def create(request):
-    # user = User.objects.get(id=request.user.id)
+    try:
+        user = User.objects.get(id=request.user.id)
+    except:
+        return
     data = {'step':1, 'totalsteps':3 }
     try:
         # step 3 submit
@@ -31,7 +34,7 @@ def create(request):
         if nextstep != 4:
             raise Exception()
         else:
-            project = createProject(projectname,reponame,projectabout,tags,None)
+            project = createProject(projectname,reponame,projectabout,tags,user)
             if not project:
                 data['step'] = 3
                 data['errorfinal'] = 'An error occurred while creating your project.'
@@ -96,7 +99,6 @@ def uniqueTag(tagname):
 
 # Creates project on knotters & then repository in github/Knotters using knottersbot
 def createProject(name,reponame,description,tags,user):
-    return False
     try:
         project = Project.objects.create(creator=user,name=name,reponame=reponame,description=description)
         for tag in tags:
@@ -106,12 +108,16 @@ def createProject(name,reponame,description,tags,user):
             else:
                 tagobj = Tag.objects.get(name=tag)
             project.tags.add(tagobj)
-            
+        if ISPRODUCTION:
+            repo = createRepository(reponame,description)
+            # push licenses in repo
         return project
     except:
         return False
 
 def createRepository(reponame,description):
+    return False
     g = Github(GITHUBBOTTOKEN)
     org = g.get_organization(PUBNAME)
     repo = org.create_repo(name=reponame,private=False,description=description, auto_init=True)
+    return repo
