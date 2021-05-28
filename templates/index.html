@@ -84,7 +84,7 @@
         {% block nav %}
         <nav class="w3-row">
             {% block nav_title %}
-            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/icon.svg' %}" width="40" />&nbsp;{% block nav_text %}{{appname}}{% endblock %}</h3></a>
+            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/icon.svg' %}" width="35" />&nbsp;{% block nav_text %}{{appname}}{% endblock %}</h3></a>
             {% endblock %}
             <span class="w3-right w3-row w3-padding">
                 <button class="primary themeswitch"><i class="material-icons">dark_mode</i></button>
@@ -171,10 +171,10 @@
                 {% if contactmail %}
                 <a href="mailto:{{contactmail}}"><button class="primary"><i class="material-icons">mail</i>{{contactmail}}</button></a><br/><br/>
                 {% endif %}
-                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />Knotters</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="25" />knottersdotorg</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/instagram.png' %}" width="25" />knottersdotorg</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="22" />knottersdotorg</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />&nbsp;Knotters</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="25" />&nbsp;knottersdotorg</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="25" />&nbsp;knottersdotorg</button></a><br/><br/>
+                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="22" />&nbsp;knottersdotorg</button></a><br/><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small">
                 <br/><br/>

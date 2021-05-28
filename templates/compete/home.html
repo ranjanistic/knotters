@@ -30,5 +30,20 @@ Competitions
 {% endblock %}
 
 {% block content %}
+<div class="w3-row">
+<img src="{% static 'graphics/banner.svg' %}" class="darkimg" data-ext="svg" data-name="banner" width="100%"/>
+</div>
+<br/>
+<div class="w3-row w3-padding">
 
+{% for comp in competitions %}
+{% empty %}
+<div class="w3-row w3-padding w3-center">
+<h3>No competitions yet.</h3>
+
+<a href="/competitions?active=0"><h5 class="positive-text">See competions history</h5></a>
+</div>
+{% endfor %}
+</div>
+<br/>
 {% endblock %}
