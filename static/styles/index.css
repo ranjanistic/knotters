@@ -34,6 +34,15 @@
   --negative: #d66f68;
   --negative-text: #000000;
 }
+
+.head-font{
+  font-family: var(--head-font);
+}
+
+.body-font{
+  font-family: var(--body-font);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   transition: 0.4s ease;
@@ -76,6 +85,11 @@ body {
   background-color: var(--primary);
   color: var(--primary-text);
   font-family: var(--body-font);
+}
+
+.positive > span > a,
+.positive > a {
+  text-decoration: underline;
 }
 
 h1,
