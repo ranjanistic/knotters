@@ -11,6 +11,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('projects/', include('project.urls')),
     path('competitions/', include('compete.urls')),
+    path('people/', include('people.urls')),
     path('redirector/', redirector),
     path('docs/', docIndex),
     path('docs/<str:type>', docs)

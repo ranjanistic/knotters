@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
     "corsheaders",
     "project",
-    "compete"
+    "compete",
+    "people"
 ]
 
 AUTH_USER_MODEL = 'project.User'
