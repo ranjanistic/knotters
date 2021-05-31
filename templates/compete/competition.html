@@ -12,19 +12,8 @@ content="Participate in live competitions at {{appname}}!"
 
 {% block title %}Competition {{compID}}{% endblock %}
 
-{% block nav_title %}
-<a href="/competitions" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>Competition {{compID}}</h3></span>
-{% endblock %}
-
-{% block nav_links %}
-{% if request.user.is_authenticated %}
-<a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button></a>
-{% else %}
-<a href="{% url 'account_login' %}?next=/"><button class="accent"><i class="material-icons">login</i>Login</button></a>
-<a href="{% url 'account_signup' %}?next=/"><button class="positive"><i class="material-icons">person_add</i>Join</button></a>
-{% endif %}
-{% endblock %}
+{% block nav_href %}/competitions{% endblock %}
+{% block nav_text %}Competition {{compID}}{% endblock %}
 
 {% block content %}
 

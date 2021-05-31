@@ -2,18 +2,13 @@
 {% load static %}
 {% load socialaccount %}
 {% block title %}Email verification{% endblock %}
-{% block nav_title %}
-<a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>Email verification</h3></span>
+
+{% block nav_href %}{% url 'account_login' %}{% endblock %}
+{% block nav_icon %}
+  <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
-
-{% block nav_links %}
-  {% if request.user.is_authenticated %}
-  <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button></a>
-  {% endif %}
-{% endblock %}
-
-
+{% block nav_text %}Email Verification{% endblock %}
+{% block nav_auth_links %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding w3-center">

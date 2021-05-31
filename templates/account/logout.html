@@ -4,24 +4,17 @@
 
 {% block title %}Logout{% endblock %}
 
-{% block nav_title %}
-<a href="/" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>Logout</h3></span>
+{% block nav_icon %}
+  <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
-
-{% block nav_links %}
-<a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
-{% if request.user.is_authenticated %}
-  <a href=""><button class="positive"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button>
-{% endif %}
-{% endblock %}
+{% block nav_text %}Logout{% endblock %}
 
 {% block content %}
-<div class="w3-row w3-padding w3-center tertiary">
+<br/>
+<div class="w3-row w3-padding w3-center">
 	<div class="w3-padding"><i class="material-icons w3-jumbo">logout</i></div>
 	<h1>{{request.user.first_name|capfirst}}, are you sure you want to log out?</h1>
-</div>
-<div class="w3-row w3-padding w3-center tertiary">
+  <br/>
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half">
     <form method="POST" action="{% url 'account_logout' %}">

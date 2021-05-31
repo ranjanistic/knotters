@@ -1,5 +1,6 @@
-{% extends 'index.html' %}
+{% extends 'docs/index.html' %}
 {% load static %}
+
 {% block og %}
 <meta property="og:title" content="{{appname}} Copyright" />
 <meta
@@ -8,13 +9,10 @@ content="Copyright knotters.org"
 />
 <meta property="og:site_name" content="{{appname}}" />
 {% endblock %}
+
 {% block title %}Copyright 2021 {{appname}}{% endblock %}
-{% block nav_href %}
-/docs
-{% endblock %}
-{% block nav_text %}
-Docs
-{% endblock %}
+
+{% block nav_href %}/docs{% endblock %}
 
 {% block content %}
 <br/>

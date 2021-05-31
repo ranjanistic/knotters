@@ -2,21 +2,15 @@
 {% load static %}
 
 {% block title%}Create project{% endblock%}
-{% block nav %}
-<nav class="w3-row accent">
-{% block nav_title %}
-<a href="/" class="w3-left w3-padding"><button title="abort" class="primary"><i class="material-icons">close</i></button></a>
-<span class="w3-left"><h3>Create Project</h3></span>
+
+{% block nav_icon %}
+  <button title="Abort" class="primary"><i class="material-icons">close</i></button>
 {% endblock %}
 
-<span class="w3-right w3-row w3-padding">
-{% block nav_links %}
-<a href="{% url 'account_logout' %}"><button class="primary"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button></a>
-{% endblock %}
-</span>
-</nav>
-{% endblock %}
-
+{% block nav_style %}accent{% endblock %}
+{% block nav_text %}Create project{% endblock %}
+{% block nav_auth_links %}{% endblock %}
+{% block nav_noauth %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
