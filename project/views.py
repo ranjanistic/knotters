@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from main.renderer import renderView
 from .models import *
@@ -18,6 +19,10 @@ def profile(request,reponame):
 def create(request):
     try:
         user = User.objects.get(id=request.user.id)
+        user.project_quota = user.project_quota-1 if user.project_quota > 0 else 0
+        user.save()
+        if user.project_quota == 0:
+            return HttpResponse("quota exceeded")
     except:
         return
     data = {'step':1, 'totalsteps':3 }

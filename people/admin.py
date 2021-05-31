@@ -12,7 +12,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name', 'last_name', 'is_active', 'is_admin')
+        fields = "__all__"
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -34,7 +34,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name', 'last_name', 'is_active', 'is_admin')
+        fields = "__all__"
 
     def clean_password(self):
         return self.initial["password"]
@@ -44,7 +44,7 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('id',  'email', 'first_name', 'last_name', 'profile_pic')
+    list_display = ('id',  'email', 'first_name', 'last_name', 'profile_pic', 'project_quota')
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ( 'first_name', 'last_name')}),
