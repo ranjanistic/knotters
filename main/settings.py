@@ -32,12 +32,14 @@ INSTALLED_APPS = [
     "people"
 ]
 
-AUTH_USER_MODEL = 'project.User'
-SOCIALACCOUNT_ADAPTER = 'project.adapter.CustomSocialAccountAdapter'
+AUTH_USER_MODEL = 'people.User'
+SOCIALACCOUNT_ADAPTER = 'people.adapter.CustomSocialAccountAdapter'
 
 ACCOUNT_FORMS = {
-    'signup': 'project.forms.CustomSignupForm',
+    'signup': 'people.forms.CustomSignupForm',
 }
+
+SOCIALACCOUNT_QUERY_EMAIL=True
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -196,6 +198,7 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'github': {
         'SCOPE': [
+            'email',
             'user',
             'repo',
             'read:org',
