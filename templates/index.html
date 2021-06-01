@@ -100,6 +100,11 @@
         {% endblock %}
         {% block content %}
         <div class="w3-row">
+            {% if alert %}
+            <div class="w3-row positive w3-center w3-padding">
+            <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
+            </div>
+            {% endif %}
             <div class="w3-row w3-center w3-padding">
                 <h1>Solving problems together.</h1>
             </div>

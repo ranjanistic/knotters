@@ -16,6 +16,11 @@ body {
   font-family: var(--body-font);
 }
 
+.positive > span > a,
+.positive > a {
+  text-decoration: underline;
+}
+
 h1,
 h2,
 h3,
