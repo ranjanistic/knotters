@@ -14,89 +14,86 @@
 
 {% block content %}
 <div class="w3-row w3-padding">
-<br/><br/>
-<div class="w3-row w3-padding">
-    {% if step != 1 %}
-        <form method="POST">
-        <input type="hidden" name="nextstep" value="{{step|add:"-1"}}" />
-        {% csrf_token %}
-        {% if step == 3 %}
-        <input type="hidden" name="projectabout" value="{{projectabout}}" />
-        <input type="hidden" name="tags" value="{{tags}}" />
-        {% endif %}
-        <input type="hidden" name="projectname" value="{{projectname}}" />
-        <input type="hidden" name="reponame" value="{{reponame}}" />
-        <button type="submit" class="primary"><i class="material-icons">navigate_before</i>Previous</button></a>
-        <button type="button" class="positive">Step {{step}} of {{totalsteps}}</button>
-        </form>
-    {% else %}
-    <button type="button" class="positive">Step {{step}} of {{totalsteps}}</button>
-    {% endif %}
-</div>
 <br/>
-<form class="w3-col w3-half w3-padding" method="POST">
+
+<div class="w3-row w3-padding">
+    <button type="submit" class="primary"><i class="material-icons">navigate_before</i>Previous</button></a>
+    <button type="button" class="positive" id="stepof"></button>    
+</div>
+
+<br/>
+<form class="w3-col w3-half w3-padding" method="POST" action="/projects/submit">
+
     {% csrf_token %}
-    {% if step == 1 %}
-    <h3>Display name</h3>
-    <input required class="big-input" name="projectname" placeholder="Project title" 
-        {% if projectname %}
-        value="{{projectname}}"
-        {% endif %}
-    />
-    <span class="w3-right negative-text">{{errorprojectname}}</span>
-    <br/><br/>
-    <h3>Repository name</h3>
-    <input required class="big-input" name="reponame" placeholder="Project username"
-        {% if reponame %}
-        value="{{reponame}}"
-        {% endif %}
-    />
-    <span class="w3-right negative-text">{{errorreponame}}</span>
-    {% elif step == 2 %}
-    <input type="hidden" name="projectname" value="{{projectname}}" />
-    <input type="hidden" name="reponame" value="{{reponame}}" />
-    <h3>About {% if projectname %}
-        {{projectname}}
-        {% endif %}</h3>
-    <textarea required class="big-input" maxlength="3000" name="projectabout" placeholder="What's your project about?">{% if projectabout %}{{projectabout}}{% endif %}</textarea>
-    <span class="w3-right negative-text">{{errorprojectabout}}</span>
-    <br/><br/>
-    <h3>Tags</h3>
-    <input required class="big-input" name="tags" maxlength="50" placeholder="Separate by comma"
-        {% if tags %}
-        value="{{tags}}"
-        {% endif %}
-    />
-    <span class="w3-right negative-text">{{errortags}}</span>
-    {% elif step == 3 %}
-    <div class="w3-row pallete primary">
-    <input type="hidden" name="projectname" value="{{projectname}}" />
-    <input type="hidden" name="reponame" value="{{reponame}}" />
-    <input type="hidden" name="projectabout" value="{{projectabout}}" />
-    <input type="hidden" name="tags" value="{{tags}}" />
-    <h1 class="positive-text">Project : {{projectname}}</h1>
-    <h5>Description : {{projectabout}}</h5>
-    <h5>Github repository : github.com/Knotters/{{reponame}}</h5>
-    <h5>Tags : {{tags}}</h5>
+
+    <div id="step1">
+        <h3>Display name</h3>
+        <input class="big-input" name="projectimage" type="file" />
+        <input required class="big-input" name="projectname" placeholder="Project title" />
+        <span class="w3-right negative-text">{{errorprojectname}}</span>
+        <br/><br/>
+        <h3>Repository name</h3>
+        <input required class="big-input" name="reponame" placeholder="Project username"
+            {% if reponame %}
+            value="{{reponame}}"
+            {% endif %}
+        />
+        <span class="w3-right negative-text">{{errorreponame}}</span>
     </div>
-    <span class="w3-right negative-text">{{errorfinal}}</span>
-    {% endif %}
     
+    <div id="step2">
+        <h3>About {% if projectname %}
+            {{projectname}}
+            {% endif %}</h3>
+        <textarea required class="big-input" maxlength="3000" name="projectabout" placeholder="What's your project about?">{% if projectabout %}{{projectabout}}{% endif %}</textarea>
+        <span class="w3-right negative-text">{{errorprojectabout}}</span>
+        <br/><br/>
+        <h3>Tags</h3>
+        <input required class="big-input" name="tags" maxlength="50" placeholder="Separate by comma"
+            {% if tags %}
+            value="{{tags}}"
+            {% endif %}
+        />
+        <span class="w3-right negative-text">{{errortags}}</span>
+    </div>
     
-    <br/><br/><br/>
-    <input type="hidden" name="nextstep" value="{{step|add:"1"}}" />
     <div class="w3-row">
-        {% if step == 3 %}
-        <button type="submit" class="w3-right big-button sub-accent">
-        Create {{projectname}} <i class="material-icons big-icon">add_circle</i>
-        {% else %}
-        <button type="submit" class="w3-right big-button positive">
-        Next <i class="material-icons big-icon">navigate_next</i>
-        {% endif %}
+        <button type="submit" class="w3-right big-button positive" id="nextstep">
+            submit <i class="material-icons big-icon">navigate_next</i>
         </button>
     </div>
+
 </form>
-<div class="w3-row"></div>
-<br/><br/><br/><br/>
 </div>
+
+<script>
+// const steps = [document.getElementById("step1"),document.getElementById("step2"),document.getElementById("step3")];
+// let current = 0;
+// steps.forEach((step,s)=>{
+//     step.hidden = s !== current
+// })
+// document.getElementById("prevstep").addEventListener('click',()=>{
+//     if(current>0){
+//         --current;
+//     }
+//     setStep()
+// })
+
+// document.getElementById("nextstep").addEventListener('click',()=>{
+//     if(current<steps.length){
+//         ++current;
+//     }
+//     setStep()
+// })
+
+// const setStep =()=>{
+//     steps.forEach((step,s)=>{
+//         step.hidden = s !== current
+//     })
+//     document.getElementById("stepof").innerHTML = `Step ${current} of ${steps.length}`;
+// }
+
+// setStep()
+
+</script>
 {% endblock %}

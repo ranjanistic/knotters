@@ -8,6 +8,15 @@
 <span class="w3-left"><h3>{{project.name}}</h3></span>
 {% endblock %}
 {% block content %}
+{% if project.status == "moderation" %}
+<div class="w3-row accent w3-center w3-padding">
+This project is currently under review and not yet open to contributions. We'll notify you as soon as it is done.
+</div>
+{% elif project.status == "rejected" %}
+<div class="w3-row negative w3-center">
+This project has been rejected by our moderators. <a href="/projects/rejected/{{project.id}}">See why</a>.
+</div>
+{% endif %}
 <div class="w3-row w3-padding">
     <div class="w3-col w3-quarter">
         <div class="w3-row w3-center">

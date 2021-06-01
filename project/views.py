@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse
+from django.http.response import Http404, HttpResponse
 from django.shortcuts import redirect
 from main.renderer import renderView
 from .models import *
@@ -15,78 +15,30 @@ def profile(request,reponame):
     project = Project.objects.get(reponame=reponame)
     return renderView(request,'project/profile.html',{"project":project})
 
+
 @login_required
 def create(request):
-    try:
-        user = User.objects.get(id=request.user.id)
-        user.project_quota = user.project_quota-1 if user.project_quota > 0 else 0
-        user.save()
-        if user.project_quota == 0:
-            return HttpResponse("quota exceeded")
-    except:
-        return
-    data = {'step':1, 'totalsteps':3 }
-    try:
-        # step 3 submit
-        projectabout = str(request.POST['projectabout']).strip()
-        tags = str(request.POST['tags']).strip().split(',')
-        projectname = str(request.POST['projectname']).strip()
-        reponame = str(request.POST['reponame']).strip()
-        nextstep = int(request.POST['nextstep'])
-        data["projectabout"] = projectabout
-        data["tags"] = str(request.POST['tags']).strip()
-        data["projectname"] = projectname
-        data["reponame"] = reponame
-        if nextstep != 4:
-            raise Exception()
-        else:
-            project = createProject(projectname,reponame,projectabout,tags,user)
-            if not project:
-                data['step'] = 3
-                data['errorfinal'] = 'An error occurred while creating your project.'
-                return renderView(request,'project/create.html', data)
-            else:
-                return redirect(f"/projects/profile/{project.reponame}")
-    except:
-        try:
-            # step 2 submit
-            projectabout = str(request.POST['projectabout']).strip()
-            tags = str(request.POST['tags']).strip()
-            data["projectabout"] = projectabout
-            data["tags"] = tags
-            projectname = str(request.POST['projectname']).strip()
-            reponame = str(request.POST['reponame']).strip()
-            data["projectname"] = projectname
-            data["reponame"] = reponame
-            data['step'] = 2
-            if projectabout == "":
-                data['errorprojectabout'] = "Please write something about what this is going to be."
-            elif tags == "":
-                data['errortags'] = "Assign atleast one keyword relevant to your project."
-            else:
-                data['step'] = int(request.POST['nextstep'])
-            return renderView(request,'project/create.html', data)
-        except:
-            try:
-                # step 1 submit
-                projectname = str(request.POST['projectname']).strip()
-                reponame = str(request.POST['reponame']).strip()
-                data["projectname"] = projectname
-                data["reponame"] = reponame
-                if projectname == "":
-                    data['errorprojectname'] = "Project display name is required"
-                elif not uniqueRepoName(reponame):
-                    data['errorreponame'] = f"{reponame} already exists"
-                else:
-                    data['step'] = int(request.POST['nextstep'])
-                    projectabout = request.POST['projectabout']
-                    tags = request.POST['tags']
-                    data["projectabout"] = projectabout
-                    data["tags"] = tags
-            except:
-                pass
-        return renderView(request,'project/create.html', data)
+    return renderView(request,'project/create.html')
 
+@login_required
+def submitProject(request):
+    try:
+        name = request.POST["projectname"]
+        description = request.POST["projectabout"]
+        reponame = request.POST["reponame"]
+        tags = str(request.POST["tags"]).strip().split(",")
+        if not uniqueRepoName(reponame):
+            return HttpResponse(f'{reponame} already exists')
+        projectobj = createProject(name,reponame,description,tags,request.user)
+        try:
+            image = request.FILES["projectimage"]
+            projectobj.image = image
+            projectobj.save()
+        except:
+            pass
+        return redirect(f'/projects/profile/{projectobj.reponame}')
+    except:
+        return Http404()
 
 def uniqueRepoName(reponame):
     try:
@@ -114,9 +66,6 @@ def createProject(name,reponame,description,tags,user):
             else:
                 tagobj = Tag.objects.get(name=tag)
             project.tags.add(tagobj)
-        if ISPRODUCTION:
-            repo = createRepository(reponame,description)
-            # push licenses in repo
         return project
     except:
         return False
