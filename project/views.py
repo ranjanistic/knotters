@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from main.renderer import renderView
 from .models import *
 from people.models import User
-from main.env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
+from main.env import GITHUBBOTTOKEN, PUBNAME
 from github import Github
 
 def allProjects(request):
@@ -76,3 +76,6 @@ def createRepository(reponame,description):
     org = g.get_organization(PUBNAME)
     repo = org.create_repo(name=reponame,private=False,description=description, auto_init=True)
     return repo
+
+def protectBranchMain():
+    return None

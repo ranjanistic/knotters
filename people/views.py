@@ -1,9 +1,11 @@
 from main.renderer import renderView
+from .models import User
 
 def index(request):
-    return renderView(request,'people/home.html')
+    return renderView(request,'people/index.html')
 
 def profile(request, userID):
-    return renderView(request,'people/profile.html')
+    user = User.objects.get(id=userID)
+    return renderView(request,'people/profile.html', { "person": user })
 
 
