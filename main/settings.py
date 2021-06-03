@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "project",
     "compete",
-    "people"
+    "people",
+    "moderation",
 ]
 
 AUTH_USER_MODEL = 'people.User'
