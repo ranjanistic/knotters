@@ -1,4 +1,5 @@
 from django.http.response import Http404, HttpResponse
+from django.shortcuts import redirect
 from .renderer import renderView
 from project.models import Project
 from compete.models import Competition
@@ -25,7 +26,10 @@ def redirector(request):
         next = '/'
     if str(next).strip()=='' or next == None:
         next = '/'
-    return HttpResponse(f"<h1>Redirecting...</h1><script>window.location.replace('{next}')</script>")
+
+    if next.startswith("http"):
+        return HttpResponse(f"<h1>Redirecting...</h1><script>window.location.replace('{next}')</script>")
+    else: return redirect(next)
 
 def docIndex(request):
     return renderView(request,"docs/index.html")
