@@ -17,7 +17,7 @@
         />
         <link
         rel="apple-touch-startup-image"
-        href="{% static 'graphics/icon.png' %}"
+        href="{% static 'graphics/self/icon64.png' %}"
         />
         <meta
         name="description"
@@ -31,7 +31,7 @@
         <meta
         name="image"
         property="og:image"
-        content="{{site}}/static/graphics/icon.png"
+        content="{{site}}/static/graphics/self/icon24.png"
         />
         <meta property="og:type" content="tools" />
         {% block og %}
@@ -45,7 +45,7 @@
         <meta name="author" content="Knotters Community">
         <meta
         name="favicon"
-        content="{{site}}/static/graphics/icon.png"
+        content="{{site}}/static/graphics/self/icon24.png"
         />
         <meta name="twitter:title" content="{{appname}}" />
         <meta
@@ -54,7 +54,7 @@
         />
         <meta
         name="twitter:image"
-        content="{{site}}/static/graphics/icon.png"
+        content="{{site}}/static/graphics/self/banner.jpg"
         />
         <meta name="twitter:site" content="@knottersdotorg" />
         <meta name="twitter:creator" content="@ranjanistic" />
@@ -62,21 +62,21 @@
         <meta name="twitter:card" content="summary_large_image" />
         <meta
         name="linkedin:card"
-        content="{{site}}/static/graphics/icon.png"
+        content="{{site}}/static/graphics/self/banner.jpg"
         />
-        <link rel="apple-touch-icon" href="{% static 'graphics/icon.png' %}" />
+        <link rel="apple-touch-icon" href="{% static 'graphics/self/icon80.png' %}" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff" />
         <meta name="apple-mobile-web-app-title" content="{{appname}}" />
         <meta name="msapplication-TileColor" content="#ffffff" />
-        <meta name="msapplication-TileImage" content="{% static 'graphics/icon.png' %}" />
+        <meta name="msapplication-TileImage" content="{% static 'graphics/self/icon80.png' %}" />
 
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
         <link rel="stylesheet" href="{% static 'icons/material.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
-        <link rel="icon" href="{% static 'graphics/icon.svg' %}">
+        <link rel="icon" href="{% static 'graphics/self/icon24.png' %}">
         <title>{% block title %}{{appname}}{% endblock %}</title>
     </head>
     {% endblock %}
@@ -84,7 +84,7 @@
         {% block nav %}
         <nav class="w3-row">
             {% block nav_title %}
-            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/icon.svg' %}" width="40" />&nbsp;{% block nav_text %}{{appname}}{% endblock %}</h3></a>
+            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding-small"><h3><img src="{% static 'graphics/self/icon.svg' %}" width="40" />&nbsp;{% block nav_text %}{{appname}}{% endblock %}</h3></a>
             {% endblock %}
             <span class="w3-right w3-row w3-padding">
                 <button class="primary themeswitch"><i class="material-icons">dark_mode</i></button>
@@ -97,7 +97,7 @@
                     {% endblock %}
                     {% if request.user.is_authenticated %}
                         {% block nav_user %}
-          x              <a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i><span class="w3-hide-small">{{request.user.first_name|capfirst}}</span></button></a>
+                        <a href="{% url 'account_logout' %}"><button class="accent"><i class="material-icons">person</i><span class="w3-hide-small">{{request.user.first_name|capfirst}}</span></button></a>
                         {% endblock %}
                     {% else %}
                         {% block nav_auth %}
@@ -167,7 +167,7 @@
                     <h2 class="text-secondary w3-right"><a href="/">Knotters Community</a>.</h2>
                 </div>
                 <div class="w3-row">
-                    <img class="w3-right" src="{% static 'graphics/icon.svg' %}" width="100" />
+                    <img class="w3-right" src="{% static 'graphics/self/icon.svg' %}" width="120" />
                 </div>
             </div>
             <div class="w3-row">
