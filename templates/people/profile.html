@@ -6,7 +6,10 @@
 {% load socialaccount %}
 
 {% block title %}{{person.first_name}} {{person.last_name}} &#183; {{appname}}{% endblock %}
-{% block nav_href %}/people{% endblock %}
+
+{% block nav_icon %}
+  <button class="primary"><i class="material-icons">arrow_back</i></button>
+{% endblock %}
 {% block nav_text %}{{person.first_name}} {{person.last_name}}{% endblock %}
 
 
