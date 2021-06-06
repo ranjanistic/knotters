@@ -8,9 +8,39 @@
     "background_color": "#ffffff",
     "icons": [
       {
-        "src": "/static/graphics/icon.svg",
+        "src": "/static/graphics/self/icon24.png",
         "type": "image/png",
-        "sizes":"150x150",
+        "sizes":"25x25",
+        "purpose": "any"
+      },
+      {
+        "src": "/static/graphics/self/icon64.png",
+        "type": "image/png",
+        "sizes":"65x65",
+        "purpose": "any"
+      },
+      {
+        "src": "/static/graphics/self/icon80.png",
+        "type": "image/png",
+        "sizes":"81x81",
+        "purpose": "any"
+      },
+      {
+        "src": "/static/graphics/self/icon150.png",
+        "type": "image/png",
+        "sizes":"151x151",
+        "purpose": "any"
+      },
+      {
+        "src": "/static/graphics/self/icon200.png",
+        "type": "image/png",
+        "sizes":"201x201",
+        "purpose": "any"
+      },
+      {
+        "src": "/static/graphics/self/icon1000.png",
+        "type": "image/png",
+        "sizes":"1001x1001",
         "purpose": "any"
       }
     ]

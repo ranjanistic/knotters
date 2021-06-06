@@ -1,5 +1,4 @@
 from pathlib import Path
-import platform
 import os
 from . import env
 
@@ -26,7 +25,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
-    "corsheaders",
     "project",
     "compete",
     "people"
@@ -48,7 +46,6 @@ DBBACKUP_STORAGE_OPTIONS = {"location": os.path.join(BASE_DIR, "backup")}
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -131,11 +128,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 CORS_ORIGIN_ALLOW_ALL = False
-
-CORS_ORIGIN_WHITELIST = env.CORSTUPLE
-
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_DOMAIN = env.COOKIEDOM
 
 if not env.ISPRODUCTION:
   STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
