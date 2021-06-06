@@ -5,7 +5,11 @@
 {% load account %}
 {% load socialaccount %}
 
+<html>
+
 {% block title %}{{person.first_name}} {{person.last_name}} &#183; {{appname}}{% endblock %}
+
+<body>
 
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
@@ -16,17 +20,63 @@
 {% block nav_auth %}{% endblock %}
 
 {% block content %}
-<div class="w3-row">
-{{ person.first_name }} {{ person.last_name }}<br/><br/>
-{{ person.email }}<br/><br/>
-{{ person.id }}<br/><br/>
-/media{{ person.profile_pic }}<br/><br/>
-date join {{ person.date_joined }}<br/><br/>
-last login {{ person.last_login }}<br/><br/>
+<div class="w3-row tertiary" style=" padding-top: 1.5rem;">
+  <div class="w3-col w3-container m4 l3">
+    <div class="pallete-people" style=" padding:0; padding-bottom: 12px;">
+      <img src="/media{{ person.profile_pic }}" alt="Alps">
+      <p class="person-name">  {{ person.first_name }} {{ person.last_name }} </p>
+    </div>
+
+<div class="pallete-people"><p>Email ID: <span>{{ person.email }}</span></p>
+<p>User ID: <span >{{ person.id }}</span></p></div>
+
+<div class="pallete-people"><p>Date joined: <span >{{ person.date_joined }}</span></p>
+<p>Last login: <span> {{ person.last_login }}</span></p></div>
+
 {% if person.is_moderator %}
 moderator
 {% endif %}
 
+</div>
+<div class="w3-col w3-container m8 l9" >
+
+ <div class="pallete-people" style="height: 115vh;"> 
+  <div class="w3-bar">
+    <a class="w3-bar-item " onclick="openTab('overview'); getApi() "><i class="material-icons">person</i>Overview</a>
+    <a class="w3-bar-item " onclick="openTab('project'); getApi()"><i class="material-icons">workspaces</i>Project</a>
+    <a class="w3-bar-item " onclick="openTab('contribution'); getApi()"><i class="material-icons">groups</i>Contribution</a>
+    <a class="w3-bar-item " onclick="openTab('activity'); getApi()"><i class="material-icons">history</i>Activity</a>
+  </div>
+  <hr/>
+
+  <div class="loader" id="loader" style="display: none;"></div>
+
+  <div id="overview" class="w3-container tab">
+    <h2>Hello</h2>
+  </div>
+  
+  <div id="project" class="w3-container tab" style="display:none">
+    <h2>Hi</h2>
+  </div>
+  
+  <div id="contribution" class="w3-container tab" style="display:none">
+    <h2>morning</h2>
+  </div>
+
+  <div id="activity" class="w3-container tab" style="display:none;">
+    <h2>Night</h2>
+  </div>
+</div>
+
+<div class="pallete-people">
+  <h3><i class="material-icons">settings</i>Account settings</h3>
+</div>
+
+<div  style="margin: 2rem 0; text-align: right;">
 <a href="{% url 'account_logout' %}"><button class="negative"><i class="material-icons">logout</i>Logout</button></a>
 </div>
+</div>
+</div>
 {% endblock %}
+</body>
+</html>
