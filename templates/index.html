@@ -44,10 +44,8 @@
         <meta name="msapplication-TileImage" content="{% static 'graphics/icon.png' %}" />
         <link rel="apple-touch-icon" href="{% static 'graphics/icon.png' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/icon.png' %}" />
+        <link rel="icon" href="{% block icon %}{% static 'graphics/icon.svg' %}{% endblock %}">
 
-        {% block icon %}
-        <link rel="icon" href="{% static 'graphics/icon.svg' %}">
-        {% endblock %}
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -192,9 +190,8 @@
             </div>
         </footer>
         {% endblock %}
-        {% block scripts %}
         <script src="{% static 'scripts/theme.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/index.js' %}" type="text/javascript"></script>
-        {% endblock %}
+        {% block scripts %}{% endblock %}
     </body>
 </html>
