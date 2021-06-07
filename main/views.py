@@ -1,14 +1,23 @@
 from django.http.response import Http404, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from .renderer import renderView
-from django.contrib.auth.decorators import login_required
 from project.models import Project
+from compete.models import Competition
 
 def index(request):
-    projects = Project.objects.all()
-    return renderView(request, 'index.html', {
+    projects = Project.objects.filter()[0:3]
+    data = {
         "projects":projects
-    })
+    }
+    try:
+        comp = Competition.objects.get(active=True)
+        data["alert"] = {
+            "message": f"The '{comp.title}' competition is on!",
+            "url": f"/competitions/{comp.id}"
+        }
+    except:
+        pass
+    return renderView(request, 'index.html', data)
 
 def redirector(request):
     try:

@@ -1,0 +1,26 @@
+::-webkit-scrollbar {
+    width: 8px;
+    transition: 0.4s ease;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent;
+    transition: 0.4s ease;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    transition: 0.4s ease;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--positive);
+    transition: 0.4s ease;
+}
+::-webkit-scrollbar-thumb:focus {
+    background: var(--active);
+    transition: 0.4s ease;
+}

@@ -1,4 +1,5 @@
-{% extends 'index.html' %}
+{% extends 'docs/index.html' %}
+
 {% load static %}
 
 {% block og %}
@@ -11,12 +12,7 @@ content="Nothing here is for sale, leave alone your privacy."
 {% endblock %}
 {% block title %}Privacy Policy{% endblock %}
 
-{% block nav_href %}
-/docs
-{% endblock %}
-{% block nav_text %}
-Docs
-{% endblock %}
+{% block nav_href %}/docs{% endblock %}
 
 {% block content %}
 <br/>

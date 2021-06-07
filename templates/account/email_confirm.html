@@ -3,23 +3,23 @@
 {% load i18n %}
 {% load account %}
 {% block title %}Email confirm{% endblock %}
-{% block nav_title %}
-<a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>Email verification</h3></span>
+
+{% block nav_href %}{% url 'account_login' %}{% endblock %}
+{% block nav_icon %}
+  <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
-
-{% block nav_links %}
-  {% if request.user.is_authenticated %}
-  <a href="{% url 'account_logout' %}"><button class="positive"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button></a>
-  {% endif %}
-{% endblock %}
-
-
+{% block nav_text %}Email verification{% endblock %}
+{% block nav_noauth %}{% endblock %}
+{% block nav_auth_links %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding w3-center">
   <br/><br/>
+  {% if confirmation %}
   <div class="material-icons w3-jumbo">hourglass_top</div>
+  {% else %}
+  <div class="material-icons w3-jumbo negative-text">block</div>
+  {% endif %}
   <h1>Confirm email address</h1>
   
   {% if confirmation %}
@@ -36,8 +36,9 @@
 
   {% else %}
   {% url 'account_email' as email_url %}
-  <h4>This e-mail confirmation link expired or is invalid.</h4><br/>
-  <a href="{{ email_url }}"><button class="accent">Resend Email</button></a>
+  <h4 class="negative-text">This email confirmation link has expired, or is invalid.</h4><br/>
+  <a href="{{ email_url }}"><button class="accent"><i class="material-icons">restart_alt</i>Resend Email</button></a>
   {% endif %}
 </div>
+<br/>
 {% endblock %}

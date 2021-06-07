@@ -2,10 +2,12 @@
 {% load static %}
 {% load socialaccount %}
 {% block title %}Linked Accounts{% endblock %}
-{% block nav_title %}
-<a href="{% url 'account_login' %}" class="w3-left w3-padding"><button class="primary"><i class="material-icons">arrow_back</i></button></a>
-<span class="w3-left"><h3>Linked Accounts</h3></span>
+
+{% block nav_icon %}
+  <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
+{% block nav_text %}Linked Accounts{% endblock %}
+{% block nav_auth_links %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
@@ -53,19 +55,31 @@
                 <div class="w3-col w3-half">
                 <a title="{{brand.name}}"
                     class="socialaccount_provider {{provider.id}} {{brand.id}}"
-                    href="{% provider_login_url provider.id openid=brand.openid_url process=connect %}"
+                    href="{% provider_login_url provider.id openid=brand.openid_url process='connect' %}"
                     ><button class="primary">{{brand.name}}</button></a>
                 </div>
                 {% endfor %}
             {% endif %}
             <div class="w3-padding">
-            <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
-                href="{% provider_login_url provider.id process=connect scope=scope auth_params=auth_params %}">
-                <button class="{% if provider.name == "GitHub" %}secondary{% else %}primary{% endif %} w3-padding">
-                    <img src="/static/graphics/thirdparty/{{provider.name}}.png" width="25" />
-                    Link {{provider.name}} account
-                </button>
-            </a>
+            {% for base_account in form.accounts %}
+             {% if base_account.provider != provider.id %}
+                <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
+                    href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                    <button class="{% if provider.name == "GitHub" %}secondary{% else %}primary{% endif %} w3-padding">
+                        <img src="/static/graphics/thirdparty/{{provider.name}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                        Link {{provider.name}} account
+                    </button>
+                </a>
+             {% endif %}
+             {% empty %}
+             <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
+                    href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                    <button class="{% if provider.name == "GitHub" %}secondary{% else %}primary{% endif %} w3-padding">
+                        <img src="/static/graphics/thirdparty/{{provider.name}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                        Link {{provider.name}} account
+                    </button>
+                </a>
+            {% endfor %}
             </div>
         {% endfor %}
     </div>
