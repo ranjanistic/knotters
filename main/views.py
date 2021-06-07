@@ -1,9 +1,11 @@
 from django.http.response import Http404, HttpResponse
+from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
 from .renderer import renderView
 from project.models import Project
 from compete.models import Competition
 
+@require_GET
 def index(request):
     projects = Project.objects.filter()[0:3]
     data = {
@@ -19,6 +21,7 @@ def index(request):
         pass
     return renderView(request, 'index.html', data)
 
+@require_GET
 def redirector(request):
     try:
         next = request.GET['n']
@@ -31,9 +34,11 @@ def redirector(request):
         return HttpResponse(f"<h1>Redirecting...</h1><script>window.location.replace('{next}')</script>")
     else: return redirect(next)
 
+@require_GET
 def docIndex(request):
     return renderView(request,"docs/index.html")
 
+@require_GET
 def docs(request,type):
     try:
         return renderView(request,f"docs/{type}.html")

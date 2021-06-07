@@ -55,6 +55,7 @@
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         {% block stylesheets %}{% endblock %}
         <title>{% block title %}{{appname}}{% endblock %}</title>
+        <script>const csrfmiddlewaretoken = "{{csrf_token}}"; </script>
     </head>
     {% endblock %}
     <body>
