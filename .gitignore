@@ -17,3 +17,5 @@ media/
 static/admin
 py
 *.apk
+nginx_waitress
+runserver.py
