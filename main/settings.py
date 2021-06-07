@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
     "project",
     "compete",
-    "people"
+    "people",
+    "moderation",
 ]
 
 AUTH_USER_MODEL = 'people.User'

@@ -3,6 +3,7 @@ from django.http.response import Http404, HttpResponse
 from django.shortcuts import redirect
 from main.renderer import renderView
 from .models import *
+from moderation.views import requestModeration
 from people.models import User
 from main.env import GITHUBBOTTOKEN, PUBNAME
 from github import Github
@@ -26,6 +27,7 @@ def submitProject(request):
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         reponame = request.POST["reponame"]
+        userRequest = request.POST["requestdata"]
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
             return HttpResponse(f'{reponame} already exists')
@@ -36,6 +38,7 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
+        requestModeration(projectobj.id,"project",userRequest)
         return redirect(f'/projects/profile/{projectobj.reponame}')
     except:
         return Http404()
