@@ -13,87 +13,124 @@
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-<div class="w3-row w3-padding">
-<br/>
 
-<div class="w3-row w3-padding">
-    <button type="submit" class="primary"><i class="material-icons">navigate_before</i>Previous</button></a>
-    <button type="button" class="positive" id="stepof"></button>    
-</div>
+<div class="w3-row w3-container w3-padding-48">
+    <div class="w3-col w3-half w3-padding" >
 
-<br/>
-<form class="w3-col w3-half w3-padding" method="POST" action="/projects/submit">
+   <form id="create-project-form" method="POST" action="/projects/submit">
+         {% csrf_token %}
 
-    {% csrf_token %}
+          <div class="step-tab" id="step1">
 
-    <div id="step1">
-        <h3>Display name</h3>
-        <input class="big-input" name="projectimage" type="file" />
-        <input required class="big-input" name="projectname" placeholder="Project title" />
-        <span class="w3-right negative-text">{{errorprojectname}}</span>
-        <br/><br/>
-        <h3>Repository name</h3>
-        <input required class="big-input" name="reponame" placeholder="Project username"
-            {% if reponame %}
-            value="{{reponame}}"
-            {% endif %}
-        />
-        <span class="w3-right negative-text">{{errorreponame}}</span>
-    </div>
+            <h3>Display name</h3>
+            <br/>
+            <div id="image-upload-button">
+                <input type="file"  accept="image/*" name="projectimage" onchange="loadFile(event)" id="file" style="display: none;">
+                <p><label for="file" class="positive" style="cursor: pointer;">Upload Image</label></p>
+                  <img id="output" width="60%" />
+            </div> 
+            <br/>
+
+                <input required class="big-input" name="projectname" placeholder="Project title" id="projectname"/>
+                       <span class="w3-right negative-text">{{errorprojectname}}</span>
+                   <br/><br/><br/>
+
+                   <h3>Repository name</h3>
+                   <input required class="big-input" name="reponame" placeholder="Project username" id="reponame"
+                   {% if reponame %}
+                   value="{{reponame}}"
+                   {% endif %}
+                   />
+                  <span class="w3-right negative-text">{{errorreponame}}</span>
+          </div>
     
-    <div id="step2">
-        <h3>About {% if projectname %}
-            {{projectname}}
-            {% endif %}</h3>
-        <textarea required class="big-input" maxlength="3000" name="projectabout" placeholder="What's your project about?">{% if projectabout %}{{projectabout}}{% endif %}</textarea>
+
+          <div class="step-tab" id="step2">
+               <h3>About {% if projectname %}
+                  {{projectname}}
+                  {% endif %}
+               </h3>
+              <textarea required class="big-input" 
+                        maxlength="3000" 
+                        name="projectabout" 
+                        id="projectabout" 
+                        placeholder="What's your project about?">
+                        {% if projectabout %}{{projectabout}}{% endif %}
+              </textarea>
         <span class="w3-right negative-text">{{errorprojectabout}}</span>
         <br/><br/>
-        <h3>Tags</h3>
-        <input required class="big-input" name="tags" maxlength="50" placeholder="Separate by comma"
-            {% if tags %}
-            value="{{tags}}"
-            {% endif %}
-        />
-        <span class="w3-right negative-text">{{errortags}}</span>
+
+               <h3>Tags</h3>
+                  <input required class="big-input" name="tags" maxlength="50" placeholder="Separate by comma" id="tags"
+                   {% if tags %}
+                   value="{{tags}}"
+                   {% endif %}
+                  />
+                 <span class="w3-right negative-text">{{errortags}}</span>
+         </div>
+    
+
+    <div class="step-tab" id="step3">
+
+        <h3>Category</h3>
+            <input required class="big-input" name="projectcategory" id="projectcategory" placeholder="Type"/>
+            <br/><br/>
+
+        <h3>Extra description</h3>
+        <textarea required class="big-input" 
+                  name="description" 
+                  maxlength="50" 
+                  id="description" 
+                  placeholder="description"   
+        ></textarea>
+    </div>
+
+    <div class="step-tab" id="step4">
+        <div class="pallete w3-transparent" id="preview-step">
+            <h2>Preview</h2>
+            <div class="w3-row">
+                <div class="w3-col w3-half">
+                    <h5>Project title:</h5>
+                    <h5>Project username:</h5> 
+                        <h5>About: </h5> 
+                        <h5>Tags:</h5>
+                        <h5>Category:</h5>
+                        <h5>Extra description:</h5></div>
+                        <div class="w3-col w3-half">
+                            <p id="titlePreview"></p>
+                            <p id="usernamePreview"></p>
+                            <p id="aboutPreview"></p>
+                            <p id="tagsPreview"></p>
+                            <p id="categoryPreview"></p>
+                            <p id="descriptionPreview"></p></div>
+            </div>
+   
+        </div>
+
+           <label id="confirm-check-box"> 
+                  <input required name="projectcategory" type="checkbox"/>
+                  Confirm and Proceed
+          </label>
+       
     </div>
     
-    <div class="w3-row">
-        <button type="submit" class="w3-right big-button positive" id="nextstep">
-            submit <i class="material-icons big-icon">navigate_next</i>
-        </button>
+    
+    <div style="overflow:auto;">
+      <div style="float:right;">
+        <button type="button" class=" primary big-button" id="prevBtn" onclick="nextPrev(-1)"><i class="material-icons">navigate_before</i>Previous</button>
+        <button type="button"  class=" big-button positive" id="nextBtn" onclick="nextPrev(1)">Next<i class="material-icons big-icon">navigate_next</i></button>
+      </div>
     </div>
-
-</form>
+    
+    <div style="text-align:center;margin-top:40px;">
+      <span class="step"></span>
+      <span class="step"></span>
+      <span class="step"></span>
+      <span class="step"></span>
+    </div>
+    
+    </form>
 </div>
-
-<script>
-// const steps = [document.getElementById("step1"),document.getElementById("step2"),document.getElementById("step3")];
-// let current = 0;
-// steps.forEach((step,s)=>{
-//     step.hidden = s !== current
-// })
-// document.getElementById("prevstep").addEventListener('click',()=>{
-//     if(current>0){
-//         --current;
-//     }
-//     setStep()
-// })
-
-// document.getElementById("nextstep").addEventListener('click',()=>{
-//     if(current<steps.length){
-//         ++current;
-//     }
-//     setStep()
-// })
-
-// const setStep =()=>{
-//     steps.forEach((step,s)=>{
-//         step.hidden = s !== current
-//     })
-//     document.getElementById("stepof").innerHTML = `Step ${current} of ${steps.length}`;
-// }
-
-// setStep()
-
-</script>
+</div>
+<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endblock %}

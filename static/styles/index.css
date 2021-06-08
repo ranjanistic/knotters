@@ -212,6 +212,7 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 
+/* ============= Create project form ============== */
 input,
 textarea {
   border: 0;
@@ -224,43 +225,96 @@ textarea {
   transition: var(--delay);
 }
 
-input[type="file"] {
-  font-size: 11px;
-}
-
 input:focus,
 textarea:focus {
   border: 0px;
 }
 
+input.invalid {
+  background-color: #ffdddd;
+}
+
+.step-tab {
+  display: none;
+}
+
+.step {
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbbbbb;
+  border: none;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.5;
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step.finish {
+  background-color: var(--active);
+}
+
 .big-input {
   width: 100%;
-  font-size: 40px;
+  font-size: 16px;
   font-family: var(--head-font);
   border: 2px solid var(--active);
 }
+
+#image-upload-button p label {
+  padding: 16px;
+  border-radius: 25px;
+  transition: 0.4s;
+}
+
+#image-upload-button p label:hover,
+#image-upload-button p label:focus {
+  padding: 20px;
+}
+
+#confirm-check-box {
+  font-weight: 600;
+}
+
+input[type="checkbox"] {
+  margin-top: 40px;
+  margin-right: 10px;
+  transform: scale(1.5);
+  margin-left: 10px;
+}
+
 .big-input:focus {
-  width: 100%;
-  font-size: 44px;
-  font-family: var(--head-font);
+  font-size: 17px;
   border: 4px solid var(--positive);
 }
 
 .big-button {
-  font-size: 30px;
+  font-size: 15px;
   padding: 12px 22px;
   border-radius: 55px;
+  margin-top: 30px;
 }
 .big-button:hover {
-  font-size: 30px;
+  transform: scale(1.02);
   padding: 12px 22px;
   border-radius: 55px;
 }
 
 .big-icon {
-  font-size: 30px !important;
+  font-size: 20px !important;
   padding: 0 !important;
   margin: 0 !important;
+}
+
+#preview-step > h2 {
+  margin-bottom: 25px;
+}
+
+#preview-step h5 {
+  color: var(--tertiary-text);
 }
 
 /*========== People template ===========*/
@@ -273,7 +327,6 @@ textarea:focus {
   background-color: var(--primary);
   width: 100%;
   margin-bottom: 2rem;
-  overflow-y: scroll;
 }
 
 .pallete-people > img {
@@ -302,8 +355,23 @@ textarea:focus {
 
 .tab > h5 {
   color: var(--negative);
-  display: flex;
-  justify-content: center;
+  margin-top: 20%;
+  margin-left: 40%;
+}
+
+.tab > h5 > button {
+  margin-left: 25px;
+  background-color: var(--accent);
+}
+
+@media screen and (max-width: 768px) {
+  .tab > h5 {
+    margin-left: 25%;
+  }
+
+  .tab > h5 > button {
+    margin-left: 15px;
+  }
 }
 
 .w3-bar a > i,
@@ -344,6 +412,7 @@ textarea:focus {
   height: 60px;
   animation: spin 2s linear infinite;
   margin: auto;
+  margin-top: 20%;
 }
 
 @keyframes spin {

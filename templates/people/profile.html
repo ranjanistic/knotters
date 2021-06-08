@@ -23,12 +23,12 @@
 <div class="w3-row tertiary" style=" padding-top: 1.5rem;">
   <div class="w3-col w3-container m4 l3">
     <div class="pallete-people" style=" padding:0; padding-bottom: 12px;">
-      <img src="/media{{ person.profile_pic }}" alt="Alps">
+      <img src="/media{{ person.profile_pic }}" alt="Alps" />
       <p class="person-name">  {{ person.first_name }} {{ person.last_name }} </p>
     </div>
 
 <div class="pallete-people"><p>Email ID: <span>{{ person.email }}</span></p>
-<p>User ID: <span >{{ person.id }}</span></p></div>
+<!--<p>User ID: <span >{{ person.id }}</span></p>--></div>
 
 <div class="pallete-people"><p>Date joined: <span >{{ person.date_joined }}</span></p>
 <p>Last login: <span> {{ person.last_login }}</span></p></div>
@@ -40,7 +40,7 @@ moderator
 </div>
 <div class="w3-col w3-container m8 l9" >
 
- <div class="pallete-people" style="height: 115vh;"> 
+ <div class="pallete-people" style="height: 115vh; overflow-y: scroll;"> 
   <div class="w3-bar">
     <a class="w3-bar-item " onclick="openTab('overview'); getApi() "><i class="material-icons">person</i>Overview</a>
     <a class="w3-bar-item " onclick="openTab('project'); getApi()"><i class="material-icons">workspaces</i>Project</a>
@@ -77,6 +77,9 @@ moderator
 </div>
 </div>
 </div>
+
+<script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %}
+
 </body>
 </html>
