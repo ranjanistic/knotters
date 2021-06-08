@@ -1,18 +1,22 @@
 from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
-from main.renderer import renderView
+from .methods import renderer
 from django.contrib.auth.decorators import login_required
 from project.models import Project
 from .models import User
 
+
 @require_GET
 def index(request):
-    return renderView(request, 'people/index.html')
+    users = User.objects.filter(is_active=True,is_verified=True)
+    return renderer(request, 'index.html', {"people": users})
+
 
 @require_GET
 def profile(request, userID):
     user = User.objects.get(id=userID)
-    return renderView(request, 'people/profile.html', {"person": user})
+    return renderer(request, 'profile.html', {"person": user})
+
 
 @require_POST
 def userInfo(request, userID, section):

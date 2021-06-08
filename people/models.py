@@ -2,8 +2,8 @@ from django.db import models
 import uuid
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from .methods import profileImagePath
 
-# Create your models here.
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, first_name, last_name=None, password=None):
         if not email:
@@ -30,10 +30,6 @@ class UserAccountManager(BaseUserManager):
         user.is_staff = True
         user.save(using=self._db)
         return user
-
-
-def profileImagePath(instance,filename):
-    return 'users/{}/'.format(str(instance.id))+'/profile/{}'.format(filename)
 
 class User(AbstractBaseUser,PermissionsMixin):
     USERNAME_FIELD = 'email'
