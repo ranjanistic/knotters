@@ -1,10 +1,10 @@
-{% extends 'index.html' %}
+{% extends 'temp.html' %}
 {% load static %}
 
 {% block title %}{{project.name}} | {{appname}}{% endblock %}
 
 
-{% block nav_href %}/projects{% endblock %}
+{% block nav_href %}/{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}

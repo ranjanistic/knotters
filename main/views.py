@@ -17,7 +17,7 @@ def index(request):
         }
     except:
         pass
-    return renderView(request, 'index.html', data)
+    return renderView(request, 'temp.html', data)
 
 def redirector(request):
     try:
