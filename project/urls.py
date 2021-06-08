@@ -6,5 +6,6 @@ urlpatterns = [
     path('', allProjects),
     path('create', create),
     path('submit', submitProject),
-    path('profile/<str:reponame>', profile)
+    path('profile/<str:reponame>', profile),
+    path('projectinfo/<str:projectID>/<str:info>', projectInfo)
 ]

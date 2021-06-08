@@ -22,6 +22,9 @@ class Competition(models.Model):
     
     active = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.title
+    
 
 class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
