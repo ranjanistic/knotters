@@ -1,8 +1,19 @@
 from .models import *
 from main.env import GITHUBBOTTOKEN, PUBNAME
 from github import Github
+from main.methods import renderView
+from .apps import APPNAME
 
-# Creates project on knotters & then repository in github/Knotters using knottersbot
+
+def renderer(request, file, data={}):
+    data['root'] = f"/{APPNAME}"
+    data['subappname'] = APPNAME
+    return renderView(request, f"{APPNAME}/{file}", data)
+
+def projectImagePath(instance,filename):
+    return 'projects/{}/'.format(str(instance.id))+'/{}'.format(filename)
+
+# Creates project on knotters
 def createProject(name, reponame, description, tags, user):
     try:
         project = Project.objects.create(
@@ -33,15 +44,3 @@ def uniqueTag(tagname):
         return True
     return False
 
-
-def createRepository(reponame, description):
-    return False
-    g = Github(GITHUBBOTTOKEN)
-    org = g.get_organization(PUBNAME)
-    repo = org.create_repo(name=reponame, private=False,
-                           description=description, auto_init=True)
-    return repo
-
-
-def protectBranchMain():
-    return None

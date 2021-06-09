@@ -1,69 +1,48 @@
-from django.http.response import Http404, HttpResponse,HttpResponseBadRequest
-from main.renderer import renderView
+from django.http.response import Http404, HttpResponse
+from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_required
 from people.models import User
-from project import *
-from compete import *
-from people import *
+from project.models import Project
+from compete.models import Competition
+from main.strings import PROJECT, PEOPLE, COMPETE, code
 from .models import *
+from .methods import renderer
 
-DIVISIONS = ['people','project','competition']
 
-def moderation(request,division,id):
-    if not DIVISIONS.__contains__(division):
+@require_GET
+def moderation(request, division, id):
+    try:
+        if not [PEOPLE, PROJECT, COMPETE].__contains__(division):
+            raise Http404()
+        else:
+            data = {}
+            moderation = None
+            if division == PEOPLE:
+                user = User.objects.get(id=id)
+                moderation = Moderation.objects.get(user=user)
+                data = {'person': user}
+            elif division == PROJECT:
+                project = Project.objects.get(id=id)
+                moderation = Moderation.objects.get(project=project)
+                data = {'project': project}
+            elif division == COMPETE:
+                competition = Competition.objects.get(id=id)
+                moderation = Moderation.objects.get(competition=competition)
+                data = {'competition': competition}
+            data['moderation'] = moderation
+            return renderer(request, f'{division}.html', data)
+    except:
         raise Http404()
-    else:
-        return HttpResponse(f"{division} moderation for {id}")
-
-# implemented round robin algorithm
-def getModerator():
-    try:
-        current = localStorage.objects.get(key="moderator")
-    except:
-        current = localStorage.objects.create(key="moderator",value=0)
-        current.save()
-    
-    totalModerators = User.objects.filter(is_moderator=True)
-    if(totalModerators.count==0):
-        print("No moderators exist")
-        return HttpResponseBadRequest(content="No moderator exist in system")
-    temp = int(current.value)
-    if(temp>=totalModerators.count()):
-        temp = 1
-    else:
-        temp = temp+1
-    current.value = temp
-    current.save()
-    print(totalModerators[temp-1])
-    return totalModerators[temp-1]
 
 
-
-def requestModeration(id,type,userinput):
-    try:
-        if(type=="project"):
-            obj = moderation.objects.get(project_id=id)
-        elif(type=="people"):
-            obj = moderation.objects.get(user_id=id)
-        else:
-            obj = moderation.objects.get(competiton_id=id)
-        return False
-    except:
-        moderator = getModerator()
-        if(type=="project"):
-            obj = moderation.objects.create(project_id=id,type=type,moderator=moderator,request=userinput)
-        elif(type=="people"):
-            obj = moderation.objects.create(user_id=id,type=type,moderator=moderator,request=userinput)
-        else:
-            obj = moderation.objects.create(competiton_id=id,type=type,moderator=moderator,request=userinput)
-        obj.save()
-    return True
-
-
+@require_POST
+@login_required
 def disapprove(request):
-    if(request.method=="POST"):
+    try:
         id = request.POST["id"]
-        reason  = request.POST["reason"]
-        obj = moderation.objects.get(id=id)
+        reason = request.POST["reason"]
+        obj = Moderation.objects.get(id=id)
         obj.reject(reason)
-        return HttpResponse("Rejection success")
-
+        return HttpResponse(code.OK)
+    except:
+        return HttpResponse(code.NO)
