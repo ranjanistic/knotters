@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block og %}
+<meta property="og:title" content="Competitions at {{appname}}" />
+<meta
+property="og:description"
+content="Participate in live competitions at {{appname}}!"
+/>
+<meta property="og:site_name" content="{{appname}}" />
+{% endblock %}
+
+{% block title %}Competitions{% endblock %}
+
+{% block nav_text %}Competitions{% endblock %}
+{% block nav_noauth %}{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-padding">
+    {% for comp in actives %}
+        <a href="/competitions/{{comp.id}}">{{comp.id}}</a><br />
+        {{comp.title}}<br />
+        {{comp.tagline}}<br />
+        {{comp.shortdescription}}<br />
+        {{comp.description}}<br />
+        {{comp.banner}}<br />
+    {% empty %}
+        <div class="w3-row w3-padding w3-center">
+        <h3>No active competitions.</h3>
+        </div>
+    {% endfor %}
+
+    {% for comp in inactives %}
+        {{comp.title}}
+        {{comp.tagline}}
+        {{comp.shortdescription}}
+        {{comp.description}}
+        {{comp.banner}}
+    {% empty %}
+        <div class="w3-row w3-padding w3-center">
+        <h3>No history.</h3>
+        </div>
+    {% endfor %}
+</div>
+<br/>
+{% endblock %}
