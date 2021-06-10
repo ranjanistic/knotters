@@ -136,14 +136,22 @@ button {
   box-shadow: 2px 1px 12px 1px #0000001f;
 }
 
+button > span.w3-hide-small {
+  padding: 0px 0px 0px 4px;
+}
+
 button > i {
   vertical-align: middle;
-  padding: 0px 4px 2px 0px;
+  padding: 0px 2px 2px 0px;
   font-size: 20px !important;
 }
 button > img {
   vertical-align: middle;
-  padding: 0px 4px 2px 0px;
+  padding: 0px 0px 2px 0px;
+}
+
+button > label {
+  cursor: pointer;
 }
 
 button:hover {

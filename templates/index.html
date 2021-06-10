@@ -70,7 +70,7 @@
             {% block nav_right %}
             <span class="w3-right w3-row w3-padding">
                 {% block nav_links %}
-                    <button class="primary themeswitch"><i class="material-icons">dark_mode</i></button>
+                    <button class="secondary themeswitch"><i class="material-icons">brightness_medium</i></button>
                     {% block nav_noauth %}
                     <a href="/competitions"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>
                     {% endblock %}
@@ -79,7 +79,7 @@
                             {% block nav_auth_links %}
                             <a href="/projects/create"><button title="New project" class="positive"><i class="material-icons">add_circle</i><span class="w3-hide-small">New project</span></button></a>
                             {% endblock %}
-                            <a href="/people/profile/{{request.user.id}}"><button title="Logged in as {{request.user.first_name}} {{request.user.last_name}}" class="accent"><img src="/media{{ request.user.profile_pic }}" style="border-radius:50px" width="28" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
+                            <a href="/people/profile/{{request.user.id}}"><button title="Logged in as {{request.user.first_name}} {{request.user.last_name}}" class="accent"><img src="/media{{ request.user.profile_pic }}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
@@ -169,12 +169,6 @@
                 {% if contactmail %}
                 <a href="mailto:{{contactmail}}"><button class="primary"><i class="material-icons">mail</i>{{contactmail}}</button></a><br/><br/>
                 {% endif %}
-                {% block footer_social %}
-                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />&nbsp;Knotters</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="25" />&nbsp;knottersdotorg</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="25" />&nbsp;knottersdotorg</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="22" />&nbsp;knottersdotorg</button></a><br/><br/>
-                {% endblock %}
             </div>
             <div class="w3-col w3-half w3-padding-small">
                 <br/><br/>
@@ -187,7 +181,17 @@
             </div>
             <div class="w3-row">
             <br/>
-            <center>Copyright 2021 &#183; <a href="/docs">Docs &amp; Statements</a></center>
+            <center>
+            {% block footer_social %}
+                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="22" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://discord.gg/qZ3TdVHsma"><button class="primary"><img src="{% static 'graphics/thirdparty/discord.png' %}" width="18" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://linkedin.com/company/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" /></button></a>
+            {% endblock %}
+            <br/><br/>
+            Copyright 2021 &#183; <a href="/docs">Docs &amp; Statements</a></center>
             </div>
         </footer>
         {% endblock %}
