@@ -235,6 +235,18 @@ details > summary::-webkit-details-marker {
   font-weight: 500;
 }
 
+input,
+textarea {
+  border: 0;
+  outline: 0;
+  padding: 8px 8px;
+  font-size: 18px;
+  border-radius: 8px;
+  background-color: var(--tertiary);
+  color: var(--tertiary-text);
+  transition: var(--delay);
+}
+
 .loader {
   border: 8px solid var(--primary); /* Light grey */
   border-top: 8px solid var(--active); /* Blue */

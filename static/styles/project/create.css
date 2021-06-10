@@ -1,18 +1,7 @@
 /* ============= Create project form ============== */
-input,
-textarea {
-  border: 0;
-  outline: 0;
-  padding: 8px 8px;
-  font-size: 18px;
-  border-radius: 8px;
-  background-color: var(--tertiary);
-  color: var(--tertiary-text);
-  transition: var(--delay);
-}
-
 input:focus,
 textarea:focus {
+  outline: none;
   border: 0px;
 }
 
