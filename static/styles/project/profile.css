@@ -1,0 +1,18 @@
+.pallete-profile .project-name{
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 2rem;
+}
+
+.pallete-profile h5{
+    text-align: center;
+}
+
+.w3-threequarter .pallete-profile p{
+    font-weight: 600;
+    font-size: 1.15rem;
+}
+
+.w3-threequarter .pallete-profile p span{
+    font-weight: 500;
+}

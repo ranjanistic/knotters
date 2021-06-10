@@ -7,16 +7,6 @@ function openTab(tabName) {
   document.getElementById(tabName).style.display = "block";
 }
 
-/* =========== Preloader ==============*/
-
-function openSpinner() {
-  document.getElementById("loader").style.display = "block";
-}
-
-function hideSpinner() {
-  document.getElementById("loader").style.display = "none";
-}
-
 /* ============== fetch api ================ */
 function getApi() {
   openSpinner();
@@ -31,16 +21,43 @@ function getApi() {
         hideSpinner();
       }
     })
-    .catch(function (err) {
-      hideSpinner();
-      document.querySelector("#overview").innerHTML =
-        "<h5>Failed to load data <br/><br/><button onclick='getApi()' >Try again</button></h5>";
-      document.querySelector("#project").innerHTML =
-        "<h5>Failed to load data <br/><br/><button onclick='getApi()' >Try again</button></h5>";
-      document.querySelector("#contribution").innerHTML =
-        "<h5>Failed to load data <br/><br/><button onclick='getApi()' >Try again</button></h5>";
-      document.querySelector("#activity").innerHTML =
-        "<h5>Failed to load data <br/><br/><button onclick='getApi()' >Try again</button></h5>";
-      console.log("error: " + err);
-    });
+    .catch(handleErrors);
+}
+
+function handleErrors() {
+  hideSpinner();
+  var tabs = document.querySelectorAll(
+    "#overview, #project, #contribution, #activity"
+  );
+  for (var j = 0; j < tabs.length; j++) {
+    tabs[j].innerHTML =
+      "<h5>Failed to load data <br/><br/><button onclick='getApi()'>Try again</button></h5>";
+  }
+}
+
+// Edit name button
+
+var editBtn = document.getElementById("edit-icon");
+var editable = document.getElementById("person-name");
+var editsave = document.getElementById("edit-confirmation");
+
+editBtn.addEventListener("click", function () {
+  editable.contentEditable = "true";
+  editable.style =
+    "border: 2px solid var(--active); padding:4px 10px; border-radius:25px; transition: 0.4s";
+  editsave.innerHTML = "save";
+  editsave.style =
+    " display: block; background-color:var(--positive); font-size: 0.9rem ; margin-left: 40%; color: var(--primary);";
+});
+
+editsave.addEventListener("click", function () {
+  editable.contentEditable = "false";
+  localStorage.setItem(editable.getAttribute("id"), editable.innerHTML);
+  editable.style = "border: 0px ";
+});
+
+if (typeof Storage !== "undefined") {
+  if (localStorage.getItem("person-name") !== null) {
+    editable.innerHTML = localStorage.getItem("person-name");
+  }
 }

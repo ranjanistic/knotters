@@ -3,7 +3,9 @@
 
 {% block title %}{{project.name}} | {{appname}}{% endblock %}
 
-
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" />
+{% endblock %}
 {% block nav_href %}/projects{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
@@ -20,24 +22,19 @@ This project is currently under review and not yet open to contributions. We'll 
 This project has been rejected by our moderators. <a href="/projects/rejected/{{project.id}}">See why</a>.
 </div>
 {% endif %}
-<div class="w3-row w3-padding">
-    <div class="w3-col w3-quarter">
-        <div class="w3-row w3-center">
-            <div class="pallete w3-transparent">
-                <img src="/media/{{project.image}}" width="300" />
-            </div>
-            <center><h5>{{project.description}}</h5></center><br/>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-row">
+<div class="w3-row tertiary" style=" padding-top: 1.5rem;">
+    <div class="w3-col w3-container w3-quarter">
+            <div class="pallete-profile">
+                <img src="/media/{{project.image}}" alt="pic" />
+            <h5 class="project-name" >{{project.description}}</h5>         
+         </div>
+<br/>
             {% for tag in project.tags.all %}
             <button class="positive">#{{tag}}</button>
             {% empty %}
                 <button class="primary">No tags assigned</button>
             {% endfor %}
-            </div>
             <br/>
-            <div class="w3-row">
                 <a target="_blank" rel="noreferrer" href="https://github.com/{{appname}}/{{project.reponame}}">
                     <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25"/>Contribute</button>
                 </a>
@@ -46,14 +43,19 @@ This project has been rejected by our moderators. <a href="/projects/rejected/{{
                     <button class="sub-accent"><i class="material-icons">launch</i>Open</button>
                 </a>
                 {% endif %}
-            </div>
-        </div>
     </div>
-    <div class="w3-col w3-threequarter">
-        <div class="w3-col w3-half">
+    <div class="w3-col w3-container w3-threequarter">
+        <div class="w3-col  w3-half">
+            <div class="pallete-profile"><h5>Contributions</h5><hr/></div>
         
         </div>
-        <div class="w3-col w3-half">
+        <div class="w3-col w3-container w3-half">
+            <div class="pallete-profile"><h5>Overview</h5>
+                <hr/>
+            <p>Description: <span>{{project.description}}</span></p>
+            <p>Created on:<span> {{project.createdOn}}</span></p>
+            <p>Creator: <span> {{project.creator}} </span></p>
+        </div>
         
         </div>
     </div>

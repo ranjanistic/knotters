@@ -1,3 +1,12 @@
+/* =========== Preloader ==============*/
+
+function openSpinner() {
+    document.getElementById("loader").style.display = "block";
+  }
+  
+  function hideSpinner() {
+    document.getElementById("loader").style.display = "none";
+}
 
 
 const postRequest = async (path, data = {}) => {
