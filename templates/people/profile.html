@@ -26,18 +26,17 @@
 <div class="w3-row tertiary" style=" padding-top: 1.5rem;">
   <div class="w3-col w3-container m4 l3">
     <div class="pallete-profile" style=" padding:0; padding-bottom: 12px;">
-      <img src="/media{{ person.profile_pic }}" alt="Alps" />
+      <img src="/media{{ person.profile_pic }}" alt="{{person.first_name}}" />
 
-    <div style="display: flex; justify-content: center;" >  
-      <p class="person-name" id="person-name" contenteditable="false">  
-        {{ person.first_name }} {{ person.last_name }} 
-      </p>
+      <div style="display: flex; justify-content: center;" >  
+        <p class="person-name" id="person-name" contenteditable="false">  
+          {{ person.first_name }} {{ person.last_name }} 
+        </p>
         <p id="edit-icon">
           <i class="material-icons">edit</i>
         </p>
-    </div>
-        <button id="edit-confirmation" type="button" style="display: none;"></button>
-
+      </div>
+      <button id="edit-confirmation" type="button" style="display: none;"></button>
     </div>
 
     <div class="pallete-profile">

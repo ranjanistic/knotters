@@ -157,9 +157,15 @@ button:active {
   padding: 12px;
   box-shadow: 2px 1px 24px 1px #0000001f;
   border-radius: 12px;
-  background-color: var(--active);
+  background-color: var(--primary);
   transition: var(--delay);
 }
+
+img.pallete {
+  padding: 0px;
+}
+
+
 .pallete:active {
   padding: 12px;
   opacity: 0.8;
