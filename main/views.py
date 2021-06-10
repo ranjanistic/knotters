@@ -1,13 +1,14 @@
 from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
-from .renderer import renderView
+from .methods import renderView
 from project.models import Project
 from compete.models import Competition
+from .strings import code
 
 @require_GET
 def index(request):
-    projects = Project.objects.filter()[0:3]
+    projects = Project.objects.filter(status=code.LIVE)[0:3]
     data = {
         "projects":projects
     }
@@ -31,7 +32,7 @@ def redirector(request):
         next = '/'
 
     if next.startswith("http"):
-        return HttpResponse(f"<h1>Redirecting...</h1><script>window.location.replace('{next}')</script>")
+        return HttpResponse(f"<h1>Forwarding...</h1><script>window.location.replace('{next}')</script>")
     else: return redirect(next)
 
 @require_GET

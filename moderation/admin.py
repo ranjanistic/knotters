@@ -3,7 +3,7 @@ from people.models import User
 from .models import *
 
 
-@admin.register(moderation)
+@admin.register(Moderation)
 class moderationAdmin(admin.ModelAdmin):
     list_display = ["project","moderator","type"]
     list_filter = ["type","moderator"]
@@ -14,7 +14,7 @@ class moderationAdmin(admin.ModelAdmin):
     # all_moderator.short_description = "Returns all moderators"
 
 
-@admin.register(localStorage)
+@admin.register(LocalStorage)
 class storageAdmin(admin.ModelAdmin):
     list_display = ["key","value"]
 
