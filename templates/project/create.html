@@ -18,40 +18,45 @@
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-
+<div class="w3-center w3-padding-small tertiary">
+    <h5>We recommend you to go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
+    moderation guidelines</a> before submission.</h5></div>
 <div class="w3-row w3-padding-64 w3-container">
     <div class="w3-col w3-half w3-padding">
-        <form id="create-project-form" method="POST" action="/projects/submit">
+        <form id="create-project-form" method="POST">
             {% csrf_token %}
 
             <div class="step-tab" id="step1">
-                <div class="w3-transparent pallete" id="image-upload-card">
-                    <div id="image-upload-button">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            name="projectimage"
-                            onchange="loadFile(event)"
-                            id="file"
-                            style="display: none"
-                        />
-                        <p>
-                            <label
-                                for="file"
-                                class="positive"
-                                style="cursor: pointer"
-                                >Upload Image</label
-                            >
-                        </p>
-                    </div>
+
+                <div class="w3-row">
+                    <h3>Project Logo</h3>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        name="projectimage"
+                        required="false"
+                        onchange="loadFile(event)"
+                        id="file"
+                        hidden
+                    />
+                    <button class="active" type="button">
+                        <i class="material-icons">upload</i>
+                        <label for="file">
+                            Upload Image
+                        </label>
+                    </button>
                 </div>
+
                 <br />
+                <div class="w3-row">
 				<h3>Display name</h3>
                 <input
                     required
                     class="big-input"
                     name="projectname"
                     placeholder="Project title"
+                    type="text"
+                    maxlength="30"
                     id="projectname"
                 />
                 <span class="w3-right negative-text"></span>
@@ -62,10 +67,13 @@
                     required
                     class="big-input"
                     name="reponame"
+                    type="text"
+                    maxlength="30"
                     placeholder="Project's unique username"
                     id="reponame"
                 />
                 <span class="w3-right negative-text"></span>
+                </div>
             </div>
 
             <div class="step-tab" id="step2">
@@ -73,12 +81,12 @@
                 <textarea
                     required
                     class="big-input"
-                    maxlength="3000"
+                    maxlength="1000"
+                    rows="4"
                     name="projectabout"
                     id="projectabout"
                     placeholder="What's your project about?"
-                >
-              </textarea>
+                ></textarea>
                 <br /><br />
 
                 <h3>Tags</h3>
@@ -99,7 +107,8 @@
                     class="big-input"
                     name="projectcategory"
                     id="projectcategory"
-                    placeholder="Type"
+                    maxlength="30"
+                    placeholder="Type of project"
                 />
                 <br /><br />
 
@@ -108,9 +117,10 @@
                     required
                     class="big-input"
                     name="description"
-                    maxlength="50"
+                    maxlength="5000"
+                    rows="5"
                     id="description"
-                    placeholder="Your explanation of the project for moderators to read."
+                    placeholder="Detailed explanation of the project you want moderators to read."
                 ></textarea>
             </div>
 
@@ -175,8 +185,8 @@
             </div>
         </form>
     </div>
-    <div class="w3-col w3-half w3-padding">
-        <img class="w3-right pallete" id="output" width="60%" src="/media/projects/default.png" />
+    <div class="w3-col w3-half w3-center w3-padding-32" id="imageview">
+        <img class="pallete" id="output" width="60%" src="/media/projects/default.png" />
     </div>
 </div>
 	{% block scripts %}
