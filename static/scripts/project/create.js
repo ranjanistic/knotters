@@ -1,5 +1,14 @@
 /* ======= Create-project-form ========*/
 
+var nextStepBtn = document.getElementById("nextBtn");
+var prevStepBtn = document.getElementById("prevBtn");
+var previews = document.querySelectorAll(
+  "#titlePreview, #usernamePreview, #aboutPreview, #tagsPreview, #categoryPreview, #descriptionPreview"
+);
+var formValues = document.querySelectorAll(
+  "#projectname, #reponame, #projectabout, #tags, #projectcategory, #description"
+);
+
 var currentStep = 0;
 showStep(currentStep);
 
@@ -7,40 +16,23 @@ function showStep(n) {
   var x = document.getElementsByClassName("step-tab");
   x[n].style.display = "block";
   if (n == 0) {
-    document.getElementById("prevBtn").style.display = "none";
+    prevStepBtn.style.display = "none";
   } else {
-    document.getElementById("prevBtn").style.display = "inline";
+    prevStepBtn.style.display = "inline";
   }
 
   if (n == x.length - 2) {
-    document
-      .getElementById("nextBtn")
-      .addEventListener("click", function preview() {
-        document.getElementById(
-          "titlePreview"
-        ).innerHTML = document.getElementById("projectname").value;
-        document.getElementById(
-          "usernamePreview"
-        ).innerHTML = document.getElementById("reponame").value;
-        document.getElementById(
-          "aboutPreview"
-        ).innerHTML = document.getElementById("projectabout").value;
-        document.getElementById(
-          "tagsPreview"
-        ).innerHTML = document.getElementById("tags").value;
-        document.getElementById(
-          "categoryPreview"
-        ).innerHTML = document.getElementById("projectcategory").value;
-        document.getElementById(
-          "descriptionPreview"
-        ).innerHTML = document.getElementById("description").value;
-      });
+    nextStepBtn.addEventListener("click", function preview() {
+      for (var k = 0; k < previews.length; k++) {
+        previews[k].innerHTML = formValues[k].value;
+      }
+    });
   }
   if (n == x.length - 1) {
-    document.getElementById("nextBtn").type = "submit";
-    document.getElementById("nextBtn").innerHTML = "Create";
+    nextStepBtn.type = "submit";
+    nextStepBtn.innerHTML = "Create";
   } else {
-    document.getElementById("nextBtn").innerHTML =
+    nextStepBtn.innerHTML =
       "Next<i class='material-icons big-icon'>navigate_next</i>";
   }
   fixStepIndicator(n);

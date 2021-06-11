@@ -1,13 +1,26 @@
-function openTab(tabName) {
-  var i;
-  var x = document.getElementsByClassName("tab");
+function openTab(evt, tabName) {
+  var i, x, tablinks;
+  x = document.getElementsByClassName("tab");
   for (i = 0; i < x.length; i++) {
     x[i].style.display = "none";
   }
+  tablinks = document.getElementsByClassName("nav-tab");
+  for (i = 0; i < x.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" w3-teal", "");
+  }
+
   document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " w3-teal";
 }
 
 /* ============== fetch api ================ */
+
+var NavTabs = document.querySelectorAll(".nav-tab");
+
+for (var n = 0; n < NavTabs.length; n++) {
+  NavTabs[n].addEventListener("click", getApi);
+}
+
 function getApi() {
   openSpinner();
   fetch("https://jsonplaceholder.typicode.com/todos/1")
@@ -41,20 +54,23 @@ var editBtn = document.getElementById("edit-icon");
 var editable = document.getElementById("person-name");
 var editsave = document.getElementById("edit-confirmation");
 
-editBtn.addEventListener("click", function () {
+editBtn.addEventListener("click", editButton);
+editsave.addEventListener("click", saveEdits);
+
+function editButton() {
   editable.contentEditable = "true";
   editable.style =
     "border: 2px solid var(--active); padding:4px 10px; border-radius:25px; transition: 0.4s";
   editsave.innerHTML = "save";
   editsave.style =
-    " display: block; background-color:var(--positive); font-size: 0.9rem ; margin-left: 40%; color: var(--primary);";
-});
+    "display: block; background-color:var(--positive); font-size: 0.9rem ; margin-left: 40%; color: var(--primary);";
+}
 
-editsave.addEventListener("click", function () {
+function saveEdits() {
   editable.contentEditable = "false";
   localStorage.setItem(editable.getAttribute("id"), editable.innerHTML);
   editable.style = "border: 0px ";
-});
+}
 
 if (typeof Storage !== "undefined") {
   if (localStorage.getItem("person-name") !== null) {
