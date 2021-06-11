@@ -51,8 +51,7 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     objects = UserAccountManager()
 
-    def getName(self):
-        return self.first_name+" "+self.last_name
+    
 
     def __str__(self):
         return self.email
@@ -62,3 +61,17 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+
+    def getName(self):
+        if(self.last_name is not None):
+            return self.first_name+" "+self.last_name
+        else:
+            return self.first_name
+            
+    def getDP(self):
+        dp = str(self.profile_pic)
+        if(dp[0]=="h"):
+            return dp
+            pass
+        else:
+            return "/media"+dp
