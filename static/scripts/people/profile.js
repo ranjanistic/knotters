@@ -1,16 +1,18 @@
-function openTab(tabName) {
+async function openTab(tabName) {
+  // await getApi(tabName);
   var i;
   var x = document.getElementsByClassName("tab");
   for (i = 0; i < x.length; i++) {
     x[i].style.display = "none";
   }
   document.getElementById(tabName).style.display = "block";
+  
 }
 
 /* ============== fetch api ================ */
 function getApi() {
   openSpinner();
-  fetch("https://jsonplaceholder.typicode.com/todos/1")
+  fetch(`/people/userinfo/${tabname}`)
     .then((response) => response.json())
     .then((json) => {
       console.log(json);

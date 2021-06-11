@@ -15,23 +15,28 @@ def index(request):
 @require_GET
 def profile(request, userID):
     user = User.objects.get(id=userID)
-    return renderer(request, 'profile.html', {"person": user})
+    projects = Project.objects.filter(creator=user)
+    return renderer(request, 'profile.html', {"person": user,"project":projects,"contribution":"","overview":"","activity":""})
 
 
-@require_POST
-def userInfo(request, userID, section):
-    try:
-        user = User.objects.get(id=userID)
-        if section == 'overview':
-            return HttpResponse("Overview")
-        elif section == 'projects':
-            projects = Project.objects.filter(creator=user)
-            return HttpResponse(projects)
-        elif section == 'contribution':
-            return HttpResponse("Contribution")
-        elif section == 'activity':
-            return HttpResponse("Activity")
-        else:
-            raise Http404()
-    except:
-        raise Http404()
+# @require_POST
+# def userInfo(request, section):
+#     try:
+#         userID = request.get["userID"]
+#     except:
+#         userID = request.user.id
+#     try:
+#         user = User.objects.get(id=userID)
+#         if section == 'overview':
+#             return HttpResponse({"data":"overview"})
+#         elif section == 'projects':
+            
+#             return HttpResponse(projects)
+#         elif section == 'contribution':
+#             return HttpResponse({"data":"overview"})
+#         elif section == 'activity':
+#             return HttpResponse({"data":"overview"})
+#         else:
+#             raise Http404()
+#     except:
+#         raise Http404()

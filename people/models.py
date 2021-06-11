@@ -72,6 +72,5 @@ class User(AbstractBaseUser,PermissionsMixin):
         dp = str(self.profile_pic)
         if(dp[0]=="h"):
             return dp
-            pass
         else:
             return "/media"+dp
