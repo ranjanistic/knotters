@@ -1,3 +1,6 @@
+html{
+  scroll-behavior: smooth;
+}
 a {
   text-decoration: none;
   transition: var(--delay);
@@ -133,14 +136,22 @@ button {
   box-shadow: 2px 1px 12px 1px #0000001f;
 }
 
+button > span.w3-hide-small {
+  padding: 0px 0px 0px 4px;
+}
+
 button > i {
   vertical-align: middle;
-  padding: 0px 4px 2px 0px;
+  padding: 0px 2px 2px 0px;
   font-size: 20px !important;
 }
 button > img {
   vertical-align: middle;
-  padding: 0px 4px 2px 0px;
+  padding: 0px 0px 2px 0px;
+}
+
+button > label {
+  cursor: pointer;
 }
 
 button:hover {
@@ -157,9 +168,15 @@ button:active {
   padding: 12px;
   box-shadow: 2px 1px 24px 1px #0000001f;
   border-radius: 12px;
-  background-color: var(--active);
+  background-color: var(--primary);
   transition: var(--delay);
 }
+
+img.pallete {
+  padding: 0px;
+}
+
+
 .pallete:active {
   padding: 12px;
   opacity: 0.8;
@@ -233,6 +250,18 @@ details > summary::-webkit-details-marker {
 
 .pallete-profile p span {
   font-weight: 500;
+}
+
+input,
+textarea {
+  border: 0;
+  outline: 0;
+  padding: 8px 8px;
+  font-size: 18px;
+  border-radius: 8px;
+  background-color: var(--tertiary);
+  color: var(--tertiary-text);
+  transition: var(--delay);
 }
 
 .loader {
