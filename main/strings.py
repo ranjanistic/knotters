@@ -24,6 +24,7 @@ class Profile():
     PROJECTS = 'projects'
     CONTRIBUTION = 'contribution'
     ACTIVITY = 'activity'
+    MODERATION = 'moderation'
 
 profile = Profile()
 code = Codes()

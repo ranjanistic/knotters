@@ -60,12 +60,17 @@
         <br/>
     </div>
     <div class="w3-col w3-container w3-threequarter">
-        <div class="w3-col  w3-half">
-            <div class="pallete-profile"><h5>Contributions</h5><hr/></div>
+        <div class="w3-col w3-half">
+            <div class="pallete">
+            <center><h5>Contributions</h5>
+            <hr/></center>
+            </div>
         </div>
         <div class="w3-col w3-container w3-half">
-            <div class="pallete-profile"><h5>Overview</h5>
+            <div class="pallete">
+            <center><h5>Overview</h5>
                 <hr/>
+            </center>
             <p><span>{{project.description}}</span></p>
             <p>Created on:<span> {{project.createdOn}}</span></p>
             <p>Creator: <span> {{project.creator.getName}} </span></p>
@@ -75,4 +80,12 @@
     </div>
 </div>
 <br/>
+{% endblock %}
+
+{% block script %}
+<script>
+const projectID = "{{ project.id }}"
+const selfProject = authenticated?"{{request.user}}" === "{{project.creator}}":false
+</script>
+
 {% endblock %}

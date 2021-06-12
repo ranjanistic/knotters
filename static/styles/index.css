@@ -143,6 +143,18 @@ nav {
     padding: 4px 12px;
 }
 
+.nav-tab{
+    padding:8px 12px;
+    margin: 2px 8px;
+}
+.nav-tab:hover{
+    padding:8px 12px;
+    margin: 2px 14px;
+}
+.nav-tab>i{
+    padding:0px 2px 4px 0px;
+}
+
 button {
     padding: 4px 12px;
     border-radius: 22px;
@@ -198,6 +210,7 @@ img.pallete {
 
 .pallete > img {
     width: 100%;
+    border-radius: 12px;
 }
 
 .pallete:active {
@@ -252,34 +265,6 @@ details > summary::-webkit-details-marker {
     display: none;
 }
 
-.pallete-profile {
-    padding: 12px;
-    box-shadow: 2px 1px 24px 1px #0000001f;
-    border-radius: 12px;
-    transition: var(--delay);
-    background-color: var(--primary);
-    width: 100%;
-    margin-bottom: 2rem;
-}
-
-.pallete-profile > img {
-    width: 100%;
-}
-
-.pallete-profile p {
-    font-weight: 600;
-}
-
-.pallete-profile p span {
-    font-weight: 500;
-}
-
-.pallete-profile > .w3-bar > a:hover,
-.w3-bar-block > a:hover {
-    background-color: #009688;
-    color: var(--secondary-text);
-    opacity: 1;
-}
 
 input,
 textarea {
@@ -293,44 +278,23 @@ textarea {
     transition: var(--delay);
 }
 
-.tab > h5 {
-    color: var(--negative);
-    margin-top: 20%;
-    margin-left: 40%;
+.edit-action {
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 100px;
+    
+    padding: 4px;
+    transition: var(--delay);
+    background-color: var(--primary);
+    color: var(--primary-text);
+    box-shadow: 1px 1px 22px 1px #3e3e4149;
+}
+.edit-action:hover {
+    box-shadow: 1px 1px 30px 1px #3e3e414b;
 }
 
-.tab > h5 > button {
-    margin-left: 25px;
-    background-color: var(--accent);
-}
-
-@media screen and (max-width: 768px) {
-    .tab > h5 {
-        margin-left: 20%;
-    }
-
-    .tab > h5 > button {
-        margin-left: 10px;
-    }
-}
-
-.loader {
-    border: 8px solid var(--primary); /* Light grey */
-    border-top: 8px solid var(--active); /* Blue */
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 2s linear infinite;
-    margin: auto;
-    margin-top: 20%;
-    display: none;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+.edit-action:active {
+    background-color: var(--positive);
+    color: var(--positive-text);
+    opacity: 50%;
 }

@@ -11,6 +11,15 @@ const openSpinner = (id = "loader") => showElement(id);
 
 const hideSpinner = (id = "loader") => hideElement(id);
 
+const hide = (element) => {
+    element.hidden = true;
+    element.style.display = "none";
+};
+const show = (element) => {
+    element.hidden = false;
+    element.style.display = "block";
+};
+
 const hideElement = (id) => visibleElement(id, false);
 
 const showElement = (id) => visibleElement(id, true);
@@ -41,6 +50,35 @@ const getRequest = async (url) => {
             "X-CSRFToken": csrfmiddlewaretoken,
         },
     });
-    if(response.status-200>100) return false;
+    if (response.status - 200 > 100) return false;
     return response.text();
 };
+
+const loadGlobalEditors = () => {
+    getElements("edit-action").forEach((edit) => {
+        const target = edit.getAttribute("data-edittarget"),
+            viewer = getElement(`view-${target}`),
+            editor = getElement(`edit-${target}`),
+            discard = getElement(`discard-edit-${target}`),
+            save = getElement(`save-edit-${target}`);
+        hide(editor);
+        show(viewer);
+        save.classList.add("positive");
+        discard.classList.add("negative");
+        edit.onclick = (_) => {
+            hide(viewer);
+            show(editor);
+            discard.onclick = (_) => {
+                hide(editor);
+                show(viewer);
+            };
+            save.onclick = (_) => {
+                hide(editor);
+                show(viewer);
+            };
+        };
+    });
+};
+
+// loader()
+// window.onload=_=>loader(false);

@@ -1,10 +1,18 @@
 {% extends 'index.html' %}
 
-{% block title %}{{person.first_name}} {{person.last_name}} &#183; {{appname}}{% endblock %}
+{% block title %}{{subappname|capfirst}} &#183; {{appname}}{% endblock %}
 {% block nav_text %}People{% endblock %}
 
 {% block content %}
+<br/>
 <div class="w3-row">
-body
+{% for person in people %}
+<a href="{{person.profile.getLink}}">{{person.id}}</a><br/>
+{{person.getName}}<br/>
+{{person.getDP}}<br/>
+{% empty %}
+No people
+{% endfor %}
 </div>
+<br/>
 {% endblock %}

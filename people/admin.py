@@ -63,4 +63,12 @@ class UserAdmin(BaseUserAdmin):
 admin.site.register(User, UserAdmin)
 admin.site.unregister(Group)
 
-admin.site.register(Profile)
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ["user", "githubID"]
+    
+    def get_queryset(self,request):
+        query_set = super(ProfileAdmin,self).get_queryset(request)
+        return query_set
+    class Meta:
+        ordering = ("")

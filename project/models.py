@@ -4,6 +4,7 @@ from django.utils import timezone
 from .methods import projectImagePath, defaultImagePath
 from main.strings import code, PEOPLE
 from main.methods import maxLengthInList
+from .apps import APPNAME
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -40,5 +41,10 @@ class Project(models.Model):
     def __str__(self):
         return self.name
     
+    def getLink(self):
+        if self.status == code.REJECTED:
+            return f"/moderation/{APPNAME}/{self.id}"
+        return f"/{APPNAME}s/profile/{self.reponame}"
+
     def getDP(self):
-        return f"/media{str(self.image)}"
+        return f"/media/{str(self.image)}"

@@ -21,7 +21,7 @@ def defaultImagePath():
 
     
 PROFILE_SECTIONS = [profile.OVERVIEW, profile.PROJECTS,
-                    profile.CONTRIBUTION, profile.ACTIVITY]
+                    profile.CONTRIBUTION, profile.ACTIVITY, profile.MODERATION]
 
 
 def getProfileSectionData(section, user):
@@ -37,6 +37,8 @@ def getProfileSectionData(section, user):
     if section == profile.CONTRIBUTION:
         return {}
     if section == profile.ACTIVITY:
+        return {}
+    if section == profile.MODERATION:
         return {}
 
 
