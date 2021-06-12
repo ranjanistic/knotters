@@ -16,7 +16,7 @@
 <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %} 
     
-{% block nav_text %}{{person.first_name}}{{person.last_name}}{% endblock %} 
+{% block nav_text %}{{person.getName}}{% endblock %} 
     
 {% block nav_auth %}{% endblock %}
 
@@ -24,16 +24,16 @@
 
     <div class="w3-row tertiary" style="padding-top: 1.5rem;">
       <div class="w3-col w3-container m4 l3">
-        <div class="pallete-profile" style="padding: 0; padding-bottom: 12px;">
+        <div class="pallete" style="padding: 0">
           <img
-            src="/media{{ person.profile_pic }}"
-            alt="{{person.first_name}}"
+            src="{{ person.getDP }}"
+            alt="{{ person.getName }}"
           />
 
           <div style="display: flex; justify-content: center;">
-            <p class="person-name" id="person-name" contenteditable="false">
-              {{ person.first_name }} {{ person.last_name }}
-            </p>
+            <h4 id="person-name" contenteditable="false">
+              {{ person.getName }}
+            </h4>
             <p id="edit-icon">
               <i class="material-icons">edit</i>
             </p>
@@ -44,15 +44,17 @@
             style="display: none;"
           ></button>
         </div>
-
-        <div class="pallete-profile">
+        <br />
+        <div class="pallete">
           <p>Email ID: <span>{{ person.email }}</span></p>
           <!--<p>User ID: <span >{{ person.id }}</span></p>-->
         </div>
-
-        <div class="pallete-profile">
-          <p>Date joined: <span>{{ person.date_joined }}</span></p>
-          <p>Last login: <span> {{ person.last_login }}</span></p>
+        <br />
+        <div class="pallete">
+          <p><b>Date joined</b> <span>{{ person.date_joined }}</span></p>
+          {% if request.user.is_authenticated and request.user == person %}
+          <p><b>Last login</b> <span> {{ person.last_login }}</span></p>
+          {% endif %}
         </div>
 
         {% if person.is_moderator %} moderator {% endif %}
@@ -117,10 +119,11 @@
       </div>
     </div>
 
+{% endblock %}
+
 {% block scripts %}
 <script
 src="{% static 'scripts/people/profile.js' %}"
 type="text/javascript"
 ></script>
 {% endblock %} 
-{% endblock %}

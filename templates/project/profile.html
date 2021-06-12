@@ -6,59 +6,73 @@
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" />
 {% endblock %}
+
 {% block nav_href %}/projects{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
-{% block nav_text %}{{project.name}}{% endblock %}
+{% block nav_text %}{% endblock %}
 
 {% block content %}
-{% if project.status == "moderation" %}
-<div class="w3-row accent w3-center w3-padding">
-This project is currently under review and not yet open to contributions. We'll notify you as soon as it is done.
-</div>
-{% elif project.status == "rejected" %}
-<div class="w3-row negative w3-center">
-This project has been rejected by our moderators. <a href="/projects/rejected/{{project.id}}">See why</a>.
-</div>
-{% endif %}
-<div class="w3-row tertiary" style=" padding-top: 1.5rem;">
+    {% if project.status == "moderation" %}
+    <div class="w3-row accent w3-center w3-padding">
+    This project is currently under review and not yet open to contributions. We'll notify you as soon as it is done.
+    </div>
+    {% elif project.status == "rejected" %}
+    <div class="w3-row negative w3-center">
+    This project has been rejected by our moderators. <a href="/projects/rejected/{{project.id}}">See why</a>.
+    </div>
+    {% endif %}
+
+<div class="w3-row tertiary">
+    <br/>
     <div class="w3-col w3-container w3-quarter">
-            <div class="pallete-profile">
-                <img src="/media/{{project.image}}" alt="pic" />
-            <h5 class="project-name" >{{project.description}}</h5>         
-         </div>
-<br/>
+        <div class="pallete" style="padding:0">
+            <img src="{{project.getDP }}" alt="{{project.name}}" />
+            <div class="w3-row w3-center">
+            {% if request.user.is_authenticated and request.user == project.creator %}
+            
+            {% endif %}
+            <h3>{{project.name}}</h3>
+            <center>{{project.description}}</center>
+            </div>
+            <br/>
+        </div>
+        <br/>
+        <div class="w3-row w3-padding-small">
             {% for tag in project.tags.all %}
-            <button class="positive">#{{tag}}</button>
+            <a href="/projects?q={{tag}}&type=tag"><button class="positive">#{{tag}}</button></a>
             {% empty %}
                 <button class="primary">No tags assigned</button>
             {% endfor %}
             <br/>
-                <a target="_blank" rel="noreferrer" href="https://github.com/{{appname}}/{{project.reponame}}">
-                    <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25"/>Contribute</button>
-                </a>
-                {% if project.url %}
-                <a target="_blank" rel="noreferrer" href="{{project.url}}">
-                    <button class="sub-accent"><i class="material-icons">launch</i>Open</button>
-                </a>
-                {% endif %}
+        </div>
+        <div class="w3-row w3-padding-small">
+            <a target="_blank" rel="noreferrer" href="https://github.com/{{appname}}/{{project.reponame}}">
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.reponame}}</button>
+            </a>
+            {% if project.url %}
+            <a target="_blank" rel="noreferrer" href="{{project.url}}">
+                <button class="sub-accent"><i class="material-icons">launch</i>Open</button>
+            </a>
+            {% endif %}
+        </div>
+        <br/>
     </div>
     <div class="w3-col w3-container w3-threequarter">
         <div class="w3-col  w3-half">
             <div class="pallete-profile"><h5>Contributions</h5><hr/></div>
-        
         </div>
         <div class="w3-col w3-container w3-half">
             <div class="pallete-profile"><h5>Overview</h5>
                 <hr/>
-            <p>Description: <span>{{project.description}}</span></p>
+            <p><span>{{project.description}}</span></p>
             <p>Created on:<span> {{project.createdOn}}</span></p>
-            <p>Creator: <span> {{project.creator}} </span></p>
+            <p>Creator: <span> {{project.creator.getName}} </span></p>
         </div>
         
         </div>
     </div>
 </div>
-
+<br/>
 {% endblock %}
