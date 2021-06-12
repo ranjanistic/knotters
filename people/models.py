@@ -2,7 +2,7 @@ from django.db import models
 import uuid
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from .methods import profileImagePath
+from .methods import profileImagePath, defaultImagePath
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, first_name, last_name=None, password=None):
@@ -38,7 +38,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     username =  None
     first_name = models.CharField(max_length=100, default="first_name")
     last_name = models.CharField(max_length=100, default="last_name")
-    profile_pic = models.ImageField(upload_to=profileImagePath,default="/users/default.png")
+    profile_pic = models.ImageField(upload_to=profileImagePath,default=defaultImagePath)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_verified = models.BooleanField(default=False)
@@ -51,8 +51,7 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     objects = UserAccountManager()
 
-    def getName(self):
-        return self.first_name+" "+self.last_name
+    
 
     def __str__(self):
         return self.email
@@ -62,3 +61,33 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+
+    def getName(self):
+        if(self.last_name is not None):
+            return f"{self.first_name} {self.last_name}"
+        else:
+            return self.first_name
+            
+    def getDP(self):
+        dp = str(self.profile_pic)
+        if dp.startswith("http"):
+            return dp
+        else:
+            return "/media"+dp
+
+class Profile(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    githubID = models.CharField(max_length=40,blank=False,null=True)
+    bio = models.CharField(max_length=100,blank=True,null=True)
+    
+    def __str__(self) -> str:
+        return f"{self.user.getName()}"
+    
+    def getGhUrl(self) -> str:
+        return f"https://github.com/{self.githubID}"
+    
+    def getLink(self) -> str:
+        if self.githubID != None:
+            return f"/people/profile/{self.githubID}"
+        else: return f"/people/profile/{self.user.id}"

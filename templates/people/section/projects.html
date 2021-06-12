@@ -1,0 +1,28 @@
+<div class="w3-row w3-padding">
+
+    <div class="w3-col w3-third">
+    {% for project in live %}
+    {{project.id}}<br/>
+    {{project.name}}<br/>
+    <a href="{{project.getLink}}">{{project.reponame}}</a><br/>
+    
+    {% endfor %}
+    </div>
+
+    <div class="w3-col w3-third">
+    {% for project in moderation %}
+    {{project.id}}<br/>
+    {{project.name}}<br/>
+    <a href="{{project.getLink}}">{{project.reponame}}</a><br/>
+    {% endfor %}
+    </div>
+
+    <div class="w3-col w3-third">
+    {% for project in rejected %}
+    {{project.id}}<br/>
+    {{project.name}}<br/>
+    <a href="{{project.getLink}}">{{project.reponame}}</a><br/>
+    {% endfor %}
+    </div>
+
+</div>

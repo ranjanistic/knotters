@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .models import User
+from .models import Profile, User
 
 class UserCreationForm(forms.ModelForm):
     email = forms.CharField(label="Email",widget=forms.EmailInput)
@@ -62,3 +62,13 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.unregister(Group)
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ["user", "githubID"]
+    
+    def get_queryset(self,request):
+        query_set = super(ProfileAdmin,self).get_queryset(request)
+        return query_set
+    class Meta:
+        ordering = ("")

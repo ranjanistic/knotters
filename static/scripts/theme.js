@@ -4,7 +4,7 @@ const theme = {
     dark: "dark",
 };
 
-Array.from(document.getElementsByClassName("themeswitch")).forEach((elem) => {
+getElements("themeswitch").forEach((elem) => {
     elem.onclick = (_) => toggleTheme();
 });
 

@@ -1,5 +1,7 @@
-from compete.models import Competition, Submission
+from compete.models import Competition, Submission,Result
 from django.contrib import admin
+
+
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
@@ -15,3 +17,5 @@ class SubmitAdmin(admin.ModelAdmin):
     list_display = ["id", "submitted", "repo"]
     list_filter = ["submitted", "competition"]
     
+
+admin.site.register(Result)

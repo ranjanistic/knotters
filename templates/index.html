@@ -51,11 +51,11 @@
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
         <link rel="stylesheet" href="{% static 'icons/material.css' %}">
         <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+        <link rel="stylesheet" href="{% static 'styles/loader.css' %}">
         <link rel="stylesheet" href="{% static 'styles/scrollbar.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         {% block stylesheets %}{% endblock %}
         <title>{% block title %}{{appname}}{% endblock %}</title>
-        <script>const csrfmiddlewaretoken = "{{csrf_token}}"; </script>
     </head>
     {% endblock %}
     <body>
@@ -79,7 +79,7 @@
                             {% block nav_auth_links %}
                             <a href="/projects/create"><button title="New project" class="positive"><i class="material-icons">add_circle</i><span class="w3-hide-small">New project</span></button></a>
                             {% endblock %}
-                            <a href="/people/profile/{{request.user.id}}"><button title="Logged in as {{request.user.first_name}} {{request.user.last_name}}" class="accent"><img src="/media{{ request.user.profile_pic }}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
+                            <a href="{{request.user.profile.getLink}}"><button title="Logged in as {{request.user.getName }}" class="accent"><img src="{{request.user.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
@@ -195,8 +195,17 @@
             </div>
         </footer>
         {% endblock %}
-        <script src="{% static 'scripts/theme.js' %}" type="text/javascript"></script>
+        {% block loadview %}
+        <div class="view-loader" id="viewloader">
+            <div class="loader"></div>
+        </div>
+        {% endblock %}
+        <script>
+            const csrfmiddlewaretoken = "{{csrf_token}}"; 
+            const authenticated = "{{request.user.is_authenticated}}" == 'True';
+        </script>
         <script src="{% static 'scripts/index.js' %}" type="text/javascript"></script>
+        <script src="{% static 'scripts/theme.js' %}" type="text/javascript"></script>
         {% block scripts %}{% endblock %}
     </body>
 </html>
