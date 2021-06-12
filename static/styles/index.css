@@ -241,7 +241,8 @@ details > summary::-webkit-details-marker {
 }
 
 .pallete-profile > img {
-  width: 100%;
+  display: block;
+ max-width: 100%;
 }
 
 .pallete-profile p {
@@ -254,8 +255,8 @@ details > summary::-webkit-details-marker {
 
 .pallete-profile > .w3-bar > a:hover,
 .w3-bar-block > a:hover {
-  background-color: #009688;
-  color: var(--secondary-text);
+  background-color: var(--active);
+  color: var(--active-text);
   opacity: 1;
 }
 

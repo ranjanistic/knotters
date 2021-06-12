@@ -6,10 +6,10 @@ function openSideTab(evt, tabName) {
   }
   tablinks = document.getElementsByClassName("side-nav-tab");
   for (i = 0; i < x.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" w3-teal", "");
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
   }
   document.getElementById(tabName).style.display = "block";
-  evt.currentTarget.className += " w3-teal";
+  evt.currentTarget.className += " active";
 }
 
 /* ============== fetch competition api ================ */

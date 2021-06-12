@@ -10,6 +10,7 @@
   
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/people/profile.css' %}" />
+<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
 {% endblock %}
 
 {% block nav_icon %}
@@ -62,7 +63,7 @@
         <div class="pallete-profile" style="height: 115vh; overflow-y: scroll;">
           <div class="w3-bar">
             <a
-              class="w3-bar-item w3-teal nav-tab"
+              class="w3-bar-item active nav-tab"
               onclick="openTab(event,'overview')"
               ><i class="material-icons">person</i>Overview</a
             >
@@ -122,5 +123,6 @@
 src="{% static 'scripts/people/profile.js' %}"
 type="text/javascript"
 ></script>
+<script src="https://unpkg.com/cropperjs"></script>
 {% endblock %} 
 {% endblock %}
