@@ -148,17 +148,9 @@
 {% endblock %}
 
 {% block scripts %}
-<<<<<<< HEAD
-<script
-src="{% static 'scripts/people/profile.js' %}"
-type="text/javascript"
-></script>
-<script src="https://unpkg.com/cropperjs"></script>
-=======
 <script>
 const userID = "{{ person.id }}"
 const selfProfile = authenticated?"{{request.user.id}}" === "{{person.id}}":false
 </script>
 <script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
->>>>>>> 6d19d3521da763daa5d770fababbb84536a88e00
 {% endblock %} 
