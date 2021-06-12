@@ -252,6 +252,13 @@ details > summary::-webkit-details-marker {
   font-weight: 500;
 }
 
+.pallete-profile > .w3-bar > a:hover,
+.w3-bar-block > a:hover {
+  background-color: #009688;
+  color: var(--secondary-text);
+  opacity: 1;
+}
+
 input,
 textarea {
   border: 0;
@@ -264,6 +271,27 @@ textarea {
   transition: var(--delay);
 }
 
+.tab > h5 {
+  color: var(--negative);
+  margin-top: 20%;
+  margin-left: 40%;
+}
+
+.tab > h5 > button {
+  margin-left: 25px;
+  background-color: var(--accent);
+}
+
+@media screen and (max-width: 768px) {
+  .tab > h5 {
+    margin-left: 20%;
+  }
+
+  .tab > h5 > button {
+    margin-left: 10px;
+  }
+}
+
 .loader {
   border: 8px solid var(--primary); /* Light grey */
   border-top: 8px solid var(--active); /* Blue */
@@ -273,6 +301,7 @@ textarea {
   animation: spin 2s linear infinite;
   margin: auto;
   margin-top: 20%;
+  display: none;
 }
 
 @keyframes spin {

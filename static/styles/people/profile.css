@@ -1,75 +1,48 @@
 /*========== People template ===========*/
 
-
-  
-#edit-icon{
+#edit-icon {
   cursor: pointer;
 }
 
-  #edit-icon i{
-    margin-top: 15px;
-    margin-left: 10px;
-  }
-  
-  .pallete-profile .person-name {
-    text-align: center;
-    font-size: 1.2rem;
-    margin-top: 2rem;
-    margin-left: 2rem;
-  }
-  
-  .w3-bar {
-    display: flex;
-    justify-content: space-between;
-    overflow-x: auto;
-  }
-  
-  .tab > h5 {
-    color: var(--negative);
-    margin-top: 20%;
-    margin-left: 40%;
-  }
-  
-  .tab > h5 > button {
-    margin-left: 25px;
-    background-color: var(--accent);
-  }
-  
-  @media screen and (max-width: 768px) {
-    .tab > h5 {
-      margin-left: 25%;
-    }
-  
-    .tab > h5 > button {
-      margin-left: 15px;
-    }
-  }
-  
-  .w3-bar a > i,
-  .pallete-profile i {
-    vertical-align: sub;
-    margin-right: 1rem;
-  }
-  
+#edit-icon i {
+  margin-top: 15px;
+  margin-left: 10px;
+}
+
+.pallete-profile .person-name {
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  margin-left: 2rem;
+}
+
+.w3-bar {
+  display: flex;
+  justify-content: space-between;
+  overflow-x: auto;
+}
+
+
+
+.w3-bar a > i,
+.pallete-profile i {
+  vertical-align: sub;
+  margin-right: 1rem;
+}
+
+.pallete-profile > .w3-bar > a {
+  padding: 7px 20px;
+  margin: 1px 2px;
+  font-family: var(--head-font);
+  font-size: 18px;
+  border-radius: 20px;
+  transition: var(--delay);
+}
+
+@media screen and (max-width: 768px) {
   .pallete-profile > .w3-bar > a {
-    padding: 7px 20px;
-    margin: 1px 2px;
-    font-family: var(--head-font);
-    font-size: 18px;
-    border-radius: 20px;
-    transition: var(--delay);
+    padding: 6px 15px;
+    margin: 1px 25px 1px 0;
+    font-size: 14px;
   }
-  
-  .pallete-profile > .w3-bar > a:hover {
-    background-color: #009688;
-    color: var(--secondary-text);
-    opacity: 1;
-  }
-  
-  @media screen and (max-width: 768px) {
-    .pallete-profile > .w3-bar > a {
-      padding: 6px 15px;
-      margin: 1px 25px 1px 0;
-      font-size: 14px;
-    }
-  }
+}

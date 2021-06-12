@@ -18,10 +18,10 @@ function openTab(evt, tabName) {
 var NavTabs = document.querySelectorAll(".nav-tab");
 
 for (var n = 0; n < NavTabs.length; n++) {
-  NavTabs[n].addEventListener("click", getApi);
+  NavTabs[n].addEventListener("click", getApiPeople);
 }
 
-function getApi() {
+function getApiPeople() {
   openSpinner();
   fetch("https://jsonplaceholder.typicode.com/todos/1")
     .then((response) => response.json())
@@ -34,17 +34,17 @@ function getApi() {
         hideSpinner();
       }
     })
-    .catch(handleErrors);
+    .catch(handleErrorPeople);
 }
 
-function handleErrors() {
+function handleErrorPeople() {
   hideSpinner();
   var tabs = document.querySelectorAll(
     "#overview, #project, #contribution, #activity"
   );
   for (var j = 0; j < tabs.length; j++) {
     tabs[j].innerHTML =
-      "<h5>Failed to load data <br/><br/><button onclick='getApi()'>Try again</button></h5>";
+      "<h5>Failed to load data <br/><br/><button onclick='getApiPeople()'>Try again</button></h5>";
   }
 }
 

@@ -1,33 +1,99 @@
-{% extends 'compete/index.html' %}
-{% load static %}
+{% extends 'compete/index.html' %} 
+{% load static %} 
 
 {% block og %}
 <meta property="og:title" content="Competitions at {{appname}}" />
 <meta
-property="og:description"
-content="Participate in live competitions at {{appname}}!"
+  property="og:description"
+  content="Participate in live competitions at {{appname}}!"
 />
 <meta property="og:site_name" content="{{appname}}" />
-{% endblock %}
+{% endblock %} 
+{% block title %}{{ compete.title }} &#183; Competition {%endblock %} 
 
-{% block title %}{{ compete.title }} &#183; Competition{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'styles/compete/profile.css' %}" />
+{% endblock %} 
 
 {% block nav_icon %}
-  <button class="primary"><i class="material-icons">arrow_back</i></button>
-{% endblock %}
-{% block nav_href %}/competitions{% endblock %}
-{% block nav_text %}{% endblock %}
-{% block nav_noauth %}{% endblock %}
-
+<button class="primary"><i class="material-icons">arrow_back</i></button>
+{% endblock %} 
+{% block nav_href %}/competitions{% endblock %} 
+{% block nav_text%}{{compete.title}}{% endblock %} 
+{% block nav_noauth %}{% endblock %} 
 {% block content %}
-<br/>
-<div class="w3-row">
-{{compete.id}}</br>
-/media{{compete.banner}}</br>
-{{compete.title}}</br>
-{{compete.tagline}}</br>
-{{compete.shortdescription}}</br>
-{{compete.description}}</br>
+<br />
+
+<div class="tertiary">
+  <img src="/media{{compete.banner}}" alt="image" id="banner" />
+  <div class="w3-container">
+  <div class="w3-row" id="competition-info">
+    <div class="w3-twothird w3-left w3-container">
+      <div>
+        <h3>{{compete.title}}<br /><span>{{compete.tagline}}</span></h3>
+        <p>{{compete.shortdescription}}</p>
+        <p id="competition-description">
+          <b>Description:</b><br /><span>{{compete.description}}</span>
+        </p>
+      </div>
+    </div>
+    <div class="w3-third w3-center">
+      <div class="pallete">timer</div>
+    </div>
+  </div>
+
+    <div class="pallete" id="competition-tabs">
+      <div class="w3-quarter">
+        <div class="w3-bar-block" id="sidebar">
+          <a
+            class="w3-bar-item side-nav-tab w3-teal"
+            onclick="openSideTab(event, 'overview')"
+            ><i class="material-icons">toc</i>Overview</a
+          >
+          <a
+            class="w3-bar-item side-nav-tab"
+            onclick="openSideTab(event, 'task')"
+            ><i class="material-icons">code</i>Task</a
+          >
+          <a
+            class="w3-bar-item side-nav-tab"
+            onclick="openSideTab(event, 'guidelines')"
+            ><i class="material-icons">rule</i>Guidelines</a
+          >
+          <a
+            class="w3-bar-item side-nav-tab"
+            onclick="openSideTab(event, 'submission')"
+            ><i class="material-icons">send</i>Submission</a
+          >
+        </div>
+      </div>
+      <div class="w3-threequarter w3-center">
+        <div class="loader" id="loader"></div>
+
+        <div id="overview" class="w3-container tab">
+          <h2>Overview</h2>
+        </div>
+
+        <div id="task" class="w3-container tab" style="display: none">
+          <h2>Task</h2>
+        </div>
+
+        <div id="guidelines" class="w3-container tab" style="display: none">
+          <h2>Competition guidelines</h2>
+        </div>
+
+        <div id="submission" class="w3-container tab" style="display: none">
+          <h2>Submission</h2>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<br/>
+
+{% block scripts %}
+<script
+  src="{% static 'scripts/compete/profile.js' %}"
+  type="text/javascript"
+></script>
+{% endblock %} 
 {% endblock %}
