@@ -40,4 +40,13 @@ class Submission(models.Model):
         if not self.id:
             self.createdOn = timezone.now()
         self.modifiedOn = timezone.now()
-        return super(User, self).save(*args, **kwargs)
+        return super(Submission, self).save(*args, **kwargs)
+
+
+class Result(models.Model):
+    class Meta:
+        unique_together = (("competition","rank"),)
+    id= models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    competition = models.ForeignKey("Competition", on_delete=models.CASCADE)
+    submission = models.OneToOneField("Submission", on_delete=models.CASCADE)
+    rank = models.IntegerField()

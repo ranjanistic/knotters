@@ -23,7 +23,7 @@ for (var n = 0; n < NavTabs.length; n++) {
 
 function getApiPeople() {
   openSpinner();
-  fetch("https://jsonplaceholder.typicode.com/todos/1")
+  fetch(`/people/userinfo/${tabname}`)
     .then((response) => response.json())
     .then((json) => {
       console.log(json);

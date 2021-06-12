@@ -79,7 +79,7 @@
                             {% block nav_auth_links %}
                             <a href="/projects/create"><button title="New project" class="positive"><i class="material-icons">add_circle</i><span class="w3-hide-small">New project</span></button></a>
                             {% endblock %}
-                            <a href="/people/profile/{{request.user.id}}"><button title="Logged in as {{request.user.first_name}} {{request.user.last_name}}" class="accent"><img src="/media{{ request.user.profile_pic }}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
+                            <a href="/people/profile/{{request.user.id}}"><button title="Logged in as {{request.user.first_name}} {{request.user.last_name}}" class="accent"><img src="{{request.user.getDP}}" style="border-radius:50px" width="28" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
