@@ -21,6 +21,7 @@
 <div class="w3-center w3-padding-small tertiary">
     <h5>We recommend you to go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
     moderation guidelines</a> before submission.</h5></div>
+    
 <div class="w3-row w3-padding-64 w3-container">
     <div class="w3-col w3-half w3-padding">
         <form id="create-project-form" method="POST">
@@ -34,17 +35,17 @@
                         type="file"
                         accept="image/*"
                         name="projectimage"
-                        required="false"
                         onchange="loadFile(event)"
-                        id="file"
+                        id="projectimage"
                         hidden
                     />
                     <button class="active" type="button">
                         <i class="material-icons">upload</i>
-                        <label for="file">
+                        <label for="projectimage">
                             Upload Image
                         </label>
                     </button>
+                    <span id="projectimageerror"></span>
                 </div>
 
                 <br />
@@ -54,12 +55,12 @@
                     required
                     class="big-input"
                     name="projectname"
+                    id="projectname"
                     placeholder="Project title"
                     type="text"
                     maxlength="30"
-                    id="projectname"
                 />
-                <span class="w3-right negative-text"></span>
+                <span id="projectnameerror"></span>
                 <br /><br /><br />
 
                 <h3>Repository name</h3>
@@ -67,12 +68,12 @@
                     required
                     class="big-input"
                     name="reponame"
+                    id="reponame"
                     type="text"
                     maxlength="30"
                     placeholder="Project's unique username"
-                    id="reponame"
                 />
-                <span class="w3-right negative-text"></span>
+                <span id="reponameerror"></span>
                 </div>
             </div>
 
@@ -87,6 +88,7 @@
                     id="projectabout"
                     placeholder="What's your project about?"
                 ></textarea>
+                <span id="projectabouterror"></span>
                 <br /><br />
 
                 <h3>Tags</h3>
@@ -94,10 +96,17 @@
                     required
                     class="big-input"
                     name="tags"
+                    id="tags"
                     maxlength="50"
                     placeholder="Separate by comma"
-                    id="tags"
                 />
+                <span id="tagssuggestions">
+                    {% for tag in tags %}
+                        <button type="button" class="positive">#{{tag.name}}</button>
+                    {% endfor %}
+                </span>
+                <span id="tagserror">
+                </span>
             </div>
 
             <div class="step-tab" id="step3">
@@ -109,7 +118,14 @@
                     id="projectcategory"
                     maxlength="30"
                     placeholder="Type of project"
+                    list="categories"
                 />
+                <datalist id="categories">
+                  {% for cat in categories %}
+                  <option value="{{cat.name}}">{{cat.name}}</option>
+                  {% endfor %}
+                </datalist>
+                <span id="projectcategoryerror"></span>
                 <br /><br />
 
                 <h3>Extra description</h3>
@@ -122,6 +138,7 @@
                     id="description"
                     placeholder="Detailed explanation of the project you want moderators to read."
                 ></textarea>
+                <span id="descriptionerror"></span>
             </div>
 
             <div class="step-tab" id="step4">
@@ -156,8 +173,10 @@
                 </label>
             </div>
 
-            <div style="overflow: auto">
-                <div style="float: right">
+            <div class="w3-row">
+                <div class="w3-row w3-right">
+                    <div class="loader" id="actionloader"></div>
+                    <div id="actionbuttons">
                     <button
                         type="button"
                         class="primary big-button"
@@ -175,6 +194,7 @@
                         Next<i class="material-icons big-icon">navigate_next</i>
                     </button>
                 </div>
+                </div>
             </div>
 
             <div style="text-align: center; margin-top: 40px">
@@ -189,7 +209,7 @@
         <img class="pallete" id="output" width="60%" src="/media/projects/default.png" />
     </div>
 </div>
-	{% block scripts %}
-	<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
-	{% endblock %}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endblock %}

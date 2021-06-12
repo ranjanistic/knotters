@@ -5,6 +5,9 @@ const getElement = (id) => document.getElementById(id);
 const getElements = (classname) =>
     Array.from(document.getElementsByClassName(classname));
 
+const getElementsByTag = (tagname) =>
+    Array.from(document.getElementsByTagName(tagname));
+
 const loader = (show = true) => visibleElement("viewloader", show);
 
 const openSpinner = (id = "loader") => showElement(id);
@@ -80,5 +83,12 @@ const loadGlobalEditors = () => {
     });
 };
 
+document.addEventListener("DOMContentLoaded", () => {
+    getElementsByTag("form").forEach((form) => {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+      });
+    });
+});
 // loader()
 // window.onload=_=>loader(false);

@@ -33,8 +33,12 @@ def profile(request, reponame):
 
 @login_required
 def create(request):
-    return renderer(request, 'create.html')
-
+    tags = Tag.objects.all()[0:5]
+    categories = Category.objects.all()
+    return renderer(request, 'create.html', {
+        "tags":tags,
+        "categories":categories
+    })
 
 @login_required
 @require_POST

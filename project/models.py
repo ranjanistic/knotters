@@ -5,6 +5,8 @@ from .methods import projectImagePath, defaultImagePath
 from main.strings import code, PEOPLE
 from main.methods import maxLengthInList
 from .apps import APPNAME
+from django.db.models.aggregates import Count
+from random import randint
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -12,6 +14,7 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
