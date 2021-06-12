@@ -74,3 +74,11 @@ class User(AbstractBaseUser,PermissionsMixin):
             return dp
         else:
             return "/media"+dp
+
+class Profile(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    githubID = models.CharField(max_length=100,blank=True,null=True)
+
+    def __str__(self) -> str:
+        return f"{self.user.name}"

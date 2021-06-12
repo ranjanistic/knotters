@@ -1,6 +1,6 @@
 from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
-from .methods import renderer
+from .methods import renderer, getProfileSectionHTML
 from django.contrib.auth.decorators import login_required
 from project.models import Project
 from .models import User
@@ -18,24 +18,16 @@ def profile(request, userID):
     projects = Project.objects.filter(creator=user)
     return renderer(request, 'profile.html', {"person": user,"project":projects,"contribution":"","overview":"","activity":""})
 
-
-@require_POST
-def userInfo(request, section):
+@require_GET
+def profileTab(request, userID, section):
     try:
-        userID = request.get["userID"]
-    except:
-        userID = request.user.id
-    try:
-        user = User.objects.get(id=userID)
-        if section == 'overview':
-            return HttpResponse({"data":"overview"})
-        elif section == 'projects':
-            
-            return HttpResponse("projects")
-        elif section == 'contribution':
-            return HttpResponse({"data":"overview"})
-        elif section == 'activity':
-            return HttpResponse({"data":"overview"})
+        if request.user.is_authenticated and request.user.id == userID:
+            user = request.user
+        else:
+            user = User.objects.get(id=userID)
+        data = getProfileSectionHTML(user,section)
+        if data:
+            return HttpResponse(data)
         else:
             raise Http404()
     except:

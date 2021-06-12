@@ -1,0 +1,27 @@
+<div class="w3-row w3-padding">
+
+    <div class="w3-col w3-third">
+    {% for project in live %}
+    {{project.id}}
+    {{project.name}}
+    {{project.reponame}}
+    {% endfor %}
+    </div>
+
+    <div class="w3-col w3-third">
+    {% for project in moderation %}
+    {{project.id}}
+    {{project.name}}
+    {{project.reponame}}
+    {% endfor %}
+    </div>
+
+    <div class="w3-col w3-third">
+    {% for project in rejected %}
+    {{project.id}}
+    {{project.name}}
+    {{project.reponame}}
+    {% endfor %}
+    </div>
+
+</div>

@@ -19,5 +19,11 @@ class Codes():
     def __init__(self):
         PROJECTSTATES = [self.MODERATION, self.LIVE, self.REJECTED]
 
+class Profile():
+    OVERVIEW = 'overview'
+    PROJECTS = 'projects'
+    CONTRIBUTION = 'contribution'
+    ACTIVITY = 'activity'
 
+profile = Profile()
 code = Codes()
