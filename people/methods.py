@@ -9,3 +9,6 @@ def renderer(request, file, data={}):
 
 def profileImagePath(instance,filename):
     return f"{APPNAME}/{instance.id}/profile/{filename}"
+
+def defaultImagePath():
+    return f"/{APPNAME}/default.png"

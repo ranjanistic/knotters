@@ -1,6 +1,6 @@
 from django.db import models
 from uuid import uuid4
-from main.strings import PROJECT, PEOPLE, COMPETE, DIVISIONS
+from main.strings import PROJECT, PEOPLE, COMPETE, DIVISIONS, code
 from main.methods import maxLengthInList
 
 
@@ -18,24 +18,24 @@ class Moderation(models.Model):
         f"{PEOPLE}.User", on_delete=models.CASCADE, related_name="moderator")
     request = models.CharField(max_length=100000)
     response = models.CharField(max_length=100000, blank=True)
-    status = models.CharField(choices=(["pending", "Pending"], ["approved", "Approved"], [
-                              "rejected", "Rejected"]), max_length=50, default="moderation")
+    status = models.CharField(choices=([code.MODERATION, code.MODERATION.capitalize()], [code.APPROVED, code.APPROVED.capitalize()], [
+                              code.REJECTED, code.REJECTED.capitalize()]), max_length=50, default=code.MODERATION)
 
     def __str__(self):
         return f"{self.project.name} by {self.moderator.getName}"
 
     def approve(self):
-        self.status = "approved"
+        self.status = code.APPROVED
         if(self.type == PROJECT):
-            self.project.status = "live"
+            self.project.status = code.LIVE
             self.project.save()
         self.save()
 
     def reject(self, response):
-        self.status = "rejected"
+        self.status = code.REJECTED
         self.response = response
-        if(self.type == "project"):
-            self.project.status = "rejected"
+        if(self.type == PROJECT):
+            self.project.status = code.REJECTED
             self.project.save()
         self.save()
 
