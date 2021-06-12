@@ -2,7 +2,7 @@ from django.db import models
 import uuid
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from .methods import profileImagePath
+from .methods import profileImagePath, defaultImagePath
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, first_name, last_name=None, password=None):
@@ -38,7 +38,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     username =  None
     first_name = models.CharField(max_length=100, default="first_name")
     last_name = models.CharField(max_length=100, default="last_name")
-    profile_pic = models.ImageField(upload_to=profileImagePath,default="/users/default.png")
+    profile_pic = models.ImageField(upload_to=profileImagePath,default=defaultImagePath)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_verified = models.BooleanField(default=False)
@@ -64,7 +64,7 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     def getName(self):
         if(self.last_name is not None):
-            return self.first_name+" "+self.last_name
+            return f"{self.first_name} {self.last_name}"
         else:
             return self.first_name
             

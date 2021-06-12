@@ -1,7 +1,7 @@
 from django.db import models
 import uuid
 from django.utils import timezone
-from .methods import projectImagePath
+from .methods import projectImagePath, defaultImagePath
 from main.strings import code, PEOPLE
 from main.methods import maxLengthInList
 
@@ -24,7 +24,7 @@ class Project(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     url = models.CharField(max_length=500, null=True, blank=True)
     image = models.FileField(upload_to=projectImagePath,
-                             max_length=500, default='/projects/default.png')
+                             max_length=500, default=defaultImagePath)
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
     description = models.CharField(max_length=5000, null=False, blank=False)
@@ -39,3 +39,6 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def getDP(self):
+        return f"/media{str(self.image)}"

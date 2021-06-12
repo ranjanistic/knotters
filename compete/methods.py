@@ -9,3 +9,6 @@ def renderer(request, file, data={}):
 
 def competeBannerPath(instance, filename):
     return f"{APPNAME}/{instance.id}/{filename}"
+
+def defaultBannerPath():
+    return f"/{APPNAME}/default.png"

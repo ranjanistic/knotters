@@ -11,11 +11,16 @@ def renderer(request, file, data={}):
     return renderView(request, f"{APPNAME}/{file}", data)
 
 def projectImagePath(instance,filename):
-    return 'projects/{}/'.format(str(instance.id))+'/{}'.format(filename)
+    return f'{APPNAME}/{instance.id}/{filename}'
+
+def defaultImagePath():
+    return f'/{APPNAME}/default.png'
 
 # Creates project on knotters
 def createProject(name, reponame, description, tags, user):
     try:
+        if not uniqueRepoName(reponame):
+            return False
         project = Project.objects.create(
             creator=user, name=name, reponame=reponame, description=description)
         for tag in tags:

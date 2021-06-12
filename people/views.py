@@ -31,7 +31,7 @@ def userInfo(request, section):
             return HttpResponse({"data":"overview"})
         elif section == 'projects':
             
-            return HttpResponse(projects)
+            return HttpResponse("projects")
         elif section == 'contribution':
             return HttpResponse({"data":"overview"})
         elif section == 'activity':
