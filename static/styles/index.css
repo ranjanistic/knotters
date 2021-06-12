@@ -1,4 +1,5 @@
 html {
+    transition: var(--delay);
     scroll-behavior: smooth;
 }
 a {
@@ -16,6 +17,7 @@ body {
     background-color: var(--primary);
     color: var(--primary-text);
     font-family: var(--body-font);
+    transition: var(--delay);
 }
 
 .view-loader {
@@ -206,11 +208,13 @@ button:active {
 
 img.pallete {
     padding: 0px;
+    transition: var(--delay);
 }
 
 .pallete > img {
     width: 100%;
     border-radius: 12px;
+    transition: var(--delay);
 }
 
 .pallete:active {
@@ -276,6 +280,19 @@ textarea {
     background-color: var(--tertiary);
     color: var(--tertiary-text);
     transition: var(--delay);
+}
+
+input.negative,
+big-input.negative,
+textarea.negative{
+    border-color: var(--negative);
+    background-color: var(--tertiary);
+}
+input.positive,
+big-input.positive,
+textarea.positive{
+    border-color: var(--positive);
+    background-color: var(--tertiary);
 }
 
 .edit-action {
