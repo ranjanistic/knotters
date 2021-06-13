@@ -33,6 +33,12 @@
 				Continue via Github
 			</button>
 		</a>
+		<a href="/accounts/discord/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+			<button class="tertiary w3-padding">
+				<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
+				Continue via Discord
+			</button>
+		</a>
 	</div>
 	<form method="POST" action="{% url 'account_signup' %}" enctype="multipart/form-data">
 		{% csrf_token %}

@@ -103,7 +103,7 @@ def setupOrgGihtubRepository(reponame, creator, moderator, description):
         gh = Github(GITHUBBOTTOKEN)
 
         ghUser = gh.get_user(creator.profile.githubID)
-        
+
         ghOrg = gh.get_organization(PUBNAME)
         ghOrgRepo = ghOrg.get_repo(name=reponame)
         if not ghOrgRepo:
@@ -156,3 +156,4 @@ def setupProjectDiscordChannel(reponame, creator, moderator):
     Creates discord chat channel for corresponding project.
     """
     return True
+
