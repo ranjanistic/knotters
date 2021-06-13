@@ -59,7 +59,9 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        requestModeration(projectobj.id, "project", userRequest)
+        mod = requestModeration(projectobj.id, APPNAME, userRequest)
+        if not mod:
+            return HttpResponse(code.NO)
         return redirect(f'/projects/profile/{projectobj.reponame}')
     except:
         return HttpResponse(code.NO)
