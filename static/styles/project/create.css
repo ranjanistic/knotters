@@ -18,6 +18,10 @@ input.valid {
   display: none;
 }
 
+.step-tab span{
+  color: var(--negative);
+}
+
 .step {
   height: 15px;
   width: 15px;
@@ -42,30 +46,6 @@ input.valid {
   font-size: 22px;
   font-family: var(--head-font);
   border: 2px solid var(--active);
-}
-
-#image-upload-card{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-
-}
-
-#image-upload-card img{
-  margin-top: 10px;
-
-}
-
-#image-upload-button p label {
-  padding: 16px;
-  border-radius: 25px;
-  transition: 0.4s;
-}
-
-#image-upload-button p label:hover,
-#image-upload-button p label:focus {
-  padding: 20px;
 }
 
 #confirm-check-box {

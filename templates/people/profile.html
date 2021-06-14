@@ -51,6 +51,7 @@
               {% if person.is_verified %}<i class="material-icons active-text">verified</i>{% endif %}
             </h5>
             {% if person.is_moderator %}<span class="accent w3-padding-small">MOD</span>{% endif %}
+           <p> {{person.profile.bio}}</p>
           </div>
           {% if person.profile.bio %}{{person.profile.bio}}{% endif %}
           {% if request.user.is_authenticated and request.user == person %}
@@ -62,13 +63,30 @@
 
         {% if request.user.is_authenticated and request.user == person %}
         <div class="pallete w3-center" id="edit-pallete" hidden>
-          <img src="{{ person.getDP }}" alt="{{ person.getName }}"/>
-          <input type="file" name="profilepic" id="uploadprofilepic" />
+          <img src="{{ person.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" class="w3-margin-bottom"/>
+          <input type="file" name="profilepic" id="uploadprofilepic" hidden onchange="loadProfile(event)" accept="image/*"
+          />
+          <button class="active" type="button" id="upload-button">
+            <i class="material-icons">upload</i>
+            <label for="uploadprofilepic">
+                Upload Image
+            </label>
+        </button>
+
+        <div id="myModal" class="modal pallete">
+          <span class="close">&times;</span>
+          <div class="modal-content">
+              <img  id="modal-id" width="50%" src="{{person.getDP}}" />
+              <img src="/media/users/default.png" width="40%" id="test"/>
+              <button type="button" class="positive" id="saveBtn">Save</button>
+          </div>
+      </div>
 
           <div class="w3-row w3-padding">
             <h5><span id="person-name">{{ person.getName }}</span></h5>
+            <input class="primary" type="text" placeholder="Username" required value="{{request.user.profile.name}}" name="username" />
+            <input class="primary" type="text" placeholder="Bio" required value="{{request.user.profile.bio}}" name="bio" />
           </div>
-          {{person.profile.bio}}
           <div class="w3-row w3-padding">
             <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
             <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>

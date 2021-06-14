@@ -43,6 +43,7 @@ const postRequest = async (path, data = {}) => {
         },
         body,
     });
+    console.log(response.json)
     return response.json();
 };
 
@@ -57,7 +58,7 @@ const getRequest = async (url) => {
     return response.text();
 };
 
-const loadGlobalEditors = () => {
+const loadGlobalEditors = (callback) => {
     getElements("edit-action").forEach((edit) => {
         const target = edit.getAttribute("data-edittarget"),
             viewer = getElement(`view-${target}`),
@@ -76,19 +77,22 @@ const loadGlobalEditors = () => {
                 show(viewer);
             };
             save.onclick = (_) => {
-                hide(editor);
-                show(viewer);
+                callback(() => {
+                    hide(editor);
+                    show(viewer);
+                });
+                
             };
         };
     });
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    getElementsByTag("form").forEach((form) => {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-      });
-    });
-});
+// document.addEventListener("DOMContentLoaded", () => {
+//     getElementsByTag("form").forEach((form) => {
+//       form.addEventListener("submit", (e) => {
+//         e.preventDefault();
+//       });
+//     });
+// });
 // loader()
 // window.onload=_=>loader(false);

@@ -315,3 +315,44 @@ textarea.positive{
     color: var(--positive-text);
     opacity: 50%;
 }
+
+.modal {
+    background-color: var(--tertiary);
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    left: 20%;
+    top: 16%;
+    width: 60%; 
+    border: 1px solid var(--primary-text);
+    min-height: 70%; 
+  }
+  
+  /* Modal Content/Box */
+  .modal-content {
+    width: 100%;
+    height: 100%; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content:space-between;
+  }
+  
+  /* The Close Button */
+  .close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  #saveBtn{
+    margin-top: 2rem;
+  }
+  
+  

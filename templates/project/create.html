@@ -39,12 +39,25 @@
                         id="projectimage"
                         hidden
                     />
-                    <button class="active" type="button">
+                    <button class="active" type="button" id="upload-button">
                         <i class="material-icons">upload</i>
                         <label for="projectimage">
                             Upload Image
                         </label>
                     </button>
+
+                    <div id="myModal" class="modal pallete">
+                        <span class="close">&times;</span>
+                        <div class="modal-content">
+                            <p>Crop your project logo</p>
+                            <img  id="modal-id" width="50%" src="/media/projects/default.png" />
+                            <img src="/media/users/default.png" width="40%" id="test"/>
+                            <button type="button" class="positive" id="saveBtn">Save</button>
+                        </div>
+                    </div>
+
+                    <img id="testing-image" />
+
                     <span id="projectimageerror"></span>
                 </div>
 
