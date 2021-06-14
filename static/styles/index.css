@@ -315,3 +315,12 @@ textarea.positive{
     color: var(--positive-text);
     opacity: 50%;
 }
+
+button.small {
+    font-size: 16px;
+    padding: 4px 8px;
+}
+
+.pointer{
+    cursor: pointer;
+}

@@ -23,6 +23,8 @@ def defaultImagePath():
 PROFILE_SECTIONS = [profile.OVERVIEW, profile.PROJECTS,
                     profile.CONTRIBUTION, profile.ACTIVITY, profile.MODERATION]
 
+SETTING_SECTIONS = [profile.setting.ACCOUNT, profile.setting.PREFERENCE]
+
 
 def getProfileSectionData(section, user):
     if section == profile.OVERVIEW:
@@ -41,8 +43,25 @@ def getProfileSectionData(section, user):
     if section == profile.MODERATION:
         return {}
 
+def getSettingSectionData(section, user):
+    if section == profile.OVERVIEW:
+        return {}
+    if section == profile.PROJECTS:
+        projects = Project.objects.filter(creator=user)
+        return {
+            code.LIVE: projects.filter(status=code.LIVE),
+            code.MODERATION: projects.filter(status=code.MODERATION),
+            code.REJECTED: projects.filter(status=code.REJECTED),
+        }
+    if section == profile.CONTRIBUTION:
+        return {}
+    if section == profile.ACTIVITY:
+        return {}
+    if section == profile.MODERATION:
+        return {}
 
-def getProfileSectionHTML(user, section):
+
+def getProfileSectionHTML(user, section, request):
     if not PROFILE_SECTIONS.__contains__(section):
         return False
     data = {}
@@ -50,4 +69,14 @@ def getProfileSectionHTML(user, section):
         if sec == section:
             data = getProfileSectionData(sec, user)
             break
-    return render_to_string(f'{APPNAME}/section/{section}.html',  data)
+    return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
+
+def getSettingSectionHTML(user, section, request):
+    if not SETTING_SECTIONS.__contains__(section):
+        return False
+    data = {}
+    for sec in SETTING_SECTIONS:
+        if sec == section:
+            data = getSettingSectionData(sec, user)
+            break
+    return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)

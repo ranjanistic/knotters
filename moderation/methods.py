@@ -45,6 +45,11 @@ def requestModeration(id, type, userRequest):
         if obj.status == code.REJECTED and obj.retries > 0:
             obj.status = code.MODERATION
             obj.moderator = getModerator()
+
+            if type == PROJECT:
+                obj.project.status = code.MODERATION
+                obj.project.save()
+                
             obj.save()
             return True
         

@@ -20,6 +20,7 @@
     <form method="post" action="{% url 'socialaccount_connections' %}">
         {% csrf_token %}
         <fieldset>
+        <h5>Choose one to remove</h5>
         {% if form.non_field_errors %}
         <div id="errorMsg">{{ form.non_field_errors }}</div>
         {% endif %}

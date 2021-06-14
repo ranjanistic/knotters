@@ -6,7 +6,13 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def populate_user(self, request, sociallogin, data):
         user = super().populate_user(request, sociallogin, data)
         try:
-            picture = sociallogin.account.extra_data['picture']
+            if str(sociallogin.account.provider).lower() == 'discord':
+                picture = f"https://cdn.discordapp.com/avatars/{sociallogin.account.uid}/{sociallogin.account.extra_data['avatar']}.png?size=1024"
+            elif str(sociallogin.account.provider).lower() == 'github':
+                picture = sociallogin.account.extra_data['avatar_url']
+            elif str(sociallogin.account.provider).lower() == 'google':
+                picture = sociallogin.account.extra_data['picture']
+            else: return user
             user_field(user, "profile_pic", picture)
         except (KeyError, AttributeError):
             pass

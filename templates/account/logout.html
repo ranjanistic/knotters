@@ -4,6 +4,7 @@
 
 {% block title %}Logout{% endblock %}
 
+{% block nav_href %}/people/profile/{{request.user.id}}{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
@@ -12,7 +13,7 @@
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
-	<div class="w3-padding"><i class="material-icons w3-jumbo">logout</i></div>
+	<div class="w3-padding"><img src="{{request.user.getDP}}" class="w3-circle" width="100"/></div>
 	<h1>{{request.user.first_name|capfirst}}, are you sure you want to log out?</h1>
   <br/>
 	<div class="w3-col w3-quarter w3-padding"></div>

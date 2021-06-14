@@ -6,7 +6,7 @@ from .apps import APPNAME
 
 
 def renderer(request, file, data={}):
-    data['root'] = f"/{APPNAME}"
+    data['root'] = f"/{APPNAME}s"
     data['subappname'] = APPNAME
     return renderView(request, f"{APPNAME}/{file}", data)
 

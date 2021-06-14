@@ -72,14 +72,13 @@
                 {% block nav_links %}
                     <button class="secondary themeswitch"><i class="material-icons">brightness_medium</i></button>
                     {% block nav_noauth %}
-                    <a href="/competitions"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>
+                        {% block nav_noauth_competes %}<a href="/competitions"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="/projects"><button title="Projects" class="positive"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
                     {% endblock %}
                     {% block nav_auth %}
                         {% if request.user.is_authenticated %}
-                            {% block nav_auth_links %}
-                            <a href="/projects/create"><button title="New project" class="positive"><i class="material-icons">add_circle</i><span class="w3-hide-small">New project</span></button></a>
-                            {% endblock %}
-                            <a href="{{request.user.profile.getLink}}"><button title="Logged in as {{request.user.getName }}" class="accent"><img src="{{request.user.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>
+                            {% block nav_auth_links %}{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.getName }}" class="accent"><img src="{{request.user.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
