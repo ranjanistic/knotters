@@ -1,10 +1,11 @@
-from django.http.response import Http404, HttpResponse
+from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
-from .methods import renderer, getProfileSectionHTML
+from .methods import renderer, getProfileSectionHTML,getSettingSectionHTML
 from django.contrib.auth.decorators import login_required
 from .models import User, Profile
 from .apps import APPNAME
+from main.strings import code
 
 @require_GET
 def index(request):
@@ -34,10 +35,54 @@ def profileTab(request, userID, section):
             user = request.user
         else:
             user = User.objects.get(id=userID)
-        data = getProfileSectionHTML(user,section)
+        data = getProfileSectionHTML(user,section,request)
         if data:
             return HttpResponse(data)
         else:
             raise Http404()
     except:
         raise Http404()
+
+@require_GET
+@login_required
+def settingTab(request, section):
+    try:
+        data = getSettingSectionHTML(request.user,section,request)
+        if data:
+            return HttpResponse(data)
+        else:
+            raise Http404()
+    except:
+        raise Http404()
+
+@login_required
+@require_POST
+def editProfile(request,section):
+    try:
+        user = User.objects.get(id=request.user.id)
+        if section == 'pallete':
+            try:
+                image = request.FILES["profilepic"]
+                user.image = image
+            except: pass
+            try:
+                name = str(request.POST['displayname']).split(" ")
+                fname = name[0]
+                del name[0]
+                if len(name) > 1:
+                    lname = "".join(name)
+                elif len(name) == 1:
+                    lname = name
+                else: lname = None
+
+                user.first_name = fname
+                user.last_name = lname
+            except: pass
+            try:
+                bio = str(request.POST['bio'])
+                user.profile.bio = bio
+            except: pass
+            user.save()
+        return redirect(user.profile.getLink())
+    except:
+        raise HttpResponseForbidden()

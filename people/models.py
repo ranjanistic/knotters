@@ -3,6 +3,10 @@ import uuid
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from .methods import profileImagePath, defaultImagePath
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .apps import APPNAME
+from allauth.socialaccount.models import SocialAccount
 
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, first_name, last_name=None, password=None):
@@ -37,7 +41,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
     username =  None
     first_name = models.CharField(max_length=100, default="first_name")
-    last_name = models.CharField(max_length=100, default="last_name")
+    last_name = models.CharField(max_length=100, null=True,blank=True)
     profile_pic = models.ImageField(upload_to=profileImagePath,default=defaultImagePath)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
@@ -52,7 +56,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     objects = UserAccountManager()
 
     
-
+    
     def __str__(self):
         return self.email
 
@@ -75,10 +79,13 @@ class User(AbstractBaseUser,PermissionsMixin):
         else:
             return "/media"+dp
 
+    def getLink(self) -> str:
+        return f"/{APPNAME}/profile/{self.id}"
+
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField("User", on_delete=models.CASCADE)
-    githubID = models.CharField(max_length=40,blank=False,null=True)
+    githubID = models.CharField(max_length=40,blank=True,null=True)
     bio = models.CharField(max_length=100,blank=True,null=True)
     
     def __str__(self) -> str:
@@ -89,5 +96,10 @@ class Profile(models.Model):
     
     def getLink(self) -> str:
         if self.githubID != None:
-            return f"/people/profile/{self.githubID}"
-        else: return f"/people/profile/{self.user.id}"
+            return f"/{APPNAME}/profile/{self.githubID}"
+        else: return f"/{APPNAME}/profile/{self.user.id}"
+
+@receiver(post_save, sender=User)
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)

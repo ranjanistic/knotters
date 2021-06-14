@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.discord',
     "project",
     "compete",
     "people",
@@ -140,6 +141,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
@@ -190,6 +192,7 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     },
     'github': {
+        "VERIFIED_EMAIL": True,
         'SCOPE': [
             'email',
             'user',

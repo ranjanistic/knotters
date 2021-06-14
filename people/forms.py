@@ -4,10 +4,15 @@ from django.db.models.fields.files import ImageFieldFile
 
 
 class CustomSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=50, label='First Name',help_text="First Name",widget=forms.TextInput(attrs={'placeholder': 'First Name'}))
-    last_name = forms.CharField(max_length=50, label='Last Name',help_text="Last Name",widget=forms.TextInput(attrs={'placeholder': 'Last Name'}))
+    first_name = forms.CharField(max_length=50, label='Your Name',help_text="Your Name",widget=forms.TextInput(attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type':'text'}))
     def signup(self, request, user):
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
+        namesequence = str(self.cleaned_data['first_name']).split(" ")
+        print(namesequence)
+        user.first_name = namesequence[0]
+        del namesequence[0]
+        print(namesequence)
+        if len(namesequence) > 0:
+            user.last_name = "".join(namesequence)
+            print(user.last_name)
         user.save()
         return user

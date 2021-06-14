@@ -2,7 +2,8 @@ from people.models import User
 from .models import *
 from main.methods import renderView
 from .apps import APPNAME
-from main.strings import PROJECT, PEOPLE, COMPETE
+from main.strings import PROJECT, PEOPLE, COMPETE, code
+
 
 def renderer(request, file, data={}):
     data['root'] = f"/{APPNAME}"
@@ -31,7 +32,7 @@ def getModerator():
     return totalModerators[temp-1]
 
 
-def requestModeration(id, type, userinput):
+def requestModeration(id, type, userRequest):
     obj = None
     try:
         if(type == PROJECT):
@@ -40,17 +41,29 @@ def requestModeration(id, type, userinput):
             obj = Moderation.objects.get(user_id=id)
         elif(type == COMPETE):
             obj = Moderation.objects.get(competiton_id=id)
+
+        if obj.status == code.REJECTED and obj.retries > 0:
+            obj.status = code.MODERATION
+            obj.moderator = getModerator()
+
+            if type == PROJECT:
+                obj.project.status = code.MODERATION
+                obj.project.save()
+                
+            obj.save()
+            return True
+        
         return False
     except:
         moderator = getModerator()
         if(type == PROJECT):
             obj = Moderation.objects.create(
-                project_id=id, type=type, moderator=moderator, request=userinput)
+                project_id=id, type=type, moderator=moderator, request=userRequest)
         elif(type == PEOPLE):
             obj = Moderation.objects.create(
-                user_id=id, type=type, moderator=moderator, request=userinput)
+                user_id=id, type=type, moderator=moderator, request=userRequest)
         elif(type == COMPETE):
             obj = Moderation.objects.create(
-                competiton_id=id, type=type, moderator=moderator, request=userinput)
+                competiton_id=id, type=type, moderator=moderator, request=userRequest)
         obj.save()
     return True

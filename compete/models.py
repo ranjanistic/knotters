@@ -18,6 +18,8 @@ class Competition(models.Model):
     banner = models.ImageField(
         upload_to=competeBannerPath, default=defaultBannerPath)
 
+    startAt = models.DateTimeField(auto_now=False, default=timezone.now)
+    endAt = models.DateTimeField(auto_now=False, default=timezone.now)
     active = models.BooleanField(default=False)
 
     def __str__(self):

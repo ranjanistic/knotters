@@ -25,13 +25,15 @@
   {% if confirmation %}
   <h4>
     {% blocktrans with confirmation.email_address.email as email %}
-    Please confirm that <a class="positive-text" href="mailto:{{ email }}">{{ email }}</a> is your email address for Knotters Community.
+    Please confirm that you provided <a class="positive-text" href="mailto:{{ email }}">{{ email }}</a> as your email address for membership at
+    <br/>Knotters Community.
     {% endblocktrans %}
   </h4>
   <br/>
   <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
     {% csrf_token %}
     <button class="positive" type="submit"><i class="material-icons">verified</i>Yes, that's me</button>
+    <a href="/"><button type="button" class="negative"><i class="material-icons">cancel</i>No, I didn't do that</button></a>
   </form>
 
   {% else %}

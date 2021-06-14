@@ -12,7 +12,7 @@ from .apps import APPNAME
 @require_GET
 def allProjects(request):
     projects = Project.objects.filter(status=code.MODERATION)
-    return renderer(request, 'all.html', {"projects": projects})
+    return renderer(request, 'index.html', {"projects": projects})
 
 
 @require_GET
@@ -59,7 +59,9 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        requestModeration(projectobj.id, "project", userRequest)
+        mod = requestModeration(projectobj.id, APPNAME, userRequest)
+        if not mod:
+            return HttpResponse(code.NO)
         return redirect(f'/projects/profile/{projectobj.reponame}')
     except:
         return HttpResponse(code.NO)
