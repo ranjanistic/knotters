@@ -116,7 +116,9 @@
                 />
                 <span id="tagssuggestions">
                     {% for tag in tags %}
-                        <button type="button" class="positive">#{{tag.name}}</button>
+                        <button type="button" class="positive tagbutton">
+                            <div class="tagsname">#{{tag.name}}</div>
+                        </button>
                     {% endfor %}
                 </span>
                 <span id="tagserror">

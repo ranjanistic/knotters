@@ -128,6 +128,22 @@ function fixStepIndicator(n) {
   x[n].className += " active";
 }
 
+/** =========== Tags in input field ================ */
+
+const tagbutton = document.querySelectorAll(".tagbutton");
+const tagsname = document.querySelectorAll(".tagsname");
+
+const displaytag = (index) => {
+  tagbutton[index].style.display = "none";
+};
+
+tagsname.forEach((item, index) => {
+  item.addEventListener("click", function tagInput() {
+    formValues[3].value += item.innerHTML.replace("#", "").trim() + " ,";
+    displaytag(index);
+  });
+});
+
 /* ========== Image-Preview ============= */
 //! Image cropper (not working for uploaded images)
 
