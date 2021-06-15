@@ -10,7 +10,6 @@
   
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/people/profile.css' %}" />
-<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
 {% endblock %}
 
 {% block nav_href %}/{% if request.user.is_authenticated and request.user != person %}{{subappname}}{% endif %}{% endblock %}
@@ -56,37 +55,26 @@
         </div>
 
         {% if request.user.is_authenticated and request.user == person %}
-
-        
-          <form method="POST" class="pallete w3-center" id="edit-pallete" action="/{{subappname}}/profile/edit/pallete">
-          {% csrf_token %}
-          <img src="{{ person.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" class="w3-margin-bottom" style="opacity:0.5" />
-          <input type="file" name="profilepic" id="uploadprofilepic" hidden onchange="loadProfile(event)" accept="image/*"
-          />
-          <button class="active" type="button" id="upload-button">
-            <i class="material-icons">upload</i>
-            <label for="uploadprofilepic">
-                Upload Image
-            </label>
-          </button><br/>
-
-          <div id="myModal" class="modal pallete">
-            <span class="close">&times;</span>
-            <div class="modal-content">
-                <img  id="modal-id" width="50%" src="{{person.getDP}}" />
-                <img src="/media/users/default.png" width="40%" id="test"/>
-                <button type="button" class="positive" id="saveBtn">Save</button>
-            </div>
+          <div class="pallete w3-center" id="edit-pallete">
+            <img src="{{ person.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" style="opacity:0.5" />
+            <input type="file" id="uploadprofilepic" hidden accept="image/*" />
+            <button class="active" type="button" id="upload-button">
+              <i class="material-icons">image</i>
+              <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
+            </button>
+            <br/>
+            <form method="POST" action="/{{subappname}}/profile/edit/pallete">
+              {% csrf_token %}
+              <input type="text" hidden id="profileImageData" name="profilepic" value="" />
+              <div class="w3-row w3-padding">
+                <input type="text" autocomplete="name" autocapitalize placeholder="Your name" required value="{{request.user.getName}}" name="displayname" /><br/><br/>
+                <input type="text" placeholder="Bio" autocomplete="nickname" {% if request.user.profile.bio %}value="{{request.user.profile.bio}}"{% endif %} name="profilebio" /><br/>
+              </div>
+              <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
+              <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
+            </form>
           </div>
-          <div class="w3-row w3-padding">
-            <input type="text" placeholder="Username" required value="{{request.user.getName}}" name="username" /><br/><br/>
-            <input type="text" placeholder="Bio" required {% if request.user.profile.bio %}value="{{request.user.profile.bio}}"{% endif %} name="bio" /><br/>
-          </div>
-          <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
-          <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
-          
-        </form>
-        
+
         {% endif %}
         <br />
         
@@ -149,8 +137,8 @@
 
 {% block scripts %}
 <script>
-const userID = "{{ person.id }}"
-const selfProfile = authenticated?"{{request.user.id}}" === "{{person.id}}":false
+  const userID = "{{ person.id }}"
+  const selfProfile = authenticated?"{{request.user.id}}" === "{{person.id}}":false
 </script>
 <script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %} 

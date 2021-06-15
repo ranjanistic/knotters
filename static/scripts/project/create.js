@@ -36,7 +36,6 @@ function showStep(n) {
           if (res.body.code === "OK") {
             console.log(res);
           }
-          alert(res.body.error);
         })
         .catch((error) => {
           console.log(error);
@@ -70,20 +69,6 @@ const nextPrev = (n) => {
   currentStep = currentStep + n;
   if (currentStep >= x.length) {
     actionLoader(true);
-    // postRequest("/projects/submit", {
-    //   projectname: formValues[0].value,
-    //   reponame: formValues[1].value,
-    //   projectabout: formValues[2].value,
-    //   tags: formValues[3].value,
-    //   projectcategory: formValues[4].value,
-    //   description: formValues[5].value,
-    // }).then((res) => {
-    //   if (res.body.code === "OK") {
-    //     return window.location.replace(`/projects/profile/${reponame}`);
-    //   }
-    //   actionLoader(false);
-    //   alert(res.body.error);
-    // });
     document.getElementById("create-project-form").submit();
     return false;
   }
@@ -128,87 +113,24 @@ function fixStepIndicator(n) {
   x[n].className += " active";
 }
 
-/** =========== Tags in input field ================ */
 
-const tagbutton = document.querySelectorAll(".tagbutton");
-const tagsname = document.querySelectorAll(".tagsname");
+const tagbutton = getElements("tagbutton");
 
-const displaytag = (index) => {
-  tagbutton[index].style.display = "none";
-};
 
-tagsname.forEach((item, index) => {
-  item.addEventListener("click", function tagInput() {
-    formValues[3].value += item.innerHTML.replace("#", "").trim() + " ,";
-    displaytag(index);
-  });
+tagbutton.forEach((button, index) => {
+  button.onclick= (e)=> {
+    formValues[3].value += button.innerHTML.replace("#", "").trim() + ", ";
+    hide(tagbutton[index])
+  };
 });
 
-/* ========== Image-Preview ============= */
-//! Image cropper (not working for uploaded images)
-
-var modal = document.getElementById("myModal");
-var image = document.getElementById("modal-id");
-var imageOutput = document.getElementById("test");
-
-var loadFile = function () {
-  const file = document.querySelector("input[type=file]").files[0];
-  const reader = new FileReader();
-
-  reader.addEventListener(
-    "load",
-    function () {
-      const base64String = reader.result;
-      console.log(base64String);
-      image.src = base64String;
-    },
-    false
+getElement("projectimage").onchange = (e) => {
+  handleCropImageUpload(
+      e,
+      "projectImageData",
+      "projectImageOutput",
+      (croppedB64) => {
+          getElement("uploadprojectimagelabel").innerHTML = "Selected";
+      }
   );
-
-  if (file) {
-    reader.readAsDataURL(file);
-  }
-
-  console.log(image.src);
-  console.log(image);
-
-  var span = document.getElementsByClassName("close")[0];
-
-  modal.style.display = "block";
-
-  span.onclick = function () {
-    modal.style.display = "none";
-  };
-
-  window.onclick = function (event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  };
 };
-
-/* ============== Cropper ================== */
-const cropper = new Cropper(imageOutput, {
-  aspectRatio: 4 / 3,
-  viewMode: 3,
-  responsive: true,
-
-  crop(event) {
-    console.log(event.detail.x);
-    console.log(event.detail.y);
-    console.log(event.detail.width);
-    console.log(event.detail.height);
-    console.log(event.detail.rotate);
-    console.log(event.detail.scaleX);
-    console.log(event.detail.scaleY);
-  },
-});
-
-var saveBtn = document.getElementById("saveBtn");
-
-saveBtn.addEventListener("click", function cropImageFunction() {
-  var cropedImage = cropper.getCroppedCanvas().toDataURL("image/png");
-  document.getElementById("output").src = cropedImage;
-  console.log(cropedImage);
-  modal.style.display = "none";
-});

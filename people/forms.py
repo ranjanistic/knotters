@@ -1,7 +1,7 @@
 from allauth.account.forms import SignupForm
 from django import forms
 from django.db.models.fields.files import ImageFieldFile
-
+from .methods import convertToFLname
 
 class CustomSignupForm(SignupForm):
     def __init__(self, *args, **kwargs):
@@ -11,14 +11,10 @@ class CustomSignupForm(SignupForm):
     
     def save(self,request):
         try:
-            name = str(self.cleaned_data["first_name"]).title()
-            namesequence = name.split(" ")
-            self.cleaned_data["first_name"] = namesequence[0]
-            del namesequence[0]
-            self.cleaned_data["last_name"] = " ".join(namesequence)
+            fname, lname = convertToFLname(str(self.cleaned_data["first_name"]))
+            self.cleaned_data["first_name"] = fname
+            if lname:
+                self.cleaned_data["last_name"] = lname
         except:
             pass
-        return super(CustomSignupForm,self).save(request)
-        
-
-    
+        return super(CustomSignupForm,self).save(request)        

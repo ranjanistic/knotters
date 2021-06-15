@@ -77,7 +77,7 @@ class User(AbstractBaseUser,PermissionsMixin):
         if dp.startswith("http"):
             return dp
         else:
-            return "/media"+dp
+            return "/media//"+dp
 
     def getLink(self) -> str:
         return f"/{APPNAME}/profile/{self.id}"
@@ -94,10 +94,13 @@ class Profile(models.Model):
     def getGhUrl(self) -> str:
         return f"https://github.com/{self.githubID}"
     
-    def getLink(self) -> str:
+    def getLink(self,error='',success='') -> str:
+        if error: error = f"?e={error}"
+        elif success: success = f"?s={success}"
+
         if self.githubID != None:
-            return f"/{APPNAME}/profile/{self.githubID}"
-        else: return f"/{APPNAME}/profile/{self.user.id}"
+            return f"/{APPNAME}/profile/{self.githubID}{success}{error}"
+        else: return f"/{APPNAME}/profile/{self.user.id}{success}{error}"
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):

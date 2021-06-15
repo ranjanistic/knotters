@@ -8,7 +8,22 @@ const getElements = (classname) =>
 const getElementsByTag = (tagname) =>
     Array.from(document.getElementsByTagName(tagname));
 
-const loader = (show = true) => visibleElement("viewloader", show);
+document.addEventListener("DOMContentLoaded", () => {
+    getElementsByTag("form").forEach((form) => {
+        form.addEventListener("submit", (e) => {
+            if (form.classList.contains("no-auto")) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+
+const loader = (show = true) => {
+    getElement("viewloader").innerHTML = show
+        ? `<div class="loader"></div>`
+        : "";
+    visibleElement("viewloader", show);
+};
 
 const openSpinner = (id = "loader") => showElement(id);
 
@@ -32,7 +47,8 @@ const visibleElement = (id, show = true) => {
     getElement(id).style.display = show ? "block" : "none";
 };
 
-const loaderHTML = (loaderID="loader") => `<div class="loader" id="${loaderID}"></div>`;
+const loaderHTML = (loaderID = "loader") =>
+    `<div class="loader" id="${loaderID}"></div>`;
 const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
@@ -108,14 +124,20 @@ const postRequest = async (path, data = {}) => {
 };
 
 const getRequest = async (url) => {
-    const response = await window.fetch(url, {
-        method: "GET",
-        headers: {
-            "X-CSRFToken": csrfmiddlewaretoken,
-        },
-    });
-    if (response.status - 200 > 100) return false;
-    return response.text();
+    try {
+        const response = await window.fetch(url, {
+            method: "GET",
+            headers: {
+                "X-CSRFToken": csrfmiddlewaretoken,
+            },
+        });
+        if (response.status - 200 > 100) return false;
+        return response.text();
+    } catch (e) {
+        console.log(e);
+
+        return false;
+    }
 };
 
 const loadGlobalEditors = (onSave = (_) => {}, onDiscard) => {
@@ -168,14 +190,43 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    getElementsByTag("form").forEach((form) => {
-        form.addEventListener("submit", (e) => {
-            if (form.classList.contains("no-auto")) {
-                e.preventDefault();
-            }
+const handleCropImageUpload = (event, dataOutElemID, previewImgID, onCropped =(croppedB64)=>{}, ratio = (1/1)) => {
+    loader();
+    const file = Array.from(event.target.files)[0];
+    const reader = new FileReader();
+    reader.onload = (_) => {
+        const base64String = reader.result;
+
+        dialog
+            .confirm(
+                "Crop Image",
+                `<div class="w3-row w3-center">
+					<img src="${base64String}" style="max-width:100%" id="tempprofileimageoutput" />
+				</div>`,
+                () => {
+                    try {
+                        const croppedB64 = cropImage
+                            .getCroppedCanvas()
+                            .toDataURL("image/png");
+                        getElement(dataOutElemID).value = croppedB64;
+                        getElement(previewImgID).src = croppedB64;
+                        onCropped(croppedB64)
+                    } catch {
+                        window.location.reload();
+                    }
+                },
+                () => {}
+            )
+            .set("closable", false);
+        const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
+            aspectRatio: ratio,
+            viewMode: 3,
+            responsive: true,
         });
-    });
-});
-// loader()
-// window.onload=_=>loader(false);
+        loader(false);
+    };
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+};
+

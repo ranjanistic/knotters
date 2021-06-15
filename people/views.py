@@ -6,6 +6,9 @@ from django.contrib.auth.decorators import login_required
 from .models import User, Profile
 from .apps import APPNAME
 from main.strings import code
+from .methods import convertToFLname
+from django.core.files.base import ContentFile
+import base64
 
 @require_GET
 def index(request):
@@ -59,30 +62,24 @@ def settingTab(request, section):
 @require_POST
 def editProfile(request,section):
     try:
-        user = User.objects.get(id=request.user.id)
+        profile = Profile.objects.get(user=request.user)
         if section == 'pallete':
             try:
-                image = request.FILES["profilepic"]
-                user.image = image
+                base64Data = str(request.POST['profilepic'])
+                format, imgstr = base64Data.split(';base64,') 
+                ext = format.split('/')[-1] 
+                image = ContentFile(base64.b64decode(imgstr), name='profile.' + ext)
+                profile.user.profile_pic = image
             except: pass
             try:
-                name = str(request.POST['displayname']).split(" ")
-                fname = name[0]
-                del name[0]
-                if len(name) > 1:
-                    lname = "".join(name)
-                elif len(name) == 1:
-                    lname = name
-                else: lname = None
-
-                user.first_name = fname
-                user.last_name = lname
-            except: pass
-            try:
-                bio = str(request.POST['bio'])
-                user.profile.bio = bio
-            except: pass
-            user.save()
-        return redirect(user.profile.getLink())
+                fname, lname = convertToFLname(str(request.POST['displayname']))
+                bio = str(request.POST['profilebio'])
+                profile.user.first_name = fname
+                profile.user.last_name = lname
+                profile.bio = bio
+                profile.user.save()
+                profile.save()
+                return redirect(profile.getLink(success=f"Pallete updated"),permanent=True)
+            except: return redirect(profile.getLink(error=f"Invalid {section} values provided"))
     except:
         raise HttpResponseForbidden()
