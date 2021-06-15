@@ -77,7 +77,7 @@ class User(AbstractBaseUser,PermissionsMixin):
         if dp.startswith("http"):
             return dp
         else:
-            return "/media//"+dp
+            return "/media/"+dp
 
     def getLink(self) -> str:
         return f"/{APPNAME}/profile/{self.id}"

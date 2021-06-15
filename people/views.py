@@ -18,18 +18,21 @@ def index(request):
 
 @require_GET
 def profile(request, userID):
-    try:
-        user = User.objects.get(id=userID)
-        if user.profile.githubID != None:
-            return redirect(f"/{APPNAME}/profile/{user.profile.githubID}")
-        return renderer(request, 'profile.html', {"person": user})
-    except:
-        pass
-    try:
-        profile = Profile.objects.get(githubID=userID)
-        return renderer(request, 'profile.html', {"person": profile.user})
-    except:
-        raise Http404()
+    if request.user.is_authenticated and (request.user.id == userID or request.user.profile.githubID == userID):
+        return renderer(request, 'profile.html', {"person": request.user})
+    else:
+        try:
+            profile = Profile.objects.get(githubID=userID)
+            return renderer(request, 'profile.html', {"person": profile.user})
+        except:
+            pass
+        try:
+            user = User.objects.get(id=userID)
+            if user.profile.githubID != None:
+                return redirect(user.profile.getLink())
+            return renderer(request, 'profile.html', {"person": user})
+        except:
+            raise Http404()
 
 @require_GET
 def profileTab(request, userID, section):
