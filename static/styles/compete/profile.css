@@ -1,6 +1,7 @@
 #banner {
-  height: 55vh;
   width: 100%;
+  max-height: 50vh;
+  overflow: hidden;
 }
 
 #competition-tabs {

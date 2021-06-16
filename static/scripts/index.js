@@ -104,7 +104,7 @@ const intializeTabsView = (
 
 const postRequest = async (path, data = {}) => {
     const body = { ...data };
-    console.log(body);
+    console.log("body",body)
     try {
         const response = await fetch(path, {
             method: "POST",
@@ -115,8 +115,7 @@ const postRequest = async (path, data = {}) => {
             },
             body: JSON.stringify(body),
         });
-        console.log(await response.status);
-        return await response;
+        return await response.json();
     } catch (e) {
         console.log(e);
         return e;
@@ -190,9 +189,15 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     }
 };
 
-const handleCropImageUpload = (event, dataOutElemID, previewImgID, onCropped =(croppedB64)=>{}, ratio = (1/1)) => {
-    loader();
+const handleCropImageUpload = (
+    event,
+    dataOutElemID,
+    previewImgID,
+    onCropped = (croppedB64) => {},
+    ratio = 1 / 1
+) => {
     const file = Array.from(event.target.files)[0];
+    if (file) loader();
     const reader = new FileReader();
     reader.onload = (_) => {
         const base64String = reader.result;
@@ -210,7 +215,7 @@ const handleCropImageUpload = (event, dataOutElemID, previewImgID, onCropped =(c
                             .toDataURL("image/png");
                         getElement(dataOutElemID).value = croppedB64;
                         getElement(previewImgID).src = croppedB64;
-                        onCropped(croppedB64)
+                        onCropped(croppedB64);
                     } catch {
                         window.location.reload();
                     }
@@ -220,8 +225,9 @@ const handleCropImageUpload = (event, dataOutElemID, previewImgID, onCropped =(c
             .set("closable", false);
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
             aspectRatio: ratio,
-            viewMode: 3,
+            viewMode: 1,
             responsive: true,
+            center: true,
         });
         loader(false);
     };
@@ -229,4 +235,3 @@ const handleCropImageUpload = (event, dataOutElemID, previewImgID, onCropped =(c
         reader.readAsDataURL(file);
     }
 };
-

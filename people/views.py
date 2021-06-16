@@ -6,9 +6,9 @@ from django.contrib.auth.decorators import login_required
 from .models import User, Profile
 from .apps import APPNAME
 from main.strings import code
+from main.methods import base64ToImageFile
 from .methods import convertToFLname
-from django.core.files.base import ContentFile
-import base64
+
 
 @require_GET
 def index(request):
@@ -69,10 +69,7 @@ def editProfile(request,section):
         if section == 'pallete':
             try:
                 base64Data = str(request.POST['profilepic'])
-                format, imgstr = base64Data.split(';base64,') 
-                ext = format.split('/')[-1] 
-                image = ContentFile(base64.b64decode(imgstr), name='profile.' + ext)
-                profile.user.profile_pic = image
+                profile.user.profile_pic = base64ToImageFile(base64Data)
             except: pass
             try:
                 fname, lname = convertToFLname(str(request.POST['displayname']))

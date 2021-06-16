@@ -1,6 +1,6 @@
-from .models import *
+from .models import Project,Tag
 from main.env import GITHUBBOTTOKEN, PUBNAME
-from github import Github, BranchProtection, Organization
+from github import Github
 from main.methods import renderView
 from .apps import APPNAME
 
@@ -11,24 +11,17 @@ def renderer(request, file, data={}):
     return renderView(request, f"{APPNAME}/{file}", data)
 
 
-def projectImagePath(instance, filename):
-    return f'{APPNAME}/{instance.id}/{filename}'
-
-
-def defaultImagePath():
-    return f'/{APPNAME}/default.png'
-
-
 def createProject(name, reponame, description, tags, user):
     """
     Creates project on knotters under moderation.
     """
     try:
         if not uniqueRepoName(reponame):
-
             return False
         project = Project.objects.create(
             creator=user, name=name, reponame=reponame, description=description)
+        print(project)
+        print(tags)
         for tag in tags:
             tag = str(tag).strip().replace(" ", "_")
             if uniqueTag(tag):
@@ -37,7 +30,8 @@ def createProject(name, reponame, description, tags, user):
                 tagobj = Tag.objects.get(name=tag)
             project.tags.add(tagobj)
         return project
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 
@@ -46,7 +40,9 @@ def uniqueRepoName(reponame):
     Checks for unique repository name among existing projects
     """
     try:
-        Project.objects.get(reponame=reponame)
+        print(reponame)
+        proj = Project.objects.get(reponame=str(reponame))
+        print(proj)
     except:
         return True
     return False

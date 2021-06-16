@@ -19,7 +19,9 @@ body {
     font-family: var(--body-font);
     transition: var(--delay);
 }
-
+.bold{
+    font-weight: bolder;
+}
 .view-loader {
     display: none;
     position: fixed;
