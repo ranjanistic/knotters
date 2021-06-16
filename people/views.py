@@ -69,7 +69,9 @@ def editProfile(request,section):
         if section == 'pallete':
             try:
                 base64Data = str(request.POST['profilepic'])
-                profile.user.profile_pic = base64ToImageFile(base64Data)
+                imageFile = base64ToImageFile(base64Data)
+                if imageFile:
+                    profile.user.profile_pic = imageFile
             except: pass
             try:
                 fname, lname = convertToFLname(str(request.POST['displayname']))
