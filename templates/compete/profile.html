@@ -25,7 +25,9 @@
 
 
 <div class="w3-row tertiary">
-  <img src="{{compete.getBanner }}" alt="{{compete.title}}" id="banner" />
+  <div id="banner">
+  <img src="{{compete.getBanner }}" alt="{{compete.title}}" width="100%"/>
+  </div>
   {% if not compete.active %}
   <div class="w3-row w3-center secondary w3-padding">
     <span class="text-secondary">This competition is no longer accepting submissions.</span>
@@ -63,7 +65,7 @@
 
     <div class="pallete" id="competition-tabs">
       <div class="w3-quarter">
-        <div class="w3-bar-block" id="sidebar">
+        <div class="w3-bar-block w3-hide-small" id="sidebar">
           <a class="w3-bar-item side-nav-tab" id="overview"><i class="material-icons">toc</i>Overview</a>
           <a class="w3-bar-item side-nav-tab" id="task"><i class="material-icons">code</i>Task</a>
           <a class="w3-bar-item side-nav-tab" id="guidelines"><i class="material-icons">rule</i>Guidelines</a>
@@ -72,9 +74,18 @@
           <a class="w3-bar-item side-nav-tab" id="result"><i class="material-icons">leaderboard</i>Results</a>
           {% endif %}
         </div>
+        <div class="w3-center w3-hide-large w3-hide-medium">
+          <button class="side-nav-tab" id="overview"><i class="material-icons">toc</i></button>
+          <button class="side-nav-tab" id="task"><i class="material-icons">code</i></button>
+          <button class="side-nav-tab" id="guidelines"><i class="material-icons">rule</i></button>
+          <button class="side-nav-tab" id="submission"><i class="material-icons">send</i></button>
+          {% if not compete.active %}
+          <button class="side-nav-tab" id="result"><i class="material-icons">leaderboard</i></button>
+          {% endif %}
+        </div>
       </div>
       <div class="w3-threequarter w3-center">
-
+        <br/>
         <div id="tabview"><div class="loader" id="loader"></div></div>
       </div>
     </div>

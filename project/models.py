@@ -1,12 +1,19 @@
 from django.db import models
 import uuid
 from django.utils import timezone
-from .methods import projectImagePath, defaultImagePath
-from main.strings import code, PEOPLE
+
+from main.strings import code, PEOPLE, project
 from main.methods import maxLengthInList
 from .apps import APPNAME
 from django.db.models.aggregates import Count
-from random import randint
+from main.settings import MEDIA_URL
+
+def projectImagePath(instance, filename):
+    return f'{APPNAME}/{instance.id}/{filename}'
+
+def defaultImagePath():
+    return f'/{APPNAME}/default.png'
+
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -33,8 +40,7 @@ class Project(models.Model):
         max_length=500, unique=True, null=False, blank=False)
     description = models.CharField(max_length=5000, null=False, blank=False)
     tags = models.ManyToManyField(Tag)
-    status = models.CharField(choices=([code.MODERATION, code.MODERATION.capitalize()], [code.LIVE, code.LIVE.capitalize()], [
-                              code.REJECTED, code.REJECTED.capitalize()]), max_length=maxLengthInList([code.MODERATION,code.LIVE,code.REJECTED]), default=code.MODERATION)
+    status = models.CharField(choices=project.PROJECTSTATESCHOICE, max_length=maxLengthInList(project.PROJECTSTATES), default=code.MODERATION)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     approvedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -44,10 +50,14 @@ class Project(models.Model):
     def __str__(self):
         return self.name
     
-    def getLink(self):
+    def getLink(self, success='', error=''):
+        if error:
+            error = f"?e={error}"
+        elif success:
+            success = f"?s={success}"
         if self.status == code.REJECTED:
-            return f"/moderation/{APPNAME}/{self.id}"
-        return f"/{APPNAME}s/profile/{self.reponame}"
+            return f"/moderation/{APPNAME}/{self.id}{error}{success}"
+        return f"/{APPNAME}s/profile/{self.reponame}{error}{success}"
 
     def getDP(self):
-        return f"/media/{str(self.image)}"
+        return f"{MEDIA_URL}{str(self.image)}"

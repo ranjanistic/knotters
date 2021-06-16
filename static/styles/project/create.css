@@ -10,10 +10,6 @@ textarea.invalid {
   border-color: var(--negative);
 }
 
-input.valid {
-  border-color: var(--positive);
-}
-
 .step-tab {
   display: none;
 }
@@ -49,7 +45,7 @@ input.valid {
 }
 
 #confirm-check-box {
-  font-weight: 600;
+  font-weight: bolder;
 }
 
 input[type="checkbox"] {
@@ -81,11 +77,11 @@ input[type="checkbox"] {
   padding: 0 !important;
   margin: 0 !important;
 }
-
+/* 
 #preview-step > h2 {
   margin-bottom: 25px;
 }
 
 #preview-step h5 {
   color: var(--tertiary-text);
-}
+} */

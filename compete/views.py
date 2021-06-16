@@ -2,9 +2,10 @@ from django.http.response import Http404, HttpResponse
 from .methods import renderer
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
-from .models import *
-from main.strings import code
 from django.utils import timezone
+from main.strings import code
+from .models import *
+from .methods import getCompetitionSectionHTML
 
 
 @require_GET
@@ -30,9 +31,25 @@ def competition(request, compID):
         raise Http404()
 
 
+@require_GET
+def competitionTab(request,compID, section):
+    print('here')
+    try:
+        compete = Competition.objects.get(id=compID)
+        data = getCompetitionSectionHTML(compete,section,request)
+        if data:
+            return HttpResponse(data)
+        else:
+            raise Http404()
+    except:
+        raise Http404()
+
 @login_required
 @require_POST
 def createSubmission(request, compID):
+    """
+    Take participation
+    """
     try:
         competition = Competition.objects.get(id=compID, active=True)
         try:
@@ -50,6 +67,9 @@ def createSubmission(request, compID):
 @login_required
 @require_POST
 def finalSubmit(request, compID, submitID):
+    """
+    Already existing participation submission
+    """
     try:
         competition = Competition.objects.get(id=compID, active=True)
         submission = Submission.objects.get(
