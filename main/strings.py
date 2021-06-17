@@ -15,9 +15,19 @@ class Codes():
     INVALID_DIVISION = f'INVALID_DIVISION'
     SUBMISSION_ERROR = f'{COMPETE}/SUBMISSION_ERROR'
     SUBMISSION_EXISTS = f'{COMPETE}/SUBMISSION_EXISTS'
-    
-    def __init__(self):
-        PROJECTSTATES = [self.MODERATION, self.LIVE, self.REJECTED]
+        
+code = Codes()
+
+class Project():
+    PROJECTSTATES = [code.MODERATION, code.LIVE, code.REJECTED]
+    PROJECTSTATESCHOICE = (
+        [code.MODERATION, code.MODERATION.capitalize()],
+        [code.LIVE, code.LIVE.capitalize()],
+        [code.REJECTED, code.REJECTED.capitalize()]
+    )
+
+project = Project()
+
 
 class ProfileSetting():
     ACCOUNT = 'account'
@@ -31,5 +41,24 @@ class Profile():
     MODERATION = 'moderation'
     setting = ProfileSetting()
 
+
+
+class Compete():
+    OVERVIEW = 'overview'
+    TASK = 'task'
+    GUIDELINES = 'guidelines'
+    SUBMISSION = 'submission'
+    RESULT = 'result'
+
+    def __init__(self) -> None:
+        self.COMPETE_SECTIONS = [
+            self.OVERVIEW, self.TASK,
+            self.GUIDELINES,
+            self.SUBMISSION,
+            self.RESULT
+        ]
+
+
 profile = Profile()
-code = Codes()
+compete = Compete()
+

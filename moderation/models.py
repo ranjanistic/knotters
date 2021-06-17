@@ -21,13 +21,16 @@ class Moderation(models.Model):
     status = models.CharField(choices=([code.MODERATION, code.MODERATION.capitalize()], [code.APPROVED, code.APPROVED.capitalize()], [
                               code.REJECTED, code.REJECTED.capitalize()]), max_length=50, default=code.MODERATION)
     retries = models.IntegerField(default=3)
-
+    requestOn = models.DateTimeField(auto_now=False,default=timezone.now)
+    respondOn = models.DateTimeField(auto_now=False)
+    
     def __str__(self):
         return f"{self.project.name} by {self.moderator.getName}"
 
     def approve(self, response):
         self.status = code.APPROVED
         self.response = response
+        self.respondOn = timezone.now()
         if(self.type == PROJECT):
             self.project.status = code.LIVE
             self.project.approvedOn = timezone.now
@@ -37,6 +40,7 @@ class Moderation(models.Model):
     def reject(self, response):
         self.status = code.REJECTED
         self.response = response
+        self.respondOn = timezone.now()
         if self.retries > 0:
             self.retries = self.retries - 1
         if(self.type == PROJECT):

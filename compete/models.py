@@ -3,6 +3,7 @@ from django.db import models
 import uuid
 from django.utils import timezone
 from main.strings import PEOPLE
+from main.settings import MEDIA_URL
 from .methods import competeBannerPath, defaultBannerPath
 
 class Competition(models.Model):
@@ -26,7 +27,7 @@ class Competition(models.Model):
         return self.title
 
     def getBanner(self):
-        return f"/media/{str(self.banner)}"
+        return f"{MEDIA_URL}{str(self.banner)}"
 
 class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

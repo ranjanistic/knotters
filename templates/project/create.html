@@ -28,11 +28,10 @@
         <input
             type="file"
             accept="image/*"
-            name="projectimage"
             id="projectimage"
             hidden
         />
-        <form id="create-project-form" method="POST">
+        <form id="create-project-form" method="POST" action="/projects/submit">
             {% csrf_token %}
 
             <div class="step-tab" id="step1">
@@ -47,7 +46,7 @@
                     </button>
                     <span id="projectimageerror"></span>
                 </div>
-                <input hidden id="projectImageData" value="" type="text" />
+                <input hidden id="projectImageData" name="projectimage" value="" type="text" />
                 <br />
                 <div class="w3-row">
 				<h3>Display name</h3>
@@ -100,13 +99,12 @@
                     maxlength="50"
                     placeholder="Separate by comma"
                 />
-                <span id="tagssuggestions">
+                <span id="tagserror"></span>
+                <div class="w3-row" id="tagssuggestions">
                     {% for tag in tags %}
                         <button type="button" class="positive tagbutton">#{{tag.name}}</button>
                     {% endfor %}
-                </span>
-                <span id="tagserror">
-                </span>
+                </div>
             </div>
 
             <div class="step-tab" id="step3">
@@ -136,7 +134,7 @@
                     maxlength="5000"
                     rows="5"
                     id="description"
-                    placeholder="Detailed explanation of the project you want moderators to read."
+                    placeholder="Detailed explanation of the project, i.e. motive, etc. for moderators to read."
                 ></textarea>
                 <span id="descriptionerror"></span>
             </div>
@@ -145,27 +143,22 @@
                 <div class="pallete w3-transparent" id="preview-step">
                     <h2>Preview</h2>
                     <div class="w3-row">
-                        <div class="w3-col w3-half">
-                            <h5>Project title:</h5>
-                            <h5>Project username:</h5>
-                            <h5>About:</h5>
-                            <h5>Tags:</h5>
-                            <h5>Category:</h5>
-                            <h5>Extra description:</h5>
-                        </div>
-                        <div class="w3-col w3-half">
-                            <p id="titlePreview"></p>
-                            <p id="usernamePreview"></p>
-                            <p id="aboutPreview"></p>
-                            <p id="tagsPreview"></p>
-                            <p id="categoryPreview"></p>
-                            <p id="descriptionPreview"></p>
-                        </div>
+                        <h5>Project title</h5>
+                        <h3 id="titlePreview"></h3>
+                        <h5>Project username:</h5>
+                        <h3 id="usernamePreview"></h3>
+                        <h5>About:</h5>
+                        <h3 id="aboutPreview"></h3>
+                        <h5>Tags:</h5>
+                        <h3 id="tagsPreview"></h3>
+                        <h5>Category</h5>
+                        <h3 id="categoryPreview"></h3>
+                        <h5>Extra description</h5>
+                        <h3 id="descriptionPreview"></h3>
                     </div>
                 </div>
-
+                <input required name="acceptterms" type="checkbox" />
                 <label id="confirm-check-box">
-                    <input required name="acceptterms" type="checkbox" />
                     I've read the {{appname}} 
                         <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">moderation guidelines</a>, 
                         <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/privacypolicy">privacy policy</a> & 
@@ -196,8 +189,8 @@
                 </div>
                 </div>
             </div>
-
-            <div style="text-align: center; margin-top: 40px">
+            <br/><br/>
+            <div class="w3-row w3-center">
                 <span class="step"></span>
                 <span class="step"></span>
                 <span class="step"></span>
@@ -205,7 +198,7 @@
             </div>
         </form>
     </div>
-    <div class="w3-col w3-half w3-center w3-padding-32" id="imageview">
+    <div class="w3-col w3-half w3-center w3-padding" id="imageview">
         <img class="pallete" id="projectImageOutput" width="60%" src="/media/projects/default.png" />
     </div>
 </div>
