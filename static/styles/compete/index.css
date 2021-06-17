@@ -7,11 +7,11 @@
 }
 
 #competewelcome h1{
-    font-size: 2.7rem;
+    font-size: 3rem;
 }
 
 #competewelcome p {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.8;
 }
 
@@ -35,5 +35,9 @@
 
   #competewelcome h1{
     font-size: 2.4rem;
+}
+
+#competewelcome p{
+  font-size: 1.2rem;
 }
 }

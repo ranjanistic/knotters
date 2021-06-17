@@ -1,18 +1,112 @@
-{% extends 'index.html' %}
+{% extends 'index.html' %} 
+{% load static %} 
 
-{% block title %}{{subappname|capfirst}} &#183; {{appname}}{% endblock %}
-{% block nav_text %}People{% endblock %}
+{% block title %}{{subappname|capfirst}} &#183; {{appname}}{% endblock %} 
+{% block nav_text %}People{% endblock %} 
 
 {% block content %}
-<br/>
-<div class="w3-row">
-{% for person in people %}
-<a href="{{person.profile.getLink}}">{{person.id}}</a><br/>
-{{person.getName}}<br/>
-{{person.getDP}}<br/>
-{% empty %}
-No people
-{% endfor %}
+
+<div class="w3-row w3-center" id="pagewelcome">
+  <h1>Community</h1>
+  <p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+    quis nostrud exercitation.
+  </p>
+  <div id="pagewelcomebuttons">
+    <a><button class="active">
+        <i class="material-icons">group_work</i>contribute
+      </button>
+    </a>
+    <a>
+      <button class="active">
+        <i class="material-icons">add_circle</i>create
+      </button>
+    </a>
+  </div>
 </div>
-<br/>
+
+<div class="tertiary w3-padding">
+  <div id="pagesearch">
+    <form method="GET">
+      <input
+        type="text"
+        name="query"
+        placeholder="Search people"
+        required
+        {% if request.GET.query %}
+        value="{{request.GET.query}}"
+        {% endif %}
+      />
+      <button type="submit" class="positive">
+        <i class="material-icons">search</i>
+      </button>
+      <a href="/projects"
+        ><button type="button" class="negative">
+          <i class="material-icons">clear</i>
+        </button>
+      </a>
+    </form>
+  </div>
+
+  <div class="w3-container" id="pagecardscontainer">
+    <h3 class="w3-margin-bottom">Top contributers this week</h3>
+    <div class="scroll-x" id="firstrowcardscontainer">
+      {% for person in people %}
+      <div class="w3-row pallete w3-center primary" id="pagecard">
+        <img src="{{person.getDP}}" alt="{{person.getName}}" />
+        <div class="w3-row w3-padding">
+          <h3>{{person.getName}}</h3>
+          <span>bio</span><br />
+        </div>
+
+        <div class="w3-padding">
+          <a href="{{person.profile.getLink}}">
+            <button class="w3-right positive">
+              <i class="material-icons">visibility</i>View
+            </button>
+          </a>
+          {% comment %}
+          <button class="w3-right negative">
+            <i class="material-icons">favorite</i>Like
+          </button>
+          {% endcomment %}
+        </div>
+      </div>
+      {% empty %} 
+      No people 
+      {% endfor %}
+    </div>
+
+    <h3 class="w3-margin-bottom">Top contributers of all time</h3>
+    <!-- <div class="scroll-x" id="secondrowcardscontainer">
+            {% for person in people %}
+            <div class="w3-row w3-center pallete primary" id="pagecard">
+                <div id="card-image">
+                    <img src="{{person.getDP}}" alt="profile image" />
+                  </div>
+                  <div>
+                    <h3>{{person.getName}}</h3>
+                    <span>bio</span><br />
+                  </div>
+
+                  <div class="w3-padding">
+                    <a href="{{person.profile.getLink}}"
+                      ><button class="w3-right positive">
+                        <i class="material-icons">visibility</i>View
+                      </button></a
+                    >
+                    {% comment %}
+                    <button class="w3-right negative">
+                      <i class="material-icons">favorite</i>Like
+                    </button>
+                    {% endcomment %}
+                  </div>
+            </div>
+            {% empty %}
+            No people
+            {% endfor %}
+      </div> -->
+  </div>
+</div>
 {% endblock %}

@@ -1,20 +1,39 @@
 {% extends 'index.html' %} 
-{% load static %}
-{% block title %}Projects &#183;{{appname}}{% endblock %} 
+{% load static %} 
+
+{% block title %} Projects &#183;{{appname}} {% endblock %} 
 
 {% block nav_text %}Projects{% endblock %} 
+
 {% block nav_auth_links %}
 <a href="/projects/create"
   ><button title="New project" class="positive">
     <i class="material-icons">add_circle</i
     ><span class="w3-hide-small">New project</span>
-  </button></a
->{% endblock %} 
+  </button>
+</a>
+{% endblock %} 
+
 {% block nav_noauth_projects %}{% endblock %} 
+
 {% block content %}
 
-<div class="w3-container tertiary">
-  <div class="w3-row w3-center w3-margin">
+<div class="w3-row w3-center" id="pagewelcome">
+    <h1>Projects</h1>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+      veniam, quis nostrud exercitation.
+    </p>
+    <div id="pagewelcomebuttons">
+     <a> <button class="active"><i class="material-icons">group_work</i>contribute</button></a>
+     <a href="/projects/create"><button class="active"><i class="material-icons">add_circle</i>create</button> </a>
+    </div>
+</div>
+
+<div class="tertiary w3-padding">
+  
+  <div id="pagesearch">
     <form method="GET">
       <input
         type="text"
@@ -31,26 +50,25 @@
       <a href="/projects"
         ><button type="button" class="negative">
           <i class="material-icons">clear</i>
-        </button></a
-      >
+        </button>
+      </a>
     </form>
   </div>
-  <h3 class="w3-container w3-margin-bottom">Most contributed projects</h3>
-  <div class="w3-row-padding w3-margin-bottom">
-    {% for project in projects %}
-    <div class="w3-col l3">
-      <div class="w3-row pallete primary">
-        <div class="w3-center w3-padding">
-          <img src="/media/{{project.image}}" width="100" />
-        </div>
-        <div class="w3-center">
+
+  <div class="w3-container" id="pagecardscontainer">
+    <h3 class="w3-margin-bottom">Popular this week</h3>
+    <div class="scroll-x" id="firstrowcardscontainer">
+      {% for project in projects %}
+      <div class="w3-row pallete w3-center primary" id="pagecard">
+          <img src="/media/{{project.image}}" alt="{{project.name}}"/>
+        <div class="w3-row w3-padding">
           <h3>{{project.name}}</h3>
           <span>{{project.description}}</span><br />
           {% for tag in project.tags.all %}<a class="positive-text"
             >#{{tag.name}}</a
           >&nbsp;{% endfor %}
         </div>
-        <div class="w3-center w3-padding">
+        <div class="w3-padding">
           {% comment %}
           <button class="w3-right sub-accent">
             <i class="material-icons">bookmark_add</i>Save
@@ -68,8 +86,41 @@
           {% endcomment %}
         </div>
       </div>
+      {% endfor %}
+    </div>
+
+  <h3 class="w3-margin-bottom">Popular all time</h3>
+  <div class="scroll-x" id="secondrowcardscontainer">
+    {% for project in projects %}
+    <div class="w3-row pallete w3-center primary" id="pagecard">
+        <img src="/media/{{project.image}}" />
+      <div class="w3-row w3-padding">
+        <h3>{{project.name}}</h3>
+        <span>{{project.description}}</span><br />
+        {% for tag in project.tags.all %}<a class="positive-text"
+          >#{{tag.name}}</a
+        >&nbsp;{% endfor %}
+      </div>
+      <div class="w3-padding">
+        {% comment %}
+        <button class="w3-right sub-accent">
+          <i class="material-icons">bookmark_add</i>Save
+        </button>
+        {% endcomment %}
+        <a href="{{project.getLink}}">
+          <button class="w3-right positive">
+            <i class="material-icons">visibility</i>View
+          </button>
+        </a>
+        {% comment %}
+        <button class="w3-right negative">
+          <i class="material-icons">favorite</i>Like
+        </button>
+        {% endcomment %}
+      </div>
     </div>
     {% endfor %}
   </div>
+</div>
 </div>
 {% endblock %}
