@@ -1,15 +1,13 @@
 from main.methods import renderView
 from .apps import APPNAME
-from project.models import Project
+from projects.models import Project
 from .apps import APPNAME
 from main.strings import code, profile
 from django.template.loader import render_to_string
 
 
 def renderer(request, file, data={}):
-    data['root'] = f"/{APPNAME}"
-    data['subappname'] = APPNAME
-    return renderView(request, f"{APPNAME}/{file}", data)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 
 def convertToFLname(string):

@@ -1,12 +1,11 @@
-from django.db import models
 import uuid
+from django.db import models
 from django.utils import timezone
-
 from main.strings import code, PEOPLE, project
 from main.methods import maxLengthInList
-from .apps import APPNAME
-from django.db.models.aggregates import Count
+from main.strings import MODERATION
 from main.settings import MEDIA_URL
+from .apps import APPNAME
 
 def projectImagePath(instance, filename):
     return f'{APPNAME}/{instance.id}/{filename}'
@@ -56,8 +55,8 @@ class Project(models.Model):
         elif success:
             success = f"?s={success}"
         if self.status == code.REJECTED:
-            return f"/moderation/{APPNAME}/{self.id}{error}{success}"
-        return f"/{APPNAME}s/profile/{self.reponame}{error}{success}"
+            return f"/{MODERATION}/{APPNAME}/{self.id}{error}{success}"
+        return f"/{APPNAME}/profile/{self.reponame}{error}{success}"
 
     def getDP(self):
         return f"{MEDIA_URL}{str(self.image)}"

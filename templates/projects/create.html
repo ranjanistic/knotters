@@ -1,26 +1,27 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title%}Create project{%endblock%}
+{% block title%}Create project &#183; {{APPNAME}}{%endblock%}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/project/create.css' %}" />
 {% endblock %}
 
-{% block nav_href %}{{root}}{% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_icon %}
 <button title="Abort" class="primary">
     <i class="material-icons">close</i>
 </button>
 {% endblock %}
 {% block nav_style %}accent{% endblock %}
+{% block nav_text_style %}text-accent{% endblock %}
 {% block nav_text %}Create project{% endblock %}
 {% block nav_auth_links %}{% endblock %} 
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
 <div class="w3-center w3-padding-small tertiary">
-    <h5>We recommend you to go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
+    <h5>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
     moderation guidelines</a> before submission.</h5></div>
     
 <div class="w3-row w3-padding-64 w3-container">
@@ -31,7 +32,7 @@
             id="projectimage"
             hidden
         />
-        <form id="create-project-form" method="POST" action="/projects/submit">
+        <form id="create-project-form" method="POST" action="{{ROOT}}/submit">
             {% csrf_token %}
 
             <div class="step-tab" id="step1">

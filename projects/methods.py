@@ -1,14 +1,12 @@
-from .models import Project,Tag
+from .models import Project, Tag
 from main.env import GITHUBBOTTOKEN, PUBNAME
 from github import Github
 from main.methods import renderView
 from .apps import APPNAME
-
+from main.strings import code
 
 def renderer(request, file, data={}):
-    data['root'] = f"/{APPNAME}s"
-    data['subappname'] = APPNAME
-    return renderView(request, f"{APPNAME}/{file}", data)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 
 def createProject(name, reponame, description, tags, user):
@@ -40,10 +38,8 @@ def uniqueRepoName(reponame):
     Checks for unique repository name among existing projects
     """
     try:
-        print(reponame)
-        proj = Project.objects.get(reponame=str(reponame))
-        print(proj)
-    except:
+        Project.objects.get(reponame=str(reponame))
+    except Exception as e:
         return True
     return False
 
@@ -123,7 +119,7 @@ def setupOrgGihtubRepository(reponame, creator, moderator, description):
             user_push_restrictions=[moderator.profile.githubID],
         )
 
-        invited = inviteMemberToGithubOrg(ghOrg,ghUser)
+        invited = inviteMemberToGithubOrg(ghOrg, ghUser)
         if not invited:
             return False
 
@@ -137,7 +133,7 @@ def setupOrgGihtubRepository(reponame, creator, moderator, description):
         return False
 
 
-def inviteMemberToGithubOrg(ghOrg,ghUser):
+def inviteMemberToGithubOrg(ghOrg, ghUser):
     try:
         already = ghOrg.has_in_members(ghUser)
         if not already:
@@ -152,4 +148,3 @@ def setupProjectDiscordChannel(reponame, creator, moderator):
     Creates discord chat channel for corresponding project.
     """
     return True
-

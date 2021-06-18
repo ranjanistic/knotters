@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from . import env
+from main.strings import DIVISIONS
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,17 +21,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django_rename_app",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
     'allauth.socialaccount.providers.discord',
-    "project",
-    "compete",
-    "people",
-    "moderation",
-]
+] + DIVISIONS
 
 AUTH_USER_MODEL = 'people.User'
 SOCIALACCOUNT_ADAPTER = 'people.adapter.CustomSocialAccountAdapter'
@@ -56,6 +54,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "main.urls"
+
 
 TEMPLATES = [
     {

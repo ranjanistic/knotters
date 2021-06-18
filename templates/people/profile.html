@@ -1,18 +1,18 @@
-{% extends 'people/index.html' %} 
+{% extends "people/index.html" %}
+
 {% load static %} {% load i18n %} 
-{% load l10n %} 
+{% load l10n %}
 {% load account %} 
 {% load socialaccount %}
 
-{% block title %}{{person.first_name}} {{person.last_name}} &#183;
-{{appname}}
+{% block title %}{{person.first_name}} {{person.last_name}} &#183; {{APPNAME}}
 {% endblock %}
   
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/people/profile.css' %}" />
 {% endblock %}
 
-{% block nav_href %}/{% if request.user.is_authenticated and request.user != person %}{{subappname}}{% endif %}{% endblock %}
+{% block nav_href %}/{% if request.user.is_authenticated and request.user != person %}{{SUBAPPNAME}}{% endif %}{% endblock %}
 
 {% block nav_icon %}
 <button class="primary"><i class="material-icons">arrow_back</i></button>
@@ -63,7 +63,7 @@
               <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
             </button>
             <br/>
-            <form method="POST" action="/{{subappname}}/profile/edit/pallete">
+            <form method="POST" action="{{ROOT}}/profile/edit/pallete">
               {% csrf_token %}
               <input type="text" hidden id="profileImageData" name="profilepic" value="" />
               <div class="w3-row w3-padding">

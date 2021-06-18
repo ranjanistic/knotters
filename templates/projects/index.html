@@ -1,10 +1,10 @@
 {% extends 'index.html' %} 
 {% load static %}
-{% block title %}Projects &#183;{{appname}}{% endblock %} 
+{% block title %}{{SUBAPPNAME|capfirst}} &#183; {{APPNAME}}{% endblock %} 
 
-{% block nav_text %}Projects{% endblock %} 
+{% block nav_text %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 {% block nav_auth_links %}
-<a href="/projects/create"
+<a href="{{ROOT}}/create"
   ><button title="New project" class="positive">
     <i class="material-icons">add_circle</i
     ><span class="w3-hide-small">New project</span>
