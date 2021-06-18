@@ -2,13 +2,11 @@ from people.models import User
 from .models import *
 from main.methods import renderView
 from .apps import APPNAME
-from main.strings import PROJECT, PEOPLE, COMPETE, code
+from main.strings import PROJECTS, PEOPLE, COMPETE, code
 
 
 def renderer(request, file, data={}):
-    data['root'] = f"/{APPNAME}"
-    data['subappname'] = APPNAME
-    return renderView(request, f"{APPNAME}/{file}", data)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 
 # implemented round robin algorithm
@@ -35,7 +33,7 @@ def getModerator():
 def requestModeration(id, type, userRequest):
     obj = None
     try:
-        if(type == PROJECT):
+        if(type == PROJECTS):
             obj = Moderation.objects.get(project_id=id)
         elif(type == PEOPLE):
             obj = Moderation.objects.get(user_id=id)
@@ -46,7 +44,7 @@ def requestModeration(id, type, userRequest):
             obj.status = code.MODERATION
             obj.moderator = getModerator()
 
-            if type == PROJECT:
+            if type == PROJECTS:
                 obj.project.status = code.MODERATION
                 obj.project.save()
                 
@@ -56,7 +54,7 @@ def requestModeration(id, type, userRequest):
         return False
     except:
         moderator = getModerator()
-        if(type == PROJECT):
+        if(type == PROJECTS):
             obj = Moderation.objects.create(
                 project_id=id, type=type, moderator=moderator, request=userRequest)
         elif(type == PEOPLE):

@@ -10,36 +10,36 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
-        <meta name="favicon" content="{{site}}/static/graphics/self/icon80.png" />
-        <meta name="description" content="{% block meta_description %}{{description}}{% endblock %}" />
+        <meta name="favicon" content="{{SITE}}/static/graphics/self/icon80.png" />
+        <meta name="description" content="{% block meta_description %}{{DESCRIPTION}}{% endblock %}" />
         <link rel="manifest" href="{% static 'manifest.json' %}" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="{{appname}}" />
-        <meta name="author" content="{{appname}} Community">
+        <meta name="application-name" content="{{APPNAME}}" />
+        <meta name="author" content="{{APPNAME}} Community">
 
         <meta property="og:locale" content="en-US" />
-        <meta name="image" property="og:image" content="{{site}}/static/graphics/{% block og_image %}self/icon1000.png{% endblock %}" />
+        <meta name="image" property="og:image" content="{{SITE}}/static/graphics/{% block og_image %}self/icon1000.png{% endblock %}" />
         <meta property="og:type" content="tools" />
-        <meta property="og:url" content="{{site}}{% block og_url %}{% endblock %}" />
+        <meta property="og:url" content="{{SITE}}{% block og_url %}{% endblock %}" />
         {% block og %}
-        <meta property="og:title" content="{% block og_title %}{{appname}}{% endblock %}" />
-        <meta property="og:description" content="{% block og_description %}{{description}}{% endblock %}" />
-        <meta property="og:site_name" content="{% block og_site_name %}{{appname}}{% endblock %}" />
+        <meta property="og:title" content="{% block og_title %}{{APPNAME}}{% endblock %}" />
+        <meta property="og:description" content="{% block og_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta property="og:site_name" content="{% block og_site_name %}{{APPNAME}}{% endblock %}" />
         {% endblock %}
 
-        <meta name="twitter:title" content="{% block tw_title %}{{appname}}{% endblock %}" />
-        <meta name="twitter:description" content="{% block tw_description %}{{description}}{% endblock %}" />
-        <meta name="twitter:image" content="{{site}}/static/graphics/{% block tw_image %}self/banner.jpg{% endblock %}" />
+        <meta name="twitter:title" content="{% block tw_title %}{{APPNAME}}{% endblock %}" />
+        <meta name="twitter:description" content="{% block tw_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta name="twitter:image" content="{{SITE}}/static/graphics/{% block tw_image %}self/banner.jpg{% endblock %}" />
         <meta name="twitter:site" content="@knottersdotorg" />
         <meta name="twitter:creator" content="@ranjanistic" />
-        <meta name="twitter:url" content="{% block tw_url %}{{site}}{% endblock %}" />
+        <meta name="twitter:url" content="{% block tw_url %}{{SITE}}{% endblock %}" />
         <meta name="twitter:card" content="{% block tw_card %}summary_large_image{% endblock %}" />
     
-        <meta name="linkedin:card" content="{{site}}/static/graphics/{% block ld_card %}self/banner.jpg{% endblock %}" />
+        <meta name="linkedin:card" content="{{SITE}}/static/graphics/{% block ld_card %}self/banner.jpg{% endblock %}" />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="{{appname}}" />
+        <meta name="apple-mobile-web-app-title" content="{{APPNAME}}" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="{% static 'graphics/self/icon1000.png' %}" />
         <link rel="apple-touch-icon" href="{% static 'graphics/self/icon1000.png' %}" />
@@ -60,7 +60,7 @@
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
 
         {% block stylesheets %}{% endblock %}
-        <title>{% block title %}{{appname}}{% endblock %}</title>
+        <title>{% block title %}{{APPNAME}}{% endblock %}</title>
     </head>
     {% endblock %}
     <body>
@@ -70,15 +70,15 @@
             <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding">
                 {% block nav_icon %}<img src="{% static 'graphics/self/icon.svg' %}" width="40" />{% endblock %}
             </a>
-            <span class="w3-left"><h3>{% block nav_text %}{{appname}}{% endblock %}</h3></span>
+            <span class="w3-left {% block nav_text_style %}text-primary{% endblock %}"><h3>{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
             <span class="w3-right w3-row w3-padding">
                 {% block nav_links %}
                     <button class="secondary themeswitch"><i class="material-icons">brightness_medium</i></button>
                     {% block nav_noauth %}
-                        {% block nav_noauth_competes %}<a href="/competitions"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
-                        {% block nav_noauth_projects %}<a href="/projects"><button title="Projects" class="positive"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
+                        {% block nav_noauth_competes %}<a href="/{{SUBAPPS.compete}}"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="/{{SUBAPPS.projects}}"><button title="Projects" class="positive"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
                     {% endblock %}
                     {% block nav_auth %}
                         {% if request.user.is_authenticated %}
@@ -114,7 +114,7 @@
                 <br/>
                 {% for project in projects %}
                 <div class="w3-col w3-third w3-padding-small">
-                <a href="/projects/profile/{{project.reponame}}">
+                <a href="/{{SUBAPPS.projects}}/profile/{{project.reponame}}">
                 <div class="pallete primary">
                     <div class="w3-row">
                         <img src="/media/{{project.image}}" width="150" />
@@ -131,7 +131,7 @@
                 {% endfor %}
                 <div class="w3-row">
                     <br/>
-                    <a href="/projects"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
+                    <a href="/{{SUBAPPS.projects}}"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
                 </div>
                 <br/>
             </div>
@@ -159,7 +159,7 @@
                 {% endfor %}
                 <div class="w3-row">
                     <br/>
-                    <a href="/people"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
+                    <a href="/{{SUBAPPS.people}}"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
                 </div>
                 <br/>
             </div>
@@ -170,9 +170,9 @@
         <footer class="w3-row secondary w3-padding" style="min-height: 50vh;">
             <br/><br/>
             <div class="w3-col w3-half primary-text w3-padding">
-                {% if contactmail %}
-                <a href="mailto:{{contactmail}}"><button class="primary"><i class="material-icons">mail</i>{{contactmail}}</button></a><br/><br/>
-                {% endif %}
+                <a class="text-secondary" href="">For the press</a><br/>
+                <a class="text-secondary" href="">Report a problem</a><br/>
+                <a class="text-secondary" href="/docs">Docs &amp; statements</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small">
                 <br/><br/>
@@ -187,6 +187,7 @@
             <br/>
             <center>
             {% block footer_social %}
+            <a href="mailto:{{CONTACTMAIL}}"><button class="primary"><i class="material-icons">mail</i></button></a>
                 <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" /></button></a>
                 <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="22" /></button></a>
                 <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" /></button></a>
@@ -195,7 +196,7 @@
                 <a target="_blank" rel="noreferrer" href="https://linkedin.com/company/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" /></button></a>
             {% endblock %}
             <br/><br/>
-            Copyright 2021 &#183; <a href="/docs">Docs &amp; Statements</a></center>
+            Copyright 2021
             </div>
         </footer>
         {% endblock %}

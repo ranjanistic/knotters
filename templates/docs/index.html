@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block og %}
-<meta property="og:title" content="{{appname}} Docs" />
+<meta property="og:title" content="{{APPNAME}} Docs" />
 <meta
 property="og:description"
 content="Refer these in case of any legal or moral doubts."
 />
-<meta property="og:site_name" content="{{appname}}" />
+<meta property="og:site_name" content="{{APPNAME}}" />
 {% endblock %}
-{% block title %}{{appname}} Docs{% endblock %}
+{% block title %}Docs &#143; {{APPNAME}}{% endblock %}
 
 {% block nav_text %}Docs{% endblock %}
 
@@ -18,7 +18,7 @@ content="Refer these in case of any legal or moral doubts."
 <div class="w3-row w3-padding">
     <center>
         <img src="{% static 'graphics/self/icon.svg' %}" width="100">
-        <h1>{{appname}} Docs</h1>
+        <h1>{{APPNAME}} Docs</h1>
         <h3>Refer these in case of any legal or moral doubts.</h3>
     </center><br/>
     <a href="/docs/communityguidelines"><div class="w3-row pallete active">
@@ -45,7 +45,6 @@ content="Refer these in case of any legal or moral doubts."
         <h1 class="w3-padding text-secondary">Copyright 2021<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    
 </div>
 
 {% endblock %}

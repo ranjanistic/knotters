@@ -2,9 +2,9 @@ from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from .methods import renderView
-from project.models import Project
+from projects.models import Project
 from compete.models import Competition
-from .strings import code
+from .strings import code, PROJECTS, COMPETE, PEOPLE
 
 
 @require_GET
@@ -50,3 +50,16 @@ def docs(request, type):
         return renderView(request, f"docs/{type}.html")
     except:
         raise Http404()
+
+@require_GET
+def landing(request):
+    parts = request.build_absolute_uri().split('/')
+    try:
+        subapp = parts[len(parts)-2]
+        # if [PEOPLE,PROJECT,COMPETE]:
+        
+        return HttpResponse(subapp)
+        
+    except:
+        raise Http404()
+    

@@ -1,7 +1,7 @@
 from moderation.apps import APPNAME
 from django.apps import AppConfig
 
-APPNAME = 'project'
+APPNAME = 'projects'
 
 class ServiceConfig(AppConfig):
     name = APPNAME

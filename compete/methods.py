@@ -5,9 +5,7 @@ from .apps import APPNAME
 
 
 def renderer(request, file, data={}):
-    data['root'] = f"/{APPNAME}"
-    data['subappname'] = APPNAME
-    return renderView(request, f"{APPNAME}/{file}", data)
+    return renderView(request, file, data,fromApp=APPNAME)
 
 
 def competeBannerPath(instance, filename):
