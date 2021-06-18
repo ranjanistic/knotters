@@ -20,3 +20,9 @@ text-align: center;
     color: var(--negative);
 }
 
+@media screen and (max-width: 768px) {
+    #projectinnercontent .pallete{
+        margin-bottom: 2rem;
+
+    }
+}
