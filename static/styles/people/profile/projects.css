@@ -1,0 +1,22 @@
+
+#projectinnercontent h4{
+text-align: center;
+}
+
+#projectinnercontent a{
+    font-size: 1.2rem;
+}
+
+#projectinnercontent span{
+    margin-left: 2.5rem;
+}
+
+#projectinnercontent a i{
+    vertical-align: top;
+    margin-right: 1rem;
+}
+
+#rejectedprojectlist h4{
+    color: var(--negative);
+}
+

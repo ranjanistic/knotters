@@ -10,6 +10,10 @@
   
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/people/profile.css' %}" />
+<link
+  rel="stylesheet"
+  href="{% static 'styles/people/profile/projects.css' %}"
+/>
 {% endblock %}
 
 {% block nav_href %}/{% if request.user.is_authenticated and request.user != person %}{{subappname}}{% endif %}{% endblock %}

@@ -1,28 +1,51 @@
-<div class="w3-row w3-padding">
+{% load static %} 
 
-    <div class="w3-col w3-third">
-    {% for project in live %}
-    {{project.id}}<br/>
-    {{project.name}}<br/>
-    <a href="{{project.getLink}}">{{project.reponame}}</a><br/>
-    
-    {% endfor %}
+{% block content %}
+
+<div class="w3-row-padding" id="projectinnercontent">
+
+  <div class="w3-col l4">
+    <div class="pallete primary">
+      <h4>Live</h4><hr>
+      {% for project in live %} 
+      <!-- {{project.id}}<br /> -->
+      <div class="w3-margin-bottom">
+        <a href="{{project.getLink}}"
+          ><i class="material-icons">launch</i><b>{{project.name}}</b></a
+        ><br />
+        <span> {{project.reponame}}</span>
+      </div>
+      {% endfor %}
     </div>
+  </div>
 
-    <div class="w3-col w3-third">
-    {% for project in moderation %}
-    {{project.id}}<br/>
-    {{project.name}}<br/>
-    <a href="{{project.getLink}}">{{project.reponame}}</a><br/>
-    {% endfor %}
+  <div class="w3-col l4">
+    <div class="pallete primary">
+      <h4>Moderation</h4><hr>
+      {% for project in moderation %}
+      <div class="w3-margin-bottom">
+        <a href="{{project.getLink}}"
+          ><i class="material-icons">launch</i><b>{{project.name}}</b></a
+        ><br />
+        <span> {{project.reponame}}</span>
+      </div>
+      {% endfor %}
     </div>
+  </div>
 
-    <div class="w3-col w3-third">
-    {% for project in rejected %}
-    {{project.id}}<br/>
-    {{project.name}}<br/>
-    <a href="{{project.getLink}}">{{project.reponame}}</a><br/>
-    {% endfor %}
+  <div class="w3-col l4">
+    <div class="pallete primary" id="rejectedprojectlist">
+      <h4>Rejected</h4><hr>
+      {% for project in rejected %} 
+      <!-- {{project.id}}<br /> -->
+      <div class="w3-margin-bottom">
+        <a href="{{project.getLink}}"
+          ><i class="material-icons">launch</i><b>{{project.name}}</b></a
+        ><br />
+        <span>{{project.reponame}}</span>
+      </div>
+      {% endfor %}
     </div>
-
+  </div>
 </div>
+{% endblock %}
