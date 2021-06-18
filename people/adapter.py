@@ -11,7 +11,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             elif str(sociallogin.account.provider).lower() == 'github':
                 picture = sociallogin.account.extra_data['avatar_url']
             elif str(sociallogin.account.provider).lower() == 'google':
-                picture = sociallogin.account.extra_data['picture']
+                link = str(sociallogin.account.extra_data['picture'])
+                linkpart = link.split("=")[0]
+                sizesplit = link.split("=")[1].split("-")
+                sizesplit.remove(sizesplit[0])
+                picture = "=".join([linkpart, "-".join(["s512", "-".join(sizesplit)])])
             else: return user
             user_field(user, "profile_pic", picture)
         except (KeyError, AttributeError):

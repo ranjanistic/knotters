@@ -17,25 +17,26 @@
 {% block content %}
 
 <div class="w3-row w3-center" id="pagewelcome">
-    <h1>Projects</h1>
+    <h1>{{SUBAPPNAME|capfirst}}</h1>
     <p>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
       tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
       veniam, quis nostrud exercitation.
     </p>
     <div id="pagewelcomebuttons">
-     <a> <button class="active"><i class="material-icons">group_work</i>contribute</button></a>
-     <a href="/projects/create"><button class="active"><i class="material-icons">add_circle</i>create</button> </a>
+     <a href="#mainframe"><button class="accent"><i class="material-icons">volunteer_activism</i>Contribute</button></a>
+     <a href="{{ROOT}}/create"><button class="positive"><i class="material-icons">add_circle</i>Create</button> </a>
     </div>
 </div>
 
-<div class="tertiary w3-padding">
+<div class="tertiary w3-padding" id="mainframe">
   
   <div id="pagesearch">
-    <form method="GET">
+    <form method="GET" action="#mainframe">
       <input
         type="text"
         name="query"
+        class="primary"
         placeholder="Search projects"
         required
         {% if request.GET.query %}
@@ -45,7 +46,7 @@
       <button type="submit" class="positive">
         <i class="material-icons">search</i>
       </button>
-      <a href="/projects"
+      <a href="{{ROOT}}"
         ><button type="button" class="negative">
           <i class="material-icons">clear</i>
         </button>
@@ -58,7 +59,7 @@
     <div class="scroll-x" id="firstrowcardscontainer">
       {% for project in projects %}
       <div class="w3-row pallete w3-center primary" id="pagecard">
-          <img src="/media/{{project.image}}" alt="{{project.name}}"/>
+          <img src="{{project.getDP}}" alt="{{project.name}}"/>
         <div class="w3-row w3-padding">
           <h3>{{project.name}}</h3>
           <span>{{project.description}}</span><br />

@@ -331,6 +331,24 @@ button.small {
   cursor: pointer;
 }
 
+
+.wide-button{
+  border: 0px solid transparent;
+  border-width: 0 0 1px 0;
+  border-radius: 2px;
+  padding: 8px 0px;
+  transition: var(--delay);
+  cursor: pointer;
+}
+.wide-button:hover{
+  border-color:var(--secondary);
+  opacity: 0.8;
+}
+.wide-button:active{
+  border-color:var(--secondary);
+  margin: 0px 12px;
+}
+
 /* ==================== */
 
 #pagewelcome {

@@ -70,7 +70,7 @@
             <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding">
                 {% block nav_icon %}<img src="{% static 'graphics/self/icon.svg' %}" width="40" />{% endblock %}
             </a>
-            <span class="w3-left {% block nav_text_style %}text-primary{% endblock %}"><h3>{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
+            <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
             <span class="w3-right w3-row w3-padding">

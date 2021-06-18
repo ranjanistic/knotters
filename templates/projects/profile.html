@@ -1,13 +1,13 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title %}{{project.name}} | {{appname}}{% endblock %}
+{% block title %}{{project.name}} &#183; {{APPNAME}}{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" />
 {% endblock %}
 
-{% block nav_href %}/projects{% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
@@ -47,6 +47,7 @@
             {% endfor %}
             <br/>
         </div>
+        {% if project.status == "live" %}
         <div class="w3-row w3-padding-small">
             <a target="_blank" rel="noreferrer" href="https://github.com/{{appname}}/{{project.reponame}}">
                 <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.reponame}}</button>
@@ -57,6 +58,7 @@
             </a>
             {% endif %}
         </div>
+        {% endif %}
         <br/>
     </div>
     <div class="w3-col w3-container w3-threequarter">
