@@ -69,7 +69,7 @@ const nextPrev = (n) => {
                 alertify.error(error);
             });
     } else {
-        if (n > 0 && currentStep >= stepviews.length) {
+        if (n > 0 && currentStep >= stepviews.length - 1 ) {
             actionLoader(true);
             if (!validateForm())
                 return alertify.error(
