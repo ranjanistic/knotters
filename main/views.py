@@ -56,10 +56,9 @@ def landing(request):
     parts = request.build_absolute_uri().split('/')
     try:
         subapp = parts[len(parts)-2]
-        # if [PEOPLE,PROJECT,COMPETE]:
-        
-        return HttpResponse(subapp)
-        
+        if not [PEOPLE,PROJECTS,COMPETE].__contains__(subapp):
+            subapp = ''
+        return renderView(request,"landing.html",fromApp=subapp)
     except:
         raise Http404()
     
