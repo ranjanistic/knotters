@@ -30,15 +30,15 @@ def getModerator():
     return totalModerators[temp-1]
 
 
-def requestModeration(id, type, userRequest):
+def requestModeration(projectID, type, userRequest):
     obj = None
     try:
         if(type == PROJECTS):
-            obj = Moderation.objects.get(project_id=id)
+            obj = Moderation.objects.get(project_id=projectID)
         elif(type == PEOPLE):
-            obj = Moderation.objects.get(user_id=id)
+            obj = Moderation.objects.get(user_id=projectID)
         elif(type == COMPETE):
-            obj = Moderation.objects.get(competiton_id=id)
+            obj = Moderation.objects.get(competiton_id=projectID)
 
         if obj.status == code.REJECTED and obj.retries > 0:
             obj.status = code.MODERATION
@@ -54,14 +54,16 @@ def requestModeration(id, type, userRequest):
         return False
     except:
         moderator = getModerator()
+        if not moderator:
+            return False
         if(type == PROJECTS):
             obj = Moderation.objects.create(
-                project_id=id, type=type, moderator=moderator, request=userRequest)
+                project_id=projectID, type=type, moderator=moderator, request=userRequest)
         elif(type == PEOPLE):
             obj = Moderation.objects.create(
-                user_id=id, type=type, moderator=moderator, request=userRequest)
+                user_id=projectID, type=type, moderator=moderator, request=userRequest)
         elif(type == COMPETE):
             obj = Moderation.objects.create(
-                competiton_id=id, type=type, moderator=moderator, request=userRequest)
+                competiton_id=projectID, type=type, moderator=moderator, request=userRequest)
         obj.save()
     return True

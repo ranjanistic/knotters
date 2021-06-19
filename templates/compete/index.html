@@ -1,15 +1,7 @@
 {% extends 'index.html' %} 
 {% load static %} 
-{% block og %}
-<meta property="og:title" content="Competitions at {{APPNAME}}" />
-<meta
-  property="og:description"
-  content="Participate in live competitions at {{APPNAME}}!"
-/>
-<meta property="og:site_name" content="{{APPNAME}}" />
-{% endblock %} 
 
-{% block title %}Competitions{% endblock %} 
+{% block title %}Competitions &#183; {{APPNAME}}{% endblock %} 
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/compete/index.css' %}" />
@@ -17,6 +9,7 @@
 
 {% block nav_text %}Competitions{% endblock %}
 {% block nav_noauth_competes %}{% endblock %} 
+{% block nav_href %}/{% endblock %}
 
 {% block content %}
 <br />
@@ -28,81 +21,25 @@
         sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
         Ut enim ad minim veniam, quis nostrud exercitation.
     </p>
-    <a href="#mainframe"><button class="accent w3-margin-top"><i class="material-icons">read_more</i>Explore</button></a>
-    <a href="{{ROOT}}/landing"><button class="secondary w3-margin-top"><i class="material-icons">open_in_new</i>Learn More</button></a>
+    <a href="#mainframe"><button class="accent big-button "><i class="material-icons">read_more</i>Explore</button></a>
+    <a href="{{ROOT}}/landing"><button class="secondary big-button"><i class="material-icons">open_in_new</i>Learn More</button></a>
   </div>
 </div>
 
 <div class="w3-row w3-padding tertiary" id="mainframe">
 
   <div class="w3-margin-top w3-center" id="competetabs">
-    <button id="competeactive" class="compete-nav-tab">
+    <button id="active" class="compete-nav-tab big-button">
       <i class="material-icons">stream</i>
       <span class="w3-hide-small">Active competitions</span>
     </button>
-    <button id="competehistory" class="compete-nav-tab">
+    <button id="history" class="compete-nav-tab big-button">
       <i class="material-icons">history</i>
       <span class="w3-hide-small">History</span>
     </button>
   </div>
+  <div id="tabview" class="w3-row-padding w3-padding-16"></div>
 
-  <hr/>
-
-  <div id="ctabview" class="w3-row-padding w3-padding-16"></div>
-
-  <div class="w3-row-padding competitiontabcontent" style="display: none;">
-    {% for comp in actives %}
-    <div class="w3-col l3">
-      <div class="w3-row pallete primary" style="padding: 0; padding-bottom: 1rem;">
-        <div class="w3-center">
-          <img src="/media/{{comp.banner}}" width="100%" />
-        </div>
-        <div class="w3-center">
-          <h3>{{comp.title}}</h3>
-          <span>{{comp.tagline}} </span><br />
-          <span>{{comp.shortdescription}} </span>&nbsp;
-        </div>
-        <div class="w3-center w3-padding">
-          <a href="{{comp.id}}">
-              <button class="w3-right positive">
-              <i class="material-icons">visibility</i>View
-            </button>
-        </a>
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="w3-row w3-padding w3-center">
-      <h3>No active competitions.</h3>
-    </div>
-    {% endfor %}
-  </div>
-
-  <div class="w3-row-padding competitiontabcontent" style="display: none;">
-    {% for comp in inactives %}
-    <div class="w3-col l3">
-      <div class="w3-row pallete primary w3-center" style="padding: 0; padding-bottom: 1rem;">
-          <img src="/media/{{comp.banner}}"/>
-        <div class="w3-padding">
-          <h3>{{comp.title}}</h3>
-          <span>{{comp.tagline}} </span><br />
-          <span>{{comp.shortdescription}} </span>&nbsp;
-        </div>
-        <div class="w3-padding">
-          <a href="{{comp.id}}"
-            ><button class="w3-right positive">
-              <i class="material-icons">visibility</i>View
-            </button></a
-          >
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <div class="w3-row w3-padding w3-center">
-      <h3>No history.</h3>
-    </div>
-    {% endfor %}
-  </div>
 </div>
 {% endblock %} 
 

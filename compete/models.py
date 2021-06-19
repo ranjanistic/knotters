@@ -4,7 +4,14 @@ import uuid
 from django.utils import timezone
 from main.strings import PEOPLE
 from main.settings import MEDIA_URL
-from .methods import competeBannerPath, defaultBannerPath
+from .apps import APPNAME
+
+def competeBannerPath(instance, filename):
+    return f"{APPNAME}/{instance.id}/{filename}"
+
+
+def defaultBannerPath():
+    return f"/{APPNAME}/default.png"
 
 class Competition(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

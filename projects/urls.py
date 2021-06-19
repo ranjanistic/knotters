@@ -9,5 +9,6 @@ urlpatterns = [
     path('submit', submitProject),
     path('landing', landing),
     path('profile/<str:reponame>', profile),
+    path('profile/edit/<str:projectID>/<str:section>', editProfile),
     path('projectinfo/<str:projectID>/<str:info>', projectInfo)
 ]

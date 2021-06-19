@@ -14,7 +14,6 @@ if (selfProfile) {
         "stabview",
         "sloader"
     );
-    loadGlobalEditors();
 
     getElement("uploadprofilepic").onchange = (e) => {
         handleCropImageUpload(

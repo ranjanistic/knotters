@@ -3,23 +3,25 @@
 
 {% block title %}{{SUBAPPNAME|capfirst}} &#183; {{APPNAME}}{% endblock %}
 {% block nav_text %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block nav_href %}/{% endblock %}
 
 {% block content %}
 
 <div class="w3-row w3-center" id="pagewelcome">
   <h1>Community</h1>
+  <br/>
   <p>
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
     tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
     quis nostrud exercitation.
   </p>
   <div id="pagewelcomebuttons">
-    <a href="#mainframe"><button class="accent">
+    <a href="#mainframe"><button class="big-button accent">
         <i class="material-icons">group_work</i>Contribute
       </button>
     </a>
     <a href="{{ROOT}}/landing">
-      <button class="secondary">
+      <button class="secondary big-button">
         <i class="material-icons">open_in_new</i>Learn More
       </button>
     </a>
@@ -27,26 +29,22 @@
 </div>
 
 <div class="tertiary w3-padding" id="mainframe">
-  <div id="pagesearch">
-    <form method="GET">
+  <div class="w3-row" id="pagesearch">
       <input
         type="text"
         name="query"
+        class="primary"
         placeholder="Search people"
         required
         {% if request.GET.query %}
         value="{{request.GET.query}}"
         {% endif %}
       />
-      <button type="submit" class="positive">
-        <i class="material-icons">search</i>
-      </button>
-      <a href="/projects"
+      <a href="{{ROOT}}#mainframe"
         ><button type="button" class="negative">
           <i class="material-icons">clear</i>
         </button>
       </a>
-    </form>
   </div>
 
   <div class="w3-container" id="pagecardscontainer">
@@ -57,7 +55,7 @@
         <img src="{{person.getDP}}" alt="{{person.getName}}" />
         <div class="w3-row w3-padding">
           <h3>{{person.getName}}</h3>
-          <span>bio</span><br />
+          <span>{{person.profile.getBio}}</span><br />
         </div>
 
         <div class="w3-padding">

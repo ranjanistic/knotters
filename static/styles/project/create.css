@@ -55,23 +55,6 @@ input[type="checkbox"] {
   margin-left: 10px;
 }
 
-.big-input:focus {
-  font-size: 28px;
-  border: 4px solid var(--positive);
-}
-
-.big-button {
-  font-size: 15px;
-  padding: 12px 22px;
-  border-radius: 55px;
-  margin-top: 30px;
-}
-.big-button:hover {
-  transform: scale(1.02);
-  padding: 12px 22px;
-  border-radius: 55px;
-}
-
 .big-icon {
   font-size: 20px !important;
   padding: 0 !important;

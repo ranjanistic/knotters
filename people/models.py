@@ -1,6 +1,9 @@
 from django.db import models
 import uuid
 from django.contrib.auth.models import PermissionsMixin
+from allauth.account.signals import user_signed_up
+from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
+from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from .methods import profileImagePath, defaultImagePath
 from django.db.models.signals import post_save
@@ -94,6 +97,8 @@ class Profile(models.Model):
     def __str__(self) -> str:
         return f"{self.user.getName()}"
 
+    def getBio(self)->str:
+        return self.bio if self.bio else ''
     def getGhUrl(self) -> str:
         return f"https://github.com/{self.githubID}"
 
@@ -102,14 +107,71 @@ class Profile(models.Model):
             error = f"?e={error}"
         elif success:
             success = f"?s={success}"
-
-        if self.githubID != None:
+        if self.githubID:
             return f"/{APPNAME}/profile/{self.githubID}{success}{error}"
-        else:
-            return f"/{APPNAME}/profile/{self.user.id}{success}{error}"
+        return f"/{APPNAME}/profile/{self.user.id}{success}{error}"
+
+
+def getUsernameFromGHUrl(url):
+    try:
+        urlparts = str(url).split('/')
+        return urlparts[len(urlparts)-1]
+    except:
+        return None
 
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+
+
+@receiver(user_signed_up)
+def on_user_signup(request, user, **kwargs):
+    data = SocialAccount.objects.get(user=user, provider='github')
+    if data:
+        profile = Profile.objects.get(user=user)
+        profile.githubID = getUsernameFromGHUrl(data.get_profile_url())
+        profile.save()
+
+
+@receiver(social_account_removed)
+def social_removed(request, socialaccount, **kwargs):
+    print("Social removed")
+    if socialaccount.provider == 'github':
+        profile = Profile.objects.get(user=socialaccount.user)
+        profile.githubID = None
+        profile.save()
+        print("removed")
+
+
+@receiver(social_account_added)
+def social_added(request, sociallogin, **kwargs):
+    try:
+        data = SocialAccount.objects.get(
+            user=sociallogin.user, provider='github')
+        print(data)
+        if data:
+            profile = Profile.objects.get(user=sociallogin.user)
+            profile.githubID = getUsernameFromGHUrl(data.get_profile_url())
+            profile.save()
+    except: pass
+
+@receiver(social_account_updated)
+def social_updated(request, sociallogin, **kwargs):
+    print("Social updated")
+    if sociallogin.account.provider == 'github':
+        profile = Profile.objects.get(user=sociallogin.account.user)
+        data = SocialAccount.objects.get(user=sociallogin.account.user, provider='github')
+        profile.githubID = getUsernameFromGHUrl(data.get_profile_url())
+        profile.save()
+
+@receiver(pre_social_login)
+def before_social_login(request, sociallogin, **kwargs):
+    if sociallogin.is_existing:
+        return
+    try:
+        user = User.objects.get(email=sociallogin.user)
+        sociallogin.connect(request, user)
+    except: pass
+    

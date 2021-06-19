@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
-from django.http.response import Http404, HttpResponse
+from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
@@ -34,6 +34,40 @@ def profile(request, reponame):
         raise Http404()
 
 
+@require_POST
+@login_required
+def editProfile(request, projectID, section):
+    try:
+        changed = False
+        project = Project.objects.get(id=projectID)
+        if section == 'pallete':
+            try:
+                base64Data = str(request.POST['projectimage'])
+                imageFile = base64ToImageFile(base64Data)
+                if imageFile:
+                    project.image = imageFile
+                    changed = True
+            except:
+                pass
+            try:
+                name = str(request.POST['projectname']).strip()
+                about = str(request.POST['projectabout']).strip()
+                if name != project.name:
+                    project.name = name
+                    changed = True
+                if about != project.description:
+                    project.description = about
+                    changed = True
+                if changed:
+                    project.save()
+                return redirect(project.getLink(success=f"Pallete updated"), permanent=True)
+            except:
+                return redirect(project.getLink(error=f"Problem occurred."))
+    except:
+        raise HttpResponseForbidden()
+
+
+@require_GET
 @login_required
 def create(request):
     tags = Tag.objects.all()[0:5]
@@ -44,8 +78,8 @@ def create(request):
     })
 
 
-@login_required
 @require_POST
+@login_required
 @require_JSON_body
 def validateField(request, field):
     try:
@@ -62,8 +96,8 @@ def validateField(request, field):
         return JsonResponse({'error': str(e)})
 
 
-@login_required
 @require_POST
+@login_required
 def submitProject(request):
     try:
         name = request.POST["projectname"]
@@ -75,7 +109,8 @@ def submitProject(request):
             return HttpResponse(f'{reponame} already exists')
         projectobj = createProject(
             name, reponame, description, tags, request.user)
-        if not projectobj: raise Exception()
+        if not projectobj:
+            raise Exception()
         try:
             imageData = request.POST['projectimage']
             imageFile = base64ToImageFile(imageData)
@@ -85,6 +120,7 @@ def submitProject(request):
         except:
             pass
         mod = requestModeration(projectobj.id, APPNAME, userRequest)
+        print(mod)
         if not mod:
             return redirect(f"/projects/create?e=Error in submission, try again later 2.")
         return redirect(projectobj.getLink(success="Your project has been submitted for moderation."))

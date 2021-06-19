@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 from . import env
-from main.strings import DIVISIONS
+from main.strings import DIVISIONS, PEOPLE
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,11 +30,11 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.discord',
 ] + DIVISIONS
 
-AUTH_USER_MODEL = 'people.User'
-SOCIALACCOUNT_ADAPTER = 'people.adapter.CustomSocialAccountAdapter'
+AUTH_USER_MODEL = f'{PEOPLE}.User'
+SOCIALACCOUNT_ADAPTER = f'{PEOPLE}.adapter.CustomSocialAccountAdapter'
 
 ACCOUNT_FORMS = {
-    'signup': 'people.forms.CustomSignupForm',
+    'signup': f'{PEOPLE}.forms.CustomSignupForm',
 }
 
 SOCIALACCOUNT_QUERY_EMAIL=True
@@ -196,7 +196,6 @@ SOCIALACCOUNT_PROVIDERS = {
             'email',
             'user',
             'repo',
-            'read:org',
         ],
     }
 

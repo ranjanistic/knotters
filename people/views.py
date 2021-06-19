@@ -28,7 +28,7 @@ def profile(request, userID):
             pass
         try:
             user = User.objects.get(id=userID)
-            if user.profile.githubID != None:
+            if user.profile.githubID:
                 return redirect(user.profile.getLink())
             return renderer(request, 'profile.html', {"person": user})
         except:
@@ -61,8 +61,8 @@ def settingTab(request, section):
     except:
         raise Http404()
 
-@login_required
 @require_POST
+@login_required
 def editProfile(request,section):
     try:
         profile = Profile.objects.get(user=request.user)
@@ -82,6 +82,6 @@ def editProfile(request,section):
                 profile.user.save()
                 profile.save()
                 return redirect(profile.getLink(success=f"Pallete updated"),permanent=True)
-            except: return redirect(profile.getLink(error=f"Invalid {section} values provided"))
+            except: return redirect(profile.getLink(error=f"Problem occurred."))
     except:
         raise HttpResponseForbidden()

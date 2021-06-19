@@ -27,17 +27,40 @@
 <div class="w3-row tertiary">
     <br/>
     <div class="w3-col w3-container w3-quarter">
-        <div class="pallete" style="padding:0">
-            <img src="{{project.getDP }}" alt="{{project.name}}" />
+        <div class="pallete" style="padding:0" id="view-pallete">
+            <img src="{{project.getDP}}" alt="{{project.name}}" />
             <div class="w3-row w3-center">
-            {% if request.user.is_authenticated and request.user == project.creator %}
-            
-            {% endif %}
             <h3>{{project.name}}</h3>
             <center>{{project.description}}</center>
             </div>
-            <br/>
+            <div class="w3-row w3-padding-small">
+                {% if request.user.is_authenticated and request.user == project.creator %}
+                  <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
+                {% endif %}
+                <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{person.getName}}', '{{person.profile.bio}}', '{{site}}{{person.profile.getLink}}')">share</i>
+            </div>
         </div>
+        {% if request.user.is_authenticated and request.user == project.creator %}
+        <div class="pallete w3-center" id="edit-pallete">
+            <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
+            <input type="file" id="uploadprojectimage" hidden accept="image/*" />
+            <button class="active" type="button" id="upload-button">
+              <i class="material-icons">image</i>
+              <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
+            </button>
+            <br/>
+            <form method="POST" action="{{ROOT}}/profile/edit/{{project.id}}/pallete">
+              {% csrf_token %}
+              <input type="text" hidden id="projectimageData" name="projectimage" value="" />
+              <div class="w3-row w3-padding">
+                <input type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
+                <input type="text" placeholder="About project" value="{{project.description}}" name="projectabout" /><br/>
+              </div>
+              <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
+              <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
+            </form>
+        </div>
+        {% endif %}
         <br/>
         <div class="w3-row w3-padding-small">
             {% for tag in project.tags.all %}
@@ -84,10 +107,11 @@
 <br/>
 {% endblock %}
 
-{% block script %}
+{% block scripts %}
 <script>
 const projectID = "{{ project.id }}"
-const selfProject = authenticated?"{{request.user}}" === "{{project.creator}}":false
+const selfProject = authenticated?"{{request.user}}" === "{{project.creator}}":false;
 </script>
+<script src="{% static 'scripts/project/profile.js' %}" ></script>
 
 {% endblock %}

@@ -1,5 +1,5 @@
 <div class="w3-row-padding" id="projectinnercontent">
-  <div class="w3-col w3-third">
+  <div class="w3-col w3-third w3-center">
     <div class="pallete active">
       <h4 class="text-active">Live</h4>
       {% for project in live %} 
@@ -13,7 +13,7 @@
   </div>
 
   <div class="w3-col w3-third">
-    <div class="pallete accent">
+    <div class="pallete accent w3-center">
       <h4 class="text-accent">Under review</h4>
       {% for project in moderation %}
       <a href="{{project.getLink}}">
@@ -35,7 +35,7 @@
   </div>
 
   <div class="w3-col w3-third">
-    <div class="pallete negative">
+    <div class="pallete negative w3-center">
       <h4 class="text-negative">Rejected</h4>
       {% for project in rejected %}
       <a href="{{project.getLink}}">

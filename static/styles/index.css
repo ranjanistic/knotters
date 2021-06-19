@@ -349,6 +349,28 @@ button.small {
   margin: 0px 12px;
 }
 
+.big-input:focus {
+  font-size: 28px;
+  border: 4px solid var(--positive);
+}
+
+.big-button {
+  font-size: 15px;
+  padding: 12px 22px;
+  border-radius: 55px;
+  margin-top: 30px;
+}
+.big-button:hover {
+  transform: scale(1.02);
+  padding: 12px 22px;
+  border-radius: 55px;
+}
+
+.big-button> i{
+  font-size: 28px !important;
+  margin-right: 4px;
+}
+
 /* ==================== */
 
 #pagewelcome {

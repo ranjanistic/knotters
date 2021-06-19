@@ -20,7 +20,6 @@ const validationError = document.querySelectorAll(
 let currentStep = 0;
 
 const showStep = (n) => {
-	console.log(n,stepviews.length)
     if (n >= stepviews.length) return;
     show(stepviews[n]);
     if (!n) {
@@ -51,12 +50,11 @@ const nextPrev = (n) => {
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
-        postRequest("/projects/create/validate/reponame", {
+        postRequest(`${ROOT}/create/validate/reponame`, {
             reponame: formValues[1].value,
         })
             .then((res) => {
                 actionLoader(false);
-                console.log(res);
                 if (res.code === "OK") {
                     hide(stepviews[currentStep]);
                     currentStep = currentStep + n;

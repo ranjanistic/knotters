@@ -10,13 +10,7 @@
   
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/people/profile.css' %}" />
-<link
-  rel="stylesheet"
-  href="{% static 'styles/people/profile/projects.css' %}"
-/>
 {% endblock %}
-
-{% block nav_href %}/{% if request.user.is_authenticated and request.user != person %}{{SUBAPPNAME}}{% endif %}{% endblock %}
 
 {% block nav_icon %}
 <button class="primary"><i class="material-icons">arrow_back</i></button>
@@ -86,8 +80,11 @@
         {% if person.profile.githubID %}
           <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.githubID}}</button></a>
         {% elif request.user.is_authenticated and request.user == person %}
-        
-          <a target="_blank" rel="noreferrer" href="/accounts/github/login/?process=connect&next=/redirector?n={{request.user.getLink}}"><button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;+ Connect GitHub</button></a>
+        <a href="/accounts/github/login/?process=connect&next=/redirector?n={{request.user.getLink}}">
+        <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
+          &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
+        </button>
+        </a>
         {% endif %}
         </div>
         <br />
@@ -121,13 +118,13 @@
         <br/>
         <div class="w3-row pallete" id="setts">
           <div class="w3-row w3-padding">
-          <i class="w3-right material-icons">expand_more</i><h3>Settings</h3>
+          <i class="w3-right material-icons">settings</i><h3>Settings</h3>
           </div>
           <div class="w3-row w3-padding-small">
             <button id="account" class="set-tab"><i class="material-icons">manage_accounts</i><span class="w3-hide-small">Account</span></button>
             <button id="preference" class="set-tab"><i class="material-icons">settings</i><span class="w3-hide-small">Preference</span></button>
             {% if request.user.is_authenticated and request.user.is_moderator %}
-              <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderator</span></button>
+              <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
             {% endif %}
             <hr />
             <div id="stabview"></div>

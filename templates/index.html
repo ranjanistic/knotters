@@ -67,7 +67,7 @@
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %}">
             {% block nav_title %}
-            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding">
+            <a href="{% block nav_href %}{{ROOT}}{% endblock %}" class="w3-left w3-padding">
                 {% block nav_icon %}<img src="{% static 'graphics/self/icon.svg' %}" width="40" />{% endblock %}
             </a>
             <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
@@ -209,6 +209,7 @@
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True';
+            const ROOT = "{{ROOT}}";
             const dialog = alertify;
             dialog.set('notifier','position','top-left')
             if("{{request.GET.s}}") dialog.success("{{request.GET.s}}");

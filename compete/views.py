@@ -1,25 +1,29 @@
 from django.http.response import Http404, HttpResponse
+from django.shortcuts import render
 from .methods import renderer
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from main.strings import code
 from .models import *
-from .methods import getCompetitionSectionHTML
+from .methods import getCompetitionSectionHTML, getIndexSectionHTML
 
 
 @require_GET
 def index(request):
-    try:
-        actives = Competition.objects.filter(active=True)
-    except:
-        actives = None
-    try:
-        inactives = Competition.objects.filter(active=False)
-    except:
-        inactives = None
+    return renderer(request, 'index.html')
 
-    return renderer(request, 'index.html', {"actives": actives, "inactives": inactives})
+
+@require_GET
+def indexTab(request, tab):
+    try:
+        data = getIndexSectionHTML(section=tab, request=request)
+        if data:
+            return HttpResponse(data)
+        else:
+            raise Http404()
+    except:
+        raise Http404()
 
 
 @require_GET
@@ -32,17 +36,18 @@ def competition(request, compID):
 
 
 @require_GET
-def competitionTab(request,compID, section):
+def competitionTab(request, compID, section):
     print('here')
     try:
         compete = Competition.objects.get(id=compID)
-        data = getCompetitionSectionHTML(compete,section,request)
+        data = getCompetitionSectionHTML(compete, section, request)
         if data:
             return HttpResponse(data)
         else:
             raise Http404()
     except:
         raise Http404()
+
 
 @login_required
 @require_POST

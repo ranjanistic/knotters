@@ -3,10 +3,12 @@
 {% block title %}{{SUBAPPNAME|capfirst}} &#183; {{APPNAME}}{% endblock %} 
 
 {% block nav_text %}{{SUBAPPNAME|capfirst}}{% endblock %} 
+{% block nav_href %}/{% endblock %}
+
 {% block nav_auth_links %}
 <a href="{{ROOT}}/create"
   ><button title="New project" class="positive">
-    <i class="material-icons">add_circle</i
+    <i class="material-icons">add</i
     ><span class="w3-hide-small">New project</span>
   </button>
 </a>
@@ -18,21 +20,21 @@
 
 <div class="w3-row w3-center" id="pagewelcome">
     <h1>{{SUBAPPNAME|capfirst}}</h1>
+    <br/>
     <p>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
       tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
       veniam, quis nostrud exercitation.
     </p>
-    <div id="pagewelcomebuttons">
-     <a href="#mainframe"><button class="accent"><i class="material-icons">volunteer_activism</i>Contribute</button></a>
-     <a href="{{ROOT}}/landing"><button class="positive"><i class="material-icons">open_in_new</i>Learn More</button></a>
+    
+    <div class="w3-row" id="pagewelcomebuttons">
+     <a href="#mainframe"><button class="big-button accent"><i class="material-icons">volunteer_activism</i>Contribute</button></a>
+     <a href="{{ROOT}}/landing"><button class="big-button positive"><i class="material-icons">open_in_new</i>Learn More</button></a>
     </div>
 </div>
 
-<div class="tertiary w3-padding" id="mainframe">
-  
-  <div id="pagesearch">
-    <form method="GET" action="#mainframe">
+<div class="tertiary w3-padding" id="mainframe">  
+  <div class="w3-row" id="pagesearch">
       <input
         type="text"
         name="query"
@@ -43,15 +45,11 @@
         value="{{request.GET.query}}"
         {% endif %}
       />
-      <button type="submit" class="positive">
-        <i class="material-icons">search</i>
-      </button>
       <a href="{{ROOT}}"
         ><button type="button" class="negative">
           <i class="material-icons">clear</i>
         </button>
       </a>
-    </form>
   </div>
 
   <div class="w3-container" id="pagecardscontainer">

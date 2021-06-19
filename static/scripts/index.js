@@ -104,7 +104,6 @@ const intializeTabsView = (
 
 const postRequest = async (path, data = {}) => {
     const body = { ...data };
-    console.log("body",body)
     try {
         const response = await fetch(path, {
             method: "POST",
@@ -117,7 +116,6 @@ const postRequest = async (path, data = {}) => {
         });
         return await response.json();
     } catch (e) {
-        console.log(e);
         return e;
     }
 };
@@ -133,8 +131,6 @@ const getRequest = async (url) => {
         if (response.status - 200 > 100) return false;
         return response.text();
     } catch (e) {
-        console.log(e);
-
         return false;
     }
 };
@@ -176,6 +172,8 @@ const loadGlobalEditors = (onSave = (_) => {}, onDiscard) => {
     });
 };
 
+loadGlobalEditors()
+
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (navigator.share) {
         navigator
@@ -183,7 +181,6 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
             .then(() => {
                 afterShared();
             })
-            .catch(console.error);
     } else {
         alert("Sharing not available on your system.");
     }
@@ -216,7 +213,7 @@ const handleCropImageUpload = (
                         getElement(dataOutElemID).value = croppedB64;
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
-                    } catch {
+                    } catch(e) {
                         window.location.reload();
                     }
                 },
