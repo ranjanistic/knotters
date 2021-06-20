@@ -23,7 +23,7 @@ def renderData(data={},fromApp = ''):
     return data
 
 def renderView(request, view, data={}, fromApp=''):
-    return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}", renderData(data,fromApp))
+    return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data,fromApp))
 
 
 def maxLengthInList(list=[]):

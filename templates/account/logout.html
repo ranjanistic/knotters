@@ -13,8 +13,8 @@
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
-	<div class="w3-padding"><img src="{{request.user.getDP}}" class="w3-circle" width="100"/></div>
-	<h1>{{request.user.first_name|capfirst}}, are you sure you want to log out?</h1>
+	<div class="w3-padding"><img src="{{user.profile.getDP}}" class="w3-circle" width="100"/></div>
+	<h1>{{user.first_name|capfirst}}, are you sure you want to log out?</h1>
   <br/>
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half">

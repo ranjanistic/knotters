@@ -1,20 +1,33 @@
 <div class="w3-row-padding" id="projectinnercontent">
-  <div class="w3-col w3-third w3-center">
+
+{% if self %}
+  <div class="w3-col w3-third">
     <div class="pallete active">
-      <h4 class="text-active">Live</h4>
+      <center>
+      <i class="material-icons" title="Visible to everyone">lock_open</i>
+      <h4 class="text-active">Live</h4></center>
       {% for project in live %} 
       <a href="{{project.getLink}}">
       <div class="w3-row wide-button"><i class="material-icons">launch</i><b>{{project.name}}</b><br />
         <span> {{project.reponame}}</span>
       </div>
       </a>
+      {% empty %}
+        <center>
+        <br/>
+        <i class="material-icons w3-jumbo">sentiment_dissatisfied</i>
+        <h6 class="text-active">No live projects.</h6>
+        </center>
       {% endfor %}
     </div>
   </div>
 
   <div class="w3-col w3-third">
-    <div class="pallete accent w3-center">
+    <div class="pallete accent">
+      <center>
+      <i class="material-icons" title="Private to you">lock</i>
       <h4 class="text-accent">Under review</h4>
+      </center>
       {% for project in moderation %}
       <a href="{{project.getLink}}">
       <div class="w3-row wide-button">
@@ -23,20 +36,23 @@
       </div>
       </a>
       {% empty %}
-      <hr/>
+      <br/>
       <div class="w3-row w3-center">
       <a href="/projects/create">
         <i class="material-icons w3-jumbo">add_circle</i>
       </a>
-      <h3 class='text-accent'>Create</h3>
+      <h6 class='text-accent'>Create</h6>
       </div>
       {% endfor %}
     </div>
   </div>
 
   <div class="w3-col w3-third">
-    <div class="pallete negative w3-center">
+    <div class="pallete negative">
+      <center>
+      <i class="material-icons" title="Private to you">lock</i>
       <h4 class="text-negative">Rejected</h4>
+      </center>
       {% for project in rejected %}
       <a href="{{project.getLink}}">
       <div class="w3-row wide-button">
@@ -44,7 +60,24 @@
         <span>{{project.reponame}}</span>
       </div>
       </a>
+      {% empty %}
+        <center>
+        <br/>
+        <i class="material-icons w3-jumbo">sentiment_very_satisfied</i>
+        <h6 class="text-negative">No projects rejected.</h6>
+        </center>
       {% endfor %}
     </div>
   </div>
+  {% else %}
+    {% for project in live %} 
+      <a href="{{project.getLink}}">
+      <div class="w3-row wide-button"><i class="material-icons">launch</i><b>{{project.name}}</b><br />
+        <span> {{project.reponame}}</span>
+      </div>
+      </a>
+      {% empty %}
+        <center><h3>No projects yet.</h3></center>
+      {% endfor %}
+  {% endif  %}
 </div>

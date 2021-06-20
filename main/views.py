@@ -21,44 +21,36 @@ def index(request):
         }
     except:
         pass
-    return renderView(request, 'index.html', data)
+    return renderView(request, 'index', data)
 
 
 @require_GET
 def redirector(request):
-    try:
-        next = request.GET['n']
-    except:
-        next = '/'
-    if str(next).strip() == '' or next == None:
-        next = '/'
-
-    if next.startswith("http"):
-        return HttpResponse(f"<h1>Forwarding...</h1><script>window.location.replace('{next}')</script>")
-    else:
-        return redirect(next)
+    next = request.GET.get('n', '/')
+    next = '/' if str(next).strip() == '' or not next else next
+    return redirect(next) if next.startswith("/") else HttpResponse(f"<h1>Redirecting to {next}</h1><script>window.location.replace('{next}')</script>")
 
 
 @require_GET
 def docIndex(request):
-    return renderView(request, "docs/index.html")
+    return renderView(request, "index", fromApp='docs')
 
 
 @require_GET
 def docs(request, type):
     try:
-        return renderView(request, f"docs/{type}.html")
+        return renderView(request, type, fromApp='docs')
     except:
         raise Http404()
+
 
 @require_GET
 def landing(request):
     parts = request.build_absolute_uri().split('/')
     try:
         subapp = parts[len(parts)-2]
-        if not [PEOPLE,PROJECTS,COMPETE].__contains__(subapp):
+        if not [PEOPLE, PROJECTS, COMPETE].__contains__(subapp):
             subapp = ''
-        return renderView(request,"landing.html",fromApp=subapp)
+        return renderView(request, "landing", fromApp=subapp)
     except:
         raise Http404()
-    

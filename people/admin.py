@@ -5,10 +5,12 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from .models import Profile, User
 
+
 class UserCreationForm(forms.ModelForm):
-    email = forms.CharField(label="Email",widget=forms.EmailInput)
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    email = forms.CharField(label="Email", widget=forms.EmailInput)
+    password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label="Password confirmation", widget=forms.PasswordInput)
 
     class Meta:
         model = User
@@ -44,31 +46,33 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('id',  'email', 'first_name', 'last_name', 'profile_pic', 'is_moderator')
+    list_display = ("id",  "email", "first_name", "last_name")
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ( 'first_name', 'last_name')}),
+        (None, {"fields": ("email", "password")}),
+        ("Personal info", {"fields": ("first_name", "last_name")}),
     )
     add_fieldsets = (
         (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name','password1', 'password2')}
+            "classes": ("wide",),
+            "fields": ("email", "first_name", "last_name", "password1", "password2")}
          ),
     )
-    search_fields = ('email', )
-    ordering = ('-id', )
+    search_fields = ("email", )
+    ordering = ("-id", )
     filter_horizontal = ()
 
 
 admin.site.register(User, UserAdmin)
 admin.site.unregister(Group)
 
+
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "githubID"]
-    
-    def get_queryset(self,request):
-        query_set = super(ProfileAdmin,self).get_queryset(request)
+    list_display = ["user", "githubID", "profile_pic"]
+    list_filter = ["is_moderator"]
+    def get_queryset(self, request):
+        query_set = super(ProfileAdmin, self).get_queryset(request)
         return query_set
+
     class Meta:
         ordering = ("")

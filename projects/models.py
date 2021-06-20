@@ -16,7 +16,7 @@ def defaultImagePath():
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1000, null=False, blank=False)
+    name = models.CharField(max_length=1000, null=False, blank=False,unique=True)
 
     def __str__(self):
         return self.name
@@ -24,7 +24,7 @@ class Tag(models.Model):
 
 class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1000, null=False, blank=False)
+    name = models.CharField(max_length=1000, null=False, blank=False,unique=True)
 
     def __str__(self):
         return self.name
@@ -38,13 +38,13 @@ class Project(models.Model):
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
     description = models.CharField(max_length=5000, null=False, blank=False)
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag,through='Relation',default=[])
     status = models.CharField(choices=project.PROJECTSTATESCHOICE, max_length=maxLengthInList(project.PROJECTSTATES), default=code.MODERATION)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
-    approvedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    approvedOn = models.DateTimeField(auto_now=False, blank=True,null=True)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.PROTECT)
-    category = models.ForeignKey("Category", on_delete=models.PROTECT)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name
@@ -60,3 +60,14 @@ class Project(models.Model):
 
     def getDP(self):
         return f"{MEDIA_URL}{str(self.image)}"
+
+class Relation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('project','tag')
+
+    def __str__(self) -> str:
+        return f"{self.project.name} + {self.tag.name}"

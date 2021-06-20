@@ -1,5 +1,4 @@
 from django.http.response import Http404, HttpResponse
-from django.shortcuts import render
 from .methods import renderer
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
@@ -11,7 +10,7 @@ from .methods import getCompetitionSectionHTML, getIndexSectionHTML
 
 @require_GET
 def index(request):
-    return renderer(request, 'index.html')
+    return renderer(request, 'index')
 
 
 @require_GET
@@ -30,7 +29,7 @@ def indexTab(request, tab):
 def competition(request, compID):
     try:
         compete = Competition.objects.get(id=compID)
-        return renderer(request, 'profile.html', {"compete": compete})
+        return renderer(request, 'profile', {"compete": compete})
     except:
         raise Http404()
 

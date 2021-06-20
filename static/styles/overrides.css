@@ -1,19 +1,36 @@
-
-.ajs-message{
+.ajs-header{
+    border-radius: 12px 12px 0 0 !important;
+}
+.ajs-footer{
+    border-radius: 0 0 12px 12px !important;
+}
+.ajs-header,
+.ajs-footer {
+    background-color: var(--tertiary) !important;
+    color: var(--tertiary-text) !important;
+    
+}
+.ajs-body,
+.ajs-dialog {
+    background-color: var(--primary) !important;
+    border-radius: 12px !important;
+    color: var(--primary-text);
+}
+.ajs-message {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;
     border: 0 !important;
     border-radius: 8px !important;
 }
-.ajs-message.ajs-error{
+.ajs-message.ajs-error {
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
-.ajs-message.ajs-warning{
+.ajs-message.ajs-warning {
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
-.ajs-message.ajs-success{
+.ajs-message.ajs-success {
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
 }

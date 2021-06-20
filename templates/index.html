@@ -60,7 +60,7 @@
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
 
         {% block stylesheets %}{% endblock %}
-        <title>{% block title %}{{APPNAME}}{% endblock %}</title>
+        <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
     <body>
@@ -81,9 +81,9 @@
                         {% block nav_noauth_projects %}<a href="/{{SUBAPPS.projects}}"><button title="Projects" class="positive"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
                     {% endblock %}
                     {% block nav_auth %}
-                        {% if request.user.is_authenticated %}
+                        {% if user.is_authenticated %}
                             {% block nav_auth_links %}{% endblock %}
-                            {% block nav_auth_user %}<a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.getName }}" class="accent"><img src="{{request.user.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{request.user.first_name|capfirst}}</span></button></a>{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{user.first_name|capfirst}}</span></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
@@ -208,7 +208,7 @@
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script>
-            const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True';
+            const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
             const dialog = alertify;
             dialog.set('notifier','position','top-left')

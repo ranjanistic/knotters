@@ -1,15 +1,19 @@
 from django.db import models
 import uuid
 from django.contrib.auth.models import PermissionsMixin
-from allauth.account.signals import user_signed_up
-from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
-from allauth.socialaccount.models import SocialAccount
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from .methods import profileImagePath, defaultImagePath
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from .apps import APPNAME
+
 from main.settings import MEDIA_URL
+from .apps import APPNAME
+
+
+def profileImagePath(instance, filename):
+    return f"{APPNAME}/{instance.id}/profile/{filename}"
+
+
+def defaultImagePath():
+    return f"/{APPNAME}/default.png"
 
 
 class UserAccountManager(BaseUserManager):
@@ -47,8 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = None
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, null=True, blank=True)
-    profile_pic = models.ImageField(
-        upload_to=profileImagePath, default=defaultImagePath)
+    
     date_joined = models.DateTimeField(
         verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
@@ -56,7 +59,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    is_moderator = models.BooleanField(default=False)
 
     REQUIRED_FIELDS = ['first_name']
 
@@ -72,17 +74,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return True
 
     def getName(self):
-        if(self.last_name is not None):
+        if self.last_name:
             return f"{self.first_name} {self.last_name}"
         else:
             return self.first_name
-
-    def getDP(self):
-        dp = str(self.profile_pic)
-        if dp.startswith("http"):
-            return dp
-        else:
-            return MEDIA_URL+dp
 
     def getLink(self) -> str:
         return f"/{APPNAME}/profile/{self.id}"
@@ -90,15 +85,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    user = models.OneToOneField("User", on_delete=models.CASCADE,related_name='profile')
+    profile_pic = models.ImageField(
+        upload_to=profileImagePath, default=defaultImagePath)
+    is_moderator = models.BooleanField(default=False)
     githubID = models.CharField(max_length=40, blank=True, null=True)
     bio = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self) -> str:
-        return f"{self.user.getName()}"
+        return self.user.getName()
 
-    def getBio(self)->str:
+    def getDP(self):
+        dp = str(self.profile_pic)
+        return dp if dp.startswith("http") else MEDIA_URL+dp
+
+    def getBio(self) -> str:
         return self.bio if self.bio else ''
+
     def getGhUrl(self) -> str:
         return f"https://github.com/{self.githubID}"
 
@@ -111,67 +114,3 @@ class Profile(models.Model):
             return f"/{APPNAME}/profile/{self.githubID}{success}{error}"
         return f"/{APPNAME}/profile/{self.user.id}{success}{error}"
 
-
-def getUsernameFromGHUrl(url):
-    try:
-        urlparts = str(url).split('/')
-        return urlparts[len(urlparts)-1]
-    except:
-        return None
-
-
-@receiver(post_save, sender=User)
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-
-@receiver(user_signed_up)
-def on_user_signup(request, user, **kwargs):
-    data = SocialAccount.objects.get(user=user, provider='github')
-    if data:
-        profile = Profile.objects.get(user=user)
-        profile.githubID = getUsernameFromGHUrl(data.get_profile_url())
-        profile.save()
-
-
-@receiver(social_account_removed)
-def social_removed(request, socialaccount, **kwargs):
-    print("Social removed")
-    if socialaccount.provider == 'github':
-        profile = Profile.objects.get(user=socialaccount.user)
-        profile.githubID = None
-        profile.save()
-        print("removed")
-
-
-@receiver(social_account_added)
-def social_added(request, sociallogin, **kwargs):
-    try:
-        data = SocialAccount.objects.get(
-            user=sociallogin.user, provider='github')
-        print(data)
-        if data:
-            profile = Profile.objects.get(user=sociallogin.user)
-            profile.githubID = getUsernameFromGHUrl(data.get_profile_url())
-            profile.save()
-    except: pass
-
-@receiver(social_account_updated)
-def social_updated(request, sociallogin, **kwargs):
-    print("Social updated")
-    if sociallogin.account.provider == 'github':
-        profile = Profile.objects.get(user=sociallogin.account.user)
-        data = SocialAccount.objects.get(user=sociallogin.account.user, provider='github')
-        profile.githubID = getUsernameFromGHUrl(data.get_profile_url())
-        profile.save()
-
-@receiver(pre_social_login)
-def before_social_login(request, sociallogin, **kwargs):
-    if sociallogin.is_existing:
-        return
-    try:
-        user = User.objects.get(email=sociallogin.user)
-        sociallogin.connect(request, user)
-    except: pass
-    

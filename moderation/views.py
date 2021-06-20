@@ -31,7 +31,7 @@ def moderation(request, division, id):
                 moderation = Moderation.objects.get(competition=competition)
                 data = {'competition': competition}
             data['moderation'] = moderation
-            return renderer(request, f'{division}.html', data)
+            return renderer(request, division, data)
     except:
         raise Http404()
 

@@ -5,7 +5,7 @@ from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
-from main.strings import code
+from main.strings import code, MODERATION
 from moderation.methods import requestModeration
 from .models import *
 from .methods import *
@@ -15,7 +15,7 @@ from .apps import APPNAME
 @require_GET
 def allProjects(request):
     projects = Project.objects.filter(status=code.MODERATION)
-    return renderer(request, 'index.html', {"projects": projects})
+    return renderer(request, 'index', {"projects": projects})
 
 
 @require_GET
@@ -23,12 +23,12 @@ def profile(request, reponame):
     try:
         project = Project.objects.get(reponame=reponame)
         if project.status == code.LIVE:
-            return renderer(request, 'profile.html', {"project": project})
+            return renderer(request, 'profile', {"project": project})
         if request.user.is_authenticated and project.creator == request.user:
             if project.status == code.REJECTED:
-                return redirect(f'/moderation/{APPNAME}/{project.id}')
+                return redirect(f'/{MODERATION}/{APPNAME}/{project.id}')
             if project.status == code.MODERATION:
-                return renderer(request, 'profile.html', {"project": project})
+                return renderer(request, 'profile', {"project": project})
         raise Http404()
     except:
         raise Http404()
@@ -39,7 +39,7 @@ def profile(request, reponame):
 def editProfile(request, projectID, section):
     try:
         changed = False
-        project = Project.objects.get(id=projectID)
+        project = Project.objects.get(id=projectID,creator=request.user)
         if section == 'pallete':
             try:
                 base64Data = str(request.POST['projectimage'])
@@ -72,7 +72,7 @@ def editProfile(request, projectID, section):
 def create(request):
     tags = Tag.objects.all()[0:5]
     categories = Category.objects.all()
-    return renderer(request, 'create.html', {
+    return renderer(request, 'create', {
         "tags": tags,
         "categories": categories
     })
@@ -122,11 +122,11 @@ def submitProject(request):
         mod = requestModeration(projectobj.id, APPNAME, userRequest)
         print(mod)
         if not mod:
-            return redirect(f"/projects/create?e=Error in submission, try again later 2.")
+            return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 2.")
         return redirect(projectobj.getLink(success="Your project has been submitted for moderation."))
     except Exception as e:
         print(e)
-        return redirect(f"/projects/create?e=Error in submission, try again later 1.")
+        return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 1.")
 
 
 @require_POST

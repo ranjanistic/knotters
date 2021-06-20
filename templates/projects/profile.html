@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title %}{{project.name}} &#183; {{APPNAME}}{% endblock %}
+{% block title %}{{project.name}}{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" />
@@ -34,13 +34,13 @@
             <center>{{project.description}}</center>
             </div>
             <div class="w3-row w3-padding-small">
-                {% if request.user.is_authenticated and request.user == project.creator %}
+                {% if user.is_authenticated and user == project.creator %}
                   <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
                 {% endif %}
                 <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{person.getName}}', '{{person.profile.bio}}', '{{site}}{{person.profile.getLink}}')">share</i>
             </div>
         </div>
-        {% if request.user.is_authenticated and request.user == project.creator %}
+        {% if user.is_authenticated and user == project.creator %}
         <div class="pallete w3-center" id="edit-pallete">
             <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
             <input type="file" id="uploadprojectimage" hidden accept="image/*" />
@@ -110,7 +110,7 @@
 {% block scripts %}
 <script>
 const projectID = "{{ project.id }}"
-const selfProject = authenticated?"{{request.user}}" === "{{project.creator}}":false;
+const selfProject = authenticated?"{{user}}" === "{{project.creator}}":false;
 </script>
 <script src="{% static 'scripts/project/profile.js' %}" ></script>
 

@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title%}Create project &#183; {{APPNAME}}{%endblock%}
+{% block title%}Create project{%endblock%}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/project/create.css' %}" />
@@ -19,7 +19,7 @@
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-{% if request.user.profile.githubID %}
+{% if user.profile.githubID %}
 <div class="w3-center w3-padding-small tertiary">
     <h5>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
     moderation guidelines</a> before submission.</h5></div>
@@ -205,11 +205,11 @@
 </div>
 {% endif %}
 {% endblock %}
-{% if not request.user.profile.githubID %}
+{% if not user.profile.githubID %}
 {% block footer %}{% endblock %}
 {% endif %}
 {% block scripts %}
-{% if not request.user.profile.githubID %}
+{% if not user.profile.githubID %}
 <script>
 dialog.alert("Github ID",`<div class="w3-row w3-padding">
     <h4>Your Github identity must be linked with Knotters before creating a project.</h4>
