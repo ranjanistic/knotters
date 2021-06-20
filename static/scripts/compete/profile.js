@@ -1,5 +1,5 @@
 
-intializeTabsView(
+initializeTabsView(
     async (tabID) => {
         return await getRequest(`/competitions/competeTab/${compID}/${tabID}`);
     },

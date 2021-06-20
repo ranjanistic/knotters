@@ -16,6 +16,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+    getElements("href").forEach((href) => {
+        href.addEventListener("click", (e) => {
+            window.location.href = href.getAttribute("data-href");
+        });
+    });
 });
 
 const loader = (show = true) => {
@@ -53,7 +58,7 @@ const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
-const intializeTabsView = (
+const initializeTabsView = (
     onEachTab = async (tabID) => {},
     uniqueID,
     tabsClass = "nav-tab",
@@ -84,22 +89,37 @@ const intializeTabsView = (
         tab.onclick = async () => {
             showTabLoading();
             sessionStorage.setItem(uniqueID, t);
+            const onclicks = Array(tabs.length)
             tabs.forEach((tab1, t1) => {
+                onclicks[t1] = tab1.onclick
+                tab1.onclick=_=>{}
                 if (t1 === t) {
                     tab1.classList.add(activeTabClass);
                     tab1.classList.remove(inactiveTabClass);
                 } else {
+                    tab1.style.opacity = 0
                     tab1.classList.remove(activeTabClass);
                     tab1.classList.add(inactiveTabClass);
                 }
             });
             const response = await onEachTab(tab.id);
             hideSpinner(spinnerID);
+            tabs.forEach((tab1, t1) => {
+                if (t1 !== t) {
+                    tab1.style.opacity = 1
+                }
+                tab1.onclick = onclicks[t1]
+            })
             return response ? showTabContent(response) : showTabError(t);
         };
     });
-
-    tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+    try {
+        tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+    } catch (e) {
+        console.log(e);
+        tabs[0].click();
+    }
+    return tabs;
 };
 
 const postRequest = async (path, data = {}) => {
@@ -172,15 +192,13 @@ const loadGlobalEditors = (onSave = (_) => {}, onDiscard) => {
     });
 };
 
-loadGlobalEditors()
+loadGlobalEditors();
 
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (navigator.share) {
-        navigator
-            .share({ title, text, url })
-            .then(() => {
-                afterShared();
-            })
+        navigator.share({ title, text, url }).then(() => {
+            afterShared();
+        });
     } else {
         alert("Sharing not available on your system.");
     }
@@ -213,7 +231,7 @@ const handleCropImageUpload = (
                         getElement(dataOutElemID).value = croppedB64;
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
-                    } catch(e) {
+                    } catch (e) {
                         window.location.reload();
                     }
                 },

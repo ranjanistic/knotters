@@ -1,9 +1,9 @@
-intializeTabsView(async (tabID) => {
+initializeTabsView(async (tabID) => {
     return await getRequest(`/people/profiletab/${userID}/${tabID}`);
 }, "profiletab");
 
 if (selfProfile) {
-    intializeTabsView(
+    initializeTabsView(
         async (tabID) => {
             return await getRequest(`/people/settingtab/${tabID}`);
         },

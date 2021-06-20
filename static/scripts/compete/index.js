@@ -1,4 +1,4 @@
-intializeTabsView(
+initializeTabsView(
     async (tabID) => {
         return await getRequest(`${ROOT}/indexTab/${tabID}`);
     },
