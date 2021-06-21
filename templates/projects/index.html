@@ -2,7 +2,6 @@
 {% load static %}
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 
-{% block nav_text %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 {% block nav_href %}/{% endblock %}
 
 {% block nav_auth_links %}
@@ -17,107 +16,64 @@
 {% block nav_noauth_projects %}{% endblock %} 
 
 {% block content %}
-
-<div class="w3-row w3-center" id="pagewelcome">
-    <h1>{{SUBAPPNAME|capfirst}}</h1>
-    <br/>
-    <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-      veniam, quis nostrud exercitation.
-    </p>
-    
-    <div class="w3-row" id="pagewelcomebuttons">
-     <a href="#mainframe"><button class="big-button accent"><i class="material-icons">volunteer_activism</i>Contribute</button></a>
-     <a href="{{ROOT}}/landing"><button class="big-button positive"><i class="material-icons">open_in_new</i>Learn More</button></a>
-    </div>
+<br/>
+<div class="w3-row w3-padding welcome-row">
+  <br/><br/>
+  <div class="w3-row w3-padding">
+  <h1>Projects</h1>
+  </div>
+  <br/>
+  <div class="w3-row w3-padding">
+  <h4>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+    tempor incididunt ut labore et.
+  </h4>
+  </div>
+  <div class="w3-row w3-padding">
+    <a href="#mainframe"><button class="display-button accent">
+        <i class="material-icons">volunteer_activism</i>Contribute
+      </button>
+    </a>
+    <a href="{{ROOT}}/landing">
+      <button class="secondary display-button">
+        <i class="material-icons">open_in_new</i>Learn More
+      </button>
+    </a>
+  </div>
 </div>
 
-<div class="tertiary w3-padding" id="mainframe">  
-  <div class="w3-row" id="pagesearch">
-      <input
-        type="text"
-        name="query"
-        class="primary"
-        placeholder="Search projects"
-        required
-        {% if request.GET.query %}
-        value="{{request.GET.query}}"
-        {% endif %}
-      />
-      <a href="{{ROOT}}"
-        ><button type="button" class="negative">
-          <i class="material-icons">clear</i>
-        </button>
-      </a>
-  </div>
-
-  <div class="w3-container" id="pagecardscontainer">
-    <h3 class="w3-margin-bottom">Popular this week</h3>
-    <div class="scroll-x" id="firstrowcardscontainer">
-      {% for project in projects %}
-      <div class="w3-row pallete w3-center primary" id="pagecard">
-          <img src="{{project.getDP}}" alt="{{project.name}}"/>
-        <div class="w3-row w3-padding">
-          <h3>{{project.name}}</h3>
-          <span>{{project.description}}</span><br />
-          {% for tag in project.tags.all %}<a class="positive-text"
-            >#{{tag.name}}</a
-          >&nbsp;{% endfor %}
-        </div>
-        <div class="w3-padding">
-          {% comment %}
-          <button class="w3-right sub-accent">
-            <i class="material-icons">bookmark_add</i>Save
-          </button>
-          {% endcomment %}
-          <a href="{{project.getLink}}"
-            ><button class="w3-right positive">
-              <i class="material-icons">visibility</i>View
-            </button></a
-          >
-          {% comment %}
-          <button class="w3-right negative">
-            <i class="material-icons">favorite</i>Like
-          </button>
-          {% endcomment %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-  <h3 class="w3-margin-bottom">Popular all time</h3>
-  <div class="scroll-x" id="secondrowcardscontainer">
-    {% for project in projects %}
-    <div class="w3-row pallete w3-center primary" id="pagecard">
-        <img src="/media/{{project.image}}" />
+<div class="w3-row tertiary" id="mainframe">
+  	<div class="w3-row w3-padding" id="searchbar">
+      <br/>
+      <input type="text" name="query" class="primary" placeholder="Search people" required /><a href="{{ROOT}}#mainframe"><button type="button" class="negative"><i class="material-icons">clear</i></button></a>
+      <br/>
+  	</div>
+	  <br/>
+    <div class="w3-row w3-padding active">
       <div class="w3-row w3-padding">
-        <h3>{{project.name}}</h3>
-        <span>{{project.description}}</span><br />
-        {% for tag in project.tags.all %}<a class="positive-text"
-          >#{{tag.name}}</a
-        >&nbsp;{% endfor %}
+        <h3 class="text-active">Popular this week</h3>
       </div>
-      <div class="w3-padding">
-        {% comment %}
-        <button class="w3-right sub-accent">
-          <i class="material-icons">bookmark_add</i>Save
-        </button>
-        {% endcomment %}
-        <a href="{{project.getLink}}">
-          <button class="w3-right positive">
-            <i class="material-icons">visibility</i>View
-          </button>
-        </a>
-        {% comment %}
-        <button class="w3-right negative">
-          <i class="material-icons">favorite</i>Like
-        </button>
-        {% endcomment %}
+      <div class="w3-row w3-center">
+      {% for project in weekprojects %}
+          <div class="w3-col w3-quarter w3-padding-small">
+            <div class="pallete limit-height w3-center {% if project.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
+              <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
+              <div class="w3-row w3-padding">
+                <h5>{{ project.name }}</h5>
+                {{project.description}}
+              </div>
+              <div class="w3-row w3-padding-small">
+              <a href="{{project.profile.getLink}}"><i title="View {{project.name}}" class="material-icons w3-right pointer positive-text">visibility</i></a>
+              <i title="Share {{project.name}}" class="w3-left material-icons pointer" onclick="shareLinkAction('{{project.name}}', '{{project.description}}', '{{site}}{{project.getLink}}')">share</i>
+              </div>
+            </div>
+          </div>
+        {% empty %} 
+          <h3 class="text-active">No projects yet.</h3>
+        {% endfor %}
       </div>
+      <br/>
     </div>
-    {% endfor %}
   </div>
-</div>
 </div>
 {% endblock %}

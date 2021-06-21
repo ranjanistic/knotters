@@ -68,8 +68,8 @@
               {% csrf_token %}
               <input type="text" hidden id="profileImageData" name="profilepic" value="" />
               <div class="w3-row w3-padding">
-                <input type="text" autocomplete="name" autocapitalize placeholder="Your name" required value="{{user.getName}}" name="displayname" /><br/><br/>
-                <input type="text" placeholder="Bio" autocomplete="nickname" {% if user.profile.bio %}value="{{user.profile.bio}}"{% endif %} name="profilebio" /><br/>
+                <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{user.getName}}" name="displayname" /><br/><br/>
+                <input type="text" placeholder="Bio" autocomplete="nickname" maxlength="120" {% if user.profile.bio %}value="{{user.profile.bio}}"{% endif %} name="profilebio" /><br/>
               </div>
               <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
               <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
@@ -103,8 +103,8 @@
 
       </div>
       <div class="w3-col w3-container m8 l9">
-        <div class="pallete" style="height: 75vh; overflow-y: scroll;">
-          <div class="w3-row w3-center w3-padding-small">
+        <div class="pallete" style="height: 75vh;">
+          <div class="w3-row w3-center">
             <button id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
             <button id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
             <button id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
@@ -113,8 +113,8 @@
             <button id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
             {% endif %}
           </div>
-          <hr />
-          <div id="tabview"></div>
+          <br/>
+          <div id="tabview" style="height: 60vh;overflow-y: scroll;"></div>
         </div>
 
         {% if user.is_authenticated and user == person %}

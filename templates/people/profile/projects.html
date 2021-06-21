@@ -1,8 +1,8 @@
-<div class="w3-row-padding" id="projectinnercontent">
+<div class="w3-row">
 
 {% if self %}
-  <div class="w3-col w3-third">
-    <div class="pallete active">
+  <div class="w3-col w3-padding-small w3-third">
+    <div class="pallete active text-active" style="max-height:70vh; min-height:58vh">
       <center>
       <i class="material-icons" title="Visible to everyone">lock_open</i>
       <h4 class="text-active">Live</h4></center>
@@ -22,8 +22,8 @@
     </div>
   </div>
 
-  <div class="w3-col w3-third">
-    <div class="pallete accent">
+  <div class="w3-col w3-padding-small w3-third">
+    <div class="pallete accent text-accent" style="max-height:70vh; min-height:58vh">
       <center>
       <i class="material-icons" title="Private to you">lock</i>
       <h4 class="text-accent">Under review</h4>
@@ -41,14 +41,14 @@
       <a href="/projects/create">
         <i class="material-icons w3-jumbo">add_circle</i>
       </a>
-      <h6 class='text-accent'>Create</h6>
+      <h6 class="text-accent">Create</h6>
       </div>
       {% endfor %}
     </div>
   </div>
 
-  <div class="w3-col w3-third">
-    <div class="pallete negative">
+  <div class="w3-col w3-padding-small w3-third">
+    <div class="pallete negative text-negative" style="max-height:70vh; min-height:58vh">
       <center>
       <i class="material-icons" title="Private to you">lock</i>
       <h4 class="text-negative">Rejected</h4>

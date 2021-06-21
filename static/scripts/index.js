@@ -21,6 +21,34 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = href.getAttribute("data-href");
         });
     });
+    getElementsByTag("button").forEach((button) => {
+        if (button.title) {
+            let mPressTimer;
+            button.addEventListener("touchstart", (e) => {
+                mPressTimer = window.setTimeout(() => {
+                    alertify.set("notifier", "position", "bottom-right");
+                    alertify.message(button.title);
+                }, 500);
+                button.addEventListener("touchend", (e) => {
+                    clearTimeout(mPressTimer);
+                });
+            });
+        }
+    });
+    getElementsByTag("i").forEach((icon) => {
+        if (icon.classList && icon.title) {
+            let mPressTimer;
+            icon.addEventListener("touchstart", (e) => {
+                mPressTimer = window.setTimeout(() => {
+                    alertify.set("notifier", "position", "bottom-right");
+                    alertify.message(icon.title);
+                }, 500);
+                icon.addEventListener("touchend", (e) => {
+                    clearTimeout(mPressTimer);
+                });
+            });
+        }
+    });
 });
 
 const loader = (show = true) => {
@@ -89,15 +117,15 @@ const initializeTabsView = (
         tab.onclick = async () => {
             showTabLoading();
             sessionStorage.setItem(uniqueID, t);
-            const onclicks = Array(tabs.length)
+            const onclicks = Array(tabs.length);
             tabs.forEach((tab1, t1) => {
-                onclicks[t1] = tab1.onclick
-                tab1.onclick=_=>{}
+                onclicks[t1] = tab1.onclick;
+                tab1.onclick = (_) => {};
                 if (t1 === t) {
                     tab1.classList.add(activeTabClass);
                     tab1.classList.remove(inactiveTabClass);
                 } else {
-                    tab1.style.opacity = 0
+                    tab1.style.opacity = 0;
                     tab1.classList.remove(activeTabClass);
                     tab1.classList.add(inactiveTabClass);
                 }
@@ -106,10 +134,10 @@ const initializeTabsView = (
             hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
-                    tab1.style.opacity = 1
+                    tab1.style.opacity = 1;
                 }
-                tab1.onclick = onclicks[t1]
-            })
+                tab1.onclick = onclicks[t1];
+            });
             return response ? showTabContent(response) : showTabError(t);
         };
     });
