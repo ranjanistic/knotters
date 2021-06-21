@@ -20,6 +20,12 @@ body {
     transition: var(--delay);
 	hyphens: auto;
 }
+
+footer{
+    min-height: 50vh;
+    width: 100%;
+}
+
 .bold {
     font-weight: bolder;
 }
