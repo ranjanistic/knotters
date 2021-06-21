@@ -1,3 +1,4 @@
+import re
 from main.methods import renderView
 from .apps import APPNAME
 from .models import User, Profile, defaultImagePath
@@ -57,7 +58,7 @@ def on_user_signup(request, user, **kwargs):
         profile = Profile.objects.get(user=user)
         accs = SocialAccount.objects.filter(user=user)
         for acc in accs:
-            profile.profile_pic = getProfileImageBySocialAccount(acc)
+            profile.picture = getProfileImageBySocialAccount(acc)
             if acc.provider == GitHubProvider.id:
                 profile.githubID = getUsernameFromGHSocial(acc)
                 break
@@ -114,7 +115,7 @@ def convertToFLname(string):
 
     :returns: firtsname, lastname
     """
-    name = str(string).title()
+    name = str(string)
     namesequence = name.split(" ")
     firstname = namesequence[0]
     del namesequence[0]
@@ -122,8 +123,18 @@ def convertToFLname(string):
         lastname = " ".join(namesequence)
     else:
         lastname = ''
+    fullname = f"{firstname} {lastname}"
+    if len(fullname) > 70:
+        fullname = fullname[:(70-len(fullname))]
+        return convertToFLname(fullname)
     return firstname, lastname
 
+def filterBio(string):
+    bio = str(string)
+    if len(bio) > 120:
+        bio = bio[:(120-len(bio))]
+        return filterBio(bio)
+    return bio
 
 PROFILE_SECTIONS = [profile.OVERVIEW, profile.PROJECTS,
                     profile.CONTRIBUTION, profile.ACTIVITY, profile.MODERATION]

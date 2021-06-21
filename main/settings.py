@@ -11,8 +11,6 @@ DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS
 
-
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -37,7 +35,7 @@ ACCOUNT_FORMS = {
     'signup': f'{PEOPLE}.forms.CustomSignupForm',
 }
 
-SOCIALACCOUNT_QUERY_EMAIL=True
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -124,16 +122,16 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = "/static/"
+STATIC_URL = env.STATIC_URL
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_URL = env.MEDIA_URL
 
 CORS_ORIGIN_ALLOW_ALL = False
 
-if not env.ISPRODUCTION:
-  STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+if DEBUG:
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 else:
-  STATIC_ROOT = os.path.join(BASE_DIR, "static")
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
@@ -144,7 +142,7 @@ ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -169,7 +167,6 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_HSTS_PRELOAD = True
-
 
 
 SITE_ID = 2

@@ -5,7 +5,7 @@ from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML
 from django.contrib.auth.decorators import login_required
 from .models import User, Profile
 from main.methods import base64ToImageFile
-from .methods import convertToFLname
+from .methods import convertToFLname, filterBio
 
 
 @require_GET
@@ -72,17 +72,16 @@ def editProfile(request, section):
                 base64Data = str(request.POST['profilepic'])
                 imageFile = base64ToImageFile(base64Data)
                 if imageFile:
-                    profile.profile_pic = imageFile
+                    profile.picture = imageFile
             except:
                 pass
             try:
-                fname, lname = convertToFLname(
-                    str(request.POST['displayname']))
+                fname, lname = convertToFLname(str(request.POST['displayname']))
                 bio = str(request.POST['profilebio'])
                 profile.user.first_name = fname
                 profile.user.last_name = lname
                 profile.user.save()
-                profile.bio = bio
+                profile.bio = filterBio(bio)
                 profile.save()
                 return redirect(profile.getLink(success=f"Pallete updated"), permanent=True)
             except:

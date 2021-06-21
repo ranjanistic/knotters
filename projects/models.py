@@ -25,6 +25,7 @@ class Tag(models.Model):
 class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False, blank=False,unique=True)
+    tags = models.ManyToManyField(Tag,through='Relation',default=[])
 
     def __str__(self):
         return self.name
@@ -63,11 +64,10 @@ class Project(models.Model):
 
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,null=True,blank=True)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    topic = models.ForeignKey(f'{PEOPLE}.Topic',on_delete=models.PROTECT,null=True,blank=True,related_name='project_topic')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE,null=True,blank=True)
 
     class Meta:
-        unique_together = ('project','tag')
-
-    def __str__(self) -> str:
-        return f"{self.project.name} + {self.tag.name}"
+        unique_together = (('project','tag'),('topic','tag'),('category','tag'))

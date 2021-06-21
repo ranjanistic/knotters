@@ -1,6 +1,13 @@
 import environ
+from .strings import environment
+from pathlib import Path
+import os
+
 env = environ.Env()
-environ.Env.read_env()
+
+ENVPATH = env('ENVPATH')
+
+environ.Env.read_env(env_file=os.path.join(Path(__file__).resolve().parent.parent, ENVPATH))
 
 PUBNAME = env('PUBNAME')
 PROJECTKEY = env('PROJECTKEY')
@@ -17,5 +24,8 @@ ADMINPATH = env('ADMINPATH')
 GITHUBBOTTOKEN = env('GITHUBBOTTOKEN')
 SITE = env('SITE')
 SENDERTOKEN = env('SENDERTOKEN')
+STATIC_URL = env('STATIC_URL')
+MEDIA_URL = env('MEDIA_URL')
 
-ISPRODUCTION = ENV == 'production'
+ISPRODUCTION = ENV == environment.PRODUCTION
+    

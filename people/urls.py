@@ -1,12 +1,14 @@
 from django.urls import path
 from main.views import landing
+from main.strings import url
 from .views import *
 
 urlpatterns = [
-    path('', index),
-    path('profile/<str:userID>', profile),
-    path('landing', landing),
-    path('profile/edit/<str:section>', editProfile),
-    path('profiletab/<str:userID>/<str:section>', profileTab),
-    path('settingtab/<str:section>', settingTab)
+    path(url.INDEX, index),
+    path(url.LANDING, landing),
+    path(url.LANDINGS, landing),
+    path(url.People.PROFILE, profile),
+    path(url.People.PROFILEEDIT, editProfile),
+    path(url.People.PROFILETAB, profileTab),
+    path(url.People.SETTINGTAB, settingTab),
 ]

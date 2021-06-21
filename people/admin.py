@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .models import Profile, User
+from .models import Profile, Relation, Topic, User
 
 
 class UserCreationForm(forms.ModelForm):
@@ -68,7 +68,7 @@ admin.site.unregister(Group)
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "githubID", "profile_pic"]
+    list_display = ["user", "githubID", "picture"]
     list_filter = ["is_moderator"]
     def get_queryset(self, request):
         query_set = super(ProfileAdmin, self).get_queryset(request)
@@ -76,3 +76,16 @@ class ProfileAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
+@admin.register(Relation)
+class RelationAdmin(admin.ModelAdmin):
+    list_display = ["topic", "profile"]
+    list_filter = ["topic"]
+    def get_queryset(self, request):
+        query_set = super(RelationAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+admin.site.register(Topic)

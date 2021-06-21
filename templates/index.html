@@ -83,7 +83,7 @@
                     {% block nav_auth %}
                         {% if user.is_authenticated %}
                             {% block nav_auth_links %}{% endblock %}
-                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{user.first_name|capfirst}}</span></button></a>{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" class="primary w3-circle" width="25" /><span class="w3-hide-small">&nbsp;{{user.first_name|capfirst}}</span></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
@@ -214,13 +214,11 @@
             const ROOT = "{{ROOT}}";
             const dialog = alertify;
             dialog.set('notifier','position','top-left')
-            if("{{request.GET.s}}") dialog.success("{{request.GET.s}}");
+            {% comment %} if("{{request.GET.s}}") dialog.success("{{request.GET.s}}"); {% endcomment %}
             if("{{request.GET.e}}") dialog.error("{{request.GET.e}}");
         </script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
-        <script>
-        </script>
         {% block scripts %}{% endblock %}
     </body>
 </html>

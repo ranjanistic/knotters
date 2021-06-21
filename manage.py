@@ -1,9 +1,16 @@
 import os
 import sys
 
+ENVPATH = 'main\.env'
 
-def main():
+def main(ENVPATH):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+    os.environ.setdefault('ENVPATH', ENVPATH)
+    from main.env import ENVPATH, ISPRODUCTION, ENV, DBNAME
+    if not ISPRODUCTION:
+        print(f"Environment from: {ENVPATH}")
+        print(f"Database: {DBNAME}")
+    print(f"Environment: {ENV}")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -14,6 +21,5 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
-
 if __name__ == '__main__':
-    main()
+    main(ENVPATH=ENVPATH)

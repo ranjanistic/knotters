@@ -6,6 +6,57 @@ from moderation.apps import APPNAME as MODERATION
 DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION]
 
 
+class Environment():
+    DEVELOPMENT = 'development'
+    TESTING = 'testing'
+    PRODUCTION = 'production'
+
+
+environment = Environment()
+
+ENVIRONMENTS = [environment.DEVELOPMENT, environment.TESTING, environment.PRODUCTION]
+
+
+class URL():
+    INDEX = ''
+    ACCOUNTS = 'accounts/'
+    PROJECTS = f'{PROJECTS}/'
+    COMPETE = f'{COMPETE}/'
+    PEOPLE = f'{PEOPLE}/'
+    MODERATION = f'{MODERATION}/'
+    REDIRECTOR = 'redirector/'
+    DOCS = 'docs/'
+    DOCTYPE = 'docs/<str:type>'
+    LANDINGS = 'landing/'
+    LANDING = 'landing'
+
+    class Compete():
+        INDEXTAB = 'indexTab/<str:tab>'
+        COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
+        COMPID = '<str:compID>'
+
+    class Moderation():
+        REJECT = 'reject',
+        APPROVE = 'approve',
+        DIVISIONID = '<str:division>/<str:id>'
+
+    class People():
+        PROFILE = 'profile/<str:userID>'
+        PROFILEEDIT = 'profile/edit/<str:section>'
+        PROFILETAB = 'profiletab/<str:userID>/<str:section>'
+        SETTINGTAB = 'settingtab/<str:section>'
+
+    class Projects():
+        CREATEVALIDATEFIELD = 'create/validate/<str:field>'
+        CREATE = 'create'
+        SUBMIT = 'submit'
+        PROFILE = 'profile/<str:reponame>'
+        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>'
+        PROJECTINFO = 'projectinfo/<str:projectID>/<str:info>'
+
+
+url = URL()
+
 class Codes():
     OK = "OK"
     NO = "NO"
