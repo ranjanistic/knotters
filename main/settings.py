@@ -19,7 +19,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    "django_rename_app",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -72,6 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "main.wsgi.application"
 
+DATA_UPLOAD_MAX_MEMORY_SIZE=10*1024*1024
 
 if not DEBUG:
     DATABASES = {
@@ -153,8 +153,15 @@ EMAIL_HOST_USER = env.MAILUSER
 EMAIL_HOST_PASSWORD = env.MAILPASS
 EMAIL_SUBJECT_PREFIX = 'Knotters Community'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 LOGIN_REDIRECT_URL = '/'
+
+SENDER_API_HEADERS = {
+    "Authorization": f"Bearer {env.SENDERTOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+}
+SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
+SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
 
 if not DEBUG:
     os.environ["HTTPS"] = "on"

@@ -10,17 +10,29 @@
     color: var(--tertiary-text) !important;
     
 }
+
 .ajs-body,
 .ajs-dialog {
     background-color: var(--primary) !important;
     border-radius: 12px !important;
     color: var(--primary-text);
 }
+
+.ajs-content{
+    color: var(--primary-text);
+}
 .ajs-message {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;
     border: 0 !important;
-    border-radius: 8px !important;
+    text-shadow: none !important;
+    font-size: 20px;
+    font-family: var(--head-font);
+    word-spacing: normal;
+    padding:4px 8px !important;
+    text-align: left !important;
+    border-radius: 4px !important;
+    box-shadow: 4px 4px 15px 5px #0f0f0f27;
 }
 .ajs-message.ajs-error {
     background-color: var(--negative) !important;

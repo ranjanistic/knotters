@@ -1,35 +1,22 @@
-import re
-
-from django.http.response import HttpResponse
-from main.methods import renderView
-from .apps import APPNAME
-from .models import User, Profile, defaultImagePath
 from allauth.account.signals import user_signed_up
 from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
 from allauth.socialaccount.models import SocialAccount
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
-from projects.models import Project
-from .apps import APPNAME
-from main.strings import code, profile
 from django.template.loader import render_to_string
-import requests
+from main.methods import renderView
+from main.strings import code, profile
+from main.methods import addUserToMailingServer, removeUserFromMailingServer
+from projects.models import Project
+from .models import User, Profile, defaultImagePath
+from .apps import APPNAME
+
 
 def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
-
-
-@receiver(post_save, sender=User)
-def create_profile(sender, instance, created, **kwargs):
-    """
-    Creates Profile 121 after new User creation.
-    """
-    if created:
-        return Profile.objects.create(user=instance)
-
 
 def getProfileImageBySocialAccount(socialaccount):
     if socialaccount.provider == GitHubProvider.id:
@@ -53,64 +40,6 @@ def getUsernameFromGHSocial(ghSocial):
     except:
         return None
 
-
-@receiver(user_signed_up)
-def on_user_signup(request, user, **kwargs):
-    try:
-        profile = Profile.objects.get(user=user)
-        accs = SocialAccount.objects.filter(user=user)
-        for acc in accs:
-            profile.picture = getProfileImageBySocialAccount(acc)
-            if acc.provider == GitHubProvider.id:
-                profile.githubID = getUsernameFromGHSocial(acc)
-                break
-        profile.save()
-    except:
-        pass
-
-
-@receiver(social_account_removed)
-def social_removed(request, socialaccount, **kwargs):
-    if socialaccount.provider == GitHubProvider.id:
-        profile = Profile.objects.get(user=socialaccount.user)
-        profile.githubID = None
-        profile.save()
-
-
-@receiver(social_account_added)
-def social_added(request, sociallogin, **kwargs):
-    try:
-        data = SocialAccount.objects.get(
-            user=sociallogin.user, provider=GitHubProvider.id)
-        if data:
-            profile = Profile.objects.get(user=sociallogin.user)
-            profile.githubID = getUsernameFromGHSocial(data)
-            profile.save()
-    except:
-        pass
-
-
-@receiver(social_account_updated)
-def social_updated(request, sociallogin, **kwargs):
-    if sociallogin.account.provider == GitHubProvider.id:
-        profile = Profile.objects.get(user=sociallogin.account.user)
-        data = SocialAccount.objects.get(
-            user=sociallogin.account.user, provider=GitHubProvider.id)
-        profile.githubID = getUsernameFromGHSocial(data)
-        profile.save()
-
-
-@receiver(pre_social_login)
-def before_social_login(request, sociallogin, **kwargs):
-    if sociallogin.is_existing:
-        return
-    try:
-        user = User.objects.get(email=sociallogin.user)
-        sociallogin.connect(request, user)
-    except:
-        pass
-
-
 def convertToFLname(string):
     """
     Converts the given string to first and last name format.
@@ -131,12 +60,14 @@ def convertToFLname(string):
         return convertToFLname(fullname)
     return firstname, lastname
 
+
 def filterBio(string):
     bio = str(string)
     if len(bio) > 120:
         bio = bio[:(120-len(bio))]
         return filterBio(bio)
     return bio
+
 
 PROFILE_SECTIONS = [profile.OVERVIEW, profile.PROJECTS,
                     profile.CONTRIBUTION, profile.ACTIVITY, profile.MODERATION]
@@ -199,20 +130,85 @@ def getSettingSectionHTML(user, section, request):
     return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
 
 
-def sendWelcomeMail(email, first_name, last_name):
-    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiYzg0NjFlNGU1NzU2NDdkNGE2ZjA2ZDEyYzUwNmQ4NDYzYTNjM2U5ODcyNDZkN2EyYmQ2MWRhNTY2OGQ5NWQ4YmFjMWNhZmM4MjdiODMxOWMiLCJpYXQiOiIxNjI0MDE1NTQ0LjU2MzQ3MSIsIm5iZiI6IjE2MjQwMTU1NDQuNTYzNDc5IiwiZXhwIjoiMTYyNDYyMDM0NC41NTk3OTEiLCJzdWIiOiI5Nzg0NSIsInNjb3BlcyI6W119.U9889llhKwGqvJyGrk3jo5rlMT5GuMk3CP1TvA28MAgpLQ_LK_XBe4NkXJ-Tvnq6EKYlmP7JjJzso62R1ol92w"
-    url = "https://api.sender.net/v2/subscribers"
-    headers = {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    payload = {
-    "email": email,
-    "firstname": first_name,
-    "lastname": last_name,
-    "groups": ["dL8pBD"],
-    }
+@receiver(post_save, sender=User)
+def on_user_create(sender, instance, created, **kwargs):
+    """
+    Creates Profile 121 after new User creation.
+    Adds user to mailing server.
+    """
+    if created:
+        Profile.objects.create(user=instance)
+        addUserToMailingServer(instance.email,instance.first_name,instance.last_name)
 
-    response = requests.request('POST', url, headers=headers,json=payload)
+@receiver(post_delete, sender=User)
+def on_user_delete(sender, instance, **kwargs):
+    """
+    User cleanup.
+    """
+    removeUserFromMailingServer(instance.email)
 
+@receiver(post_delete, sender=Profile)
+def on_profile_delete(sender, instance, **kwargs):
+    """
+    Profile cleanup.
+    """
+    try:
+        instance.picture.delete(save=False)
+    except: pass
+
+
+@receiver(user_signed_up)
+def on_user_signup(request, user, **kwargs):
+    try:
+        profile = Profile.objects.get(user=user)
+        accs = SocialAccount.objects.filter(user=user)
+        for acc in accs:
+            profile.picture = getProfileImageBySocialAccount(acc)
+            if acc.provider == GitHubProvider.id:
+                profile.githubID = getUsernameFromGHSocial(acc)
+                break
+        profile.save()
+    except:
+        pass
+
+
+@receiver(social_account_removed)
+def social_removed(request, socialaccount, **kwargs):
+    if socialaccount.provider == GitHubProvider.id:
+        profile = Profile.objects.get(user=socialaccount.user)
+        profile.githubID = None
+        profile.save()
+
+
+@receiver(social_account_added)
+def social_added(request, sociallogin, **kwargs):
+    try:
+        data = SocialAccount.objects.get(
+            user=sociallogin.user, provider=GitHubProvider.id)
+        if data:
+            profile = Profile.objects.get(user=sociallogin.user)
+            profile.githubID = getUsernameFromGHSocial(data)
+            profile.save()
+    except:
+        pass
+
+
+@receiver(social_account_updated)
+def social_updated(request, sociallogin, **kwargs):
+    if sociallogin.account.provider == GitHubProvider.id:
+        profile = Profile.objects.get(user=sociallogin.account.user)
+        data = SocialAccount.objects.get(
+            user=sociallogin.account.user, provider=GitHubProvider.id)
+        profile.githubID = getUsernameFromGHSocial(data)
+        profile.save()
+
+
+@receiver(pre_social_login)
+def before_social_login(request, sociallogin, **kwargs):
+    if sociallogin.is_existing:
+        return
+    try:
+        user = User.objects.get(email=sociallogin.user)
+        sociallogin.connect(request, user)
+    except:
+        pass
