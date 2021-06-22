@@ -215,13 +215,4 @@ def sendWelcomeMail(email, first_name, last_name):
     }
 
     response = requests.request('POST', url, headers=headers,json=payload)
-    response.json()
-    print(response)
 
-
-def testDef(request):
-    email = "mkd14198@gmail.com"
-    first = "Madhav"
-    last = "Khandelwal"
-    sendWelcomeMail(email,first,last)
-    return HttpResponse("Mail sent")
