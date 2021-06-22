@@ -1,4 +1,6 @@
 import re
+
+from django.http.response import HttpResponse
 from main.methods import renderView
 from .apps import APPNAME
 from .models import User, Profile, defaultImagePath
@@ -14,7 +16,7 @@ from projects.models import Project
 from .apps import APPNAME
 from main.strings import code, profile
 from django.template.loader import render_to_string
-
+import requests
 
 def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
@@ -195,3 +197,31 @@ def getSettingSectionHTML(user, section, request):
             data = getSettingSectionData(sec, user, request)
             break
     return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
+
+
+def sendWelcomeMail(email, first_name, last_name):
+    token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiYzg0NjFlNGU1NzU2NDdkNGE2ZjA2ZDEyYzUwNmQ4NDYzYTNjM2U5ODcyNDZkN2EyYmQ2MWRhNTY2OGQ5NWQ4YmFjMWNhZmM4MjdiODMxOWMiLCJpYXQiOiIxNjI0MDE1NTQ0LjU2MzQ3MSIsIm5iZiI6IjE2MjQwMTU1NDQuNTYzNDc5IiwiZXhwIjoiMTYyNDYyMDM0NC41NTk3OTEiLCJzdWIiOiI5Nzg0NSIsInNjb3BlcyI6W119.U9889llhKwGqvJyGrk3jo5rlMT5GuMk3CP1TvA28MAgpLQ_LK_XBe4NkXJ-Tvnq6EKYlmP7JjJzso62R1ol92w"
+    url = "https://api.sender.net/v2/subscribers"
+    headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    payload = {
+    "email": email,
+    "firstname": first_name,
+    "lastname": last_name,
+    "groups": ["dL8pBD"],
+    }
+
+    response = requests.request('POST', url, headers=headers,json=payload)
+    response.json()
+    print(response)
+
+
+def testDef(request):
+    email = "mkd14198@gmail.com"
+    first = "Madhav"
+    last = "Khandelwal"
+    sendWelcomeMail(email,first,last)
+    return HttpResponse("Mail sent")
