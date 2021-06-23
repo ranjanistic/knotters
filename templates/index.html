@@ -209,6 +209,17 @@
             
         </div>
         {% endblock %}
+
+        <script>
+            if (navigator.serviceWorker) {
+                 window.addEventListener('load', () => {
+                 navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.log('Service worker registered!', reg))
+                .catch(err => console.log('Service worker not registered', err))
+    })
+}
+        </script>
+        
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script>
