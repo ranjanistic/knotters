@@ -1,20 +1,11 @@
-from django.db import models
 import uuid
+from django.db import models
 from django.contrib.auth.models import PermissionsMixin
-
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 from main.settings import MEDIA_URL
 from .apps import APPNAME
 from main.strings import PROJECTS
-
-
-def profileImagePath(instance, filename):
-    return f"{APPNAME}/{instance.id}/profile/{filename}"
-
-
-def defaultImagePath():
-    return f"/{APPNAME}/default.png"
 
 
 class UserAccountManager(BaseUserManager):
@@ -90,6 +81,14 @@ class Topic(models.Model):
     def __str__(self) -> str:
         return self.name
 
+def profileImagePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/avatars/{instance.id}.{fileparts[len(fileparts)-1]}"
+
+
+def defaultImagePath():
+    return f"{APPNAME}/default.png"
+
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField("User", on_delete=models.CASCADE,related_name='profile')
@@ -100,9 +99,18 @@ class Profile(models.Model):
     bio = models.CharField(max_length=100, blank=True, null=True)
     topics = models.ManyToManyField(Topic,through='Relation',default=[])
     is_verified = models.BooleanField(default=False)
+    suspended = models.BooleanField(default=False)
     
     def __str__(self) -> str:
         return self.user.email
+
+    def save(self, *args, **kwargs):
+        try:
+            previous = Profile.objects.get(id=self.id)
+            if previous.picture != self.picture:
+                previous.picture.delete(False)
+        except: pass
+        super(Profile, self).save(*args, **kwargs)
 
     def getDP(self):
         dp = str(self.picture)

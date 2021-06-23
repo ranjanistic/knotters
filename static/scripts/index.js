@@ -260,7 +260,8 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        window.location.reload();
+                        console.log(e)
+                        alertify.error(`An error occurred. <br/><button class="primary" onclick="window.location.reload();">Reload</button>`)
                     }
                 },
                 () => {}
@@ -279,6 +280,7 @@ const handleCropImageUpload = (
     }
 };
 
+<<<<<<< HEAD
 const dropdown = document.getElementById("dropdown-box");
   const select = document.createElement("select");
 select.className = 'pallete';
@@ -293,3 +295,24 @@ select.className = 'pallete';
       option.value = item;
     select.appendChild(option)
   })
+=======
+const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+    const byteCharacters = atob(b64Data);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+  
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    const blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+}
+>>>>>>> 451690ce901673bbe0f654e2678a2f11c4981722
