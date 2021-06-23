@@ -1,4 +1,4 @@
-from people.models import User
+from people.models import Profile
 from .models import *
 from main.methods import renderView
 from .apps import APPNAME
@@ -17,7 +17,7 @@ def getModerator():
         current = LocalStorage.objects.create(key="moderator", value=0)
         current.save()
 
-    totalModerators = User.objects.filter(is_moderator=True)
+    totalModerators = Profile.objects.filter(is_moderator=True)
     if(totalModerators.count == 0):
         return False
     temp = int(current.value)
@@ -30,15 +30,15 @@ def getModerator():
     return totalModerators[temp-1]
 
 
-def requestModeration(projectID, type, userRequest):
+def requestModeration(object, type, requestData):
     obj = None
     try:
         if(type == PROJECTS):
-            obj = Moderation.objects.get(project_id=projectID)
+            obj = Moderation.objects.get(project=object)
         elif(type == PEOPLE):
-            obj = Moderation.objects.get(user_id=projectID)
+            obj = Moderation.objects.get(profile=object)
         elif(type == COMPETE):
-            obj = Moderation.objects.get(competiton_id=projectID)
+            obj = Moderation.objects.get(competiton=object)
 
         if obj.status == code.REJECTED and obj.retries > 0:
             obj.status = code.MODERATION
@@ -58,12 +58,12 @@ def requestModeration(projectID, type, userRequest):
             return False
         if(type == PROJECTS):
             obj = Moderation.objects.create(
-                project_id=projectID, type=type, moderator=moderator, request=userRequest)
+                project=object, type=type, moderator=moderator, request=requestData)
         elif(type == PEOPLE):
             obj = Moderation.objects.create(
-                user_id=projectID, type=type, moderator=moderator, request=userRequest)
+                profile=object, type=type, moderator=moderator, request=requestData)
         elif(type == COMPETE):
             obj = Moderation.objects.create(
-                competiton_id=projectID, type=type, moderator=moderator, request=userRequest)
+                competiton=object, type=type, moderator=moderator, request=requestData)
         obj.save()
     return True

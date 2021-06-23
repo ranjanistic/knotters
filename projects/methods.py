@@ -1,4 +1,8 @@
-from .models import Project, Tag
+from people.models import User
+from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from .models import Category, Project, Tag
 from main.env import GITHUBBOTTOKEN, PUBNAME
 from github import Github
 from main.methods import renderView
@@ -9,29 +13,45 @@ def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def createProject(name, reponame, description, tags, user):
+def createProject(name:str, category:str, reponame:str, description:str, tags:list, user:User) -> Project or bool:
     """
     Creates project on knotters under moderation.
     """
     try:
         if not uniqueRepoName(reponame):
             return False
+        categoryObj = addCategoryToDatabase(category)
+        if not categoryObj: return False
         project = Project.objects.create(
-            creator=user, name=name, reponame=reponame, description=description)
-        print(project)
-        print(tags)
+            creator=user, name=name, reponame=reponame, description=description,category=categoryObj)
         for tag in tags:
-            tag = str(tag).strip().replace(" ", "_")
-            if uniqueTag(tag):
-                tagobj = Tag.objects.create(name=tag)
-            else:
-                tagobj = Tag.objects.get(name=tag)
-            project.tags.add(tagobj)
+            tagobj = addTagToDatabase(tag)
+            if tagobj: 
+                project.tags.add(tagobj)
+                categoryObj.tags.add(tagobj)
         return project
     except Exception as e:
         print(e)
         return False
 
+def addCategoryToDatabase(category:str) -> Category or bool:
+    category = str(category).strip().replace('\n','')
+    if not category: return False
+    try:
+        categoryObj = Category.objects.get(name=category)
+    except:
+        categoryObj = Category.objects.create(name=category)
+    return categoryObj
+
+def addTagToDatabase(tag:str) -> Tag or bool:
+    tag = str(tag).strip().replace('\n','')
+    if not tag: return False
+    tag = tag.replace(" ", "_")
+    if uniqueTag(tag):
+        tagobj = Tag.objects.create(name=tag)
+    else:
+        tagobj = Tag.objects.get(name=tag)
+    return tagobj
 
 def uniqueRepoName(reponame):
     """
@@ -50,7 +70,7 @@ def uniqueTag(tagname):
     """
     try:
         Tag.objects.get(name=tagname)
-    except:
+    except Exception as e:
         return True
     return False
 
@@ -78,7 +98,7 @@ def setupNewProject(project, moderator) -> bool:
             return False
 
         return True
-    except:
+    except Exception as e:
         return False
 
 
@@ -129,7 +149,7 @@ def setupOrgGihtubRepository(reponame, creator, moderator, description):
             collaborator=creator.profile.githubID, permission="push")
 
         return True
-    except:
+    except Exception as e:
         return False
 
 
@@ -139,7 +159,7 @@ def inviteMemberToGithubOrg(ghOrg, ghUser):
         if not already:
             ghOrg.invite_user(user=ghUser, role="direct_member")
         return True
-    except:
+    except Exception as e:
         return False
 
 
@@ -148,3 +168,12 @@ def setupProjectDiscordChannel(reponame, creator, moderator):
     Creates discord chat channel for corresponding project.
     """
     return True
+
+@receiver(post_delete, sender=Project)
+def on_project_delete(sender, instance, **kwargs):
+    """
+    Project cleanup.
+    """
+    try:
+        instance.image.delete(save=False)
+    except Exception as e: pass

@@ -8,14 +8,14 @@ class Moderation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(
         f"{PROJECTS}.Project", on_delete=models.CASCADE, blank=True)
-    user = models.ForeignKey(f"{PEOPLE}.User", blank=True,
-                             on_delete=models.CASCADE, related_name="moderation4user")
+    profile = models.ForeignKey(f"{PEOPLE}.Profile", blank=True,
+                             on_delete=models.CASCADE, related_name="profile")
     competition = models.ForeignKey(
         f"{COMPETE}.Competition", blank=True, on_delete=models.CASCADE)
     type = models.CharField(choices=[(PROJECTS, PROJECTS.capitalize()), (PEOPLE, PEOPLE.capitalize(
     )), (COMPETE, COMPETE.capitalize())], max_length=maxLengthInList(DIVISIONS))
     moderator = models.ForeignKey(
-        f"{PEOPLE}.User", on_delete=models.CASCADE, related_name="moderator")
+        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="moderator")
     request = models.CharField(max_length=100000)
     response = models.CharField(max_length=100000, blank=True)
     status = models.CharField(choices=([code.MODERATION, code.MODERATION.capitalize()], [code.APPROVED, code.APPROVED.capitalize()], [
@@ -25,7 +25,7 @@ class Moderation(models.Model):
     respondOn = models.DateTimeField(auto_now=False)
     
     def __str__(self):
-        return f"{self.project.name} by {self.moderator.getName}"
+        return self.project.name
 
     def approve(self, response):
         self.status = code.APPROVED

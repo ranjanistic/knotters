@@ -102,13 +102,14 @@ def submitProject(request):
     try:
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
+        category = request.POST["projectcategory"]
         reponame = request.POST["reponame"]
         userRequest = request.POST["description"]
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
             return HttpResponse(f'{reponame} already exists')
         projectobj = createProject(
-            name, reponame, description, tags, request.user)
+            name, category, reponame, description, tags, request.user)
         if not projectobj:
             raise Exception()
         try:
@@ -119,7 +120,7 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        mod = requestModeration(projectobj.id, APPNAME, userRequest)
+        mod = requestModeration(projectobj, APPNAME, userRequest)
         print(mod)
         if not mod:
             return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 2.")

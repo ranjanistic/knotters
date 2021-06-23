@@ -8,7 +8,8 @@ from main.settings import MEDIA_URL
 from .apps import APPNAME
 
 def projectImagePath(instance, filename):
-    return f'{APPNAME}/{instance.id}/{filename}'
+    fileparts = filename.split('.')
+    return f"{APPNAME}/avatars/{instance.id}.{fileparts[len(fileparts)-1]}"
 
 def defaultImagePath():
     return f'/{APPNAME}/default.png'
@@ -34,8 +35,8 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50, null=False, blank=False)
     url = models.CharField(max_length=500, null=True, blank=True)
-    image = models.FileField(upload_to=projectImagePath,
-                             max_length=500, default=defaultImagePath)
+    image = models.ImageField(upload_to=projectImagePath,
+                             max_length=500, default=defaultImagePath,null=True,blank=True)
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
     description = models.CharField(max_length=5000, null=False, blank=False)
@@ -50,6 +51,14 @@ class Project(models.Model):
     def __str__(self):
         return self.name
     
+    def save(self, *args, **kwargs):
+        try:
+            previous = Project.objects.get(id=self.id)
+            if previous.image != self.image:
+                previous.image.delete(False)
+        except: pass
+        super(Project, self).save(*args, **kwargs)
+
     def getLink(self, success='', error=''):
         if error:
             error = f"?e={error}"
