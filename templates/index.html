@@ -83,7 +83,7 @@
                     {% block nav_auth %}
                         {% if user.is_authenticated %}
                             {% block nav_auth_links %}{% endblock %}
-                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" class="primary w3-circle" width="25" /><span class="w3-hide-small">&nbsp;{{user.first_name|capfirst}}</span></button></a>{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" width="25" height="25" style="border-radius: 50%;" /><span class="w3-hide-small">&nbsp;{{user.first_name|capfirst}}</span></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
@@ -98,6 +98,7 @@
             {% endblock %}
         </nav>
         {% endblock %}
+        <div style="min-height: 50vh;">
         {% block content %}
         <div class="w3-row">
             {% if alert %}
@@ -165,6 +166,7 @@
             </div>
         </div>
         {% endblock %}
+    </div>
         
         {% block footer %}
         <footer class="w3-row secondary w3-padding">

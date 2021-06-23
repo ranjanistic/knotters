@@ -278,3 +278,18 @@ const handleCropImageUpload = (
         reader.readAsDataURL(file);
     }
 };
+
+const dropdown = document.getElementById("dropdown-box");
+  const select = document.createElement("select");
+select.className = 'pallete';
+
+  var values = ["hello" ,"good"];
+
+  dropdown.appendChild(select);
+
+  values.forEach(item => {
+    const option = document.createElement("option");
+      option.text = item;
+      option.value = item;
+    select.appendChild(option)
+  })
