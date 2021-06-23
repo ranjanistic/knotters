@@ -192,7 +192,7 @@ const getRequest = async (url) => {
     }
 };
 
-const loadGlobalEditors = (onSave = (_) => {}, onDiscard) => {
+const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
     getElements("edit-action").forEach((edit) => {
         const target = edit.getAttribute("data-edittarget"),
             viewer = getElement(`view-${target}`),
