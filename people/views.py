@@ -1,8 +1,8 @@
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
+from allauth.account.decorators import verified_email_required, login_required
 from django.views.decorators.http import require_GET, require_POST
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML
-from django.contrib.auth.decorators import login_required
 from .models import User, Profile
 from main.methods import base64ToImageFile
 from .methods import convertToFLname, filterBio
@@ -63,7 +63,7 @@ def settingTab(request, section):
 
 
 @require_POST
-@login_required
+@verified_email_required
 def editProfile(request, section):
     try:
         profile = Profile.objects.get(user=request.user)

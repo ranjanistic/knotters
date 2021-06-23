@@ -6,6 +6,9 @@ from projects.models import Project
 from compete.models import Competition
 from .strings import code, PROJECTS, COMPETE, PEOPLE
 
+@require_GET
+def offline(request):
+    return renderView(request, 'offline')
 
 @require_GET
 def index(request):
