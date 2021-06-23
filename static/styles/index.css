@@ -421,3 +421,10 @@ button.small {
     outline: none;
     background: url(../graphics/self/icon1000.png) 96% / 15% no-repeat
 }
+
+#navbarprofilepic{
+    width: 1.6rem;
+    padding: 0.1rem 0;
+    border-radius: 50%;
+}
+
