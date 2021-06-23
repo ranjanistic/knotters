@@ -280,22 +280,6 @@ const handleCropImageUpload = (
     }
 };
 
-<<<<<<< HEAD
-const dropdown = document.getElementById("dropdown-box");
-  const select = document.createElement("select");
-select.className = 'pallete';
-
-  var values = ["hello" ,"good"];
-
-  dropdown.appendChild(select);
-
-  values.forEach(item => {
-    const option = document.createElement("option");
-      option.text = item;
-      option.value = item;
-    select.appendChild(option)
-  })
-=======
 const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
     const byteCharacters = atob(b64Data);
     const byteArrays = [];
@@ -315,4 +299,18 @@ const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
     const blob = new Blob(byteArrays, {type: contentType});
     return blob;
 }
->>>>>>> 451690ce901673bbe0f654e2678a2f11c4981722
+
+const dropdown = document.getElementById("dropdown-box");
+const select = document.createElement("select");
+select.className = 'pallete';
+
+var values = ["hello", "bye"];
+
+dropdown.append(select);
+
+values.forEach(item => {
+    const option = document.createElement("option");
+    option.text = item;
+    option.value = item;
+    select.append(option)
+})
