@@ -1,0 +1,14 @@
+{% load i18n %}
+{% autoescape off %}
+    
+    {% block greeting %}Hello!{% endblock %}
+
+    {% block content %}{% endblock %}
+
+    {% blocktrans with site_name=current_site.name site_domain=current_site.domain %}
+        This email is authentic & sent from {{ site_domain }}
+
+        Regards,
+        {{ site_name }}
+    {% endblocktrans %}
+{% endautoescape %}

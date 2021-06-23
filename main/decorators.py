@@ -14,3 +14,4 @@ def require_JSON_body(function):
         raise HttpResponseNotAllowed()
 
   return wrap
+

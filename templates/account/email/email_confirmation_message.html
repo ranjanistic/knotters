@@ -1,0 +1,20 @@
+{% extends 'account/email/base_message.html' %}
+{% load account %}
+{% load i18n %}
+
+{% user_display user as user_display %}
+{% block greeting %}Hello {{user_display.first_name}}{% endblock %}
+
+{% block content %}
+    {% autoescape off %}
+        {% blocktrans with site_name=current_site.name site_domain=current_site.domain %}
+        You're receiving this e-mail because your email address {{ user_display }} was provided to register an account on {{ site_domain }}.
+
+        If you've registered yourself and you expected this email, click the following link to confirm.
+        {{ activate_url }}
+
+        Do not click the above link if this activity is unfamiliar.
+
+        {% endblocktrans %}
+    {% endautoescape %}
+{% endblock %}

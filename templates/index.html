@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load l10n %}
 {% load socialaccount %}
 {% load account %}
 <!DOCTYPE html>
@@ -58,7 +59,6 @@
         <link rel="stylesheet" href="{% static 'styles/scrollbar.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
-
         {% block stylesheets %}{% endblock %}
         <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
@@ -98,75 +98,76 @@
             {% endblock %}
         </nav>
         {% endblock %}
-        <div style="min-height: 50vh;">
-        {% block content %}
-        <div class="w3-row">
-            {% if alert %}
-            <div class="w3-row positive w3-center w3-padding">
-            <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
-            </div>
-            {% endif %}
-            <div class="w3-row w3-center w3-padding">
-                <h1>Solving problems together.</h1>
-            </div>
-            <div class="w3-row w3-center w3-padding tertiary">
-                <br/>
-                <h3>Active projects of this month</h3>
-                <br/>
-                {% for project in projects %}
-                <div class="w3-col w3-third w3-padding-small">
-                <a href="/{{SUBAPPS.projects}}/profile/{{project.reponame}}">
-                <div class="pallete primary">
-                    <div class="w3-row">
-                        <img src="/media/{{project.image}}" width="150" />
-                    </div>
-                    <h2>{{project.name}}</h2>
-                    <span>{{project.description}}</span>
-                </div>
-                </a>
-                </div>
-                {% empty %}
-                <div class="w3-row w3-center">
-                <h2>Waiting for projects.</h2>
-                </div>
-                {% endfor %}
-                <div class="w3-row">
-                    <br/>
-                    <a href="/{{SUBAPPS.projects}}"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
-                </div>
-                <br/>
-            </div>
 
-            <div class="w3-row w3-center w3-padding accent">
-                <br/>
-                <h3 class="text-accent">Top contributors of this month</h3>
-                <br/>
-                {% for person in topcontributors %}
-                <div class="w3-col w3-third w3-padding-small">
-                <a href="/projects/profile/{{project.reponame}}">
-                <div class="pallete primary">
-                    <div class="w3-row">
-                        <img src="/media/{{person.image}}" width="150" />
-                    </div>
-                    <h2>{{person.name}}</h2>
-                    <span>{{person.description}}</span>
+        <div style="min-height: 50vh;">
+            {% block content %}
+            <div class="w3-row">
+                {% if alert %}
+                <div class="w3-row positive w3-center w3-padding">
+                <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
                 </div>
-                </a>
+                {% endif %}
+                <div class="w3-row w3-center w3-padding">
+                    <h1>Solving problems together.</h1>
                 </div>
-                {% empty %}
-                <div class="w3-row w3-center">
-                <h2 class="text-accent">Waiting for contributors.</h2>
-                </div>
-                {% endfor %}
-                <div class="w3-row">
+                <div class="w3-row w3-center w3-padding tertiary">
                     <br/>
-                    <a href="/{{SUBAPPS.people}}"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
+                    <h3>Active projects of this month</h3>
+                    <br/>
+                    {% for project in projects %}
+                    <div class="w3-col w3-third w3-padding-small">
+                    <a href="/{{SUBAPPS.projects}}/profile/{{project.reponame}}">
+                    <div class="pallete primary">
+                        <div class="w3-row">
+                            <img src="/media/{{project.image}}" width="150" />
+                        </div>
+                        <h2>{{project.name}}</h2>
+                        <span>{{project.description}}</span>
+                    </div>
+                    </a>
+                    </div>
+                    {% empty %}
+                    <div class="w3-row w3-center">
+                    <h2>Waiting for projects.</h2>
+                    </div>
+                    {% endfor %}
+                    <div class="w3-row">
+                        <br/>
+                        <a href="/{{SUBAPPS.projects}}"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
+                    </div>
+                    <br/>
                 </div>
-                <br/>
+
+                <div class="w3-row w3-center w3-padding accent">
+                    <br/>
+                    <h3 class="text-accent">Top contributors of this month</h3>
+                    <br/>
+                    {% for person in topcontributors %}
+                    <div class="w3-col w3-third w3-padding-small">
+                    <a href="/projects/profile/{{project.reponame}}">
+                    <div class="pallete primary">
+                        <div class="w3-row">
+                            <img src="/media/{{person.image}}" width="150" />
+                        </div>
+                        <h2>{{person.name}}</h2>
+                        <span>{{person.description}}</span>
+                    </div>
+                    </a>
+                    </div>
+                    {% empty %}
+                    <div class="w3-row w3-center">
+                    <h2 class="text-accent">Waiting for contributors.</h2>
+                    </div>
+                    {% endfor %}
+                    <div class="w3-row">
+                        <br/>
+                        <a href="/{{SUBAPPS.people}}"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
+                    </div>
+                    <br/>
+                </div>
             </div>
+            {% endblock %}
         </div>
-        {% endblock %}
-    </div>
         
         {% block footer %}
         <footer class="w3-row secondary w3-padding">
@@ -205,20 +206,8 @@
         </footer>
         {% endblock %}
         {% block loadview %}
-        <div class="view-loader" id="viewloader">
-            
-        </div>
+        <div class="view-loader" id="viewloader"></div>
         {% endblock %}
-
-        <script>
-            if (navigator.serviceWorker) {
-                 window.addEventListener('load', () => {
-                 navigator.serviceWorker.register('/static/service-worker.js')
-                .then(reg => console.log('Service worker registered!', reg))
-                .catch(err => console.log('Service worker not registered', err))
-    })
-}
-        </script>
         
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
@@ -227,7 +216,6 @@
             const ROOT = "{{ROOT}}";
             const dialog = alertify;
             dialog.set('notifier','position','top-left')
-            {% comment %} if("{{request.GET.s}}") dialog.success("{{request.GET.s}}"); {% endcomment %}
             if("{{request.GET.e}}") dialog.error("{{request.GET.e}}");
         </script>
         <script src="{% static 'scripts/index.js' %}"></script>

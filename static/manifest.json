@@ -2,7 +2,7 @@
     "short_name": "Knotters",
     "name": "Knotters",
     "description": "Solving problems together",
-    "start_url": "/static/",
+    "start_url": "/",
     "display": "standalone",
     "theme_color": "#ffffff",
     "background_color": "#ffffff",

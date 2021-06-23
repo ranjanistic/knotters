@@ -1,5 +1,14 @@
 "use strict";
 
+if (navigator.serviceWorker) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((reg) => console.log("Service worker registered!", reg))
+            .catch((err) => console.log("Service worker not registered", err));
+    });
+}
+
 const getElement = (id) => document.getElementById(id);
 
 const getElements = (classname) =>
@@ -260,8 +269,10 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        console.log(e)
-                        alertify.error(`An error occurred. <br/><button class="primary" onclick="window.location.reload();">Reload</button>`)
+                        console.log(e);
+                        alertify.error(
+                            `An error occurred. <br/><button class="primary" onclick="window.location.reload();">Reload</button>`
+                        );
                     }
                 },
                 () => {}
@@ -280,37 +291,37 @@ const handleCropImageUpload = (
     }
 };
 
-const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     const byteCharacters = atob(b64Data);
     const byteArrays = [];
-  
+
     for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-      const slice = byteCharacters.slice(offset, offset + sliceSize);
-  
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-  
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
     }
-  
-    const blob = new Blob(byteArrays, {type: contentType});
+
+    const blob = new Blob(byteArrays, { type: contentType });
     return blob;
-}
+};
 
 const dropdown = document.getElementById("dropdown-box");
 const select = document.createElement("select");
-select.className = 'pallete';
+select.className = "pallete";
 
 var values = ["hello", "bye"];
 
 dropdown.append(select);
 
-values.forEach(item => {
+values.forEach((item) => {
     const option = document.createElement("option");
     option.text = item;
     option.value = item;
-    select.append(option)
-})
+    select.append(option);
+});
