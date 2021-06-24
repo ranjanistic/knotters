@@ -7,8 +7,8 @@ from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
 from main.strings import code, MODERATION
 from moderation.methods import requestModeration
-from .models import *
-from .methods import *
+from .models import Project, Tag, Category
+from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 
 
@@ -121,13 +121,12 @@ def submitProject(request):
         except:
             pass
         mod = requestModeration(projectobj, APPNAME, userRequest)
-        print(mod)
         if not mod:
-            return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 2.")
-        return redirect(projectobj.getLink(success="Your project has been submitted for moderation."))
+            return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
+        return redirect(projectobj.getLink())
     except Exception as e:
         print(e)
-        return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 1.")
+        return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
 
 
 @require_POST
