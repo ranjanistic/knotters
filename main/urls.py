@@ -25,4 +25,6 @@ urlpatterns = [
     path(url.DOCTYPE, docs),
     path(url.LANDINGS, landing),
     path(url.LANDING, landing),
+    path(url.LANDING, landing),
+    path('email/<str:template>', mailtemplate)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
