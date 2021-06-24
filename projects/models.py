@@ -12,7 +12,7 @@ def projectImagePath(instance, filename):
     return f"{APPNAME}/avatars/{instance.id}.{fileparts[len(fileparts)-1]}"
 
 def defaultImagePath():
-    return f'/{APPNAME}/default.png'
+    return f'{APPNAME}/default.png'
 
 
 class Tag(models.Model):
@@ -45,7 +45,7 @@ class Project(models.Model):
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     approvedOn = models.DateTimeField(auto_now=False, blank=True,null=True)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
-    creator = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.PROTECT)
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
 
     def __str__(self):

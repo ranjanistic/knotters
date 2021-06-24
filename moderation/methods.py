@@ -1,4 +1,6 @@
 from people.models import Profile
+from projects.models import Project
+from django.db.models import Q
 from .models import *
 from main.methods import renderView
 from .apps import APPNAME
@@ -10,14 +12,18 @@ def renderer(request, file, data={}):
 
 
 # implemented round robin algorithm
-def getModerator():
+def getModerator(type: str, obj: models.Model) -> Profile:
     try:
         current = LocalStorage.objects.get(key="moderator")
     except:
         current = LocalStorage.objects.create(key="moderator", value=0)
         current.save()
-
-    totalModerators = Profile.objects.filter(is_moderator=True)
+    if type == PROJECTS:
+        totalModerators = Profile.objects.filter(~Q(id=obj.creator.id),is_moderator=True)
+    elif type == PEOPLE:
+        totalModerators = Profile.objects.filter(~Q(id=obj.id),is_moderator=True)
+    else: 
+        totalModerators = Profile.objects.filter(is_moderator=True)
     if(totalModerators.count == 0):
         return False
     temp = int(current.value)
@@ -30,14 +36,14 @@ def getModerator():
     return totalModerators[temp-1]
 
 
-def requestModeration(object, type, requestData):
+def requestModeration(object: models.Model, type: str, requestData: str) -> bool:
     obj = None
     try:
-        if(type == PROJECTS):
+        if type == PROJECTS:
             obj = Moderation.objects.get(project=object)
-        elif(type == PEOPLE):
+        elif type == PEOPLE:
             obj = Moderation.objects.get(profile=object)
-        elif(type == COMPETE):
+        elif type == COMPETE:
             obj = Moderation.objects.get(competiton=object)
 
         if obj.status == code.REJECTED and obj.retries > 0:
@@ -47,22 +53,22 @@ def requestModeration(object, type, requestData):
             if type == PROJECTS:
                 obj.project.status = code.MODERATION
                 obj.project.save()
-                
+
             obj.save()
             return True
-        
+
         return False
     except:
-        moderator = getModerator()
+        moderator = getModerator(type, obj)
         if not moderator:
             return False
-        if(type == PROJECTS):
+        if type == PROJECTS:
             obj = Moderation.objects.create(
                 project=object, type=type, moderator=moderator, request=requestData)
-        elif(type == PEOPLE):
+        elif type == PEOPLE:
             obj = Moderation.objects.create(
                 profile=object, type=type, moderator=moderator, request=requestData)
-        elif(type == COMPETE):
+        elif type == COMPETE:
             obj = Moderation.objects.create(
                 competiton=object, type=type, moderator=moderator, request=requestData)
         obj.save()

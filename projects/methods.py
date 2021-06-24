@@ -1,4 +1,4 @@
-from people.models import Profile, User
+from people.models import Profile
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from .models import Category, Project, Tag
@@ -13,7 +13,7 @@ def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def createProject(name:str, category:str, reponame:str, description:str, tags:list, user:User) -> Project or bool:
+def createProject(name:str, category:str, reponame:str, description:str, tags:list, profile:Profile) -> Project or bool:
     """
     Creates project on knotters under moderation.
     """
@@ -23,10 +23,10 @@ def createProject(name:str, category:str, reponame:str, description:str, tags:li
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj: return False
         project = Project.objects.create(
-            creator=user, name=name, reponame=reponame, description=description,category=categoryObj)
+            creator=profile, name=name, reponame=reponame, description=description,category=categoryObj)
         for tag in tags:
             tagobj = addTagToDatabase(tag)
-            if tagobj: 
+            if tagobj:
                 project.tags.add(tagobj)
                 categoryObj.tags.add(tagobj)
         return project

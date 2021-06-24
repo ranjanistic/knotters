@@ -1,3 +1,4 @@
+from django.http.request import HttpRequest
 from allauth.account.signals import user_signed_up
 from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
 from allauth.socialaccount.models import SocialAccount
@@ -18,7 +19,8 @@ from .apps import APPNAME
 def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
-def getProfileImageBySocialAccount(socialaccount):
+
+def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
     if socialaccount.provider == GitHubProvider.id:
         return socialaccount.extra_data['avatar_url']
     if socialaccount.provider == GoogleProvider.id:
@@ -32,7 +34,7 @@ def getProfileImageBySocialAccount(socialaccount):
     return defaultImagePath()
 
 
-def getUsernameFromGHSocial(ghSocial):
+def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
     url = ghSocial.get_profile_url()
     try:
         urlparts = str(url).split('/')
@@ -40,7 +42,8 @@ def getUsernameFromGHSocial(ghSocial):
     except:
         return None
 
-def convertToFLname(string):
+
+def convertToFLname(string: str) -> str and str:
     """
     Converts the given string to first and last name format.
 
@@ -61,7 +64,7 @@ def convertToFLname(string):
     return firstname, lastname
 
 
-def filterBio(string):
+def filterBio(string: str) -> str:
     bio = str(string)
     if len(bio) > 120:
         bio = bio[:(120-len(bio))]
@@ -75,7 +78,7 @@ PROFILE_SECTIONS = [profile.OVERVIEW, profile.PROJECTS,
 SETTING_SECTIONS = [profile.setting.ACCOUNT, profile.setting.PREFERENCE]
 
 
-def getProfileSectionData(section, user, request):
+def getProfileSectionData(section: str, user: User, request: HttpRequest) -> dict:
     data = {
         'self': request.user == user
     }
@@ -99,7 +102,7 @@ def getProfileSectionData(section, user, request):
     return data
 
 
-def getProfileSectionHTML(user, section, request):
+def getProfileSectionHTML(user: User, section: str, request: HttpRequest) -> str:
     if not PROFILE_SECTIONS.__contains__(section):
         return False
     data = {}
@@ -110,7 +113,7 @@ def getProfileSectionHTML(user, section, request):
     return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
 
 
-def getSettingSectionData(section, user, request):
+def getSettingSectionData(section: str, user: User, request: HttpRequest) -> dict:
     data = {}
     if section == profile.setting.ACCOUNT:
         pass
@@ -119,7 +122,7 @@ def getSettingSectionData(section, user, request):
     return data
 
 
-def getSettingSectionHTML(user, section, request):
+def getSettingSectionHTML(section: str, user: User, request: HttpRequest) -> dict:
     if not SETTING_SECTIONS.__contains__(section) or request.user != user:
         return False
     data = {}
@@ -138,7 +141,9 @@ def on_user_create(sender, instance, created, **kwargs):
     """
     if created:
         Profile.objects.create(user=instance)
-        addUserToMailingServer(instance.email,instance.first_name,instance.last_name)
+        addUserToMailingServer(
+            instance.email, instance.first_name, instance.last_name)
+
 
 @receiver(post_delete, sender=User)
 def on_user_delete(sender, instance, **kwargs):
@@ -147,6 +152,7 @@ def on_user_delete(sender, instance, **kwargs):
     """
     removeUserFromMailingServer(instance.email)
 
+
 @receiver(post_delete, sender=Profile)
 def on_profile_delete(sender, instance, **kwargs):
     """
@@ -154,7 +160,8 @@ def on_profile_delete(sender, instance, **kwargs):
     """
     try:
         instance.picture.delete(save=False)
-    except: pass
+    except:
+        pass
 
 
 @receiver(user_signed_up)

@@ -24,7 +24,7 @@ def profile(request, reponame):
         project = Project.objects.get(reponame=reponame)
         if project.status == code.LIVE:
             return renderer(request, 'profile', {"project": project})
-        if request.user.is_authenticated and project.creator == request.user:
+        if request.user.is_authenticated and project.creator == request.user.profile:
             if project.status == code.REJECTED:
                 return redirect(f'/{MODERATION}/{APPNAME}/{project.id}')
             if project.status == code.MODERATION:
@@ -39,7 +39,8 @@ def profile(request, reponame):
 def editProfile(request, projectID, section):
     try:
         changed = False
-        project = Project.objects.get(id=projectID,creator=request.user)
+        project = Project.objects.get(
+            id=projectID, creator=request.user.profile)
         if section == 'pallete':
             try:
                 base64Data = str(request.POST['projectimage'])
@@ -60,9 +61,9 @@ def editProfile(request, projectID, section):
                     changed = True
                 if changed:
                     project.save()
-                return redirect(project.getLink(success=f"Pallete updated"), permanent=True)
+                return redirect(project.getLink(), permanent=True)
             except:
-                return redirect(project.getLink(error=f"Problem occurred."))
+                return redirect(project.getLink(error=f"Problem occurred."), permanent=True)
     except:
         raise HttpResponseForbidden()
 
@@ -108,8 +109,8 @@ def submitProject(request):
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
             return HttpResponse(f'{reponame} already exists')
-        projectobj = createProject(
-            name, category, reponame, description, tags, request.user)
+        projectobj = createProject(profile=request.user.profile, name=name,
+                                   category=category, reponame=reponame, description=description, tags=tags)
         if not projectobj:
             raise Exception()
         try:
