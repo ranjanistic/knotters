@@ -98,6 +98,7 @@ const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 const initializeTabsView = (
     onEachTab = async (tabID) => {},
     uniqueID,
+    onShowTab = async (tabID) => {},
     tabsClass = "nav-tab",
     activeTabClass = "positive",
     inactiveTabClass = "primary",
@@ -117,9 +118,10 @@ const initializeTabsView = (
         getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
     };
 
-    const showTabContent = (content) => {
+    const showTabContent = (tabID,content) => {
         tabview.innerHTML = content;
         loadGlobalEditors();
+        onShowTab(tabID)
     };
 
     tabs.forEach(async (tab, t) => {
@@ -147,7 +149,7 @@ const initializeTabsView = (
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response ? showTabContent(response) : showTabError(t);
+            return response ? showTabContent(tab.id,response) : showTabError(t);
         };
     });
     try {
@@ -311,17 +313,17 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     return blob;
 };
 
-const dropdown = document.getElementById("dropdown-box");
-const select = document.createElement("select");
-select.className = "pallete";
+// const dropdown = document.getElementById("dropdown-box");
+// const select = document.createElement("select");
+// select.className = "pallete";
 
-var values = ["hello", "bye"];
+// var values = ["hello", "bye"];
 
-dropdown.append(select);
+// dropdown.append(select);
 
-values.forEach((item) => {
-    const option = document.createElement("option");
-    option.text = item;
-    option.value = item;
-    select.append(option);
-});
+// values.forEach((item) => {
+//     const option = document.createElement("option");
+//     option.text = item;
+//     option.value = item;
+//     select.append(option);
+// });

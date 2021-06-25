@@ -40,7 +40,7 @@ def profileTab(request, userID, section):
             user = request.user
         else:
             user = User.objects.get(id=userID)
-        data = getProfileSectionHTML(user, section, request)
+        data = getProfileSectionHTML(user.profile, section, request)
         if data:
             return HttpResponse(data)
         else:
@@ -58,7 +58,7 @@ def settingTab(request, section):
             return HttpResponse(data)
         else:
             raise Http404()
-    except:
+    except Exception as e:
         raise Http404()
 
 

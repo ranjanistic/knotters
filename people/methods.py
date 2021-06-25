@@ -9,7 +9,7 @@ from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from django.template.loader import render_to_string
 from main.methods import renderView
-from main.strings import code, profile
+from main.strings import code, profile as profileString 
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
 from .models import User, Profile, defaultImagePath
@@ -72,60 +72,62 @@ def filterBio(string: str) -> str:
     return bio
 
 
-PROFILE_SECTIONS = [profile.OVERVIEW, profile.PROJECTS,
-                    profile.CONTRIBUTION, profile.ACTIVITY, profile.MODERATION]
+PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
+                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION]
 
-SETTING_SECTIONS = [profile.setting.ACCOUNT, profile.setting.PREFERENCE]
+SETTING_SECTIONS = [profileString.setting.ACCOUNT, profileString.setting.PREFERENCE]
 
 
-def getProfileSectionData(section: str, user: User, request: HttpRequest) -> dict:
+def getProfileSectionData(section: str, profile: Profile, request: HttpRequest) -> dict:
     data = {
-        'self': request.user == user
+        'self': request.user == profile.user,
+        'person': profile.user
     }
-    if section == profile.OVERVIEW:
+    if section == profileString.OVERVIEW:
         pass
-    if section == profile.PROJECTS:
-        if request.user == user:
-            projects = Project.objects.filter(creator=user)
+    if section == profileString.PROJECTS:
+        if request.user == profile.user:
+            projects = Project.objects.filter(creator=profile)
         else:
-            projects = Project.objects.filter(creator=user, status=code.LIVE)
+            projects = Project.objects.filter(creator=profile, status=code.LIVE)
         data[code.LIVE] = projects.filter(status=code.LIVE)
         data[code.MODERATION] = projects.filter(status=code.MODERATION)
         data[code.REJECTED] = projects.filter(status=code.REJECTED)
         pass
-    if section == profile.CONTRIBUTION:
+    if section == profileString.CONTRIBUTION:
         pass
-    if section == profile.ACTIVITY:
+    if section == profileString.ACTIVITY:
         pass
-    if section == profile.MODERATION:
+    if section == profileString.MODERATION:
         pass
     return data
 
 
-def getProfileSectionHTML(user: User, section: str, request: HttpRequest) -> str:
+def getProfileSectionHTML(profile: Profile, section: str, request: HttpRequest) -> str:
     if not PROFILE_SECTIONS.__contains__(section):
         return False
     data = {}
     for sec in PROFILE_SECTIONS:
         if sec == section:
-            data = getProfileSectionData(sec, user, request)
+            data = getProfileSectionData(sec, profile, request)
             break
     return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
 
 
 def getSettingSectionData(section: str, user: User, request: HttpRequest) -> dict:
     data = {}
-    if section == profile.setting.ACCOUNT:
+    if section == profileString.setting.ACCOUNT:
         pass
-    if section == profile.setting.PREFERENCE:
+    if section == profileString.setting.PREFERENCE:
         pass
     return data
 
 
-def getSettingSectionHTML(section: str, user: User, request: HttpRequest) -> dict:
+def getSettingSectionHTML(user: User,section: str, request: HttpRequest) -> dict:
     if not SETTING_SECTIONS.__contains__(section) or request.user != user:
         return False
     data = {}
+    print("ssup")
     for sec in SETTING_SECTIONS:
         if sec == section:
             data = getSettingSectionData(sec, user, request)

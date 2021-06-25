@@ -1,0 +1,43 @@
+{% extends 'index.html' %}
+
+{% block content %}
+{% if SUBAPPNAME == SUBAPPS.compete %}
+
+    {% if declined %}
+    You have declined this invitation for participation with
+    {% for member in submission.getMembers %}
+    <a href="{{member.getLink}}">{{member.user.getName}}</a><br/>
+    {% endfor %}
+    in the competition <a href="{{submission.competition.getLink}}">{{submission.competition.title}}</a>.
+    <br/>
+    <a href="{{ROOT}}"><button type="submit" class="accent">Acknowledged</button></a>
+
+    {% elif accepted %}
+    You have accepted this invitation for participation with
+    {% for member in submission.getMembers %}
+    <a href="{{member.getLink}}">{{member.user.getName}}</a><br/>
+    {% endfor %}
+    in the competition <a href="{{submission.competition.getLink}}">{{submission.competition.title}}</a>.
+    <br/>
+    <a href="{{submission.competition.getLink}}"><button type="submit" class="positive">Let's go!</button></a>
+    
+    {% else %}
+    You have been invited to participate in the competition 
+    <a href="{{submission.competition.getLink}}">{{submission.competition.title}}</a> together with<br/>
+
+    {% for member in submission.getMembers %}
+    <a href="{{member.getLink}}">{{member.user.getName}}</a><br/>
+    {% endfor %}
+
+    on the team.
+
+    <form method="GET" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/accept">
+    <button type="submit" class="positive">Accept Invitation</button>
+    </form>
+    <form method="GET" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/decline">
+    <button type="submit" class="negative">Decline Politely</button>
+    </form>
+
+    {% endif %}
+{% endif %}
+{% endblock %}

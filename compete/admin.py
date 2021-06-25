@@ -1,12 +1,12 @@
-from compete.models import Competition, Submission,Result
+from compete.models import Competition, Submission,Result, Relation
 from django.contrib import admin
+
 
 
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
-    list_display = ["title","tagline","active"]
-    list_filter = ["active"]
+    list_display = ["title","tagline", "banner"]
     def get_queryset(self,request):
         return super(CompetitionAdmin,self).get_queryset(request)
     class Meta:
@@ -19,3 +19,4 @@ class SubmitAdmin(admin.ModelAdmin):
     
 
 admin.site.register(Result)
+admin.site.register(Relation)

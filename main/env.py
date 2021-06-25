@@ -5,9 +5,7 @@ import os
 
 env = environ.Env()
 
-ENVPATH = env('ENVPATH')
-
-environ.Env.read_env(env_file=os.path.join(Path(__file__).resolve().parent.parent, ENVPATH))
+environ.Env.read_env(env_file=os.path.join(Path(__file__).resolve().parent.parent, env('ENVPATH')))
 
 PUBNAME = env('PUBNAME')
 PROJECTKEY = env('PROJECTKEY')
