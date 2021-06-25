@@ -64,3 +64,10 @@ self.addEventListener("fetch", (event) => {
       .catch((err) => console.log("error", err))
   );
 });
+
+
+self.addEventListener('message', function (event) {
+  if (event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
