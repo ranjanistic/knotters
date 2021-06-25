@@ -3,6 +3,8 @@ import requests
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.core.files.base import ContentFile, File
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 from .env import PUBNAME, MAILUSER, SITE
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 from .strings import DIVISIONS
@@ -121,3 +123,46 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
     response = requests.request(
         'DELETE', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
     return response['success']
+
+
+def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
+    data = {
+        'greeting': greeting,
+        'headertext': header,
+        'footertext': footer,
+        'current_site': {
+            'name': 'Knotters',
+            'domain': 'knotters.org'
+        }
+    }
+    body = f"{greeting}\n\n{header}\n\n"
+    if actions:
+        data['actions'] = actions
+        for action in actions:
+            body = f"{body}{action['url']}\n"
+
+    if conclusion:
+        data['conclusion'] = conclusion
+        body = f"{body}\n{conclusion}"
+
+    html = render_to_string('account/email/email.html', data)
+
+    return html, body
+
+
+def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str):
+    html, body = getEmailHtmlBody(
+        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
+    msg = EmailMultiAlternatives(subject, body=body, to=[to])
+    msg.attach_alternative(content=html, mimetype="text/html")
+    msg.send()
+
+
+def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []):
+    print('yess')
+    html, body = getEmailHtmlBody(
+        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
+    msg = EmailMultiAlternatives(subject, body=body, to=[to])
+    msg.attach_alternative(content=html, mimetype="text/html")
+    msg.send()
+

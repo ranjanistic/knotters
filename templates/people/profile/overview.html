@@ -1,1 +1,26 @@
-Overview
+{% with profile=person.profile%}
+<div class="w3-row w3-padding">
+    <div class="w3-row">
+    {% for topic in profile.topics.all %}
+    Interested in <button>{{topic.name}}</button>
+    {% empty %}
+    
+    {% endfor %}
+    {% if self and profile.topics.all.count < 5 %}
+    <button class="active"><i class="material-icons">add_circle</i>Add topics</button>
+    {% endif %}
+    </div>
+    <br/>
+    <div class="w3-row">
+        <div class="w3-col w3-third">
+            <h4 class="secondary-text">{{profile.bio}}</h4>
+        </div>
+        <div class="w3-col w3-third">
+            <canvas id="myChart" class="chart-view" data-type="line" height="300"></canvas>
+        </div>
+        <div class="w3-col w3-third">
+            <canvas id="myChart" class="chart-view" data-type="bar" height="300"></canvas>
+        </div>
+    </div>
+</div>
+{% endwith %}

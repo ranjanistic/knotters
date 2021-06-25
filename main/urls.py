@@ -15,6 +15,10 @@ urlpatterns = [
         content_type='application/javascript',
     )), name='service-worker.js'),
     path('offline', offline),
+    path('robots.txt',(TemplateView.as_view(
+        template_name="robots.txt",
+        content_type='text/plain',
+    )), name='robots.txt'),
     path(url.ACCOUNTS, include('allauth.urls')),
     path(url.PROJECTS, include(f'{PROJECTS}.urls')),
     path(url.COMPETE, include(f'{COMPETE}.urls')),

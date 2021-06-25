@@ -211,12 +211,13 @@
         
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
+        <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
             const dialog = alertify;
-            dialog.set('notifier','position','top-left')
-            if("{{request.GET.e}}") dialog.error("{{request.GET.e}}");
+            alertify.set('notifier','position','top-left')
+            if("{{request.GET.e}}") alertify.error("{{request.GET.e}}");
         </script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>

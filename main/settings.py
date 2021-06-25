@@ -69,9 +69,25 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "main.wsgi.application"
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
 
-DATA_UPLOAD_MAX_MEMORY_SIZE=10*1024*1024
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 if not DEBUG:
     DATABASES = {
@@ -97,41 +113,40 @@ else:
         }
     }
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
     },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+    'github': {
+        "VERIFIED_EMAIL": True,
+        'SCOPE': [
+            'email',
+            'user',
+            'repo',
+        ],
+    }
+}
 
-LANGUAGE_CODE = "en-us"
+WSGI_APPLICATION = "main.wsgi.application"
 
-TIME_ZONE = "Asia/Kolkata"
-
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
+DATA_UPLOAD_MAX_MEMORY_SIZE=10*1024*1024
 
 STATIC_URL = env.STATIC_URL
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = env.MEDIA_URL
 
-CORS_ORIGIN_ALLOW_ALL = False
-
 if DEBUG:
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+CORS_ORIGIN_ALLOW_ALL = False
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
@@ -144,16 +159,17 @@ ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = env.MAILUSER
 EMAIL_HOST_USER = env.MAILUSER
 EMAIL_HOST_PASSWORD = env.MAILPASS
-EMAIL_SUBJECT_PREFIX = 'Knotters Community'
+EMAIL_SUBJECT_PREFIX = env.PUBNAME
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-LOGIN_REDIRECT_URL = '/'
 
 SENDER_API_HEADERS = {
     "Authorization": f"Bearer {env.SENDERTOKEN}",
@@ -175,32 +191,12 @@ if not DEBUG:
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_HSTS_PRELOAD = True
 
+FIRST_DAY_OF_WEEK = 1
+DEFAULT_CHARSET = 'utf-8'
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Kolkata"
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
 
 SITE_ID = 2
-
-
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    },
-    'github': {
-        "VERIFIED_EMAIL": True,
-        'SCOPE': [
-            'email',
-            'user',
-            'repo',
-        ],
-    }
-
-}

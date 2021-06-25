@@ -34,6 +34,8 @@ class URL():
         INDEXTAB = 'indexTab/<str:tab>'
         COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
         COMPID = '<str:compID>'
+        INVITATION = 'invitation/<str:subID>/<str:userID>'
+        INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
 
     class Moderation():
         REJECT = 'reject',
