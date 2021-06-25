@@ -299,18 +299,3 @@ const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
     const blob = new Blob(byteArrays, {type: contentType});
     return blob;
 }
-
-const dropdown = document.getElementById("dropdown-box");
-const select = document.createElement("select");
-select.className = 'pallete';
-
-var values = ["hello", "bye"];
-
-dropdown.append(select);
-
-values.forEach(item => {
-    const option = document.createElement("option");
-    option.text = item;
-    option.value = item;
-    select.append(option)
-})

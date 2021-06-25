@@ -409,12 +409,13 @@ button.small {
     font-size: 3.3rem;
 }
 
-#dropdown-box select{
+.dropdown-box select{
     color: var(--primary-text);
     padding: 12px;
     width: 250px;
     border: none;
     border-radius: 10px;
+    box-shadow: 2px 1px 24px 1px #0000001f;
     font-size: 20px;
     -webkit-appearance: none;
     appearance: none;
