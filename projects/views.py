@@ -7,8 +7,8 @@ from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
 from main.strings import code, MODERATION
 from moderation.methods import requestModeration
-from .models import *
-from .methods import *
+from .models import Project, Tag, Category
+from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 
 
@@ -24,7 +24,7 @@ def profile(request, reponame):
         project = Project.objects.get(reponame=reponame)
         if project.status == code.LIVE:
             return renderer(request, 'profile', {"project": project})
-        if request.user.is_authenticated and project.creator == request.user:
+        if request.user.is_authenticated and project.creator == request.user.profile:
             if project.status == code.REJECTED:
                 return redirect(f'/{MODERATION}/{APPNAME}/{project.id}')
             if project.status == code.MODERATION:
@@ -39,7 +39,8 @@ def profile(request, reponame):
 def editProfile(request, projectID, section):
     try:
         changed = False
-        project = Project.objects.get(id=projectID,creator=request.user)
+        project = Project.objects.get(
+            id=projectID, creator=request.user.profile)
         if section == 'pallete':
             try:
                 base64Data = str(request.POST['projectimage'])
@@ -60,9 +61,9 @@ def editProfile(request, projectID, section):
                     changed = True
                 if changed:
                     project.save()
-                return redirect(project.getLink(success=f"Pallete updated"), permanent=True)
+                return redirect(project.getLink(), permanent=True)
             except:
-                return redirect(project.getLink(error=f"Problem occurred."))
+                return redirect(project.getLink(error=f"Problem occurred."), permanent=True)
     except:
         raise HttpResponseForbidden()
 
@@ -102,13 +103,14 @@ def submitProject(request):
     try:
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
+        category = request.POST["projectcategory"]
         reponame = request.POST["reponame"]
         userRequest = request.POST["description"]
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
             return HttpResponse(f'{reponame} already exists')
-        projectobj = createProject(
-            name, reponame, description, tags, request.user)
+        projectobj = createProject(profile=request.user.profile, name=name,
+                                   category=category, reponame=reponame, description=description, tags=tags)
         if not projectobj:
             raise Exception()
         try:
@@ -119,14 +121,13 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        mod = requestModeration(projectobj.id, APPNAME, userRequest)
-        print(mod)
+        mod = requestModeration(projectobj, APPNAME, userRequest)
         if not mod:
-            return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 2.")
-        return redirect(projectobj.getLink(success="Your project has been submitted for moderation."))
+            return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
+        return redirect(projectobj.getLink())
     except Exception as e:
         print(e)
-        return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 1.")
+        return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
 
 
 @require_POST

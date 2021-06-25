@@ -4,7 +4,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 from people.models import User
 from projects.models import Project
-from projects.methods import setupNewProject
+from projects.methods import setupApprovedProject
 from compete.models import Competition
 from main.strings import PROJECTS, PEOPLE, COMPETE, code
 from .models import *
@@ -55,11 +55,11 @@ def disapprove(request):
 def approve(request):
     try:
         id = request.POST["id"]
-        reason = request.POST["reason"]
-        obj = Moderation.objects.get(id=id,moderator=request.user)
+        reason = str(request.POST["reason"]).strip()
+        obj = Moderation.objects.get(id=id,moderator=request.user.profile)
         obj.approve(reason)
         if obj.type == PROJECTS:
-            done = setupNewProject(obj.project,obj.moderator)
+            done = setupApprovedProject(obj.project,obj.moderator)
             if not done:
                 return HttpResponse(code.NO)
         return HttpResponse(code.OK)

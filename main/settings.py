@@ -1,7 +1,7 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from . import env
-from main.strings import DIVISIONS, PEOPLE
+from .strings import DIVISIONS, PEOPLE
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

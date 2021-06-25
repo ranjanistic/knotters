@@ -11,21 +11,23 @@
 {% block nav_auth_links %}{% endblock %}
 
 {% block content %}
+<br/>
 <div class="w3-row w3-padding w3-center">
+<i class="material-icons w3-jumbo">hourglass_top</i>
 <h1>Verify your email address.</h1>
-
-{% url 'account_email' as email_url %}
-
+<br/>
 <h5>This part of the site requires us to verify that
-you are who you claim to be. For this purpose, we require that you
+you are who you claim to be.<br/>
+For this purpose, we require that you
 verify ownership of your e-mail address. </h5>
 <br/>
-<span>We have sent an e-mail to you for
-verification. Please click on the link inside that e-mail.</span>
+<span class="positive-text">We have sent an email at {{request.user}} for
+verification. Please click on the link inside that email.</span>
 <br/><br/>
 <h4>If your email address is not correct, then</h4>
 <br/>
+{% url 'account_email' as email_url %}
 <a href="{{ email_url }}"><button class="accent">Change email address</button></a>
 </div>
-
+<br/>
 {% endblock %}

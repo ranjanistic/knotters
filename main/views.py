@@ -1,11 +1,20 @@
 from django.http.response import Http404, HttpResponse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
-from .methods import renderView
+from .decorators import dev_only
 from projects.models import Project
 from compete.models import Competition
+from .methods import renderView
 from .strings import code, PROJECTS, COMPETE, PEOPLE
 
+@require_GET
+def offline(request):
+    return renderView(request, 'offline')
+
+@require_GET
+@dev_only
+def mailtemplate(request,template):
+    return renderView(request, f'account/email/{template}')
 
 @require_GET
 def index(request):
