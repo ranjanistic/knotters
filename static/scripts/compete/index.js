@@ -5,3 +5,12 @@ initializeTabsView(
     "competitionstab",
     "compete-nav-tab",
 );
+
+
+var values = ["hello", "bye"];
+
+handleDropDowns(
+    "dropdown-box",
+    "compete-dropdown",
+    values
+)

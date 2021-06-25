@@ -349,3 +349,23 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
   const blob = new Blob(byteArrays, { type: contentType });
   return blob;
 };
+
+
+const handleDropDowns = (
+  dropdownClassName,
+  dropdownID,
+  optionValues
+) => {
+
+  const dropdown = getElement(dropdownID);
+  const select = document.createElement('select');
+
+  dropdown.append(select);
+
+  optionValues.forEach((item) => {
+    const option = document.createElement('option');
+    option.text = item;
+    option.value = item;
+    select.append(option)
+  })
+}
