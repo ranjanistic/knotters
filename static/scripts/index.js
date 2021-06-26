@@ -364,6 +364,7 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     return blob;
 };
 
+
 const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
   const dropdown = getElement(dropdownID);
   const selectedOptionDiv = document.createElement("div");
@@ -433,3 +434,4 @@ const handleInputDropdowns = (
     }
   });
 };
+
