@@ -43,7 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = None
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, null=True, blank=True)
-    
+
     date_joined = models.DateTimeField(
         verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
@@ -73,13 +73,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     def getLink(self) -> str:
         return f"/{APPNAME}/profile/{self.id}"
 
+
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=10)
-    tags = models.ManyToManyField(f'{PROJECTS}.Tag',default=[],through=f'{PROJECTS}.Relation')
+    tags = models.ManyToManyField(
+        f'{PROJECTS}.Tag', default=[], through=f'{PROJECTS}.Relation')
 
     def __str__(self) -> str:
         return self.name
+
 
 def profileImagePath(instance, filename):
     fileparts = filename.split('.')
@@ -89,18 +92,20 @@ def profileImagePath(instance, filename):
 def defaultImagePath():
     return f"{APPNAME}/default.png"
 
+
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField("User", on_delete=models.CASCADE,related_name='profile')
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name='profile')
     picture = models.ImageField(
-        upload_to=profileImagePath, default=defaultImagePath,null=True, blank=True)
+        upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
     is_moderator = models.BooleanField(default=False)
     githubID = models.CharField(max_length=40, blank=True, null=True)
     bio = models.CharField(max_length=100, blank=True, null=True)
-    topics = models.ManyToManyField(Topic,through='Relation',default=[])
+    topics = models.ManyToManyField(Topic, through='Relation', default=[])
     is_verified = models.BooleanField(default=False)
     suspended = models.BooleanField(default=False)
-    
+
     def __str__(self) -> str:
         return self.user.email
 
@@ -109,10 +114,11 @@ class Profile(models.Model):
             previous = Profile.objects.get(id=self.id)
             if previous.picture != self.picture:
                 previous.picture.delete(False)
-        except: pass
+        except:
+            pass
         super(Profile, self).save(*args, **kwargs)
 
-    def getDP(self):
+    def getDP(self) -> str:
         dp = str(self.picture)
         return dp if dp.startswith("http") else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
 
@@ -133,11 +139,12 @@ class Profile(models.Model):
         if self.githubID:
             return f"/{APPNAME}/profile/{self.githubID}{success}{error}"
         return f"/{APPNAME}/profile/{self.user.id}{success}{error}"
-    
+
+
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile,on_delete=models.CASCADE)
-    topic = models.ForeignKey(Topic,on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('profile','topic')
+        unique_together = ('profile', 'topic')

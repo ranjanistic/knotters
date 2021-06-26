@@ -1,13 +1,15 @@
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
+from main.settings import STATIC_URL, MEDIA_URL
+import json
+from main.strings import url
 from .methods import renderData, renderView, replaceUrlParamsWithStr
+from .decorators import dev_only
 from projects.models import Project
 from compete.models import Competition
-from main.strings import url
-import json
-from main.settings import STATIC_URL, MEDIA_URL
+from .methods import renderView
 from .strings import code, PROJECTS, COMPETE, PEOPLE
 
 
@@ -15,6 +17,11 @@ from .strings import code, PROJECTS, COMPETE, PEOPLE
 def offline(request):
     return renderView(request, 'offline')
 
+
+@require_GET
+@dev_only
+def mailtemplate(request,template):
+    return renderView(request, f'account/email/{template}')
 
 @require_GET
 def index(request):

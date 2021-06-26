@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from .views import redirector, docIndex, docs, landing, offline, ServiceWorker, index
+from .views import redirector, docIndex, docs, landing, offline, ServiceWorker, index, mailtemplate
 from .strings import PROJECTS, COMPETE, PEOPLE, MODERATION, url
 from . import env
 
@@ -21,4 +21,6 @@ urlpatterns = [
     path(url.DOCTYPE, docs),
     path(url.LANDINGS, landing),
     path(url.LANDING, landing),
+    path(url.LANDING, landing),
+    path('email/<str:template>', mailtemplate)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

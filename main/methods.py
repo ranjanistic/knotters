@@ -1,14 +1,15 @@
-from django.shortcuts import render
-import re
-from django.core.files.base import ContentFile
 import base64
 import requests
+import re
+from django.http.request import HttpRequest
+from django.shortcuts import render
+from django.core.files.base import ContentFile, File
 from .env import PUBNAME, MAILUSER, SITE, VERSION
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 from .strings import DIVISIONS
 
 
-def renderData(data={}, fromApp=''):
+def renderData(data: dict = {}, fromApp: str = '') -> dict:
     """
     Adds default meta data to the dictionary 'data' which is assumed to be sent with a rendering template.
 
@@ -27,13 +28,13 @@ def renderData(data={}, fromApp=''):
     return data
 
 
-def renderView(request, view, data={}, fromApp=''):
+def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = ''):
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
 def replaceUrlParamsWithStr(path:str,replacingChar:str='*')->str:
     return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
-def maxLengthInList(list=[]):
+def maxLengthInList(list: list = []) -> int:
     max = len(str(list[0]))
     for item in list:
         if max < len(str(item)):
@@ -41,7 +42,7 @@ def maxLengthInList(list=[]):
     return max
 
 
-def base64ToImageFile(base64Data):
+def base64ToImageFile(base64Data: base64) -> File:
     try:
         format, imgstr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
@@ -66,7 +67,7 @@ def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     return response['success']
 
 
-def getUserFromMailingServer(email: str, fullData=False) -> dict:
+def getUserFromMailingServer(email: str, fullData: bool = False) -> dict:
     """
     Returns user data from mailing server.
 
@@ -83,7 +84,7 @@ def removeUserFromMailingServer(email: str) -> bool:
     """
     Removes user from mailing server.
     """
-    subscriber = getUserFromMailingServer(email,True)
+    subscriber = getUserFromMailingServer(email, True)
     if not subscriber:
         return False
 
