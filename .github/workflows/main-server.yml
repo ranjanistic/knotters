@@ -1,13 +1,16 @@
-name: Knotters Django CI
+name: Knotters Django Server CI
 
 on:
   push:
     branches: [ main ]
-    paths-ignore:
-      - ".github/workflows/main-pr.yml"
-      - "README.md"
-      - "CONTRIBUTING.md"
-      - "main/.env.example"
+    paths:
+      - ".github/workflows/main-server.yml"
+      - "compete/**"
+      - "main/**"
+      - "moderation/**"
+      - "people/**"
+      - "projects/**"
+      - "manage.py"
 
 jobs:
   testing:
@@ -60,7 +63,7 @@ jobs:
     steps:
     - name: Fetch & Merge changes
       run: git pull
-      working-directory: C:/Users/Administrator/actions-runner/knotters/knotters/knotters
+      working-directory: ${{ secrets.WORKINGDIR }}
     - name: Install Dependencies
       run: |
         pip install --upgrade pip

@@ -6,10 +6,11 @@ ENVPATH = 'main\.env'
 def main(ENVPATH):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
     os.environ.setdefault('ENVPATH', ENVPATH)
-    from main.env import ENVPATH, ISPRODUCTION, ENV, DBNAME
+    from main.env import ENVPATH, ISPRODUCTION, ENV, DBNAME, VERSION
     if not ISPRODUCTION:
         print(f"Environment from: {ENVPATH}")
         print(f"Database: {DBNAME}")
+        print(f"Version: {VERSION}")
     print(f"Environment: {ENV}")
     try:
         from django.core.management import execute_from_command_line

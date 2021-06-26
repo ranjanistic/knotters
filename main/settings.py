@@ -7,6 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env.PROJECTKEY
 
+VERSION = env.VERSION
+
 DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS

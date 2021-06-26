@@ -19,3 +19,4 @@ py
 *.apk
 nginx_waitress
 runserver.py
+main/__version__.py

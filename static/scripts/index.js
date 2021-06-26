@@ -1,13 +1,68 @@
 "use strict";
 
-if (navigator.serviceWorker) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker
-            .register("/service-worker.js")
-            .then((reg) => console.log("Service worker registered!", reg))
-            .catch((err) => console.log("Service worker not registered", err));
-    });
-}
+const Key = {
+    appUpdated: "app-updated",
+};
+
+const serviceWorkerRegistration = () => {
+    if (navigator.serviceWorker) {
+        var newServiceWorker;
+        const newUpdateBar = () => {
+            alertify
+                .confirm(
+                    `Update available: ${VERSION}`,
+                    `<h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>`,
+                    () => {
+                        alertify.message("Updating...");
+						loader(true)
+						localStorage.setItem(Key.appUpdated, 1)
+                        newServiceWorker.postMessage({ action: "skipWaiting" });
+                    },
+                    () => {
+                        alertify.message(
+                            "We'll remind you later."
+                        );
+                    }
+                ).set({'closable':false, ok: "Update", cancel: "Not now", "modal":true })
+        };
+        window.addEventListener("load", () => {
+            navigator.serviceWorker
+                .register("/service-worker.js")
+                .then((reg) => {
+                    if (reg.waiting) {
+                        newServiceWorker = reg.waiting;
+						newUpdateBar();
+                    }
+                    reg.addEventListener("updatefound", () => {
+                        newServiceWorker = reg.installing;
+                        newServiceWorker.addEventListener("statechange", () => {
+                            switch (newServiceWorker.state) {
+                                case "installed":
+                                    if (navigator.serviceWorker.controller) {
+                                        newUpdateBar();
+                                    }
+                                    break;
+                            }
+                        });
+                    });
+                })
+                .catch((err) =>
+                    console.log("Service worker not registered", err)
+                );
+
+				if(Number(localStorage.getItem(Key.appUpdated))){
+					alertify.success('App updated successfully.')
+					localStorage.removeItem(Key.appUpdated)
+				}
+        });
+        let refreshing;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (refreshing) return;
+            window.location.reload();
+            refreshing = true;
+        });
+    }
+};
 
 const getElement = (id) => document.getElementById(id);
 
@@ -153,7 +208,6 @@ const initializeTabsView = (
     try {
         tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
     } catch (e) {
-        console.log(e);
         tabs[0].click();
     }
     return tabs;
@@ -269,7 +323,6 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        console.log(e);
                         alertify.error(
                             `An error occurred. <br/><button class="primary" onclick="window.location.reload();">Reload</button>`
                         );
@@ -309,5 +362,76 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
 
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
+};
+
+
+const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
+  const dropdown = getElement(dropdownID);
+  const selectedOptionDiv = document.createElement("div");
+  const dropdown_ul = document.createElement("ul");
+  dropdown_ul.className = "dropdown-options-list";
+  selectedOptionDiv.className = "selected-option";
+  selectedOptionDiv.innerHTML = optionValues[0];
+  dropdown.append(selectedOptionDiv, dropdown_ul);
+
+  selectedOptionDiv.addEventListener("click", () => {
+    show(dropdown_ul);
+  });
+
+  optionValues.forEach((item) => {
+    const dropdown_li = document.createElement("li");
+    dropdown_li.className = "dropdown-option";
+    dropdown_li.innerHTML = item;
+    dropdown_ul.append(dropdown_li);
+
+    dropdown_li.addEventListener("click", () => {
+      selectedOptionDiv.innerHTML = item;
+      hide(dropdown_ul);
+    });
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target !== selectedOptionDiv) {
+        hide(dropdown_ul);
+    }
+  });
+};
+
+const handleInputDropdowns = (
+  inputDropdownClassname,
+  inputDropdownID,
+  inputDropdownOptionValues
+) => {
+  const inputDropdown = getElement(inputDropdownID);
+  const inputField = document.createElement("input");
+  const input_dropdown_ul = document.createElement("ul");
+  input_dropdown_ul.className = "input-dropdown-options-list";
+  inputField.className = "input-dropdown-input-field";
+
+  inputField.addEventListener("click", () => {
+    show(input_dropdown_ul);
+  });
+
+  inputField.type = "text";
+  inputField.placeholder = "Type or choose an option";
+  inputDropdown.append(inputField, input_dropdown_ul);
+
+  inputDropdownOptionValues.forEach((item) => {
+    const input_dropdown_li = document.createElement("li");
+    input_dropdown_li.className = "input-dropdown-option";
+    input_dropdown_li.innerHTML = item;
+    input_dropdown_ul.append(input_dropdown_li);
+
+    input_dropdown_li.addEventListener("click", () => {
+      inputField.value = item;
+      hide(input_dropdown_ul);
+    });
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target !== inputField) {
+      hide(input_dropdown_ul);
+    }
+  });
 };
 
