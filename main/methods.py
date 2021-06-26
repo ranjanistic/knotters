@@ -1,11 +1,12 @@
 import base64
 import requests
+import re
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.core.files.base import ContentFile, File
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from .env import PUBNAME, MAILUSER, SITE
+from .env import PUBNAME, MAILUSER, SITE, VERSION
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 from .strings import DIVISIONS
 
@@ -22,6 +23,7 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
     data['SUBAPPNAME'] = fromApp
     data['ROOT'] = f"/{fromApp}"
     data['SITE'] = SITE
+    data['VERSION'] = VERSION
     data['SUBAPPS'] = {}
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
@@ -31,6 +33,8 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = ''):
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
+def replaceUrlParamsWithStr(path:str,replacingChar:str='*')->str:
+    return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 def maxLengthInList(list: list = []) -> int:
     max = len(str(list[0]))

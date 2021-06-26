@@ -1,3 +1,4 @@
+import re
 from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
@@ -19,7 +20,9 @@ ENVIRONMENTS = [environment.DEVELOPMENT, environment.TESTING, environment.PRODUC
 
 class URL():
     INDEX = ''
-    ACCOUNTS = 'accounts/'
+    SERVICE_WORKER = 'service-worker.js'
+    OFFLINE = 'offline'
+    ACCOUNTS = "accounts/"
     PROJECTS = f'{PROJECTS}/'
     COMPETE = f'{COMPETE}/'
     PEOPLE = f'{PEOPLE}/'
