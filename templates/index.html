@@ -13,7 +13,7 @@
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
         <meta name="favicon" content="{{SITE}}/static/graphics/self/icon80.png" />
         <meta name="description" content="{% block meta_description %}{{DESCRIPTION}}{% endblock %}" />
-        <link rel="manifest" href="{% static 'manifest.json' %}" />
+        
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="{{APPNAME}}" />
         <meta name="author" content="{{APPNAME}} Community">
@@ -59,7 +59,9 @@
         <link rel="stylesheet" href="{% static 'styles/scrollbar.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
-        {% block stylesheets %}{% endblock %}
+        {% block stylesheets %}
+        <link rel="manifest" href="{% static 'manifest.json' %}" />
+        {% endblock %}
         <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
@@ -214,12 +216,18 @@
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
+            const APPNAME = "{{APPNAME}}";
+            const VERSION = "{{VERSION}}";
             const dialog = alertify;
             dialog.set('notifier','position','top-left')
             if("{{request.GET.e}}") dialog.error("{{request.GET.e}}");
         </script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
-        {% block scripts %}{% endblock %}
+        {% block scripts %}
+        {% endblock %}
+        <script>
+            serviceWorkerRegistration()
+        </script>
     </body>
 </html>

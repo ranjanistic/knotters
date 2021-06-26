@@ -1,74 +1,81 @@
-const staticCacheName = "static-pages-cache";
-const dynamicCacheName = "dynamic-pages-cache";
+const version = "{{VERSION}}",
+	site = "{{SITE|safe}}",
+	offlinePath = "{{OFFLINE|safe}}",
+	assets = {{assets|safe}},
+	ignorelist = {{ignorelist|safe}},
+	paramRegex = "[a-zA-Z0-9.\\-_]";
 
-const assets = [
-  "/",
-  "/compete/",
-  "/people/",
-  "/projects/",
-  "/static/styles/index.css",
-  "/static/styles/theme.css",
-  "/static/styles/scrollbar.css",
-  "/static/styles/loader.css",
-  "/static/styles/w3.css",
-  "/static/scripts/index.js",
-  "/static/scripts/theme.js",
-  "/offline",
-];
+const staticCacheName = `static-cache-${version}`, 
+	dynamicCacheName = `dynamic-cache-${version}`;
 
-self.addEventListener("install", (event) => {
-  console.log("Service worker installed!!");
-
-  event.waitUntil(
-    caches.open(staticCacheName).then((cache) => {
-      console.log("caching in  process");
-      return cache.addAll(assets);
-    })
-  );
-});
+const testAsteriskPathRegex = (asteriskPath, testPath) => {
+    const localParamRegex = String(asteriskPath).endsWith("*")
+        ? "[a-zA-Z0-9./\\-_]"
+        : paramRegex;
+    return RegExp(
+        asteriskPath
+            .replaceAll("*", `+${localParamRegex}+`)
+            .split("+")
+            .map((part) =>
+                part === localParamRegex ? localParamRegex : `(${part})`
+            )
+            .join("+") + "$"
+    ).test(testPath);
+};
 
 self.addEventListener("activate", (event) => {
-  console.log("Service worker activated!!");
-
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      console.log(keys);
-      return Promise.all(
-        keys
-          .filter((key) => key !== staticCacheName && key !== dynamicCacheName)
-          .map((key) => caches.delete(key))
-      );
-    })
-  );
+    event.waitUntil(
+        caches.keys().then((keys) => {
+			const prom = Promise.all(
+				keys
+				.filter((key) => key !== staticCacheName)
+				.map((key) => caches.delete(key))
+			);
+			caches.open(staticCacheName).then((cache) => {
+				return cache.addAll(assets);
+			})
+			return prom
+		})
+    );
 });
 
 self.addEventListener("fetch", (event) => {
-  console.log("Fetch intercepted for:", event.request.url);
-  if (!(event.request.url.indexOf("http") === 0)) return;
-  event.respondWith(
-    caches
-      .match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          console.log("Found:", event.request.url, "in cache");
-          return cachedResponse;
-        } else {
-          console.log("Network request for:", event.request.url);
-          return fetch(event.request).then((FetchRes) => {
-            return caches.open(dynamicCacheName).then((cache) => {
-              cache.put(event.request.url, FetchRes.clone());
-              return FetchRes;
-            });
-          });
-        }
-      })
-      .catch((err) => caches.match("/offline"))
-  );
+    const path = event.request.url.replace(site, "");
+    if (!(event.request.url.indexOf("http") === 0)) return;
+    event.respondWith(
+        caches
+            .match(event.request)
+            .then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                } else {
+                    return fetch(event.request).then((FetchRes) => {
+                        return ignorelist.some((ignorepath) =>
+                            ignorepath.includes("*")
+                                ? testAsteriskPathRegex(ignorepath, path)
+                                : ignorepath === path
+                        )
+                            ? FetchRes
+                            : caches.open(dynamicCacheName).then((cache) => {
+                                  cache.put(
+                                      event.request.url,
+                                      FetchRes.clone()
+                                  );
+                                  return FetchRes;
+                              });
+                    });
+                }
+            })
+            .catch((_) => {
+				if(!path.toLowerCase().includes('tab')){
+					return caches.match(offlinePath)
+				}
+			})
+    );
 });
 
-
-self.addEventListener("message", function (event) {
-  if (event.data.action === "skipWaiting") {
-    self.skipWaiting();
-  }
+self.addEventListener("message", (event) => {
+    if (event.data.action === "skipWaiting") {
+        self.skipWaiting();
+    }
 });

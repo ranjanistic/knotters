@@ -1,0 +1,71 @@
+name: Knotters Django Client CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - ".github/workflows/main-client.yml"
+      - "genversion.py"
+      - "static/**"
+      - "templates/**"
+
+jobs:
+  testing:
+    runs-on: ubuntu-20.04
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Setup Environment
+      run: |
+        touch main/.env
+        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> main/.env
+        echo "PUBNAME=${{ secrets.PUBNAME }}" >> main/.env
+        echo "ENV=${{ secrets.ENV }}" >> main/.env
+        echo "HOSTS=${{ secrets.HOSTS }}" >> main/.env
+        echo "DBNAME=${{ secrets.DBNAME }}" >> main/.env
+        echo "DBLINK=${{ secrets.DBLINK }}" >> main/.env
+        echo "DBUSER=${{ secrets.DBUSER }}" >> main/.env
+        echo "DBPASS=${{ secrets.DBPASS }}" >> main/.env
+        echo "MAILUSER=${{ secrets.MAILUSER }}" >> main/.env
+        echo "MAILPASS=${{ secrets.MAILPASS }}" >> main/.env
+        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> main/.env
+        echo "CORSLIST=${{ secrets.CORSLIST }}" >> main/.env
+        echo "COOKIEDOM=${{ secrets.COOKIEDOM }}" >> main/.env
+        echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> main/.env
+        echo "SITE=${{ secrets.SITE }}" >> main/.env
+    - name: Unit Testing
+      run: |
+        python manage.py test
+
+  build_deploy:
+    needs: [ testing ]
+    runs-on: self-hosted
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - name: Fetch & Merge changes
+      run: git pull
+      working-directory: ${{ secrets.WORKINGDIR }}
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        py manage.py collectstatic --noinput
+    - name: Release new version
+      run: |
+        py genversion.py

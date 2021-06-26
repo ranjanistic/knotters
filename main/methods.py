@@ -1,8 +1,9 @@
 from django.shortcuts import render
+import re
 from django.core.files.base import ContentFile
 import base64
 import requests
-from .env import PUBNAME, MAILUSER, SITE, SENDERTOKEN
+from .env import PUBNAME, MAILUSER, SITE, VERSION
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 from .strings import DIVISIONS
 
@@ -19,6 +20,7 @@ def renderData(data={}, fromApp=''):
     data['SUBAPPNAME'] = fromApp
     data['ROOT'] = f"/{fromApp}"
     data['SITE'] = SITE
+    data['VERSION'] = VERSION
     data['SUBAPPS'] = {}
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
@@ -28,6 +30,8 @@ def renderData(data={}, fromApp=''):
 def renderView(request, view, data={}, fromApp=''):
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
+def replaceUrlParamsWithStr(path:str,replacingChar:str='*')->str:
+    return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 def maxLengthInList(list=[]):
     max = len(str(list[0]))
