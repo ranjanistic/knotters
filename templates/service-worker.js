@@ -13,6 +13,7 @@ const assets = [
   "/static/styles/w3.css",
   "/static/scripts/index.js",
   "/static/scripts/theme.js",
+  "/offline",
 ];
 
 self.addEventListener("install", (event) => {
@@ -34,7 +35,7 @@ self.addEventListener("activate", (event) => {
       console.log(keys);
       return Promise.all(
         keys
-          .filter((key) => key !== staticCacheName)
+          .filter((key) => key !== staticCacheName && key !== dynamicCacheName)
           .map((key) => caches.delete(key))
       );
     })
@@ -61,13 +62,13 @@ self.addEventListener("fetch", (event) => {
           });
         }
       })
-      .catch((err) => console.log("error", err))
+      .catch((err) => caches.match("/offline"))
   );
 });
 
 
-self.addEventListener('message', function (event) {
-  if (event.data.action === 'skipWaiting') {
+self.addEventListener("message", function (event) {
+  if (event.data.action === "skipWaiting") {
     self.skipWaiting();
   }
 });

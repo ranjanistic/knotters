@@ -350,22 +350,75 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
   return blob;
 };
 
-
-const handleDropDowns = (
-  dropdownClassName,
-  dropdownID,
-  optionValues
-) => {
-
+const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
   const dropdown = getElement(dropdownID);
-  const select = document.createElement('select');
+  const selectedOptionDiv = document.createElement("div");
+  const dropdown_ul = document.createElement("ul");
+  dropdown_ul.className = "dropdown-options-list";
+  selectedOptionDiv.className = "selected-option";
+  selectedOptionDiv.innerHTML = optionValues[0];
+  dropdown.append(selectedOptionDiv, dropdown_ul);
 
-  dropdown.append(select);
+  selectedOptionDiv.addEventListener("click", () => {
+    show(dropdown_ul);
+  });
 
   optionValues.forEach((item) => {
-    const option = document.createElement('option');
-    option.text = item;
-    option.value = item;
-    select.append(option)
-  })
-}
+    const dropdown_li = document.createElement("li");
+    dropdown_li.className = "dropdown-option";
+    dropdown_li.innerHTML = item;
+    dropdown_ul.append(dropdown_li);
+
+    dropdown_li.addEventListener("click", () => {
+      selectedOptionDiv.innerHTML = item;
+      hide(dropdown_ul);
+    });
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target !== selectedOptionDiv) {
+        hide(dropdown_ul);
+    }
+  });
+};
+
+
+
+
+const handleInputDropdowns = (
+  inputDropdownClassname,
+  inputDropdownID,
+  inputDropdownOptionValues
+) => {
+  const inputDropdown = getElement(inputDropdownID);
+  const inputField = document.createElement("input");
+  const input_dropdown_ul = document.createElement("ul");
+  input_dropdown_ul.className = "input-dropdown-options-list";
+  inputField.className = "input-dropdown-input-field";
+
+  inputField.addEventListener("click", () => {
+    show(input_dropdown_ul);
+  });
+
+  inputField.type = "text";
+  inputField.placeholder = "Type or choose an option";
+  inputDropdown.append(inputField, input_dropdown_ul);
+
+  inputDropdownOptionValues.forEach((item) => {
+    const input_dropdown_li = document.createElement("li");
+    input_dropdown_li.className = "input-dropdown-option";
+    input_dropdown_li.innerHTML = item;
+    input_dropdown_ul.append(input_dropdown_li);
+
+    input_dropdown_li.addEventListener("click", () => {
+      inputField.value = item;
+      hide(input_dropdown_ul);
+    });
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target !== inputField) {
+      hide(input_dropdown_ul);
+    }
+  });
+};
