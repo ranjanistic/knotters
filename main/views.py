@@ -20,8 +20,9 @@ def offline(request):
 
 @require_GET
 @dev_only
-def mailtemplate(request,template):
+def mailtemplate(request, template):
     return renderView(request, f'account/email/{template}')
+
 
 @require_GET
 def index(request):
@@ -81,14 +82,13 @@ class ServiceWorker(TemplateView):
 
         context = renderData({
             'OFFLINE': f"/{url.OFFLINE}",
-            'assets': json.dumps([f"/",
+            'assets': json.dumps([
                 f"/{url.OFFLINE}",
-                f"/{url.COMPETE}",
-                f"/{url.PEOPLE}",
-                f"/{url.PROJECTS}",
+                f"{STATIC_URL}manifest.json",
                 f"{STATIC_URL}alertify/themes/default.min.css",
                 f"{STATIC_URL}alertify/alertify.min.css",
                 f"{STATIC_URL}alertify/alertify.min.js",
+                f"{STATIC_URL}chartjs/chart.min.js",
                 f"{STATIC_URL}cropper/cropper.min.css",
                 f"{STATIC_URL}cropper/cropper.min.js",
                 f"{STATIC_URL}fonts/Poppins/Devnagri.woff2",
@@ -99,22 +99,28 @@ class ServiceWorker(TemplateView):
                 f"{STATIC_URL}fonts/Questrial/Vietnamese.woff2",
                 f"{STATIC_URL}fonts/Poppins.css",
                 f"{STATIC_URL}fonts/Questrial.css",
+                f"{STATIC_URL}graphics/thirdparty/discord.png",
+                f"{STATIC_URL}graphics/thirdparty/facebook.png",
+                f"{STATIC_URL}graphics/thirdparty/github-dark.png",
+                f"{STATIC_URL}graphics/thirdparty/github.png",
+                f"{STATIC_URL}graphics/thirdparty/google.png",
+                f"{STATIC_URL}graphics/thirdparty/instagram-dark.png",
+                f"{STATIC_URL}graphics/thirdparty/instagram.png",
+                f"{STATIC_URL}graphics/thirdparty/linkedin.png",
+                f"{STATIC_URL}graphics/thirdparty/twitter.png",
                 f"{STATIC_URL}icons/material.css",
                 f"{STATIC_URL}icons/material.woff2",
                 f"{STATIC_URL}scripts/theme.js",
                 f"{STATIC_URL}scripts/index.js",
+                f"{STATIC_URL}scripts/autostart.js",
                 f"{STATIC_URL}styles/w3.css",
                 f"{STATIC_URL}styles/theme.css",
+                f"{STATIC_URL}styles/overrides.css",
                 f"{STATIC_URL}styles/scrollbar.css",
                 f"{STATIC_URL}styles/loader.css",
                 f"{STATIC_URL}styles/index.css",
             ]),
-            'ignorelist': json.dumps([
-                f"{MEDIA_URL}*",
-                f"/{url.ACCOUNTS}*",
-                f"/{url.LANDING}",
-                f"/*/{url.LANDING}",
-                replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
+            'noOfflineList': json.dumps([
                 replaceUrlParamsWithStr(
                     f"/{url.COMPETE}{url.Compete.COMPETETABSECTION}"),
                 replaceUrlParamsWithStr(
@@ -123,10 +129,21 @@ class ServiceWorker(TemplateView):
                     f"/{url.PEOPLE}{url.People.SETTINGTAB}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PEOPLE}{url.People.PROFILETAB}"),
+            ]),
+            'ignorelist': json.dumps([
+                f"{MEDIA_URL}*",
+                f"/{url.REDIRECTOR}*",
+                f"/{url.ACCOUNTS}*",
+                f"/{url.LANDING}",
+                f"/*/{url.LANDING}",
+                replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.CREATE}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.PROJECTINFO}"),
-            ])
+            ]),
+            'recacheList': json.dumps([
+                f"/{url.REDIRECTOR}*",
+            ]),
         })
         return context

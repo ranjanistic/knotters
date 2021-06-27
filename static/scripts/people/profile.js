@@ -1,26 +1,25 @@
-initializeTabsView(
-    async (tabID) => {
+initializeTabsView({
+    onEachTab: async (tabID) => {
         return await getRequest(`/people/profiletab/${userID}/${tabID}`);
     },
-    "profiletab",
-    (tabID) => {
+    uniqueID:"profiletab",
+    onShowTab: (tabID) => {
         loadTabScript(tabID);
     }
-);
+});
 
 if (selfProfile) {
-    initializeTabsView(
-        async (tabID) => {
+    initializeTabsView({
+        onEachTab: async (tabID) => {
             return await getRequest(`/people/settingtab/${tabID}`);
         },
-        "profilestab",
-        () => {},
-        "set-tab",
-        "active",
-        "primary",
-        "stabview",
-        "sloader"
-    );
+        uniqueID:"profilestab",
+        tabsClass:"set-tab",
+        activeTabClass:"active",
+        inactiveTabClass:"primary",
+        viewID:"stabview",
+        spinnerID:"sloader"
+    });
 
     getElement("uploadprofilepic").onchange = (e) => {
         handleCropImageUpload(

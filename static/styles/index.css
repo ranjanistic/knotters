@@ -28,26 +28,6 @@ footer {
 .bold {
   font-weight: bolder;
 }
-.view-loader {
-  display: none;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  z-index: 1010;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background-color: #151618dc;
-  text-align: center;
-  vertical-align: middle;
-  padding-top: 45vh;
-  line-height: 100vh;
-  color: var(--secondary-text);
-  font-size: 50px;
-  font-family: var(--head-font);
-}
 
 .positive > span > a,
 .positive > a {

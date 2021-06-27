@@ -1,9 +1,9 @@
 
-initializeTabsView(
-    async (tabID) => {
+initializeTabsView({
+    onEachTab: async (tabID) => {
         return await getRequest(`/competitions/competeTab/${compID}/${tabID}`);
     },
-    "competetab",
-    "side-nav-tab",
-    "active"
-);
+    uniqueID:"competetab",
+    tabsClass:"side-nav-tab",
+    activeTabClass:"active"
+});

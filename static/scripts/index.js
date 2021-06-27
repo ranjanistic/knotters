@@ -13,17 +13,22 @@ const serviceWorkerRegistration = () => {
                     `Update available: ${VERSION}`,
                     `<h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>`,
                     () => {
+                        subLoader(true)
+                        loader(true);
                         alertify.message("Updating...");
-						loader(true)
-						localStorage.setItem(Key.appUpdated, 1)
+                        localStorage.setItem(Key.appUpdated, 1);
                         newServiceWorker.postMessage({ action: "skipWaiting" });
                     },
                     () => {
-                        alertify.message(
-                            "We'll remind you later."
-                        );
+                        alertify.message("We'll remind you later.");
                     }
-                ).set({'closable':false, ok: "Update", cancel: "Not now", "modal":true })
+                )
+                .set({
+                    closable: false,
+                    ok: "Update",
+                    cancel: "Not now",
+                    modal: true,
+                });
         };
         window.addEventListener("load", () => {
             navigator.serviceWorker
@@ -31,7 +36,7 @@ const serviceWorkerRegistration = () => {
                 .then((reg) => {
                     if (reg.waiting) {
                         newServiceWorker = reg.waiting;
-						newUpdateBar();
+                        newUpdateBar();
                     }
                     reg.addEventListener("updatefound", () => {
                         newServiceWorker = reg.installing;
@@ -50,10 +55,10 @@ const serviceWorkerRegistration = () => {
                     console.log("Service worker not registered", err)
                 );
 
-				if(Number(localStorage.getItem(Key.appUpdated))){
-					alertify.success('App updated successfully.')
-					localStorage.removeItem(Key.appUpdated)
-				}
+            if (Number(localStorage.getItem(Key.appUpdated))) {
+                alertify.success("App updated successfully.");
+                localStorage.removeItem(Key.appUpdated);
+            }
         });
         let refreshing;
         navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -72,55 +77,8 @@ const getElements = (classname) =>
 const getElementsByTag = (tagname) =>
     Array.from(document.getElementsByTagName(tagname));
 
-document.addEventListener("DOMContentLoaded", () => {
-    getElementsByTag("form").forEach((form) => {
-        form.addEventListener("submit", (e) => {
-            if (form.classList.contains("no-auto")) {
-                e.preventDefault();
-            }
-        });
-    });
-    getElements("href").forEach((href) => {
-        href.addEventListener("click", (e) => {
-            window.location.href = href.getAttribute("data-href");
-        });
-    });
-    getElementsByTag("button").forEach((button) => {
-        if (button.title) {
-            let mPressTimer;
-            button.addEventListener("touchstart", (e) => {
-                mPressTimer = window.setTimeout(() => {
-                    alertify.set("notifier", "position", "bottom-right");
-                    alertify.message(button.title);
-                }, 500);
-                button.addEventListener("touchend", (e) => {
-                    clearTimeout(mPressTimer);
-                });
-            });
-        }
-    });
-    getElementsByTag("i").forEach((icon) => {
-        if (icon.classList && icon.title) {
-            let mPressTimer;
-            icon.addEventListener("touchstart", (e) => {
-                mPressTimer = window.setTimeout(() => {
-                    alertify.set("notifier", "position", "bottom-right");
-                    alertify.message(icon.title);
-                }, 500);
-                icon.addEventListener("touchend", (e) => {
-                    clearTimeout(mPressTimer);
-                });
-            });
-        }
-    });
-});
-
-const loader = (show = true) => {
-    getElement("viewloader").innerHTML = show
-        ? `<div class="loader"></div>`
-        : "";
-    visibleElement("viewloader", show);
-};
+const loader = (show = true) => visibleElement("viewloader", show);
+const subLoader = (show = true) => visibleElement("subloader", show);
 
 const openSpinner = (id = "loader") => showElement(id);
 
@@ -150,7 +108,7 @@ const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
-const initializeTabsView = (
+const initializeTabsView = ({
     onEachTab = async (tabID) => {},
     uniqueID,
     onShowTab = async (tabID) => {},
@@ -159,7 +117,7 @@ const initializeTabsView = (
     inactiveTabClass = "primary",
     viewID = "tabview",
     spinnerID = "loader"
-) => {
+}) => {
     const tabs = getElements(tabsClass),
         tabview = getElement(viewID);
 
@@ -173,10 +131,10 @@ const initializeTabsView = (
         getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
     };
 
-    const showTabContent = (tabID,content) => {
+    const showTabContent = (tabID, content) => {
         tabview.innerHTML = content;
         loadGlobalEditors();
-        onShowTab(tabID)
+        onShowTab(tabID);
     };
 
     tabs.forEach(async (tab, t) => {
@@ -204,7 +162,9 @@ const initializeTabsView = (
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response ? showTabContent(tab.id,response) : showTabError(t);
+            return response
+                ? showTabContent(tab.id, response)
+                : showTabError(t);
         };
     });
     try {
@@ -218,6 +178,7 @@ const initializeTabsView = (
 const postRequest = async (path, data = {}) => {
     const body = { ...data };
     try {
+        subLoader()
         const response = await fetch(path, {
             method: "POST",
             headers: {
@@ -227,23 +188,33 @@ const postRequest = async (path, data = {}) => {
             },
             body: JSON.stringify(body),
         });
-        return await response.json();
+        const data = await response.json();
+        subLoader(false)
+        return data
     } catch (e) {
+        subLoader(false)
         return e;
     }
 };
 
 const getRequest = async (url) => {
     try {
+        subLoader()
         const response = await window.fetch(url, {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
             },
         });
-        if (response.status - 200 > 100) return false;
-        return response.text();
+        if (response.status - 200 > 100){
+            subLoader(false)
+             return false;
+        }
+        const data = response.text();
+        subLoader(false)
+        return data
     } catch (e) {
+        subLoader(false)
         return false;
     }
 };
@@ -366,74 +337,72 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     return blob;
 };
 
-
 const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
-  const dropdown = getElement(dropdownID);
-  const selectedOptionDiv = document.createElement("div");
-  const dropdown_ul = document.createElement("ul");
-  dropdown_ul.className = "dropdown-options-list";
-  selectedOptionDiv.className = "selected-option";
-  selectedOptionDiv.innerHTML = optionValues[0];
-  dropdown.append(selectedOptionDiv, dropdown_ul);
+    const dropdown = getElement(dropdownID);
+    const selectedOptionDiv = document.createElement("div");
+    const dropdown_ul = document.createElement("ul");
+    dropdown_ul.className = "dropdown-options-list";
+    selectedOptionDiv.className = "selected-option";
+    selectedOptionDiv.innerHTML = optionValues[0];
+    dropdown.append(selectedOptionDiv, dropdown_ul);
 
-  selectedOptionDiv.addEventListener("click", () => {
-    show(dropdown_ul);
-  });
-
-  optionValues.forEach((item) => {
-    const dropdown_li = document.createElement("li");
-    dropdown_li.className = "dropdown-option";
-    dropdown_li.innerHTML = item;
-    dropdown_ul.append(dropdown_li);
-
-    dropdown_li.addEventListener("click", () => {
-      selectedOptionDiv.innerHTML = item;
-      hide(dropdown_ul);
+    selectedOptionDiv.addEventListener("click", () => {
+        show(dropdown_ul);
     });
-  });
 
-  window.addEventListener("click", (e) => {
-    if (e.target !== selectedOptionDiv) {
-        hide(dropdown_ul);
-    }
-  });
+    optionValues.forEach((item) => {
+        const dropdown_li = document.createElement("li");
+        dropdown_li.className = "dropdown-option";
+        dropdown_li.innerHTML = item;
+        dropdown_ul.append(dropdown_li);
+
+        dropdown_li.addEventListener("click", () => {
+            selectedOptionDiv.innerHTML = item;
+            hide(dropdown_ul);
+        });
+    });
+
+    window.addEventListener("click", (e) => {
+        if (e.target !== selectedOptionDiv) {
+            hide(dropdown_ul);
+        }
+    });
 };
 
 const handleInputDropdowns = (
-  inputDropdownClassname,
-  inputDropdownID,
-  inputDropdownOptionValues
+    inputDropdownClassname,
+    inputDropdownID,
+    inputDropdownOptionValues
 ) => {
-  const inputDropdown = getElement(inputDropdownID);
-  const inputField = document.createElement("input");
-  const input_dropdown_ul = document.createElement("ul");
-  input_dropdown_ul.className = "input-dropdown-options-list";
-  inputField.className = "input-dropdown-input-field";
+    const inputDropdown = getElement(inputDropdownID);
+    const inputField = document.createElement("input");
+    const input_dropdown_ul = document.createElement("ul");
+    input_dropdown_ul.className = "input-dropdown-options-list";
+    inputField.className = "input-dropdown-input-field";
 
-  inputField.addEventListener("click", () => {
-    show(input_dropdown_ul);
-  });
-
-  inputField.type = "text";
-  inputField.placeholder = "Type or choose an option";
-  inputDropdown.append(inputField, input_dropdown_ul);
-
-  inputDropdownOptionValues.forEach((item) => {
-    const input_dropdown_li = document.createElement("li");
-    input_dropdown_li.className = "input-dropdown-option";
-    input_dropdown_li.innerHTML = item;
-    input_dropdown_ul.append(input_dropdown_li);
-
-    input_dropdown_li.addEventListener("click", () => {
-      inputField.value = item;
-      hide(input_dropdown_ul);
+    inputField.addEventListener("click", () => {
+        show(input_dropdown_ul);
     });
-  });
 
-  window.addEventListener("click", (e) => {
-    if (e.target !== inputField) {
-      hide(input_dropdown_ul);
-    }
-  });
+    inputField.type = "text";
+    inputField.placeholder = "Type or choose an option";
+    inputDropdown.append(inputField, input_dropdown_ul);
+
+    inputDropdownOptionValues.forEach((item) => {
+        const input_dropdown_li = document.createElement("li");
+        input_dropdown_li.className = "input-dropdown-option";
+        input_dropdown_li.innerHTML = item;
+        input_dropdown_ul.append(input_dropdown_li);
+
+        input_dropdown_li.addEventListener("click", () => {
+            inputField.value = item;
+            hide(input_dropdown_ul);
+        });
+    });
+
+    window.addEventListener("click", (e) => {
+        if (e.target !== inputField) {
+            hide(input_dropdown_ul);
+        }
+    });
 };
-
