@@ -1,1 +1,23 @@
-submission
+<div class="w3-row">
+{% if request.user and submission %}
+
+{% for member in  submission.getMembers %}
+{{member}}
+{% endfor %}
+
+{% for invitee in  submission.getInvitees %}
+{{invitee}}
+{% endfor %}
+
+<div class="input-dropdown-box" id="findPeople"></div>
+
+{{submission.totalMembers}}
+{% else %}
+<br/>
+<h4>Competition is a thrill way to learn.</h4>
+<form action="{{ROOT}}/participate/{{competition.id}}" method="POST">
+    {% csrf_token %}
+    <button type="submit" class="display-button accent" id="participate">Participate</button>
+</form>
+{% endif %}
+</div>

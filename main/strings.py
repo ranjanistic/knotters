@@ -15,7 +15,8 @@ class Environment():
 
 environment = Environment()
 
-ENVIRONMENTS = [environment.DEVELOPMENT, environment.TESTING, environment.PRODUCTION]
+ENVIRONMENTS = [environment.DEVELOPMENT,
+                environment.TESTING, environment.PRODUCTION]
 
 
 class URL():
@@ -34,9 +35,11 @@ class URL():
     LANDING = 'landing'
 
     class Compete():
+        COMPID = '<str:compID>'
         INDEXTAB = 'indexTab/<str:tab>'
         COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
-        COMPID = '<str:compID>'
+        DATA = "data/<str:compID>"
+        PARTICIPATE = 'participate/<str:compID>'
         INVITATION = 'invitation/<str:subID>/<str:userID>'
         INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
 
@@ -61,6 +64,7 @@ class URL():
 
 
 url = URL()
+
 
 class Codes():
     OK = "OK"

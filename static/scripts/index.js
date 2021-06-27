@@ -13,7 +13,7 @@ const serviceWorkerRegistration = () => {
                     `Update available: ${VERSION}`,
                     `<h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>`,
                     () => {
-                        subLoader(true)
+                        subLoader(true);
                         loader(true);
                         alertify.message("Updating...");
                         localStorage.setItem(Key.appUpdated, 1);
@@ -108,6 +108,62 @@ const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
+const loadGlobalEventListeners = () => {
+    getElementsByTag("form").forEach((form) => {
+        form.addEventListener("submit", (e) => {
+            if (form.classList.contains("no-auto")) {
+                return e.preventDefault();
+            }
+            subLoader(true);
+        });
+    });
+    getElementsByTag("a").forEach((a) => {
+        if (
+            a.getAttribute("href") &&
+            !a.getAttribute("href").startsWith("#") &&
+            !a.getAttribute("target")
+        ) {
+            a.addEventListener("click", (e) => {
+                subLoader(true);
+            });
+        }
+    });
+    getElements("href").forEach((href) => {
+        href.addEventListener("click", (e) => {
+            subLoader(true);
+            window.location.href = href.getAttribute("data-href");
+        });
+    });
+    getElementsByTag("button").forEach((button) => {
+        if (button.title) {
+            let mPressTimer;
+            button.addEventListener("touchstart", (e) => {
+                mPressTimer = window.setTimeout(() => {
+                    alertify.set("notifier", "position", "bottom-right");
+                    alertify.message(button.title);
+                }, 500);
+                button.addEventListener("touchend", (e) => {
+                    clearTimeout(mPressTimer);
+                });
+            });
+        }
+    });
+    getElementsByTag("i").forEach((icon) => {
+        if (icon.classList && icon.title) {
+            let mPressTimer;
+            icon.addEventListener("touchstart", (e) => {
+                mPressTimer = window.setTimeout(() => {
+                    alertify.set("notifier", "position", "bottom-right");
+                    alertify.message(icon.title);
+                }, 500);
+                icon.addEventListener("touchend", (e) => {
+                    clearTimeout(mPressTimer);
+                });
+            });
+        }
+    });
+};
+
 const initializeTabsView = ({
     onEachTab = async (tabID) => {},
     uniqueID,
@@ -116,7 +172,7 @@ const initializeTabsView = ({
     activeTabClass = "positive",
     inactiveTabClass = "primary",
     viewID = "tabview",
-    spinnerID = "loader"
+    spinnerID = "loader",
 }) => {
     const tabs = getElements(tabsClass),
         tabview = getElement(viewID);
@@ -133,6 +189,7 @@ const initializeTabsView = ({
 
     const showTabContent = (tabID, content) => {
         tabview.innerHTML = content;
+        loadGlobalEventListeners();
         loadGlobalEditors();
         onShowTab(tabID);
     };
@@ -178,7 +235,7 @@ const initializeTabsView = ({
 const postRequest = async (path, data = {}) => {
     const body = { ...data };
     try {
-        subLoader()
+        subLoader();
         const response = await fetch(path, {
             method: "POST",
             headers: {
@@ -189,32 +246,32 @@ const postRequest = async (path, data = {}) => {
             body: JSON.stringify(body),
         });
         const data = await response.json();
-        subLoader(false)
-        return data
+        subLoader(false);
+        return data;
     } catch (e) {
-        subLoader(false)
+        subLoader(false);
         return e;
     }
 };
 
 const getRequest = async (url) => {
     try {
-        subLoader()
+        subLoader();
         const response = await window.fetch(url, {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
             },
         });
-        if (response.status - 200 > 100){
-            subLoader(false)
-             return false;
+        if (response.status - 200 > 100) {
+            subLoader(false);
+            return false;
         }
         const data = response.text();
-        subLoader(false)
-        return data
+        subLoader(false);
+        return data;
     } catch (e) {
-        subLoader(false)
+        subLoader(false);
         return false;
     }
 };
@@ -369,12 +426,15 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     });
 };
 
-const handleInputDropdowns = (
-    inputDropdownClassname,
-    inputDropdownID,
-    inputDropdownOptionValues
-) => {
-    const inputDropdown = getElement(inputDropdownID);
+const handleInputDropdowns = ({
+    dropdownID = "inputDropdown",
+    inputDropdownOptionValues = [],
+    inputType = "text",
+    placeholder = "Start typing",
+    onInput = ({inputField,listContainer,createList=(list=[])=>{}}) => {},
+    onChange = ({inputField,listContainer,createList=(list=[])=>{}}) => {},
+}) => {
+    const inputDropdown = getElement(dropdownID);
     const inputField = document.createElement("input");
     const input_dropdown_ul = document.createElement("ul");
     input_dropdown_ul.className = "input-dropdown-options-list";
@@ -384,21 +444,35 @@ const handleInputDropdowns = (
         show(input_dropdown_ul);
     });
 
-    inputField.type = "text";
-    inputField.placeholder = "Type or choose an option";
+    inputField.type = inputType;
+    inputField.placeholder = placeholder;
     inputDropdown.append(inputField, input_dropdown_ul);
 
-    inputDropdownOptionValues.forEach((item) => {
-        const input_dropdown_li = document.createElement("li");
-        input_dropdown_li.className = "input-dropdown-option";
-        input_dropdown_li.innerHTML = item;
-        input_dropdown_ul.append(input_dropdown_li);
 
-        input_dropdown_li.addEventListener("click", () => {
-            inputField.value = item;
-            hide(input_dropdown_ul);
+    const createList = (list) => {
+        list.forEach((item) => {
+            const input_dropdown_li = document.createElement("li");
+            input_dropdown_li.className = "input-dropdown-option";
+            input_dropdown_li.innerHTML = item;
+            input_dropdown_ul.append(input_dropdown_li);
+    
+            input_dropdown_li.addEventListener("click", () => {
+                inputField.value = item;
+                hide(input_dropdown_ul);
+            });
         });
+    }
+
+    createList(inputDropdownOptionValues);
+
+    inputField.addEventListener("input", () => {
+        onInput({inputField,createList,listContainer:input_dropdown_ul});
     });
+
+    inputField.addEventListener("change", () => {
+        onChange({inputField,createList,listContainer:input_dropdown_ul});
+    });
+
 
     window.addEventListener("click", (e) => {
         if (e.target !== inputField) {

@@ -4,6 +4,7 @@ from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
 from main.settings import STATIC_URL, MEDIA_URL
 import json
+from .env import ADMINPATH
 from main.strings import url
 from .methods import renderData, renderView, replaceUrlParamsWithStr
 from .decorators import dev_only
@@ -129,6 +130,7 @@ class ServiceWorker(TemplateView):
                     f"/{url.PEOPLE}{url.People.SETTINGTAB}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PEOPLE}{url.People.PROFILETAB}"),
+                f"/{ADMINPATH}*",
             ]),
             'ignorelist': json.dumps([
                 f"{MEDIA_URL}*",

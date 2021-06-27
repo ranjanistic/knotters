@@ -1,6 +1,17 @@
 <br/>
-<div class="w3-row">
-{% for comp in active %}
+<div class="w3-row w3-padding">
+{% for comp in actives %}
+<div class="w3-row pallete" style="background:url('{{comp.getBanner}}');">
+    <div class="w3-col w3-half">
+        <h4 class="positive-text">{{comp.title}}</h4>
+        <h6 class="secondary-text">{{comp.tagline}}</h6>
+    </div>
+    <div class="w3-col w3-half w3-padding">
+        <a class="w3-right" href="{{comp.getLink}}"><button class="active"><i class="material-icons">visibility</i>View</button></a>
+    </div>
+</div>
+<br/>
+
 {% empty %}
 <center><h3>No active competitions.</h3></center>
 {% endfor %}

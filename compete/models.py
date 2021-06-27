@@ -2,10 +2,9 @@ import uuid
 from people.models import Profile
 from django.db import models
 from django.utils import timezone
-from main.strings import PEOPLE
+from main.strings import PEOPLE, url
 from main.settings import MEDIA_URL
 from .apps import APPNAME
-
 
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
@@ -29,27 +28,36 @@ class Competition(models.Model):
     startAt = models.DateTimeField(auto_now=False, default=timezone.now)
     endAt = models.DateTimeField(auto_now=False)
 
+    resultDeclared = models.BooleanField(default=False)
+
     def __str__(self) -> str:
         return self.title
 
     def getBanner(self) -> str:
         return f"{MEDIA_URL}{str(self.banner)}"
 
-    def getLink(self, error='', success='') -> str:
+    def getLink(self, error='', success='', alert='') -> str:
         """
         Link to competition profile page
         """
         if error:
             error = f"?e={error}"
+        elif alert:
+            success = f"?a={alert}"
         elif success:
             success = f"?s={success}"
-        return f"/{APPNAME}/{self.id}{success}{error}"
+        return f"/{url.COMPETE}{self.id}{success}{error}"
     
     def isActive(self)-> bool:
         """
         Whether the competition is active or not, depending on endAt time.
         """
         return self.endAt > timezone.now()
+    
+    def secondsLeft(self) -> int:
+        diff = self.endAt - timezone.now()
+        return diff.seconds
+
 
 
 class Submission(models.Model):

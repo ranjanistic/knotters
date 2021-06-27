@@ -1,13 +1,12 @@
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
+
 from django.template.loader import render_to_string
-from main.methods import renderView, sendActionEmail, sendAlertEmail
+from main.methods import renderView, sendActionEmail, sendAlertEmail, renderData
 from main.strings import compete
 from people.models import Profile
 from main.env import SITE
-from .models import Competition, Relation, Submission
+from django.utils import timezone
+from .models import Competition, Submission
 from .apps import APPNAME
-
 
 def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
@@ -18,22 +17,27 @@ def getIndexSectionHTML(section, request):
         data = {}
         if section == 'active':
             try:
-                active = Competition.objects.filter(active=True)
+                actives = Competition.objects.filter(endAt__gt=timezone.now())
             except:
-                active = None
-            data['active'] = active
+                actives = []
+            print(actives)
+            data['actives'] = actives
         elif section == 'history':
             try:
-                history = Competition.objects.filter(active=False)
+                history = Competition.objects.filter(endAt__lte=timezone.now())
             except:
-                history = None
+                history = []
             data['history'] = history
+        else: return False
         return render_to_string(f'{APPNAME}/index/{section}.html', data, request=request)
     except:
         return False
 
 
-def getCompetitionSectionData(section, competition):
+def getCompetitionSectionData(section, competition, request):
+    data = renderData({
+        'competition': competition
+    }, fromApp=APPNAME)
     if section == compete.OVERVIEW:
         return {}
     if section == compete.TASK:
@@ -41,9 +45,14 @@ def getCompetitionSectionData(section, competition):
     if section == compete.GUIDELINES:
         return {}
     if section == compete.SUBMISSION:
-        return {}
+        try:
+            submission = Submission.objects.get(competition=competition, members=request.user.profile)
+            data['submission'] = submission
+        except: 
+            data['submission'] = None
     if section == compete.RESULT:
         return {}
+    return data
 
 
 def getCompetitionSectionHTML(competition, section, request):
@@ -52,23 +61,9 @@ def getCompetitionSectionHTML(competition, section, request):
     data = {}
     for sec in compete.COMPETE_SECTIONS:
         if sec == section:
-            data = getCompetitionSectionData(sec, competition)
+            data = getCompetitionSectionData(sec, competition, request)
             break
     return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
-
-
-@receiver(post_delete, sender=Submission)
-def on_submission_delete(sender, instance, **kwargs):
-    """
-    Submission cleanup.
-    """
-    try:
-        relations = Relation.objects.filter(submission=instance)
-        for member in instance.members.all():
-            rel = relations.get(profile=member)
-            rel.delete()
-    except Exception as e: pass
-
 
 def sendParticipantInvitationMail(profile: Profile, host: Profile, submission: Submission):
     """
