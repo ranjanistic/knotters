@@ -54,6 +54,8 @@ class URL():
         PROFILEEDIT = 'profile/edit/<str:section>'
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
         SETTINGTAB = 'settingtab/<str:section>'
+        ACCOUNTSETTINGS = "account/settings/<str:userID>"
+        ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
 
     class Projects():
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'

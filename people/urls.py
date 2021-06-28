@@ -11,4 +11,6 @@ urlpatterns = [
     path(url.People.PROFILEEDIT, editProfile),
     path(url.People.PROFILETAB, profileTab),
     path(url.People.SETTINGTAB, settingTab),
+    path(url.People.ACCOUNTSETTINGS, accountsettings),
+    path(url.People.ACCOUNTPREFERENCES, accountprefs),
 ]

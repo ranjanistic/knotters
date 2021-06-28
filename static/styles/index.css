@@ -313,6 +313,10 @@ textarea.positive {
   background-color: var(--tertiary);
 }
 
+input:disabled, textarea:disabled{
+  opacity: 0.4;
+}
+
 .edit-action {
   cursor: pointer;
   font-size: 18px;

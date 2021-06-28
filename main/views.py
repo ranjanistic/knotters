@@ -92,6 +92,8 @@ class ServiceWorker(TemplateView):
                 f"{STATIC_URL}chartjs/chart.min.js",
                 f"{STATIC_URL}cropper/cropper.min.css",
                 f"{STATIC_URL}cropper/cropper.min.js",
+                f"{STATIC_URL}swiper/swiper-bundle.min.css",
+                f"{STATIC_URL}swiper/swiper-bundle.min.js",
                 f"{STATIC_URL}fonts/Poppins/Devnagri.woff2",
                 f"{STATIC_URL}fonts/Poppins/Latin.woff2",
                 f"{STATIC_URL}fonts/Poppins/LatinX.woff2",
@@ -150,6 +152,10 @@ class ServiceWorker(TemplateView):
                     f"/{url.PEOPLE}{url.People.PROFILEEDIT}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.PROFILEEDIT}"),
+                replaceUrlParamsWithStr(
+                    f"/{url.PROJECTS}{url.People.ACCOUNTSETTINGS}"),
+                replaceUrlParamsWithStr(
+                    f"/{url.PROJECTS}{url.People.ACCOUNTPREFERENCES}"),
             ]),
         })
         return context

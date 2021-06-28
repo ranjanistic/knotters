@@ -1,10 +1,35 @@
 <div id="view-settings">
     <i class="w3-right material-icons edit-action" data-edittarget="settings">edit</i>
-    Account settings
+    <form class="no-auto">
+    <h2>Account settings</h2>
+    <h4>Email address</h4>
+    <input disabled class="wide" type="email" autocomplete="email" placeholder="Email address (verification required)" value="{{request.user.email}}" />
+    <h4>Password</h4>
+    {% if request.user.password %}
+    <input disabled class="wide" type="password" autocomplete="current-password" value="Sike! You thought." />
+    {% else %}
+    {% endif %}
+    </form>
 </div>
-
-<form method="POST" id="edit-settings">
+<form method="POST" id="edit-settings" action="{{ROOT}}/account/settings/{{request.user.id}}" novalidate>
     {% csrf_token %}
+    <h4>Change Email address</h4>
+    <input class="wide" required name="newemail" autocomplete="email" type="email" placeholder="New email address (verification required)" value="{{request.user.email}}" id="newemail" />
+    <h4>Password</h4>
+    {% if request.user.password %}
+    <input class="wide" required name="oldpassword" type="password" autocomplete="current-password" placeholder="Current password" id="oldpassword" />
+    <br/><br/>
+    {% endif %}
+    <input class="wide" required name="newpassword" type="password" autocomplete="new-password" placeholder="New password" id="newpassword" />
+    <br/><br/>
     <button class="w3-right" id="save-edit-settings"><i class="material-icons">done</i>Save</button>
     <button class="w3-right" id="discard-edit-settings"><i class="material-icons">cancel</i>Discard</button>
 </form>
+<br/>
+<h4>Oauth Accounts</h4>
+{% for oauth in oauths %}
+    {% if oauth.isLinked %}
+    
+    {% else %}
+    {% endif %}
+{% endfor %}

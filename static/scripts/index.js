@@ -84,7 +84,8 @@ const openSpinner = (id = "loader") => showElement(id);
 
 const hideSpinner = (id = "loader") => hideElement(id);
 
-const csrfHiddenInput = (token) => `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`
+const csrfHiddenInput = (token) =>
+    `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`;
 
 const hide = (element) => {
     element.hidden = true;
@@ -114,6 +115,7 @@ const setHtmlContent = (element, content = "") => {
     element.innerHTML = content;
     loadGlobalEventListeners();
     loadGlobalEditors();
+    loadCarousels({});
 };
 
 const loadGlobalEventListeners = () => {
@@ -151,8 +153,38 @@ const loadGlobalEventListeners = () => {
             }
         }
     });
-    getElementsByTag("i").forEach((icon) => {
-    });
+    getElementsByTag("i").forEach((icon) => {});
+};
+
+const loadCarousels = ({
+    container = "swiper-container",
+    loop = false,
+    grabCursor = true,
+    spaceBetween = 5,
+    breakpoints = {
+        640: {
+            slidesPerView: 1,
+            spaceBetween: 0,
+        },
+        768: {
+            slidesPerView: 1,
+            spaceBetween: 0,
+        },
+        1024: {
+            slidesPerView: 3,
+            spaceBetween: 0,
+        },
+    },
+}) => {
+    if (getElements(container).length) {
+        return new Swiper(`.${container}`, {
+            loop,
+            grabCursor,
+            spaceBetween,
+            breakpoints,
+        });
+    }
+    return null;
 };
 
 const initializeTabsView = ({
@@ -208,9 +240,7 @@ const initializeTabsView = ({
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response
-                ? showTabContent(tab, response)
-                : showTabError(t);
+            return response ? showTabContent(tab, response) : showTabError(t);
         };
     });
     try {

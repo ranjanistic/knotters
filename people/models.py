@@ -134,14 +134,16 @@ class Profile(models.Model):
     def getGhUrl(self) -> str:
         return f"https://github.com/{self.githubID}"
 
-    def getLink(self, error='', success='') -> str:
+    def getLink(self, error='', success='', alert='') -> str:
         if error:
             error = f"?e={error}"
+        elif alert:
+            alert = f"?a={alert}"
         elif success:
             success = f"?s={success}"
         if self.githubID:
-            return f"/{APPNAME}/profile/{self.githubID}{success}{error}"
-        return f"/{APPNAME}/profile/{self.user.id}{success}{error}"
+            return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
+        return f"/{APPNAME}/profile/{self.user.id}{success}{alert}{error}"
 
 
 class Relation(models.Model):

@@ -40,8 +40,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", async (event) => {
-    const path = event.request.url.replace(site, "");
     if (!(event.request.url.indexOf("http") === 0)) return;
+    const path = event.request.url.replace(site, "");
     event.respondWith(
         caches
             .match(event.request)

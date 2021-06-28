@@ -8,7 +8,7 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from django.template.loader import render_to_string
-from main.methods import renderView
+from main.methods import renderData, renderView
 from main.strings import code, profile as profileString 
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
@@ -79,10 +79,10 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT, profileString.setting.PREFERE
 
 
 def getProfileSectionData(section: str, profile: Profile, request: HttpRequest) -> dict:
-    data = {
+    data = renderData({
         'self': request.user == profile.user,
         'person': profile.user
-    }
+    },APPNAME)
     if section == profileString.OVERVIEW:
         pass
     if section == profileString.PROJECTS:
@@ -115,7 +115,7 @@ def getProfileSectionHTML(profile: Profile, section: str, request: HttpRequest) 
 
 
 def getSettingSectionData(section: str, user: User, request: HttpRequest) -> dict:
-    data = {}
+    data = renderData(fromApp=APPNAME)
     if section == profileString.setting.ACCOUNT:
         pass
     if section == profileString.setting.PREFERENCE:

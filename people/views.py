@@ -88,3 +88,27 @@ def editProfile(request, section):
                 return redirect(profile.getLink(error=f"Problem occurred."))
     except:
         raise HttpResponseForbidden()
+
+@require_POST
+@login_required
+def accountsettings(request,userID):
+    try:
+        if request.user.id != userID: raise Exception()
+        newemail = str(request.POST['newemail']).strip().lower()
+        oldpassword = request.POST['oldpassword']
+        newpassword = request.POST['newpassword']
+        return redirect(request.user.profile.getLink(alert="Account info saved."))
+    except:
+        return redirect(request.user.profile.getLink(error="Invalid info provided"))
+
+@require_POST
+@login_required
+def accountprefs(request,userID):
+    try:
+        if request.user.id != userID: raise Exception()
+        newemail = str(request.POST['newemail']).strip().lower()
+        oldpassword = request.POST['oldpassword']
+        newpassword = request.POST['newpassword']
+        return redirect(request.user.profile.getLink(alert="Account preferences saved."))
+    except:
+        return redirect(request.user.profile.getLink(error="Invalid preferences provided"))
