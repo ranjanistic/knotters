@@ -1,18 +1,9 @@
+const loadTabScript = (tab) => {
+
+};
 initializeTabsView({
-  onEachTab: async (tabID) => {
-    return await getRequest(`${ROOT}/indexTab/${tabID}`);
-  },
-  uniqueID:"competitionstab",
-  tabsClass:"compete-nav-tab"
+    onEachTab: async (tab) => await getRequest(`${ROOT}/indexTab/${tab.id}`),
+    uniqueID: "competitionstab",
+    tabsClass: "compete-nav-tab",
+    onShowTab: loadTabScript,
 });
-
-// var values = ["hello", "bye"];
-// var inputValues = ["morning", "night"];
-
-// handleDropDowns("dropdown-box", "compete-dropdown", values);
-
-// handleInputDropdowns(
-//   "input-dropdown-box",
-//   "compete-input-dropdown",
-//   inputValues
-// );

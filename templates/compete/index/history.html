@@ -1,7 +1,18 @@
 <br/>
-<div class="w3-row">
+<div class="w3-row w3-padding">
 {% for comp in history %}
+<div class="w3-row pallete">
+    <div class="w3-col w3-half">
+        <h4 class="positive-text">{{comp.title}}</h4>
+        <h6>{{comp.tagline}}</h6>
+    </div>
+    <div class="w3-col w3-half w3-padding">
+        <a class="w3-right" href="{{comp.getLink}}"><button class="secondary"><i class="material-icons">visibility</i>View</button></a>
+    </div>
+</div>
+<br/>
+
 {% empty %}
-<center><h3>No competition history.</h3></center>
+<center><h3>No history. Let's make some!</h3></center>
 {% endfor %}
 </div>

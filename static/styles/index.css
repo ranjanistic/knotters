@@ -106,6 +106,10 @@ h6 {
   background-color: var(--positive) !important;
   color: var(--positive-text);
 }
+
+.positive h3 {
+  color: var(--positive-text) !important;
+}
 .positive-text {
   color: var(--positive) !important;
 }
@@ -146,6 +150,10 @@ nav {
 }
 .nav-tab > i {
   padding: 0px 2px 4px 0px;
+}
+
+.wide{
+  width: 100% !important;
 }
 
 button {
@@ -372,9 +380,12 @@ button.small {
   border-radius: 55px;
 }
 
-.display-button > i,
-.big-button > i {
+.display-button > i{
   font-size: 28px !important;
+  margin-right: 4px;
+}
+.big-button > i {
+  font-size: 22px !important;
   margin-right: 4px;
 }
 

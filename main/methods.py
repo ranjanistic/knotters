@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.core.files.base import ContentFile, File
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from .env import PUBNAME, MAILUSER, SITE, VERSION
+from .env import ISPRODUCTION, PUBNAME, MAILUSER, SITE, VERSION
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 from .strings import DIVISIONS
 
@@ -155,18 +155,19 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
 
 
 def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str):
-    html, body = getEmailHtmlBody(
-        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
-    msg = EmailMultiAlternatives(subject, body=body, to=[to])
-    msg.attach_alternative(content=html, mimetype="text/html")
-    msg.send()
+    if ISPRODUCTION:
+        html, body = getEmailHtmlBody(
+            greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
+        msg = EmailMultiAlternatives(subject, body=body, to=[to])
+        msg.attach_alternative(content=html, mimetype="text/html")
+        msg.send()
 
 
 def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []):
-    print('yess')
-    html, body = getEmailHtmlBody(
-        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
-    msg = EmailMultiAlternatives(subject, body=body, to=[to])
-    msg.attach_alternative(content=html, mimetype="text/html")
-    msg.send()
+    if ISPRODUCTION:
+        html, body = getEmailHtmlBody(
+            greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
+        msg = EmailMultiAlternatives(subject, body=body, to=[to])
+        msg.attach_alternative(content=html, mimetype="text/html")
+        msg.send()
 

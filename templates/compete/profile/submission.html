@@ -1,1 +1,70 @@
-submission
+<div class="w3-row">
+    {% if not competition.isActive %}
+        {% if request.user and submission %}
+            {% for member in  submission.getMembers %}
+            {{member}}
+            {% endfor %}
+
+            {% for invitee in  submission.getInvitees %}
+            {{invitee}}
+            {% endfor %}
+        {% else %}
+            Competition ended before you could participate.
+        {% endif %}
+    {% elif request.user and submission %}
+    <div class="w3-col w3-half w3-padding-small">
+        <div class="w3-row pallete positive">
+            <h3>Submission</h3>
+            <form class="w3-row" method="POST" action="{{ROOT}}/save/{{competition.id}}/{{submission.id}}">
+                {% csrf_token %}
+            <input class="wide" type="url" name="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
+            <div><br/></div>
+            <button type="submit" class="primary" data-icon="save">Save</button>
+            </form>
+        </div>
+        <button class="big-button accent" data-icon="check_circle">Final Submit</button>
+    </div>
+    
+    <div class="w3-col w3-half w3-padding-small">
+        <h5 class="w3-left w3-padding-small">Teammates</h5>
+        <div class="w3-row">
+            {% for member in submission.getMembers %}
+            <div class="w3-col w3-third w3-padding-small">
+                <div class="pallete accent">
+                    <h6>{{member.getName}}</h6>
+                    <a target="_blank" href="{{member.getLink}}"><button data-icon="visibility"></button></a>
+                    <button class="negative remove-person" data-name="{{member.getName}}" data-userID="{{member.user.id}}" data-icon="delete"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if submission.canInvite %}
+        <br/>
+        <button class="w3-right active" data-icon="person_add">Invite</button>
+        <h5 class="w3-padding-small">Invitees</h5>
+        <div class="w3-row">
+            {% for invitee in submission.getInvitees %}
+            <div class="w3-col w3-third w3-padding-small">
+                <div class="pallete">
+                    <h6>{{invitee.getName}}</h6>
+                    <a target="_blank" href="{{invitee.getLink}}"><button data-icon="visibility"></button></a>
+                    <button class="negative remove-person" data-name="{{invitee.getName}}" data-userID="{{invitee.user.id}}" data-icon="delete"></button>
+                </div>
+            </div>
+            {% empty %}
+            <center><h4>No pending invites</h4></center>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <br/>
+    <div class="w3-row w3-center">
+    <h4>Competition is a thrill way to learn.</h4>
+    <form action="{{ROOT}}/participate/{{competition.id}}" method="POST">
+        {% csrf_token %}
+        <a href="#mainframe"><button type="submit" class="display-button accent" id="participate">Participate</button></a>
+    </form>
+    </div>
+    {% endif %}
+</div>

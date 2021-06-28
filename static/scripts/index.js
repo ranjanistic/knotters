@@ -13,7 +13,7 @@ const serviceWorkerRegistration = () => {
                     `Update available: ${VERSION}`,
                     `<h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>`,
                     () => {
-                        subLoader(true)
+                        subLoader(true);
                         loader(true);
                         alertify.message("Updating...");
                         localStorage.setItem(Key.appUpdated, 1);
@@ -84,6 +84,8 @@ const openSpinner = (id = "loader") => showElement(id);
 
 const hideSpinner = (id = "loader") => hideElement(id);
 
+const csrfHiddenInput = (token) => `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`
+
 const hide = (element) => {
     element.hidden = true;
     element.style.display = "none";
@@ -108,33 +110,77 @@ const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
+const setHtmlContent = (element, content = "") => {
+    element.innerHTML = content;
+    loadGlobalEventListeners();
+    loadGlobalEditors();
+};
+
+const loadGlobalEventListeners = () => {
+    getElementsByTag("form").forEach((form) => {
+        form.addEventListener("submit", (e) => {
+            if (form.classList.contains("no-auto")) {
+                return e.preventDefault();
+            }
+            subLoader(true);
+        });
+    });
+    getElementsByTag("a").forEach((a) => {
+        if (
+            a.getAttribute("href") &&
+            !a.getAttribute("href").startsWith("#") &&
+            !a.getAttribute("target")
+        ) {
+            a.addEventListener("click", (e) => {
+                subLoader(true);
+            });
+        }
+    });
+    getElements("href").forEach((href) => {
+        href.addEventListener("click", (e) => {
+            subLoader(true);
+            window.location.href = href.getAttribute("data-href");
+        });
+    });
+    getElementsByTag("button").forEach((button) => {
+        if (button.getAttribute("data-icon")) {
+            if (!button.innerHTML.includes("material-icons")) {
+                button.innerHTML = `<i class="material-icons">${button.getAttribute(
+                    "data-icon"
+                )}</i>${button.innerHTML}`;
+            }
+        }
+    });
+    getElementsByTag("i").forEach((icon) => {
+    });
+};
+
 const initializeTabsView = ({
-    onEachTab = async (tabID) => {},
+    onEachTab = async (tab) => {},
     uniqueID,
-    onShowTab = async (tabID) => {},
+    onShowTab = async (tab) => {},
     tabsClass = "nav-tab",
     activeTabClass = "positive",
     inactiveTabClass = "primary",
     viewID = "tabview",
-    spinnerID = "loader"
+    spinnerID = "loader",
 }) => {
     const tabs = getElements(tabsClass),
         tabview = getElement(viewID);
 
     const showTabLoading = () => {
-        tabview.innerHTML = loaderHTML(spinnerID);
+        setHtmlContent(tabview, loaderHTML(spinnerID));
         openSpinner(spinnerID);
     };
 
     const showTabError = (tabindex = 0) => {
-        tabview.innerHTML = loadErrorHTML(`${uniqueID}retry`);
+        setHtmlContent(tabview, loadErrorHTML(`${uniqueID}retry`));
         getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
     };
 
-    const showTabContent = (tabID, content) => {
-        tabview.innerHTML = content;
-        loadGlobalEditors();
-        onShowTab(tabID);
+    const showTabContent = (tab, content) => {
+        setHtmlContent(tabview, content);
+        onShowTab(tab);
     };
 
     tabs.forEach(async (tab, t) => {
@@ -154,7 +200,7 @@ const initializeTabsView = ({
                     tab1.classList.add(inactiveTabClass);
                 }
             });
-            const response = await onEachTab(tab.id);
+            const response = await onEachTab(tab);
             hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
@@ -163,7 +209,7 @@ const initializeTabsView = ({
                 tab1.onclick = onclicks[t1];
             });
             return response
-                ? showTabContent(tab.id, response)
+                ? showTabContent(tab, response)
                 : showTabError(t);
         };
     });
@@ -178,7 +224,7 @@ const initializeTabsView = ({
 const postRequest = async (path, data = {}) => {
     const body = { ...data };
     try {
-        subLoader()
+        subLoader();
         const response = await fetch(path, {
             method: "POST",
             headers: {
@@ -189,32 +235,32 @@ const postRequest = async (path, data = {}) => {
             body: JSON.stringify(body),
         });
         const data = await response.json();
-        subLoader(false)
-        return data
+        subLoader(false);
+        return data;
     } catch (e) {
-        subLoader(false)
+        subLoader(false);
         return e;
     }
 };
 
 const getRequest = async (url) => {
     try {
-        subLoader()
+        subLoader();
         const response = await window.fetch(url, {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
             },
         });
-        if (response.status - 200 > 100){
-            subLoader(false)
-             return false;
+        if (response.status - 200 > 100) {
+            subLoader(false);
+            return false;
         }
         const data = response.text();
-        subLoader(false)
-        return data
+        subLoader(false);
+        return data;
     } catch (e) {
-        subLoader(false)
+        subLoader(false);
         return false;
     }
 };
@@ -255,8 +301,6 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
         };
     });
 };
-
-loadGlobalEditors();
 
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (navigator.share) {
@@ -343,7 +387,7 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown_ul = document.createElement("ul");
     dropdown_ul.className = "dropdown-options-list pallete";
     selectedOptionDiv.className = "selected-option";
-    selectedOptionDiv.innerHTML = optionValues[0];
+    setHtmlContent(selectedOptionDiv, optionValues[0]);
     dropdown.append(selectedOptionDiv, dropdown_ul);
 
     selectedOptionDiv.addEventListener("click", () => {
@@ -353,11 +397,11 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     optionValues.forEach((item) => {
         const dropdown_li = document.createElement("li");
         dropdown_li.className = "dropdown-option";
-        dropdown_li.innerHTML = item;
+        setHtmlContent(dropdown_li, item);
         dropdown_ul.append(dropdown_li);
 
         dropdown_li.addEventListener("click", () => {
-            selectedOptionDiv.innerHTML = item;
+            setHtmlContent(selectedOptionDiv, item);
             hide(dropdown_ul);
         });
     });
@@ -369,12 +413,23 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     });
 };
 
-const handleInputDropdowns = (
-    inputDropdownClassname,
-    inputDropdownID,
-    inputDropdownOptionValues
-) => {
-    const inputDropdown = getElement(inputDropdownID);
+const handleInputDropdowns = ({
+    dropdownID = "inputDropdown",
+    inputDropdownOptionValues = [],
+    inputType = "text",
+    placeholder = "Start typing",
+    onInput = ({
+        inputField,
+        listContainer,
+        createList = (list = []) => {},
+    }) => {},
+    onChange = ({
+        inputField,
+        listContainer,
+        createList = (list = []) => {},
+    }) => {},
+}) => {
+    const inputDropdown = getElement(dropdownID);
     const inputField = document.createElement("input");
     const input_dropdown_ul = document.createElement("ul");
     input_dropdown_ul.className = "input-dropdown-options-list pallete";
@@ -384,20 +439,31 @@ const handleInputDropdowns = (
         show(input_dropdown_ul);
     });
 
-    inputField.type = "text";
-    inputField.placeholder = "Type or choose an option";
+    inputField.type = inputType;
+    inputField.placeholder = placeholder;
     inputDropdown.append(inputField, input_dropdown_ul);
 
-    inputDropdownOptionValues.forEach((item) => {
-        const input_dropdown_li = document.createElement("li");
-        input_dropdown_li.className = "input-dropdown-option";
-        input_dropdown_li.innerHTML = item;
-        input_dropdown_ul.append(input_dropdown_li);
-
-        input_dropdown_li.addEventListener("click", () => {
-            inputField.value = item;
-            hide(input_dropdown_ul);
+    const createList = (list) => {
+        list.forEach((item) => {
+            const input_dropdown_li = document.createElement("li");
+            input_dropdown_li.className = "input-dropdown-option";
+            setHtmlContent(input_dropdown_li, item);
+            input_dropdown_ul.append(input_dropdown_li);
+            input_dropdown_li.addEventListener("click", () => {
+                inputField.value = item;
+                hide(input_dropdown_ul);
+            });
         });
+    };
+
+    createList(inputDropdownOptionValues);
+
+    inputField.addEventListener("input", () => {
+        onInput({ inputField, createList, listContainer: input_dropdown_ul });
+    });
+
+    inputField.addEventListener("change", () => {
+        onChange({ inputField, createList, listContainer: input_dropdown_ul });
     });
 
     window.addEventListener("click", (e) => {

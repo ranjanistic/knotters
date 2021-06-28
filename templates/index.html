@@ -218,9 +218,6 @@
             <div class="loading-animation"></div>
         </div>
         {% endblock %} 
-        <script src="{% static 'scripts/index.js' %}"></script>
-        <script src="{% static 'scripts/autostart.js' %}"></script>
-        <script src="{% static 'scripts/theme.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
@@ -233,9 +230,17 @@
             const VERSION = "{{VERSION}}";
             const dialog = alertify;
             alertify.set('notifier','position','top-left')
-            if("{{request.GET.e}}") alertify.error("{{request.GET.e}}");
-            if("{{request.GET.a}}") alertify.error("{{request.GET.a}}");
+            if("{{request.GET.e}}") {
+                alertify.error("{{request.GET.e}}");
+            } else if("{{request.GET.a}}") {
+                alertify.message("{{request.GET.a}}");
+            }
+            window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
+            
         </script>
+        <script src="{% static 'scripts/index.js' %}"></script>
+        <script src="{% static 'scripts/theme.js' %}"></script>
+        <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
     </body>
 </html>

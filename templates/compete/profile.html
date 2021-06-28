@@ -11,7 +11,8 @@
 <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %} 
 
-{% block nav_text%}{{compete.title}}{% endblock %} 
+{% block nav_href %}{{ROOT}}{% endblock %} 
+{% block nav_text %}{{compete.title}}{% endblock %} 
 {% block nav_noauth_competes %}{% endblock %} 
 {% block content %}
 
@@ -20,7 +21,7 @@
   <div id="banner">
   <img src="{{compete.getBanner }}" alt="{{compete.title}}" width="100%"/>
   </div>
-  {% if not compete.active %}
+  {% if not compete.isActive %}
   <div class="w3-row w3-center secondary w3-padding">
     <span class="text-secondary">This competition is no longer accepting submissions.</span>
   </div>
@@ -39,10 +40,10 @@
       </div>
       <div class="w3-col w3-third w3-center">
       <br/>
-        {% if compete.active %}
+        {% if compete.isActive %}
         <div class="pallete active">
           <h6 class="text-active">Time remaining</h6>
-          <h1 class="w3-jumbo text-active">00:00:00</h1>
+          <h1 class="w3-jumbo text-active" id="remainingTime">---</h1>
           <h6 class="text-active">DD:HH:MM</h6>
         </div>
         {% else %}
@@ -54,15 +55,15 @@
         {% endif %}
       </div>
     </div>
-
-    <div class="pallete" id="competition-tabs">
-      <div class="w3-quarter">
+    <br/>
+    <div class="w3-row pallete" id="mainframe">
+      <div class="w3-col w3-quarter">
         <div class="w3-bar-block w3-hide-small" id="sidebar">
           <a class="w3-bar-item side-nav-tab" id="overview"><i class="material-icons">toc</i>Overview</a>
           <a class="w3-bar-item side-nav-tab" id="task"><i class="material-icons">code</i>Task</a>
           <a class="w3-bar-item side-nav-tab" id="guidelines"><i class="material-icons">rule</i>Guidelines</a>
           <a class="w3-bar-item side-nav-tab" id="submission"><i class="material-icons">send</i>Submission</a>
-          {% if not compete.active %}
+          {% if compete.resultDeclared %}
           <a class="w3-bar-item side-nav-tab" id="result"><i class="material-icons">leaderboard</i>Results</a>
           {% endif %}
         </div>
@@ -71,14 +72,14 @@
           <button class="side-nav-tab" id="task"><i class="material-icons">code</i></button>
           <button class="side-nav-tab" id="guidelines"><i class="material-icons">rule</i></button>
           <button class="side-nav-tab" id="submission"><i class="material-icons">send</i></button>
-          {% if not compete.active %}
+          {% if compete.resultDeclared %}
           <button class="side-nav-tab" id="result"><i class="material-icons">leaderboard</i></button>
           {% endif %}
         </div>
       </div>
-      <div class="w3-threequarter w3-center">
+      <div class="w3-col w3-threequarter w3-padding">
         <br/>
-        <div id="tabview"><div class="loader" id="loader"></div></div>
+        <div id="tabview"></div>
       </div>
     </div>
   </div>
@@ -87,8 +88,9 @@
 {% endblock %}
 {% block scripts %}
 <script>
-const isActive = "{{compete.active}}" == 'True';
 const compID = "{{compete.id}}"
+const isActive = "{{compete.isActive}}" == 'True';
+const resultDeclared = "{{compete.resultDeclared}}" == 'True';
 </script>
 <script src="{% static 'scripts/compete/profile.js' %}" type="text/javascript"></script>
 {% endblock %} 
