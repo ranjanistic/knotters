@@ -7,15 +7,3 @@ initializeTabsView({
     tabsClass: "compete-nav-tab",
     onShowTab: loadTabScript,
 });
-
-
-// var values = ["hello", "bye"];
-// var inputValues = ["morning", "night"];
-
-// handleDropDowns("dropdown-box", "compete-dropdown", values);
-
-// handleInputDropdowns(
-//   "input-dropdown-box",
-//   "compete-input-dropdown",
-//   inputValues
-// );

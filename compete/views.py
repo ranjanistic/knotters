@@ -54,6 +54,7 @@ def data(request, compID):
                 subm = Submission.objects.get(
                     competition=compete, members=request.user.profile)
                 data['participated'] = True
+                data['subID'] = subm.id
             except:
                 data['participated'] = False
         return JsonResponse(data)
@@ -83,19 +84,19 @@ def createSubmission(request, compID):
     try:
         competition = Competition.objects.get(id=compID)
         if not competition.isActive():
-            raise HttpResponseForbidden()
+            raise Exception()
         try:
             sub = Submission.objects.get(
                 competition=competition, members=request.user.profile)
             relation = Relation(submission=sub, profile=request.user.profile)
             if relation.confirmed:
-                raise HttpResponseForbidden()
+                raise Exception()
             else:
                 relation.delete()
         except:
             pass
         submission = Submission.objects.create(
-            competition=competition, modifiedBy=request.user.profile)
+            competition=competition)
         submission.members.add(request.user.profile)
         relation = Relation.objects.get(
             profile=request.user.profile, submission=submission)
@@ -110,23 +111,26 @@ def createSubmission(request, compID):
 
 @login_required
 @require_POST
-def cancelParticipation(request, compID):
+def removeMember(request, subID, userID):
     """
-    Withdraw participation
+    Remove member/Withdraw participation
     """
     try:
-        competition = Competition.objects.get(id=compID)
+        if request.user.id == userID:
+            member = request.user.profile
+        else:
+            user = User.objects.get(id=userID)
+            member = user.profile
+
+        submission = Submission.objects.get(id=subID,members=member)
         try:
-            submission = Submission.objects.get(
-                competition=competition, members=request.user.profile)
-            if submission.totalActiveMembers() == 1:
+            submission.members.remove(member)
+            if submission.totalActiveMembers() == 0:
                 submission.delete()
-            else:
-                submission.members.remove(request.user.profile)
-            return redirect(competition.getLink(alert="Participation withdrawn."))
-        except:
-            raise HttpResponseForbidden()
-    except:
+            return redirect(submission.competition.getLink(alert=f"{'Participation withdrawn.' if request.user.profile == member else 'Removed member'}"))
+        except Exception as e:
+            raise Exception()
+    except Exception as e:
         raise Http404()
 
 
@@ -213,7 +217,7 @@ def invitation(request, subID, userID):
         raise Http404()
 
 
-@require_GET
+@require_POST
 @login_required
 def inviteAction(request, subID, userID, action):
     """
@@ -250,7 +254,20 @@ def inviteAction(request, subID, userID, action):
 
 @login_required
 @require_POST
-def finalSubmit(request, compID, submitID):
+def save(request, compID, subID):
+    try:
+        competition = Competition.objects.get(id=compID)
+        submission = Submission.objects.get(id=subID, competition=competition, members=request.user.profile)
+        submission.repo = str(request.POST['submissionurl'])
+        submission.save()
+        return redirect(competition.getLink(alert="Saved"), permanent=True)
+    except Exception as e:
+        print(e)
+        raise Http404()
+
+@login_required
+@require_POST
+def finalSubmit(request, compID, subID):
     """
     Already existing participation submission
     """
@@ -260,11 +277,11 @@ def finalSubmit(request, compID, submitID):
         if competition.endAt < now:
             return redirect(competition.getLink(error="Competition was over before your submission."), permanent=True)
         submission = Submission.objects.get(
-            id=submitID, competition=competition, members=request.user)
+            id=subID, competition=competition, members=request.user.profile)
         submission.submitOn = now
         submission.submitted = True
         submission.save()
         sendSubmissionConfirmedMail(submission.getMembers(), submission)
         return redirect(competition.getLink(alert="Your submission has been accepted."), permanent=True)
     except:
-        return Http404()
+        raise Http404()

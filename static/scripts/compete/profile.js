@@ -3,7 +3,6 @@ let compdata = {};
 if (isActive) {
     (async () => {
         const data = await postRequest(`${ROOT}/data/${compID}`);
-        console.log(data)
         if (data.code == "OK") {
             compdata = { ...data };
             let timeleft = data.timeleft;
@@ -15,29 +14,27 @@ if (isActive) {
     })();
 }
 
-const loadTabScript = (tabID) => {
-    switch (tabID) {
+const loadTabScript = (tab) => {
+    switch (tab.id) {
         case "submission": {
-            if(isActive){
-                if(compdata.participated){
-                    handleInputDropdowns({
-                        dropdownID:"findPeople",
-                        onInput:async({inputField,listContainer,createList})=>{
-                            if(inputField.value){
-                                listContainer.innerHTML = loaderHTML()
-                                let data = await postRequest(`${ROOT}/people/${compID}/${inputField.value}`)
-                                console.log(data)
-                                if(data.code == "OK"){
-                                    listContainer.innerHTML = ''
-                                    createList([data.person])
-                                } else {
-                                    listContainer.innerHTML = 'No such person available.'
-                                }
-                            }
-                        }
+            if (isActive) {
+                if (compdata.participated) {
+                    getElements("remove-person").forEach((remove) => {
+                        remove.onclick = (_) => {
+                            alertify.alert(
+                                `Remove teammate`,
+                                `
+                            <div class="w3-row">
+                                <h4>Are you sure you want to <span class="negative-text">remove</span> 
+                                ${remove.getAttribute("data-name")}?</h4>
+                                <form method="POST" action="${ROOT}/remove/${compdata.subID}/${remove.getAttribute("data-userID")}">
+                                    ${csrfHiddenInput(csrfmiddlewaretoken)}
+                                    <button class="negative">Yes, remove</button>
+                                </form>
+                            </div>`,
+                            ).set({'label':'Cancel'})
+                        };
                     });
-                } else {
-                    
                 }
             }
         }
@@ -45,9 +42,8 @@ const loadTabScript = (tabID) => {
 };
 
 initializeTabsView({
-    onEachTab: async (tabID) => {
-        return await getRequest(`${ROOT}/competeTab/${compID}/${tabID}`);
-    },
+    onEachTab: async (tab) =>
+        await getRequest(`${ROOT}/competeTab/${compID}/${tab.id}`),
     uniqueID: "competetab",
     tabsClass: "side-nav-tab",
     activeTabClass: "active",

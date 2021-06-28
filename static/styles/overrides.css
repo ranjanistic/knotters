@@ -29,7 +29,6 @@
     font-size: 16px;
     font-family: var(--head-font);
     word-spacing: normal;
-    max-width: fit-content !important;
     min-width: 20% !important;
     padding:8px 12px !important;
     text-align: left !important;

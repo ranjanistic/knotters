@@ -31,10 +31,12 @@
 
     on the team.
 
-    <form method="GET" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/accept">
+    <form method="POST" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/accept">
+    {% csrf_token %}
     <button type="submit" class="positive">Accept Invitation</button>
     </form>
-    <form method="GET" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/decline">
+    <form method="POST" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/decline">
+    {% csrf_token %}
     <button type="submit" class="negative">Decline Politely</button>
     </form>
 

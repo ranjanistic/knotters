@@ -69,9 +69,11 @@ class Submission(models.Model):
     submitted = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
-    modifiedBy = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name="modifiedBy")
     submitOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     valid = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return f"{self.competition.title} - {self.id}"
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -89,7 +91,8 @@ class Submission(models.Model):
         """
         All members count with relation confirmed.
         """
-        return self.getMembers().count()
+        
+        return len(self.getMembers())
 
 
     def getMembers(self) -> list:
@@ -116,10 +119,17 @@ class Submission(models.Model):
                 invitees.append(member)
         return invitees
 
+    def canInvite(self) -> bool:
+        return self.totalMembers() < 5
+
+    def getRepo(self) -> bool:
+        return self.repo if self.repo else ''
+
 
 class Result(models.Model):
     class Meta:
-        unique_together = (("competition", "rank"))
+        unique_together = (("competition", "rank"),("competition", "submission"))
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     submission = models.OneToOneField(Submission, on_delete=models.PROTECT)

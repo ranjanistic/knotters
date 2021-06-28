@@ -40,6 +40,7 @@ class URL():
         COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
         DATA = "data/<str:compID>"
         PARTICIPATE = 'participate/<str:compID>'
+        REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
         INVITATION = 'invitation/<str:subID>/<str:userID>'
         INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
 

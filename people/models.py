@@ -55,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserAccountManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.email
 
     def has_perm(self, perm, obj=None):
@@ -64,7 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True
 
-    def getName(self):
+    def getName(self) -> str:
         if self.last_name:
             return f"{self.first_name} {self.last_name}"
         else:
@@ -84,12 +84,12 @@ class Topic(models.Model):
         return self.name
 
 
-def profileImagePath(instance, filename):
+def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{instance.id}.{fileparts[len(fileparts)-1]}"
 
 
-def defaultImagePath():
+def defaultImagePath() -> str:
     return f"{APPNAME}/default.png"
 
 
@@ -121,6 +121,9 @@ class Profile(models.Model):
     def getDP(self) -> str:
         dp = str(self.picture)
         return dp if dp.startswith("http") else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
+
+    def getName(self) -> str:
+        return self.user.getName()
 
     def getBio(self) -> str:
         return self.bio if self.bio else ''

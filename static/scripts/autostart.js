@@ -3,6 +3,7 @@ serviceWorkerRegistration();
 
 document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEventListeners()
+    loadGlobalEditors();
 });
 
 window.addEventListener("load",()=>{  

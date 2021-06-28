@@ -84,6 +84,8 @@ const openSpinner = (id = "loader") => showElement(id);
 
 const hideSpinner = (id = "loader") => hideElement(id);
 
+const csrfHiddenInput = (token) => `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`
+
 const hide = (element) => {
     element.hidden = true;
     element.style.display = "none";
@@ -107,6 +109,12 @@ const loaderHTML = (loaderID = "loader") =>
 const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
+
+const setHtmlContent = (element, content = "") => {
+    element.innerHTML = content;
+    loadGlobalEventListeners();
+    loadGlobalEditors();
+};
 
 const loadGlobalEventListeners = () => {
     getElementsByTag("form").forEach((form) => {
@@ -135,39 +143,22 @@ const loadGlobalEventListeners = () => {
         });
     });
     getElementsByTag("button").forEach((button) => {
-        if (button.title) {
-            let mPressTimer;
-            button.addEventListener("touchstart", (e) => {
-                mPressTimer = window.setTimeout(() => {
-                    alertify.set("notifier", "position", "bottom-right");
-                    alertify.message(button.title);
-                }, 500);
-                button.addEventListener("touchend", (e) => {
-                    clearTimeout(mPressTimer);
-                });
-            });
+        if (button.getAttribute("data-icon")) {
+            if (!button.innerHTML.includes("material-icons")) {
+                button.innerHTML = `<i class="material-icons">${button.getAttribute(
+                    "data-icon"
+                )}</i>${button.innerHTML}`;
+            }
         }
     });
     getElementsByTag("i").forEach((icon) => {
-        if (icon.classList && icon.title) {
-            let mPressTimer;
-            icon.addEventListener("touchstart", (e) => {
-                mPressTimer = window.setTimeout(() => {
-                    alertify.set("notifier", "position", "bottom-right");
-                    alertify.message(icon.title);
-                }, 500);
-                icon.addEventListener("touchend", (e) => {
-                    clearTimeout(mPressTimer);
-                });
-            });
-        }
     });
 };
 
 const initializeTabsView = ({
-    onEachTab = async (tabID) => {},
+    onEachTab = async (tab) => {},
     uniqueID,
-    onShowTab = async (tabID) => {},
+    onShowTab = async (tab) => {},
     tabsClass = "nav-tab",
     activeTabClass = "positive",
     inactiveTabClass = "primary",
@@ -178,20 +169,18 @@ const initializeTabsView = ({
         tabview = getElement(viewID);
 
     const showTabLoading = () => {
-        tabview.innerHTML = loaderHTML(spinnerID);
+        setHtmlContent(tabview, loaderHTML(spinnerID));
         openSpinner(spinnerID);
     };
 
     const showTabError = (tabindex = 0) => {
-        tabview.innerHTML = loadErrorHTML(`${uniqueID}retry`);
+        setHtmlContent(tabview, loadErrorHTML(`${uniqueID}retry`));
         getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
     };
 
-    const showTabContent = (tabID, content) => {
-        tabview.innerHTML = content;
-        loadGlobalEventListeners();
-        loadGlobalEditors();
-        onShowTab(tabID);
+    const showTabContent = (tab, content) => {
+        setHtmlContent(tabview, content);
+        onShowTab(tab);
     };
 
     tabs.forEach(async (tab, t) => {
@@ -211,7 +200,7 @@ const initializeTabsView = ({
                     tab1.classList.add(inactiveTabClass);
                 }
             });
-            const response = await onEachTab(tab.id);
+            const response = await onEachTab(tab);
             hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
@@ -220,7 +209,7 @@ const initializeTabsView = ({
                 tab1.onclick = onclicks[t1];
             });
             return response
-                ? showTabContent(tab.id, response)
+                ? showTabContent(tab, response)
                 : showTabError(t);
         };
     });
@@ -313,8 +302,6 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
     });
 };
 
-loadGlobalEditors();
-
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (navigator.share) {
         navigator.share({ title, text, url }).then(() => {
@@ -400,7 +387,7 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown_ul = document.createElement("ul");
     dropdown_ul.className = "dropdown-options-list";
     selectedOptionDiv.className = "selected-option";
-    selectedOptionDiv.innerHTML = optionValues[0];
+    setHtmlContent(selectedOptionDiv, optionValues[0]);
     dropdown.append(selectedOptionDiv, dropdown_ul);
 
     selectedOptionDiv.addEventListener("click", () => {
@@ -410,11 +397,11 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     optionValues.forEach((item) => {
         const dropdown_li = document.createElement("li");
         dropdown_li.className = "dropdown-option";
-        dropdown_li.innerHTML = item;
+        setHtmlContent(dropdown_li, item);
         dropdown_ul.append(dropdown_li);
 
         dropdown_li.addEventListener("click", () => {
-            selectedOptionDiv.innerHTML = item;
+            setHtmlContent(selectedOptionDiv, item);
             hide(dropdown_ul);
         });
     });
@@ -431,8 +418,16 @@ const handleInputDropdowns = ({
     inputDropdownOptionValues = [],
     inputType = "text",
     placeholder = "Start typing",
-    onInput = ({inputField,listContainer,createList=(list=[])=>{}}) => {},
-    onChange = ({inputField,listContainer,createList=(list=[])=>{}}) => {},
+    onInput = ({
+        inputField,
+        listContainer,
+        createList = (list = []) => {},
+    }) => {},
+    onChange = ({
+        inputField,
+        listContainer,
+        createList = (list = []) => {},
+    }) => {},
 }) => {
     const inputDropdown = getElement(dropdownID);
     const inputField = document.createElement("input");
@@ -448,31 +443,28 @@ const handleInputDropdowns = ({
     inputField.placeholder = placeholder;
     inputDropdown.append(inputField, input_dropdown_ul);
 
-
     const createList = (list) => {
         list.forEach((item) => {
             const input_dropdown_li = document.createElement("li");
             input_dropdown_li.className = "input-dropdown-option";
-            input_dropdown_li.innerHTML = item;
+            setHtmlContent(input_dropdown_li, item);
             input_dropdown_ul.append(input_dropdown_li);
-    
             input_dropdown_li.addEventListener("click", () => {
                 inputField.value = item;
                 hide(input_dropdown_ul);
             });
         });
-    }
+    };
 
     createList(inputDropdownOptionValues);
 
     inputField.addEventListener("input", () => {
-        onInput({inputField,createList,listContainer:input_dropdown_ul});
+        onInput({ inputField, createList, listContainer: input_dropdown_ul });
     });
 
     inputField.addEventListener("change", () => {
-        onChange({inputField,createList,listContainer:input_dropdown_ul});
+        onChange({ inputField, createList, listContainer: input_dropdown_ul });
     });
-
 
     window.addEventListener("click", (e) => {
         if (e.target !== inputField) {

@@ -1,6 +1,6 @@
 from compete.models import Competition, Submission,Result, Relation
 from django.contrib import admin
-from .forms import CompetitionAdminForm
+from .forms import CompetitionAdminForm, ResultAdminForm
 
 
 
@@ -15,9 +15,17 @@ class CompetitionAdmin(admin.ModelAdmin):
 
 @admin.register(Submission)
 class SubmitAdmin(admin.ModelAdmin):
-    list_display = ["id", "submitted", "repo"]
-    list_filter = ["submitted", "competition"]
-    
+    list_display = ["__str__", "submitted", "repo","createdOn","submitOn","totalActiveMembers"]
+    list_filter = ["competition","submitted"]
+    ordering = ["submitOn"]
 
-admin.site.register(Result)
+@admin.register(Result)
+class ResultAdmin(admin.ModelAdmin):
+    list_display = ["submission", "competition", "rank"]
+    list_filter = ["competition"]
+    form = ResultAdminForm
+    ordering = ["rank"]
+    class Meta:
+        ordering = ("")
+    
 admin.site.register(Relation)

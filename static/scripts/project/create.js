@@ -37,11 +37,15 @@ const showStep = (n) => {
     }
     if (n == stepviews.length - 1) {
         nextStepBtn.type = "submit";
-        nextStepBtn.innerHTML =
-            "Submit <i class='material-icons big-icon'>done</i>";
+        setHtmlContent(
+            nextStepBtn,
+            "Submit <i class='material-icons big-icon'>done</i>"
+        );
     } else {
-        nextStepBtn.innerHTML =
-            "Next<i class='material-icons big-icon'>navigate_next</i>";
+        setHtmlContent(
+            nextStepBtn,
+            "Next<i class='material-icons big-icon'>navigate_next</i>"
+        );
     }
     fixStepIndicator(n);
 };
@@ -67,7 +71,7 @@ const nextPrev = (n) => {
                 alertify.error(error);
             });
     } else {
-        if (n > 0 && currentStep >= stepviews.length - 1 ) {
+        if (n > 0 && currentStep >= stepviews.length - 1) {
             actionLoader(true);
             if (!validateForm())
                 return alertify.error(
@@ -77,7 +81,7 @@ const nextPrev = (n) => {
             return false;
         } else {
             hide(stepviews[currentStep]);
-			currentStep += n;
+            currentStep += n;
             showStep(currentStep);
         }
     }

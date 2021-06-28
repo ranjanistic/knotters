@@ -1,17 +1,15 @@
 initializeTabsView({
-    onEachTab: async (tabID) => {
-        return await getRequest(`/people/profiletab/${userID}/${tabID}`);
+    onEachTab: async (tab) => {
+        return await getRequest(`/people/profiletab/${userID}/${tab.id}`);
     },
     uniqueID:"profiletab",
-    onShowTab: (tabID) => {
-        loadTabScript(tabID);
-    }
+    onShowTab: loadTabScript
 });
 
 if (selfProfile) {
     initializeTabsView({
-        onEachTab: async (tabID) => {
-            return await getRequest(`/people/settingtab/${tabID}`);
+        onEachTab: async (tab) => {
+            return await getRequest(`/people/settingtab/${tab.id}`);
         },
         uniqueID:"profilestab",
         tabsClass:"set-tab",
@@ -34,7 +32,7 @@ if (selfProfile) {
     };
 }
 
-const loadTabScript = (tabID) => {
+const loadTabScript = (tab) => {
     getElements("chart-view").forEach(async (chart) => {
         const myChart = new Chart(chart.getContext("2d"), {
             type: chart.getAttribute('data-type'),
