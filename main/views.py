@@ -146,6 +146,10 @@ class ServiceWorker(TemplateView):
             ]),
             'recacheList': json.dumps([
                 f"/{url.REDIRECTOR}*",
+                replaceUrlParamsWithStr(
+                    f"/{url.PEOPLE}{url.People.PROFILEEDIT}"),
+                replaceUrlParamsWithStr(
+                    f"/{url.PROJECTS}{url.Projects.PROFILEEDIT}"),
             ]),
         })
         return context

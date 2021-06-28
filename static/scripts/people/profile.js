@@ -1,37 +1,3 @@
-initializeTabsView({
-    onEachTab: async (tab) => {
-        return await getRequest(`/people/profiletab/${userID}/${tab.id}`);
-    },
-    uniqueID:"profiletab",
-    onShowTab: loadTabScript
-});
-
-if (selfProfile) {
-    initializeTabsView({
-        onEachTab: async (tab) => {
-            return await getRequest(`/people/settingtab/${tab.id}`);
-        },
-        uniqueID:"profilestab",
-        tabsClass:"set-tab",
-        activeTabClass:"active",
-        inactiveTabClass:"primary",
-        viewID:"stabview",
-        spinnerID:"sloader"
-    });
-
-    getElement("uploadprofilepic").onchange = (e) => {
-        handleCropImageUpload(
-            e,
-            "profileImageData",
-            "profilePicOutput",
-            (croppedB64) => {
-                getElement("uploadprofilepiclabel").innerHTML = "Selected";
-                getElement("profilePicOutput").style.opacity = 1;
-            }
-        );
-    };
-}
-
 const loadTabScript = (tab) => {
     getElements("chart-view").forEach(async (chart) => {
         const myChart = new Chart(chart.getContext("2d"), {
@@ -93,3 +59,38 @@ const loadTabScript = (tab) => {
         });
     });
 };
+
+
+initializeTabsView({
+    onEachTab: async (tab) => {
+        return await getRequest(`/people/profiletab/${userID}/${tab.id}`);
+    },
+    uniqueID:"profiletab",
+    onShowTab: loadTabScript
+});
+
+if (selfProfile) {
+    initializeTabsView({
+        onEachTab: async (tab) => {
+            return await getRequest(`/people/settingtab/${tab.id}`);
+        },
+        uniqueID:"profilestab",
+        tabsClass:"set-tab",
+        activeTabClass:"active",
+        inactiveTabClass:"primary",
+        viewID:"stabview",
+        spinnerID:"sloader"
+    });
+
+    getElement("uploadprofilepic").onchange = (e) => {
+        handleCropImageUpload(
+            e,
+            "profileImageData",
+            "profilePicOutput",
+            (croppedB64) => {
+                getElement("uploadprofilepiclabel").innerHTML = "Selected";
+                getElement("profilePicOutput").style.opacity = 1;
+            }
+        );
+    };
+}

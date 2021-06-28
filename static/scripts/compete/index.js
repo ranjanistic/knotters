@@ -1,8 +1,8 @@
-const loadTabScript = (tabID) => {
+const loadTabScript = (tab) => {
 
 };
 initializeTabsView({
-    onEachTab: async (tabID) => await getRequest(`${ROOT}/indexTab/${tabID}`),
+    onEachTab: async (tab) => await getRequest(`${ROOT}/indexTab/${tab.id}`),
     uniqueID: "competitionstab",
     tabsClass: "compete-nav-tab",
     onShowTab: loadTabScript,
