@@ -26,10 +26,12 @@
     color: var(--accent-text) !important;
     border: 0 !important;
     text-shadow: none !important;
-    font-size: 20px;
+    font-size: 16px;
     font-family: var(--head-font);
     word-spacing: normal;
-    padding:4px 8px !important;
+    max-width: fit-content !important;
+    min-width: 20% !important;
+    padding:8px 12px !important;
     text-align: left !important;
     border-radius: 4px !important;
     box-shadow: 4px 4px 15px 5px #0f0f0f27;

@@ -7,10 +7,6 @@
 
 {% block title %}{{person.first_name}} {{person.last_name}}
 {% endblock %}
-  
-{% block stylesheets %}
-<link rel="stylesheet" href="{% static 'styles/people/profile.css' %}" />
-{% endblock %}
 
 {% block nav_icon %}
 <button class="primary"><i class="material-icons">arrow_back</i></button>
@@ -22,7 +18,7 @@
 
 {% block nav_auth_user %}
   {% if user.is_authenticated and user == person %}
-    <a href="{% url 'account_logout' %}"><button class="negative"><i class="material-icons">logout</i><span class="w3-hide-small">Logout</span></button></a>
+    <a href="{% url 'account_logout' %}?next=/"><button class="negative"><i class="material-icons">logout</i><span class="w3-hide-small">Logout</span></button></a>
   {% elif user.is_authenticated %}
     <a href="{{user.profile.getLink}}"><button title="Logged in as {{user.getName}}" class="accent"><img class="primary" src="{{user.profile.getDP}}" style="border-radius:50px" width="25" /><span class="w3-hide-small">&nbsp;{{user.first_name|capfirst}}</span></button></a>
   {% else %}

@@ -211,9 +211,16 @@
         </footer>
         {% endblock %}
         {% block loadview %}
-        <div class="view-loader" id="viewloader"></div>
-        {% endblock %}
-        
+        <div class="view-loader" id="viewloader">
+            <div class="loader"></div>
+        </div>
+        <div class="linear-loader" id="subloader">
+            <div class="loading-animation"></div>
+        </div>
+        {% endblock %} 
+        <script src="{% static 'scripts/index.js' %}"></script>
+        <script src="{% static 'scripts/autostart.js' %}"></script>
+        <script src="{% static 'scripts/theme.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
@@ -227,13 +234,8 @@
             const dialog = alertify;
             alertify.set('notifier','position','top-left')
             if("{{request.GET.e}}") alertify.error("{{request.GET.e}}");
+            if("{{request.GET.a}}") alertify.error("{{request.GET.a}}");
         </script>
-        <script src="{% static 'scripts/index.js' %}"></script>
-        <script src="{% static 'scripts/theme.js' %}"></script>
-        {% block scripts %}
-        {% endblock %}
-        <script>
-            serviceWorkerRegistration()
-        </script>
+        {% block scripts %}{% endblock %}
     </body>
 </html>
