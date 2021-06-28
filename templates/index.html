@@ -59,6 +59,9 @@
         <link rel="stylesheet" href="{% static 'styles/scrollbar.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
+
+        <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.css" />
+        <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
         {% block stylesheets %}
         <link rel="manifest" href="{% static 'manifest.json' %}" />
         {% endblock %}
@@ -218,6 +221,8 @@
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
+        <script src="https://unpkg.com/swiper/swiper-bundle.js"></script>
+        <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
