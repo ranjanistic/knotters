@@ -1,74 +1,81 @@
 <div class="w3-row">
 
-{% if self %}
-  <div class="w3-col w3-padding-small w3-third">
-    <div class="pallete active text-active" style="max-height:70vh; min-height:58vh">
-      <center>
-      <i class="material-icons" title="Visible to everyone">lock_open</i>
-      <h4 class="text-active">Live</h4></center>
-      {% for project in live %} 
-      <a href="{{project.getLink}}">
-      <div class="w3-row wide-button"><i class="material-icons">launch</i><b>{{project.name}}</b><br />
-        <span> {{project.reponame}}</span>
-      </div>
-      </a>
-      {% empty %}
-        <center>
-        <br/>
-        <i class="material-icons w3-jumbo">sentiment_dissatisfied</i>
-        <h6 class="text-active">No live projects.</h6>
-        </center>
-      {% endfor %}
-    </div>
-  </div>
+  {% if self %}
 
-  <div class="w3-col w3-padding-small w3-third">
-    <div class="pallete accent text-accent" style="max-height:70vh; min-height:58vh">
-      <center>
-      <i class="material-icons" title="Private to you">lock</i>
-      <h4 class="text-accent">Under review</h4>
-      </center>
-      {% for project in moderation %}
-      <a href="{{project.getLink}}">
-      <div class="w3-row wide-button">
-        <i class="material-icons">launch</i><b>{{project.name}}</b><br />
-        <span> {{project.reponame}}</span>
-      </div>
-      </a>
-      {% empty %}
-      <br/>
-      <div class="w3-row w3-center">
-      <a href="/projects/create">
-        <i class="material-icons w3-jumbo">add_circle</i>
-      </a>
-      <h6 class="text-accent">Create</h6>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
+  <div class="swiper-container">
 
-  <div class="w3-col w3-padding-small w3-third">
-    <div class="pallete negative text-negative" style="max-height:70vh; min-height:58vh">
-      <center>
-      <i class="material-icons" title="Private to you">lock</i>
-      <h4 class="text-negative">Rejected</h4>
-      </center>
-      {% for project in rejected %}
-      <a href="{{project.getLink}}">
-      <div class="w3-row wide-button">
-          <i class="material-icons">launch</i><b>{{project.name}}</b><br />
-        <span>{{project.reponame}}</span>
+    <div class="swiper-wrapper">
+      <div class="w3-col w3-padding-small w3-third swiper-slide">
+        <div class="pallete active text-active" style="max-height:70vh; min-height:58vh">
+          <center>
+          <i class="material-icons" title="Visible to everyone">lock_open</i>
+          <h4 class="text-active">Live</h4></center>
+          {% for project in live %} 
+          <a href="{{project.getLink}}">
+          <div class="w3-row wide-button"><i class="material-icons">launch</i><b>{{project.name}}</b><br />
+            <span> {{project.reponame}}</span>
+          </div>
+          </a>
+          {% empty %}
+            <center>
+            <br/>
+            <i class="material-icons w3-jumbo">sentiment_dissatisfied</i>
+            <h6 class="text-active">No live projects.</h6>
+            </center>
+          {% endfor %}
+        </div>
       </div>
-      </a>
-      {% empty %}
-        <center>
-        <br/>
-        <i class="material-icons w3-jumbo">sentiment_very_satisfied</i>
-        <h6 class="text-negative">No projects rejected.</h6>
-        </center>
-      {% endfor %}
+    
+      <div class="w3-col w3-padding-small w3-third swiper-slide">
+        <div class="pallete accent text-accent" style="max-height:70vh; min-height:58vh">
+          <center>
+          <i class="material-icons" title="Private to you">lock</i>
+          <h4 class="text-accent">Under review</h4>
+          </center>
+          {% for project in moderation %}
+          <a href="{{project.getLink}}">
+          <div class="w3-row wide-button">
+            <i class="material-icons">launch</i><b>{{project.name}}</b><br />
+            <span> {{project.reponame}}</span>
+          </div>
+          </a>
+          {% empty %}
+          <br/>
+          <div class="w3-row w3-center">
+          <a href="/projects/create">
+            <i class="material-icons w3-jumbo">add_circle</i>
+          </a>
+          <h6 class="text-accent">Create</h6>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    
+      <div class="w3-col w3-padding-small w3-third swiper-slide">
+        <div class="pallete negative text-negative" style="max-height:70vh; min-height:58vh">
+          <center>
+          <i class="material-icons" title="Private to you">lock</i>
+          <h4 class="text-negative">Rejected</h4>
+          </center>
+          {% for project in rejected %}
+          <a href="{{project.getLink}}">
+          <div class="w3-row wide-button">
+              <i class="material-icons">launch</i><b>{{project.name}}</b><br />
+            <span>{{project.reponame}}</span>
+          </div>
+          </a>
+          {% empty %}
+            <center>
+            <br/>
+            <i class="material-icons w3-jumbo">sentiment_very_satisfied</i>
+            <h6 class="text-negative">No projects rejected.</h6>
+            </center>
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
+  
   {% else %}
     {% for project in live %} 
       <a href="{{project.getLink}}">

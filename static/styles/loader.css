@@ -13,70 +13,59 @@
     text-align: center;
     vertical-align: middle;
     align-items: center;
-    padding-top: 45vh;
     line-height: 100vh;
     color: var(--secondary-text);
     font-size: 50px;
     font-family: var(--head-font);
 }
 
-.loader,
-.loader::before,
-.loader::after {
-    border-radius: 50%;
-    border: 8px solid transparent;
-    margin: auto;
-    width: 100px;
-    height: 100px;
-}
 .loader {
-    position: relative;
-    border-top: 8px solid var(--positive);
-    animation: spin 3s infinite ease-in-out;
+  animation: spin 1s infinite linear;
+  border: solid 10px transparent;
+  border-radius: 50%;
+  border-right-color: var(--positive);
+  border-top-color: var(--positive);
+  box-sizing: border-box;
+  height: 18vmin;
+  left: 45%;
+  position: relative;
+  top: 30%;
+  width: 18vmin;
+  z-index: 1;
 }
 .loader::before {
-    content: "";
-    margin-left: -50px;
-    margin-top: -8px;
-    position: absolute;
-    border-top: 8px solid var(--active);
-    animation: spin_first 2s infinite alternate ease-out;
+  animation: spin 2s infinite linear;
+  border: solid 8px transparent;
+  border-radius: 50%;
+  border-right-color: var(--active);
+  border-top-color: var(--active);
+  box-sizing: border-box;
+  content: "";
+  height: 14vmin;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 14vmin;
 }
 .loader::after {
-    content: "";
-    position: absolute;
-    margin-left: -50px;
-    margin-top: -8px;
-    border-top: 8px solid var(--accent);
-    animation: spin_second 2s infinite alternate ease-in;
+  animation: spin 3s infinite linear;
+  border: solid 6px transparent;
+  border-radius: 50%;
+  border-right-color: var(--accent);
+  border-top-color: var(--accent);
+  box-sizing: border-box;
+  content: "";
+  height: 10vmin;
+  left: 2vmin;
+  position: absolute;
+  top: 2vmin;
+  width: 10vmin;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(720deg);
-    }
-}
-@keyframes spin_first {
-    0% {
-        transform: rotate(0deg);
-    }
-    50% {
-        transform: rotate(360deg);
-    }
-    100% {
-        transform: rotate(720deg);
-    }
-}
-@keyframes spin_second {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(720deg);
-    }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .linear-loader {

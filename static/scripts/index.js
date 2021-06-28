@@ -341,7 +341,7 @@ const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown = getElement(dropdownID);
     const selectedOptionDiv = document.createElement("div");
     const dropdown_ul = document.createElement("ul");
-    dropdown_ul.className = "dropdown-options-list";
+    dropdown_ul.className = "dropdown-options-list pallete";
     selectedOptionDiv.className = "selected-option";
     selectedOptionDiv.innerHTML = optionValues[0];
     dropdown.append(selectedOptionDiv, dropdown_ul);
@@ -377,7 +377,7 @@ const handleInputDropdowns = (
     const inputDropdown = getElement(inputDropdownID);
     const inputField = document.createElement("input");
     const input_dropdown_ul = document.createElement("ul");
-    input_dropdown_ul.className = "input-dropdown-options-list";
+    input_dropdown_ul.className = "input-dropdown-options-list pallete";
     inputField.className = "input-dropdown-input-field";
 
     inputField.addEventListener("click", () => {
