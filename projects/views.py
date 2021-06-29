@@ -29,7 +29,7 @@ def profile(request, reponame):
                 return redirect(f'/{MODERATION}/{APPNAME}/{project.id}')
             if project.status == code.MODERATION:
                 return renderer(request, 'profile', {"project": project})
-        raise Http404()
+        raise Exception()
     except:
         raise Http404()
 
@@ -137,6 +137,6 @@ def projectInfo(request, projectID, info):
             project = Project.objects.get(id=projectID, status=code.LIVE)
             return HttpResponse(info)
         else:
-            raise Http404()
+            raise Exception()
     except:
         raise Http404()

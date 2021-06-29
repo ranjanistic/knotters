@@ -47,7 +47,7 @@ def profileTab(request, userID, section):
         if data:
             return HttpResponse(data)
         else:
-            raise Http404()
+            raise Exception()
     except:
         raise Http404()
 
@@ -60,7 +60,7 @@ def settingTab(request, section):
         if data:
             return HttpResponse(data)
         else:
-            raise Http404()
+            raise Exception()
     except Exception as e:
         raise Http404()
 

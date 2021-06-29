@@ -14,7 +14,7 @@ from .methods import renderer
 def moderation(request, division, id):
     try:
         if not [PEOPLE, PROJECTS, COMPETE].__contains__(division):
-            raise Http404()
+            raise Exception()
         else:
             data = {}
             moderation = None

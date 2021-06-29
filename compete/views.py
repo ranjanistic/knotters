@@ -26,7 +26,7 @@ def indexTab(request, tab):
         if data:
             return HttpResponse(data)
         else:
-            raise Http404()
+            raise Exception()
     except:
         raise Http404()
 
@@ -70,7 +70,7 @@ def competitionTab(request, compID, section):
         if data:
             return HttpResponse(data)
         else:
-            raise Http404()
+            raise Exception()
     except:
         raise Http404()
 
