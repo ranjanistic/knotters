@@ -95,8 +95,7 @@ def defaultImagePath() -> str:
 
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        "User", on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     picture = models.ImageField(
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
     is_moderator = models.BooleanField(default=False)
@@ -145,6 +144,16 @@ class Profile(models.Model):
             return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
         return f"/{APPNAME}/profile/{self.user.id}{success}{alert}{error}"
 
+
+class Setting(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='settings')
+    newsletter = models.BooleanField(default=True)
+    recommendations = models.BooleanField(default=True)
+    competitions = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return self.profile.user.email
 
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

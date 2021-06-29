@@ -457,3 +457,15 @@ button.small {
 .swiper-container{
   width: 100%; height: 100%; 
 }
+
+label{
+  font-size: 20px;
+  font-weight: bold;
+}
+
+label > input[type="checkbox"] {
+  margin-top: 40px;
+  margin-right: 10px;
+  transform: scale(1.5);
+  margin-left: 10px;
+}

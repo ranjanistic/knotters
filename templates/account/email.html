@@ -3,13 +3,12 @@
 {% load socialaccount %}
 {% block title %}Email addresses{% endblock %}
 
-{% block nav_href %}{% url 'account_login' %}{% endblock %}
+{% block nav_href %}{% endblock %}
 {% block nav_icon %}
-  <button class="primary"><i class="material-icons">arrow_back</i></button>
+  <button class="primary" data-icon="arrow_back" onclick="window.close()"></button>
 {% endblock %}
 {% block nav_text %}Account email{% endblock %}
-{% block nav_noauth %}{% endblock %}
-{% block nav_auth_links %}{% endblock %}
+{% block nav_links %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
@@ -78,21 +77,23 @@
 {% endif %}
 </div>
 {% endblock %}
-
-
-
-{% block extra_body %}
-<script type="text/javascript">
-(function() {
-  var message = "  'Do you really want to remove the selected e-mail address?'";
-  var actions = document.getElementsByName('action_remove');
-  if (actions.length) {
-    actions[0].addEventListener("click", function(e) {
-      if (! confirm(message)) {
-        e.preventDefault();
-      }
-    });
-  }
-})();
-</script>
+{% block errors %}
+<div class="w3-row w3-padding negative-text w3-center">
+{% if form.errors %}
+	{% for field in form %}
+		{% for error in field.errors %}
+			<div class="alert alert-error">
+				<strong>{{ error|escape }}</strong>
+			</div>
+		{% endfor %}
+	{% endfor %}
+	{% for error in form.non_field_errors %}
+		<div class="alert alert-error">
+			<strong>{{ error|escape }}</strong>
+		</div>
+	{% endfor %}
+{% endif %}
+</div>
 {% endblock %}
+<br/><br/>
+{% block footer %}{% endblock %}

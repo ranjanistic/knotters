@@ -23,7 +23,7 @@
   </div>
   {% if not compete.isActive %}
   <div class="w3-row w3-center secondary w3-padding">
-    <span class="text-secondary">This competition is no longer accepting submissions.</span>
+    <span class="text-secondary">This competition is no longer accepting{% if not compete.resultDeclared %} new{% endif %} submissions.</span>
   </div>
   {% endif %}
   <div class="w3-row w3-padding">
@@ -50,7 +50,7 @@
         <div class="pallete secondary">
           <h6 class="text-secondary">Competition ended</h6>
           <h1 class="text-secondary">{{compete.endAt}}</h1>
-          <h6 class="text-secondary">Archived</h6>
+          <h6 class="text-secondary">{% if compete.resultDeclared %}Archived{% else %}Results Awaited{% endif %}</h6>
         </div>
         {% endif %}
       </div>

@@ -1,10 +1,30 @@
 <div id="view-settings">
     <i class="w3-right material-icons edit-action" data-edittarget="settings">edit</i>
-    Preference settings
+    <h2>Preference settings</h2>
+    <label>Newsletter
+        <input disabled type="checkbox" {% if setting.newsletter %} checked {% endif %} />
+    </label>
+    <label>Recommendations    
+        <input disabled type="checkbox" {% if setting.recommendations %} checked {% endif %} />
+    </label>
+    <label>Competitions
+        <input disabled type="checkbox" {% if setting.competitions  %} checked {% endif %} />
+    </label>
 </div>
-
-<form method="POST" id="edit-settings">
+<form method="POST" id="edit-settings" action="{{ROOT}}/account/preferences/{{request.user.id}}">
     {% csrf_token %}
+    <h3>Change preference settings</h3>
+    <label for="newsletter">Newsletter
+        <input id="newsletter" name="newsletter" type="checkbox" {% if setting.newsletter %} checked {% endif %} />
+    </label>
+    <label for="recommendations">Recommendations    
+        <input id="recommendations" name="recommendations" type="checkbox" {% if setting.recommendations %} checked {% endif %} />
+    </label>
+    <label for="competitions">Competitions
+        <input id="competitions" name="competitions" type="checkbox" {% if setting.competitions  %} checked {% endif %} />
+    </label>
+    <br/>
     <button class="w3-right" id="save-edit-settings"><i class="material-icons">done</i>Save</button>
     <button class="w3-right" id="discard-edit-settings"><i class="material-icons">cancel</i>Discard</button>
 </form>
+<br/>

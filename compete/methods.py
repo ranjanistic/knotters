@@ -5,7 +5,7 @@ from main.strings import compete
 from people.models import Profile
 from main.env import SITE
 from django.utils import timezone
-from .models import Competition, Submission
+from .models import Competition, Relation, Submission
 from .apps import APPNAME
 
 def renderer(request, file, data={}):
@@ -20,7 +20,6 @@ def getIndexSectionHTML(section, request):
                 actives = Competition.objects.filter(endAt__gt=timezone.now())
             except:
                 actives = []
-            print(actives)
             data['actives'] = actives
         elif section == 'history':
             try:
@@ -47,7 +46,9 @@ def getCompetitionSectionData(section, competition, request):
     if section == compete.SUBMISSION:
         try:
             submission = Submission.objects.get(competition=competition, members=request.user.profile)
+            relation = Relation.objects.get(submission=submission, profile=request.user.profile)
             data['submission'] = submission
+            data['confirmed'] = relation.confirmed
         except: 
             data['submission'] = None
     if section == compete.RESULT:
@@ -89,6 +90,7 @@ def sendParticipationWelcomeMail(profile: Profile, submission: Submission):
         conclusion=f"You recieved this email because you participated in a competition at Knotters. If this is unexpected, please report to us by replying to this email."
     )
 
+
 def sendSubmissionConfirmedMail(profiles: list, submission: Submission):
     """
     Email alert to all participants of a submission indicating their submission has been submitted successfully.
@@ -96,7 +98,7 @@ def sendSubmissionConfirmedMail(profiles: list, submission: Submission):
     for profile in profiles:
         sendAlertEmail(
             to=profile.user.email, username=profile.user.first_name, subject=f"Submission Submitted Successfully",
-            header=f"This is to inform you that your submission of participation in '{submission.competition.title}' competition was successfully submitted at {submission.submitOn} (IST Asia/Kolkata).",
+            header=f"This is to inform you that your submission of participation in '{submission.competition.title}' competition was successfully submitted at {submission.submitOn} (IST Asia/Kolkata).{' Your submission was late.' if submission.late else ''}",
             footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have recieved, together. Till then, chill out! NOTE: We're lenient.",
             conclusion=f"You recieved this email because you participated in a competition at Knotters. If this is unexpected, please report to us by replying to this email."
         )

@@ -11,25 +11,16 @@
     {% endif %}
     </form>
 </div>
-<form method="POST" id="edit-settings" action="{{ROOT}}/account/settings/{{request.user.id}}" novalidate>
-    {% csrf_token %}
+<div id="edit-settings">
     <h4>Change Email address</h4>
-    <input class="wide" required name="newemail" autocomplete="email" type="email" placeholder="New email address (verification required)" value="{{request.user.email}}" id="newemail" />
+    <button class="accent" onclick="w = window.open('{% url 'account_email' %}', 'Edit email addresses', 'height=650,width=450')" data-icon="open_in_new">Email addresses</button>
     <h4>Password</h4>
-    {% if request.user.password %}
-    <input class="wide" required name="oldpassword" type="password" autocomplete="current-password" placeholder="Current password" id="oldpassword" />
+    <button class="accent" onclick="w = window.open('{% url 'account_change_password' %}', 'Change password', 'height=650,width=450')" data-icon="open_in_new">Change Password</button>
+    <button class="primary" onclick="w = window.open('{% url 'account_reset_password' %}', 'Password reset', 'height=650,width=450')" data-icon="open_in_new">Forgot Password</button>
+    <h4>Oauth Accounts</h4>
+    <button class="positive" onclick="w = window.open('/accounts/social/connections', 'Social accounts', 'height=650,width=450')" data-icon="open_in_new">Linked Accounts</button>
     <br/><br/>
-    {% endif %}
-    <input class="wide" required name="newpassword" type="password" autocomplete="new-password" placeholder="New password" id="newpassword" />
-    <br/><br/>
-    <button class="w3-right" id="save-edit-settings"><i class="material-icons">done</i>Save</button>
-    <button class="w3-right" id="discard-edit-settings"><i class="material-icons">cancel</i>Discard</button>
-</form>
+    <button hidden class="w3-right" id="save-edit-settings" data-icon="done">Save</button>
+    <button class="w3-right" id="discard-edit-settings" data-icon="cancel">Cancel</button>
+</div>
 <br/>
-<h4>Oauth Accounts</h4>
-{% for oauth in oauths %}
-    {% if oauth.isLinked %}
-    
-    {% else %}
-    {% endif %}
-{% endfor %}

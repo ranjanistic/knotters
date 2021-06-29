@@ -1,9 +1,12 @@
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
+from django.db.models import Q
 from allauth.account.decorators import verified_email_required, login_required
+from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount
 from django.views.decorators.http import require_GET, require_POST
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML
-from .models import User, Profile
+from .models import Setting, User, Profile
 from main.methods import base64ToImageFile
 from .methods import convertToFLname, filterBio
 
@@ -76,7 +79,8 @@ def editProfile(request, section):
             except:
                 pass
             try:
-                fname, lname = convertToFLname(str(request.POST['displayname']))
+                fname, lname = convertToFLname(
+                    str(request.POST['displayname']))
                 bio = str(request.POST['profilebio'])
                 profile.user.first_name = fname
                 profile.user.last_name = lname
@@ -91,24 +95,24 @@ def editProfile(request, section):
 
 @require_POST
 @login_required
-def accountsettings(request,userID):
+def accountprefs(request, userID):
     try:
-        if request.user.id != userID: raise Exception()
-        newemail = str(request.POST['newemail']).strip().lower()
-        oldpassword = request.POST['oldpassword']
-        newpassword = request.POST['newpassword']
-        return redirect(request.user.profile.getLink(alert="Account info saved."))
-    except:
-        return redirect(request.user.profile.getLink(error="Invalid info provided"))
-
-@require_POST
-@login_required
-def accountprefs(request,userID):
-    try:
-        if request.user.id != userID: raise Exception()
-        newemail = str(request.POST['newemail']).strip().lower()
-        oldpassword = request.POST['oldpassword']
-        newpassword = request.POST['newpassword']
-        return redirect(request.user.profile.getLink(alert="Account preferences saved."))
+        if str(request.user.id) != str(userID):
+            raise Exception()
+        try:
+            newsletter = True if str(request.POST.get(
+                'newsletter', 'off')) != 'off' else False
+            recommendations = True if str(request.POST.get(
+                'recommendations', 'off')) != 'off' else False
+            competitions = True if str(request.POST.get(
+                'competitions', 'off')) != 'off' else False
+            Setting.objects.filter(profile=request.user.profile).update(
+                newsletter=newsletter,
+                recommendations=recommendations,
+                competitions=competitions,
+            )
+            return redirect(request.user.profile.getLink(alert="Account preferences saved."))
+        except:
+            raise Exception()
     except:
         return redirect(request.user.profile.getLink(error="Invalid preferences provided"))
