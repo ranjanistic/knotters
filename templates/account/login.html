@@ -64,8 +64,8 @@
 					</div>
 					<br/>
 					<button class="positive" type="submit"><i class="material-icons">login</i>Sign In</button>
-					<a href="{% url 'account_reset_password' %}"><button type="button" class="primary"><i class="material-icons">help</i>Forgot?</button></a>
-					<input type="hidden" name="next" value="/redirector?n={{request.GET.next}}" />
+					<button type="button" class="primary" onclick="w = window.open('{% url 'account_reset_password' %}', 'Password reset', 'height=650,width=450')" data-icon="help">Forgot?</button>
+					<input type="hidden" name="next" value="/redirector/?n={{request.GET.next}}" />
 				</form>
 				<br/>
 			</div>
@@ -89,7 +89,7 @@
 		</div>
 	{% endfor %}
 {% endif %}
-{% endblock %}
 </div>
+{% endblock %}
 <br/>
 {% endblock %}

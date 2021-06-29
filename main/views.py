@@ -140,6 +140,11 @@ class ServiceWorker(TemplateView):
                 f"/{url.ACCOUNTS}*",
                 f"/{url.LANDING}",
                 f"/*/{url.LANDING}",
+                f"/{url.COMPETE}*",
+                replaceUrlParamsWithStr(
+                    f"/{url.COMPETE}{url.Compete.INVITATION}"),
+                replaceUrlParamsWithStr(
+                    f"/{url.COMPETE}{url.Compete.DATA}"),
                 replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.CREATE}"),
@@ -148,12 +153,13 @@ class ServiceWorker(TemplateView):
             ]),
             'recacheList': json.dumps([
                 f"/{url.REDIRECTOR}*",
+                f"/{url.ACCOUNTS}*",
+                replaceUrlParamsWithStr(
+                    f"/{url.COMPETE}{url.Compete.INVITEACTION}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PEOPLE}{url.People.PROFILEEDIT}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.PROFILEEDIT}"),
-                replaceUrlParamsWithStr(
-                    f"/{url.PROJECTS}{url.People.ACCOUNTSETTINGS}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.People.ACCOUNTPREFERENCES}"),
             ]),

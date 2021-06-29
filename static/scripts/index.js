@@ -156,6 +156,8 @@ const loadGlobalEventListeners = () => {
     getElementsByTag("i").forEach((icon) => {});
 };
 
+const Icon = (name)=> `<i class="material-icons">${name}</i>`
+
 const loadCarousels = ({
     container = "swiper-container",
     loop = false,

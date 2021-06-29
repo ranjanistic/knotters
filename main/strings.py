@@ -41,6 +41,7 @@ class URL():
         DATA = "data/<str:compID>"
         PARTICIPATE = 'participate/<str:compID>'
         REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
+        INVITE = 'invite/<str:subID>'
         INVITATION = 'invitation/<str:subID>/<str:userID>'
         INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
 
@@ -54,7 +55,6 @@ class URL():
         PROFILEEDIT = 'profile/edit/<str:section>'
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
         SETTINGTAB = 'settingtab/<str:section>'
-        ACCOUNTSETTINGS = "account/settings/<str:userID>"
         ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
 
     class Projects():

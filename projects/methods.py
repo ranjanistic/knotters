@@ -9,6 +9,7 @@ from .apps import APPNAME
 from main.strings import code
 
 
+
 def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 

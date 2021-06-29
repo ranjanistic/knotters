@@ -15,8 +15,8 @@ class CompetitionAdmin(admin.ModelAdmin):
 
 @admin.register(Submission)
 class SubmitAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "submitted", "repo","createdOn","submitOn","totalActiveMembers"]
-    list_filter = ["competition","submitted"]
+    list_display = ["__str__", "submitted", "late", "repo","createdOn","submitOn","totalActiveMembers"]
+    list_filter = ["competition","submitted", "late"]
     ordering = ["submitOn"]
 
 @admin.register(Result)

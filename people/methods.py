@@ -12,7 +12,7 @@ from main.methods import renderData, renderView
 from main.strings import code, profile as profileString 
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
-from .models import User, Profile, defaultImagePath
+from .models import Setting, User, Profile, defaultImagePath
 from .apps import APPNAME
 
 
@@ -117,8 +117,10 @@ def getProfileSectionHTML(profile: Profile, section: str, request: HttpRequest) 
 def getSettingSectionData(section: str, user: User, request: HttpRequest) -> dict:
     data = renderData(fromApp=APPNAME)
     if section == profileString.setting.ACCOUNT:
+        data['oauths'] = SocialAccount.objects.filter(user=user)
         pass
     if section == profileString.setting.PREFERENCE:
+        data['setting'] = Setting.objects.get(profile=user.profile)
         pass
     return data
 
@@ -127,7 +129,6 @@ def getSettingSectionHTML(user: User,section: str, request: HttpRequest) -> dict
     if not SETTING_SECTIONS.__contains__(section) or request.user != user:
         return False
     data = {}
-    print("ssup")
     for sec in SETTING_SECTIONS:
         if sec == section:
             data = getSettingSectionData(sec, user, request)
@@ -143,8 +144,18 @@ def on_user_create(sender, instance, created, **kwargs):
     """
     if created:
         Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=Profile)
+def on_profile_create(sender, instance, created, **kwargs):
+    """
+    Creates Setting 121 after new Profile creation.
+    Adds user to mailing server.
+    """
+    if created:
+        Setting.objects.create(profile=instance)
         addUserToMailingServer(
-            instance.email, instance.first_name, instance.last_name)
+            instance.user.email, instance.user.first_name, instance.user.last_name)
+
 
 
 @receiver(post_delete, sender=User)

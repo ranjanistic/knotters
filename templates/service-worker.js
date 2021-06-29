@@ -49,7 +49,7 @@ self.addEventListener("fetch", async (event) => {
                 if (cachedResponse) {
                     return cachedResponse;
                 } else {
-                    return fetch(event.request).then((FetchRes) => {
+                    return fetch(event.request).then(async (FetchRes) => {
                         if (
                             recacheList.some((recachepath) =>
                                 recachepath.includes("*")
@@ -57,7 +57,7 @@ self.addEventListener("fetch", async (event) => {
                                     : recachepath === path
                             )
                         ) {
-                            caches.delete(dynamicCacheName);
+                            await caches.delete(dynamicCacheName);
                         }
                         return ignorelist.some((ignorepath) =>
                             ignorepath.includes("*")

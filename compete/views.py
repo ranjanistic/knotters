@@ -86,13 +86,12 @@ def createSubmission(request, compID):
         if not competition.isActive():
             raise Exception()
         try:
-            sub = Submission.objects.get(
-                competition=competition, members=request.user.profile)
-            relation = Relation(submission=sub, profile=request.user.profile)
+            sub = Submission.objects.get(competition=competition, members=request.user.profile)
+            relation = Relation.objects.get(submission=sub, profile=request.user.profile)
             if relation.confirmed:
                 raise Exception()
             else:
-                relation.delete()
+                sub.members.remove(request.user.profile)
         except:
             pass
         submission = Submission.objects.create(
@@ -105,7 +104,6 @@ def createSubmission(request, compID):
         sendParticipationWelcomeMail(request.user.profile, submission)
         return redirect(competition.getLink())
     except Exception as e:
-        print(e)
         raise Http404()
 
 
@@ -122,7 +120,7 @@ def removeMember(request, subID, userID):
             user = User.objects.get(id=userID)
             member = user.profile
 
-        submission = Submission.objects.get(id=subID,members=member)
+        submission = Submission.objects.get(id=subID, members=member)
         try:
             submission.members.remove(member)
             if submission.totalActiveMembers() == 0:
@@ -137,55 +135,37 @@ def removeMember(request, subID, userID):
 @require_POST
 @require_JSON_body
 @login_required
-def people(request, compID, someID):
-    try:
-        compete = Competition.objects.get(id=compID)
-        subs = Submission.objects.filter(competition=compete)
-        person = None
-        try:
-            user = User.objects.find(email=someID)
-            person = user.profile
-        except:
-            pass
-        try:
-            person = Profile.objects.find(githubID=someID)
-        except:
-            pass
-        if person:
-            stop = False
-            for sub in subs:
-                if stop: break
-                for member in sub.getMembers():
-                    if person == member:
-                        stop = True
-                        break
-            if stop:
-                return JsonResponse({'code': code.NO })
-            return JsonResponse({'code': code.OK, 'person': person})
-        return JsonResponse({'code': code.NO})
-    except:
-        return JsonResponse({'code': code.NO})
-
-
-@require_POST
-@login_required
 def invite(request, subID):
     """
     To invite a member in submission, relation to be confirmed via mail link.
     """
     try:
-        emailID = str(request.POST['emailID']).strip().lower()
-        if request.user.email == emailID:
-            return JsonResponse({'code': code.NO})
-        person = User.objects.get(email=emailID)
-        submission = Submission.objects.get(
-            Q(id=subID), ~Q(members=person.profile))
-        submission.members.add(person.profile)
-        sendParticipantInvitationMail(
-            person.profile, request.user.profile, submission)
-        return JsonResponse({'code': code.OK})
-    except:
-        return JsonResponse({'code': code.NO})
+        userID = str(request.POST.get('userID', '')).strip().lower()
+        if not userID:
+            return JsonResponse({'code': code.NO, 'error': 'Invalid ID'})
+        if request.user.email == userID or request.user.profile.githubID == userID:
+            return JsonResponse({'code': code.NO, 'error': 'You\'re already participating, remember?'})
+        try:
+            user = User.objects.get(email=userID)
+            person = user.profile
+        except:
+            try:
+                person = Profile.objects.get(githubID=userID)
+            except:
+                person = None
+        if not person:
+            return JsonResponse({'code': code.NO, 'error': 'User doesn\'t exist.'})
+        try:
+            Submission.objects.get(members=person)
+            return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
+        except:
+            submission = Submission.objects.get(id=subID)
+            submission.members.add(person)
+            sendParticipantInvitationMail(
+                person, request.user.profile, submission)
+            return JsonResponse({'code': code.OK})
+    except Exception as e:
+        return JsonResponse({'code': code.NO, 'error': str(e)})
 
 
 @require_GET
@@ -195,24 +175,24 @@ def invitation(request, subID, userID):
     Renders invitation action page for invitee to which the url was sent via email.
     """
     try:
-        if request.user.id != userID:
-            raise Http404()
+        if str(request.user.id) != str(userID):
+            raise Exception()
         user = request.user
-        submission = Submission.objects.get(Q(id=subID), Q(
-            submitted=False), ~Q(members=user.profile))
+        submission = Submission.objects.get(id=subID, submitted=False)
+        if not submission.competition.isActive(): raise Exception()
         if submission.totalMembers() >= 5:
-            raise Http404()
+            raise Exception()
         try:
             relation = Relation.objects.get(
                 submission=submission, profile=user.profile)
             if relation.confirmed:
                 return redirect(submission.competition.getLink(error="You've already participated"))
             else:
-                return render(request, f"{APPNAME}/invitation.html", renderData({
+                return render(request, "invitation.html", renderData({
                     'submission': submission,
                 }, APPNAME))
         except:
-            raise Http404()
+            raise Exception()
     except:
         raise Http404()
 
@@ -224,17 +204,17 @@ def inviteAction(request, subID, userID, action):
     To accpet/decline participation invitation, by invitee for a submission of a competition.
     """
     try:
-        if request.user.id != userID:
-            raise HttpResponseForbidden()
+        if str(request.user.id) != str(userID):
+            raise Exception()
         user = request.user
         submission = Submission.objects.get(id=subID, submitted=False)
         relation = Relation.objects.get(
             submission=submission, profile=user.profile)
         if relation.confirmed:
-            raise HttpResponseForbidden()
+            raise Exception()
         if action == 'decline':
             relation.delete()
-            return render(request, f"{APPNAME}/invitation.html", renderData({
+            return render(request, "invitation.html", renderData({
                 'submission': submission,
                 'declined': True
             }, APPNAME))
@@ -242,14 +222,14 @@ def inviteAction(request, subID, userID, action):
             relation.confirmed = True
             relation.save()
             sendParticipationWelcomeMail(user.profile, submission)
-            return render(request, f"{APPNAME}/invitation.html", renderData({
+            return render(request, "invitation.html", renderData({
                 'submission': submission,
                 'accepted': True
             }, APPNAME))
         else:
-            raise Http404()
+            raise Exception()
     except:
-        raise HttpResponseForbidden()
+        raise Http404()
 
 
 @login_required
@@ -257,16 +237,18 @@ def inviteAction(request, subID, userID, action):
 def save(request, compID, subID):
     try:
         competition = Competition.objects.get(id=compID)
-        submission = Submission.objects.get(id=subID, competition=competition, members=request.user.profile)
+        submission = Submission.objects.get(
+            id=subID, competition=competition, members=request.user.profile)
         submission.repo = str(request.POST['submissionurl'])
         submission.save()
         return redirect(competition.getLink(alert="Saved"), permanent=True)
     except Exception as e:
-        print(e)
         raise Http404()
+
 
 @login_required
 @require_POST
+@require_JSON_body
 def finalSubmit(request, compID, subID):
     """
     Already existing participation submission
@@ -274,14 +256,29 @@ def finalSubmit(request, compID, subID):
     now = timezone.now()
     try:
         competition = Competition.objects.get(id=compID)
-        if competition.endAt < now:
-            return redirect(competition.getLink(error="Competition was over before your submission."), permanent=True)
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
+        try:
+            relations = Relation.objects.filter(submission=submission,confirmed=False)
+            for relation in relations:
+                submission.members.remove(relation.profile)
+        except:
+            pass
+        message = "Submitted successfully"
+        if submission.submitted:
+            return JsonResponse({'code': code.OK, 'message': message})
+        if competition.endAt < now:
+            if competition.resultDeclared:
+                return JsonResponse({'code': code.NO, 'error': "It is too late now."})
+            submission.late = True
+            message = "Submitted, but late."
         submission.submitOn = now
         submission.submitted = True
+        
         submission.save()
+
         sendSubmissionConfirmedMail(submission.getMembers(), submission)
-        return redirect(competition.getLink(alert="Your submission has been accepted."), permanent=True)
-    except:
-        raise Http404()
+
+        return JsonResponse({'code': code.OK, 'message': message})
+    except Exception as e:
+        raise JsonResponse({'code': code.NO, "error": str(e)})

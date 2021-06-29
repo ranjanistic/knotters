@@ -55,7 +55,10 @@ class Competition(models.Model):
         return self.endAt > timezone.now()
     
     def secondsLeft(self) -> int:
-        diff = self.endAt - timezone.now()
+        time = timezone.now()
+        if time > self.endAt:
+            return 0
+        diff = self.endAt - time
         return diff.seconds
 
 
@@ -71,6 +74,7 @@ class Submission(models.Model):
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     submitOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     valid = models.BooleanField(default=True)
+    late = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.competition.title} - {self.id}"
@@ -120,11 +124,13 @@ class Submission(models.Model):
         return invitees
 
     def canInvite(self) -> bool:
-        return self.totalMembers() < 5
+        return self.totalMembers() < 5 and not self.submitted
 
     def getRepo(self) -> bool:
         return self.repo if self.repo else ''
-
+    
+    def lateSubmission(self)->bool:
+        return not self.competition.isActive() and not self.submitted
 
 class Result(models.Model):
     class Meta:

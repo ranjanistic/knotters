@@ -14,6 +14,7 @@
 {% block content %}
 
 <div class="w3-row w3-padding w3-center tertiary">
+	<img src="{% static 'graphics/self/icon.svg' %}" width="50" />
 	<h4>Be a part of a community that's always there for you.</h4>
 </div>
 <br/>
@@ -66,7 +67,7 @@
 					{% endfor %}
 					<br/>
 					<button class="positive" type="submit"><i class="material-icons">person_add</i>Create account</button>
-					<input type="hidden" name="next" value="/redirector?n={{request.GET.next}}" />
+					<input type="hidden" name="next" value="/redirector/?n={{request.GET.next}}" />
 				</form>
 				<br/>
 			</div>
@@ -89,8 +90,8 @@
 				<strong>{{ error|escape }}</strong>
 			</div>
 		{% endfor %}
-	{% endif %}
-{% endblock %}
+{% endif %}
 </div>
+{% endblock %}
 <br />
 {%endblock%}

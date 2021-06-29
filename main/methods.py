@@ -17,16 +17,8 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 
     :param: fromApp: The subapplication name from whose context this method will return udpated data.
     """
-    data['APPNAME'] = PUBNAME
-    data['CONTACTMAIL'] = MAILUSER
-    data['DESCRIPTION'] = "Solving problems together."
-    data['SUBAPPNAME'] = fromApp
     data['ROOT'] = f"/{fromApp}"
-    data['SITE'] = SITE
-    data['VERSION'] = VERSION
-    data['SUBAPPS'] = {}
-    for div in DIVISIONS:
-        data['SUBAPPS'][div] = div
+    data['SUBAPPNAME'] = fromApp
     return data
 
 
@@ -129,6 +121,15 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
     return response['success']
 
 
+def sendEmail(to,subject,html,body):
+    if ISPRODUCTION:
+        msg = EmailMultiAlternatives(subject, body=body, to=[to])
+        msg.attach_alternative(content=html, mimetype="text/html")
+        return msg.send()
+    else:
+        print(to,body)
+        return True
+
 def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
     data = {
         'greeting': greeting,
@@ -150,24 +151,16 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
         body = f"{body}\n{conclusion}"
 
     html = render_to_string('account/email/email.html', data)
-
     return html, body
 
 
 def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str):
-    if ISPRODUCTION:
-        html, body = getEmailHtmlBody(
-            greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
-        msg = EmailMultiAlternatives(subject, body=body, to=[to])
-        msg.attach_alternative(content=html, mimetype="text/html")
-        msg.send()
+    html, body = getEmailHtmlBody(greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
+    return sendEmail(to=to,subject=subject,html=html,body=body)
 
 
 def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []):
-    if ISPRODUCTION:
-        html, body = getEmailHtmlBody(
-            greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
-        msg = EmailMultiAlternatives(subject, body=body, to=[to])
-        msg.attach_alternative(content=html, mimetype="text/html")
-        msg.send()
+    html, body = getEmailHtmlBody(greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
+    return sendEmail(to=to,subject=subject,html=html,body=body)
+
 
