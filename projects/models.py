@@ -5,6 +5,7 @@ from main.strings import code, PEOPLE, project
 from main.methods import maxLengthInList
 from main.strings import MODERATION
 from main.settings import MEDIA_URL
+from main.env import PUBNAME
 from .apps import APPNAME
 
 def projectImagePath(instance, filename):
@@ -59,17 +60,31 @@ class Project(models.Model):
         except: pass
         super(Project, self).save(*args, **kwargs)
 
-    def getLink(self, success='', error=''):
+    def getLink(self, success='', error='', alert=''):
         if error:
             error = f"?e={error}"
+        elif alert:
+            alert = f"?a={alert}"
         elif success:
             success = f"?s={success}"
         if self.status == code.REJECTED:
-            return f"/{MODERATION}/{APPNAME}/{self.id}{error}{success}"
-        return f"/{APPNAME}/profile/{self.reponame}{error}{success}"
+            return f"/{MODERATION}/{APPNAME}/{self.id}{error}{success}{alert}"
+        return f"/{APPNAME}/profile/{self.reponame}{error}{success}{alert}"
 
     def getDP(self):
         return f"{MEDIA_URL}{str(self.image)}"
+
+    def isLive(self):
+        return self.status == code.LIVE
+
+    def rejected(self):
+        return self.status == code.REJECTED
+        
+    def underModeration(self):
+        return self.status == code.MODERATION
+
+    def getRepoLink(self):
+        return f"https://github.com/{PUBNAME}/{self.reponame}"
 
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

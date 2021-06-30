@@ -1,1 +1,17 @@
-moderation
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-half">
+    {% for mod in unresolved %}
+    {{mod.getLink}}
+    {% empty %}
+    <center>All resolved</center>
+    {% endfor %}
+    </div>
+
+    <div class="w3-col w3-half">
+    {% for mod in resolved %}
+    {{mod}} res
+    {% empty %}
+    <center>Wait for it.</center>
+    {% endfor %}
+    </div>
+</div>

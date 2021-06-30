@@ -1,4 +1,4 @@
-from .models import Competition, Result, Submission
+from .models import Competition, JudgePanel, Result, Submission
 from django.utils import timezone
 from django import forms
 
@@ -14,7 +14,7 @@ class CompetitionAdminForm(forms.ModelForm):
         endAt = cleaned_data.get('endAt')
         resultDeclared = cleaned_data.get('resultDeclared')
         if startAt >= endAt:
-            raise forms.ValidationError(u"\'endAt\' should be greater than \'startAt\'")
+            raise forms.ValidationError(u"endAt should be greater than startAt")
         err = False
         try:
             comp = Competition.objects.get(banner=banner)
@@ -24,8 +24,40 @@ class CompetitionAdminForm(forms.ModelForm):
         if err:
             raise forms.ValidationError(u"endAt and startAt can\'t be changed as resultDeclared is True.")
         if resultDeclared and endAt > timezone.now():
-            raise forms.ValidationError(u"\'resultDeclared\' cannot be true while \'endAt\' is still in future.")
+            raise forms.ValidationError(u"resultDeclared cannot be true while endAt is still in future.")
         return cleaned_data
+
+
+class JudgePanelForm(forms.ModelForm):
+    class Meta:
+        model = JudgePanel
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        comp = cleaned_data.get('competition')
+        judge = cleaned_data.get('judge')
+
+        if comp.resultDeclared:
+            raise forms.ValidationError(f"Cannot assign judge as result of this competition already declared.")
+
+        if comp.isJudge(judge):
+            raise forms.ValidationError(f"This judge is already in panel for this competition.")
+
+        if not judge.is_moderator:
+            raise forms.ValidationError(f"Eligible judge as to be a moderator at least.")
+
+        err = False
+        try:
+            Submission.objects.get(competition=comp,members=judge)
+            err = True
+        except:
+            pass
+        if err:
+            raise forms.ValidationError(f"The selected user is one of the participant in this competition, thus ineligible for judgment panel.")
+        
+        return cleaned_data
+
 
 class ResultAdminForm(forms.ModelForm):
     class Meta:

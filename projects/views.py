@@ -100,17 +100,19 @@ def validateField(request, field):
 @require_POST
 @login_required
 def submitProject(request):
+    projectobj = None
     try:
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]
         reponame = request.POST["reponame"]
         userRequest = request.POST["description"]
+        referURL = request.POST.get("referurl", "")
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
             return HttpResponse(f'{reponame} already exists')
         projectobj = createProject(profile=request.user.profile, name=name,
-                                   category=category, reponame=reponame, description=description, tags=tags)
+                                   category=category, reponame=reponame, description=description, tags=tags, url=referURL)
         if not projectobj:
             raise Exception()
         try:
@@ -121,12 +123,15 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        mod = requestModeration(projectobj, APPNAME, userRequest)
+        mod = requestModeration(projectobj, APPNAME, userRequest, referURL)
         if not mod:
+            projectobj.delete()
             return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
-        return redirect(projectobj.getLink())
+        return redirect(projectobj.getLink(alert="Sent for review"))
     except Exception as e:
         print(e)
+        if projectobj:
+            projectobj.delete()
         return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
 
 

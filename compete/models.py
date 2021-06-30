@@ -31,6 +31,8 @@ class Competition(models.Model):
 
     resultDeclared = models.BooleanField(default=False)
 
+    judges = models.ManyToManyField(Profile, through='JudgePanel')
+
     def __str__(self) -> str:
         return self.title
 
@@ -61,6 +63,22 @@ class Competition(models.Model):
             return 0
         diff = self.endAt - time
         return diff.seconds
+
+    def isJudge(self,profile:Profile) -> bool:
+        if not self.judges: return False
+        if profile in self.judges.all(): return True
+        return False
+
+
+class JudgePanel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    competition = models.ForeignKey(Competition, related_name='judging_competition', on_delete=models.CASCADE)
+    judge = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return self.competition.title
+    class Meta:
+        unique_together = ("competition", "judge")
 
 
 class Submission(models.Model):

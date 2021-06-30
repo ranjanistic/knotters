@@ -10,6 +10,8 @@ def Global(request):
     data['SITE'] = SITE
     data['VERSION'] = VERSION
     data['SUBAPPS'] = {}
+    data['SUBAPPSLIST'] = []
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
+        data['SUBAPPSLIST'].append(div)
     return renderData(data=data)

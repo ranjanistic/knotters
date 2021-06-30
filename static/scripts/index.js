@@ -105,6 +105,9 @@ const visibleElement = (id, show = true) => {
     getElement(id).style.display = show ? "block" : "none";
 };
 
+const miniWindow = (url, name = APPNAME) =>
+    window.open(url, name, "height=650,width=450");
+
 const loaderHTML = (loaderID = "loader") =>
     `<div class="loader" id="${loaderID}"></div>`;
 const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
@@ -156,7 +159,7 @@ const loadGlobalEventListeners = () => {
     getElementsByTag("i").forEach((icon) => {});
 };
 
-const Icon = (name)=> `<i class="material-icons">${name}</i>`
+const Icon = (name) => `<i class="material-icons">${name}</i>`;
 
 const loadCarousels = ({
     container = "swiper-container",

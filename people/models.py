@@ -104,6 +104,7 @@ class Profile(models.Model):
     topics = models.ManyToManyField(Topic, through='Relation', default=[])
     is_verified = models.BooleanField(default=False)
     suspended = models.BooleanField(default=False)
+    reporters = models.ManyToManyField('Profile', through='Reporting')
 
     def __str__(self) -> str:
         return self.user.email
@@ -144,6 +145,10 @@ class Profile(models.Model):
             return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
         return f"/{APPNAME}/profile/{self.user.id}{success}{alert}{error}"
 
+    def isReporter(self,profile):
+        if profile in self.reporters.all(): return True
+        return False
+
 
 class Setting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -154,6 +159,14 @@ class Setting(models.Model):
 
     def __str__(self) -> str:
         return self.profile.user.email
+
+class Reporting(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile,related_name='target_profile', on_delete=models.CASCADE)
+    reporter = models.ForeignKey(Profile,related_name='reporter_profile', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('profile', 'reporter')
 
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

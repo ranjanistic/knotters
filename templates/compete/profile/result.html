@@ -1,4 +1,5 @@
 <div class="w3-row w3-padding">
+{% if results.count %}
 <div class="w3-row w3-padding">
     <div class="w3-col w3-quarter">
     <h4>Rank</h4>
@@ -12,6 +13,7 @@
     </div>
     </div>
 </div>
+{% endif %}
 {% for result in results %}
 <div class="w3-row pallete-slab">
     <div class="w3-col m2">
@@ -35,10 +37,23 @@
     {% endfor %}
     </div>
     <div class="w3-col m2">
-    <a target="_blank" href="{{ result.submission.repo }}"><button class="primary" data-icon="open_in_new">View</button></a>
+    <a 
+    {% if request.user.is_authenticated %}
+    target="_blank" 
+    href="{{ result.submission.repo }}"
+    {% else %}
+    href="{% url 'account_login' %}?next=/compete/{{competition.id}}"
+    {% endif %}
+    ><button class="primary" data-icon="open_in_new">View</button></a>
     </div>
     </div>
 
 </div>
+{% empty %}
+    <br/><br/>
+    <center>
+    <div class="w3-jumbo material-icons">lock</div>
+    <h1>No results disclosed.</h1>
+    </center>
 {% endfor %}
 </div>

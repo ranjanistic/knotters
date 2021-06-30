@@ -12,16 +12,20 @@ def renderer(request, file, data={}):
 
 
 # implemented round robin algorithm
-def getModerator(type: str, obj: models.Model) -> Profile:
+def getModerator(type: str, object: models.Model) -> Profile:
+    """
+    :type: The type of sub application for which the entity is to be moderated
+    :object: The model object of the entity to be moderated.
+    """
     try:
         current = LocalStorage.objects.get(key="moderator")
     except:
         current = LocalStorage.objects.create(key="moderator", value=0)
         current.save()
     if type == PROJECTS:
-        totalModerators = Profile.objects.filter(~Q(id=obj.creator.id),is_moderator=True)
+        totalModerators = Profile.objects.filter(~Q(id=object.creator.id),is_moderator=True)
     elif type == PEOPLE:
-        totalModerators = Profile.objects.filter(~Q(id=obj.id),is_moderator=True)
+        totalModerators = Profile.objects.filter(~Q(id=object.id),is_moderator=True)
     else: 
         totalModerators = Profile.objects.filter(is_moderator=True)
     if(totalModerators.count == 0):
@@ -36,7 +40,16 @@ def getModerator(type: str, obj: models.Model) -> Profile:
     return totalModerators[temp-1]
 
 
-def requestModeration(object: models.Model, type: str, requestData: str) -> bool:
+def requestModeration(object: models.Model, type: str, requestData: str, referURL:str='') -> bool:
+    """
+    Submit a subapplication entity model object for moderation.
+
+    :object: The subapplication entity model object
+    :type: The subapplication or entity type.
+    :requestData: Any relevent data regarding moderation
+    :referUrl: Any relevant url regarding moderation.
+
+    """
     obj = None
     try:
         if type == PROJECTS:
@@ -59,17 +72,17 @@ def requestModeration(object: models.Model, type: str, requestData: str) -> bool
 
         return False
     except:
-        moderator = getModerator(type, obj)
+        moderator = getModerator(type, object)
         if not moderator:
             return False
         if type == PROJECTS:
             obj = Moderation.objects.create(
-                project=object, type=type, moderator=moderator, request=requestData)
+                project=object, type=type, moderator=moderator, request=requestData, referURL=referURL)
         elif type == PEOPLE:
             obj = Moderation.objects.create(
-                profile=object, type=type, moderator=moderator, request=requestData)
+                profile=object, type=type, moderator=moderator, request=requestData,referURL=referURL)
         elif type == COMPETE:
             obj = Moderation.objects.create(
-                competiton=object, type=type, moderator=moderator, request=requestData)
+                competiton=object, type=type, moderator=moderator, request=requestData,referURL=referURL)
         obj.save()
     return True

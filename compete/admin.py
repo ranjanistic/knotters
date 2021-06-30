@@ -1,6 +1,6 @@
-from compete.models import Competition, Submission,Result, Relation
+from compete.models import Competition, JudgePanel, Submission,Result, Relation
 from django.contrib import admin
-from .forms import CompetitionAdminForm, ResultAdminForm
+from .forms import CompetitionAdminForm, ResultAdminForm,JudgePanelForm
 
 
 
@@ -27,5 +27,13 @@ class ResultAdmin(admin.ModelAdmin):
     ordering = ["rank"]
     class Meta:
         ordering = ("")
-    
+
+@admin.register(JudgePanel)
+class JudgePanelAdmin(admin.ModelAdmin):
+    list_display = ["competition", "judge"]
+    list_filter = ["competition", "judge"]
+    form = JudgePanelForm
+    class Meta:
+        ordering = ("")
+
 admin.site.register(Relation)

@@ -12,6 +12,7 @@ from main.methods import renderData, renderView
 from main.strings import code, profile as profileString 
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
+from moderation.models import Moderation
 from .models import Setting, User, Profile, defaultImagePath
 from .apps import APPNAME
 
@@ -99,7 +100,10 @@ def getProfileSectionData(section: str, profile: Profile, request: HttpRequest) 
     if section == profileString.ACTIVITY:
         pass
     if section == profileString.MODERATION:
-        pass
+        if profile.is_moderator:
+            mods = Moderation.objects.filter(moderator=profile)
+            data['resolved'] = mods.filter(resolved=True)
+            data['unresolved'] = mods.filter(resolved=False)
     return data
 
 

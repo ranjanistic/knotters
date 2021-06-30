@@ -46,8 +46,11 @@ def index(request):
 @require_GET
 def redirector(request):
     next = request.GET.get('n', '/')
-    next = '/' if str(next).strip() == '' or not next else next
-    return redirect(next) if next.startswith("/") else HttpResponse(f"<h1>Redirecting to {next}</h1><script>window.location.replace('{next}')</script>")
+    next = '/' if str(next).strip() == '' or not next or next == 'None' else next
+    if next.startswith("/"):
+        return redirect(next)
+    else: 
+        return renderView(request,'forward',{'next':next})
 
 
 @require_GET
@@ -134,12 +137,14 @@ class ServiceWorker(TemplateView):
                 replaceUrlParamsWithStr(
                     f"/{url.PEOPLE}{url.People.PROFILETAB}"),
                 f"/{ADMINPATH}*",
+                f"/{ADMINPATH}",
             ]),
             'ignorelist': json.dumps([
                 f"{MEDIA_URL}*",
                 f"/{url.REDIRECTOR}*",
                 f"/{url.ACCOUNTS}*",
                 f"/{url.LANDING}",
+                f"/{url.MODERATION}*",
                 f"/*/{url.LANDING}",
                 f"/{url.COMPETE}*",
                 replaceUrlParamsWithStr(

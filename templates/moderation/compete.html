@@ -1,1 +1,17 @@
 {% extends 'moderation/index.html' %}
+
+{% block content %}
+{{moderation.id}}<br/>
+{{moderation.status}}<br/>
+{{moderation.resolved}}<br/>
+{{moderation.type}}<br/>
+{{moderation.retries}}<br/>
+{{moderation.competition}}<br/>
+{{moderation.requestOn}}<br/>
+{{moderation.respondOn}}<br/>
+{{moderation.moderator}}<br/>
+{{moderation.request}}<br/>
+{{moderation.response}}<br/>
+{{moderation.referURL}}<br/>
+{{ismoderator}}<br/>
+{% endblock%}

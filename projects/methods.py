@@ -1,7 +1,7 @@
 from people.models import Profile
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-from .models import Category, Project, Tag
+from .models import Category, Project, Tag, defaultImagePath
 from main.env import PUBNAME
 from main.bots import Github
 from github import Branch, Organization, NamedUser
@@ -15,7 +15,7 @@ def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def createProject(name:str, category:str, reponame:str, description:str, tags:list, profile:Profile) -> Project or bool:
+def createProject(name:str, category:str, reponame:str, description:str, tags:list, profile:Profile, url:str='') -> Project or bool:
     """
     Creates project on knotters under moderation.
     """
@@ -25,7 +25,7 @@ def createProject(name:str, category:str, reponame:str, description:str, tags:li
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj: return False
         project = Project.objects.create(
-            creator=profile, name=name, reponame=reponame, description=description,category=categoryObj)
+            creator=profile, name=name, reponame=reponame, description=description,category=categoryObj,url=url)
         for tag in tags:
             tagobj = addTagToDatabase(tag)
             if tagobj:
@@ -37,10 +37,17 @@ def createProject(name:str, category:str, reponame:str, description:str, tags:li
         return False
 
 def addCategoryToDatabase(category:str) -> Category or bool:
-    category = str(category).strip().replace('\n','')
+    category = str(category).strip().lower().replace('\n','')
     if not category: return False
+    categoryObj = None
     try:
-        categoryObj = Category.objects.get(name=category)
+        allcategories = Category.objects.all()
+        for cat in allcategories:
+            if str(cat).strip().lower().replace('\n','') == category:
+                categoryObj = cat
+                break
+        if not categoryObj:
+            categoryObj = Category.objects.create(name=category)
     except:
         categoryObj = Category.objects.create(name=category)
     return categoryObj
@@ -188,5 +195,6 @@ def on_project_delete(sender, instance, **kwargs):
     Project cleanup.
     """
     try:
-        instance.image.delete(save=False)
+        if instance.image != defaultImagePath():
+            instance.image.delete(save=False)
     except Exception as e: pass

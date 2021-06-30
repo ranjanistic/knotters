@@ -136,6 +136,10 @@ h6 {
   color: var(--active) !important;
 }
 
+.dead-text{
+  color: var(--dead-text) !important;
+}
+
 nav {
   padding: 4px 12px;
 }

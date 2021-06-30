@@ -11,27 +11,15 @@ from .models import *
 from .methods import renderer
 
 @require_GET
-def moderation(request, division, id):
+@login_required
+def moderation(request,id):
     try:
-        if not [PEOPLE, PROJECTS, COMPETE].__contains__(division):
+        moderation = Moderation.objects.get(id=id)
+        if moderation.resolved: raise Exception()
+        if not moderation.isRequestor(request.user.profile) and moderation.moderator != request.user.profile:
             raise Exception()
-        else:
-            data = {}
-            moderation = None
-            if division == PEOPLE:
-                user = User.objects.get(id=id)
-                moderation = Moderation.objects.get(user=user)
-                data = {'person': user}
-            elif division == PROJECTS:
-                project = Project.objects.get(id=id)
-                moderation = Moderation.objects.get(project=project)
-                data = {'project': project}
-            elif division == COMPETE:
-                competition = Competition.objects.get(id=id)
-                moderation = Moderation.objects.get(competition=competition)
-                data = {'competition': competition}
-            data['moderation'] = moderation
-            return renderer(request, division, data)
+
+        return renderer(request, moderation.type, {'moderation':moderation, 'ismoderator': moderation.moderator == request.user.profile })
     except:
         raise Http404()
 
