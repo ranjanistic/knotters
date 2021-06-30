@@ -18,7 +18,7 @@
             <button type="submit" class="primary" data-icon="save">Save</button>
             </form>
             {% elif not submission.lateSubmission and submission.submitted %}
-                <a href="{{submission.getRepo}}"><button class="primary" data-icon="visibility">Your submission</button></a>
+                <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">Your submission</button></a>
                 <h4 class="text-positive">Submitted on {{submission.submitOn}}
                 </h4>
             {% else %}
@@ -43,7 +43,7 @@
             <div class="w3-col w3-third w3-padding-small">
                 <div class="pallete accent w3-center">
                     <img src="{{member.getDP}}" width="20" class="w3-circle" />
-                    <h6>{{member.getName}}</h6>
+                    <h6 class="text-accent">{{member.getName}}</h6>
                     <a target="_blank" href="{{member.getLink}}"><button data-icon="visibility"></button></a>
                     {% if not submission.lateSubmission and not submission.submitted %}
                     <button class="negative remove-person" data-name="{{member.getName}}" data-userID="{{member.user.id}}" data-icon="delete"></button>

@@ -6,6 +6,7 @@ from main.strings import PEOPLE, url
 from main.settings import MEDIA_URL
 from .apps import APPNAME
 
+
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/banners/{instance.id}.{fileparts[len(fileparts)-1]}"
@@ -47,20 +48,19 @@ class Competition(models.Model):
         elif success:
             success = f"?s={success}"
         return f"/{url.COMPETE}{self.id}{success}{error}"
-    
-    def isActive(self)-> bool:
+
+    def isActive(self) -> bool:
         """
         Whether the competition is active or not, depending on endAt time.
         """
         return self.endAt > timezone.now()
-    
+
     def secondsLeft(self) -> int:
         time = timezone.now()
         if time > self.endAt:
             return 0
         diff = self.endAt - time
         return diff.seconds
-
 
 
 class Submission(models.Model):
@@ -95,9 +95,8 @@ class Submission(models.Model):
         """
         All members count with relation confirmed.
         """
-        
-        return len(self.getMembers())
 
+        return len(self.getMembers())
 
     def getMembers(self) -> list:
         """
@@ -128,18 +127,37 @@ class Submission(models.Model):
 
     def getRepo(self) -> bool:
         return self.repo if self.repo else ''
-    
-    def lateSubmission(self)->bool:
+
+    def lateSubmission(self) -> bool:
         return not self.competition.isActive() and not self.submitted
+
 
 class Result(models.Model):
     class Meta:
-        unique_together = (("competition", "rank"),("competition", "submission"))
+        unique_together = (("competition", "rank"),
+                           ("competition", "submission"))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     submission = models.OneToOneField(Submission, on_delete=models.PROTECT)
     rank = models.IntegerField()
+
+    def rankSuptext(self) -> str:
+        rank = self.rank
+        rankstr = str(rank)
+        if rank == 1:
+            return 'st'
+        elif rank == 2:
+            return 'nd'
+        elif rank == 3:
+            return 'rd'
+        else:
+            if rank > 9:
+                if rankstr[len(rankstr) - 2] == "1":
+                    return "th"
+                return self.rankSuptext(int(rankstr[rankstr.length - 1]))
+            else:
+                return "th"
 
 
 class Relation(models.Model):

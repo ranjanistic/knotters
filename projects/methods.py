@@ -2,8 +2,9 @@ from people.models import Profile
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from .models import Category, Project, Tag
-from main.env import GITHUBBOTTOKEN, PUBNAME
-from github import Github, Branch, Organization, NamedUser
+from main.env import PUBNAME
+from main.bots import Github
+from github import Branch, Organization, NamedUser
 from main.methods import renderView
 from .apps import APPNAME
 from main.strings import code
@@ -94,7 +95,7 @@ def setupApprovedProject(project:Project, moderator:Profile) -> bool:
             return False
 
         created = setupProjectDiscordChannel(
-            project.reponame, project.creator, moderator)
+            project.reponame, project.creator.profile, moderator)
         if not created:
             return False
 
@@ -115,13 +116,10 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
     try:
         if creator.githubID == None:
             return False
-        
-        gh = Github(GITHUBBOTTOKEN)
 
-        ghUser = gh.get_user(creator.githubID)
+        ghUser = Github.get_user(creator.githubID)
         
-
-        ghOrg = gh.get_organization(PUBNAME)
+        ghOrg = Github.get_organization(PUBNAME)
         ghOrgRepo = ghOrgRepoExists(ghOrg,reponame)
     
         if not ghOrgRepo:

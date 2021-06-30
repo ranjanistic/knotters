@@ -210,6 +210,20 @@ button.primary {
   transition: var(--delay);
 }
 
+.pallete-slab {
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  box-shadow: 2px 1px 14px 1px #0000000a;
+  border-radius: 8px;
+  background-color: var(--tertiary);
+  color: var(--tertiary-text);
+  transition: var(--delay);
+}
+
+.limit-width{
+  width: fit-content !important;
+}
+
 .pallete.limit-height {
   max-height: 30rem;
   overflow: hidden;

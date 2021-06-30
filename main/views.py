@@ -1,8 +1,9 @@
 from django.views.generic import TemplateView
-from django.http.response import Http404, HttpResponse
+from django.http.response import Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
 from main.settings import STATIC_URL, MEDIA_URL
+from django.utils import timezone
 import json
 from .env import ADMINPATH
 from main.strings import url
@@ -32,10 +33,10 @@ def index(request):
         "projects": projects
     }
     try:
-        comp = Competition.objects.get(active=True)
+        comp = Competition.objects.get(endAt__lt=timezone.now)
         data["alert"] = {
             "message": f"The '{comp.title}' competition is on!",
-            "url": f"/competitions/{comp.id}"
+            "url": f"/{COMPETE}/{comp.id}"
         }
     except:
         pass

@@ -137,6 +137,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 WSGI_APPLICATION = "main.wsgi.application"
+# ASGI_APPLICATION = "main.asgi.application"
 
 DATA_UPLOAD_MAX_MEMORY_SIZE=10*1024*1024
 

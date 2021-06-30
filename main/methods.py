@@ -121,6 +121,7 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
     return response['success']
 
 
+
 def sendEmail(to,subject,html,body):
     if ISPRODUCTION:
         msg = EmailMultiAlternatives(subject, body=body, to=[to])

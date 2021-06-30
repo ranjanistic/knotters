@@ -264,9 +264,9 @@ def finalSubmit(request, compID, subID):
                 submission.members.remove(relation.profile)
         except:
             pass
-        message = "Submitted successfully"
         if submission.submitted:
-            return JsonResponse({'code': code.OK, 'message': message})
+            return JsonResponse({'code': code.OK, 'message': "Already submitted"})
+        message = "Submitted successfully"
         if competition.endAt < now:
             if competition.resultDeclared:
                 return JsonResponse({'code': code.NO, 'error': "It is too late now."})

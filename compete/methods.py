@@ -5,7 +5,7 @@ from main.strings import compete
 from people.models import Profile
 from main.env import SITE
 from django.utils import timezone
-from .models import Competition, Relation, Submission
+from .models import Competition, Relation, Result, Submission
 from .apps import APPNAME
 
 def renderer(request, file, data={}):
@@ -52,7 +52,7 @@ def getCompetitionSectionData(section, competition, request):
         except: 
             data['submission'] = None
     if section == compete.RESULT:
-        return {}
+        data['results'] = Result.objects.filter(competition=competition).order_by('rank')
     return data
 
 

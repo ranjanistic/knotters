@@ -1,5 +1,6 @@
 import os
 import sys
+# from main.bots import Discord
 
 ENVPATH = 'main\.env'
 
@@ -14,6 +15,7 @@ def main(ENVPATH):
     print(f"Environment: {ENV}")
     try:
         from django.core.management import execute_from_command_line
+        
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "
@@ -24,3 +26,5 @@ def main(ENVPATH):
 
 if __name__ == '__main__':
     main(ENVPATH=ENVPATH)
+    # from main.env import DISCORDBOTTOKEN, GITHUBBOTTOKEN
+    # Discord.run(DISCORDBOTTOKEN)

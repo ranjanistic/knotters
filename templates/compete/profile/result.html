@@ -1,1 +1,44 @@
-result
+<div class="w3-row w3-padding">
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-quarter">
+    <h4>Rank</h4>
+    </div>
+    <div class="w3-col w3-threequarter">
+    <div class="w3-col w3-threequarter">
+    <h4>Members</h4>
+    </div>
+    <div class="w3-col w3-quarter w3-center">
+    <h4>Submission</h4>
+    </div>
+    </div>
+</div>
+{% for result in results %}
+<div class="w3-row pallete-slab">
+    <div class="w3-col m2">
+    <h4 
+        class="pallete limit-width {% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %} 
+        text-{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %}"
+    ><i class="w3-large-x material-icons">
+        {% if result.rank == 1 %}emoji_events{% elif result.rank == 2 %}military_tech{% elif result.rank == 3 %}celebration{% else %}card_giftcard{% endif %}
+    </i>{{result.rank}}<sup>{{result.rankSuptext}}</sup>
+    </h4>
+    </div>
+    <div class="w3-col m10">
+    <div class="w3-col m10 w3-padding">
+    {% for member in result.submission.getMembers %}
+    <a target="_blank" href="{{member.getLink}}">
+    <button class="{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %}">
+        <img src="{{member.getDP}}" class="w3-circle" width="22" />
+        {{ member.getName }}
+    </button>
+    </a>
+    {% endfor %}
+    </div>
+    <div class="w3-col m2">
+    <a target="_blank" href="{{ result.submission.repo }}"><button class="primary" data-icon="open_in_new">View</button></a>
+    </div>
+    </div>
+
+</div>
+{% endfor %}
+</div>
