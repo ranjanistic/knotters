@@ -4,68 +4,73 @@ const Key = {
     appUpdated: "app-updated",
 };
 
+const code = {
+    OK: "OK",
+    NO: "NO",
+};
+
+const newUpdateDialog = (newServiceWorker) => {
+    alertify
+        .confirm(
+            `Update available`,
+            `
+            <img src="/static/graphics/self/icon.svg" width="80" />
+            <h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>
+            <br/>
+            <h6 class="positive-text">Updates are important. It will hardly take a few seconds.</h6>`,
+            () => {
+                subLoader(true);
+                loader(true);
+                message("Updating...");
+                localStorage.setItem(Key.appUpdated, 1);
+                newServiceWorker.postMessage({ action: "skipWaiting" });
+            },
+            () => {
+                message("We'll remind you later.");
+            }
+        )
+        .set({
+            closable: false,
+            ok: "Update",
+            cancel: "Not now",
+            modal: true,
+        });
+};
+
 const serviceWorkerRegistration = () => {
     if (navigator.serviceWorker) {
-        var newServiceWorker;
-        const newUpdateBar = () => {
-            alertify
-                .confirm(
-                    `Update available: ${VERSION}`,
-                    `<h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>`,
-                    () => {
-                        subLoader(true);
-                        loader(true);
-                        alertify.message("Updating...");
-                        localStorage.setItem(Key.appUpdated, 1);
-                        newServiceWorker.postMessage({ action: "skipWaiting" });
-                    },
-                    () => {
-                        alertify.message("We'll remind you later.");
-                    }
-                )
-                .set({
-                    closable: false,
-                    ok: "Update",
-                    cancel: "Not now",
-                    modal: true,
-                });
-        };
-        window.addEventListener("load", () => {
-            navigator.serviceWorker
-                .register("/service-worker.js")
-                .then((reg) => {
-                    if (reg.waiting) {
-                        newServiceWorker = reg.waiting;
-                        newUpdateBar();
-                    }
-                    reg.addEventListener("updatefound", () => {
-                        newServiceWorker = reg.installing;
-                        newServiceWorker.addEventListener("statechange", () => {
-                            switch (newServiceWorker.state) {
-                                case "installed":
-                                    if (navigator.serviceWorker.controller) {
-                                        newUpdateBar();
-                                    }
-                                    break;
-                            }
-                        });
-                    });
-                })
-                .catch((err) =>
-                    console.log("Service worker not registered", err)
-                );
-
-            if (Number(localStorage.getItem(Key.appUpdated))) {
-                alertify.success("App updated successfully.");
-                localStorage.removeItem(Key.appUpdated);
-            }
-        });
-        let refreshing;
+        let refreshing = false;
         navigator.serviceWorker.addEventListener("controllerchange", () => {
             if (refreshing) return;
             window.location.reload();
             refreshing = true;
         });
+        navigator.serviceWorker
+            .register(SERVICE_WORKER)
+            .then((reg) => {
+                if (reg.waiting) {
+                    const newServiceWorker = reg.waiting;
+                    newUpdateDialog(newServiceWorker);
+                }
+                reg.addEventListener("updatefound", () => {
+                    const newServiceWorker = reg.installing;
+                    newServiceWorker.addEventListener("statechange", () => {
+                        switch (newServiceWorker.state) {
+                            case "installed":
+                                if (navigator.serviceWorker.controller) {
+                                    newUpdateDialog(newServiceWorker);
+                                }
+                                break;
+                        }
+                    });
+                });
+            })
+            .catch((err) => console.log("Service worker not registered", err));
+
+        if (Number(localStorage.getItem(Key.appUpdated))) {
+            success("App updated successfully.");
+            localStorage.removeItem(Key.appUpdated);
+        }
     }
 };
 
@@ -107,6 +112,21 @@ const visibleElement = (id, show = true) => {
 
 const miniWindow = (url, name = APPNAME) =>
     window.open(url, name, "height=650,width=450");
+
+const message = (msg = "") => {
+    alertify.set("notifier", "position", "top-left");
+    alertify.message(msg);
+};
+
+const error = (msg = "") => {
+    alertify.set("notifier", "position", "bottom-right");
+    alertify.error(msg);
+};
+
+const success = (msg = "") => {
+    alertify.set("notifier", "position", "top-right");
+    alertify.success(msg);
+};
 
 const loaderHTML = (loaderID = "loader") =>
     `<div class="loader" id="${loaderID}"></div>`;
@@ -375,7 +395,7 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        alertify.error(
+                        error(
                             `An error occurred. <br/><button class="primary" onclick="window.location.reload();">Reload</button>`
                         );
                     }

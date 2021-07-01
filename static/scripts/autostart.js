@@ -1,5 +1,4 @@
 subLoader(true);
-serviceWorkerRegistration();
 
 document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEventListeners()
@@ -8,5 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("load",()=>{  
+    serviceWorkerRegistration();
     subLoader(false);
 })

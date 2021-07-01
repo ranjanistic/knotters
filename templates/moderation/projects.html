@@ -1,17 +1,55 @@
 {% extends 'moderation/index.html' %}
 
 {% block content %}
-{{moderation.id}}<br/>
-{{moderation.status}}<br/>
-{{moderation.resolved}}<br/>
-{{moderation.type}}<br/>
-{{moderation.retries}}<br/>
-{{moderation.project}}<br/>
-{{moderation.requestOn}}<br/>
-{{moderation.respondOn}}<br/>
-{{moderation.moderator}}<br/>
-{{moderation.request}}<br/>
-{{moderation.response}}<br/>
-{{moderation.referURL}}<br/>
-{{ismoderator}}<br/>
+<br/>
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-half w3-padding-small">
+        <div class="pallete">
+        <span class="dead-text">Status: </span><strong>{{moderation.status|capfirst}}</strong><br/>
+        <h5>Category: <span class="positive-text">{{moderation.type|capfirst}}</span></h5>
+            {{moderation.project}}<br/>
+            {{moderation.requestOn}}<br/>
+            {{moderation.respondOn}}<br/>
+            {{moderation.request}}<br/>
+            {{moderation.response}}<br/>
+            {{moderation.referURL}}<br/>
+        </div>
+    </div>
+    <div class="w3-col w3-quarter w3-padding-small">
+    sdf
+    </div>
+    <div class="w3-col w3-quarter w3-padding-small">
+        <div class="pallete accent w3-center">
+        <br/>
+        
+        {% if ismoderator %}
+        <h3>Take Action</h3>
+        <button class="big-button positive modaction" id="approve" data-icon="done">Approve</button>
+        <button class="big-button negative modaction" id="reject" data-icon="done">Reject</button><br/>
+        <button class="big-button primary modaction" id="pass" data-icon="done">Pass on</button>
+        {% else %}
+        <h3>Action taken</h3>
+        <button class="big-button positive" data-icon="done">Approve</button>
+        <button class="big-button negative" data-icon="done">Reject</button><br/>
+        <button class="big-button primary" data-icon="done">Pass on</button>
+        {% endif %}
+        <br/><br/>
+        </div>
+    </div>
+</div>
+<br/>
 {% endblock%}
+
+{% block scripts %}
+<script>
+getElements("modaction").forEach((action)=>{
+    action.addEventListener('click',async()=>{
+        message('Updating status...')
+        const data = await postRequest(`${ROOT}/action/{{moderation.id}}/${action.id}`)
+        if(data.code === code.OK){
+
+        }
+    })
+})
+</script>
+{% endblock %}

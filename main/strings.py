@@ -23,7 +23,7 @@ class URL():
     INDEX = ''
     SERVICE_WORKER = 'service-worker.js'
     OFFLINE = 'offline'
-    ACCOUNTS = "accounts/"
+    ACCOUNTS = "auth/"
     PROJECTS = f'{PROJECTS}/'
     COMPETE = f'{COMPETE}/'
     PEOPLE = f'{PEOPLE}/'
@@ -33,6 +33,7 @@ class URL():
     DOCTYPE = 'docs/<str:type>'
     LANDINGS = 'landing/'
     LANDING = 'landing'
+    APPLANDING = '<str:subapp>/landing'
 
     class Compete():
         COMPID = '<str:compID>'
@@ -44,6 +45,8 @@ class URL():
         INVITE = 'invite/<str:subID>'
         INVITATION = 'invitation/<str:subID>/<str:userID>'
         INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
+        SAVE = 'save/<str:compID>/<str:subID>'
+        SUBMIT = 'submit/<str:compID>/<str:subID>'
 
     class Moderation():
         REJECT = 'reject',

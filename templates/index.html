@@ -220,23 +220,23 @@
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
+        <script src="{% static 'scripts/index.js' %}"></script>
+        <script src="{% static 'scripts/theme.js' %}"></script>
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";
+            const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
+            const SERVICE_WORKER = "{{SERVICE_WORKER}}";
             const dialog = alertify;
-            alertify.set('notifier','position','top-left')
             if("{{request.GET.e}}") {
-                alertify.error("{{request.GET.e}}");
+                error("{{request.GET.e}}");
             } else if("{{request.GET.a}}") {
-                alertify.message("{{request.GET.a}}");
+                message("{{request.GET.a}}");
             }
             window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
-            
         </script>
-        <script src="{% static 'scripts/index.js' %}"></script>
-        <script src="{% static 'scripts/theme.js' %}"></script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
     </body>

@@ -1,17 +1,59 @@
 <div class="w3-row w3-padding">
-    <div class="w3-col w3-half">
+    <div class="w3-col w3-half w3-padding">
+    <div class="pallete accent">
+    <center>
+        <i class="material-icons" title="Private to you">lock</i>
+        <h6>Pending</h6>
+    </center>
     {% for mod in unresolved %}
-    {{mod.getLink}}
+    <div class="pallete-slab">
+    {% if mod.type == SUBAPPS.projects %}
+    <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+    <h6>{{mod.project.name}}</h6>
+    <span>{{mod.project.description}}</span>
+    {% endif %}
+    <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
+    </div>
     {% empty %}
-    <center>All resolved</center>
+    <br/>
+    <center>
+    <i class="w3-jumbo material-icons">done</i>
+    <h4>All resolved</h4>
+    </center>
+    <br/>
     {% endfor %}
     </div>
+    </div>
 
-    <div class="w3-col w3-half">
+    <div class="w3-col w3-half w3-padding">
+    <div class="pallete active">
+    <center>
+        <i class="material-icons" title="Private to you">lock</i>
+        <h6>History</h6>
+    </center>
     {% for mod in resolved %}
-    {{mod}} res
+    <div class="pallete-slab">
+        {% if mod.type == SUBAPPS.projects %}
+        <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+        <h6>{{mod.project.name}}</h6>
+        <span>{{mod.project.description}}</span>
+        {% elif mod.type == SUBAPPS.people %}
+        <h6>{{mod.profile.getName}}</h6>
+        <span>{{mod.profile.getBio}}</span>
+        {% elif mod.type == SUBAPPS.compete %}
+        <h6>{{mod.competition.title}}</h6>
+        <span>{{mod.competition.tagline}}</span>
+        {% endif %}
+        <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+    </div>
     {% empty %}
-    <center>Wait for it.</center>
+    <br/>
+    <center>
+    <i class="w3-jumbo material-icons">hourglass_top</i>
+    <h4>Wait for it.</h4>
+    </center>
+    <br/>
     {% endfor %}
+    </div>
     </div>
 </div>

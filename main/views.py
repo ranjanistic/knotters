@@ -68,14 +68,11 @@ def docs(request, type):
 
 @require_GET
 def landing(request):
-    parts = request.build_absolute_uri().split('/')
-    try:
-        subapp = parts[len(parts)-2]
-        if not [PEOPLE, PROJECTS, COMPETE].__contains__(subapp):
-            subapp = ''
-        return renderView(request, "landing", fromApp=subapp)
-    except:
-        raise Http404()
+    return renderView(request, "landing")
+
+@require_GET
+def applanding(request,subapp):
+    return renderView(request, "landing", fromApp=subapp)
 
 
 class ServiceWorker(TemplateView):
@@ -144,8 +141,8 @@ class ServiceWorker(TemplateView):
                 f"/{url.REDIRECTOR}*",
                 f"/{url.ACCOUNTS}*",
                 f"/{url.LANDING}",
+                f"/{url.APPLANDING}",
                 f"/{url.MODERATION}*",
-                f"/*/{url.LANDING}",
                 f"/{url.COMPETE}*",
                 replaceUrlParamsWithStr(
                     f"/{url.COMPETE}{url.Compete.INVITATION}"),

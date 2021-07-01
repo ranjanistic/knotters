@@ -1,6 +1,6 @@
 from .methods import renderData
 from .env import PUBNAME, MAILUSER, SITE, VERSION
-from .strings import DIVISIONS
+from .strings import DIVISIONS, url
 
 def Global(request):
     data = {}
@@ -11,6 +11,7 @@ def Global(request):
     data['VERSION'] = VERSION
     data['SUBAPPS'] = {}
     data['SUBAPPSLIST'] = []
+    data['SERVICE_WORKER'] = f"/{url.SERVICE_WORKER}"
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
         data['SUBAPPSLIST'].append(div)

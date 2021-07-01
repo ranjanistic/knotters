@@ -21,6 +21,10 @@
 .ajs-content{
     color: var(--primary-text);
 }
+
+.ajs-content > h4{
+    color: var(--primary-text) !important;
+}
 .ajs-message {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;

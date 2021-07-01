@@ -11,11 +11,11 @@ from .apps import APPNAME
 class Moderation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, blank=True)
-    profile = models.ForeignKey(Profile, blank=True,
+        Project, on_delete=models.CASCADE, blank=True,null=True)
+    profile = models.ForeignKey(Profile, blank=True,null=True,
                                 on_delete=models.CASCADE, related_name="moderation_profile")
     competition = models.ForeignKey(
-        Competition, blank=True, on_delete=models.CASCADE)
+        Competition, blank=True,null=True, on_delete=models.CASCADE)
     type = models.CharField(choices=[(PROJECTS, PROJECTS.capitalize()), (PEOPLE, PEOPLE.capitalize(
     )), (COMPETE, COMPETE.capitalize())], max_length=maxLengthInList(DIVISIONS))
     moderator = models.ForeignKey(
@@ -26,7 +26,7 @@ class Moderation(models.Model):
                               code.REJECTED, code.REJECTED.capitalize()]), max_length=50, default=code.MODERATION)
     retries = models.IntegerField(default=3)
     requestOn = models.DateTimeField(auto_now=False, default=timezone.now)
-    respondOn = models.DateTimeField(auto_now=False)
+    respondOn = models.DateTimeField(auto_now=False, null=True, blank=True)
     referURL = models.URLField(blank=True,null=True)
     resolved = models.BooleanField(default=False)
 
@@ -57,6 +57,13 @@ class Moderation(models.Model):
         self.save()
 
     def getLink(self, alert='', error=''):
+        if self.status != code.MODERATION:
+            if self.type == PROJECTS:
+                return self.project.getLink(alert=alert,error=error)
+            if self.type == PEOPLE:
+                return self.profile.getLink(alert=alert,error=error)
+            if self.type == COMPETE:
+                return self.competition.getLink(alert=alert,error=error)
         if error:
             error = f"?e={error}"
         elif alert:
