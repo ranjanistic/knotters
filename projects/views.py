@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
+from moderation.models import Moderation
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
@@ -21,16 +22,20 @@ def allProjects(request):
 @require_GET
 def profile(request, reponame):
     try:
+        print("here2")
         project = Project.objects.get(reponame=reponame)
         if project.status == code.LIVE:
             return renderer(request, 'profile', {"project": project})
-        if request.user.is_authenticated and project.creator == request.user.profile:
-            if project.status == code.REJECTED:
-                return redirect(f'/{MODERATION}/{APPNAME}/{project.id}')
-            if project.status == code.MODERATION:
-                return renderer(request, 'profile', {"project": project})
+        else:
+            mod = Moderation.objects.get(project=project)
+            if request.user.is_authenticated and (project.creator == request.user.profile or request.user.profile == mod.moderator):
+                if project.status == code.REJECTED:
+                    return redirect(mod.getLink())
+                if project.status == code.MODERATION:
+                    return renderer(request, 'profile', {"project": project})
         raise Exception()
     except:
+        print("here")
         raise Http404()
 
 

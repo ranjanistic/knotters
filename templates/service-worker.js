@@ -5,14 +5,14 @@ const version = "{{VERSION}}",
     ignorelist = {{ignorelist|safe}},
     recacheList = {{recacheList|safe}},
     noOfflineList = {{noOfflineList|safe}},
-    paramRegex = "[a-zA-Z0-9.\\-_?=&]";
+    paramRegex = "[a-zA-Z0-9.\\-\_\?\=\&\%\#]";
 
 const staticCacheName = `static-cache-${version}`,
     dynamicCacheName = `dynamic-cache-${version}`;
 
 const testAsteriskPathRegex = (asteriskPath, testPath) => {
     const localParamRegex = String(asteriskPath).endsWith("*")
-        ? "[a-zA-Z0-9./\\-_?=&]"
+        ? "[a-zA-Z0-9./\\-_\?\=\&\%\#]"
         : paramRegex;
     return RegExp(
         asteriskPath
@@ -40,7 +40,6 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", async (event) => {
-    if (!(event.request.url.indexOf("http") === 0)) return;
     const path = event.request.url.replace(site, "");
     event.respondWith(
         caches

@@ -14,27 +14,24 @@ const newUpdateDialog = (newServiceWorker) => {
         .confirm(
             `Update available`,
             `
-            <img src="/static/graphics/self/icon.svg" width="80" />
+            <img src="/static/graphics/self/icon.svg" width="50" />
             <h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>
-            <br/>
             <h6 class="positive-text">Updates are important. It will hardly take a few seconds.</h6>`,
             () => {
                 subLoader(true);
                 loader(true);
                 message("Updating...");
                 localStorage.setItem(Key.appUpdated, 1);
-                newServiceWorker.postMessage({ action: "skipWaiting" });
+                try {
+                    newServiceWorker.postMessage({ action: "skipWaiting" });
+                } catch {
+                    window.location.reload();
+                }
             },
             () => {
                 message("We'll remind you later.");
             }
-        )
-        .set({
-            closable: false,
-            ok: "Update",
-            cancel: "Not now",
-            modal: true,
-        });
+        ).set('labels', {ok:`Yes, update now`, cancel:'Not now'}).set('closable', false).set('modal', true);
 };
 
 const serviceWorkerRegistration = () => {
@@ -525,5 +522,24 @@ const handleInputDropdowns = ({
         if (e.target !== inputField) {
             hide(input_dropdown_ul);
         }
+    });
+};
+
+const loadReporters = () => {
+    getElements("report-button").forEach((report) => {
+        report.type = 'button'
+        report.onclick = (_) => {
+            alertify.confirm(
+                'Report or Feedback',
+                `<h4>What's going on?</h4>`,
+                () => {
+                    subLoader(true);
+                    message("Reporting...");
+                    localStorage.setItem(Key.appUpdated, 1);
+                },()=>{
+
+                }
+            ).set('labels',{ok:'Submit', cancel:'Cancel'});
+        };
     });
 };

@@ -2,9 +2,8 @@ from people.models import Profile
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from .models import Category, Project, Tag, defaultImagePath
-from main.env import PUBNAME
-from main.bots import Github
-from github import Branch, Organization, NamedUser
+from main.bots import Github, GithubKnotters
+from github import Organization, NamedUser, Repository
 from main.methods import renderView
 from .apps import APPNAME
 from main.strings import code
@@ -96,15 +95,16 @@ def setupApprovedProject(project:Project, moderator:Profile) -> bool:
         if project.status != code.LIVE:
             return False
 
+        
         created = setupOrgGihtubRepository(
-            project.reponame, project.creator.profile, moderator, project.description)
+            project.reponame, project.creator, moderator, project.description)
         if not created:
             return False
 
-        created = setupProjectDiscordChannel(
-            project.reponame, project.creator.profile, moderator)
-        if not created:
-            return False
+        # created = setupProjectDiscordChannel(
+        #     project.reponame, project.creator.profile, moderator)
+        # if not created:
+        #     return False
 
         return True
     except Exception as e:
@@ -121,16 +121,15 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
     :reponame: The name of repository to be created
     """
     try:
-        if creator.githubID == None:
+        if not creator.githubID and not moderator.githubID:
             return False
 
         ghUser = Github.get_user(creator.githubID)
         
-        ghOrg = Github.get_organization(PUBNAME)
-        ghOrgRepo = ghOrgRepoExists(ghOrg,reponame)
+        ghOrgRepo = ghOrgRepoExists(GithubKnotters,reponame)
     
         if not ghOrgRepo:
-            ghOrgRepo = ghOrg.create_repo(
+            ghOrgRepo = GithubKnotters.create_repo(
                 name=reponame,
                 allow_rebase_merge=False,
                 auto_init=True,
@@ -151,7 +150,7 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
             user_push_restrictions=[moderator.githubID],
         )
         
-        invited = inviteMemberToGithubOrg(ghOrg, ghUser)
+        invited = inviteMemberToGithubOrg(GithubKnotters, ghUser)
         if not invited:
             return False
         
@@ -165,7 +164,7 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
         print(e)
         return False
 
-def ghOrgRepoExists(ghOrg:Organization,reponame:str) -> Branch or bool:
+def ghOrgRepoExists(ghOrg:Organization,reponame:str) -> Repository or bool:
     try:
         ghOrgRepo = ghOrg.get_repo(name=reponame)
         return ghOrgRepo

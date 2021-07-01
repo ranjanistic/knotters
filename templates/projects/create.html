@@ -223,10 +223,10 @@
 dialog.alert("Github ID",`<div class="w3-row w3-padding">
     <h4>Your Github identity must be linked with Knotters before creating a project.</h4>
     <br/>
-    <a href="/accounts/github/login/?process=connect&next=/redirector?n={{ROOT}}/create">
+    <a href="/auth/github/login/?process=connect&next=/redirector?n={{ROOT}}/create">
         <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
      
-        &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
+        &nbsp;+ <img src="{{ICON}}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
         </button>
     </a>
 </div>`,()=>{

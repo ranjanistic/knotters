@@ -1,12 +1,13 @@
 subLoader(true);
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadGlobalEventListeners()
+    loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
 });
 
-window.addEventListener("load",()=>{  
+window.addEventListener("load", () => {
     serviceWorkerRegistration();
+    loadReporters();
     subLoader(false);
-})
+});

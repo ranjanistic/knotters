@@ -51,3 +51,17 @@
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
 }
+
+.ajs-button{
+    text-transform: none !important;
+    font-family: var(--head-font) !important;
+    font-weight: normal !important;
+}
+.ajs-ok{
+    background-color: var(--positive) !important;
+    color: var(--positive-text) !important;
+}
+.ajs-cancel{
+    background-color: var(--negative) !important;
+    color: var(--negative-text) !important;
+}

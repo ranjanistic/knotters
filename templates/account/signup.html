@@ -24,21 +24,21 @@
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/><br/>
-				<a class="w3-row" href="/accounts/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="/auth/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
 					<button class="primary w3-padding">
 						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
 						Continue via Google
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="/accounts/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="/auth/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
 					<button class="secondary w3-padding">
 						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
 						Continue via Github
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="/accounts/discord/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="/auth/discord/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
 					<button class="tertiary w3-padding">
 						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
 						Continue via Discord
@@ -46,7 +46,7 @@
 				</a>
 				<br/>
 				<h3 class="text-accent">Already a member?</h3>
-				<a class="w3-row" href="/accounts/login?next={{request.GET.next}}">
+				<a class="w3-row" href="{% url 'account_login' %}?next={{request.GET.next}}">
 					<button class="primary">
 					<i class="material-icons">login</i>Existing Login
 					</button>
@@ -63,7 +63,6 @@
 						{{ field }}
 						<br/>
 						<br/>
-						
 					{% endfor %}
 					<br/>
 					<button class="positive" type="submit"><i class="material-icons">person_add</i>Create account</button>

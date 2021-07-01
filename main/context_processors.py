@@ -11,6 +11,7 @@ def Global(request):
     data['VERSION'] = VERSION
     data['SUBAPPS'] = {}
     data['SUBAPPSLIST'] = []
+    data['ICON'] = "/static/graphics/self/icon.svg"
     data['SERVICE_WORKER'] = f"/{url.SERVICE_WORKER}"
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div

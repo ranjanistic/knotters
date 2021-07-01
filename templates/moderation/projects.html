@@ -1,39 +1,87 @@
 {% extends 'moderation/index.html' %}
 
 {% block content %}
-<br/>
 <div class="w3-row w3-padding">
-    <div class="w3-col w3-half w3-padding-small">
-        <div class="pallete">
-        <span class="dead-text">Status: </span><strong>{{moderation.status|capfirst}}</strong><br/>
-        <h5>Category: <span class="positive-text">{{moderation.type|capfirst}}</span></h5>
-            {{moderation.project}}<br/>
-            {{moderation.requestOn}}<br/>
-            {{moderation.respondOn}}<br/>
-            {{moderation.request}}<br/>
-            {{moderation.response}}<br/>
-            {{moderation.referURL}}<br/>
-        </div>
-    </div>
-    <div class="w3-col w3-quarter w3-padding-small">
-    sdf
-    </div>
-    <div class="w3-col w3-quarter w3-padding-small">
-        <div class="pallete accent w3-center">
-        <br/>
-        
+    <center><h4 class="dead-text">
+    {% if moderation.resolved %}
+    This moderation has been resolved.
+    {% else %}
         {% if ismoderator %}
-        <h3>Take Action</h3>
-        <button class="big-button positive modaction" id="approve" data-icon="done">Approve</button>
-        <button class="big-button negative modaction" id="reject" data-icon="done">Reject</button><br/>
-        <button class="big-button primary modaction" id="pass" data-icon="done">Pass on</button>
+        Because you are our moderator and we trust you, here's a moderation for you.
         {% else %}
-        <h3>Action taken</h3>
-        <button class="big-button positive" data-icon="done">Approve</button>
-        <button class="big-button negative" data-icon="done">Reject</button><br/>
-        <button class="big-button primary" data-icon="done">Pass on</button>
+        The moderator is reviewing your project, and once it's done, we'll notify you.
+        {% endif %}
+    {% endif %}
+    </h4></center>
+    <br/>
+    <div class="w3-col w3-half w3-padding">
+        <img class="w3-right w3-circle" width="150" src="{{moderation.project.getDP}}">
+        <h5 class="dead-text">Status: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
+        <h5 class="dead-text">Category: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
+        <h2>{{moderation.project.name}}</h2>
+        <h4 class="dead-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4>
+        <a onclick="miniWindow('{{moderation.referURL}}')" title="Be careful with the URLs provided by requestors." class="positive-text"><strong>{{moderation.referURL}}</strong></a><br/>
+
+        Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
+        <form method="POST" action="{{ROOT}}/message/{{moderation.id}}">
+        {% csrf_token %}
+        <strong>Requestor message</strong>
+        {% if ismoderator %}<button class="w3-right report-button" data-icon="warning">Report</button><br/>{% endif %}
+
+        <textarea required name="requestdata" class="wide" rows="4" maxlength="6000" placeholder="This is visible to the moderator."
+        {% if ismoderator or moderation.resolved %}disabled{% endif %}
+        >{{moderation.request}}</textarea>
+        {% if not ismoderator and not moderation.resolved %}
+        <button type="submit" class="positive small w3-right" data-icon="send">Save</button>
         {% endif %}
         <br/><br/>
+        <strong>Moderator response</strong>
+        <textarea required name="responsedata" class="wide" rows="4" maxlength="8000"
+        {% if not ismoderator or moderation.resolved %}disabled placeholder="Nothing yet."{% endif %}
+        {% if ismoderator and not moderation.resolved %}placeholder="This is visible to the requestor."{% endif %}
+        >{{moderation.response}}</textarea>
+        {% if not ismoderator %}<button class="w3-right report-button"><i class="material-icons">warning</i>Report</button><br/>{% endif %}
+        {% if ismoderator and not moderation.resolved %}
+        <button type="submit" class="positive small w3-right" data-icon="send">Save</button>
+        {% endif %}
+        </form>
+        {% if moderation.respondOn %}
+            Last response on <strong>{{moderation.respondOn}}</strong><br/>
+        {% endif %}
+    </div>
+    
+    <div class="w3-col w3-half w3-padding">
+        <div class="w3-row pallete accent w3-center">
+        <br/>
+        {% if ismoderator and not moderation.resolved %}
+        <i class="w3-jumbo material-icons">warning</i>
+        <h3 class="text-accent">Take Action</h3>
+        <h6>Approving this project will create a repository under {{APPNAME}} organization on GitHub, and will grant the requestor a moderate level
+        of access to this project and related services, everywhere. Therefore, decide thoughtfully before proceeding.</h6>
+        <button class="big-button positive modaction" id="approve" data-icon="done">Approve</button>
+        <button class="big-button negative modaction" id="reject" data-icon="close">Reject</button>
+        {% else %}
+        <i class="w3-jumbo material-icons">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
+        <h3 class="text-accent">Action taken</h3>
+        <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}Pending{% endif %}</h4>
+            {% if not ismoderator and moderation.resolved and moderation.isRejected %}
+            <h2>{{moderation.retries}} retries left.</h2>
+                {% if moderation.canRetry %}
+                <form method="POST" action="{{ROOT}}/reapply/{{moderation.id}}">
+                {% csrf_token %}
+                <button class="secondary" type="submit" data-icon="refresh">Re-apply for moderation</button>
+                </form>
+                {% endif %}
+            <br/>
+            {% endif %}
+        {% endif %}
+        
+        </div>
+        <br/>
+        <div class="w3-row w3-padding">
+        <h5>Do respect and follow <a class="positive-text" onclick="miniWindow('/docs/communityguidelines')">community guidelines</a> in any kind of conversation.</h5>
+        <h5>You can go through the <a class="positive-text" onclick="miniWindow('/docs/moderationguidelines')">moderation guidelines</a> for any doubt or help regarding this.</h5>
+        <h5>For <a class="positive-text" onclick="miniWindow('/docs/privacypolicy')">privacy reasons</a>, we keep the identity of requestor and moderator anonymous to each other.</h5>
         </div>
     </div>
 </div>
@@ -43,12 +91,31 @@
 {% block scripts %}
 <script>
 getElements("modaction").forEach((action)=>{
-    action.addEventListener('click',async()=>{
-        message('Updating status...')
-        const data = await postRequest(`${ROOT}/action/{{moderation.id}}/${action.id}`)
-        if(data.code === code.OK){
+    action.addEventListener('click',()=>{
+        alertify.confirm(`<h5>Final confirmation</h5>`, `<strong class="text-tertiary w3-large">Are you sure that to <h4>${action.id}</h4> this project -
+            <h5>{{moderation.project.name}}</h5> (@{{moderation.project.reponame}}) <br/>- will be your final decision?
+        <br/><br/>
+        <h5>This action is irreversible.</h5></b>`,
+        async ()=>{
+            subLoader(true);
+            loader(true);
+            message('Resolving moderation, please wait.')
+            const data = await postRequest(`${ROOT}/action/{{moderation.id}}`, {
+                approve: action.id === 'approve'
+            })
+            if(data.code === code.OK){
+                success('Resolved!')
+                window.location.reload()
+            } else {
+                subLoader(false);
+                loader(false);
+                error(data.error)
+            }
+        },
+        ()=>{
 
         }
+        ).set('labels', {ok:`Yes, ${action.id} this project`, cancel:'No, wait!'}); 
     })
 })
 </script>

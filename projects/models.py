@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
+# from moderation.models import Moderation
 from main.strings import code, PEOPLE, project
 from main.methods import maxLengthInList
 from main.strings import MODERATION
@@ -67,8 +68,9 @@ class Project(models.Model):
             alert = f"?a={alert}"
         elif success:
             success = f"?s={success}"
-        if self.status == code.REJECTED:
-            return f"/{MODERATION}/{APPNAME}/{self.id}{error}{success}{alert}"
+        # if self.status == code.REJECTED:
+        #     mod = Moderation.objects.get(project=self,resolved=True,status=code.REJECTED)
+        #     return mod.getLink()
         return f"/{APPNAME}/profile/{self.reponame}{error}{success}{alert}"
 
     def getDP(self):

@@ -79,7 +79,7 @@
         {% if person.profile.githubID %}
           <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.githubID}}</button></a>
         {% elif user.is_authenticated and user == person %}
-        <a href="/accounts/github/login/?process=connect&next=/redirector?n={{user.getLink}}">
+        <a href="/auth/github/login/?process=connect&next=/redirector?n={{user.getLink}}">
         <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
           &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
         </button>

@@ -1,8 +1,10 @@
-import discord
-from .env import GITHUBBOTTOKEN, DISCORDBOTTOKEN
+# import discord
+from .env import GITHUBBOTTOKEN, DISCORDBOTTOKEN, PUBNAME
 from github import Github as GHub
 
 Github = GHub(GITHUBBOTTOKEN)
+
+GithubKnotters = Github.get_organization(PUBNAME)
 
 # Discord = discord.Client()
 

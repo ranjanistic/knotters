@@ -22,7 +22,7 @@ ENVIRONMENTS = [environment.DEVELOPMENT,
 class URL():
     INDEX = ''
     SERVICE_WORKER = 'service-worker.js'
-    OFFLINE = 'offline'
+    OFFLINE = 'off408'
     ACCOUNTS = "auth/"
     PROJECTS = f'{PROJECTS}/'
     COMPETE = f'{COMPETE}/'
@@ -49,9 +49,10 @@ class URL():
         SUBMIT = 'submit/<str:compID>/<str:subID>'
 
     class Moderation():
-        REJECT = 'reject',
-        APPROVE = 'approve',
-        DIVISIONID = '<str:division>/<str:id>'
+        MODID = '<str:id>'
+        MESSAGE = 'message/<str:modID>'
+        ACTION = 'action/<str:modID>'
+        REAPPLY = 'reapply/<str:modID>'
 
     class People():
         PROFILE = 'profile/<str:userID>'

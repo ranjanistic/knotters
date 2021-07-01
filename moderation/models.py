@@ -1,4 +1,5 @@
 from django.db import models
+from projects.methods import setupApprovedProject
 from uuid import uuid4
 from people.models import Profile
 from projects.models import Project
@@ -33,37 +34,30 @@ class Moderation(models.Model):
     def __str__(self):
         return self.project.name
 
-    def approve(self, response):
+    def approve(self) -> bool:
         self.status = code.APPROVED
-        self.response = response
         self.respondOn = timezone.now()
-        if(self.type == PROJECTS):
+        if self.type == PROJECTS:
             self.project.status = code.LIVE
             self.project.approvedOn = timezone.now
             self.project.save()
         self.resolved = True
         self.save()
+        return True
 
-    def reject(self, response):
+    def reject(self) -> bool:
         self.status = code.REJECTED
-        self.response = response
         self.respondOn = timezone.now()
         if self.retries > 0:
             self.retries = self.retries - 1
-        if(self.type == PROJECTS):
+        if self.type == PROJECTS:
             self.project.status = code.REJECTED
             self.project.save()
         self.resolved = True
         self.save()
+        return True
 
     def getLink(self, alert='', error=''):
-        if self.status != code.MODERATION:
-            if self.type == PROJECTS:
-                return self.project.getLink(alert=alert,error=error)
-            if self.type == PEOPLE:
-                return self.profile.getLink(alert=alert,error=error)
-            if self.type == COMPETE:
-                return self.competition.getLink(alert=alert,error=error)
         if error:
             error = f"?e={error}"
         elif alert:
@@ -78,6 +72,15 @@ class Moderation(models.Model):
             return self.profile.isReporter(profile)
         if self.type == COMPETE:
             return self.competition.isJudge(profile)
+
+    def isRejected(self)->bool:
+        return self.status == code.REJECTED
+
+    def isApproved(self)->bool:
+        return self.status == code.APPROVED
+
+    def canRetry(self) -> bool:
+        return self.retries > 0
 
 
 class LocalStorage(models.Model):

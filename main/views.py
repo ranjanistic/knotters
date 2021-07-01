@@ -87,6 +87,7 @@ class ServiceWorker(TemplateView):
             'assets': json.dumps([
                 f"/{url.OFFLINE}",
                 f"{STATIC_URL}manifest.json",
+                f"{STATIC_URL}html2canvas.min.js",
                 f"{STATIC_URL}alertify/themes/default.min.css",
                 f"{STATIC_URL}alertify/alertify.min.css",
                 f"{STATIC_URL}alertify/alertify.min.js",
@@ -144,10 +145,6 @@ class ServiceWorker(TemplateView):
                 f"/{url.APPLANDING}",
                 f"/{url.MODERATION}*",
                 f"/{url.COMPETE}*",
-                replaceUrlParamsWithStr(
-                    f"/{url.COMPETE}{url.Compete.INVITATION}"),
-                replaceUrlParamsWithStr(
-                    f"/{url.COMPETE}{url.Compete.DATA}"),
                 replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.CREATE}"),
@@ -162,9 +159,9 @@ class ServiceWorker(TemplateView):
                 replaceUrlParamsWithStr(
                     f"/{url.PEOPLE}{url.People.PROFILEEDIT}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PROJECTS}{url.Projects.PROFILEEDIT}"),
+                    f"/{url.PEOPLE}{url.People.ACCOUNTPREFERENCES}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PROJECTS}{url.People.ACCOUNTPREFERENCES}"),
+                    f"/{url.PROJECTS}{url.Projects.PROFILEEDIT}"),
             ]),
         })
         return context
