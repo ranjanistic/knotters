@@ -5,14 +5,14 @@ const version = "{{VERSION}}",
     ignorelist = {{ignorelist|safe}},
     recacheList = {{recacheList|safe}},
     noOfflineList = {{noOfflineList|safe}},
-    paramRegex = "[a-zA-Z0-9.\\-\_\?\=\&\%\#]";
+    paramRegex = "[a-zA-Z0-9.\\-_?=&%#]";
 
 const staticCacheName = `static-cache-${version}`,
     dynamicCacheName = `dynamic-cache-${version}`;
 
 const testAsteriskPathRegex = (asteriskPath, testPath) => {
     const localParamRegex = String(asteriskPath).endsWith("*")
-        ? "[a-zA-Z0-9./\\-_\?\=\&\%\#]"
+        ? "[a-zA-Z0-9./\\-_?=&%#]"
         : paramRegex;
     return RegExp(
         asteriskPath
@@ -27,12 +27,11 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
 
 self.addEventListener("activate", (event) => {
     event.waitUntil(
-        caches.keys().then((keys) => {
-            const prom = Promise.all(
-                keys.map((key) => caches.delete(key))
-            );
-            caches.open(staticCacheName).then((cache) => {
-                return cache.addAll(assets);
+        caches.keys().then(async(keys) => {
+            const prom = Promise.all(keys.map((key) => caches.delete(key))).then(()=>{
+                return caches.open(staticCacheName).then((cache) => {
+                    return cache.addAll(assets);
+                });
             });
             return prom;
         })
@@ -49,6 +48,9 @@ self.addEventListener("fetch", async (event) => {
                     return cachedResponse;
                 } else {
                     return fetch(event.request).then(async (FetchRes) => {
+                        if (FetchRes.status >= 300) {
+                            return FetchRes
+                        }
                         if (
                             recacheList.some((recachepath) =>
                                 recachepath.includes("*")
@@ -74,6 +76,7 @@ self.addEventListener("fetch", async (event) => {
                                       event.request.url,
                                       FetchRes.clone()
                                   );
+
                                   return FetchRes;
                               });
                     });

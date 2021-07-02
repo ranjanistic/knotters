@@ -11,7 +11,7 @@
         <div class="w3-row pallete positive">
             <h3>Submission</h3>
             {% if not submission.submitted and competition.isActive %}
-            <form class="w3-row" method="POST" action="{{ROOT}}/save/{{competition.id}}/{{submission.id}}">
+            <form class="w3-row" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
             <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
             <div><br/></div>
@@ -42,9 +42,10 @@
             {% for member in submission.getMembers %}
             <div class="w3-col w3-third w3-padding-small">
                 <div class="pallete accent w3-center">
-                    <img src="{{member.getDP}}" width="20" class="w3-circle" />
+                    <a target="_blank" href="{{member.getLink}}">
+                    <img src="{{member.getDP}}" width="100" />
                     <h6 class="text-accent">{{member.getName}}</h6>
-                    <a target="_blank" href="{{member.getLink}}"><button data-icon="visibility"></button></a>
+                    </a>
                     {% if not submission.lateSubmission and not submission.submitted %}
                     <button class="negative remove-person" data-name="{{member.getName}}" data-userID="{{member.user.id}}" data-icon="delete"></button>
                     {% endif %}
@@ -59,11 +60,12 @@
         <div class="w3-row">
             {% for invitee in submission.getInvitees %}
             <div class="w3-col w3-third w3-padding-small">
+                <a target="_blank" href="{{invitee.getLink}}">
                 <div class="pallete">
                     <h6>{{invitee.getName}}</h6>
-                    <a target="_blank" href="{{invitee.getLink}}"><button data-icon="visibility"></button></a>
                     <button class="negative remove-person" data-name="{{invitee.getName}}" data-userID="{{invitee.user.id}}" data-icon="delete"></button>
                 </div>
+                </a>
             </div>
             {% empty %}
             <center><h4>No pending invites</h4></center>
@@ -76,13 +78,14 @@
             <br/><br/>
             <center>
             <div class="w3-jumbo material-icons">hourglass_bottom</div>
-            <h1>Competition ended<br/>before you could participate.</h1>
+            <h1>Competition ended{% if request.user.is_authenticated %}<br/>before you could participate.{% else %}.{% endif%}
+            </h1>
             </center>
         {% else %}
             <br/>
             <div class="w3-row w3-center">
             <h4>Competition is a thrill way to learn.</h4>
-            <form action="{{ROOT}}/participate/{{competition.id}}" method="POST">
+            <form action="{{competition.participationLink}}" method="POST">
                 {% csrf_token %}
                 <a href="#mainframe"><button type="submit" class="display-button accent" id="participate">Participate</button></a>
             </form>

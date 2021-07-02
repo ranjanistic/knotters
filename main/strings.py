@@ -1,4 +1,3 @@
-import re
 from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
@@ -22,6 +21,7 @@ ENVIRONMENTS = [environment.DEVELOPMENT,
 class URL():
     INDEX = ''
     SERVICE_WORKER = 'service-worker.js'
+    ROBOTS_TXT = 'robots.txt'
     OFFLINE = 'off408'
     ACCOUNTS = "auth/"
     PROJECTS = f'{PROJECTS}/'
@@ -89,15 +89,33 @@ code = Codes()
 
 
 class Project():
-    PROJECTSTATES = [code.MODERATION, code.LIVE, code.REJECTED]
-    PROJECTSTATESCHOICE = (
+    PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
+    PROJECTSTATESCHOICES = (
         [code.MODERATION, code.MODERATION.capitalize()],
-        [code.LIVE, code.LIVE.capitalize()],
+        [code.APPROVED, code.APPROVED.capitalize()],
         [code.REJECTED, code.REJECTED.capitalize()]
     )
 
 
 project = Project()
+
+
+class Moderation():
+    MODSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
+    MODSTATESCHOICES = (
+        [code.MODERATION, code.MODERATION.capitalize()],
+        [code.APPROVED, code.APPROVED.capitalize()],
+        [code.REJECTED, code.REJECTED.capitalize()]
+    )
+
+    TYPES = DIVISIONS
+    
+    TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
+    )], [COMPETE, COMPETE.capitalize()])
+
+
+
+moderation = Moderation()
 
 
 class ProfileSetting():

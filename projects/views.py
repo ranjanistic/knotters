@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from moderation.models import Moderation
@@ -7,7 +8,7 @@ from django.shortcuts import redirect
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
 from main.strings import code, MODERATION
-from moderation.methods import requestModeration
+from moderation.methods import requestModerationForObject
 from .models import Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
@@ -22,20 +23,16 @@ def allProjects(request):
 @require_GET
 def profile(request, reponame):
     try:
-        print("here2")
         project = Project.objects.get(reponame=reponame)
-        if project.status == code.LIVE:
+        print(project)
+        if project.status == code.APPROVED:
             return renderer(request, 'profile', {"project": project})
         else:
-            mod = Moderation.objects.get(project=project)
-            if request.user.is_authenticated and (project.creator == request.user.profile or request.user.profile == mod.moderator):
-                if project.status == code.REJECTED:
-                    return redirect(mod.getLink())
-                if project.status == code.MODERATION:
-                    return renderer(request, 'profile', {"project": project})
+            mod = Moderation.objects.filter(project=project,type=APPNAME,status__in=[code.REJECTED,code.MODERATION]).order_by('-respondOn')[0]
+            if request.user.is_authenticated and (project.creator == request.user.profile or mod.moderator == request.user.profile):
+                return redirect(mod.getLink())
         raise Exception()
     except:
-        print("here")
         raise Http404()
 
 
@@ -128,7 +125,7 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        mod = requestModeration(projectobj, APPNAME, userRequest, referURL)
+        mod = requestModerationForObject(projectobj, APPNAME, userRequest, referURL)
         if not mod:
             projectobj.delete()
             return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
@@ -144,7 +141,7 @@ def submitProject(request):
 def projectInfo(request, projectID, info):
     try:
         if info == "contributors":
-            project = Project.objects.get(id=projectID, status=code.LIVE)
+            project = Project.objects.get(id=projectID, status=code.APPROVED)
             return HttpResponse(info)
         else:
             raise Exception()

@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic import TemplateView
-from .views import redirector, docIndex, docs, landing, offline, ServiceWorker, index, mailtemplate, applanding
+from .views import redirector, docIndex, docs, landing, offline, ServiceWorker, Robots, index, mailtemplate, applanding
 from .strings import PROJECTS, COMPETE, PEOPLE, MODERATION, url
 from . import env
 
@@ -12,10 +12,7 @@ urlpatterns = [
     path(url.INDEX, index),
     path(url.APPLANDING, applanding),
     path(url.LANDING, landing),
-    path('robots.txt',(TemplateView.as_view(
-        template_name="robots.txt",
-        content_type='text/plain',
-    )), name='robots.txt'),
+    path(url.ROBOTS_TXT,Robots.as_view(), name=url.ROBOTS_TXT),
     path(url.SERVICE_WORKER, ServiceWorker.as_view(), name=url.SERVICE_WORKER),
     path(url.OFFLINE, offline),
     path(url.ACCOUNTS, include('allauth.urls')),

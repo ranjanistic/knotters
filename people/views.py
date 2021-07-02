@@ -48,7 +48,8 @@ def profileTab(request, userID, section):
             return HttpResponse(data)
         else:
             raise Exception()
-    except:
+    except Exception as e:
+        print(e)
         raise Http404()
 
 

@@ -11,87 +11,123 @@ def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-# implemented round robin algorithm
-def getModerator(type: str, object: models.Model, ignoreModProfile: Profile = None) -> Profile:
+def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], onlyModProfiles: list = []) -> Profile:
     """
+    Implementes round robin algorithm to retreive an available moderator, along with other restrictions.
+
     :type: The type of sub application for which the entity is to be moderated
     :object: The model object of the entity to be moderated.
-    :ignoreMod: The profile object of moderator to be ignored, optionally.
+    :ignoreModProfiles: The profile object list of moderators to be ignored, optionally.
+    :onlyModProfiles: The profile object list of moderators to only be considered, optionally.
+
+    In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles:, ignoreModProfiles will be preferred.
     """
     try:
         current = LocalStorage.objects.get(key="moderator")
     except:
         current = LocalStorage.objects.create(key="moderator", value=0)
         current.save()
+
+    ignoreModProfileIDs = []
     if type == PROJECTS:
-        totalModProfiles = Profile.objects.filter(
-            ~Q(id=object.creator.id), is_moderator=True)
-    elif type == PEOPLE:
-        totalModProfiles = Profile.objects.filter(
-            ~Q(id=object.id), is_moderator=True)
-    else:
-        totalModProfiles = Profile.objects.filter(is_moderator=True)
-    if(totalModProfiles.count == 0):
+        ignoreModProfileIDs.append(object.creator.id)
+    if type == PEOPLE:
+        ignoreModProfileIDs.append(object.id)
+
+    for ignoreModProfile in ignoreModProfiles:
+        ignoreModProfileIDs.append(ignoreModProfile.id)
+
+    onlyModProfileIDs = []
+    if len(onlyModProfiles) > 0:
+        for onlyModProfile in onlyModProfiles:
+            if not ignoreModProfileIDs.__contains__(onlyModProfile.id):
+                onlyModProfileIDs.append(onlyModProfile.id)
+
+    query = Q(~Q(id__in=ignoreModProfileIDs), id__in=onlyModProfileIDs) if len(
+        onlyModProfileIDs) > 0 else ~Q(id__in=ignoreModProfileIDs)
+
+    availableModProfiles = []
+    try:
+        availableModProfiles = Profile.objects.filter(query,is_moderator=True)
+    except:
+        pass
+
+    totalAvailableModProfiles = len(availableModProfiles)
+    if totalAvailableModProfiles == 0:
         return False
-    if ignoreModProfile:
-        totalModProfiles = totalModProfiles.exclude(id=ignoreModProfile.id)
+
     temp = int(current.value)
-    if(temp >= totalModProfiles.count()):
+    if temp >= totalAvailableModProfiles:
         temp = 1
     else:
-        temp = temp+1
+        temp = temp + 1
     current.value = temp
     current.save()
-    return totalModProfiles[temp-1]
+
+    return availableModProfiles[temp-1]
 
 
-def requestModeration(object: models.Model, type: str, requestData: str = '', referURL: str = '') -> bool:
+def requestModerationForObject(
+    object: models.Model,
+    type: str,
+    requestData: str = '',
+    referURL: str = '',
+    reassignIfRejected: bool = False,
+    reassignIfApproved: bool = False
+) -> Moderation or bool:
     """
-    Submit a subapplication entity model object for moderation. If moderation already exists and retryable,
-    then assignes a new moderator to existing moderation of object.
+    Submit a subapplication entity model object for moderation.
 
     :object: The subapplication entity model object (Project|Profile|Competition)
     :type: The subapplication or entity type.
-    :requestData: Any relevent data regarding moderation
-    :referUrl: Any relevant url regarding moderation.
-
+    :requestData: Relevent string data regarding moderation.
+    :referUrl: Relevant url regarding moderation.
+    :reassignIfRejected: If True, and if a moderation already exists for the :object: with status code.REJECTED, then a new moderation instance is created for it. Default False.
+    :reassignIfApproved: If True, and if a moderation already exists for the :object: with status code.APPROVED, then a new moderation instance is created for it. Default False.
     """
-    mod = None
     try:
         if type == PROJECTS:
-            mod = Moderation.objects.get(project=object)
+            query = Q(type=type, project=object)
         elif type == PEOPLE:
-            mod = Moderation.objects.get(profile=object)
+            query = Q(type=type, profile=object)
         elif type == COMPETE:
-            mod = Moderation.objects.get(competiton=object)
+            query = Q(type=type, competition=object)
         else:
             return False
 
-        if mod.isRejected() and mod.canRetry():
-            mod.status = code.MODERATION
-            mod.moderator = getModerator(
-                type=type, object=object, ignoreModProfile=mod.moderator)
-            mod.response = ''
-            if mod.type == PROJECTS:
-                mod.project.status = code.MODERATION
-                mod.project.save()
+        mod = Moderation.objects.get(query)
+        
+        if (mod.isRejected() and reassignIfRejected) or (mod.isApproved() and reassignIfApproved):
+            newmoderator = getModeratorToAssignModeration(
+                type=type, object=object, ignoreModProfiles=[mod.moderator])
+            if not newmoderator:
+                return False
+            requestData = requestData if requestData else mod.request
+            referURL = referURL if referURL else mod.referURL
+            if type == PROJECTS:
+                newmod = Moderation.objects.create(type=type,project=object,moderator=newmoderator, request=requestData,referURL=referURL)
+            elif type == PEOPLE:
+                newmod = Moderation.objects.create(type=type,profile=object,moderator=newmoderator, request=requestData,referURL=referURL)
+            elif type == COMPETE:
+                newmod = Moderation.objects.create(type=type,competition=object,moderator=newmoderator, request=requestData,referURL=referURL)
+            else: return False
 
-            mod.save()
-            return True
-
-        return False
-    except:
-        moderator = getModerator(type, object)
-        if not moderator:
+            if newmod.type == PROJECTS:
+                newmod.project.status = code.MODERATION
+                newmod.project.save()
+            newmod.save()
+            return newmod
+    except Exception as e:
+        newmoderator = getModeratorToAssignModeration(type, object)
+        if not newmoderator:
             return False
         if type == PROJECTS:
-            mod = Moderation.objects.create(
-                project=object, type=type, moderator=moderator, request=requestData, referURL=referURL)
+            newmod = Moderation.objects.create(project=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == PEOPLE:
-            mod = Moderation.objects.create(
-                profile=object, type=type, moderator=moderator, request=requestData, referURL=referURL)
+            newmod = Moderation.objects.create(profile=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == COMPETE:
-            mod = Moderation.objects.create(
-                competiton=object, type=type, moderator=moderator, request=requestData, referURL=referURL)
-        mod.save()
-    return True
+            newmod = Moderation.objects.create(competiton=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+        else: return False
+        newmod.save()
+        return newmod
+    return False

@@ -5,7 +5,7 @@ from main.strings import compete
 from people.models import Profile
 from main.env import SITE
 from django.utils import timezone
-from .models import Competition, Relation, Result, Submission
+from .models import Competition, ParticipantRelation, Result, Submission
 from .apps import APPNAME
 
 
@@ -15,16 +15,24 @@ def renderer(request, file, data={}):
 
 def getIndexSectionHTML(section, request):
     try:
+        now = timezone.now()
         data = {}
         if section == 'active':
             try:
-                actives = Competition.objects.filter(endAt__gt=timezone.now())
+                actives = Competition.objects.filter(startAt__lte=now,endAt__gt=now)
             except:
                 actives = []
+            print(actives)
             data['actives'] = actives
+        elif section == 'upcoming':
+            try:
+                upcomings = Competition.objects.filter(startAt__gt=now)
+            except:
+                upcomings = []
+            data['upcomings'] = upcomings
         elif section == 'history':
             try:
-                history = Competition.objects.filter(endAt__lte=timezone.now())
+                history = Competition.objects.filter(endAt__lte=now)
             except:
                 history = []
             data['history'] = history
@@ -49,7 +57,7 @@ def getCompetitionSectionData(section, competition, request):
         try:
             submission = Submission.objects.get(
                 competition=competition, members=request.user.profile)
-            relation = Relation.objects.get(
+            relation = ParticipantRelation.objects.get(
                 submission=submission, profile=request.user.profile)
             data['submission'] = submission
             data['confirmed'] = relation.confirmed

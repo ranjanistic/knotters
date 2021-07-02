@@ -2,18 +2,18 @@ import uuid
 from people.models import Profile
 from django.db import models
 from django.utils import timezone
-from main.strings import PEOPLE, url
+from people.models import Topic
+from main.strings import url
 from main.settings import MEDIA_URL
-from .apps import APPNAME
 
 
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/banners/{instance.id}.{fileparts[len(fileparts)-1]}"
+    return f"{url.COMPETE}banners/{instance.id}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultBannerPath():
-    return f"{APPNAME}/default.png"
+    return f"{url.COMPETE}default.png"
 
 
 class Competition(models.Model):
@@ -31,7 +31,11 @@ class Competition(models.Model):
 
     resultDeclared = models.BooleanField(default=False)
 
-    judges = models.ManyToManyField(Profile, through='JudgePanel')
+    judges = models.ManyToManyField(Profile, through='JudgeRelation', default=[])
+
+    topics = models.ManyToManyField(Topic, through='TopicRelation', default=[])
+
+    eachTopicMaxPoint = models.IntegerField(default=10)
 
     def __str__(self) -> str:
         return self.title
@@ -51,15 +55,31 @@ class Competition(models.Model):
             success = f"?s={success}"
         return f"/{url.COMPETE}{self.id}{success}{error}"
 
+    def participationLink(self)->str:
+        return f"/{url.COMPETE}participate/{self.id}"
+        
     def isActive(self) -> bool:
         """
-        Whether the competition is active or not, depending on endAt time.
+        Whether the competition is active or not, depending on startAt & endAt.
         """
-        return self.endAt > timezone.now()
+        now = timezone.now()
+        return self.startAt <= now < self.endAt
+
+    def isUpcoming(self) -> bool:
+        """
+        Whether the competition is upcoming or not.
+        """
+        return self.startAt > timezone.now()
+
+    def isHistory(self) -> bool:
+        """
+        Whether the competition is history or not.
+        """
+        return self.endAt <= timezone.now()
 
     def secondsLeft(self) -> int:
         time = timezone.now()
-        if time > self.endAt:
+        if time >= self.endAt:
             return 0
         diff = self.endAt - time
         return diff.seconds
@@ -69,8 +89,16 @@ class Competition(models.Model):
         if profile in self.judges.all(): return True
         return False
 
+    def isParticipant(self,profile:Profile) -> bool:
+        try:
+            sub = Submission.objects.get(competition=self,members=profile)
+            return True
+        except:
+            return False
+    def getMaxScore(self) -> int:
+        return self.topics.count() * self.eachTopicMaxPoint
 
-class JudgePanel(models.Model):
+class JudgeRelation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     competition = models.ForeignKey(Competition, related_name='judging_competition', on_delete=models.CASCADE)
     judge = models.ForeignKey(Profile, on_delete=models.CASCADE)
@@ -80,12 +108,22 @@ class JudgePanel(models.Model):
     class Meta:
         unique_together = ("competition", "judge")
 
+class TopicRelation(models.Model):
+    class Meta:
+        unique_together = ("competition","topic")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='competition_topic')
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='topic_competition')
+
+    def __str__(self) -> str:
+        return self.competition.title
+
 
 class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     members = models.ManyToManyField(
-        Profile, through='Relation', related_name='submission_members')
+        Profile, through='ParticipantRelation', related_name='submission_members')
     repo = models.URLField(max_length=1000, blank=True, null=True)
     submitted = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -103,6 +141,8 @@ class Submission(models.Model):
         self.modifiedOn = timezone.now()
         return super(Submission, self).save(*args, **kwargs)
 
+    def saveLink(self)->str:
+        return f"/{url.COMPETE}save/{self.competition.id}/{self.id}"
     def totalMembers(self) -> int:
         """
         All members count regardless of relation confirmation.
@@ -121,24 +161,38 @@ class Submission(models.Model):
         List of members whomst relation to this submission is confirmed.
         """
         members = []
-        relations = Relation.objects.filter(submission=self)
+        relations = ParticipantRelation.objects.filter(submission=self)
         for member in self.members.all():
             relation = relations.get(profile=member)
             if relation.confirmed:
                 members.append(member)
         return members
 
+    def isMember(self,profile:Profile)->bool:
+        try:
+            ParticipantRelation.objects.get(submission=self,profile=profile,confirmed=True)
+            return True
+        except:
+            return False
+
     def getInvitees(self) -> list:
         """
         List of members whomst relation to this submission is not confirmed.
         """
         invitees = []
-        relations = Relation.objects.filter(submission=self)
+        relations = ParticipantRelation.objects.filter(submission=self)
         for member in self.members.all():
             relation = relations.get(profile=member)
             if not relation.confirmed:
                 invitees.append(member)
         return invitees
+
+    def isInvitee(self,profile:Profile)->bool:
+        try:
+            ParticipantRelation.objects.get(submission=self,profile=profile,confirmed=False)
+            return True
+        except:
+            return False
 
     def canInvite(self) -> bool:
         return self.totalMembers() < 5 and not self.submitted
@@ -149,6 +203,15 @@ class Submission(models.Model):
     def lateSubmission(self) -> bool:
         return not self.competition.isActive() and not self.submitted
 
+class ParticipantRelation(models.Model):
+    class Meta:
+        unique_together = (("profile", "submission"))
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='submission_profile')
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    confirmed = models.BooleanField(default=False)
+
 
 class Result(models.Model):
     class Meta:
@@ -158,6 +221,7 @@ class Result(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     submission = models.OneToOneField(Submission, on_delete=models.PROTECT)
+    points = models.IntegerField(default=0)
     rank = models.IntegerField()
 
     def rankSuptext(self) -> str:
@@ -177,12 +241,7 @@ class Result(models.Model):
             else:
                 return "th"
 
+    def __str__(self)->str:
+        return f"{self.competition} - {self.rank}{self.rankSuptext()}"
 
-class Relation(models.Model):
-    class Meta:
-        unique_together = (("profile", "submission"))
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name='submission_profile')
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
-    confirmed = models.BooleanField(default=False)
+    

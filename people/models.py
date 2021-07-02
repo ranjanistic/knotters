@@ -101,7 +101,7 @@ class Profile(models.Model):
     is_moderator = models.BooleanField(default=False)
     githubID = models.CharField(max_length=40, blank=True, null=True)
     bio = models.CharField(max_length=100, blank=True, null=True)
-    topics = models.ManyToManyField(Topic, through='Relation', default=[])
+    topics = models.ManyToManyField(Topic, through='TopicRelation', default=[])
     is_verified = models.BooleanField(default=False)
     suspended = models.BooleanField(default=False)
     reporters = models.ManyToManyField('Profile', through='Reporting')
@@ -132,7 +132,7 @@ class Profile(models.Model):
         return self.bio if self.bio else self.githubID if self.githubID else ''
 
     def getGhUrl(self) -> str:
-        return f"https://github.com/{self.githubID}"
+        return f"https://github.com/{self.githubID}" if self.githubID else ''
 
     def getLink(self, error='', success='', alert='') -> str:
         if error:
@@ -152,7 +152,7 @@ class Profile(models.Model):
 
 class Setting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='settings')
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='settings_profile')
     newsletter = models.BooleanField(default=True)
     recommendations = models.BooleanField(default=True)
     competitions = models.BooleanField(default=True)
@@ -162,16 +162,16 @@ class Setting(models.Model):
 
 class Reporting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile,related_name='target_profile', on_delete=models.CASCADE)
-    reporter = models.ForeignKey(Profile,related_name='reporter_profile', on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile,related_name='reported_profile', on_delete=models.CASCADE)
+    reporter = models.ForeignKey(Profile,related_name='profile_reporter', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('profile', 'reporter')
 
-class Relation(models.Model):
+class TopicRelation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='topic_profile')
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='profile_topic')
 
     class Meta:
         unique_together = ('profile', 'topic')

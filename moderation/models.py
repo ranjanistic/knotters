@@ -1,45 +1,55 @@
 from django.db import models
-from projects.methods import setupApprovedProject
 from uuid import uuid4
-from people.models import Profile
-from projects.models import Project
-from compete.models import Competition
-from main.strings import PROJECTS, PEOPLE, COMPETE, DIVISIONS, code
+from main.strings import PROJECTS, PEOPLE, COMPETE, DIVISIONS, code, moderation, url
 from main.methods import maxLengthInList
 from django.utils import timezone
 from .apps import APPNAME
 
+
 class Moderation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, blank=True,null=True)
-    profile = models.ForeignKey(Profile, blank=True,null=True,
-                                on_delete=models.CASCADE, related_name="moderation_profile")
+        f"{PROJECTS}.Project", on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_project")
+
+    profile = models.ForeignKey(f"{PEOPLE}.Profile", blank=True, null=True,
+        on_delete=models.CASCADE, related_name="moderation_profile")
+
     competition = models.ForeignKey(
-        Competition, blank=True,null=True, on_delete=models.CASCADE)
-    type = models.CharField(choices=[(PROJECTS, PROJECTS.capitalize()), (PEOPLE, PEOPLE.capitalize(
-    )), (COMPETE, COMPETE.capitalize())], max_length=maxLengthInList(DIVISIONS))
+        f"{COMPETE}.Competition", blank=True, null=True, on_delete=models.CASCADE, related_name="moderation_compete")
+
+    type = models.CharField(choices=moderation.TYPECHOICES, max_length=maxLengthInList(moderation.TYPES))
+
     moderator = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name="moderator")
+        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="moderator_profile")
+
     request = models.CharField(max_length=100000)
-    response = models.CharField(max_length=100000, blank=True)
-    status = models.CharField(choices=([code.MODERATION, code.MODERATION.capitalize()], [code.APPROVED, code.APPROVED.capitalize()], [
-                              code.REJECTED, code.REJECTED.capitalize()]), max_length=50, default=code.MODERATION)
-    retries = models.IntegerField(default=3)
+    referURL = models.URLField(blank=True, null=True)
+    response = models.CharField(max_length=100000, blank=True, null=True, default='')
+
+    status = models.CharField(choices=moderation.MODSTATESCHOICES, max_length=maxLengthInList(
+        moderation.MODSTATES), default=code.MODERATION)
+
     requestOn = models.DateTimeField(auto_now=False, default=timezone.now)
     respondOn = models.DateTimeField(auto_now=False, null=True, blank=True)
-    referURL = models.URLField(blank=True,null=True)
     resolved = models.BooleanField(default=False)
 
+
     def __str__(self):
-        return self.project.name
+        if self.type == PROJECTS:
+            return self.project.name
+        if self.type == PEOPLE:
+            return self.profile.getName()
+        if self.type == COMPETE:
+            return self.competition.title
+        return self.id
 
     def approve(self) -> bool:
+        now = timezone.now()
         self.status = code.APPROVED
-        self.respondOn = timezone.now()
+        self.respondOn = now
         if self.type == PROJECTS:
-            self.project.status = code.LIVE
-            self.project.approvedOn = timezone.now
+            self.project.status = code.APPROVED
+            self.project.approvedOn = now
             self.project.save()
         self.resolved = True
         self.save()
@@ -48,8 +58,6 @@ class Moderation(models.Model):
     def reject(self) -> bool:
         self.status = code.REJECTED
         self.respondOn = timezone.now()
-        if self.retries > 0:
-            self.retries = self.retries - 1
         if self.type == PROJECTS:
             self.project.status = code.REJECTED
             self.project.save()
@@ -62,10 +70,12 @@ class Moderation(models.Model):
             error = f"?e={error}"
         elif alert:
             alert = f"?a={alert}"
+        return f"/{url.MODERATION}{self.id}{error}{alert}"
 
-        return f"/{APPNAME}/{self.id}{error}{alert}"
+    def reapplyLink(self):
+        return f"/{url.MODERATION}reapply/{self.id}"
 
-    def isRequestor(self, profile:Profile) -> bool:
+    def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
             return profile == self.project.creator
         if self.type == PEOPLE:
@@ -73,14 +83,15 @@ class Moderation(models.Model):
         if self.type == COMPETE:
             return self.competition.isJudge(profile)
 
-    def isRejected(self)->bool:
+    def isPending(self) -> bool:
+        return self.status == code.MODERATION
+
+    def isRejected(self) -> bool:
         return self.status == code.REJECTED
 
-    def isApproved(self)->bool:
+    def isApproved(self) -> bool:
         return self.status == code.APPROVED
 
-    def canRetry(self) -> bool:
-        return self.retries > 0
 
 
 class LocalStorage(models.Model):

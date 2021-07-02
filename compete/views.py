@@ -87,7 +87,7 @@ def createSubmission(request, compID):
             raise Exception()
         try:
             sub = Submission.objects.get(competition=competition, members=request.user.profile)
-            relation = Relation.objects.get(submission=sub, profile=request.user.profile)
+            relation = ParticipantRelation.objects.get(submission=sub, profile=request.user.profile)
             if relation.confirmed:
                 raise Exception()
             else:
@@ -97,7 +97,7 @@ def createSubmission(request, compID):
         submission = Submission.objects.create(
             competition=competition)
         submission.members.add(request.user.profile)
-        relation = Relation.objects.get(
+        relation = ParticipantRelation.objects.get(
             profile=request.user.profile, submission=submission)
         relation.confirmed = True
         relation.save()
@@ -183,7 +183,7 @@ def invitation(request, subID, userID):
         if submission.totalMembers() >= 5:
             raise Exception()
         try:
-            relation = Relation.objects.get(
+            relation = ParticipantRelation.objects.get(
                 submission=submission, profile=user.profile)
             if relation.confirmed:
                 return redirect(submission.competition.getLink(error="You've already participated"))
@@ -208,7 +208,7 @@ def inviteAction(request, subID, userID, action):
             raise Exception()
         user = request.user
         submission = Submission.objects.get(id=subID, submitted=False)
-        relation = Relation.objects.get(
+        relation = ParticipantRelation.objects.get(
             submission=submission, profile=user.profile)
         if relation.confirmed:
             raise Exception()
@@ -259,7 +259,7 @@ def finalSubmit(request, compID, subID):
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
         try:
-            relations = Relation.objects.filter(submission=submission,confirmed=False)
+            relations = ParticipantRelation.objects.filter(submission=submission,confirmed=False)
             for relation in relations:
                 submission.members.remove(relation.profile)
         except:

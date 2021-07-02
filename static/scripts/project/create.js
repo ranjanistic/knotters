@@ -75,6 +75,7 @@ const nextPrev = (n) => {
                     currentStep = currentStep + n;
                     showStep(currentStep);
                 } else {
+                    if(!res.error) return error()
                     validationError[1].innerHTML = res.error;
                 }
             })

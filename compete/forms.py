@@ -1,4 +1,4 @@
-from .models import Competition, JudgePanel, Result, Submission
+from .models import Competition, JudgeRelation, Result, Submission
 from django.utils import timezone
 from django import forms
 
@@ -30,7 +30,7 @@ class CompetitionAdminForm(forms.ModelForm):
 
 class JudgePanelForm(forms.ModelForm):
     class Meta:
-        model = JudgePanel
+        model = JudgeRelation
         fields = "__all__"
 
     def clean(self):
@@ -43,9 +43,6 @@ class JudgePanelForm(forms.ModelForm):
 
         if comp.isJudge(judge):
             raise forms.ValidationError(f"This judge is already in panel for this competition.")
-
-        if not judge.is_moderator:
-            raise forms.ValidationError(f"Eligible judge as to be a moderator at least.")
 
         err = False
         try:
@@ -68,11 +65,15 @@ class ResultAdminForm(forms.ModelForm):
         cleaned_data = self.cleaned_data
         comp = cleaned_data.get('competition')
         sub = cleaned_data.get('submission')
+        points = cleaned_data.get('points')
         rank = cleaned_data.get('rank')
 
         if rank < 1:
             raise forms.ValidationError(u"Rank cannot be less than 1")
         
+        if comp.getMaxScore() < points or points < 0:
+            raise forms.ValidationError(f"Points for each result in this competition should be in range 0 to {comp.getMaxScore()}")
+
         unrelated = True
         try:
             Submission.objects.get(id=sub.id,competition=comp)

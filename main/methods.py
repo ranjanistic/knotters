@@ -58,7 +58,7 @@ def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     }
     response = requests.request(
         'POST', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
-    return response['success']
+    return True
 
 
 def getUserFromMailingServer(email: str, fullData: bool = False) -> dict:

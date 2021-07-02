@@ -5,7 +5,7 @@
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/compete/profile.css' %}" />
-{% endblock %} 
+{% endblock %}
 
 {% block nav_icon %}
 <button class="primary"><i class="material-icons">arrow_back</i></button>
@@ -21,9 +21,13 @@
   <div id="banner">
   <img src="{{compete.getBanner }}" alt="{{compete.title}}" width="100%"/>
   </div>
-  {% if not compete.isActive %}
+  {% if compete.isHistory %}
   <div class="w3-row w3-center secondary w3-padding">
-    <span class="text-secondary">This competition is no longer accepting{% if not compete.resultDeclared %} new{% endif %} submissions.</span>
+    <strong class="text-secondary">This competition is no longer accepting{% if not compete.resultDeclared %} new{% endif %} submissions.</strong>
+  </div>
+  {% elif compete.isUpcoming %}
+  <div class="w3-row w3-center accent w3-padding">
+    <strong>This competition will accept submissions from the given beginning date, till {{compete.endAt}}</strong>
   </div>
   {% endif %}
   <div class="w3-row w3-padding">
@@ -43,45 +47,63 @@
         {% if compete.isActive %}
         <div class="pallete active">
           <h6 class="text-active">Time remaining</h6>
-          <h1 class="w3-jumbo text-active" id="remainingTime">---</h1>
-          <h6 class="text-active">DD:HH:MM</h6>
+          <h1 class="w3-jumbo text-active" id="remainingTime"><div class="loader"></div></h1>
+          <h6 class="text-active">seconds to end</h6>
         </div>
-        {% else %}
+        {% elif compete.isHistory %}
         <div class="pallete secondary">
           <h6 class="text-secondary">Competition ended</h6>
           <h1 class="text-secondary">{{compete.endAt}}</h1>
           <h6 class="text-secondary">{% if compete.resultDeclared %}Archived{% else %}Results Awaited{% endif %}</h6>
         </div>
+        {% elif compete.isUpcoming %}
+        <div class="pallete accent">
+          <h6 class="">Begins at</h6>
+          <h1 class="">{{compete.startAt}}</h1>
+          <h6 class="">Upcoming</h6>
+        </div>
         {% endif %}
       </div>
     </div>
-    <br/>
+    <br/><br/>
     <div class="w3-row pallete" id="mainframe">
+      {% if compete.isUpcoming %}
+        <br/>
+        <center>
+
+        <i class="w3-jumbo">hourglass_top</i>
+        <h3>Full details will be shown<br/>once the competition begins.</h3>
+        </center>
+        <br/>
+      {% else %}
       <div class="w3-col w3-quarter">
         <div class="w3-bar-block w3-hide-small" id="sidebar">
-          <a class="w3-bar-item side-nav-tab" id="overview"><i class="material-icons">toc</i>Overview</a>
-          <a class="w3-bar-item side-nav-tab" id="task"><i class="material-icons">code</i>Task</a>
-          <a class="w3-bar-item side-nav-tab" id="guidelines"><i class="material-icons">rule</i>Guidelines</a>
-          <a class="w3-bar-item side-nav-tab" id="submission"><i class="material-icons">send</i>Submission</a>
+          <button class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
+          <button class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
+          <button class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button>
+          <button class="w3-bar-item side-nav-tab" id="submission" data-icon="send">Submission</button>
           {% if compete.resultDeclared %}
-          <a class="w3-bar-item side-nav-tab" id="result"><i class="material-icons">leaderboard</i>Results</a>
+          <button class="w3-bar-item side-nav-tab" id="result" data-icon="leaderboard">Results</button>
           {% endif %}
         </div>
         <div class="w3-center w3-hide-large w3-hide-medium">
-          <button class="side-nav-tab" id="overview"><i class="material-icons">toc</i></button>
-          <button class="side-nav-tab" id="task"><i class="material-icons">code</i></button>
-          <button class="side-nav-tab" id="guidelines"><i class="material-icons">rule</i></button>
-          <button class="side-nav-tab" id="submission"><i class="material-icons">send</i></button>
+          <button class="side-nav-tab" id="overview" data-icon="toc"></button>
+          <button class="side-nav-tab" id="task" data-icon="code"></button>
+          <button class="side-nav-tab" id="guidelines" data-icon="rule"></button>
+          <button class="side-nav-tab" id="submission" data-icon="send"></button>
           {% if compete.resultDeclared %}
-          <button class="side-nav-tab" id="result"><i class="material-icons">leaderboard</i></button>
+          <button class="side-nav-tab" id="result" data-icon="leaderboard"></button>
           {% endif %}
         </div>
       </div>
+
       <div class="w3-col w3-threequarter w3-padding">
         <br/>
         <div id="tabview"></div>
       </div>
+      {% endif %}
     </div>
+    <br/>
   </div>
 </div>
 

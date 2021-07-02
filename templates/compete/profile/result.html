@@ -1,6 +1,6 @@
 <div class="w3-row w3-padding">
 {% if results.count %}
-<div class="w3-row w3-padding">
+<div class="w3-row w3-padding w3-hide-small">
     <div class="w3-col w3-quarter">
     <h4>Rank</h4>
     </div>
@@ -31,7 +31,7 @@
     <a target="_blank" href="{{member.getLink}}">
     <button class="{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %}">
         <img src="{{member.getDP}}" class="w3-circle" width="22" />
-        {{ member.getName }}
+        <span class="w3-hide-small">{{ member.getName }}</span>
     </button>
     </a>
     {% endfor %}

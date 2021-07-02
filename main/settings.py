@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from . import env
-from .strings import DIVISIONS, PEOPLE
+from .strings import DIVISIONS, PEOPLE, url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -163,6 +163,7 @@ ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+LOGIN_URL = f'/{url.ACCOUNTS}login'
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

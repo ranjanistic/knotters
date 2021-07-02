@@ -65,9 +65,9 @@
         <h3 class="text-accent">Action taken</h3>
         <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}Pending{% endif %}</h4>
             {% if not ismoderator and moderation.resolved and moderation.isRejected %}
-            <h2>{{moderation.retries}} retries left.</h2>
-                {% if moderation.canRetry %}
-                <form method="POST" action="{{ROOT}}/reapply/{{moderation.id}}">
+            <h2>{{moderation.project.moderationRetriesLeft}} retries left.</h2>
+                {% if moderation.project.canRetryModeration %}
+                <form method="POST" action="{{moderation.reapplyLink}}">
                 {% csrf_token %}
                 <button class="secondary" type="submit" data-icon="refresh">Re-apply for moderation</button>
                 </form>

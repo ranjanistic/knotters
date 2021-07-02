@@ -75,6 +75,17 @@ def applanding(request,subapp):
     return renderView(request, "landing", fromApp=subapp)
 
 
+class Robots(TemplateView):
+    content_type = 'text/plain'
+    template_name = "robots.txt"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context = {
+            'admin': ADMINPATH
+        }
+        return context
+
 class ServiceWorker(TemplateView):
     content_type = 'application/javascript'
     template_name = "service-worker.js"
@@ -134,10 +145,11 @@ class ServiceWorker(TemplateView):
                     f"/{url.PEOPLE}{url.People.SETTINGTAB}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PEOPLE}{url.People.PROFILETAB}"),
-                f"/{ADMINPATH}*",
-                f"/{ADMINPATH}",
             ]),
             'ignorelist': json.dumps([
+                f"/{ADMINPATH}*",
+                f"/{ADMINPATH}",
+                f"/{url.ROBOTS_TXT}",
                 f"{MEDIA_URL}*",
                 f"/{url.REDIRECTOR}*",
                 f"/{url.ACCOUNTS}*",

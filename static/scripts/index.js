@@ -31,7 +31,10 @@ const newUpdateDialog = (newServiceWorker) => {
             () => {
                 message("We'll remind you later.");
             }
-        ).set('labels', {ok:`Yes, update now`, cancel:'Not now'}).set('closable', false).set('modal', true);
+        )
+        .set("labels", { ok: `Yes, update now`, cancel: "Not now" })
+        .set("closable", false)
+        .set("modal", true);
 };
 
 const serviceWorkerRegistration = () => {
@@ -115,12 +118,12 @@ const message = (msg = "") => {
     alertify.message(msg);
 };
 
-const error = (msg = "") => {
+const error = (msg = "An error occurred") => {
     alertify.set("notifier", "position", "bottom-right");
     alertify.error(msg);
 };
 
-const success = (msg = "") => {
+const success = (msg = "Success") => {
     alertify.set("notifier", "position", "top-right");
     alertify.success(msg);
 };
@@ -173,7 +176,9 @@ const loadGlobalEventListeners = () => {
             }
         }
     });
-    getElementsByTag("i").forEach((icon) => {});
+    getElementsByTag("i").forEach((icon) => {
+        icon.classList.add("material-icons");
+    });
 };
 
 const Icon = (name) => `<i class="material-icons">${name}</i>`;
@@ -265,10 +270,12 @@ const initializeTabsView = ({
             return response ? showTabContent(tab, response) : showTabError(t);
         };
     });
-    try {
-        tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
-    } catch (e) {
-        tabs[0].click();
+    if (tabs.length) {
+        try {
+            tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+        } catch (e) {
+            tabs[0].click();
+        }
     }
     return tabs;
 };
@@ -527,19 +534,20 @@ const handleInputDropdowns = ({
 
 const loadReporters = () => {
     getElements("report-button").forEach((report) => {
-        report.type = 'button'
+        report.type = "button";
         report.onclick = (_) => {
-            alertify.confirm(
-                'Report or Feedback',
-                `<h4>What's going on?</h4>`,
-                () => {
-                    subLoader(true);
-                    message("Reporting...");
-                    localStorage.setItem(Key.appUpdated, 1);
-                },()=>{
-
-                }
-            ).set('labels',{ok:'Submit', cancel:'Cancel'});
+            alertify
+                .confirm(
+                    "Report or Feedback",
+                    `<h4>What's going on?</h4>`,
+                    () => {
+                        subLoader(true);
+                        message("Reporting...");
+                        localStorage.setItem(Key.appUpdated, 1);
+                    },
+                    () => {}
+                )
+                .set("labels", { ok: "Submit", cancel: "Cancel" });
         };
     });
 };
