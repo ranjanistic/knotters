@@ -26,7 +26,13 @@ footer {
 }
 
 .bold {
-    font-weight: bolder;
+    font-weight: bolder !important;
+}
+.normal {
+    font-weight: normal !important;
+}
+.underline{
+    text-decoration: underline !important;
 }
 
 .positive > span > a,
@@ -160,6 +166,9 @@ nav {
     width: 100% !important;
 }
 
+strong{
+    word-break: break-all;
+}
 button {
     padding: 4px 12px;
     border-radius: 22px;
@@ -171,6 +180,8 @@ button {
     transition: var(--delay);
     border: 0;
     box-shadow: 2px 1px 12px 1px #0000001f;
+    overflow-wrap: anywhere;
+    word-break: break-all;
 }
 
 button > span.w3-hide-small {

@@ -2,7 +2,7 @@ let compdata = {};
 
 (async () => {
     const data = await postRequest(`${ROOT}/data/${compID}`);
-    if (data.code == "OK") {
+    if (data.code === code.OK) {
         compdata = { ...data };
         if (isActive) {
             let timeleft = data.timeleft;
@@ -16,9 +16,7 @@ let compdata = {};
                     clearInterval(intv);
                     subLoader();
                     loader();
-                    window.location.replace(
-                        `/redirector/?n=${window.location.pathname}`
-                    );
+                    window.location.replace(window.location.pathname);
                 }
                 timeleft -= 1;
             }, 1000);
@@ -75,7 +73,7 @@ const loadTabScript = (tab) => {
                                     `${ROOT}/invite/${compdata.subID}`,
                                     { userID }
                                 );
-                                if (data.code == "OK") {
+                                if (data.code === code.OK) {
                                     inviteDialog.close();
                                     alertify.success(
                                         `Invitation email sent successfully to ${userID}`
@@ -89,73 +87,82 @@ const loadTabScript = (tab) => {
                         };
                         getElement("finalsubmit").onclick = (_) => {
                             const submitDialog = alertify
-                                .alert(
-                                    `Final submission`,
+                                .confirm(
+                                    `<h4>Final submission</h4>`,
                                     `
                                 <div class="w3-row">
-                                    <h3>Are you sure you want to submit?</h3>
-                                    <h6>This action is irreversible, which means once you submit, you submit it on behalf of everyone in your submission team.<br/>
-                                    If you want to change your submission URL, then <strong>save it</strong> first.</h6>
-                                    <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/>
-                                    <button onclick="window.open('${
+                                    <h3>Are you sure you want to <strong>submit</strong>?</h3>
+                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                                    <h4>Everyone in your submission team will be notified.</h4>
+                                    <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
+                                    <button onclick="miniWindow('${
                                         getElement("submissionurl").value
-                                    }', 'Submission', 'height=650,width=450')" class="positive">${Icon(
+                                    }', 'Submission')" class="positive">${Icon(
                                         "open_in_new"
-                                    )}Verify Submission URL</button>
+                                    )}Verify submission</button>
                                     <br/><br/>
-                                    <button class="active" id="dialogfinalsubmit">${Icon(
-                                        "done"
-                                    )}Submit Now</button>
-                                </div>`
+                                </div>`,
+                                    async () => {
+                                        const data = await postRequest(
+                                            `${ROOT}/submit/${compID}/${compdata.subID}`
+                                        );
+                                        if (data.code === code.OK) {
+                                            alertify.success(data.message);
+                                            submitDialog.close();
+                                            tab.click();
+                                        } else {
+                                            alertify.error(data.error);
+                                        }
+                                    },
+                                    () => {
+                                        submitDialog.close();
+                                    }
                                 )
-                                .set({ label: "Cancel" });
-                            getElement(
-                                "dialogfinalsubmit"
-                            ).onclick = async () => {
-                                const data = await postRequest(
-                                    `${ROOT}/submit/${compID}/${compdata.subID}`
-                                );
-                                if (data.code == "OK") {
-                                    alertify.success(data.message);
-                                    tab.click();
-                                    submitDialog.close();
-                                } else {
-                                    alertify.error(data.error);
-                                }
-                            };
+                                .set("labels", {
+                                    ok: "Yes, submit now",
+                                    cancel: "No, wait!",
+                                });
                         };
                     } catch {}
                 }
             } else {
                 try {
                     getElement("finalsubmit").onclick = (_) => {
-                        const submitDialog = alertify
-                            .alert(
-                                `Final submission`,
+                        const lateSubmitDialog = alertify
+                            .confirm(
+                                `<h4 class="negative-text">Late submission</h4>`,
                                 `
-                        <div class="w3-row">
-                            <h3>Are you sure you want to submit?</h3>
-                            <h6>This action is irreversible, which means once you submit, you submit it on behalf of everyone in your submission team.<br/>
-                            <span class="negative-text">This late submission will affect its judgement.</span></h6>
-                            <br/>
-                            <button class="active" id="dialogfinalsubmit">${Icon(
-                                "done"
-                            )}Submit Now</button>
-                        </div>`
+                                <div class="w3-row">
+                                    <h3>Are you sure you want to submit?</h3>
+                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                                    <strong class="negative-text">NOTE: This late submission will affect its judgement.</strong>
+                                    <br/><br/>
+                                    <button onclick="miniWindow('${
+                                        getElement("submissionurl").value
+                                    }', 'Submission')" class="positive">${Icon(
+                                        "open_in_new"
+                                    )}Verify submission</button>
+                                </div>`,
+                                async () => {
+                                    const data = await postRequest(
+                                        `${ROOT}/submit/${compID}/${compdata.subID}`
+                                    );
+                                    if (data.code === code.OK) {
+                                        alertify.success(data.message);
+                                        lateSubmitDialog.close();
+                                        tab.click();
+                                    } else {
+                                        alertify.error(data.error);
+                                    }
+                                },
+                                () => {
+                                    lateSubmitDialog.close();
+                                }
                             )
-                            .set({ label: "Cancel" });
-                        getElement("dialogfinalsubmit").onclick = async () => {
-                            const data = await postRequest(
-                                `${ROOT}/submit/${compID}/${compdata.subID}`
-                            );
-                            if (data.code == "OK") {
-                                alertify.success(data.message);
-                                tab.click();
-                                submitDialog.close();
-                            } else {
-                                alertify.error(data.error);
-                            }
-                        };
+                            .set("labels", {
+                                ok: "Yes, submit now (Late)",
+                                cancel: "No, not yet (Later)",
+                            });
                     };
                 } catch {}
             }

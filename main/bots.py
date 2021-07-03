@@ -1,7 +1,10 @@
 # import discord
-from .env import GITHUBBOTTOKEN, PUBNAME
+from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
 from github import Github as GHub
-Github = GHub(GITHUBBOTTOKEN)
-GithubKnotters = Github.get_organization(PUBNAME)
-# Github = 1
-# GithubKnotters = 2
+
+if ISPRODUCTION:
+    Github = GHub(GITHUBBOTTOKEN)
+    GithubKnotters = Github.get_organization(PUBNAME)
+else:
+    Github = 1
+    GithubKnotters = 2

@@ -6,7 +6,7 @@ from .models import *
 @admin.register(Moderation)
 class moderationAdmin(admin.ModelAdmin):
     list_display = ["moderator","__str__","type", "resolved", "status", "requestOn","respondOn"]
-    list_filter = ["type","moderator","status","resolved"]
+    list_filter = ["type","status","resolved"]
     ordering = ["requestOn","respondOn"]
     form = ModerationAdminForm
     # def all_moderator(self,instance):

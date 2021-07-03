@@ -75,6 +75,8 @@ class Moderation(models.Model):
     def reapplyLink(self):
         return f"/{url.MODERATION}reapply/{self.id}"
 
+    def approveCompeteLink(self):
+        return f"/{url.MODERATION}compete/{self.id}"
     def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
             return profile == self.project.creator

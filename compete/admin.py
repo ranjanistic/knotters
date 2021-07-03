@@ -6,7 +6,7 @@ from .forms import CompetitionAdminForm, ResultAdminForm,JudgePanelForm
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
-    list_display = ["title","tagline","isActive","startAt","endAt", "banner"]
+    list_display = ["title","tagline","isHistory","startAt","endAt", "banner"]
     list_filter = ["resultDeclared", "eachTopicMaxPoint"]
     ordering = ["startAt"]
     form = CompetitionAdminForm
@@ -17,8 +17,8 @@ class CompetitionAdmin(admin.ModelAdmin):
 
 @admin.register(Submission)
 class SubmitAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "submitted", "late", "repo","createdOn","submitOn","totalActiveMembers"]
-    list_filter = ["competition","submitted", "late"]
+    list_display = ["__str__", "submitted", "late","valid", "repo","createdOn","submitOn","totalActiveMembers"]
+    list_filter = ["competition","submitted", "late", "valid"]
     ordering = ["submitOn"]
 
 @admin.register(Result)
@@ -33,7 +33,7 @@ class ResultAdmin(admin.ModelAdmin):
 @admin.register(JudgeRelation)
 class JudgePanelAdmin(admin.ModelAdmin):
     list_display = ["competition", "judge"]
-    list_filter = ["competition", "judge"]
+    list_filter = ["competition"]
     form = JudgePanelForm
     class Meta:
         ordering = ("")

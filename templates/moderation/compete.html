@@ -1,17 +1,332 @@
 {% extends 'moderation/index.html' %}
 
 {% block content %}
-{{moderation.id}}<br/>
-{{moderation.status}}<br/>
-{{moderation.resolved}}<br/>
-{{moderation.type}}<br/>
-{{moderation.retries}}<br/>
-{{moderation.competition}}<br/>
-{{moderation.requestOn}}<br/>
-{{moderation.respondOn}}<br/>
-{{moderation.moderator}}<br/>
-{{moderation.request}}<br/>
-{{moderation.response}}<br/>
-{{moderation.referURL}}<br/>
-{{ismoderator}}<br/>
+
+<div class="w3-row w3-padding" style="background:url('{{moderation.competition.getBanner}}'); background-repeat:no-repeat;background-size:cover">
+    <br/>
+    <div class="w3-row">
+        <div class="w3-col w3-half w3-padding-small">
+            <div class="w3-col w3-half w3-padding-small">
+                <div class="pallete secondary">
+                    <h5 class="text-secondary">{{moderation.competition.title}}</h5>
+                    <h6 class="text-secondary">{{moderation.competition.tagline}}askldfjl</h6>
+                    <div class="text-secondary"><strong>{{moderation.competition.shortdescription}}askldfjlskadjflkjaskldfjlskadjflkjaskldfjlskadjflkjaskldfjlskadjflkjaskldfjlskadjflkj</strong></div>
+                    <a target="_blank" href="{{moderation.competition.getLink}}#mainframe"><button class="accent small w3-right" data-icon="open_in_new">More details</button></a>
+                </div>
+            </div>
+            <div class="w3-col w3-half w3-padding-small w3-center">
+                <div class="pallete accent">
+                    <h1 class="w3-jumbo">{{moderation.competition.totalJudges}}</h1>
+                    <h3>Judges in panel</h3>
+                </div>
+            </div>
+        </div>
+        <div class="w3-col w3-half w3-padding-small w3-center">
+            <div class="w3-col w3-half w3-padding-small">
+                <div class="pallete active">
+                    <h1 class="w3-jumbo">{{moderation.competition.totalSubmissions}}</h1>
+                    <h3>Submissions received</h3>
+                </div>
+            </div>
+            <div class="w3-col w3-half w3-padding-small">
+                <div class="pallete negative">
+                    <h1 class="w3-jumbo text-negative">{{moderation.competition.totalValidSubmissions }}</h1>
+                    <h3 class="text-negative">Submissions valid</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row pallete-slab primary">
+    {% if moderation.competition.isHistory %}
+        {% if not moderation.resolved %}
+            {% if ismoderator %}
+                <br/>
+                <center><h4 class="dead-text">Judges are waiting for submissions to be approved by you.</h4></center>
+                <div class="w3-row w3-center">
+                    <button class="positive big-button" data-icon="upload" id="finalsend">Send for judgement</button>
+                    <button class="negative big-button"  data-icon="delete" id="discardall">Discard all changes</button>
+                </div>
+                <br/>
+                {% if moderation.competition.totalValidSubmissions > 0 %}
+                <div class="w3-row">
+                    <h6 class="w3-col w3-half">Submissions <span class="dead-text">(Ordered by earliest submissions)</span></h6>
+                    <div class="w3-col w3-half">
+                    <button class="small w3-right accent" id="selectall" data-icon="check_box" >Select all</button>
+                    <button class="small w3-right negative" id="rejectselected" data-icon="close">Reject selected</button>
+                    <button class="small w3-right positive" id="approveselected" data-icon="done">Approve selected</button>
+                    </div>
+                </div>
+                {% endif %}
+                {% for sub in moderation.competition.getValidSubmissions %}
+                
+                <div class="w3-row pallete-slab" id="subslab{{sub.id}}">
+                    <div class="w3-col w3-threequarter">
+                        <strong class="w3-padding-small">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
+                        <strong class="w3-padding-small {% if sub.submitted %}text-tertiary">Submitted{% else %}negative-text">Un-submitted{% endif %}</strong>
+                        {% if sub.submitted %}
+                        <strong class="w3-padding-small {% if sub.late %}negative-text">late{% else %}text-tertiary">on time{% endif %}</strong>
+                        at <strong class="w3-padding-small">{{sub.submitOn}}</strong>
+                        {% endif %}
+                        <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
+                    </div>
+                        <div class="w3-col w3-quarter w3-center w3-padding">
+                        <button class="rejectsubmission negative small" data-subID="{{sub.id}}" data-subItem="{{sub.getRepo}}" data-icon="cancel" id="reject{{sub.id}}" >Reject</button>
+                        <input class="selectsubmission w3-right" data-subID="{{sub.id}}" data-subItem="{{sub.getRepo}}" id="select{{sub.id}}" type="checkbox" />
+                    </div>
+                </div>
+                {% empty %}
+                <br/>
+                <center>
+                <i class="w3-jumbo">hourglass_bottom</i>
+                <h4>No submissions to approve.</h4>
+                </center>
+                {% endfor %}
+            {% else %}
+                <br/>
+                <center>
+                <i class="w3-jumbo w3-spin">hourglass_full</i>
+                <h1>Moderator on duty</h1>
+                <h4>Please wait while the moderator filters out valid submissions for you to judge.</h4><br/>
+                <h6 class="positive-text">We'll email you as soon as this is done for you.</h6>
+                </center>
+            {% endif %}
+        {% else %}
+        <br/>
+            <div class="w3-row w3-padding">
+            {% if moderation.competition.resultDeclared %}
+                <br/>
+                <center>
+                <i class="w3-jumbo positive-text">celebration</i>
+                <h1>Results Declared.</h1><br/>
+                <a href="{{moderation.competition.getLink}}"><button class="positive" data-icon="open_in_new">See results</button></a>
+                </center>
+            {% else %}
+                {% if moderation.competition.allSubmissionsMarked %}
+                    {% if ismoderator %}
+                        <center>
+                        <h4>All submissions have been marked & results are ready to be declared.</h4>
+                        <form method="POST" action="{{moderation.competition.declareResultsLink}}">
+                            {% csrf_token %}
+                            <button onclick="loader()" class="accent display-button" data-icon="celebration">Declare results now</button>
+                        </form>
+                        </center>
+                    {% else %}
+                        <center>
+                        <h4>All submissions have been marked & results are waiting to be declared by the moderator.</h4>
+                        <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button>
+                        </center>
+                    {% endif %}
+                {% else %}
+                    {% if ismoderator %}
+                        <br/>
+                        <center>
+                        <i class="w3-jumbo w3-spin">hourglass_full</i>
+                        <h1>Judges on duty</h1>
+                        <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
+                        <h6 class="positive-text">We'll email you once all valid submissions are marked for result declaration.</h6>
+                        </center>
+                    {% else %}
+                        <center><h4 class="dead-text">Moderator is waiting for submissions to be marked by you.</h4></center>
+                        <div class="w3-row w3-center">
+                            <button class="positive big-button" data-icon="upload" id="finalsend">Send for ranking</button>
+                            <button class="negative big-button"  data-icon="delete" id="discardall">Discard all changes</button>
+                        </div>
+                        <br/>
+                        <h6>Submissions</h6>
+                        {% for sub in moderation.competition.getValidSubmissions %}
+                        <div class="w3-row pallete-slab" >
+                            <div class="w3-col w3-padding l4">
+                            <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">members</span></strong>
+                            <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
+                            </div>
+                            
+                            <div class="w3-col l6">
+                            {% for topic in moderation.competition.getTopics %}
+                            <div class="w3-col w3-third w3-padding-small">
+                            <strong>{{topic.name}}</strong>
+                            <input class="primary wide w3-padding" name="{{topic.name}}" type="number" min="0" max="{{moderation.competition.eachTopicMaxPoint}}" placeholder="Points out of {{moderation.competition.eachTopicMaxPoint}}" />
+                            </div>
+                            {% endfor %}
+                            </div>
+                            <div class="w3-col l2 w3-padding">
+                            <button class="small positive" data-icon="done">Save</button>
+                            <button class="small negative" data-icon="close">Clear</button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <br/>
+                        <center>
+                        <i class="w3-jumbo">hourglass_bottom</i>
+                        <h4>No submissions to filter.</h4>
+                        </center>
+                        {% endfor %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            </div>
+                <br/>
+        {% endif %}
+    {% elif moderation.competition.isUpcoming %}
+        <br/>
+        <center>
+        <i class="w3-jumbo accent-text">hourglass_top</i>
+        <h3>Competition will begin at</h3>
+        <h1>{{moderation.competition.startAt}}</h1><br/>
+        <h4>The competion is <span class="accent-text">upcoming</span>.</h4>
+        <h6 class='dead-text'>You'll be able to {% if ismoderator %}moderate{% else %}judge{% endif %} the submissions after {{moderation.competition.endAt}}</h6>
+        </center>
+        {% else %}
+        <br/>
+        <center>
+        <i class="w3-jumbo active-text">pending</i>
+        <h1 class="w3-jumbo">{{moderation.competition.totalSubmissions}}</h1>
+        <h2>submissions received</h2><br/>
+        <h4>The competion is still <span class="active-text">live</span>.</h4>
+        <h6 class='dead-text'>You'll be able to {% if ismoderator %}moderate{% else %}judge{% endif %} the submissions after {{moderation.competition.endAt}}</h6>
+        </center>
+    {% endif %}
+    </div>
+<br/>
+</div>
 {% endblock%}
+
+{% block scripts %}
+<script>
+
+const ismoderator = "{{ismoderator}}" === 'True'
+if(!ismoderator){
+
+} else {
+    let allsubmissionchecks = getElements("selectsubmission");
+    let selectedAll = false;
+
+    let finalData = [];
+    getElement("selectall").onclick=_=>{
+        allsubmissionchecks.forEach((checkbox)=>{
+            checkbox.checked = !selectedAll
+            getElement("selectall").innerHTML = selectedAll?`${Icon('check_box')} Select All`:`${Icon('check_box_outline_blank')} Deselect All`;
+        });
+        selectedAll = !selectedAll
+    }
+
+    getElement('approveselected').onclick=_=>{
+        if(!allsubmissionchecks.some((checkbox)=>checkbox.checked)) return error('No submission selected')
+        let data = allsubmissionchecks.map((checkbox)=>({
+            subID: String(checkbox.getAttribute("data-subID")).trim(),
+            valid: checkbox.checked
+        }));
+        const bulkDialog = alertify.confirm(`Confirm bulk operation?`,
+            `<h4>Confirm to <span class="positive-text">approve ${data.filter((sub)=>sub.valid).length}</span> submssions and 
+            <span class="negative-text">reject ${data.filter((sub)=>!sub.valid).length}</span> submissions?</h4>
+            `,()=>{
+                message(`Filtering...`)
+                data.forEach((d)=>{
+                    finalData = finalData.filter((fd)=>fd.subID!=d.subID)
+                    finalData.push(d)
+                    if(!d.valid){
+                        allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${d.subID}`)
+                        hide(getElement(`subslab${d.subID}`))
+                    }
+                })
+                message(`Filtered`)
+            },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
+    }
+
+    getElement('rejectselected').onclick=_=>{
+        if(!allsubmissionchecks.some((checkbox)=>checkbox.checked)) return error('No submission selected')
+        let data = allsubmissionchecks.map((checkbox)=>({
+            subID: String(checkbox.getAttribute("data-subID")).trim(),
+            valid: !checkbox.checked
+        }));
+        const bulkDialog = alertify.confirm(`Confirm bulk operation?`,
+            `<h4>Confirm to <span class="negative-text">reject ${data.filter((sub)=>!sub.valid).length}</span> submssions and 
+            <span class="positive-text">approve ${data.filter((sub)=>sub.valid).length}</span> submissions?</h4>
+            `,()=>{
+                message(`Filtering...`)
+
+                data.forEach((d)=>{
+                    finalData = finalData.filter((fd)=>fd.subID!=d.subID)
+                    finalData.push(d)
+                    if(!d.valid){
+                        allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${d.subID}`)
+                        hide(getElement(`subslab${d.subID}`))
+                    }
+                })
+                message(`Filtered`)
+            },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
+        
+    }
+
+    getElements("rejectsubmission").forEach((reject)=>{
+        reject.onclick=_=>{
+            const rejectDialog = alertify.confirm(`Confirm rejection?`,
+            `<h4>Confirm to <span class="negative-text">reject</span> the following submission?</h4>
+                <button class="primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}${reject.getAttribute("data-subItem")}</button>
+            `,()=>{
+                message(`rejecting ${reject.getAttribute("data-subID")}...`)
+                finalData = finalData.filter((fd)=>fd.subID!=reject.getAttribute("data-subID"))
+                finalData.push({
+                    subID: reject.getAttribute("data-subID"),
+                    valid: false
+                });
+                allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${reject.getAttribute("data-subID")}`)
+                hide(getElement(`subslab${reject.getAttribute("data-subID")}`))
+            },()=>rejectDialog.close()).set('labels',{ok:'Yes, reject this one', cancel: 'No, wait!'})
+        }
+    })
+
+    getElement("finalsend").onclick=_=>{
+        if(!finalData.length){
+            if(allsubmissionchecks.every((checkbox)=>!checkbox.checked)){
+                finalData = allsubmissionchecks.map((checkbox)=>({
+                    subID: String(checkbox.getAttribute("data-subID")).trim(),
+                    valid: true
+                }))
+            } else {
+                finalData = allsubmissionchecks.map((checkbox)=>({
+                    subID: String(checkbox.getAttribute("data-subID")).trim(),
+                    valid: checkbox.checked
+                }))
+            }
+        }
+        alertify.confirm(`Send to judges?`,
+        `<h4>Are you sure you want to send 
+            <span class="positive-text">${finalData.filter((fd)=>fd.valid).length} submissions approved</span> by you
+            to judges for final evaluation?
+            This will also invalidate <span class="negative-text">${finalData.filter((fd)=>!fd.valid).length} submissions rejected</span>
+            by you. This action is <span class="negative-text">irreversible</span>.
+        </h4>`,
+        async ()=>{
+            message('Submitting...')
+            loader(true)
+            subLoader(true)
+            const data = await postRequest("{{moderation.approveCompeteLink}}",{
+                submissions: finalData   
+            });
+            if(data.code===code.OK){
+                success('Filtered submissions submitted for judgement')
+                window.location.reload()
+            } else {
+                loader(false)
+                subLoader(false)
+                error(data.error);
+            }
+        },
+        ()=>{}
+        ).set('labels',{ok:'Yes, do it', cancel:'No, wait!'})
+    }
+
+    getElement("discardall").onclick=_=>{
+        alertify.confirm(`Discard changes?`,
+        `<h4>Are you sure to discard all changes you made? All rejected submissions will be restored, and you'll have to start again.</h4>`,
+        ()=>{
+            subLoader()
+            window.location.reload()
+        },
+        ()=>{}
+        ).set('labels',{ok:'Yes, discard', cancel:'No, wait!'})
+    }
+}
+</script>
+{% endblock %}

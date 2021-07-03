@@ -1,6 +1,7 @@
 from .models import Competition, JudgeRelation, Result, Submission
 from django.utils import timezone
 from django import forms
+from main.strings import code
 
 class CompetitionAdminForm(forms.ModelForm):
     class Meta:
@@ -15,16 +16,22 @@ class CompetitionAdminForm(forms.ModelForm):
         resultDeclared = cleaned_data.get('resultDeclared')
         if startAt >= endAt:
             raise forms.ValidationError(u"endAt should be greater than startAt")
+
+        comp = None
         err = False
         try:
             comp = Competition.objects.get(banner=banner)
-            if resultDeclared and (endAt != comp.endAt or startAt != comp.startAt):
-                err = True
         except: pass
-        if err:
+        
+        if comp and comp.resultDeclared and (endAt != comp.endAt or startAt != comp.startAt):
             raise forms.ValidationError(u"endAt and startAt can\'t be changed as resultDeclared is True.")
+
         if resultDeclared and endAt > timezone.now():
             raise forms.ValidationError(u"resultDeclared cannot be true while endAt is still in future.")
+        
+        if comp and resultDeclared and not comp.moderated():
+            raise forms.ValidationError(u"resultDeclared cannot be true if competition is not yet moderated.")
+
         return cleaned_data
 
 
@@ -41,17 +48,14 @@ class JudgePanelForm(forms.ModelForm):
         if comp.resultDeclared:
             raise forms.ValidationError(f"Cannot assign judge as result of this competition already declared.")
 
-        if comp.isJudge(judge):
-            raise forms.ValidationError(f"This judge is already in panel for this competition.")
+        if comp.isParticipant(judge):
+            raise forms.ValidationError(f"The selected judge is a participant in this competition, thus cannot be assigned.")
 
-        err = False
-        try:
-            Submission.objects.get(competition=comp,members=judge)
-            err = True
-        except:
-            pass
-        if err:
-            raise forms.ValidationError(f"The selected user is one of the participant in this competition, thus ineligible for judgment panel.")
+        if comp.isJudge(judge):
+            raise forms.ValidationError(f"The selected judge is already in judge panel of this competition, thus cannot be assigned.")
+
+        if comp.isModerator(judge):
+            raise forms.ValidationError(f"The selected judge is the moderator of this competition, thus cannot be assigned.")
         
         return cleaned_data
 
@@ -68,23 +72,17 @@ class ResultAdminForm(forms.ModelForm):
         points = cleaned_data.get('points')
         rank = cleaned_data.get('rank')
 
+        if sub.competition != comp:
+            raise forms.ValidationError(f"This submission and competition do not relate.")
+        
         if rank < 1:
             raise forms.ValidationError(u"Rank cannot be less than 1")
         
         if comp.getMaxScore() < points or points < 0:
             raise forms.ValidationError(f"Points for each result in this competition should be in range 0 to {comp.getMaxScore()}")
 
-        unrelated = True
-        try:
-            Submission.objects.get(id=sub.id,competition=comp)
-            unrelated = False
-        except: pass
 
-        if unrelated:
-            raise forms.ValidationError(f"This submission and competition do not relate.")
-
-        subcount = Submission.objects.filter(competition=comp).count()
-
+        subcount = comp.totalValidSubmissions()
         if rank > subcount:
             raise forms.ValidationError(f"Rank cannot be greater than {subcount} for this competition.")
 

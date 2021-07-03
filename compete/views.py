@@ -35,8 +35,13 @@ def indexTab(request, tab):
 def competition(request, compID):
     try:
         compete = Competition.objects.get(id=compID)
-        return renderer(request, 'profile', {"compete": compete})
-    except:
+        data = {"compete": compete}
+        if request.user.is_authenticated:
+            data["isJudge"] = compete.isJudge(request.user.profile)
+            data["isMod"] = compete.isModerator(request.user.profile)
+        return renderer(request, 'profile', data)
+    except Exception as e:
+        print(e)
         raise Http404()
 
 
@@ -86,8 +91,10 @@ def createSubmission(request, compID):
         if not competition.isActive():
             raise Exception()
         try:
-            sub = Submission.objects.get(competition=competition, members=request.user.profile)
-            relation = ParticipantRelation.objects.get(submission=sub, profile=request.user.profile)
+            sub = Submission.objects.get(
+                competition=competition, members=request.user.profile)
+            relation = ParticipantRelation.objects.get(
+                submission=sub, profile=request.user.profile)
             if relation.confirmed:
                 raise Exception()
             else:
@@ -137,7 +144,7 @@ def removeMember(request, subID, userID):
 @login_required
 def invite(request, subID):
     """
-    To invite a member in submission, relation to be confirmed via mail link.
+    To invite a member in submission, relation to be confirmed via mail link. (Must not be judge or moderator for the competition)
     """
     try:
         userID = str(request.POST.get('userID', '')).strip().lower()
@@ -160,6 +167,8 @@ def invite(request, subID):
             return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
         except:
             submission = Submission.objects.get(id=subID)
+            if submission.competition.isJudge(person) or submission.competition.isModerator(person):
+                return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
             submission.members.add(person)
             sendParticipantInvitationMail(
                 person, request.user.profile, submission)
@@ -179,7 +188,8 @@ def invitation(request, subID, userID):
             raise Exception()
         user = request.user
         submission = Submission.objects.get(id=subID, submitted=False)
-        if not submission.competition.isActive(): raise Exception()
+        if not submission.competition.isActive():
+            raise Exception()
         if submission.totalMembers() >= 5:
             raise Exception()
         try:
@@ -259,7 +269,8 @@ def finalSubmit(request, compID, subID):
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
         try:
-            relations = ParticipantRelation.objects.filter(submission=submission,confirmed=False)
+            relations = ParticipantRelation.objects.filter(
+                submission=submission, confirmed=False)
             for relation in relations:
                 submission.members.remove(relation.profile)
         except:
@@ -274,7 +285,7 @@ def finalSubmit(request, compID, subID):
             message = "Submitted, but late."
         submission.submitOn = now
         submission.submitted = True
-        
+
         submission.save()
 
         sendSubmissionConfirmedMail(submission.getMembers(), submission)

@@ -19,20 +19,20 @@ def getIndexSectionHTML(section, request):
         data = {}
         if section == 'active':
             try:
-                actives = Competition.objects.filter(startAt__lte=now,endAt__gt=now)
+                actives = Competition.objects.filter(startAt__lte=now,endAt__gt=now).order_by('-endAt')
             except:
                 actives = []
             print(actives)
             data['actives'] = actives
         elif section == 'upcoming':
             try:
-                upcomings = Competition.objects.filter(startAt__gt=now)
+                upcomings = Competition.objects.filter(startAt__gt=now).order_by('-startAt')
             except:
                 upcomings = []
             data['upcomings'] = upcomings
         elif section == 'history':
             try:
-                history = Competition.objects.filter(endAt__lte=now)
+                history = Competition.objects.filter(endAt__lte=now).order_by('-endAt')
             except:
                 history = []
             data['history'] = history

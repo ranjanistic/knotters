@@ -17,7 +17,7 @@
             <div><br/></div>
             <button type="submit" class="primary" data-icon="save">Save</button>
             </form>
-            {% elif not submission.lateSubmission and submission.submitted %}
+            {% elif not submission.submittingLate and submission.submitted %}
                 <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">Your submission</button></a>
                 <h4 class="text-positive">Submitted on {{submission.submitOn}}
                 </h4>
@@ -26,8 +26,8 @@
             {% endif %}
         </div>
         {% if not submission.submitted and not competition.resultDeclared %}
-        <button class="big-button {% if submission.lateSubmission %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
-        {% if submission.lateSubmission %}
+        <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
+        {% if submission.submittingLate %}
             Late Submit
         {% else %}
             Final Submit
@@ -46,16 +46,18 @@
                     <img src="{{member.getDP}}" width="100" />
                     <h6 class="text-accent">{{member.getName}}</h6>
                     </a>
-                    {% if not submission.lateSubmission and not submission.submitted %}
+                    {% if not submission.submittingLate and not submission.submitted %}
                     <button class="negative remove-person" data-name="{{member.getName}}" data-userID="{{member.user.id}}" data-icon="delete"></button>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
-        {% if submission.canInvite and competition.isActive %}
+        {% if competition.isActive and not submission.submitted %}
         <br/>
+        {% if submission.canInvite %}
         <button class="w3-right active" data-icon="person_add" id="invitepeople">Invite</button>
+        {% endif %}
         <h5 class="w3-padding-small">Invitees</h5>
         <div class="w3-row">
             {% for invitee in submission.getInvitees %}
@@ -84,11 +86,18 @@
         {% else %}
             <br/>
             <div class="w3-row w3-center">
-            <h4>Competition is a thrill way to learn.</h4>
-            <form action="{{competition.participationLink}}" method="POST">
+            <i class="w3-jumbo">group_work</i>
+            
+            <h1>Competition is a thrill way to learn.</h1>
+            {% if request.user.is_authenticated%}
+            <form action="{{competition.participationLink}}" 
+                method="POST">
                 {% csrf_token %}
-                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate">Participate</button></a>
+                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="join">Participate Independently</button></a>
             </form>
+            {% else %}
+                <a href="{% url 'account_login' %}?next={{competition.getLink}}#mainframe"><button class="display-button positive" data-icon="login">Login to Participate</button></a>
+            {% endif %}
             </div>
         {% endif %}
     {% endif %}

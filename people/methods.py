@@ -176,7 +176,8 @@ def on_profile_delete(sender, instance, **kwargs):
     Profile cleanup.
     """
     try:
-        instance.picture.delete(save=False)
+        if instance.picture != defaultImagePath():
+            instance.picture.delete(save=False)
     except:
         pass
 

@@ -1,8 +1,10 @@
+from .apps import APPNAME
 import uuid
 from people.models import Profile
 from django.db import models
 from django.utils import timezone
 from people.models import Topic
+from moderation.models import Moderation
 from main.strings import url
 from main.settings import MEDIA_URL
 
@@ -31,7 +33,8 @@ class Competition(models.Model):
 
     resultDeclared = models.BooleanField(default=False)
 
-    judges = models.ManyToManyField(Profile, through='JudgeRelation', default=[])
+    judges = models.ManyToManyField(
+        Profile, through='JudgeRelation', default=[])
 
     topics = models.ManyToManyField(Topic, through='TopicRelation', default=[])
 
@@ -55,9 +58,9 @@ class Competition(models.Model):
             success = f"?s={success}"
         return f"/{url.COMPETE}{self.id}{success}{error}"
 
-    def participationLink(self)->str:
+    def participationLink(self) -> str:
         return f"/{url.COMPETE}participate/{self.id}"
-        
+
     def isActive(self) -> bool:
         """
         Whether the competition is active or not, depending on startAt & endAt.
@@ -84,36 +87,101 @@ class Competition(models.Model):
         diff = self.endAt - time
         return diff.seconds
 
-    def isJudge(self,profile:Profile) -> bool:
-        if not self.judges: return False
-        if profile in self.judges.all(): return True
-        return False
+    def getTopics(self) -> list:
+        return self.topics.all()
 
-    def isParticipant(self,profile:Profile) -> bool:
+    def totalTopics(self) -> list:
+        return len(self.topics.all())
+
+    def isModerator(self, profile: Profile) -> bool:
         try:
-            sub = Submission.objects.get(competition=self,members=profile)
+            Moderation.objects.filter(
+                type=APPNAME, competition=self, moderator=profile).order_by("-requestOn")[0]
             return True
         except:
             return False
+
+    def moderated(self) -> bool:
+        try:
+            Moderation.objects.filter(type=APPNAME, competition=self, resolved=True).order_by("-requestOn")[0]
+            return True
+        except: return False
+
+    def isJudge(self, profile: Profile) -> bool:
+        if not self.judges:
+            return False
+        if profile in self.judges.all():
+            return True
+        return False
+
+    def getJudges(self) -> list:
+        return [] if not self.judges else self.judges.all()
+
+    def totalJudges(self) -> int:
+        return len(self.getJudges())
+
+    def getJudgementLink(self) -> str:
+        try:
+            mod = Moderation.objects.filter(
+                type=APPNAME, competition=self).order_by("-requestOn")[0]
+            return mod.getLink()
+        except:
+            return ''
+
+    def isParticipant(self, profile: Profile) -> bool:
+        try:
+            Submission.objects.get(competition=self, members=profile)
+            return True
+        except:
+            return False
+
     def getMaxScore(self) -> int:
         return self.topics.count() * self.eachTopicMaxPoint
 
+    def getSubmissions(self) -> list:
+        try:
+            return Submission.objects.filter(competition=self)
+        except: return []
+
+    def totalSubmissions(self) -> int:
+        try:
+            return len(self.getSubmissions())
+        except: return 0
+    
+    def getValidSubmissions(self) -> list:
+        try:
+            return Submission.objects.filter(competition=self,valid=True)
+        except: return []
+
+    def totalValidSubmissions(self) -> int:
+        try:
+            return len(self.getValidSubmissions())
+        except: return 0
+
+    def allSubmissionsMarked(self) -> bool:
+        return False
+
 class JudgeRelation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    competition = models.ForeignKey(Competition, related_name='judging_competition', on_delete=models.CASCADE)
+    competition = models.ForeignKey(
+        Competition, related_name='judging_competition', on_delete=models.CASCADE)
     judge = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.competition.title
+
     class Meta:
         unique_together = ("competition", "judge")
 
+
 class TopicRelation(models.Model):
     class Meta:
-        unique_together = ("competition","topic")
+        unique_together = ("competition", "topic")
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='competition_topic')
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='topic_competition')
+    competition = models.ForeignKey(
+        Competition, on_delete=models.CASCADE, related_name='competition_topic')
+    topic = models.ForeignKey(
+        Topic, on_delete=models.CASCADE, related_name='topic_competition')
 
     def __str__(self) -> str:
         return self.competition.title
@@ -141,24 +209,34 @@ class Submission(models.Model):
         self.modifiedOn = timezone.now()
         return super(Submission, self).save(*args, **kwargs)
 
-    def saveLink(self)->str:
+    def saveLink(self) -> str:
+        """
+        URL endpoint to save repo field value.
+        """
         return f"/{url.COMPETE}save/{self.competition.id}/{self.id}"
+
     def totalMembers(self) -> int:
         """
-        All members count regardless of relation confirmation.
+        All members count, regardless of membership confirmation.
         """
         return self.members.all().count()
 
-    def totalActiveMembers(self) -> int:
+    def isMember(self, profile: Profile) -> bool:
         """
-        All members count with relation confirmed.
-        """
+        Checks if provided profile object is a confirmed memeber or not.
 
-        return len(self.getMembers())
+        :profile: The profile object to be looked for.
+        """
+        try:
+            ParticipantRelation.objects.get(
+                submission=self, profile=profile, confirmed=True)
+            return True
+        except:
+            return False
 
     def getMembers(self) -> list:
         """
-        List of members whomst relation to this submission is confirmed.
+        List of members whomst membership with this submission is confirmed.
         """
         members = []
         relations = ParticipantRelation.objects.filter(submission=self)
@@ -168,12 +246,23 @@ class Submission(models.Model):
                 members.append(member)
         return members
 
-    def isMember(self,profile:Profile)->bool:
+    def totalActiveMembers(self) -> int:
+        """
+        All members count with confirmed membership.
+        """
+        return len(self.getMembers())
+
+    def memberOrMembers(self) -> str:
+        return 'member' if self.totalActiveMembers() == 1 else 'members'
+
+    def isInvitee(self, profile: Profile) -> bool:
         try:
-            ParticipantRelation.objects.get(submission=self,profile=profile,confirmed=True)
+            ParticipantRelation.objects.get(
+                submission=self, profile=profile, confirmed=False)
             return True
         except:
             return False
+
 
     def getInvitees(self) -> list:
         """
@@ -187,21 +276,19 @@ class Submission(models.Model):
                 invitees.append(member)
         return invitees
 
-    def isInvitee(self,profile:Profile)->bool:
-        try:
-            ParticipantRelation.objects.get(submission=self,profile=profile,confirmed=False)
-            return True
-        except:
-            return False
-
     def canInvite(self) -> bool:
         return self.totalMembers() < 5 and not self.submitted
 
     def getRepo(self) -> bool:
         return self.repo if self.repo else ''
 
-    def lateSubmission(self) -> bool:
-        return not self.competition.isActive() and not self.submitted
+    def submittingLate(self) -> bool:
+        """
+        Submitting late or not.
+        NOTE: This method only represents 'late' status of submission before it has been submitted. After submission, the response of this method must not be considered reliable, instead the 'late' field should be used.
+        """
+        return self.competition.isHistory() and not self.submitted
+
 
 class ParticipantRelation(models.Model):
     class Meta:
@@ -241,7 +328,5 @@ class Result(models.Model):
             else:
                 return "th"
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
-
-    

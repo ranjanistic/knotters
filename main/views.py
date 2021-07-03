@@ -5,7 +5,8 @@ from django.shortcuts import redirect
 from main.settings import STATIC_URL, MEDIA_URL
 from django.utils import timezone
 import json
-from .env import ADMINPATH
+import requests
+from .env import ADMINPATH, SITE
 from main.strings import url
 from .methods import renderData, renderView, replaceUrlParamsWithStr
 from .decorators import dev_only
@@ -13,7 +14,8 @@ from projects.models import Project
 from compete.models import Competition
 from .methods import renderView
 from .strings import code, PROJECTS, COMPETE, PEOPLE
-
+from people.models import User
+from allauth.account.models import EmailAddress
 
 @require_GET
 def offline(request):
@@ -25,6 +27,25 @@ def offline(request):
 def mailtemplate(request, template):
     return renderView(request, f'account/email/{template}')
 
+@require_GET
+@dev_only
+def createMockUsers(request,total):
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        for i in range(int(total)):
+            r = requests.post(f'{SITE}/auth/signup/',headers=headers,data={'email':f"testing{i}@knotters.org","first_name":f"Testing{i}",'password1':'ABCD@12345678'})
+            if r.status_code != 200:
+                break
+        EmailAddress.objects.filter(email__startswith=f"testing",email__endswith="@knotters.org").update(verified=True)
+        return HttpResponse('ok')
+    except Exception as e:
+        return HttpResponse(str(e))
+
+@require_GET
+@dev_only
+def clearMockUsers(request):
+    User.objects.filter(email__startswith=f"testing",email__endswith="@knotters.org").delete()
+    return HttpResponse('ok')
 
 @require_GET
 def index(request):

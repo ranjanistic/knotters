@@ -53,6 +53,7 @@ class URL():
         MESSAGE = 'message/<str:modID>'
         ACTION = 'action/<str:modID>'
         REAPPLY = 'reapply/<str:modID>'
+        APPROVECOMPETE = 'compete/<str:modID>'
 
     class People():
         PROFILE = 'profile/<str:userID>'

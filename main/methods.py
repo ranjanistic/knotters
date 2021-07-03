@@ -71,7 +71,9 @@ def getUserFromMailingServer(email: str, fullData: bool = False) -> dict:
         return None
     response = requests.request(
         'GET', f"{SENDER_API_URL_SUBS}/by_email/{email}", headers=SENDER_API_HEADERS).json()
-    return response['data'] if fullData else response['data']['id']
+    try:
+        return response['data'] if fullData else response['data']['id']
+    except: return None
 
 
 def removeUserFromMailingServer(email: str) -> bool:
@@ -87,7 +89,9 @@ def removeUserFromMailingServer(email: str) -> bool:
     }
     response = requests.request(
         'DELETE', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
-    return response['success']
+    try:
+        return response['success']
+    except: return None
 
 
 def addUserToMailingGroup(email: str, groupID: str) -> bool:
@@ -102,7 +106,9 @@ def addUserToMailingGroup(email: str, groupID: str) -> bool:
     }
     response = requests.request(
         'POST', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
-    return response['success']
+    try:
+        return response['success']
+    except: return None
 
 
 def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
@@ -118,7 +124,9 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
     }
     response = requests.request(
         'DELETE', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
-    return response['success']
+    try:
+        return response['success']
+    except: return None
 
 
 

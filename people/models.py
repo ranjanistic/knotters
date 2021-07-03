@@ -2,7 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+from django.utils import timezone
 from main.settings import MEDIA_URL
 from .apps import APPNAME
 from main.strings import PROJECTS
@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100, null=True, blank=True)
 
     date_joined = models.DateTimeField(
-        verbose_name='date joined', auto_now_add=True)
+        verbose_name='date joined', default=timezone.now)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -76,7 +76,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=10)
+    name = models.CharField(max_length=100)
     tags = models.ManyToManyField(
         f'{PROJECTS}.Tag', default=[], through=f'{PROJECTS}.Relation')
 

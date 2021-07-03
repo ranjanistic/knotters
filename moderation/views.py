@@ -1,6 +1,7 @@
 from django.http.response import Http404, HttpResponse, JsonResponse
 import uuid
 from django.http.request import HttpRequest
+from compete.models import Submission
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -73,7 +74,7 @@ def message(request: HttpRequest, modID: uuid) -> HttpResponse:
 @moderator_only
 def action(request: HttpRequest, modID: uuid) -> HttpResponse:
     """
-    Moderator action on moderation.
+    Moderator action on moderation. (Project, primarily)
     """
     try:
         approve = request.POST.get('approve', '')
@@ -97,7 +98,7 @@ def action(request: HttpRequest, modID: uuid) -> HttpResponse:
 @login_required
 def reapply(request: HttpRequest, modID: uuid) -> HttpResponse:
     """
-    Re-request for moderation if possible, and if previous one rejected.
+    Re-request for moderation if possible, and if previous one rejected. (Project, primarily)
     """
     try:
         mod = Moderation.objects.get(id=modID, resolved=True, status=code.REJECTED)
@@ -115,3 +116,22 @@ def reapply(request: HttpRequest, modID: uuid) -> HttpResponse:
             return redirect(newmod.getLink(alert="Re-applied for moderation to another moderator."))
     except:
         raise Http404()
+
+
+@require_POST
+@require_JSON_body
+@login_required
+@moderator_only
+def approveCompetition(request:HttpRequest, modID:uuid):
+    try:
+        submissions = request.POST['submissions']
+        invalidSubIDs = []
+        for sub in submissions:
+            if not sub['valid']:
+                invalidSubIDs.append(sub['subID'])
+        Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
+        Moderation.objects.filter(id=modID,type=COMPETE,status=code.MODERATION,resolved=False).update(status=code.APPROVED,resolved=True)
+        return JsonResponse({'code': code.OK })
+    except:
+        return JsonResponse({'code':code.NO, 'error':'An error occurred' })
+    return
