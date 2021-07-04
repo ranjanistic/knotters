@@ -1,4 +1,4 @@
-from .models import Competition, JudgeRelation, Result, Submission
+from .models import Competition, JudgeRelation, Result, Submission, TopicPoint
 from django.utils import timezone
 from django import forms
 from main.strings import code
@@ -59,6 +59,36 @@ class JudgePanelForm(forms.ModelForm):
         
         return cleaned_data
 
+
+class TopicPointForm(forms.ModelForm):
+    class Meta:
+        model = TopicPoint
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        sub = cleaned_data.get('submission')
+        topic = cleaned_data.get('topic')
+        points = cleaned_data.get('points')
+        judge = cleaned_data.get('judge')
+
+        if not sub.valid:
+            raise forms.ValidationError(f"Selected submission is not valid")
+        if not sub.competition.isHistory():
+            raise forms.ValidationError(f"Selected submission's competition is not yet over, therefore cannot set points.")
+        if sub.competition.resultDeclared:
+            raise forms.ValidationError(f"Selected submission's result has already been declared")
+        if topic not in sub.competition.getTopics():
+            raise forms.ValidationError(f"Selected topic is not related with the submission")
+        if not sub.competition.isJudge(judge):
+            raise forms.ValidationError(f"The selected judge is not assigned for this submission.")
+        if points < 0 or points > sub.competition.eachTopicMaxPoint:
+            raise forms.ValidationError(f"Point should be >=0 and <={sub.competition.eachTopicMaxPoint}")
+
+        if sub.pointedTopicsByJudge(judge) == sub.competition.totalTopics():
+            raise forms.ValidationError(f"All topic points of this submission by selected judge already assigned.")
+
+        return cleaned_data
 
 class ResultAdminForm(forms.ModelForm):
     class Meta:

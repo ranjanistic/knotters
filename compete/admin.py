@@ -1,4 +1,4 @@
-from compete.models import Competition, JudgeRelation, Submission,Result, ParticipantRelation, TopicRelation
+from compete.models import Competition, JudgeRelation, Submission,Result, ParticipantRelation, TopicRelation, TopicPoint
 from django.contrib import admin
 from .forms import CompetitionAdminForm, ResultAdminForm,JudgePanelForm
 
@@ -6,7 +6,7 @@ from .forms import CompetitionAdminForm, ResultAdminForm,JudgePanelForm
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
-    list_display = ["title","tagline","isHistory","startAt","endAt", "banner"]
+    list_display = ["title","tagline","isHistory","startAt","endAt", "banner","resultDeclared"]
     list_filter = ["resultDeclared", "eachTopicMaxPoint"]
     ordering = ["startAt"]
     form = CompetitionAdminForm
@@ -21,12 +21,18 @@ class SubmitAdmin(admin.ModelAdmin):
     list_filter = ["competition","submitted", "late", "valid"]
     ordering = ["submitOn"]
 
+@admin.register(TopicPoint)
+class TopicPointAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "topic","judge", "points"]
+    list_filter = ["topic"]
+    ordering = ["points"]
+
 @admin.register(Result)
 class ResultAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "competition", "rank"]
-    list_filter = ["competition"]
+    list_display = ["__str__", "competition", "rank", "points"]
+    list_filter = ["competition",]
     form = ResultAdminForm
-    ordering = ["rank"]
+    ordering = ["rank","points" ]
     class Meta:
         ordering = ("")
 

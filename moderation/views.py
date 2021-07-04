@@ -20,9 +20,15 @@ def moderation(request: HttpRequest, id: uuid) -> HttpResponse:
     try:
         moderation = Moderation.objects.get(id=id)
         isModerator = moderation.moderator == request.user.profile
-        if not moderation.isRequestor(request.user.profile) and not isModerator:
+        isRequestor = moderation.isRequestor(request.user.profile)
+        if not isRequestor and not isModerator:
             raise Exception()
-        return renderer(request, moderation.type, {'moderation': moderation, 'ismoderator': isModerator})
+        data = {'moderation': moderation, 'ismoderator': isModerator}
+
+        if moderation.type == COMPETE:
+            if isRequestor:
+                data['allSubmissionsMarkedByJudge'] = moderation.competition.allSubmissionsMarkedByJudge(request.user.profile)
+        return renderer(request, moderation.type, data)
     except:
         raise Http404()
 

@@ -93,16 +93,16 @@
             {% endif %}
         {% else %}
         <br/>
-            <div class="w3-row w3-padding">
-            {% if moderation.competition.resultDeclared %}
-                <br/>
-                <center>
-                <i class="w3-jumbo positive-text">celebration</i>
-                <h1>Results Declared.</h1><br/>
-                <a href="{{moderation.competition.getLink}}"><button class="positive" data-icon="open_in_new">See results</button></a>
-                </center>
-            {% else %}
-                {% if moderation.competition.allSubmissionsMarked %}
+        <div class="w3-row w3-padding">
+            {% if moderation.competition.allSubmissionsMarked %}
+                {% if moderation.competition.resultDeclared %}
+                    <br/>
+                    <center>
+                    <i class="w3-jumbo positive-text">celebration</i>
+                    <h1>Results Declared.</h1><br/>
+                    <a href="{{moderation.competition.getLink}}"><button class="positive" data-icon="open_in_new">See results</button></a>
+                    </center>
+                {% else %}    
                     {% if ismoderator %}
                         <center>
                         <h4>All submissions have been marked & results are ready to be declared.</h4>
@@ -113,18 +113,31 @@
                         </center>
                     {% else %}
                         <center>
-                        <h4>All submissions have been marked & results are waiting to be declared by the moderator.</h4>
-                        <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button>
+                        <i class="w3-jumbo active-text">verified</i>
+                        <h3>All submissions have been marked & results are waiting to be declared by the moderator.</h3>
+                        <h4>Results will be declared soon.</h4>
+                        <h6>We'll surely notify you about the results, once declared.</h6>
+                        {% comment %} <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button> {% endcomment %}
                         </center>
                     {% endif %}
+                {% endif %}
+            {% else %}
+                {% if ismoderator %}
+                    <br/>
+                    <center>
+                    <i class="w3-jumbo w3-spin">hourglass_full</i>
+                    <h1>Judges on duty</h1>
+                    <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
+                    <h3>{{moderation.competition.countJudgesWhoMarkedSumissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
+                    <h6 class="positive-text">We'll email you once all valid submissions are marked for result declaration.</h6>
+                    </center>
                 {% else %}
-                    {% if ismoderator %}
-                        <br/>
+                    {% if allSubmissionsMarkedByJudge %}
                         <center>
-                        <i class="w3-jumbo w3-spin">hourglass_full</i>
-                        <h1>Judges on duty</h1>
-                        <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
-                        <h6 class="positive-text">We'll email you once all valid submissions are marked for result declaration.</h6>
+                        <i class="w3-jumbo positive-text">verified</i>
+                        <h3>All submissions have been marked by you.<br/>Results will be declared soon.</h3>
+                        <h4>We're so grateful to have you as judge in this competition.</h4>
+                        <h6>We'll surely notify you about the results, once declared.</h6>
                         </center>
                     {% else %}
                         <center><h4 class="dead-text">Moderator is waiting for submissions to be marked by you.</h4></center>
@@ -135,7 +148,7 @@
                         <br/>
                         <h6>Submissions</h6>
                         {% for sub in moderation.competition.getValidSubmissions %}
-                        <div class="w3-row pallete-slab" >
+                        <div class="w3-row pallete-slab" id="subslab{{sub.id}}">
                             <div class="w3-col w3-padding l4">
                             <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">members</span></strong>
                             <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
@@ -145,13 +158,14 @@
                             {% for topic in moderation.competition.getTopics %}
                             <div class="w3-col w3-third w3-padding-small">
                             <strong>{{topic.name}}</strong>
-                            <input class="primary wide w3-padding" name="{{topic.name}}" type="number" min="0" max="{{moderation.competition.eachTopicMaxPoint}}" placeholder="Points out of {{moderation.competition.eachTopicMaxPoint}}" />
+                            <input id="{{sub.id}}{{topic.id}}" data-subID="{{sub.id}}" data-topicID="{{topic.id}}"
+                                    class="primary wide w3-padding topic-point point-input-{{sub.id}}" name="{{sub.id}}{{topic.id}}" type="number" min="0" max="{{moderation.competition.eachTopicMaxPoint}}" placeholder="Points out of {{moderation.competition.eachTopicMaxPoint}}" />
                             </div>
                             {% endfor %}
                             </div>
                             <div class="w3-col l2 w3-padding">
-                            <button class="small positive" data-icon="done">Save</button>
-                            <button class="small negative" data-icon="close">Clear</button>
+                            <button class="small positive save-subpoints" data-icon="done" data-subID="{{sub.id}}" id="save{{sub.id}}">Save</button>
+                            <button class="small negative clear-subpoints" data-icon="close" data-subID="{{sub.id}}" id="clear{{sub.id}}">Clear</button>
                             </div>
                         </div>
                         {% empty %}
@@ -164,8 +178,8 @@
                     {% endif %}
                 {% endif %}
             {% endif %}
-            </div>
-                <br/>
+        </div>
+        <br/>
         {% endif %}
     {% elif moderation.competition.isUpcoming %}
         <br/>
@@ -195,9 +209,185 @@
 <script>
 
 const ismoderator = "{{ismoderator}}" === 'True'
-if(!ismoderator){
+const allsubsMarked = "{{moderation.competition.allSubmissionsMarked}}";
+
+if(allsubsMarked){
+
+}else if(!ismoderator){
+    let finalData = [];
+    const localStorageKey = "{{moderation.id}}{{moderation.type}}{{request.user.id}}finalData";
+    const eachTopicMaxPoint = Number("{{moderation.competition.eachTopicMaxPoint}}")
+    const totalSubmissions = Number("{{moderation.competition.totalValidSubmissions}}")
+    const totalTopics = Number("{{moderation.competition.totalTopics}}")
+    const previous = window.localStorage.getItem(localStorageKey);
+    if(previous){
+        try{
+            finalData = JSON.parse(previous);
+            finalData.forEach((psub)=>{
+                psub.topics.forEach((ptopic)=>{
+                    getElement(`${psub.subID}${ptopic.topicID}`).value = ptopic.points;
+                    getElement(`${psub.subID}${ptopic.topicID}`).disabled = true;
+                })
+            })
+        } catch{
+        }
+    }
+
+    getElements("clear-subpoints").forEach((clear)=>{
+        const subID = String(clear.getAttribute('data-subID')).trim()
+        clear.onclick=_=>{
+            finalData = finalData.filter((fd)=>fd.subID!=subID)
+            getElements(`point-input-${subID}`).forEach((input)=>{
+                input.disabled = false
+                input.value = '';
+            })
+            window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
+        }
+    })
+
+    getElements("save-subpoints").forEach((save)=>{
+        const subID = String(save.getAttribute('data-subID')).trim()
+        save.onclick=_=>{
+            finalData = finalData.filter((fd)=>fd.subID!=subID)
+            finalData.push({
+                subID,
+                topics:[]
+            });
+            let added = false
+            finalData.some((fd,f)=>{
+                if(fd.subID==subID){
+                    getElements(`point-input-${subID}`).every((input)=>{
+                        if(input.value===""||isNaN(input.value)){
+                            input.value = ''
+                            error(`Point value cannot be empty.`)
+                            input.focus()
+                            return false
+                        }
+                        if(Number(input.value)>eachTopicMaxPoint||Number(input.value)<0) {
+                            error(`Points shoud be <=${eachTopicMaxPoint} and >=0.`)
+                            input.focus()
+                            return false
+                        }
+                        input.disabled = true
+                        const topicID = input.getAttribute('data-topicID');
+                        finalData[f].topics = finalData[f].topics.filter((topic)=>topic.id!=topicID)
+                        finalData[f].topics.push({
+                            topicID,
+                            points:Number(input.value)
+                        })
+                        added = true
+                        return true
+                    })
+                    return true
+                }
+                return false
+            })
+            if(!added){
+                finalData.pop()
+            }
+            window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
+        }
+    })
+
+    getElement("finalsend").onclick=_=>{
+        if(!finalData.length){
+            error('No submissions marked. Mark all submissions to send for ranking.')
+            getElements('topic-point').forEach((input)=>{
+                input.disabled = false
+            })
+            return false
+        }
+        if(finalData.length!==totalSubmissions){
+            getElements('topic-point').some((input)=>{
+                if(!input.disabled||input.value===""||isNaN(input.value)
+                ||!finalData.find((sub)=>sub.subID==input.getAttribute('data-subID'))){
+                    error('Please re-fill and save this input.')
+                    input.disabled = false
+                    input.focus()
+                    return true
+                }
+            })
+            return false
+        }
+        
+        if(!finalData.every((sub)=>{
+            if(sub.topics.length!==totalTopics){
+                console.log(sub.subID)
+                console.log("yess", getElement(`point-input-${sub.subID}`),getElements(`point-input-${sub.subID}`))
+                getElements(`point-input-${sub.subID}`).some((input)=>{
+                    console.log("some",sub.topics.some((topic)=>topic.topicID===input.getAttribute('data-topicID')))
+                    if(!input.disabled
+                        ||input.value===""
+                        ||isNaN(input.value)
+                        ||sub.topics.some((topic)=>topic.topicID===input.getAttribute('data-topicID'))
+                    ){
+                        input.disabled = false
+                        input.focus()
+                        error('Please re-fill and save this input.')
+                        return true
+                    }
+                })
+                return false
+            }
+            if(sub.topics.some((topic)=>{
+                if(Number(getElement(`${sub.subID}${topic.topicID}`).value) !== topic.points){
+                    getElement(`${sub.subID}${topic.topicID}`).disabled = false;
+                    getElement(`${sub.subID}${topic.topicID}`).focus()
+                    error('Please re-fill and save this input.')
+                    return true
+                }
+                return false
+            })){
+                return false
+            }
+            return true
+        })){
+            return false
+        }
+        
+        alertify.confirm(`Send for ranking?`,
+        `<h4>Are you sure you want to send all marked submissions
+            to moderator for final ranking?
+            <br/>
+            This action is <span class="negative-text">irreversible</span>.
+        </h4>
+        <h6>Make sure that every submission is marked properly, as it will determine their final rank results.</h6>
+        `,
+            
+        async ()=>{
+            message('Sending for ranking...')
+            loader(true)
+            subLoader(true)
+            const data = await postRequest("{{moderation.competition.submissionPointsLink}}",{
+                submissions: finalData
+            });
+            if(data.code===code.OK){
+                success('Submissions marked & submitted for ranking.')
+                window.location.reload()
+            } else {
+                loader(false)
+                subLoader(false)
+                error(data.error);
+            }
+        },
+        ()=>{}
+        ).set('labels',{ok:`${Icon('send')}Yes, send all`, cancel:'No, wait!'})
+    }
+
+    getElement("discardall").onclick=_=>{
+        alertify.confirm(`Discard changes?`,
+        `<h4>Are you sure to discard all changes you made? All marked submissions will be unmarked, and you'll have to start again!</h4>`,
+        ()=>{},
+        ()=>{
+            subLoader()
+            window.localStorage.removeItem(localStorageKey)
+            window.location.reload()
+        }
+        ).set('labels',{ok:`No, wait!`, cancel:`${Icon('delete')}Yes, discard`})
+    }
 
 } else {
+    const localStorageKey = "{{moderation.id}}{{moderation.type}}{{request.user.id}}finalData";
     let allsubmissionchecks = getElements("selectsubmission");
     let selectedAll = false;
 
@@ -229,6 +419,7 @@ if(!ismoderator){
                         hide(getElement(`subslab${d.subID}`))
                     }
                 })
+                window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
                 message(`Filtered`)
             },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
     }
@@ -253,6 +444,7 @@ if(!ismoderator){
                         hide(getElement(`subslab${d.subID}`))
                     }
                 })
+                window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
                 message(`Filtered`)
             },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
         
@@ -271,6 +463,7 @@ if(!ismoderator){
                     valid: false
                 });
                 allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${reject.getAttribute("data-subID")}`)
+                window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
                 hide(getElement(`subslab${reject.getAttribute("data-subID")}`))
             },()=>rejectDialog.close()).set('labels',{ok:'Yes, reject this one', cancel: 'No, wait!'})
         }
@@ -322,6 +515,7 @@ if(!ismoderator){
         `<h4>Are you sure to discard all changes you made? All rejected submissions will be restored, and you'll have to start again.</h4>`,
         ()=>{
             subLoader()
+            window.localStorage.removeItem(localStorageKey)
             window.location.reload()
         },
         ()=>{}

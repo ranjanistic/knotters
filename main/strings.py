@@ -48,6 +48,9 @@ class URL():
         SAVE = 'save/<str:compID>/<str:subID>'
         SUBMIT = 'submit/<str:compID>/<str:subID>'
 
+        SUBMITPOINTS = 'submissionpoints/<str:compID>'
+        DECLARERESULTS = 'declareresults/<str:compID>'
+
     class Moderation():
         MODID = '<str:id>'
         MESSAGE = 'message/<str:modID>'

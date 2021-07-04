@@ -1,6 +1,7 @@
+from django.http.request import HttpRequest
 from main.methods import renderData
 from django.db.models import Q
-from django.http.response import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http.response import Http404, HttpResponse, HttpResponseForbidden, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect, render
 from people.models import User
 from .methods import renderer, sendParticipationWelcomeMail
@@ -10,7 +11,9 @@ from django.utils import timezone
 from main.strings import code
 from people.models import User
 from main.decorators import require_JSON_body
+from moderation.decorators import moderator_only
 from .models import *
+from .decorators import judge_only
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, sendParticipantInvitationMail, sendSubmissionConfirmedMail
 
 
@@ -293,3 +296,75 @@ def finalSubmit(request, compID, subID):
         return JsonResponse({'code': code.OK, 'message': message})
     except Exception as e:
         raise JsonResponse({'code': code.NO, "error": str(e)})
+
+@require_POST
+@require_JSON_body
+@login_required
+@judge_only
+def submitPoints(request:HttpRequest,compID:uuid) -> HttpResponse:
+    try:
+        subs = request.POST.get('submissions',None)
+        if not subs: return JsonResponse({'code':code.NO, 'error': 'Invalid submission markings, try again.' })
+        
+        comp = Competition.objects.get(id=compID,judges=request.user.profile,resultDeclared=False,endAt__lt=timezone.now())
+        submissions = comp.getValidSubmissions()
+        topics = comp.getTopics()
+
+        modifiedTops = {}
+
+        for top in topics:
+            modifiedTops[str(top.id)] = []
+        
+        for sub in subs:
+            subID = str(sub['subID']).strip()
+            for top in sub['topics']:
+                topID = str(top['topicID']).strip()
+                points = int(top['points'])
+                modifiedTops[topID].append({
+                    subID:points
+                })
+    
+        topicpointsList = []
+        for topic in topics:
+            subspointslist =  modifiedTops[str(topic.id)]
+            for sub in subspointslist:
+                point = None
+                submission = None
+                for subm in submissions:
+                    if sub.keys().__contains__(str(subm.id)):
+                        submission = subm
+                        point = int(sub[str(subm.id)])
+                        break
+                if point == None or submission == None:
+                    raise Exception()
+                else:
+                    topicpointsList.append(TopicPoint(
+                        submission=submission,
+                        topic=topic,
+                        judge=request.user.profile,
+                        points=point
+                    ))
+        
+        TopicPoint.objects.bulk_create(topicpointsList)    
+        return JsonResponse({'code':code.OK })
+    except Exception as e:
+        print(e)
+        return JsonResponse({'code':code.NO, 'error':'An error occurred'})
+    
+@require_POST
+@login_required
+@moderator_only
+def declareResults(request:HttpRequest,compID:uuid) -> HttpResponse:
+    try:
+        comp = Competition.objects.get(id=compID,endAt__lt=timezone.now(),resultDeclared=False)
+        
+        if not comp.isModerator(request.user.profile): raise Exception()
+        if not (comp.moderated() and comp.allSubmissionsMarked()):
+            return redirect(comp.getJudgementLink(error="Invalid request"))
+        
+        declared = comp.declareResults()
+        if not declared: return redirect(comp.getJudgementLink(error="An error occurred."))
+        return redirect(comp.getJudgementLink(alert="Results declared!"))
+    except Exception as e:
+        print(e)
+        raise Http404()

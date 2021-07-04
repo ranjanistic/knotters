@@ -1,4 +1,5 @@
 from .apps import APPNAME
+from django.db.models import Sum
 import uuid
 from people.models import Profile
 from django.db import models
@@ -103,9 +104,11 @@ class Competition(models.Model):
 
     def moderated(self) -> bool:
         try:
-            Moderation.objects.filter(type=APPNAME, competition=self, resolved=True).order_by("-requestOn")[0]
+            Moderation.objects.filter(
+                type=APPNAME, competition=self, resolved=True).order_by("-requestOn")[0]
             return True
-        except: return False
+        except:
+            return False
 
     def isJudge(self, profile: Profile) -> bool:
         if not self.judges:
@@ -120,11 +123,10 @@ class Competition(models.Model):
     def totalJudges(self) -> int:
         return len(self.getJudges())
 
-    def getJudgementLink(self) -> str:
+    def getJudgementLink(self, error='', alert='') -> str:
         try:
-            mod = Moderation.objects.filter(
-                type=APPNAME, competition=self).order_by("-requestOn")[0]
-            return mod.getLink()
+            return (Moderation.objects.filter(
+                type=APPNAME, competition=self).order_by("-requestOn").first()).getLink(error=error, alert=alert)
         except:
             return ''
 
@@ -136,30 +138,99 @@ class Competition(models.Model):
             return False
 
     def getMaxScore(self) -> int:
-        return self.topics.count() * self.eachTopicMaxPoint
+        return self.topics.count() * self.eachTopicMaxPoint * self.totalJudges()
 
     def getSubmissions(self) -> list:
         try:
             return Submission.objects.filter(competition=self)
-        except: return []
+        except:
+            return []
 
     def totalSubmissions(self) -> int:
         try:
             return len(self.getSubmissions())
-        except: return 0
-    
+        except:
+            return 0
+
     def getValidSubmissions(self) -> list:
         try:
-            return Submission.objects.filter(competition=self,valid=True)
-        except: return []
+            return Submission.objects.filter(competition=self, valid=True)
+        except:
+            return []
 
     def totalValidSubmissions(self) -> int:
         try:
             return len(self.getValidSubmissions())
-        except: return 0
+        except:
+            return 0
+
+    def submissionPointsLink(self) -> str:
+        return f"/{url.COMPETE}submissionpoints/{self.id}"
+
+    def allSubmissionsMarkedByJudge(self, judge: Profile) -> bool:
+        try:
+            subslist = self.getValidSubmissions()
+            judgeTopicPointsCount = TopicPoint.objects.filter(
+                submission__in=subslist, judge=judge).count()
+            return judgeTopicPointsCount == len(subslist)*self.totalTopics()
+        except:
+            return False
 
     def allSubmissionsMarked(self) -> bool:
-        return False
+        try:
+            subslist = self.getValidSubmissions()
+            topicPointsCount = TopicPoint.objects.filter(
+                submission__in=subslist).count()
+            return topicPointsCount == len(subslist)*self.totalTopics()*self.totalJudges()
+        except:
+            return False
+
+    def countJudgesWhoMarkedSumissions(self) -> int:
+        judges = self.getJudges()
+        count = 0
+        for judge in judges:
+            if self.allSubmissionsMarkedByJudge(judge):
+                count = count+1
+        return count
+
+    def declareResultsLink(self) -> str:
+        return f"/{url.COMPETE}declareresults/{self.id}"
+
+    def declareResults(self) -> bool:
+        try:
+            if not self.allSubmissionsMarked():
+                return False
+            subs = self.getValidSubmissions()
+            results = TopicPoint.objects.filter(submission__in=subs).values(
+                'submission').annotate(totalPoints=Sum('points')).order_by('-totalPoints')
+            
+            resultsList = []
+
+            i = 1
+            for res in results:
+                subm = None
+                for sub in subs:
+                    if str(res['submission']) == str(sub.id):
+                        subm = sub
+                if subm:
+                    resultsList.append(
+                        Result(
+                            competition=self,
+                            submission=subm,
+                            points=res['totalPoints'],
+                            rank=i
+                        )
+                    )
+                i=i+1
+            obj = Result.objects.bulk_create(resultsList)
+            if not obj: return False
+            self.resultDeclared = True
+            self.save()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
 
 class JudgeRelation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -263,7 +334,6 @@ class Submission(models.Model):
         except:
             return False
 
-
     def getInvitees(self) -> list:
         """
         List of members whomst relation to this submission is not confirmed.
@@ -289,6 +359,12 @@ class Submission(models.Model):
         """
         return self.competition.isHistory() and not self.submitted
 
+    def pointedTopicsByJudge(self, judge: Profile):
+        """
+        Count of topics pointed by given judge for this submission.
+        """
+        return TopicPoint.objects.filter(submission=self, judge=judge).count()
+
 
 class ParticipantRelation(models.Model):
     class Meta:
@@ -298,6 +374,20 @@ class ParticipantRelation(models.Model):
         Profile, on_delete=models.CASCADE, related_name='submission_profile')
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
+
+
+class TopicPoint(models.Model):
+    class Meta:
+        unique_together = ("submission", "topic", "judge")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.ForeignKey(Submission, on_delete=models.PROTECT)
+    topic = models.ForeignKey(Topic, on_delete=models.PROTECT)
+    judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
+    points = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"{self.submission}"
 
 
 class Result(models.Model):
