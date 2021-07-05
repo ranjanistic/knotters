@@ -2,10 +2,11 @@
 from django.template.loader import render_to_string
 from main.methods import renderView, sendActionEmail, sendAlertEmail, renderData
 from main.strings import compete
+from django.db.models import Q
 from people.models import Profile
 from main.env import SITE
 from django.utils import timezone
-from .models import Competition, ParticipantRelation, Result, Submission
+from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
@@ -57,15 +58,30 @@ def getCompetitionSectionData(section, competition, request):
         try:
             submission = Submission.objects.get(
                 competition=competition, members=request.user.profile)
-            relation = ParticipantRelation.objects.get(
+            relation = SubmissionParticipant.objects.get(
                 submission=submission, profile=request.user.profile)
             data['submission'] = submission
             data['confirmed'] = relation.confirmed
         except:
             data['submission'] = None
     if section == compete.RESULT:
-        data['results'] = Result.objects.filter(
-            competition=competition).order_by('rank')
+        results = Result.objects.filter(competition=competition).order_by('rank')
+        if request.user.is_authenticated:
+            memberfound = False
+            for res in results:
+                if res.submission.isMember(request.user.profile):
+                    memberfound = True
+                    if res.rank > 10:
+                        data['selfresult'] = res
+                    break
+
+            if not memberfound: 
+                try:
+                    subm = Submission.objects.get(competition=competition,members=request.user.profile,valid=False)
+                    data['selfInvaildSubmission'] = subm
+                except: pass
+
+        data['results'] = results
     return data
 
 

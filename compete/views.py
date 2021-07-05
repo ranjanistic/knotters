@@ -96,7 +96,7 @@ def createSubmission(request, compID):
         try:
             sub = Submission.objects.get(
                 competition=competition, members=request.user.profile)
-            relation = ParticipantRelation.objects.get(
+            relation = SubmissionParticipant.objects.get(
                 submission=sub, profile=request.user.profile)
             if relation.confirmed:
                 raise Exception()
@@ -107,7 +107,7 @@ def createSubmission(request, compID):
         submission = Submission.objects.create(
             competition=competition)
         submission.members.add(request.user.profile)
-        relation = ParticipantRelation.objects.get(
+        relation = SubmissionParticipant.objects.get(
             profile=request.user.profile, submission=submission)
         relation.confirmed = True
         relation.save()
@@ -131,6 +131,8 @@ def removeMember(request, subID, userID):
             member = user.profile
 
         submission = Submission.objects.get(id=subID, members=member)
+        if not submission.competition.isActive():
+            raise Exception()
         try:
             submission.members.remove(member)
             if submission.totalActiveMembers() == 0:
@@ -170,6 +172,8 @@ def invite(request, subID):
             return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
         except:
             submission = Submission.objects.get(id=subID)
+            if not submission.competition.isActive():
+                raise Exception()
             if submission.competition.isJudge(person) or submission.competition.isModerator(person):
                 return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
             submission.members.add(person)
@@ -193,10 +197,10 @@ def invitation(request, subID, userID):
         submission = Submission.objects.get(id=subID, submitted=False)
         if not submission.competition.isActive():
             raise Exception()
-        if submission.totalMembers() >= 5:
+        if not submission.canInvite():
             raise Exception()
         try:
-            relation = ParticipantRelation.objects.get(
+            relation = SubmissionParticipant.objects.get(
                 submission=submission, profile=user.profile)
             if relation.confirmed:
                 return redirect(submission.competition.getLink(error="You've already participated"))
@@ -221,7 +225,9 @@ def inviteAction(request, subID, userID, action):
             raise Exception()
         user = request.user
         submission = Submission.objects.get(id=subID, submitted=False)
-        relation = ParticipantRelation.objects.get(
+        if not submission.competition.isActive():
+            raise Exception()
+        relation = SubmissionParticipant.objects.get(
             submission=submission, profile=user.profile)
         if relation.confirmed:
             raise Exception()
@@ -252,6 +258,8 @@ def save(request, compID, subID):
         competition = Competition.objects.get(id=compID)
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
+        if not submission.competition.isActive():
+            raise Exception()
         submission.repo = str(request.POST['submissionurl'])
         submission.save()
         return redirect(competition.getLink(alert="Saved"), permanent=True)
@@ -259,9 +267,9 @@ def save(request, compID, subID):
         raise Http404()
 
 
-@login_required
 @require_POST
 @require_JSON_body
+@login_required
 def finalSubmit(request, compID, subID):
     """
     Already existing participation submission
@@ -272,7 +280,7 @@ def finalSubmit(request, compID, subID):
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
         try:
-            relations = ParticipantRelation.objects.filter(
+            relations = SubmissionParticipant.objects.filter(
                 submission=submission, confirmed=False)
             for relation in relations:
                 submission.members.remove(relation.profile)
@@ -338,14 +346,14 @@ def submitPoints(request:HttpRequest,compID:uuid) -> HttpResponse:
                 if point == None or submission == None:
                     raise Exception()
                 else:
-                    topicpointsList.append(TopicPoint(
+                    topicpointsList.append(SubmissionTopicPoint(
                         submission=submission,
                         topic=topic,
                         judge=request.user.profile,
                         points=point
                     ))
         
-        TopicPoint.objects.bulk_create(topicpointsList)    
+        SubmissionTopicPoint.objects.bulk_create(topicpointsList)    
         return JsonResponse({'code':code.OK })
     except Exception as e:
         print(e)

@@ -1,4 +1,5 @@
 import base64
+from django.http.response import HttpResponse
 import requests
 import re
 from django.http.request import HttpRequest
@@ -22,11 +23,13 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
     return data
 
 
-def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = ''):
+def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = '') -> HttpResponse:
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
-def replaceUrlParamsWithStr(path:str,replacingChar:str='*')->str:
+
+def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
+
 
 def maxLengthInList(list: list = []) -> int:
     max = len(str(list[0]))
@@ -40,6 +43,9 @@ def base64ToImageFile(base64Data: base64) -> File:
     try:
         format, imgstr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
+        print('ext', ext)
+        if not ['jpg', 'png', 'jpeg'].__contains__(ext):
+            return False
         return ContentFile(base64.b64decode(imgstr), name='profile.' + ext)
     except:
         return None
@@ -56,9 +62,12 @@ def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
         "lastname": last_name,
         "groups": ["dL8pBD"],
     }
-    response = requests.request(
-        'POST', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
-    return True
+    try:
+        response = requests.request(
+            'POST', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
+        return True
+    except:
+        return False
 
 
 def getUserFromMailingServer(email: str, fullData: bool = False) -> dict:
@@ -67,77 +76,84 @@ def getUserFromMailingServer(email: str, fullData: bool = False) -> dict:
 
     :fullData: If True, returns only the id of user from mailing server. Default: False
     """
-    if not email:
-        return None
-    response = requests.request(
-        'GET', f"{SENDER_API_URL_SUBS}/by_email/{email}", headers=SENDER_API_HEADERS).json()
     try:
+        if not email:
+            return None
+        response = requests.request(
+            'GET', f"{SENDER_API_URL_SUBS}/by_email/{email}", headers=SENDER_API_HEADERS).json()
         return response['data'] if fullData else response['data']['id']
-    except: return None
+    except:
+        return None
 
 
 def removeUserFromMailingServer(email: str) -> bool:
     """
     Removes user from mailing server.
     """
-    subscriber = getUserFromMailingServer(email, True)
-    if not subscriber:
-        return False
-
-    payload = {
-        "subscribers": [subscriber['id']]
-    }
-    response = requests.request(
-        'DELETE', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
     try:
+        subscriber = getUserFromMailingServer(email, True)
+        if not subscriber:
+            return False
+
+        payload = {
+            "subscribers": [subscriber['id']]
+        }
+        response = requests.request(
+            'DELETE', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
         return response['success']
-    except: return None
+    except:
+        return None
 
 
 def addUserToMailingGroup(email: str, groupID: str) -> bool:
     """
     Adds user to a mailing group (assuming the user to be an existing server subscriber).
     """
-    subID = getUserFromMailingServer(email)
-    if not subID:
-        return False
-    payload = {
-        "subscribers": [subID],
-    }
-    response = requests.request(
-        'POST', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
     try:
+        subID = getUserFromMailingServer(email)
+        if not subID:
+            return False
+        payload = {
+            "subscribers": [subID],
+        }
+        response = requests.request(
+            'POST', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
+
         return response['success']
-    except: return None
+    except:
+        return None
 
 
 def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
     """
     Removes user from a mailing group.
     """
-
-    subID = getUserFromMailingServer(email=email)
-    if not subID:
-        return False
-    payload = {
-        "subscribers": [subID]
-    }
-    response = requests.request(
-        'DELETE', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
     try:
+        subID = getUserFromMailingServer(email=email)
+        if not subID:
+            return False
+        payload = {
+            "subscribers": [subID]
+        }
+        response = requests.request(
+            'DELETE', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
         return response['success']
-    except: return None
+    except:
+        return None
 
 
-
-def sendEmail(to,subject,html,body):
+def sendEmail(to, subject, html, body):
     if ISPRODUCTION:
-        msg = EmailMultiAlternatives(subject, body=body, to=[to])
-        msg.attach_alternative(content=html, mimetype="text/html")
-        return msg.send()
+        try:
+            msg = EmailMultiAlternatives(subject, body=body, to=[to])
+            msg.attach_alternative(content=html, mimetype="text/html")
+            return msg.send()
+        except:
+            return False
     else:
-        print(to,body)
+        print(to, body)
         return True
+
 
 def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
     data = {
@@ -164,12 +180,12 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
 
 
 def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str):
-    html, body = getEmailHtmlBody(greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
-    return sendEmail(to=to,subject=subject,html=html,body=body)
+    html, body = getEmailHtmlBody(
+        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
+    return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
 def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []):
-    html, body = getEmailHtmlBody(greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
-    return sendEmail(to=to,subject=subject,html=html,body=body)
-
-
+    html, body = getEmailHtmlBody(
+        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
+    return sendEmail(to=to, subject=subject, html=html, body=body)

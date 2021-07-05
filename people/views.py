@@ -6,7 +6,7 @@ from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from django.views.decorators.http import require_GET, require_POST
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML
-from .models import Setting, User, Profile
+from .models import ProfileSetting, User, Profile
 from main.methods import base64ToImageFile
 from .methods import convertToFLname, filterBio
 
@@ -107,7 +107,7 @@ def accountprefs(request, userID):
                 'recommendations', 'off')) != 'off' else False
             competitions = True if str(request.POST.get(
                 'competitions', 'off')) != 'off' else False
-            Setting.objects.filter(profile=request.user.profile).update(
+            ProfileSetting.objects.filter(profile=request.user.profile).update(
                 newsletter=newsletter,
                 recommendations=recommendations,
                 competitions=competitions,

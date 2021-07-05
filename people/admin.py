@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .models import Profile, TopicRelation, Reporting, Setting, Topic, User
+from .models import Profile, ProfileTopic, ProfileReport, ProfileSetting, Topic, User
 
 
 class UserCreationForm(forms.ModelForm):
@@ -77,7 +77,7 @@ class ProfileAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
-@admin.register(TopicRelation)
+@admin.register(ProfileTopic)
 class RelationAdmin(admin.ModelAdmin):
     list_display = ["topic", "profile"]
     list_filter = ["topic"]
@@ -88,6 +88,6 @@ class RelationAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
-admin.site.register(Setting)
+admin.site.register(ProfileSetting)
 admin.site.register(Topic)
-admin.site.register(Reporting)
+admin.site.register(ProfileReport)

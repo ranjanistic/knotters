@@ -13,7 +13,7 @@ from main.strings import code, profile as profileString
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
 from moderation.models import Moderation
-from .models import Setting, User, Profile, defaultImagePath
+from .models import ProfileSetting, User, Profile, defaultImagePath
 from .apps import APPNAME
 
 
@@ -124,7 +124,7 @@ def getSettingSectionData(section: str, user: User, request: HttpRequest) -> dic
         data['oauths'] = SocialAccount.objects.filter(user=user)
         pass
     if section == profileString.setting.PREFERENCE:
-        data['setting'] = Setting.objects.get(profile=user.profile)
+        data['setting'] = ProfileSetting.objects.get(profile=user.profile)
         pass
     return data
 
@@ -156,7 +156,7 @@ def on_profile_create(sender, instance, created, **kwargs):
     Adds user to mailing server.
     """
     if created:
-        Setting.objects.create(profile=instance)
+        ProfileSetting.objects.create(profile=instance)
         addUserToMailingServer(
             instance.user.email, instance.user.first_name, instance.user.last_name)
 
@@ -176,7 +176,7 @@ def on_profile_delete(sender, instance, **kwargs):
     Profile cleanup.
     """
     try:
-        if instance.picture != defaultImagePath():
+        if instance.picture != defaultImagePath() or not str(instance.picture).startswith('http'):
             instance.picture.delete(save=False)
     except:
         pass
@@ -208,12 +208,13 @@ def social_removed(request, socialaccount, **kwargs):
 @receiver(social_account_added)
 def social_added(request, sociallogin, **kwargs):
     try:
-        data = SocialAccount.objects.get(
-            user=sociallogin.user, provider=GitHubProvider.id)
-        if data:
-            profile = Profile.objects.get(user=sociallogin.user)
-            profile.githubID = getUsernameFromGHSocial(data)
-            profile.save()
+        if sociallogin.account.provider == GitHubProvider.id:
+            data = SocialAccount.objects.get(
+                user=sociallogin.user, provider=GitHubProvider.id)
+            if data:
+                profile = Profile.objects.get(user=sociallogin.user)
+                profile.githubID = getUsernameFromGHSocial(data)
+                profile.save()
     except:
         pass
 

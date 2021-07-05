@@ -1,5 +1,14 @@
 <div class="w3-row w3-padding">
 {% if results.count %}
+
+    {% if selfInvaildSubmission %}
+        <center class="negative-text">
+
+        <i title="Private to you">lock</i><br/>
+        <strong>
+        You submission was marked invalid.</strong>
+        </center>
+    {% endif %}
 <div class="w3-row w3-padding w3-hide-small">
     <div class="w3-col w3-quarter">
     <h4>Rank</h4>
@@ -14,12 +23,45 @@
     </div>
 </div>
 {% endif %}
+
+{% if selfresult %}
+<div class="w3-row pallete-slab">
+    <div class="w3-col m2">
+    <h4 class="pallete limit-width">
+        <i class="w3-large-x">card_giftcard</i>{{selfresult.rank}}<sup>{{selfresult.rankSuptext}}</sup>
+    </h4>
+    </div>
+    <div class="w3-col m10">
+    <div class="w3-col m10 w3-padding">
+    {% for member in selfresult.submission.getMembers %}
+    <a target="_blank" href="{{member.getLink}}">
+    <button class="primary">
+        <img src="{{member.getDP}}" class="w3-circle" width="22" />
+        <span class="w3-hide-small">{{ member.getName }}</span>
+    </button>
+    </a>
+    {% endfor %}
+    </div>
+    <div class="w3-col m2">
+    <a 
+    {% if request.user.is_authenticated %}
+    target="_blank" 
+    href="{{ selfresult.submission.repo }}"
+    {% else %}
+    href="{% url 'account_login' %}?next=/compete/{{competition.id}}"
+    {% endif %}
+    ><button class="primary" data-icon="open_in_new">View</button></a>
+    </div>
+    </div>
+</div>
+{% endif %}
+
 {% for result in results %}
 <div class="w3-row pallete-slab">
     <div class="w3-col m2">
     <h4 
-        class="pallete limit-width {% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %} 
-        text-{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %}"
+        class="pallete limit-width {% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}primary{% endif %} 
+        text-{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}primary{% endif %}"
     ><i class="w3-large-x material-icons">
         {% if result.rank == 1 %}emoji_events{% elif result.rank == 2 %}military_tech{% elif result.rank == 3 %}celebration{% else %}card_giftcard{% endif %}
     </i>{{result.rank}}<sup>{{result.rankSuptext}}</sup>
@@ -29,7 +71,7 @@
     <div class="w3-col m10 w3-padding">
     {% for member in result.submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
-    <button class="{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}tertiary{% endif %}">
+    <button class="{% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}primary{% endif %}">
         <img src="{{member.getDP}}" class="w3-circle" width="22" />
         <span class="w3-hide-small">{{ member.getName }}</span>
     </button>
@@ -47,7 +89,6 @@
     ><button class="primary" data-icon="open_in_new">View</button></a>
     </div>
     </div>
-
 </div>
 {% empty %}
     <br/><br/>

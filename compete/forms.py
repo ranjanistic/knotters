@@ -1,4 +1,4 @@
-from .models import Competition, JudgeRelation, Result, Submission, TopicPoint
+from .models import Competition, CompetitionJudge, Result, Submission, SubmissionTopicPoint
 from django.utils import timezone
 from django import forms
 from main.strings import code
@@ -37,7 +37,7 @@ class CompetitionAdminForm(forms.ModelForm):
 
 class JudgePanelForm(forms.ModelForm):
     class Meta:
-        model = JudgeRelation
+        model = CompetitionJudge
         fields = "__all__"
 
     def clean(self):
@@ -62,7 +62,7 @@ class JudgePanelForm(forms.ModelForm):
 
 class TopicPointForm(forms.ModelForm):
     class Meta:
-        model = TopicPoint
+        model = SubmissionTopicPoint
         fields = "__all__"
 
     def clean(self):

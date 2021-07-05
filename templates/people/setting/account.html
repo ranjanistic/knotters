@@ -10,8 +10,6 @@
     <input disabled class="wide" type="password" autocomplete="current-password" value="Sike! You thought." />
     {% else %}
     {% endif %}
-    <h4>Oauth Accounts</h4>
-    <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">Linked Accounts</button>
     </form>
 </div>
 <div id="edit-settings">
@@ -20,10 +18,14 @@
     <h4>Password</h4>
     <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">Change Password</button>
     <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">Forgot Password</button>
-    <h4>Oauth Accounts</h4>
-    <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">Linked Accounts</button>
     <br/><br/>
     <button hidden class="w3-right" id="save-edit-settings" data-icon="done">Save</button>
     <button class="w3-right" id="discard-edit-settings" data-icon="cancel">Cancel</button>
 </div>
+<h4>Oauth Accounts</h4>
+    <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">Linked Accounts</button>
+    <br/>
+    <h4>Security</h4>
+    <button class="accent" data-icon="shield" id="twofactor">Two factor auth</button>
+    <button class="negative" data-icon="delete" id="deleteaccount">Delete Account</button>
 <br/>

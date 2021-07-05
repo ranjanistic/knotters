@@ -86,7 +86,7 @@ class Topic(models.Model):
 
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{instance.id}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.id).replace('-','')}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultImagePath() -> str:
@@ -101,10 +101,10 @@ class Profile(models.Model):
     is_moderator = models.BooleanField(default=False)
     githubID = models.CharField(max_length=40, blank=True, null=True)
     bio = models.CharField(max_length=100, blank=True, null=True)
-    topics = models.ManyToManyField(Topic, through='TopicRelation', default=[])
+    topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
     is_verified = models.BooleanField(default=False)
     suspended = models.BooleanField(default=False)
-    reporters = models.ManyToManyField('Profile', through='Reporting')
+    reporters = models.ManyToManyField('Profile', through='ProfileReport')
 
     def __str__(self) -> str:
         return self.user.email
@@ -112,7 +112,7 @@ class Profile(models.Model):
     def save(self, *args, **kwargs):
         try:
             previous = Profile.objects.get(id=self.id)
-            if previous.picture != self.picture:
+            if previous.picture != defaultImagePath() and (previous.picture != self.picture or not str(previous.picture).startswith('http')):
                 previous.picture.delete(False)
         except:
             pass
@@ -143,14 +143,14 @@ class Profile(models.Model):
             success = f"?s={success}"
         if self.githubID:
             return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
-        return f"/{APPNAME}/profile/{self.user.id}{success}{alert}{error}"
+        return f"/{APPNAME}/profile/{self.user.id.replace('-','')}{success}{alert}{error}"
 
     def isReporter(self,profile):
         if profile in self.reporters.all(): return True
         return False
 
 
-class Setting(models.Model):
+class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='settings_profile')
     newsletter = models.BooleanField(default=True)
@@ -160,7 +160,7 @@ class Setting(models.Model):
     def __str__(self) -> str:
         return self.profile.user.email
 
-class Reporting(models.Model):
+class ProfileReport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(Profile,related_name='reported_profile', on_delete=models.CASCADE)
     reporter = models.ForeignKey(Profile,related_name='profile_reporter', on_delete=models.CASCADE)
@@ -168,7 +168,7 @@ class Reporting(models.Model):
     class Meta:
         unique_together = ('profile', 'reporter')
 
-class TopicRelation(models.Model):
+class ProfileTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='topic_profile')
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='profile_topic')

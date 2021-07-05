@@ -103,8 +103,8 @@
           <div class="w3-row w3-center">
             <button id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
             <button id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
-            <button id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
-            <button id="activity" class="nav-tab"><i class="material-icons">history</i><span class="w3-hide-small">Activity</span></button>
+            <button hidden id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
+            <button hidden id="activity" class="nav-tab"><i class="material-icons">history</i><span class="w3-hide-small">Activity</span></button>
             {% if user.is_authenticated and user.profile.is_moderator %}
             <button id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
             {% endif %}

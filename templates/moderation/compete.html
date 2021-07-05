@@ -150,7 +150,7 @@
                         {% for sub in moderation.competition.getValidSubmissions %}
                         <div class="w3-row pallete-slab" id="subslab{{sub.id}}">
                             <div class="w3-col w3-padding l4">
-                            <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">members</span></strong>
+                            <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
                             <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
                             </div>
                             

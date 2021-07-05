@@ -1,6 +1,7 @@
 <div id="view-settings">
     <i class="w3-right material-icons edit-action" data-edittarget="settings">edit</i>
     <h2>Preference settings</h2>
+    <i title="Notifications">notifications</i>
     <label>Newsletter
         <input disabled type="checkbox" {% if setting.newsletter %} checked {% endif %} />
     </label>
@@ -10,10 +11,16 @@
     <label>Competitions
         <input disabled type="checkbox" {% if setting.competitions  %} checked {% endif %} />
     </label>
+    <br/>
+    <i title="Private">lock</i>
+    <label >Email address
+        <input disabled type="checkbox" {% if setting.privatemail %} checked {% endif %} />
+    </label>
 </div>
 <form method="POST" id="edit-settings" action="{{ROOT}}/account/preferences/{{request.user.id}}">
     {% csrf_token %}
     <h3>Change preference settings</h3>
+    <i title="Notifications">notifications</i>
     <label for="newsletter">Newsletter
         <input id="newsletter" name="newsletter" type="checkbox" {% if setting.newsletter %} checked {% endif %} />
     </label>
@@ -22,6 +29,11 @@
     </label>
     <label for="competitions">Competitions
         <input id="competitions" name="competitions" type="checkbox" {% if setting.competitions  %} checked {% endif %} />
+    </label>
+    <br/>
+    <i title="Private">lock</i>
+    <label for="privatemail">Email address
+        <input id="privatemail" name="privatemail" type="checkbox" {% if setting.privatemail %} checked {% endif %} />
     </label>
     <br/>
     <button class="w3-right" id="save-edit-settings"><i class="material-icons">done</i>Save</button>

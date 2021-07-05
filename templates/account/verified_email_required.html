@@ -3,17 +3,14 @@
 {% load socialaccount %}
 {% block title %}Email verification{% endblock %}
 
-{% block nav_href %}{% url 'account_login' %}{% endblock %}
-{% block nav_icon %}
-  <button class="primary"><i class="material-icons">arrow_back</i></button>
-{% endblock %}
 {% block nav_text %}Email Verification{% endblock %}
 {% block nav_auth_links %}{% endblock %}
+{% block nav_noauth_links %}{% endblock %}
 
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
-<i class="material-icons w3-jumbo">hourglass_top</i>
+<i class="w3-jumbo">hourglass_top</i>
 <h1>Verify your email address.</h1>
 <br/>
 <h5>This part of the site requires us to verify that
@@ -21,13 +18,12 @@ you are who you claim to be.<br/>
 For this purpose, we require that you
 verify ownership of your e-mail address. </h5>
 <br/>
-<span class="positive-text">We have sent an email at {{request.user}} for
+<span class="positive-text">We have sent an email at <strong>{{request.user}}</strong> for
 verification. Please click on the link inside that email.</span>
 <br/><br/>
 <h4>If your email address is not correct, then</h4>
 <br/>
-{% url 'account_email' as email_url %}
-<a href="{{ email_url }}"><button class="accent">Change email address</button></a>
+<button onclick="miniWindow('{% url 'account_email' %}')" class="accent" data-icon="edit">Change email address</button>
 </div>
 <br/>
 {% endblock %}
