@@ -439,9 +439,13 @@ button.small > i {
 }
 
 #navbarprofilepic {
-    width: 1.6rem;
-    padding: 0.1rem 0;
+    padding:1px !important;
+    margin:0 !important;
+    margin-bottom:2px !important;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
+    background-color: var(--primary);
 }
 
 .dropdown-box .selected-option,

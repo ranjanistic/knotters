@@ -9,5 +9,4 @@ urlpatterns = [
     path(url.Projects.SUBMIT, submitProject),
     path(url.Projects.PROFILE, profile),
     path(url.Projects.PROFILEEDIT, editProfile),
-    path(url.Projects.PROJECTINFO, projectInfo),
 ]

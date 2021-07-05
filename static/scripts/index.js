@@ -400,7 +400,7 @@ const handleCropImageUpload = (
                         onCropped(croppedB64);
                     } catch (e) {
                         error(
-                            `An error occurred. <br/><button class="primary" onclick="window.location.reload();">Reload</button>`
+                            `An error occurred. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
                     }
                 },

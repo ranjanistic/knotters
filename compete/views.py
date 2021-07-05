@@ -1,7 +1,7 @@
-from django.http.request import HttpRequest
 from main.methods import renderData
-from django.db.models import Q
-from django.http.response import Http404, HttpResponse, HttpResponseForbidden, HttpResponseServerError, JsonResponse
+from django.core.handlers.wsgi import WSGIRequest
+from uuid import UUID
+from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from people.models import User
 from .methods import renderer, sendParticipationWelcomeMail
@@ -12,18 +12,18 @@ from main.strings import code
 from people.models import User
 from main.decorators import require_JSON_body
 from moderation.decorators import moderator_only
-from .models import *
+from .models import Competition, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, sendParticipantInvitationMail, sendSubmissionConfirmedMail
 
 
 @require_GET
-def index(request):
+def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, 'index')
 
 
 @require_GET
-def indexTab(request, tab):
+def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
     try:
         data = getIndexSectionHTML(section=tab, request=request)
         if data:
@@ -35,7 +35,7 @@ def indexTab(request, tab):
 
 
 @require_GET
-def competition(request, compID):
+def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
         data = {"compete": compete}
@@ -50,7 +50,7 @@ def competition(request, compID):
 
 @require_POST
 @require_JSON_body
-def data(request, compID):
+def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
         compete = Competition.objects.get(id=compID)
         data = {
@@ -71,7 +71,7 @@ def data(request, compID):
 
 
 @require_GET
-def competitionTab(request, compID, section):
+def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
         data = getCompetitionSectionHTML(compete, section, request)
@@ -85,7 +85,7 @@ def competitionTab(request, compID, section):
 
 @login_required
 @require_POST
-def createSubmission(request, compID):
+def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     Take participation
     """
@@ -119,7 +119,7 @@ def createSubmission(request, compID):
 
 @login_required
 @require_POST
-def removeMember(request, subID, userID):
+def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """
     Remove member/Withdraw participation
     """
@@ -147,7 +147,7 @@ def removeMember(request, subID, userID):
 @require_POST
 @require_JSON_body
 @login_required
-def invite(request, subID):
+def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     """
     To invite a member in submission, relation to be confirmed via mail link. (Must not be judge or moderator for the competition)
     """
@@ -186,7 +186,7 @@ def invite(request, subID):
 
 @require_GET
 @login_required
-def invitation(request, subID, userID):
+def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """
     Renders invitation action page for invitee to which the url was sent via email.
     """
@@ -216,7 +216,7 @@ def invitation(request, subID, userID):
 
 @require_POST
 @login_required
-def inviteAction(request, subID, userID, action):
+def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -> HttpResponse:
     """
     To accpet/decline participation invitation, by invitee for a submission of a competition.
     """
@@ -253,7 +253,7 @@ def inviteAction(request, subID, userID, action):
 
 @login_required
 @require_POST
-def save(request, compID, subID):
+def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         competition = Competition.objects.get(id=compID)
         submission = Submission.objects.get(
@@ -270,7 +270,7 @@ def save(request, compID, subID):
 @require_POST
 @require_JSON_body
 @login_required
-def finalSubmit(request, compID, subID):
+def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse:
     """
     Already existing participation submission
     """
@@ -305,16 +305,19 @@ def finalSubmit(request, compID, subID):
     except Exception as e:
         raise JsonResponse({'code': code.NO, "error": str(e)})
 
+
 @require_POST
 @require_JSON_body
 @login_required
 @judge_only
-def submitPoints(request:HttpRequest,compID:uuid) -> HttpResponse:
+def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
-        subs = request.POST.get('submissions',None)
-        if not subs: return JsonResponse({'code':code.NO, 'error': 'Invalid submission markings, try again.' })
-        
-        comp = Competition.objects.get(id=compID,judges=request.user.profile,resultDeclared=False,endAt__lt=timezone.now())
+        subs = request.POST.get('submissions', None)
+        if not subs:
+            return JsonResponse({'code': code.NO, 'error': 'Invalid submission markings, try again.'})
+
+        comp = Competition.objects.get(
+            id=compID, judges=request.user.profile, resultDeclared=False, endAt__lt=timezone.now())
         submissions = comp.getValidSubmissions()
         topics = comp.getTopics()
 
@@ -322,19 +325,19 @@ def submitPoints(request:HttpRequest,compID:uuid) -> HttpResponse:
 
         for top in topics:
             modifiedTops[str(top.id)] = []
-        
+
         for sub in subs:
             subID = str(sub['subID']).strip()
             for top in sub['topics']:
                 topID = str(top['topicID']).strip()
                 points = int(top['points'])
                 modifiedTops[topID].append({
-                    subID:points
+                    subID: points
                 })
-    
+
         topicpointsList = []
         for topic in topics:
-            subspointslist =  modifiedTops[str(topic.id)]
+            subspointslist = modifiedTops[str(topic.id)]
             for sub in subspointslist:
                 point = None
                 submission = None
@@ -352,26 +355,30 @@ def submitPoints(request:HttpRequest,compID:uuid) -> HttpResponse:
                         judge=request.user.profile,
                         points=point
                     ))
-        
-        SubmissionTopicPoint.objects.bulk_create(topicpointsList)    
-        return JsonResponse({'code':code.OK })
+
+        SubmissionTopicPoint.objects.bulk_create(topicpointsList)
+        return JsonResponse({'code': code.OK})
     except Exception as e:
         print(e)
-        return JsonResponse({'code':code.NO, 'error':'An error occurred'})
-    
+        return JsonResponse({'code': code.NO, 'error': 'An error occurred'})
+
+
 @require_POST
 @login_required
 @moderator_only
-def declareResults(request:HttpRequest,compID:uuid) -> HttpResponse:
+def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        comp = Competition.objects.get(id=compID,endAt__lt=timezone.now(),resultDeclared=False)
-        
-        if not comp.isModerator(request.user.profile): raise Exception()
+        comp = Competition.objects.get(
+            id=compID, endAt__lt=timezone.now(), resultDeclared=False)
+
+        if not comp.isModerator(request.user.profile):
+            raise Exception()
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getJudgementLink(error="Invalid request"))
-        
+
         declared = comp.declareResults()
-        if not declared: return redirect(comp.getJudgementLink(error="An error occurred."))
+        if not declared:
+            return redirect(comp.getJudgementLink(error="An error occurred."))
         return redirect(comp.getJudgementLink(alert="Results declared!"))
     except Exception as e:
         print(e)

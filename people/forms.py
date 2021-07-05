@@ -1,6 +1,5 @@
 from allauth.account.forms import SignupForm
 from django import forms
-from django.db.models.fields.files import ImageFieldFile
 from .methods import convertToFLname
 
 class CustomSignupForm(SignupForm):

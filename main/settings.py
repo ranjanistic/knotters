@@ -27,10 +27,17 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
     'allauth.socialaccount.providers.discord',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+
+    'allauth_2fa',
 ] + DIVISIONS
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
 SOCIALACCOUNT_ADAPTER = f'{PEOPLE}.adapter.CustomSocialAccountAdapter'
+
+ACCOUNT_ADAPTER = 'allauth_2fa.adapter.OTPAdapter'
 
 ACCOUNT_FORMS = {
     'signup': f'{PEOPLE}.forms.CustomSignupForm',
@@ -48,6 +55,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    'django_otp.middleware.OTPMiddleware',
+
+    'allauth_2fa.middleware.AllauthTwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

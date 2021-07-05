@@ -92,10 +92,10 @@ def setupApprovedProject(project:Project, moderator:Profile) -> bool:
     Creates discord chat channel.
     """
     try:
-        if project.status != code.LIVE:
+        if project.status != code.APPROVED:
             return False
 
-        
+        return True
         created = setupOrgGihtubRepository(
             project.reponame, project.creator, moderator, project.description)
         if not created:

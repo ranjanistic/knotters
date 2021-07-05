@@ -47,6 +47,9 @@ class Competition(models.Model):
     def __str__(self) -> str:
         return self.title
 
+    def getID(self) -> str:
+        return str(self.id).replace('-','')
+
     def getBanner(self) -> str:
         return f"{MEDIA_URL}{str(self.banner)}"
 
@@ -60,7 +63,7 @@ class Competition(models.Model):
             success = f"?a={alert}"
         elif success:
             success = f"?s={success}"
-        return f"/{url.COMPETE}{self.id}{success}{error}"
+        return f"/{url.COMPETE}{self.getID()}{success}{error}"
 
     def participationLink(self) -> str:
         return f"/{url.COMPETE}participate/{self.id}"

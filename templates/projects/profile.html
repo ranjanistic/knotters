@@ -43,7 +43,7 @@
         {% if user.is_authenticated and user.profile == project.creator %}
         <div class="pallete w3-center" id="edit-pallete">
             <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
-            <input type="file" id="uploadprojectimage" hidden accept="image/*" />
+            <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
             <button class="active" type="button" id="upload-button">
               <i class="material-icons">image</i>
               <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>

@@ -58,6 +58,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.email
 
+    def getID(self)->str:
+        return str(self.id).replace('-','')
+
     def has_perm(self, perm, obj=None):
         return self.is_admin
 
@@ -71,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.first_name
 
     def getLink(self) -> str:
-        return f"/{APPNAME}/profile/{self.id}"
+        return f"/{APPNAME}/profile/{self.getID()}"
 
 
 class Topic(models.Model):
@@ -112,8 +115,9 @@ class Profile(models.Model):
     def save(self, *args, **kwargs):
         try:
             previous = Profile.objects.get(id=self.id)
-            if previous.picture != defaultImagePath() and (previous.picture != self.picture or not str(previous.picture).startswith('http')):
-                previous.picture.delete(False)
+            if previous.picture != self.picture:
+                if previous.picture != defaultImagePath() and not str(previous.picture).startswith('http'):
+                    previous.picture.delete(False)
         except:
             pass
         super(Profile, self).save(*args, **kwargs)
@@ -143,7 +147,7 @@ class Profile(models.Model):
             success = f"?s={success}"
         if self.githubID:
             return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
-        return f"/{APPNAME}/profile/{self.user.id.replace('-','')}{success}{alert}{error}"
+        return f"/{APPNAME}/profile/{self.user.getID()}{success}{alert}{error}"
 
     def isReporter(self,profile):
         if profile in self.reporters.all(): return True

@@ -14,6 +14,7 @@ urlpatterns = [
     path(url.ROBOTS_TXT, Robots.as_view(), name=url.ROBOTS_TXT),
     path(url.SERVICE_WORKER, ServiceWorker.as_view(), name=url.SERVICE_WORKER),
     path(url.OFFLINE, offline),
+    path(url.ACCOUNTS, include('allauth_2fa.urls')),
     path(url.ACCOUNTS, include('allauth.urls')),
     path(url.PROJECTS, include(f'{PROJECTS}.urls')),
     path(url.COMPETE, include(f'{COMPETE}.urls')),

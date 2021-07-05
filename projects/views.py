@@ -1,13 +1,14 @@
+from django.core.handlers.wsgi import WSGIRequest
+from uuid import UUID
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from moderation.models import Moderation
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
-from main.strings import code, MODERATION
+from main.strings import code
 from moderation.methods import requestModerationForObject
 from .models import Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
@@ -15,20 +16,21 @@ from .apps import APPNAME
 
 
 @require_GET
-def allProjects(request):
+def allProjects(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=code.MODERATION)
     return renderer(request, 'index', {"projects": projects})
 
 
 @require_GET
-def profile(request, reponame):
+def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame)
         print(project)
         if project.status == code.APPROVED:
             return renderer(request, 'profile', {"project": project})
         else:
-            mod = Moderation.objects.filter(project=project,type=APPNAME,status__in=[code.REJECTED,code.MODERATION]).order_by('-respondOn')[0]
+            mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
+                                            code.REJECTED, code.MODERATION]).order_by('-respondOn')[0]
             if request.user.is_authenticated and (project.creator == request.user.profile or mod.moderator == request.user.profile):
                 return redirect(mod.getLink())
         raise Exception()
@@ -38,7 +40,7 @@ def profile(request, reponame):
 
 @require_POST
 @login_required
-def editProfile(request, projectID, section):
+def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         changed = False
         project = Project.objects.get(
@@ -72,7 +74,7 @@ def editProfile(request, projectID, section):
 
 @require_GET
 @login_required
-def create(request):
+def create(request: WSGIRequest) -> HttpResponse:
     tags = Tag.objects.all()[0:5]
     categories = Category.objects.all()
     return renderer(request, 'create', {
@@ -84,7 +86,7 @@ def create(request):
 @require_POST
 @login_required
 @require_JSON_body
-def validateField(request, field):
+def validateField(request: WSGIRequest, field: str) -> JsonResponse:
     try:
         data = request.POST[field]
         if field == 'reponame':
@@ -101,7 +103,7 @@ def validateField(request, field):
 
 @require_POST
 @login_required
-def submitProject(request):
+def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
         name = request.POST["projectname"]
@@ -125,7 +127,8 @@ def submitProject(request):
             projectobj.save()
         except:
             pass
-        mod = requestModerationForObject(projectobj, APPNAME, userRequest, referURL)
+        mod = requestModerationForObject(
+            projectobj, APPNAME, userRequest, referURL)
         if not mod:
             projectobj.delete()
             return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
@@ -135,15 +138,3 @@ def submitProject(request):
         if projectobj:
             projectobj.delete()
         return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
-
-
-@require_POST
-def projectInfo(request, projectID, info):
-    try:
-        if info == "contributors":
-            project = Project.objects.get(id=projectID, status=code.APPROVED)
-            return HttpResponse(info)
-        else:
-            raise Exception()
-    except:
-        raise Http404()

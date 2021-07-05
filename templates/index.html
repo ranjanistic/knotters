@@ -235,7 +235,6 @@
             } else if("{{request.GET.a}}") {
                 message("{{request.GET.a}}");
             }
-            window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
         </script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}

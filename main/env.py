@@ -30,6 +30,6 @@ ISPRODUCTION = ENV == environment.PRODUCTION
 
 VERSION = 'v--41'
     
-if ISPRODUCTION:
+if not ISPRODUCTION:
     from main.__version__ import VERSION as V
     VERSION = V

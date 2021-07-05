@@ -1,15 +1,16 @@
-from django.http.request import HttpRequest
+from django.core.handlers.wsgi import WSGIRequest
 from allauth.account.signals import user_signed_up
 from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
 from allauth.socialaccount.models import SocialAccount
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.http.response import HttpResponse
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from django.template.loader import render_to_string
 from main.methods import renderData, renderView
-from main.strings import code, profile as profileString 
+from main.strings import code, profile as profileString
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
 from moderation.models import Moderation
@@ -17,7 +18,7 @@ from .models import ProfileSetting, User, Profile, defaultImagePath
 from .apps import APPNAME
 
 
-def renderer(request, file, data={}):
+def renderer(request:WSGIRequest, file:str, data:dict={}) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
 
 
@@ -76,21 +77,23 @@ def filterBio(string: str) -> str:
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
                     profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION]
 
-SETTING_SECTIONS = [profileString.setting.ACCOUNT, profileString.setting.PREFERENCE]
+SETTING_SECTIONS = [profileString.setting.ACCOUNT,
+                    profileString.setting.PREFERENCE]
 
 
-def getProfileSectionData(section: str, profile: Profile, request: HttpRequest) -> dict:
+def getProfileSectionData(section: str, profile: Profile, request: WSGIRequest) -> dict:
     data = renderData({
         'self': request.user == profile.user,
         'person': profile.user
-    },APPNAME)
+    }, APPNAME)
     if section == profileString.OVERVIEW:
         pass
     if section == profileString.PROJECTS:
         if request.user == profile.user:
             projects = Project.objects.filter(creator=profile)
         else:
-            projects = Project.objects.filter(creator=profile, status=code.LIVE)
+            projects = Project.objects.filter(
+                creator=profile, status=code.LIVE)
         data[code.LIVE] = projects.filter(status=code.APPROVED)
         data[code.MODERATION] = projects.filter(status=code.MODERATION)
         data[code.REJECTED] = projects.filter(status=code.REJECTED)
@@ -107,7 +110,7 @@ def getProfileSectionData(section: str, profile: Profile, request: HttpRequest) 
     return data
 
 
-def getProfileSectionHTML(profile: Profile, section: str, request: HttpRequest) -> str:
+def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) -> str:
     if not PROFILE_SECTIONS.__contains__(section):
         return False
     data = {}
@@ -118,18 +121,20 @@ def getProfileSectionHTML(profile: Profile, section: str, request: HttpRequest) 
     return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
 
 
-def getSettingSectionData(section: str, user: User, request: HttpRequest) -> dict:
+def getSettingSectionData(section: str, user: User, request: WSGIRequest) -> dict:
     data = renderData(fromApp=APPNAME)
     if section == profileString.setting.ACCOUNT:
         data['oauths'] = SocialAccount.objects.filter(user=user)
         pass
     if section == profileString.setting.PREFERENCE:
-        data['setting'] = ProfileSetting.objects.get(profile=user.profile)
-        pass
+        try:
+            data['setting'] = ProfileSetting.objects.get(profile=user.profile)
+        except:
+            pass
     return data
 
 
-def getSettingSectionHTML(user: User,section: str, request: HttpRequest) -> dict:
+def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> dict:
     if not SETTING_SECTIONS.__contains__(section) or request.user != user:
         return False
     data = {}
@@ -149,6 +154,7 @@ def on_user_create(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
 
+
 @receiver(post_save, sender=Profile)
 def on_profile_create(sender, instance, created, **kwargs):
     """
@@ -159,7 +165,6 @@ def on_profile_create(sender, instance, created, **kwargs):
         ProfileSetting.objects.create(profile=instance)
         addUserToMailingServer(
             instance.user.email, instance.user.first_name, instance.user.last_name)
-
 
 
 @receiver(post_delete, sender=User)

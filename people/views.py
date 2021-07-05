@@ -1,24 +1,24 @@
+from uuid import UUID
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
+from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import redirect
-from django.db.models import Q
 from allauth.account.decorators import verified_email_required, login_required
-from allauth.account.models import EmailAddress
-from allauth.socialaccount.models import SocialAccount
 from django.views.decorators.http import require_GET, require_POST
+from main.methods import base64ToImageFile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML
 from .models import ProfileSetting, User, Profile
-from main.methods import base64ToImageFile
 from .methods import convertToFLname, filterBio
 
 
 @require_GET
-def index(request):
+def index(request: WSGIRequest) -> HttpResponse:
     users = User.objects.filter(is_active=True)
     return renderer(request, 'index', {"people": users})
 
 
 @require_GET
-def profile(request, userID):
+def profile(request: WSGIRequest, userID: UUID) -> HttpResponse:
+    print(type(request))
     if request.user.is_authenticated and (request.user.id == userID or request.user.profile.githubID == userID):
         return renderer(request, 'profile', {"person": request.user})
     else:
@@ -37,7 +37,7 @@ def profile(request, userID):
 
 
 @require_GET
-def profileTab(request, userID, section):
+def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.id == userID:
             user = request.user
@@ -55,7 +55,7 @@ def profileTab(request, userID, section):
 
 @require_GET
 @login_required
-def settingTab(request, section):
+def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         data = getSettingSectionHTML(request.user, section, request)
         if data:
@@ -68,7 +68,7 @@ def settingTab(request, section):
 
 @require_POST
 @verified_email_required
-def editProfile(request, section):
+def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         profile = Profile.objects.get(user=request.user)
         if section == 'pallete':
@@ -94,9 +94,10 @@ def editProfile(request, section):
     except:
         raise HttpResponseForbidden()
 
+
 @require_POST
 @login_required
-def accountprefs(request, userID):
+def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
     try:
         if str(request.user.id) != str(userID):
             raise Exception()

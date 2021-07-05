@@ -19,8 +19,14 @@
         <h5 class="dead-text">Status: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">Category: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
         <h2>{{moderation.project.name}}</h2>
+        {% if moderation.project.isLive %}
+        <a target="_blank" href="{{moderation.project.getRepoLink}}"><h4 class="positive-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4></a>
+        {% else %}
         <h4 class="dead-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4>
+        {% endif %}
+        {% if moderation.referURL %}
         <a onclick="miniWindow('{{moderation.referURL}}')" title="Be careful with the URLs provided by requestors." class="positive-text"><strong>{{moderation.referURL}}</strong></a><br/>
+        {% endif %}
 
         Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
         <form method="POST" action="{{ROOT}}/message/{{moderation.id}}">
@@ -37,9 +43,9 @@
         <br/><br/>
         <strong>Moderator response</strong>
         <textarea required name="responsedata" class="wide" rows="4" maxlength="8000"
-        {% if not ismoderator or moderation.resolved %}disabled placeholder="Nothing yet."{% endif %}
+        {% if not ismoderator or moderation.resolved %}disabled placeholder="No response"{% endif %}
         {% if ismoderator and not moderation.resolved %}placeholder="This is visible to the requestor."{% endif %}
-        >{{moderation.response}}</textarea>
+        >{% if moderation.response %}{{moderation.response}}{% endif %}</textarea>
         {% if not ismoderator %}<button class="w3-right report-button"><i class="material-icons">warning</i>Report</button><br/>{% endif %}
         {% if ismoderator and not moderation.resolved %}
         <button type="submit" class="positive small w3-right" data-icon="send">Save</button>
@@ -61,9 +67,12 @@
         <button class="big-button positive modaction" id="approve" data-icon="done">Approve</button>
         <button class="big-button negative modaction" id="reject" data-icon="close">Reject</button>
         {% else %}
-        <i class="w3-jumbo material-icons">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
-        <h3 class="text-accent">Action taken</h3>
-        <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}Pending{% endif %}</h4>
+            <i class="w3-jumbo material-icons">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
+            <h3 class="text-accent">Action taken</h3>
+            <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}Pending{% endif %}</h4>
+            {% if moderation.project.isLive %} 
+            <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">View</button></a>
+            {% endif %}
             {% if not ismoderator and moderation.resolved and moderation.isRejected %}
             <h2>{{moderation.project.moderationRetriesLeft}} retries left.</h2>
                 {% if moderation.project.canRetryModeration %}

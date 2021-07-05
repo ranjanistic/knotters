@@ -174,10 +174,10 @@ class ServiceWorker(TemplateView):
                 f"{MEDIA_URL}*",
                 f"/{url.REDIRECTOR}*",
                 f"/{url.ACCOUNTS}*",
-                f"/{url.LANDING}",
-                f"/{url.APPLANDING}",
                 f"/{url.MODERATION}*",
                 f"/{url.COMPETE}*",
+                f"/{url.LANDING}",
+                replaceUrlParamsWithStr(f"/{url.APPLANDING}"),
                 replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
                 replaceUrlParamsWithStr(
                     f"/{url.PROJECTS}{url.Projects.CREATE}"),

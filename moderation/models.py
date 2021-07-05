@@ -43,6 +43,9 @@ class Moderation(models.Model):
             return self.competition.title
         return self.id
 
+    def getID(self)->str:
+        return str(self.id).replace('-','')
+
     def approve(self) -> bool:
         now = timezone.now()
         self.status = code.APPROVED
@@ -70,13 +73,13 @@ class Moderation(models.Model):
             error = f"?e={error}"
         elif alert:
             alert = f"?a={alert}"
-        return f"/{url.MODERATION}{self.id}{error}{alert}"
+        return f"/{url.MODERATION}{self.getID()}{error}{alert}"
 
     def reapplyLink(self):
-        return f"/{url.MODERATION}reapply/{self.id}"
+        return f"/{url.MODERATION}reapply/{self.getID()}"
 
     def approveCompeteLink(self):
-        return f"/{url.MODERATION}compete/{self.id}"
+        return f"/{url.MODERATION}compete/{self.getID()}"
     def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
             return profile == self.project.creator

@@ -54,7 +54,7 @@
         {% if user.is_authenticated and user == person %}
           <div class="pallete w3-center" id="edit-pallete">
             <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" style="opacity:0.5" />
-            <input type="file" id="uploadprofilepic" hidden accept="image/*" />
+            <input type="file" id="uploadprofilepic" hidden accept="image/png, image/jpg, image/jpeg" />
             <button class="active" type="button" id="upload-button">
               <i class="material-icons">image</i>
               <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
