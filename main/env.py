@@ -28,8 +28,8 @@ MEDIA_URL = env('MEDIA_URL')
 
 ISPRODUCTION = ENV == environment.PRODUCTION
 
-VERSION = 'v--41'
+VERSION = 'v--52'
     
-if not ISPRODUCTION:
+if ISPRODUCTION:
     from main.__version__ import VERSION as V
     VERSION = V

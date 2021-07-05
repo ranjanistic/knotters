@@ -1,5 +1,6 @@
+import os
 from django.views.generic import TemplateView
-from django.http.response import Http404, HttpResponse, JsonResponse
+from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET
 from django.shortcuts import redirect
 from main.settings import STATIC_URL, MEDIA_URL
@@ -12,10 +13,12 @@ from .methods import renderData, renderView, replaceUrlParamsWithStr
 from .decorators import dev_only
 from projects.models import Project
 from compete.models import Competition
-from .methods import renderView
-from .strings import code, PROJECTS, COMPETE, PEOPLE
+from .methods import renderView, mapFilePaths
+from .strings import code, COMPETE
+from .settings import BASE_DIR
 from people.models import User
 from allauth.account.models import EmailAddress
+
 
 @require_GET
 def offline(request):
@@ -27,25 +30,31 @@ def offline(request):
 def mailtemplate(request, template):
     return renderView(request, f'account/email/{template}')
 
+
 @require_GET
 @dev_only
-def createMockUsers(request,total):
+def createMockUsers(request, total):
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         for i in range(int(total)):
-            r = requests.post(f'{SITE}/auth/signup/',headers=headers,data={'email':f"testing{i}@knotters.org","first_name":f"Testing{i}",'password1':'ABCD@12345678'})
+            r = requests.post(f'{SITE}/auth/signup/', headers=headers, data={
+                              'email': f"testing{i}@knotters.org", "first_name": f"Testing{i}", 'password1': 'ABCD@12345678'})
             if r.status_code != 200:
                 break
-        EmailAddress.objects.filter(email__startswith=f"testing",email__endswith="@knotters.org").update(verified=True)
+        EmailAddress.objects.filter(
+            email__startswith=f"testing", email__endswith="@knotters.org").update(verified=True)
         return HttpResponse('ok')
     except Exception as e:
         return HttpResponse(str(e))
 
+
 @require_GET
 @dev_only
 def clearMockUsers(request):
-    User.objects.filter(email__startswith=f"testing",email__endswith="@knotters.org").delete()
+    User.objects.filter(email__startswith=f"testing",
+                        email__endswith="@knotters.org").delete()
     return HttpResponse('ok')
+
 
 @require_GET
 def index(request):
@@ -70,8 +79,8 @@ def redirector(request):
     next = '/' if str(next).strip() == '' or not next or next == 'None' else next
     if next.startswith("/"):
         return redirect(next)
-    else: 
-        return renderView(request,'forward',{'next':next})
+    else:
+        return renderView(request, 'forward', {'next': next})
 
 
 @require_GET
@@ -91,8 +100,9 @@ def docs(request, type):
 def landing(request):
     return renderView(request, "landing")
 
+
 @require_GET
-def applanding(request,subapp):
+def applanding(request, subapp):
     return renderView(request, "landing", fromApp=subapp)
 
 
@@ -103,9 +113,12 @@ class Robots(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context = {
-            'admin': ADMINPATH
+            'admin': ADMINPATH,
+            'static': STATIC_URL,
+            'media': MEDIA_URL
         }
         return context
+
 
 class ServiceWorker(TemplateView):
     content_type = 'application/javascript'
@@ -114,49 +127,18 @@ class ServiceWorker(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        staticAssets = mapFilePaths(os.path.join(BASE_DIR, 'static/'))
+        assets = []
+        rep = str(os.getcwd()+"\\")
+        for stat in staticAssets:
+            path = str(stat).replace(rep, '/')
+            if path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2')) and not assets.__contains__(path):
+                assets.append(path)
+
+        assets.append(f"/{url.OFFLINE}")
         context = renderData({
             'OFFLINE': f"/{url.OFFLINE}",
-            'assets': json.dumps([
-                f"/{url.OFFLINE}",
-                f"{STATIC_URL}manifest.json",
-                f"{STATIC_URL}html2canvas.min.js",
-                f"{STATIC_URL}alertify/themes/default.min.css",
-                f"{STATIC_URL}alertify/alertify.min.css",
-                f"{STATIC_URL}alertify/alertify.min.js",
-                f"{STATIC_URL}chartjs/chart.min.js",
-                f"{STATIC_URL}cropper/cropper.min.css",
-                f"{STATIC_URL}cropper/cropper.min.js",
-                f"{STATIC_URL}swiper/swiper-bundle.min.css",
-                f"{STATIC_URL}swiper/swiper-bundle.min.js",
-                f"{STATIC_URL}fonts/Poppins/Devnagri.woff2",
-                f"{STATIC_URL}fonts/Poppins/Latin.woff2",
-                f"{STATIC_URL}fonts/Poppins/LatinX.woff2",
-                f"{STATIC_URL}fonts/Questrial/Latin.woff2",
-                f"{STATIC_URL}fonts/Questrial/LatinX.woff2",
-                f"{STATIC_URL}fonts/Questrial/Vietnamese.woff2",
-                f"{STATIC_URL}fonts/Poppins.css",
-                f"{STATIC_URL}fonts/Questrial.css",
-                f"{STATIC_URL}graphics/thirdparty/discord.png",
-                f"{STATIC_URL}graphics/thirdparty/facebook.png",
-                f"{STATIC_URL}graphics/thirdparty/github-dark.png",
-                f"{STATIC_URL}graphics/thirdparty/github.png",
-                f"{STATIC_URL}graphics/thirdparty/google.png",
-                f"{STATIC_URL}graphics/thirdparty/instagram-dark.png",
-                f"{STATIC_URL}graphics/thirdparty/instagram.png",
-                f"{STATIC_URL}graphics/thirdparty/linkedin.png",
-                f"{STATIC_URL}graphics/thirdparty/twitter.png",
-                f"{STATIC_URL}icons/material.css",
-                f"{STATIC_URL}icons/material.woff2",
-                f"{STATIC_URL}scripts/theme.js",
-                f"{STATIC_URL}scripts/index.js",
-                f"{STATIC_URL}scripts/autostart.js",
-                f"{STATIC_URL}styles/w3.css",
-                f"{STATIC_URL}styles/theme.css",
-                f"{STATIC_URL}styles/overrides.css",
-                f"{STATIC_URL}styles/scrollbar.css",
-                f"{STATIC_URL}styles/loader.css",
-                f"{STATIC_URL}styles/index.css",
-            ]),
+            'assets': json.dumps(assets),
             'noOfflineList': json.dumps([
                 replaceUrlParamsWithStr(
                     f"/{url.COMPETE}{url.Compete.COMPETETABSECTION}"),

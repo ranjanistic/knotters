@@ -1,13 +1,11 @@
 from people.models import Profile
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
-from .models import Category, Project, Tag, defaultImagePath
 from main.bots import Github, GithubKnotters
+from .models import Category, Project, Tag
 from github import Organization, NamedUser, Repository
 from main.methods import renderView
 from .apps import APPNAME
 from main.strings import code
-
+from .receivers import *
 
 
 def renderer(request, file, data={}):
@@ -187,13 +185,3 @@ def setupProjectDiscordChannel(reponame:str, creator:Profile, moderator:Profile)
     Creates discord chat channel for corresponding project.
     """
     return True
-
-@receiver(post_delete, sender=Project)
-def on_project_delete(sender, instance, **kwargs):
-    """
-    Project cleanup.
-    """
-    try:
-        if instance.image != defaultImagePath():
-            instance.image.delete(save=False)
-    except Exception as e: pass

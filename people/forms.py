@@ -3,10 +3,11 @@ from django import forms
 from .methods import convertToFLname
 
 class CustomSignupForm(SignupForm):
+    first_name = forms.CharField(max_length=50, label='Your Name',help_text="Your Name",widget=forms.TextInput(attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type':'text'}))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    first_name = forms.CharField(max_length=50, label='Your Name',help_text="Your Name",widget=forms.TextInput(attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type':'text'}))
     
     def save(self,request):
         try:

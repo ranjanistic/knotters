@@ -1,20 +1,21 @@
 
+from django.utils import timezone
 from django.template.loader import render_to_string
+from django.http.response import HttpResponse
+from django.core.handlers.wsgi import WSGIRequest
 from main.methods import renderView, sendActionEmail, sendAlertEmail, renderData
 from main.strings import compete
-from django.db.models import Q
-from people.models import Profile
 from main.env import SITE
-from django.utils import timezone
+from people.models import Profile
 from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
-def renderer(request, file, data={}):
+def renderer(request:WSGIRequest, file:str, data:dict={}) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def getIndexSectionHTML(section, request):
+def getIndexSectionHTML(section:str, request:WSGIRequest) -> str:
     try:
         now = timezone.now()
         data = {}
@@ -44,7 +45,7 @@ def getIndexSectionHTML(section, request):
         return False
 
 
-def getCompetitionSectionData(section, competition, request):
+def getCompetitionSectionData(section:str, competition:Competition, request:WSGIRequest) -> dict:
     data = renderData({
         'competition': competition
     }, fromApp=APPNAME)
@@ -85,7 +86,7 @@ def getCompetitionSectionData(section, competition, request):
     return data
 
 
-def getCompetitionSectionHTML(competition, section, request):
+def getCompetitionSectionHTML(competition:Competition, section:str, request:WSGIRequest) -> str:
     if not compete.COMPETE_SECTIONS.__contains__(section):
         return False
     data = {}
@@ -96,7 +97,7 @@ def getCompetitionSectionHTML(competition, section, request):
     return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
 
 
-def sendParticipantInvitationMail(profile: Profile, host: Profile, submission: Submission):
+def sendParticipantInvitationMail(profile: Profile, host: Profile, submission: Submission) -> bool:
     """
     Email invitation to a user for participation with a submission in a competition.
     """
@@ -110,7 +111,7 @@ def sendParticipantInvitationMail(profile: Profile, host: Profile, submission: S
     )
 
 
-def sendParticipationWelcomeMail(profile: Profile, submission: Submission):
+def sendParticipationWelcomeMail(profile: Profile, submission: Submission) -> bool:
     """
     Email alert to a participants of a submission notifying their participation confirmation
     """
@@ -124,7 +125,7 @@ def sendParticipationWelcomeMail(profile: Profile, submission: Submission):
     )
 
 
-def sendSubmissionConfirmedMail(profiles: list, submission: Submission):
+def sendSubmissionConfirmedMail(profiles: list, submission: Submission) -> bool:
     """
     Email alert to all participants of a submission indicating their submission has been submitted successfully.
     """

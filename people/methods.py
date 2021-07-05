@@ -1,54 +1,23 @@
 from django.core.handlers.wsgi import WSGIRequest
-from allauth.account.signals import user_signed_up
-from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
-from allauth.socialaccount.models import SocialAccount
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
 from django.http.response import HttpResponse
-from allauth.socialaccount.providers.github.provider import GitHubProvider
-from allauth.socialaccount.providers.google.provider import GoogleProvider
-from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from django.template.loader import render_to_string
 from main.methods import renderData, renderView
 from main.strings import code, profile as profileString
-from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from projects.models import Project
 from moderation.models import Moderation
-from .models import ProfileSetting, User, Profile, defaultImagePath
+from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
+from .receivers import *
 
 
-def renderer(request:WSGIRequest, file:str, data:dict={}) -> HttpResponse:
+def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
-
-
-def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
-    if socialaccount.provider == GitHubProvider.id:
-        return socialaccount.extra_data['avatar_url']
-    if socialaccount.provider == GoogleProvider.id:
-        link = str(socialaccount.extra_data['picture'])
-        linkpart = link.split("=")[0]
-        sizesplit = link.split("=")[1].split("-")
-        sizesplit.remove(sizesplit[0])
-        return "=".join([linkpart, "-".join(["s512", "-".join(sizesplit)])])
-    if socialaccount.provider == DiscordProvider.id:
-        return f"https://cdn.discordapp.com/avatars/{socialaccount.uid}/{socialaccount.extra_data['avatar']}.png?size=1024"
-    return defaultImagePath()
-
-
-def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
-    url = ghSocial.get_profile_url()
-    try:
-        urlparts = str(url).split('/')
-        return urlparts[len(urlparts)-1]
-    except:
-        return None
-
 
 def convertToFLname(string: str) -> str and str:
     """
     Converts the given string to first and last name format.
 
+    :string: Assuming a full name in this parameter, segragation of name parts will take place.
     :returns: firtsname, lastname
     """
     name = str(string)
@@ -67,6 +36,11 @@ def convertToFLname(string: str) -> str and str:
 
 
 def filterBio(string: str) -> str:
+    """
+    Trims given string (assuming to be profile bio) to a certain length limit.
+
+    :string: Assuming this to be user profile bio, operations will take place.
+    """
     bio = str(string)
     if len(bio) > 120:
         bio = bio[:(120-len(bio))]
@@ -124,7 +98,6 @@ def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) 
 def getSettingSectionData(section: str, user: User, request: WSGIRequest) -> dict:
     data = renderData(fromApp=APPNAME)
     if section == profileString.setting.ACCOUNT:
-        data['oauths'] = SocialAccount.objects.filter(user=user)
         pass
     if section == profileString.setting.PREFERENCE:
         try:
@@ -134,7 +107,7 @@ def getSettingSectionData(section: str, user: User, request: WSGIRequest) -> dic
     return data
 
 
-def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> dict:
+def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str:
     if not SETTING_SECTIONS.__contains__(section) or request.user != user:
         return False
     data = {}
@@ -143,103 +116,3 @@ def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> dic
             data = getSettingSectionData(sec, user, request)
             break
     return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
-
-
-@receiver(post_save, sender=User)
-def on_user_create(sender, instance, created, **kwargs):
-    """
-    Creates Profile 121 after new User creation.
-    Adds user to mailing server.
-    """
-    if created:
-        Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=Profile)
-def on_profile_create(sender, instance, created, **kwargs):
-    """
-    Creates Setting 121 after new Profile creation.
-    Adds user to mailing server.
-    """
-    if created:
-        ProfileSetting.objects.create(profile=instance)
-        addUserToMailingServer(
-            instance.user.email, instance.user.first_name, instance.user.last_name)
-
-
-@receiver(post_delete, sender=User)
-def on_user_delete(sender, instance, **kwargs):
-    """
-    User cleanup.
-    """
-    removeUserFromMailingServer(instance.email)
-
-
-@receiver(post_delete, sender=Profile)
-def on_profile_delete(sender, instance, **kwargs):
-    """
-    Profile cleanup.
-    """
-    try:
-        if instance.picture != defaultImagePath() or not str(instance.picture).startswith('http'):
-            instance.picture.delete(save=False)
-    except:
-        pass
-
-
-@receiver(user_signed_up)
-def on_user_signup(request, user, **kwargs):
-    try:
-        profile = Profile.objects.get(user=user)
-        accs = SocialAccount.objects.filter(user=user)
-        for acc in accs:
-            profile.picture = getProfileImageBySocialAccount(acc)
-            if acc.provider == GitHubProvider.id:
-                profile.githubID = getUsernameFromGHSocial(acc)
-                break
-        profile.save()
-    except:
-        pass
-
-
-@receiver(social_account_removed)
-def social_removed(request, socialaccount, **kwargs):
-    if socialaccount.provider == GitHubProvider.id:
-        profile = Profile.objects.get(user=socialaccount.user)
-        profile.githubID = None
-        profile.save()
-
-
-@receiver(social_account_added)
-def social_added(request, sociallogin, **kwargs):
-    try:
-        if sociallogin.account.provider == GitHubProvider.id:
-            data = SocialAccount.objects.get(
-                user=sociallogin.user, provider=GitHubProvider.id)
-            if data:
-                profile = Profile.objects.get(user=sociallogin.user)
-                profile.githubID = getUsernameFromGHSocial(data)
-                profile.save()
-    except:
-        pass
-
-
-@receiver(social_account_updated)
-def social_updated(request, sociallogin, **kwargs):
-    if sociallogin.account.provider == GitHubProvider.id:
-        profile = Profile.objects.get(user=sociallogin.account.user)
-        data = SocialAccount.objects.get(
-            user=sociallogin.account.user, provider=GitHubProvider.id)
-        profile.githubID = getUsernameFromGHSocial(data)
-        profile.save()
-
-
-@receiver(pre_social_login)
-def before_social_login(request, sociallogin, **kwargs):
-    if sociallogin.is_existing:
-        return
-    try:
-        user = User.objects.get(email=sociallogin.user)
-        sociallogin.connect(request, user)
-    except:
-        pass

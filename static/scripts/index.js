@@ -9,6 +9,17 @@ const code = {
     NO: "NO",
 };
 
+const logOut = async (
+    afterLogout = (_) => {
+        window.location.replace("/");
+    }
+) => {
+    const done = await postRequest("/auth/logout/");
+    if (!done.location) return error("Failed to logout");
+    message("Logged out successfully");
+    afterLogout();
+};
+
 const newUpdateDialog = (newServiceWorker) => {
     alertify
         .confirm(
@@ -551,3 +562,6 @@ const loadReporters = () => {
         };
     });
 };
+
+const NegativeText = (text = "") =>
+    `<span class="negative-text">${text}</span>`;

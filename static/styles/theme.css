@@ -17,21 +17,21 @@
     --head-font: "Poppins", sans-serif;
     --body-font: "Questrial", sans-serif;
     --delay: 0.3s;
-  }
-  
-  [data-theme="dark"] {
-    --primary: #131313;
-    --primary-text: #ffffff;
-    --secondary: #1c1b23;
+}
+
+[data-theme="dark"] {
+    --primary: #000000;
+    --primary-text: #eaeaea;
+    --secondary: #05050a;
     --secondary-text: #ffffff;
-    --tertiary: #333333;
-    --tertiary-text: #dfdfdf;
-    --accent: #ec9f45;
+    --tertiary: #151313;
+    --tertiary-text: #ffffff;
+    --accent: #de9846;
     --accent-text: #000000;
-    --active: #36c998;
+    --active: #4dbb96;
     --active-text: #000000;
-    --positive: #7696d3;
+    --positive: #7796d0;
     --positive-text: #000000;
-    --negative: #d66f68;
+    --negative: #ce6862;
     --negative-text: #000000;
-  }
+}

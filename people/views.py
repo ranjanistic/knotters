@@ -18,7 +18,6 @@ def index(request: WSGIRequest) -> HttpResponse:
 
 @require_GET
 def profile(request: WSGIRequest, userID: UUID) -> HttpResponse:
-    print(type(request))
     if request.user.is_authenticated and (request.user.id == userID or request.user.profile.githubID == userID):
         return renderer(request, 'profile', {"person": request.user})
     else:
@@ -88,7 +87,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 profile.user.save()
                 profile.bio = filterBio(bio)
                 profile.save()
-                return redirect(profile.getLink(success=f"Pallete updated"), permanent=True)
+                return redirect(profile.getLink())
             except:
                 return redirect(profile.getLink(error=f"Problem occurred."))
     except:
@@ -96,25 +95,26 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
 
 
 @require_POST
-@login_required
+@verified_email_required
 def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
     try:
         if str(request.user.id) != str(userID):
             raise Exception()
-        try:
-            newsletter = True if str(request.POST.get(
-                'newsletter', 'off')) != 'off' else False
-            recommendations = True if str(request.POST.get(
-                'recommendations', 'off')) != 'off' else False
-            competitions = True if str(request.POST.get(
-                'competitions', 'off')) != 'off' else False
-            ProfileSetting.objects.filter(profile=request.user.profile).update(
-                newsletter=newsletter,
-                recommendations=recommendations,
-                competitions=competitions,
-            )
-            return redirect(request.user.profile.getLink(alert="Account preferences saved."))
-        except:
-            raise Exception()
-    except:
-        return redirect(request.user.profile.getLink(error="Invalid preferences provided"))
+        newsletter = True if str(request.POST.get(
+            'newsletter', 'off')) != 'off' else False
+        recommendations = True if str(request.POST.get(
+            'recommendations', 'off')) != 'off' else False
+        competitions = True if str(request.POST.get(
+            'competitions', 'off')) != 'off' else False
+        privatemail = True if str(request.POST.get(
+            'privatemail', 'off')) != 'off' else False
+        ProfileSetting.objects.filter(profile=request.user.profile).update(
+            newsletter=newsletter,
+            recommendations=recommendations,
+            competitions=competitions,
+            privatemail=privatemail
+        )
+        return redirect(request.user.profile.getLink(alert="Account preferences saved."))
+    except Exception as e:
+        print(e)
+        return redirect(request.user.profile.getLink(error="An error occurred"))

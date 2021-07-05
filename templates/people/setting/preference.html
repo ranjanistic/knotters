@@ -17,7 +17,7 @@
         <input disabled type="checkbox" {% if setting.privatemail %} checked {% endif %} />
     </label>
 </div>
-<form method="POST" id="edit-settings" action="{{ROOT}}/account/preferences/{{request.user.id}}">
+<form method="POST" id="edit-settings" action="{{ setting.savePreferencesLink }}">
     {% csrf_token %}
     <h3>Change preference settings</h3>
     <i title="Notifications">notifications</i>

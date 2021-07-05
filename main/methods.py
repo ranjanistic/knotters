@@ -1,15 +1,16 @@
 import base64
+import os
 from django.http.response import HttpResponse
 import requests
 import re
+
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.core.files.base import ContentFile, File
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from .env import ISPRODUCTION, PUBNAME, MAILUSER, SITE, VERSION
-from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
-from .strings import DIVISIONS
+from .env import ISPRODUCTION
+from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
 
 
 def renderData(data: dict = {}, fromApp: str = '') -> dict:
@@ -28,7 +29,28 @@ def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = 
 
 
 def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
+    """
+    Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
+    """
     return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
+
+
+def mapFilePaths(dir_name, traversed=[], results=[]):
+    
+    dirs = os.listdir(dir_name)
+    if dirs:
+        for f in dirs:
+            new_dir = dir_name + f + '/'
+            if os.path.isdir(new_dir) and new_dir not in traversed:
+                traversed.append(new_dir)
+                mapFilePaths(new_dir, traversed, results)
+            else:
+                results.append([new_dir[:-1], os.stat(new_dir[:-1])])
+
+    paths = []
+    for file_name, stat in results:
+        paths.append(str(file_name).strip('.'))
+    return paths
 
 
 def maxLengthInList(list: list = []) -> int:
@@ -142,12 +164,13 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
         return None
 
 
-def sendEmail(to, subject, html, body):
+def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
     if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=[to])
             msg.attach_alternative(content=html, mimetype="text/html")
-            return msg.send()
+            msg.send()
+            return True
         except:
             return False
     else:
@@ -156,6 +179,17 @@ def sendEmail(to, subject, html, body):
 
 
 def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
+    """
+    Creates html and body content using parameters via the application's standard email template.
+
+    :greeting: Top greeting to target
+    :header: Beginnning text
+    :footer: Ending text
+    :actions: Actions { name, url } to be included in content
+    :conclusion: Final short summary text
+
+    :returns: html, body
+    """
     data = {
         'greeting': greeting,
         'headertext': header,
@@ -179,13 +213,13 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
     return html, body
 
 
-def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str):
+def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str) -> bool:
     html, body = getEmailHtmlBody(
         greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
-def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []):
+def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []) -> bool:
     html, body = getEmailHtmlBody(
         greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
     return sendEmail(to=to, subject=subject, html=html, body=body)

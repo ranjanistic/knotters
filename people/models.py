@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 from main.settings import MEDIA_URL
 from .apps import APPNAME
-from main.strings import PROJECTS
+from main.strings import PROJECTS, url
 
 
 class UserAccountManager(BaseUserManager):
@@ -160,9 +160,13 @@ class ProfileSetting(models.Model):
     newsletter = models.BooleanField(default=True)
     recommendations = models.BooleanField(default=True)
     competitions = models.BooleanField(default=True)
+    privatemail = models.BooleanField(default=True)
 
     def __str__(self) -> str:
         return self.profile.user.email
+
+    def savePreferencesLink(self) -> str:
+        return f"/{url.PEOPLE}account/preferences/{self.profile.user.id}"
 
 class ProfileReport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

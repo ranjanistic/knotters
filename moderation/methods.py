@@ -1,7 +1,7 @@
 from people.models import Profile
-from projects.models import Project
 from django.db.models import Q
-from .models import *
+from django.db import models
+from .models import LocalStorage, Moderation
 from main.methods import renderView
 from .apps import APPNAME
 from main.strings import PROJECTS, PEOPLE, COMPETE, code
@@ -115,7 +115,6 @@ def requestModerationForObject(
             if newmod.type == PROJECTS:
                 newmod.project.status = code.MODERATION
                 newmod.project.save()
-            newmod.save()
             return newmod
     except Exception as e:
         newmoderator = getModeratorToAssignModeration(type, object)
@@ -128,6 +127,5 @@ def requestModerationForObject(
         elif type == COMPETE:
             newmod = Moderation.objects.create(competiton=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         else: return False
-        newmod.save()
         return newmod
     return False

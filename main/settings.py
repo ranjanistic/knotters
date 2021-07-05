@@ -4,6 +4,7 @@ from . import env
 from .strings import DIVISIONS, PEOPLE, url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+print(BASE_DIR)
 
 SECRET_KEY = env.PROJECTKEY
 
