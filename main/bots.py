@@ -5,5 +5,5 @@ if ISPRODUCTION:
     Github = GHub(GITHUBBOTTOKEN)
     GithubKnotters = Github.get_organization(PUBNAME)
 else:
-    Github = 0
-    GithubKnotters = 0
+    Github = None
+    GithubKnotters = None

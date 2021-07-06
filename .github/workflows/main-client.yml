@@ -7,6 +7,11 @@ on:
       - "genversion.py"
       - "static/**"
       - "templates/**"
+      - "!main/**"
+      - "!moderation/**"
+      - "!people/**"
+      - "!projects/**"
+      - "!manage.py"
 
 jobs:
   testing:
@@ -62,17 +67,6 @@ jobs:
     - name: Fetch & Merge changes
       run: git pull
       working-directory: ${{ secrets.WORKINGDIR }}
-    - name: Unlock Environment
-      run: |
-        gpg --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
-    - name: Install Dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
-        py manage.py collectstatic --noinput
-    - name: Lock Environment
-      run: |
-        py serverutils\clearenv.py
     - name: Release new version
       run: |
         py genversion.py
