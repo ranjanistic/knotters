@@ -75,7 +75,7 @@ jobs:
         pip install -r requirements.txt
     - name: Creating Backup
       run: |
-        mongodump --uri="${{ secrets.DBLINK }}" -o backup
+        mongodump --uri="${{ secrets.DBBACKUPLINK }}" -o backup
         tar czf backup\${{ secrets.DBNAME }}.tar.gz backup\${{ secrets.DBNAME }}
         rmdir backup\${{ secrets.DBNAME }} /s /q
         gpg -e -r ${{ secrets.MAILUSER }} backup\${{ secrets.DBNAME }}.tar.gz
