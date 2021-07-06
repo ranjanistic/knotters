@@ -1,0 +1,55 @@
+input:focus,
+textarea:focus {
+  outline: none;
+  border: 0px;
+}
+
+input.invalid,
+textarea.invalid {
+  border-color: var(--negative);
+}
+
+.step-tab {
+  display: none;
+}
+
+.step-tab span{
+  color: var(--negative);
+}
+
+.step {
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbbbbb;
+  border: none;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.5;
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step.finish {
+  background-color: var(--positive);
+  opacity: 1;
+}
+
+.big-input {
+  width: 100%;
+  font-size: 22px;
+  font-family: var(--head-font);
+  border: 2px solid var(--active);
+}
+
+#confirm-check-box {
+  font-weight: bolder;
+}
+
+.big-icon {
+  font-size: 20px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}

@@ -1,0 +1,131 @@
+{% extends 'compete/index.html' %} 
+{% load static %} 
+
+{% block title %}{{ compete.title }}{%endblock %} 
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'styles/compete/profile.css' %}" />
+{% endblock %}
+
+{% block nav_icon %}
+<button class="primary"><i class="material-icons">arrow_back</i></button>
+{% endblock %} 
+
+{% block nav_href %}{{ROOT}}{% endblock %} 
+{% block nav_text %}{{compete.title}}{% endblock %} 
+{% block nav_noauth_competes %}{% endblock %} 
+{% block content %}
+  {% if isJudge or isMod %}
+    <strong>
+  <div class="w3-row w3-center accent w3-padding">
+    {% if isJudge %}
+      You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for judgement view.
+    {% elif isMod %}
+      You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for moderation view.
+  {% endif %}
+  </div>
+    </strong>
+  {% endif %}
+<div class="w3-row tertiary">
+  <div id="banner">
+  <img src="{{compete.getBanner }}" alt="{{compete.title}}" width="100%"/>
+  </div>
+  {% if compete.isHistory %}
+  <div class="w3-row w3-center secondary w3-padding">
+    <strong class="text-secondary">This competition is no longer accepting{% if not compete.resultDeclared %} new{% endif %} submissions.</strong>
+  </div>
+  {% elif compete.isUpcoming %}
+  <div class="w3-row w3-center accent w3-padding">
+    <strong>This competition will accept submissions from the given beginning date, till {{compete.endAt}}</strong>
+  </div>
+  {% endif %}
+  <div class="w3-row w3-padding">
+    <br/>
+    <div class="w3-row">
+      <div class="w3-col w3-twothird w3-left w3-padding">
+        <h2>{{compete.title}}</h2>
+        <h4>{{compete.tagline}}</h4>
+        <span>{{compete.shortdescription}}</span>
+        <br />
+        <div class="w3-row ">
+          <b>Description</b><br /><span>{{compete.description}}</span>
+        </div>
+      </div>
+      <div class="w3-col w3-third w3-center">
+      <br/>
+        {% if compete.isActive %}
+        <div class="pallete active">
+          <h6 class="text-active">Time remaining</h6>
+          <h1 class="w3-jumbo text-active" id="remainingTime"><div class="loader"></div></h1>
+          <h6 class="text-active">seconds to end</h6>
+        </div>
+        {% elif compete.isHistory %}
+        <div class="pallete secondary">
+          <h6 class="text-secondary">Competition ended</h6>
+          <h1 class="text-secondary">{{compete.endAt}}</h1>
+          <h6 class="text-secondary">{% if compete.resultDeclared %}Archived{% else %}Results Awaited{% endif %}</h6>
+        </div>
+        {% elif compete.isUpcoming %}
+        <div class="pallete accent">
+          <h6>Begins at</h6>
+          <h1>{{compete.startAt}}</h1>
+          <h6>Upcoming</h6>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <br/><br/>
+      {% if compete.isUpcoming %}
+        <br/>
+        <center>
+        <i class="w3-jumbo">lock</i>
+        <h3>Stay Tuned!</h3>
+        <h4>Full details will be shown<br/>once the competition begins.</h4>
+        </center>
+        <br/>
+      {% else %}
+    <div class="w3-row pallete" id="mainframe">
+      <div class="w3-col w3-quarter">
+        <div class="w3-bar-block w3-hide-small" id="sidebar">
+          <button class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
+          <button class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
+          <button class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button>
+          {% if not isJudge and not isMod %}
+          <button class="w3-bar-item side-nav-tab" id="submission" data-icon="send">Submission</button>
+          {% endif %}
+          {% if compete.resultDeclared %}
+          <button class="w3-bar-item side-nav-tab" id="result" data-icon="leaderboard">Results</button>
+          {% endif %}
+        </div>
+        <div class="w3-center w3-hide-large w3-hide-medium">
+          <button class="side-nav-tab" id="overview" data-icon="toc"></button>
+          <button class="side-nav-tab" id="task" data-icon="code"></button>
+          <button class="side-nav-tab" id="guidelines" data-icon="rule"></button>
+          {% if not isJudge and not isMod %}
+          <button class="side-nav-tab" id="submission" data-icon="send"></button>
+          {% endif %}
+          {% if compete.resultDeclared %}
+          <button class="side-nav-tab" id="result" data-icon="leaderboard"></button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="w3-col w3-threequarter w3-padding">
+        <br/>
+        <div id="tabview"></div>
+      </div>
+    </div>
+      {% endif %}
+    <br/>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const compID = "{{compete.id}}"
+const isActive = "{{compete.isActive}}" == 'True';
+const resultDeclared = "{{compete.resultDeclared}}" == 'True';
+</script>
+<script src="{% static 'scripts/compete/profile.js' %}" type="text/javascript"></script>
+{% endblock %} 

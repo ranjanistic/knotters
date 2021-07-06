@@ -1,69 +1,150 @@
-from django.http.response import Http404, HttpResponse,HttpResponseBadRequest
-from main.renderer import renderView
-from people.models import User
-from project import *
-from compete import *
-from people import *
-from .models import *
+from django.http.response import Http404, HttpResponse, JsonResponse
+from uuid import UUID
+from django.core.handlers.wsgi import WSGIRequest
+from compete.models import Submission
+from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.utils import timezone
+from projects.methods import setupApprovedProject
+from main.strings import code, PROJECTS, PEOPLE, COMPETE
+from main.decorators import require_JSON_body
+from .decorators import moderator_only
+from .models import Moderation
+from .methods import renderer, requestModerationForObject
 
-DIVISIONS = ['people','project','competition']
 
-def moderation(request,division,id):
-    if not DIVISIONS.__contains__(division):
+@require_GET
+@login_required
+def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
+    try:
+        moderation = Moderation.objects.get(id=id)
+        isModerator = moderation.moderator == request.user.profile
+        isRequestor = moderation.isRequestor(request.user.profile)
+        if not isRequestor and not isModerator:
+            raise Exception()
+        data = {'moderation': moderation, 'ismoderator': isModerator}
+
+        if moderation.type == COMPETE:
+            if isRequestor:
+                data['allSubmissionsMarkedByJudge'] = moderation.competition.allSubmissionsMarkedByJudge(
+                    request.user.profile)
+        return renderer(request, moderation.type, data)
+    except:
         raise Http404()
-    else:
-        return HttpResponse(f"{division} moderation for {id}")
 
-# implemented round robin algorithm
-def getModerator():
+
+@require_POST
+@login_required
+def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
+    """
+    Message by moderator or requestor.
+    """
     try:
-        current = localStorage.objects.get(key="moderator")
+        responseData = str(request.POST.get('responsedata', "")).strip()
+        requestData = str(request.POST.get('requestdata', "")).strip()
+        if not responseData and not requestData:
+            raise Exception()
+
+        mod = Moderation.objects.get(id=modID)
+        if mod.resolved:
+            raise redirect(mod.getLink(alert="Already resolved"))
+        isRequester = mod.isRequestor(request.user.profile)
+        isModerator = mod.moderator == request.user.profile
+        if not isRequester and not isModerator:
+            raise Exception()
+
+        if isModerator:
+            if not responseData:
+                raise Exception()
+            if mod.response != responseData:
+                mod.response = responseData
+                mod.respondOn = timezone.now()
+                mod.save()
+            return redirect(mod.getLink(alert="Response saved"))
+        elif isRequester:
+            if not requestData:
+                raise Exception()
+            if mod.request != requestData:
+                mod.request = requestData
+                mod.save()
+            return redirect(mod.getLink(alert="Message saved"))
+        else:
+            raise Exception()
     except:
-        current = localStorage.objects.create(key="moderator",value=0)
-        current.save()
-    
-    totalModerators = User.objects.filter(is_moderator=True)
-    if(totalModerators.count==0):
-        print("No moderators exist")
-        return HttpResponseBadRequest(content="No moderator exist in system")
-    temp = int(current.value)
-    if(temp>=totalModerators.count()):
-        temp = 1
-    else:
-        temp = temp+1
-    current.value = temp
-    current.save()
-    print(totalModerators[temp-1])
-    return totalModerators[temp-1]
+        raise Http404()
 
 
-
-def requestModeration(id,type,userinput):
+@require_POST
+@require_JSON_body
+@login_required
+@moderator_only
+def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
+    """
+    Moderator action on moderation. (Project, primarily)
+    """
     try:
-        if(type=="project"):
-            obj = moderation.objects.get(project_id=id)
-        elif(type=="people"):
-            obj = moderation.objects.get(user_id=id)
+        approve = request.POST.get('approve', '')
+        print(modID)
+        mod = Moderation.objects.get(
+            id=modID, moderator=request.user.profile, resolved=False)
+        if not approve:
+            done = mod.reject()
+            return JsonResponse({'code': code.OK if done else code.NO})
+        elif approve:
+            done = mod.approve()
+            if done:
+                done = setupApprovedProject(mod.project, mod.moderator)
+            return JsonResponse({'code': code.OK if done else code.NO})
         else:
-            obj = moderation.objects.get(competiton_id=id)
-        return False
+            return JsonResponse({'code': code.NO, 'error': "Invalid response"})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'code': code.NO, 'error': "An error occurred"})
+
+
+@require_POST
+@login_required
+def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
+    """
+    Re-request for moderation if possible, and if previous one rejected. (Project, primarily)
+    """
+    try:
+        mod = Moderation.objects.get(
+            id=modID, resolved=True, status=code.REJECTED)
+        if mod.type == PROJECTS:
+            newmod = requestModerationForObject(
+                mod.project, mod.type, reassignIfRejected=True)
+        elif mod.type == PEOPLE:
+            newmod = requestModerationForObject(
+                mod.profile, mod.type, reassignIfRejected=True)
+        elif mod.type == COMPETE:
+            newmod = requestModerationForObject(
+                mod.competition, mod.type, reassignIfRejected=True)
+        else:
+            raise Exception()
+        if not newmod:
+            raise Exception()
+        else:
+            return redirect(newmod.getLink(alert="Re-applied for moderation to another moderator."))
     except:
-        moderator = getModerator()
-        if(type=="project"):
-            obj = moderation.objects.create(project_id=id,type=type,moderator=moderator,request=userinput)
-        elif(type=="people"):
-            obj = moderation.objects.create(user_id=id,type=type,moderator=moderator,request=userinput)
-        else:
-            obj = moderation.objects.create(competiton_id=id,type=type,moderator=moderator,request=userinput)
-        obj.save()
-    return True
+        raise Http404()
 
 
-def disapprove(request):
-    if(request.method=="POST"):
-        id = request.POST["id"]
-        reason  = request.POST["reason"]
-        obj = moderation.objects.get(id=id)
-        obj.reject(reason)
-        return HttpResponse("Rejection success")
-
+@require_POST
+@require_JSON_body
+@login_required
+@moderator_only
+def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
+    try:
+        submissions = request.POST['submissions']
+        invalidSubIDs = []
+        for sub in submissions:
+            if not sub['valid']:
+                invalidSubIDs.append(sub['subID'])
+        Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
+        Moderation.objects.filter(id=modID, type=COMPETE, status=code.MODERATION, resolved=False).update(
+            status=code.APPROVED, resolved=True)
+        return JsonResponse({'code': code.OK})
+    except:
+        return JsonResponse({'code': code.NO, 'error': 'An error occurred'})

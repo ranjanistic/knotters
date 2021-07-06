@@ -1,17 +1,8 @@
 {% extends 'docs/index.html' %}
 {% load static %}
 
-{% block og %}
-<meta property="og:title" content="{{appname}} Terms of Service" />
-<meta
-property="og:description"
-content="{{appname}} community is meant for betterment of everyone, terms are meant for betterment of this community."
-/>
-<meta property="og:site_name" content="{{appname}}" />
-{% endblock %}
-
 {% block title %}Terms of Service{% endblock %}
-{% block nav_href %}/docs{% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
 
 {% block content %}
 <br/>
@@ -19,7 +10,7 @@ content="{{appname}} community is meant for betterment of everyone, terms are me
     <center>
         <div class="material-icons w3-jumbo">gavel</div>
         <h1>Terms of Service</h1>
-        <h3 class="w3-padding-small">{{appname}} community is meant for betterment of everyone, terms are meant for betterment of this community.</h3>
+        <h3 class="w3-padding-small">{{APPNAME}} community is meant for betterment of everyone, terms are meant for betterment of this community.</h3>
     </center><br/>
 </div>
 {% endblock %}

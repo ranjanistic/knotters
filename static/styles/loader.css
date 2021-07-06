@@ -1,0 +1,126 @@
+.view-loader {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    z-index: 1982;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #151618dc;
+    text-align: center;
+    vertical-align: middle;
+    align-items: center;
+    line-height: 100vh;
+    color: var(--secondary-text);
+    font-size: 50px;
+    font-family: var(--head-font);
+}
+
+.loader,.loader:before,.loader:after{
+    top:0;
+    bottom:0;
+    left:0;
+    right:0; 
+    content:"";
+    position:absolute;
+    border-radius:50%;
+  }
+  .loader{
+    position:relative;
+    top: calc(50% - 70px);
+    width:100px;
+    height:100px;
+    margin:auto;
+    animation:spin 2s alternate infinite;
+  }
+  
+  @keyframes spin{
+    100%{transform:rotate(360deg)}
+  }
+  
+  .loader:before{
+    border:8px solid var(--active);
+    border-bottom:8px solid transparent;
+    border-left:8px solid transparent;
+    animation:spin1 1s alternate infinite;
+  }
+  
+  .loader:after{
+    border:8px solid var(--accent);
+    border-top:8px solid transparent;
+    border-right:8px solid var(--positive);
+    animation:spin2 1s alternate infinite;
+  }
+  
+  @keyframes spin1{
+    20%{transform:rotate(50deg)}
+    40%{transform:rotate(100deg)}
+    80%{transform:rotate(200deg)}
+    100%{transform:rotate(320deg)}
+  }
+  
+  @keyframes spin2{
+    0%{transform:rotate(-30deg)}
+    40%{transform:rotate(-30deg)}
+    80%{transform:rotate(170deg)}
+    100%{transform:rotate(30deg);}
+  }
+
+.linear-loader {
+    position: fixed;
+    bottom: 0;
+    z-index: 1984;
+    overflow: hidden;
+    width: 100%;
+    height: 5px;
+    background-color: var(--secondary);
+    margin: 0;
+}
+
+.loading-animation {
+    position: relative;
+    width: 100%;
+    background-color: var(--secondary);
+    height: 100%;
+}
+
+.loading-animation:before {
+    content: "";
+    position: absolute;
+    height: 100%;
+    background-color: var(--active);
+    animation: loading_first 1.5s infinite ease-out;
+}
+
+.loading-animation:after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    background-color: var(--accent);
+    animation: loading_second 1.5s infinite ease-in;
+}
+
+@keyframes loading_first {
+    0% {
+        left: -100%;
+        width: 100%;
+    }
+    100% {
+        left: 100%;
+        width: 10%;
+    }
+}
+
+@keyframes loading_second {
+    0% {
+        left: -150%;
+        width: 100%;
+    }
+    100% {
+        left: 100%;
+        width: 10%;
+    }
+}

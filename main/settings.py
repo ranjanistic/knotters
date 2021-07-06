@@ -1,16 +1,18 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from . import env
+from .strings import DIVISIONS, PEOPLE, url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+print(BASE_DIR)
 
 SECRET_KEY = env.PROJECTKEY
+
+VERSION = env.VERSION
 
 DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS
-
-
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -25,20 +27,24 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
-    "project",
-    "compete",
-    "people",
-    "moderation",
-]
+    'allauth.socialaccount.providers.discord',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
 
-AUTH_USER_MODEL = 'people.User'
-SOCIALACCOUNT_ADAPTER = 'people.adapter.CustomSocialAccountAdapter'
+    'allauth_2fa',
+] + DIVISIONS
+
+AUTH_USER_MODEL = f'{PEOPLE}.User'
+SOCIALACCOUNT_ADAPTER = f'{PEOPLE}.adapter.CustomSocialAccountAdapter'
+
+ACCOUNT_ADAPTER = 'allauth_2fa.adapter.OTPAdapter'
 
 ACCOUNT_FORMS = {
-    'signup': 'people.forms.CustomSignupForm',
+    'signup': f'{PEOPLE}.forms.CustomSignupForm',
 }
 
-SOCIALACCOUNT_QUERY_EMAIL=True
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -50,11 +56,15 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    'django_otp.middleware.OTPMiddleware',
+
+    'allauth_2fa.middleware.AllauthTwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"
+
 
 TEMPLATES = [
     {
@@ -63,6 +73,7 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "main.context_processors.Global",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
@@ -72,8 +83,25 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "main.wsgi.application"
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 if not DEBUG:
     DATABASES = {
@@ -99,63 +127,73 @@ else:
         }
     }
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
     },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+    'github': {
+        "VERIFIED_EMAIL": True,
+        'SCOPE': [
+            'email',
+            'user',
+            'repo',
+        ],
+    }
+}
 
-LANGUAGE_CODE = "en-us"
+WSGI_APPLICATION = "main.wsgi.application"
+# ASGI_APPLICATION = "main.asgi.application"
 
-TIME_ZONE = "Asia/Kolkata"
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10*1024*1024
 
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
-
-STATIC_URL = "/static/"
+STATIC_URL = env.STATIC_URL
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_URL = env.MEDIA_URL
+
+if DEBUG:
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 CORS_ORIGIN_ALLOW_ALL = False
-
-if not env.ISPRODUCTION:
-  STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-else:
-  STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+LOGIN_URL = f'/{url.ACCOUNTS}login'
+LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = f"Knotters <{env.MAILUSER}>"
 EMAIL_HOST_USER = env.MAILUSER
 EMAIL_HOST_PASSWORD = env.MAILPASS
-EMAIL_SUBJECT_PREFIX = 'Knotters Community'
+EMAIL_SUBJECT_PREFIX = env.PUBNAME
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_REDIRECT_URL = '/'
+SENDER_API_HEADERS = {
+    "Authorization": f"Bearer {env.SENDERTOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+}
+SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
+SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
 
 if not DEBUG:
     os.environ["HTTPS"] = "on"
@@ -169,33 +207,12 @@ if not DEBUG:
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_HSTS_PRELOAD = True
 
+FIRST_DAY_OF_WEEK = 1
+DEFAULT_CHARSET = 'utf-8'
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Kolkata"
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
 
-
-SITE_ID = 2
-
-
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    },
-    'github': {
-        'SCOPE': [
-            'email',
-            'user',
-            'repo',
-            'read:org',
-        ],
-    }
-
-}
+SITE_ID = 1

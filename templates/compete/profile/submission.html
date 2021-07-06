@@ -1,0 +1,104 @@
+<div class="w3-row">
+    {% if request.user and submission and confirmed %}
+    <div class="w3-col w3-half w3-padding-small">
+        <h4>
+        {% if not submission.submitted %}
+        <i class="material-icons">pending</i>&nbsp;Not submitted
+        {% else %}
+        <i class="material-icons">task_alt</i>&nbsp;Submitted{% if submission.late %} <span class="negative-text">late</span>{% endif%}.
+        {% endif %}
+        </h4>
+        <div class="w3-row pallete positive">
+            <h3>Submission</h3>
+            {% if not submission.submitted and competition.isActive %}
+            <form class="w3-row" method="POST" action="{{submission.saveLink}}">
+                {% csrf_token %}
+            <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
+            <div><br/></div>
+            <button type="submit" class="primary" data-icon="save">Save</button>
+            </form>
+            {% elif not submission.submittingLate and submission.submitted %}
+                <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">Your submission</button></a>
+                <h4 class="text-positive">Submitted on {{submission.submitOn}}
+                </h4>
+            {% else %}
+            <input disabled class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
+            {% endif %}
+        </div>
+        {% if not submission.submitted and not competition.resultDeclared %}
+        <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
+        {% if submission.submittingLate %}
+            Late Submit
+        {% else %}
+            Final Submit
+        {% endif %}
+        </button>
+        {% endif %}
+    </div>
+    
+    <div class="w3-col w3-half w3-padding-small">
+        <h5 class="w3-left w3-padding-small">Teammates</h5>
+        <div class="w3-row">
+            {% for member in submission.getMembers %}
+            <div class="w3-col w3-third w3-padding-small">
+                <div class="pallete accent w3-center">
+                    <a target="_blank" href="{{member.getLink}}">
+                    <img src="{{member.getDP}}" width="100" />
+                    <h6 class="text-accent">{{member.getName}}</h6>
+                    </a>
+                    {% if not submission.submittingLate and not submission.submitted %}
+                    <button class="negative remove-person" data-name="{{member.getName}}" data-userID="{{member.user.id}}" data-icon="delete"></button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if competition.isActive and not submission.submitted %}
+        <br/>
+        {% if submission.canInvite %}
+        <button class="w3-right active" data-icon="person_add" id="invitepeople">Invite</button>
+        {% endif %}
+        <h5 class="w3-padding-small">Invitees</h5>
+        <div class="w3-row">
+            {% for invitee in submission.getInvitees %}
+            <div class="w3-col w3-third w3-padding-small">
+                <a target="_blank" href="{{invitee.getLink}}">
+                <div class="pallete">
+                    <h6>{{invitee.getName}}</h6>
+                    <button class="negative remove-person" data-name="{{invitee.getName}}" data-userID="{{invitee.user.id}}" data-icon="delete"></button>
+                </div>
+                </a>
+            </div>
+            {% empty %}
+            <center><h4>No pending invites</h4></center>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+        {% if not competition.isActive %}
+            <br/><br/>
+            <center>
+            <div class="w3-jumbo material-icons">hourglass_bottom</div>
+            <h1>Competition ended{% if request.user.is_authenticated %}<br/>before you could participate.{% else %}.{% endif%}
+            </h1>
+            </center>
+        {% else %}
+            <br/>
+            <div class="w3-row w3-center">
+            <i class="w3-jumbo">group_work</i>
+            
+            <h1>Competition is a thrill way to learn.</h1>
+            {% if request.user.is_authenticated%}
+            <form action="{{competition.participationLink}}" 
+                method="POST">
+                {% csrf_token %}
+                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="join">Participate Independently</button></a>
+            </form>
+            {% else %}
+                <a href="{% url 'account_login' %}?next={{competition.getLink}}#mainframe"><button class="display-button positive" data-icon="login">Login to Participate</button></a>
+            {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load l10n %}
 {% load socialaccount %}
 {% load account %}
 <!DOCTYPE html>
@@ -10,36 +11,36 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
-        <meta name="favicon" content="{{site}}/static/graphics/self/icon80.png" />
-        <meta name="description" content="{% block meta_description %}{{description}}{% endblock %}" />
-        <link rel="manifest" href="{% static 'manifest.json' %%}" />
+        <meta name="favicon" content="{{SITE}}/static/graphics/self/icon80.png" />
+        <meta name="description" content="{% block meta_description %}{{DESCRIPTION}}{% endblock %}" />
+        
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="{{appname}}" />
-        <meta name="author" content="{{appname}} Community">
+        <meta name="application-name" content="{{APPNAME}}" />
+        <meta name="author" content="{{APPNAME}} Community">
 
         <meta property="og:locale" content="en-US" />
-        <meta name="image" property="og:image" content="{{site}}/static/graphics/{% block og_image %}self/icon1000.png{% endblock %}" />
+        <meta name="image" property="og:image" content="{{SITE}}/static/graphics/{% block og_image %}self/icon1000.png{% endblock %}" />
         <meta property="og:type" content="tools" />
-        <meta property="og:url" content="{{site}}{% block og_url %}{% endblock %}" />
+        <meta property="og:url" content="{{SITE}}{% block og_url %}{% endblock %}" />
         {% block og %}
-        <meta property="og:title" content="{% block og_title %}{{appname}}{% endblock %}" />
-        <meta property="og:description" content="{% block og_description %}{{description}}{% endblock %}" />
-        <meta property="og:site_name" content="{% block og_site_name %}{{appname}}{% endblock %}" />
+        <meta property="og:title" content="{% block og_title %}{{APPNAME}}{% endblock %}" />
+        <meta property="og:description" content="{% block og_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta property="og:site_name" content="{% block og_site_name %}{{APPNAME}}{% endblock %}" />
         {% endblock %}
 
-        <meta name="twitter:title" content="{% block tw_title %}{{appname}}{% endblock %}" />
-        <meta name="twitter:description" content="{% block tw_description %}{{description}}{% endblock %}" />
-        <meta name="twitter:image" content="{{site}}/static/graphics/{% block tw_image %}self/banner.jpg{% endblock %}" />
+        <meta name="twitter:title" content="{% block tw_title %}{{APPNAME}}{% endblock %}" />
+        <meta name="twitter:description" content="{% block tw_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta name="twitter:image" content="{{SITE}}/static/graphics/{% block tw_image %}self/banner.jpg{% endblock %}" />
         <meta name="twitter:site" content="@knottersdotorg" />
         <meta name="twitter:creator" content="@ranjanistic" />
-        <meta name="twitter:url" content="{% block tw_url %}{{site}}{% endblock %}" />
+        <meta name="twitter:url" content="{% block tw_url %}{{SITE}}{% endblock %}" />
         <meta name="twitter:card" content="{% block tw_card %}summary_large_image{% endblock %}" />
     
-        <meta name="linkedin:card" content="{{site}}/static/graphics/{% block ld_card %}self/banner.jpg{% endblock %}" />
+        <meta name="linkedin:card" content="{{SITE}}/static/graphics/{% block ld_card %}self/banner.jpg{% endblock %}" />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="{{appname}}" />
+        <meta name="apple-mobile-web-app-title" content="{{APPNAME}}" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="{% static 'graphics/self/icon1000.png' %}" />
         <link rel="apple-touch-icon" href="{% static 'graphics/self/icon1000.png' %}" />
@@ -50,35 +51,42 @@
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
         <link rel="stylesheet" href="{% static 'icons/material.css' %}">
+        <link rel="stylesheet" href="{% static 'cropper/cropper.min.css'%}" />
+        <link rel="stylesheet" href="{% static 'alertify/alertify.min.css' %%}" />
+        <link rel="stylesheet" href="{% static 'alertify/themes/default.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'swiper/swiper-bundle.min.css' %}" />
         <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+        <link rel="stylesheet" href="{% static 'styles/loader.css' %}">
         <link rel="stylesheet" href="{% static 'styles/scrollbar.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
-        {% block stylesheets %}{% endblock %}
-        <title>{% block title %}{{appname}}{% endblock %}</title>
+        <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
+        {% block stylesheets %}
+        <link rel="manifest" href="{% static 'manifest.json' %}" />
+        {% endblock %}
+        <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
     <body>
         {% block nav %}
-        <nav class="w3-row {% block nav_style %}primary{% endblock %}">
+        <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
             {% block nav_title %}
-            <a href="{% block nav_href %}/{% endblock %}" class="w3-left w3-padding">
-                {% block nav_icon %}<img src="{% static 'graphics/self/icon.svg' %}" width="40" />{% endblock %}
+            <a href="{% block nav_href %}{{ROOT}}{% endblock %}" class="w3-left w3-padding w3-animate-left">
+                {% block nav_icon %}<img src="{{ICON}}" width="40" />{% endblock %}
             </a>
-            <span class="w3-left"><h3>{% block nav_text %}{{appname}}{% endblock %}</h3></span>
+            <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
-            <span class="w3-right w3-row w3-padding">
+            <span class="w3-right w3-row w3-padding w3-animate-right">
                 {% block nav_links %}
-                    <button class="primary themeswitch"><i class="material-icons">dark_mode</i></button>
+                    <button class="secondary themeswitch"><i class="material-icons">brightness_medium</i></button>
                     {% block nav_noauth %}
-                    <a href="/competitions"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>
+                        {% block nav_noauth_competes %}<a href="/{{SUBAPPS.compete}}"><button title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="/{{SUBAPPS.projects}}"><button title="Projects" class="positive"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
                     {% endblock %}
                     {% block nav_auth %}
-                        {% if request.user.is_authenticated %}
-                            {% block nav_auth_links %}
-                            <a href="/projects/create"><button title="New project" class="positive"><i class="material-icons">add_circle</i><span class="w3-hide-small">New project</span></button></a>
-                            {% endblock %}
-                            <a href="/people/profile/{{request.user.id}}"><button title="Logged in as {{request.user.first_name}} {{request.user.last_name}}" class="accent"><i class="material-icons">person</i><span class="w3-hide-small">{{request.user.first_name|capfirst}}</span></button></a>
+                        {% if user.is_authenticated %}
+                            {% block nav_auth_links %}{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" /></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
                             <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
@@ -93,105 +101,149 @@
             {% endblock %}
         </nav>
         {% endblock %}
-        {% block content %}
-        <div class="w3-row">
-            {% if alert %}
-            <div class="w3-row positive w3-center w3-padding">
-            <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
-            </div>
-            {% endif %}
-            <div class="w3-row w3-center w3-padding">
-                <h1>Solving problems together.</h1>
-            </div>
-            <div class="w3-row w3-center w3-padding tertiary">
-                <br/>
-                <h3>Active projects of this month</h3>
-                <br/>
-                {% for project in projects %}
-                <div class="w3-col w3-third w3-padding-small">
-                <a href="/projects/profile/{{project.reponame}}">
-                <div class="pallete primary">
-                    <div class="w3-row">
-                        <img src="/media/{{project.image}}" width="150" />
-                    </div>
-                    <h2>{{project.name}}</h2>
-                    <span>{{project.description}}</span>
-                </div>
-                </a>
-                </div>
-                {% empty %}
-                <div class="w3-row w3-center">
-                <h2>Waiting for projects.</h2>
-                </div>
-                {% endfor %}
-                <div class="w3-row">
-                    <br/>
-                    <a href="/projects"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
-                </div>
-                <br/>
-            </div>
 
-            <div class="w3-row w3-center w3-padding accent">
-                <br/>
-                <h3 class="text-accent">Top contributors of this month</h3>
-                <br/>
-                {% for person in topcontributors %}
-                <div class="w3-col w3-third w3-padding-small">
-                <a href="/projects/profile/{{project.reponame}}">
-                <div class="pallete primary">
-                    <div class="w3-row">
-                        <img src="/media/{{person.image}}" width="150" />
-                    </div>
-                    <h2>{{person.name}}</h2>
-                    <span>{{person.description}}</span>
+        <div style="min-height: 50vh;">
+            {% block content %}
+            <br/>
+            <div class="w3-row">
+                {% if alert %}
+                <div class="w3-row positive w3-center w3-padding">
+                <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
                 </div>
-                </a>
-                </div>
-                {% empty %}
-                <div class="w3-row w3-center">
-                <h2 class="text-accent">Waiting for contributors.</h2>
-                </div>
-                {% endfor %}
-                <div class="w3-row">
+                {% endif %}
+                <div class="w3-row w3-center w3-padding">
+                    <img src="{{ICON}}" width="100" />
+                    <h1>Knotters Community</h1>
+                    <h3>Solving problems together</h3>
                     <br/>
-                    <a href="/people"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
                 </div>
-                <br/>
+                <div class="w3-row w3-center w3-padding tertiary">
+                    <br/>
+                    <h3>Active projects of this month</h3>
+                    <br/>
+                    {% for project in projects %}
+                    <div class="w3-col w3-third w3-padding-small">
+                    <a href="{{project.getLink}}">
+                    <div class="pallete primary">
+                        <div class="w3-row">
+                            <img src="{{project.getDP}}" width="150" />
+                        </div>
+                        <h2>{{project.name}}</h2>
+                        <span>{{project.description}}</span>
+                    </div>
+                    </a>
+                    </div>
+                    {% empty %}
+                    <div class="w3-row w3-center">
+                    <h3 >We'll bring you projects as soon as they're available.</h3>
+                    <h4 >There is still some work left here for us to do.</h4>
+                    </div>
+                    {% endfor %}
+                    <div class="w3-row" hidden>
+                        <br/>
+                        <a href="/{{SUBAPPS.projects}}"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
+                    </div>
+                    <br/>
+                </div>
+
+                <div class="w3-row w3-center w3-padding accent">
+                    <br/>
+                    <h3 class="text-accent">Top contributors of this month</h3>
+                    <br/>
+                    {% for person in topcontributors %}
+                    <div class="w3-col w3-third w3-padding-small">
+                    <a href="/projects/profile/{{project.reponame}}">
+                    <div class="pallete primary">
+                        <div class="w3-row">
+                            <img src="/media/{{person.image}}" width="150" />
+                        </div>
+                        <h2>{{person.name}}</h2>
+                        <span>{{person.description}}</span>
+                    </div>
+                    </a>
+                    </div>
+                    {% empty %}
+                    <div class="w3-row w3-center">
+                    <h3>We'll bring you contributors as soon as they're available.</h3>
+                    <h4>There is still some work left here for us to do.</h4>
+                    </div>
+                    {% endfor %}
+                    <div class="w3-row" hidden>
+                        <br/>
+                        <a href="/{{SUBAPPS.people}}"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
+                    </div>
+                    <br/>
+                </div>
             </div>
+            {% endblock %}
         </div>
-        {% endblock %}
         
         {% block footer %}
-        <footer class="w3-row secondary w3-padding" style="min-height: 50vh;">
+        <footer class="w3-row secondary w3-padding w3-animate-bottom">
             <br/><br/>
             <div class="w3-col w3-half primary-text w3-padding">
-                {% if contactmail %}
-                <a href="mailto:{{contactmail}}"><button class="primary"><i class="material-icons">mail</i>{{contactmail}}</button></a><br/><br/>
-                {% endif %}
-                {% block footer_social %}
-                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />&nbsp;Knotters</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="25" />&nbsp;knottersdotorg</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary"><img class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="25" />&nbsp;knottersdotorg</button></a><br/><br/>
-                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="22" />&nbsp;knottersdotorg</button></a><br/><br/>
-                {% endblock %}
+                <a hidden class="text-secondary" href="">For the press</a><br/>
+                <a hidden class="text-secondary" href="">Report a problem</a><br/>
+                <a class="text-secondary" href="/docs">Docs &amp; statements</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small">
                 <br/><br/>
-                <div class="w3-row">
-                    <h2 class="text-secondary w3-right"><a href="/">Knotters Community</a>.</h2>
+                <a href="/">
+                <div class="w3-row w3-hide-small">
+                    <h2 class="text-secondary w3-right">Knotters Community</h2>
                 </div>
                 <div class="w3-row">
-                    <img class="w3-right" src="{% static 'graphics/self/icon.svg' %}" width="120" />
+                    <img class="w3-right" src="{{ICON}}" width="120" />
                 </div>
+                </a>
             </div>
             <div class="w3-row">
             <br/>
-            <center>Copyright 2021 &#183; <a href="/docs">Docs &amp; Statements</a></center>
+            <center>
+            {% block footer_social %}
+            <a href="mailto:{{CONTACTMAIL}}"><button class="primary"><i class="material-icons">mail</i></button></a>
+                <a target="_blank" rel="noreferrer" href="https://github.com/Knotters"><button class="primary w3-animate-zoom"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://twitter.com/knottersdotorg"><button class="primary w3-animate-zoom"><img src="{% static 'graphics/thirdparty/twitter.png' %}" width="22" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://instagram.com/knottersdotorg"><button class="primary w3-animate-zoom"><img class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://facebook.com/knottersdotorg"><button class="primary w3-animate-zoom"><img src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://discord.gg/qZ3TdVHsma"><button class="primary w3-animate-zoom"><img src="{% static 'graphics/thirdparty/discord.png' %}" width="18" /></button></a>
+                <a target="_blank" rel="noreferrer" href="https://linkedin.com/company/knottersdotorg"><button class="primary w3-animate-zoom"><img src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" /></button></a>
+            {% endblock %}
+            <br/><br/>
+            <a href="/docs/copyright">Copyright 2021</a>
             </div>
         </footer>
         {% endblock %}
-        <script src="{% static 'scripts/theme.js' %}" type="text/javascript"></script>
-        <script src="{% static 'scripts/index.js' %}" type="text/javascript"></script>
+        {% block loadview %}
+        <div class="view-loader" id="viewloader">
+            <div class="loader"></div>
+        </div>
+        <div class="linear-loader" id="subloader">
+            <div class="loading-animation"></div>
+        </div>
+        {% endblock %} 
+        <script src="{% static 'alertify/alertify.min.js' %}"></script>
+        <script src="{% static 'cropper/cropper.min.js' %}"></script>
+        <script src="{% static 'chartjs/chart.min.js' %}"></script>
+        <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
+        <script src="{% static 'scripts/index.js' %}"></script>
+        <script src="{% static 'scripts/theme.js' %}"></script>
+        <script>
+            const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
+            const ROOT = "{{ROOT}}";
+            const APPNAME = "{{APPNAME}}";
+            const VERSION = "{{VERSION}}";
+            const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
+            const SERVICE_WORKER = "{{SERVICE_WORKER}}";
+            const dialog = alertify;
+            if("{{request.GET.e}}") {
+                error("{{request.GET.e}}");
+            } else if("{{request.GET.a}}") {
+                message("{{request.GET.a}}");
+            }
+        </script>
+        <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
+        <script src="{% static 'html2canvas.min.js' %}"></script>
     </body>
 </html>

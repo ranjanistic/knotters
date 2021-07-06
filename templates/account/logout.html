@@ -4,6 +4,7 @@
 
 {% block title %}Logout{% endblock %}
 
+{% block nav_href %}/people/profile/{{request.user.id}}{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
@@ -12,16 +13,14 @@
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
-	<div class="w3-padding"><i class="material-icons w3-jumbo">logout</i></div>
-	<h1>{{request.user.first_name|capfirst}}, are you sure you want to log out?</h1>
+	<div class="w3-padding"><img src="{{user.profile.getDP}}" class="w3-circle" width="100"/></div>
+	<h1>{{user.first_name|capfirst}}, are you sure you want to log out?</h1>
   <br/>
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half">
     <form method="POST" action="{% url 'account_logout' %}">
       {% csrf_token %}
-      {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-      {% endif %}
+      <input type="hidden" name="next" value="/redirector?n={{ redirect_field_value }}" />
       <button class="negative" type="submit"><i class="material-icons">logout</i>Yes, logout</button>
       <a href="/"><button class="positive" type="button"><i class="material-icons">home</i>No, return home</button></a>
       </form>

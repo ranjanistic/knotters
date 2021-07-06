@@ -1,8 +1,12 @@
 from django.urls import path
-
+from main.strings import url
 from .views import *
 
 urlpatterns = [
-    path('', index),
-    path('profile/<str:userID>', profile)
+    path(url.INDEX, index),
+    path(url.People.PROFILE, profile),
+    path(url.People.PROFILEEDIT, editProfile),
+    path(url.People.PROFILETAB, profileTab),
+    path(url.People.SETTINGTAB, settingTab),
+    path(url.People.ACCOUNTPREFERENCES, accountprefs),
 ]

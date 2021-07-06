@@ -1,0 +1,24 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load socialaccount %}
+{% block title %}Offline{% endblock %}
+{% block nav_text %}
+Offline
+{% endblock %}
+
+{% block content %}
+  <div class="w3-row w3-padding w3-center tertiary">
+  <br/>
+	<div class="w3-padding"><i class="material-icons w3-jumbo negative-text">mobiledata_off</i></div>
+	<h1>408</h1>
+	<div class="w3-col w3-quarter w3-padding"></div>
+	<div class="w3-col w3-half">
+  <h1>You're offline</h1><br/>
+  <h4>You might still be able to browse some content, offline.</h4><br/>
+  <a href="/"><button class="positive" type="button" data-icon="signal_wifi_off">Try browsing offline</button></a>
+  <button class="accent" onclick="subLoader();window.location.reload()" type="button" data-icon="restart_alt">Retry</button>
+  </div>
+  <div class="w3-row w3-padding"></div>
+  <br/><br/>
+  </div>
+{% endblock %}

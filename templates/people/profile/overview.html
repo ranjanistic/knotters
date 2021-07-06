@@ -1,0 +1,40 @@
+{% with profile=person.profile%}
+<div class="w3-row w3-padding">
+    <div class="w3-row">
+        <div class="w3-col w3-half w3-center">
+            <br/>
+            <div class="" id="view-profiletopics">
+            {% for topic in profile.topics.all %}
+            Interested in <button>{{topic.name}}</button>
+            {% empty %}
+            {% endfor %}
+            {% if self and profile.topics.all.count < 5 %}
+            <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">Add topics</button>
+            {% endif %}
+            </div>
+            <div class="" id="edit-profiletopics">
+                {% for topic in allTopics %}
+                    <button class="positive" data-icon="add">{{topic.name}}</button>
+                    <br/>
+                    <button id="save-edit-profiletopics">Save</button>
+                    <button id="discard-edit-profiletopics">Cancel</button>
+                {% empty %}
+                    <br/>
+                    <br/>
+                    <h2>No topics available yet.<br/>Stay tuned!</h2>
+                    <br/>
+                    <button hidden id="save-edit-profiletopics">Save</button>
+                    <button id="discard-edit-profiletopics">Cancel</button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="w3-col w3-half w3-center">
+            <br/>
+            <canvas id="myChart" class="chart-view" data-type="line" height="220"></canvas>
+        </div>
+        {% comment %} <div class="w3-col w3-third">
+            <canvas id="myChart" class="chart-view" data-type="bar" height="300"></canvas>
+        </div> {% endcomment %}
+    </div>
+</div>
+{% endwith %}

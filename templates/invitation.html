@@ -1,0 +1,57 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="w3-row w3-padding w3-center">
+<br/>
+{% if SUBAPPNAME == SUBAPPS.compete %}
+    <div class="w3-jumbo material-icons positive-text">groups</div>
+    {% if declined %}
+    <h3>You have declined this invitation for participation with</h3>
+    {% for member in submission.getMembers %}
+    <a target="_blank" href="{{member.getLink}}">
+        <button class="negative"><img src="{{member.getDP}}" width="25" class="w3-circle" />&nbsp;{{member.user.getName}}</button>
+    </a>
+    {% endfor %}
+    <h5>in the competition</h5>
+    <h2><a target="_blank" class="positive-text" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
+    <br/>
+    <a href="{{ROOT}}"><button class="accent" data-icon="done">Acknowledged</button></a>
+
+    {% elif accepted %}
+    <h3>You have accepted this invitation for participation with<h3>
+    {% for member in submission.getMembers %}
+    <a target="_blank" href="{{member.getLink}}">
+        <button class="accent"><img src="{{member.getDP}}" width="25" class="w3-circle" />&nbsp;{{member.user.getName}}</button>
+    </a>
+    {% endfor %}
+    <h5>in the competition</h5>
+    <h2><a target="_blank" class="positive-text" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
+    <br/>
+    <a href="{{submission.competition.getLink}}"><button type="submit" class="positive" data-icon="celebration">Let's go!</button></a>
+    
+    {% else %}
+    <h3>You have been invited to participate in the competition </h3>
+    <h2><a target="_blank" class="positive-text" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
+    <h5>together with</h5>
+    {% for member in submission.getMembers %}
+    <a target="_blank" href="{{member.getLink}}">
+        <button class="accent"><img src="{{member.getDP}}" width="25" class="w3-circle" />&nbsp;{{member.user.getName}}</button>
+    </a>
+    {% endfor %}
+
+    <h5>on the team.</h5>
+
+    <form method="POST" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/accept">
+    {% csrf_token %}
+    <button type="submit" class="positive" data-icon="check">Accept Invitation</button>
+    </form>
+    <br/>
+    <form method="POST" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/decline">
+    {% csrf_token %}
+    <button type="submit" class="negative" data-icon="cancel">Decline Politely</button>
+    </form>
+    {% endif %}
+{% endif %}
+</div>
+<br/>
+{% endblock %}

@@ -4,10 +4,10 @@
 {% block title %}Linked Accounts{% endblock %}
 
 {% block nav_icon %}
-  <button class="primary"><i class="material-icons">arrow_back</i></button>
+  <button class="primary" data-icon="arrow_back" onclick="window.close()"></button>
 {% endblock %}
 {% block nav_text %}Linked Accounts{% endblock %}
-{% block nav_auth_links %}{% endblock %}
+{% block nav_links %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
@@ -20,6 +20,7 @@
     <form method="post" action="{% url 'socialaccount_connections' %}">
         {% csrf_token %}
         <fieldset>
+        <h5>Choose one to unlink</h5>
         {% if form.non_field_errors %}
         <div id="errorMsg">{{ form.non_field_errors }}</div>
         {% endif %}
@@ -37,51 +38,47 @@
         {% endfor %}
 
         <div class="w3-row w3-padding">
-            <button class="negative" type="submit">Remove</button>
+            <button class="negative" type="submit" data-icon="link_off">Unlink</button>
         </div>
         </fieldset>
     </form>
-
     {% else %}
     <h5>You currently have no 3rd party accounts linked.</h5>
     {% endif %}
     <br/>
+    <div id="account-linking">
     <h2>Link a 3rd Party Account</h2>
     <div class="w3-row w3-padding">
         {% get_providers as socialaccount_providers %}
         {% for provider in socialaccount_providers %}
-            {% if provider.id == "openid" %}
-                {% for brand in provider.get_brands %}
-                <div class="w3-col w3-half">
-                <a title="{{brand.name}}"
-                    class="socialaccount_provider {{provider.id}} {{brand.id}}"
-                    href="{% provider_login_url provider.id openid=brand.openid_url process='connect' %}"
-                    ><button class="primary">{{brand.name}}</button></a>
-                </div>
-                {% endfor %}
-            {% endif %}
-            <div class="w3-padding">
-            {% for base_account in form.accounts %}
-             {% if base_account.provider != provider.id %}
-                <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
-                    href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
-                    <button class="{% if provider.name == "GitHub" %}secondary{% else %}primary{% endif %} w3-padding">
-                        <img src="/static/graphics/thirdparty/{{provider.name}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
-                        Link {{provider.name}} account
-                    </button>
-                </a>
-             {% endif %}
-             {% empty %}
-             <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}" 
-                    href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
-                    <button class="{% if provider.name == "GitHub" %}secondary{% else %}primary{% endif %} w3-padding">
-                        <img src="/static/graphics/thirdparty/{{provider.name}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
-                        Link {{provider.name}} account
-                    </button>
-                </a>
-            {% endfor %}
-            </div>
+            <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
+                href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
+                    <img src="/static/graphics/thirdparty/{{provider.name}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                    Link {{provider.name}} account
+                </button>
+            </a>
         {% endfor %}
+    </div>
     </div>
 </div>
 {% endblock %}
+{% block scripts %}
+<script>
+const socialaccounts = []
+{% for base_account in form.accounts %}
+socialaccounts.push("{{base_account.provider}}")
+{% endfor %}
+console.log(socialaccounts)
+const allproviders = getElements("oauth-providers")
+allproviders.forEach((provider)=>{
+    visibleElement(provider.id,!socialaccounts.includes(provider.id))
+})
+
+if(socialaccounts.length===allproviders.length){
+    hide(getElement('account-linking'))
+}
+
+</script>
+{% endblock %}
+{% block footer %}{%endblock %}

@@ -1,0 +1,24 @@
+<br/>
+<div class="w3-row w3-padding">
+{% for comp in upcomings %}
+<div class="w3-row pallete" style="background:url('{{comp.getBanner}}');">
+        <div class="w3-col w3-half pallete ">
+        <div class="w3-col w3-half">
+        <h4 class="positive-text">{{comp.title}}</h4>
+        <h6 class="text-tertiary">{{comp.tagline}}</h6>
+        </div>
+        <div class="w3-col w3-half w3-padding">
+        <strong class="w3-right dead-text">Begins at {{comp.startAt}}</strong>
+        <strong class="w3-right dead-text">Ends at {{comp.endAt}}</strong>
+        </div>
+    </div>
+    <div class="w3-col w3-half w3-padding">
+        <a class="w3-right" href="{{comp.getLink}}"><button class="accent" data-icon="visibility">View</button></a>
+    </div>
+</div>
+<br/>
+
+{% empty %}
+<center><h3>No upcoming competitions.</h3></center>
+{% endfor %}
+</div>

@@ -1,0 +1,33 @@
+{% load socialaccount %}
+<div id="view-settings">
+    <i class="w3-right material-icons edit-action" data-edittarget="settings">edit</i>
+    <form class="no-auto">
+    <h2>Account settings</h2>
+    <h4>Email address</h4>
+    <input disabled class="wide" type="email" autocomplete="email" placeholder="Email address (verification required)" value="{{request.user.email}}" />
+    <h4>Password</h4>
+    {% if request.user.password %}
+    <input disabled class="wide" type="password" autocomplete="current-password" value="Sike! You thought." />
+    {% else %}
+    {% endif %}
+    </form>
+</div>
+<div id="edit-settings">
+    <h4>Change Email address</h4>
+    <button class="accent" onclick="miniWindow('{% url 'account_email' %}')" data-icon="open_in_new">Email addresses</button>
+    <h4>Password</h4>
+    <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">Change Password</button>
+    <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">Forgot Password</button>
+    <br/><br/>
+    <button hidden class="w3-right" id="save-edit-settings" data-icon="done">Save</button>
+    <button class="w3-right" id="discard-edit-settings" data-icon="cancel">Cancel</button>
+</div>
+<h4>Oauth Accounts</h4>
+    <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">Linked Accounts</button>
+    <br/>
+    <h4>Security</h4>
+    Will be available soon.
+    <button hidden class="accent" data-icon="shield" id="twofactor">Two factor auth</button>
+    <button hidden class="secondary" data-icon="toggle_off" id="deactivateaccount">Deactivate Account</button>
+    <button hidden class="negative" data-icon="delete" id="deleteaccount">Delete Account</button>
+<br/>

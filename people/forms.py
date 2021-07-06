@@ -1,13 +1,20 @@
 from allauth.account.forms import SignupForm
 from django import forms
-from django.db.models.fields.files import ImageFieldFile
-
+from .methods import convertToFLname
 
 class CustomSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=50, label='First Name',help_text="First Name",widget=forms.TextInput(attrs={'placeholder': 'First Name'}))
-    last_name = forms.CharField(max_length=50, label='Last Name',help_text="Last Name",widget=forms.TextInput(attrs={'placeholder': 'Last Name'}))
-    def signup(self, request, user):
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.save()
-        return user
+    first_name = forms.CharField(max_length=50, label='Your Name',help_text="Your Name",widget=forms.TextInput(attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type':'text'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    
+    def save(self,request):
+        try:
+            fname, lname = convertToFLname(str(self.cleaned_data["first_name"]))
+            self.cleaned_data["first_name"] = fname
+            if lname:
+                self.cleaned_data["last_name"] = lname
+        except:
+            pass
+        return super(CustomSignupForm,self).save(request)        

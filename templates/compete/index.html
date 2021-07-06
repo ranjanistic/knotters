@@ -1,0 +1,57 @@
+{% extends 'index.html' %} 
+{% load static %} 
+
+{% block title %}Competitions{% endblock %} 
+
+{% block nav_noauth_competes %}{% endblock %} 
+{% block nav_href %}/{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-padding welcome-row">
+  <br/><br/>
+
+  <div class="dropdown-box" id="compete-dropdown"></div>
+  <div class="input-dropdown-box" id="compete-input-dropdown"></div>
+
+  <div class="w3-row w3-padding">
+  <h1>Competitions</h1>
+  </div>
+  <br/>
+  <div class="w3-row w3-padding">
+  <h4>
+    Time to time mass challenges, targeted primarily on real world problems.<br/>And for you to level up with enthusiasm.
+  </h4>
+  </div>
+  <div class="w3-row w3-padding">
+    <a href="#mainframe"><button class="display-button accent">
+        <i class="material-icons">volunteer_activism</i>Explore
+      </button>
+    </a>
+    <a href="{{ROOT}}/landing" hidden>
+      <button class="secondary display-button">
+        <i class="material-icons">open_in_new</i>Learn More
+      </button>
+    </a>
+  </div>
+</div>
+
+<div class="w3-row tertiary" id="mainframe">
+  	<div class="w3-row w3-center">
+      <button id="active" class="compete-nav-tab display-button href" data-href="#mainframe" data-icon="stream">
+        <span class="w3-hide-small">Active</span>
+      </button>
+      <button id="upcoming" class="compete-nav-tab display-button href" data-href="#mainframe" data-icon="hourglass_top">
+        <span class="w3-hide-small">Upcoming</span>
+      </button>
+      <button id="history" class="compete-nav-tab display-button href" data-href="#mainframe" data-icon="hourglass_bottom">
+        <span class="w3-hide-small">History</span>
+      </button>
+  	</div>
+    <div id="tabview" class="w3-row-padding w3-padding-16"></div>
+</div>
+{% endblock %} 
+
+{% block scripts %}
+<script  src="{% static 'scripts/compete/index.js' %}"  type="text/javascript"></script>
+{% endblock %}

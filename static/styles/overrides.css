@@ -1,0 +1,67 @@
+.ajs-header{
+    border-radius: 12px 12px 0 0 !important;
+}
+.ajs-footer{
+    border-radius: 0 0 12px 12px !important;
+}
+.ajs-header,
+.ajs-footer {
+    background-color: var(--tertiary) !important;
+    color: var(--tertiary-text) !important;
+    
+}
+
+.ajs-body,
+.ajs-dialog {
+    background-color: var(--primary) !important;
+    border-radius: 12px !important;
+    color: var(--primary-text);
+}
+
+.ajs-content{
+    color: var(--primary-text);
+}
+
+.ajs-content > h4{
+    color: var(--primary-text) !important;
+}
+.ajs-message {
+    background-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+    border: 0 !important;
+    text-shadow: none !important;
+    font-size: 16px;
+    font-family: var(--head-font);
+    word-spacing: normal;
+    min-width: 20% !important;
+    padding:8px 12px !important;
+    text-align: left !important;
+    border-radius: 4px !important;
+    box-shadow: 4px 4px 15px 5px #0f0f0f27;
+}
+.ajs-message.ajs-error {
+    background-color: var(--negative) !important;
+    color: var(--negative-text) !important;
+}
+.ajs-message.ajs-warning {
+    background-color: var(--negative) !important;
+    color: var(--negative-text) !important;
+}
+.ajs-message.ajs-success {
+    background-color: var(--positive) !important;
+    color: var(--positive-text) !important;
+}
+
+.ajs-button{
+    text-transform: none !important;
+    font-family: var(--head-font) !important;
+    font-weight: normal !important;
+}
+.ajs-ok{
+    background-color: var(--positive) !important;
+    color: var(--positive-text) !important;
+}
+.ajs-cancel{
+    background-color: var(--negative) !important;
+    color: var(--negative-text) !important;
+}

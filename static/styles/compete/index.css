@@ -1,0 +1,43 @@
+#competewelcome {
+  height: 70vh;
+}
+
+#competewelcome > div {
+  margin: 4rem 0 0 8rem;
+}
+
+#competewelcome h1{
+    font-size: 3rem;
+}
+
+#competewelcome p {
+  font-size: 1.4rem;
+  opacity: 0.8;
+}
+
+#competewelcome button {
+  font-size: 1.3rem;
+}
+
+#competetabs {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+@media screen and (max-width: 768px) {
+  #competewelcome {
+    height: 80vh;
+  }
+
+  #competewelcome > div {
+    margin: 0;
+  }
+
+  #competewelcome h1{
+    font-size: 2.4rem;
+}
+
+#competewelcome p{
+  font-size: 1.2rem;
+}
+}

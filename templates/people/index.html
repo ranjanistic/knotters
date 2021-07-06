@@ -1,10 +1,93 @@
-{% extends 'index.html' %}
+{% extends 'index.html' %} 
+{% load static %} 
 
-{% block title %}{{person.first_name}} {{person.last_name}} &#183; {{appname}}{% endblock %}
-{% block nav_text %}People{% endblock %}
+{% block title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block nav_href %}/{% endblock %}
 
 {% block content %}
-<div class="w3-row">
-body
+<br/>
+<div class="w3-row w3-center w3-padding-32 welcome-row">
+  <br/><br/>
+  <h1>Community</h1>
+  <br/>
+  <div class="w3-row w3-padding">
+  <h4>
+    Meet the people you share this platform with. See what or perhaps how they're doing over here.<br/>
+	Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.
+  </h4>
+  </div>
+  <div class="w3-row">
+    <a href="#mainframe"><button class="display-button accent">
+        <i class="material-icons">group_work</i>Explore
+      </button>
+    </a>
+    <a href="{{ROOT}}/landing" hidden>
+      <button class="secondary display-button">
+        <i class="material-icons">open_in_new</i>Learn More
+      </button>
+    </a>
+  </div>
+</div>
+
+<div class="w3-row tertiary" id="mainframe">
+  	<div class="w3-row w3-padding" id="searchbar" hidden>
+	  <br/>
+      <input type="text" name="query" class="primary" placeholder="Search people" required /><a href="{{ROOT}}#mainframe"><button type="button" class="negative"><i class="material-icons">clear</i></button></a>
+	  <br/>
+  	</div>
+	  <br/>
+	<div class="w3-row accent w3-padding">
+		<div class="w3-row w3-padding">
+			<h3 class="text-accent">Top contributers this week</h3>
+		</div>
+		<div class="w3-row w3-center">
+			{% for person in weekpeople %}
+				<div class="w3-col w3-quarter w3-padding-small">
+					<div class="pallete limit-height w3-center {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
+						<img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
+						<div class="w3-row w3-padding">
+							<h5 class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.getName }}</h5>
+							{% if person.profile.bio %}{{person.profile.bio}}{% endif %}
+						</div>
+						<div class="w3-row w3-padding-small">
+						<a href="{{person.profile.getLink}}"><i title="View {{person.getName}}" class="material-icons w3-right pointer positive-text">visibility</i></a>
+						<i title="Share {{person.getName}}" class="w3-left material-icons pointer" onclick="shareLinkAction('{{person.getName}}', '{{person.profile.bio}}', '{{site}}{{person.profile.getLink}}')">share</i>
+						</div>
+					</div>
+				</div>
+			{% empty %} 
+				<h3 class="text-accent">We'll bring you profiles as soon as they're available.</h3>
+				<h4 class="text-accent">There is still some work left here for us to do.</h4>
+			{% endfor %}
+		</div>
+		<br />
+	</div>
+	<div class="w3-row active w3-padding" hidden>
+		<div class="w3-row w3-padding">
+			<h3 class="text-active">Welcome newcomers!</h3>
+		</div>
+		<div class="w3-row w3-center">
+			{% for person in newcomers %}
+				<div class="w3-col w3-quarter w3-padding-small">
+					<div class="pallete limit-height w3-center {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
+						<img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
+						<div class="w3-row w3-padding">
+							<h5 class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.getName }}</h5>
+							{% if person.profile.bio %}{{person.profile.bio}}{% endif %}
+						</div>
+						<div class="w3-row w3-padding-small">
+						<a href="{{person.profile.getLink}}"><i title="View {{person.getName}}" class="material-icons w3-right pointer positive-text">visibility</i></a>
+						<i title="Share {{person.getName}}" class="w3-left material-icons pointer" onclick="shareLinkAction('{{person.getName}}', '{{person.profile.bio}}', '{{site}}{{person.profile.getLink}}')">share</i>
+						</div>
+					</div>
+				</div>
+			{% empty %} 
+				<h3 class="text-active">No newcomer yet.</h3>
+			{% endfor %}
+		</div>
+		<br />
+	</div>
+	
+  </div>
 </div>
 {% endblock %}

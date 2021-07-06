@@ -1,6 +1,11 @@
 import environ
+from .strings import environment
+from pathlib import Path
+import os
+
 env = environ.Env()
-environ.Env.read_env()
+
+environ.Env.read_env(env_file=os.path.join(Path(__file__).resolve().parent.parent, env('ENVPATH')))
 
 PUBNAME = env('PUBNAME')
 PROJECTKEY = env('PROJECTKEY')
@@ -15,7 +20,16 @@ MAILUSER = env('MAILUSER')
 MAILPASS = env('MAILPASS')
 ADMINPATH = env('ADMINPATH')
 GITHUBBOTTOKEN = env('GITHUBBOTTOKEN')
+DISCORDBOTTOKEN = env('DISCORDBOTTOKEN')
 SITE = env('SITE')
+SENDERTOKEN = env('SENDERTOKEN')
+STATIC_URL = env('STATIC_URL')
+MEDIA_URL = env('MEDIA_URL')
 
+ISPRODUCTION = ENV == environment.PRODUCTION
 
-ISPRODUCTION = ENV == 'production'
+VERSION = 'v--1'
+    
+if ISPRODUCTION:
+    from main.__version__ import VERSION as V
+    VERSION = V

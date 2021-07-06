@@ -1,51 +1,48 @@
-{% extends 'temp.html' %}
+{% extends 'index.html' %}
 {% load static %}
 
-{% block og %}
-<meta property="og:title" content="{{appname}} Docs" />
-<meta
-property="og:description"
-content="Refer these in case of any legal or moral doubts."
-/>
-<meta property="og:site_name" content="{{appname}}" />
-{% endblock %}
-{% block title %}{{appname}} Docs{% endblock %}
+{% block title %}Docs{% endblock %}
 
 {% block nav_text %}Docs{% endblock %}
 
+{% block nav_href %}/{% endblock %}
+
 {% block content %}
 <br/>
-<div class="w3-row w3-padding">
+<div class="w3-row w3-padding w3-animate-zoom">
     <center>
         <img src="{% static 'graphics/self/icon.svg' %}" width="100">
-        <h1>{{appname}} Docs</h1>
+        <h1>{{APPNAME}} Docs</h1>
         <h3>Refer these in case of any legal or moral doubts.</h3>
     </center><br/>
-    <a href="/docs/communityguidelines"><div class="w3-row pallete">
+    <a href="/docs/communityguidelines"><div class="w3-row pallete active w3-animate-bottom">
         <h1 class="w3-padding text-active">Community Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    <a href="/docs/moderationguidelines"><div class="w3-row negative pallete">
+    <a href="/docs/moderationguidelines"><div class="w3-row negative pallete w3-animate-bottom">
         <h1 class="w3-padding text-negative">Moderation Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    <a href="/docs/competitionguidelines"><div class="w3-row positive pallete">
+    <a href="/docs/competitionguidelines"><div class="w3-row positive pallete w3-animate-bottom">
         <h1 class="w3-padding text-positive">Competition Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    <a href="/docs/termsofservice"><div class="w3-row accent pallete">
+    <a href="/docs/disclaimer"><div class="w3-row tertiary pallete w3-animate-bottom">
+        <h1 class="w3-padding text-tertiary">Disclaimer<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+    </div>
+    </a><br/>
+    <a href="/docs/termsofservice"><div class="w3-row accent pallete w3-animate-bottom">
         <h1 class="w3-padding text-accent">Terms of service<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    <a href="/docs/privacypolicy"><div class="w3-row primary pallete">
-        <h1 class="w3-padding text-primary">Privacy Policy<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+    <a href="/docs/privacypolicy"><div class="w3-row pallete w3-animate-bottom">
+        <h1 class="w3-padding">Privacy Policy<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    <a href="/docs/copyright"><div class="w3-row secondary pallete">
+    <a href="/docs/copyright"><div class="w3-row secondary pallete w3-animate-bottom">
         <h1 class="w3-padding text-secondary">Copyright 2021<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
     </div>
     </a><br/>
-    
 </div>
 
 {% endblock %}

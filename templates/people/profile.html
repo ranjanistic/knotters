@@ -1,82 +1,143 @@
-{% extends 'people/index.html' %}
-{% load static %}
-{% load i18n %}
+{% extends "people/index.html" %}
+
+{% load static %} {% load i18n %} 
 {% load l10n %}
-{% load account %}
+{% load account %} 
 {% load socialaccount %}
 
-<html>
-
-{% block title %}{{person.first_name}} {{person.last_name}} &#183; {{appname}}{% endblock %}
-
-<body>
+{% block title %}{{person.getName}}{% endblock %}
 
 {% block nav_icon %}
-  <button class="primary"><i class="material-icons">arrow_back</i></button>
+<button class="primary"><i class="material-icons">arrow_back</i></button>
+{% endblock %} 
+    
+{% block nav_text %}{{person.getName}}{% endblock %} 
+  
+{% block nav_href %}{{ROOT}}{% endblock %}
+
+{% block nav_auth_user %}
+  {% if user.is_authenticated and user == person %}
+    <a href="{% url 'account_logout' %}?next=/"><button class="negative"><i class="material-icons">logout</i><span class="w3-hide-small">Logout</span></button></a>
+  {% elif user.is_authenticated %}
+    <a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName}}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" />&nbsp;{{user.first_name}}</button></a>
+  {% else %}
+      {% block nav_auth_login %}
+      <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
+      {% endblock %}
+      {% block nav_auth_signup %}
+      <a href="{% url 'account_signup' %}?next=/"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">Join</span></button></a>
+      {% endblock %}
+  {% endif %}
 {% endblock %}
-{% block nav_text %}{{person.first_name}} {{person.last_name}}{% endblock %}
-
-
-{% block nav_auth %}{% endblock %}
 
 {% block content %}
-<div class="w3-row tertiary" style=" padding-top: 1.5rem;">
-  <div class="w3-col w3-container m4 l3">
-    <div class="pallete-people" style=" padding:0; padding-bottom: 12px;">
-      <img src="/media{{ person.profile_pic }}" alt="Alps">
-      <p class="person-name">  {{ person.first_name }} {{ person.last_name }} </p>
+    <div class="w3-row tertiary">
+      <br/>
+      <div class="w3-col w3-container m4 l3 w3-animate-left">
+        <div class="pallete w3-center w3-animate-zoom {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
+          
+          <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
+          
+          <div class="w3-row w3-padding">
+            <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.getName }}</h5>
+            <span class="{% if person.profile.is_moderator %}text-accent{% endif%}">{% if person.profile.bio %}{{person.profile.bio}}{% endif %}</span>
+          </div>
+          <div class="w3-row w3-padding-small">
+          {% if user.is_authenticated and user == person %}
+            <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
+          {% endif %}
+          <i class="w3-left material-icons pointer {% if person.profile.is_moderator %}text-accent{% endif%}" onclick="shareLinkAction('{{person.getName}}', '{{person.profile.bio}}', '{{site}}{{person.profile.getLink}}')">share</i>
+          </div>
+        </div>
+
+        {% if user.is_authenticated and user == person %}
+          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
+            <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" style="opacity:0.5" />
+            <input type="file" id="uploadprofilepic" hidden accept="image/png, image/jpg, image/jpeg" />
+            <button class="active" type="button" id="upload-button">
+              <i class="material-icons">image</i>
+              <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
+            </button>
+            <br/>
+            <form method="POST" action="{{ROOT}}/profile/edit/pallete">
+              {% csrf_token %}
+              <input type="text" hidden id="profileImageData" name="profilepic" value="" />
+              <div class="w3-row w3-padding">
+                <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{user.getName}}" name="displayname" /><br/><br/>
+                <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="120" name="profilebio" >{% if user.profile.bio %}{{user.profile.bio}}{% endif %}</textarea><br/>
+              </div>
+              <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
+              <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
+            </form>
+          </div>
+
+        {% endif %}
+        <br />
+        
+        <div class="w3-row w3-padding-small">
+        {% if person.profile.githubID %}
+          <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.githubID}}</button></a>
+        {% elif user.is_authenticated and user == person %}
+        <a href="/auth/github/login/?process=connect&next=/redirector?n={{user.getLink}}">
+        <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
+          &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
+        </button>
+        </a>
+        {% endif %}
+        </div>
+        <br />
+
+        {% if user.is_authenticated and user == person %}
+        <div class="w3-row pallete">
+          <p>Email ID: <span>{{ person.email }}</span></p>
+          <p><b>Date joined</b> <span>{{ person.date_joined }}</span></p>
+          <p><b>Last login</b> <span> {{ person.last_login }}</span></p>
+        </div>
+        <br />
+        {% endif %}
+
+      </div>
+      <div class="w3-col w3-container m8 l9 ">
+        <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
+          <div class="w3-row w3-center w3-animate-top">
+            <button id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
+            <button id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
+            <button hidden id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
+            <button hidden id="activity" class="nav-tab"><i class="material-icons">history</i><span class="w3-hide-small">Activity</span></button>
+            {% if user.is_authenticated and user.profile.is_moderator %}
+            <button id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
+            {% endif %}
+          </div>
+          <br/>
+          <div id="tabview" style="height: 60vh;overflow-y: scroll;"></div>
+        </div>
+
+        {% if user.is_authenticated and user == person %}
+        <br/>
+        <div class="w3-row pallete w3-animate-right" id="setts">
+          <div class="w3-row w3-padding">
+          <i class="w3-right material-icons">settings</i><h3>Settings</h3>
+          </div>
+          <div class="w3-row w3-padding-small">
+            <button id="account" class="set-tab"><i class="material-icons">manage_accounts</i><span class="w3-hide-small">Account</span></button>
+            <button id="preference" class="set-tab"><i class="material-icons">settings</i><span class="w3-hide-small">Preference</span></button>
+            {% if user.is_authenticated and user.is_moderator %}
+              <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
+            {% endif %}
+            <hr />
+            <div id="stabview"></div>
+          </div>
+        </div>
+        {% endif %}
+        <br/>
+      </div>
     </div>
-
-<div class="pallete-people"><p>Email ID: <span>{{ person.email }}</span></p>
-<p>User ID: <span >{{ person.id }}</span></p></div>
-
-<div class="pallete-people"><p>Date joined: <span >{{ person.date_joined }}</span></p>
-<p>Last login: <span> {{ person.last_login }}</span></p></div>
-
-{% if person.is_moderator %}
-moderator
-{% endif %}
-
-</div>
-<div class="w3-col w3-container m8 l9" >
-
- <div class="pallete-people" style="height: 115vh;"> 
-  <div class="w3-bar">
-    <a class="w3-bar-item " onclick="openTab('overview'); getApi() "><i class="material-icons">person</i>Overview</a>
-    <a class="w3-bar-item " onclick="openTab('project'); getApi()"><i class="material-icons">workspaces</i>Project</a>
-    <a class="w3-bar-item " onclick="openTab('contribution'); getApi()"><i class="material-icons">groups</i>Contribution</a>
-    <a class="w3-bar-item " onclick="openTab('activity'); getApi()"><i class="material-icons">history</i>Activity</a>
-  </div>
-  <hr/>
-
-  <div class="loader" id="loader" style="display: none;"></div>
-
-  <div id="overview" class="w3-container tab">
-    <h2>Hello</h2>
-  </div>
-  
-  <div id="project" class="w3-container tab" style="display:none">
-    <h2>Hi</h2>
-  </div>
-  
-  <div id="contribution" class="w3-container tab" style="display:none">
-    <h2>morning</h2>
-  </div>
-
-  <div id="activity" class="w3-container tab" style="display:none;">
-    <h2>Night</h2>
-  </div>
-</div>
-
-<div class="pallete-people">
-  <h3><i class="material-icons">settings</i>Account settings</h3>
-</div>
-
-<div  style="margin: 2rem 0; text-align: right;">
-<a href="{% url 'account_logout' %}"><button class="negative"><i class="material-icons">logout</i>Logout</button></a>
-</div>
-</div>
-</div>
 {% endblock %}
-</body>
-</html>
+
+{% block scripts %}
+<script>
+  const userID = "{{ person.id }}"
+  const selfProfile = authenticated?"{{user.id}}" === "{{person.id}}":false
+</script>
+<script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
+{% endblock %} 
