@@ -334,7 +334,7 @@ class Submission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     members = models.ManyToManyField(
-        Profile, through='SubmissionParticipant', related_name='submission_members')
+        Profile, through='SubmissionParticipant', related_name='submission_participants')
     repo = models.URLField(max_length=1000, blank=True, null=True)
     submitted = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -456,7 +456,7 @@ class SubmissionParticipant(models.Model):
         unique_together = (("profile", "submission"))
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
-        Profile, on_delete=models.PROTECT, related_name='submission_profile')
+        Profile, on_delete=models.PROTECT, related_name='participant_profile')
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
 
