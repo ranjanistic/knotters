@@ -66,10 +66,20 @@ jobs:
     - name: Fetch & Merge changes
       run: git pull
       working-directory: ${{ secrets.WORKINGDIR }}
+    - name: Unlock Environment
+      run: |
+        gpg --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
     - name: Install Dependencies
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt
-        py manage.py collectstatic --noinput
-        py manage.py makemigrations
-        py manage.py migrate
+    - name: Creating Backup
+      run: |
+        py manage.py dbbackup --noinput
+    - name: Run Migrations
+      run: |
+        py manage.py makemigrations --noinput
+        py manage.py migrate --noinput
+    - name: Lock Environment
+      run: |
+        del ${{ secrets.ENVPATH }}

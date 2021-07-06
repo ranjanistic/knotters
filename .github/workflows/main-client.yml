@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
     paths:
-      - ".github/workflows/main-client.yml"
       - "genversion.py"
       - "static/**"
       - "templates/**"
@@ -63,11 +62,17 @@ jobs:
     - name: Fetch & Merge changes
       run: git pull
       working-directory: ${{ secrets.WORKINGDIR }}
+    - name: Unlock Environment
+      run: |
+        gpg --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
     - name: Install Dependencies
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt
         py manage.py collectstatic --noinput
+    - name: Lock Environment
+      run: |
+        del ${{ secrets.ENVPATH }}
     - name: Release new version
       run: |
         py genversion.py
