@@ -1,8 +1,7 @@
 import os
 import sys
-# from main.bots import Discord
 
-ENVPATH = 'main\.env'
+ENVPATH = 'main/.env'
 
 def main(ENVPATH):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
@@ -26,5 +25,4 @@ def main(ENVPATH):
 
 if __name__ == '__main__':
     main(ENVPATH=ENVPATH)
-    # from main.env import DISCORDBOTTOKEN, GITHUBBOTTOKEN
-    # Discord.run(DISCORDBOTTOKEN)
+

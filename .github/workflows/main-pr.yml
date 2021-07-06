@@ -43,6 +43,7 @@ jobs:
         echo "COOKIEDOM=${{ secrets.COOKIEDOM }}" >> main/.env
         echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> main/.env
         echo "SITE=${{ secrets.SITE }}" >> main/.env
+        ls
     - name: Unit Testing
       run: |
         python manage.py test
