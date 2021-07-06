@@ -75,11 +75,15 @@ jobs:
         pip install -r requirements.txt
     - name: Creating Backup
       run: |
-        py manage.py dbbackup --noinput
+        mongodump --uri="${{ secrets.DBLINK }}" -o backup
+        tar czf backup\${{ secrets.DBNAME }}.tar.gz backup\${{ secrets.DBNAME }}
+        rmdir /s backup\${{ secrets.DBNAME }} /q
+        gpg -e -r ${{ secrets.MAILUSER }} backup\${{ secrets.DBNAME }}.tar.gz
+        del backup\${{ secrets.DBNAME }}.tar.gz /q 2>nul
     - name: Run Migrations
       run: |
         py manage.py makemigrations --noinput
         py manage.py migrate --noinput
     - name: Lock Environment
       run: |
-        del ${{ secrets.ENVPATH }}
+        del ${{ secrets.ENVPATH }} /q 2>nul

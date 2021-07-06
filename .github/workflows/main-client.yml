@@ -72,7 +72,7 @@ jobs:
         py manage.py collectstatic --noinput
     - name: Lock Environment
       run: |
-        del ${{ secrets.ENVPATH }}
+        del ${{ secrets.ENVPATH }} /q 2>nul
     - name: Release new version
       run: |
         py genversion.py
