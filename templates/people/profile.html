@@ -34,8 +34,8 @@
 {% block content %}
     <div class="w3-row tertiary">
       <br/>
-      <div class="w3-col w3-container m4 l3">
-        <div class="pallete w3-center {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
+      <div class="w3-col w3-container m4 l3 w3-animate-left">
+        <div class="pallete w3-center w3-animate-zoom {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
           
           <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
@@ -52,7 +52,7 @@
         </div>
 
         {% if user.is_authenticated and user == person %}
-          <div class="pallete w3-center" id="edit-pallete">
+          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
             <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" style="opacity:0.5" />
             <input type="file" id="uploadprofilepic" hidden accept="image/png, image/jpg, image/jpeg" />
             <button class="active" type="button" id="upload-button">
@@ -65,7 +65,7 @@
               <input type="text" hidden id="profileImageData" name="profilepic" value="" />
               <div class="w3-row w3-padding">
                 <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{user.getName}}" name="displayname" /><br/><br/>
-                <textarea type="text" placeholder="Bio" autocomplete="nickname" maxlength="120" name="profilebio" >{% if user.profile.bio %}{{user.profile.bio}}{% endif %}</textarea><br/>
+                <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="120" name="profilebio" >{% if user.profile.bio %}{{user.profile.bio}}{% endif %}</textarea><br/>
               </div>
               <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
               <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
@@ -98,9 +98,9 @@
         {% endif %}
 
       </div>
-      <div class="w3-col w3-container m8 l9">
-        <div class="pallete" style="min-height: 75vh;">
-          <div class="w3-row w3-center">
+      <div class="w3-col w3-container m8 l9 ">
+        <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
+          <div class="w3-row w3-center w3-animate-top">
             <button id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
             <button id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
             <button hidden id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
@@ -115,7 +115,7 @@
 
         {% if user.is_authenticated and user == person %}
         <br/>
-        <div class="w3-row pallete" id="setts">
+        <div class="w3-row pallete w3-animate-right" id="setts">
           <div class="w3-row w3-padding">
           <i class="w3-right material-icons">settings</i><h3>Settings</h3>
           </div>

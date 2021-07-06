@@ -1,8 +1,8 @@
 
-from functools import wraps
 from django.http.response import Http404, HttpResponseNotAllowed
-from .env import ISPRODUCTION
+from functools import wraps
 import json
+from .env import ISPRODUCTION
 
 
 def require_JSON_body(function):

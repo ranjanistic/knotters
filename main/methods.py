@@ -3,14 +3,13 @@ import os
 from django.http.response import HttpResponse
 import requests
 import re
-
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.core.files.base import ContentFile, File
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from .env import ISPRODUCTION
-from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
+from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 
 
 def renderData(data: dict = {}, fromApp: str = '') -> dict:
@@ -36,7 +35,7 @@ def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
 
 
 def mapFilePaths(dir_name, traversed=[], results=[]):
-    
+
     dirs = os.listdir(dir_name)
     if dirs:
         for f in dirs:
@@ -87,7 +86,7 @@ def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     try:
         response = requests.request(
             'POST', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
-        return True
+        return response['success']
     except:
         return False
 

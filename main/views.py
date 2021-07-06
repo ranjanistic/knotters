@@ -1,39 +1,38 @@
 import os
+from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET
-from django.shortcuts import redirect
-from main.settings import STATIC_URL, MEDIA_URL
 from django.utils import timezone
+from django.shortcuts import redirect
+from allauth.account.models import EmailAddress
+from people.models import User
 import json
 import requests
-from .env import ADMINPATH, SITE
-from main.strings import url
-from .methods import renderData, renderView, replaceUrlParamsWithStr
-from .decorators import dev_only
 from projects.models import Project
 from compete.models import Competition
+from .env import ADMINPATH, SITE
+from .methods import renderData, renderView, replaceUrlParamsWithStr
+from .decorators import dev_only
 from .methods import renderView, mapFilePaths
-from .strings import code, COMPETE
-from .settings import BASE_DIR
-from people.models import User
-from allauth.account.models import EmailAddress
+from .settings import BASE_DIR, STATIC_URL, MEDIA_URL
+from .strings import code, COMPETE, url
 
 
 @require_GET
-def offline(request):
+def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, 'offline')
 
 
 @require_GET
 @dev_only
-def mailtemplate(request, template):
+def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
     return renderView(request, f'account/email/{template}')
 
 
 @require_GET
 @dev_only
-def createMockUsers(request, total):
+def createMockUsers(request: WSGIRequest, total: int) -> HttpResponse:
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         for i in range(int(total)):
@@ -50,14 +49,14 @@ def createMockUsers(request, total):
 
 @require_GET
 @dev_only
-def clearMockUsers(request):
+def clearMockUsers(request: WSGIRequest) -> HttpResponse:
     User.objects.filter(email__startswith=f"testing",
                         email__endswith="@knotters.org").delete()
     return HttpResponse('ok')
 
 
 @require_GET
-def index(request):
+def index(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=code.LIVE)[0:3]
     data = {
         "projects": projects
@@ -74,7 +73,7 @@ def index(request):
 
 
 @require_GET
-def redirector(request):
+def redirector(request: WSGIRequest) -> HttpResponse:
     next = request.GET.get('n', '/')
     next = '/' if str(next).strip() == '' or not next or next == 'None' else next
     if next.startswith("/"):
@@ -84,12 +83,12 @@ def redirector(request):
 
 
 @require_GET
-def docIndex(request):
+def docIndex(request: WSGIRequest) -> HttpResponse:
     return renderView(request, "index", fromApp='docs')
 
 
 @require_GET
-def docs(request, type):
+def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         return renderView(request, type, fromApp='docs')
     except:
@@ -97,12 +96,12 @@ def docs(request, type):
 
 
 @require_GET
-def landing(request):
+def landing(request: WSGIRequest) -> HttpResponse:
     return renderView(request, "landing")
 
 
 @require_GET
-def applanding(request, subapp):
+def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, "landing", fromApp=subapp)
 
 
@@ -132,7 +131,7 @@ class ServiceWorker(TemplateView):
         rep = str(os.getcwd()+"\\")
         for stat in staticAssets:
             path = str(stat).replace(rep, '/')
-            if path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2')) and not assets.__contains__(path):
+            if path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2', '.jpeg')) and not assets.__contains__(path):
                 assets.append(path)
 
         assets.append(f"/{url.OFFLINE}")
