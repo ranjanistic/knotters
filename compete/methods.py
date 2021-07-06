@@ -24,7 +24,6 @@ def getIndexSectionHTML(section:str, request:WSGIRequest) -> str:
                 actives = Competition.objects.filter(startAt__lte=now,endAt__gt=now).order_by('-endAt')
             except:
                 actives = []
-            print(actives)
             data['actives'] = actives
         elif section == 'upcoming':
             try:

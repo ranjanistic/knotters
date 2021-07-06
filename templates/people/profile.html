@@ -5,8 +5,7 @@
 {% load account %} 
 {% load socialaccount %}
 
-{% block title %}{{person.first_name}} {{person.last_name}}
-{% endblock %}
+{% block title %}{{person.getName}}{% endblock %}
 
 {% block nav_icon %}
 <button class="primary"><i class="material-icons">arrow_back</i></button>
