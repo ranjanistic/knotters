@@ -32,22 +32,24 @@ jobs:
         pip install -r requirements.txt
     - name: Setup Environment
       run: |
-        touch main/.env
-        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> main/.env
-        echo "PUBNAME=${{ secrets.PUBNAME }}" >> main/.env
-        echo "ENV=${{ secrets.ENV }}" >> main/.env
-        echo "HOSTS=${{ secrets.HOSTS }}" >> main/.env
-        echo "DBNAME=${{ secrets.DBNAME }}" >> main/.env
-        echo "DBLINK=${{ secrets.DBLINK }}" >> main/.env
-        echo "DBUSER=${{ secrets.DBUSER }}" >> main/.env
-        echo "DBPASS=${{ secrets.DBPASS }}" >> main/.env
-        echo "MAILUSER=${{ secrets.MAILUSER }}" >> main/.env
-        echo "MAILPASS=${{ secrets.MAILPASS }}" >> main/.env
-        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> main/.env
-        echo "CORSLIST=${{ secrets.CORSLIST }}" >> main/.env
-        echo "COOKIEDOM=${{ secrets.COOKIEDOM }}" >> main/.env
-        echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> main/.env
-        echo "SITE=${{ secrets.SITE }}" >> main/.env
+        touch ${{ secrets.ENVPATH }}
+        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> ${{ secrets.ENVPATH }}
+        echo "PUBNAME=${{ secrets.PUBNAME }}" >> ${{ secrets.ENVPATH }}
+        echo "ENV=${{ secrets.ENV }}" >> ${{ secrets.ENVPATH }}
+        echo "HOSTS=${{ secrets.HOSTS }}" >> ${{ secrets.ENVPATH }}
+        echo "DBNAME=${{ secrets.DBNAME }}" >> ${{ secrets.ENVPATH }}
+        echo "DBLINK=${{ secrets.DBLINK }}" >> ${{ secrets.ENVPATH }}
+        echo "DBUSER=${{ secrets.DBUSER }}" >> ${{ secrets.ENVPATH }}
+        echo "DBPASS=${{ secrets.DBPASS }}" >> ${{ secrets.ENVPATH }}
+        echo "MAILUSER=${{ secrets.MAILUSER }}" >> ${{ secrets.ENVPATH }}
+        echo "MAILPASS=${{ secrets.MAILPASS }}" >> ${{ secrets.ENVPATH }}
+        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> ${{ secrets.ENVPATH }}
+        echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
+        echo "DISCORDBOTTOKEN=${{ secrets.DISCORDBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
+        echo "SITE=${{ secrets.SITE }}" >> ${{ secrets.ENVPATH }}
+        echo "SENDERTOKEN=${{ secrets.SENDERTOKEN }}" >> ${{ secrets.ENVPATH }}
+        echo "MEDIA_URL=${{ secrets.MEDIA_URL }}" >> ${{ secrets.ENVPATH }}
+        echo "STATIC_URL=${{ secrets.STATIC_URL }}" >> ${{ secrets.ENVPATH }}
     - name: Unit Testing
       run: |
         python manage.py test
@@ -69,3 +71,5 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
         py manage.py collectstatic --noinput
+        py manage.py makemigrations
+        py manage.py migrate
