@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
     'allauth_2fa',
-    'dbbackup',
 ] + DIVISIONS
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
@@ -46,9 +45,6 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_QUERY_EMAIL = True
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-
-DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
-DBBACKUP_STORAGE_OPTIONS = {"location": os.path.join(BASE_DIR, "backup")}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
