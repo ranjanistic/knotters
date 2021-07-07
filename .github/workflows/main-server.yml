@@ -75,15 +75,15 @@ jobs:
         pip install -r requirements.txt
     - name: Creating Backup
       run: |
-        mongodump --uri="${{ secrets.DBBACKUPLINK }}" -o backup
-        tar czf backup\${{ secrets.DBNAME }}.tar.gz backup\${{ secrets.DBNAME }}
-        py serverutils\clearbackupgpg.py
-        gpg -e -r ${{ secrets.MAILUSER }} backup\${{ secrets.DBNAME }}.tar.gz
-        py serverutils\clearbackupdump.py
+        mongodump --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
+        tar czf _backup_\${{ secrets.DBNAME }}.tar.gz _backup_\${{ secrets.DBNAME }}
+        py _utils_\clearbackupgpg.py
+        gpg -e -r ${{ secrets.MAILUSER }} _backup_\${{ secrets.DBNAME }}.tar.gz
+        py _utils_\clearbackupdump.py
     - name: Run Migrations
       run: |
         py manage.py makemigrations --noinput
         py manage.py migrate --noinput
     - name: Lock Environment
       run: |
-        py serverutils\clearenv.py
+        py _utils_\clearenv.py
