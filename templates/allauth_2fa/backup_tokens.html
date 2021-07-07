@@ -1,0 +1,40 @@
+{% extends 'allauth_2fa/index.html' %}
+{% load i18n %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-center w3-padding">
+<i class="w3-jumbo negative-text">vpn_key</i>
+<h1>2FA Backup Tokens</h1>
+<h5>Your account recovery tokens, in case you lose access to your two factor token device.</h5>
+<br/>
+{% if backup_tokens %}
+  {% if reveal_tokens %}
+    <div class="pallete-slab">
+      {% for token in backup_tokens %}
+        <div><h5>{{ token.token }}</h5></div>
+      {% endfor %}
+      </div>
+      <br/>
+      <h5 class="negative-text">Save these tokens at a secure place. Losing these can lock you out of your account!</h5>
+  {% else %}
+    Backup tokens have been generated and hidden. You can get them from your account settings view.
+  {% endif %}
+{% else %}
+{% endif %}
+<br/>
+{% if backup_tokens %}
+<a href="/"><button class="accent" data-icon="verified">I have saved them</button></a>
+{% endif %}
+
+<a href="{% url 'two-factor-remove' %}">
+  <button type="button" class="negative" data-icon="remove_circle">Disable 2FA</button>
+</a>
+<form method="post">
+  {% csrf_token %}
+  <button class="positive big-button" type="submit" data-icon="add">Generate{% if backup_tokens %} new{% endif %} recovery tokens</button>
+</form>
+</div>
+<br/>
+<br/>
+{% endblock %}

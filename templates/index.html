@@ -177,7 +177,6 @@
             </div>
             {% endblock %}
         </div>
-        
         {% block footer %}
         <footer class="w3-row secondary w3-padding w3-animate-bottom">
             <br/><br/>
@@ -214,6 +213,7 @@
             </div>
         </footer>
         {% endblock %}
+
         {% block loadview %}
         <div class="view-loader" id="viewloader">
             <div class="loader"></div>
@@ -244,6 +244,20 @@
         </script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
+        {% block errors %}
+        <script>
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                        error("{{ error|escape }}")
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                    error("{{ error|escape }}")
+            {% endfor %}
+        {% endif %}
+        </script>
+        {% endblock %}
         <script src="{% static 'html2canvas.min.js' %}"></script>
     </body>
 </html>
