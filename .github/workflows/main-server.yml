@@ -11,6 +11,7 @@ on:
       - "people/**"
       - "projects/**"
       - "manage.py"
+      - "requirements.txt"
 
 jobs:
   testing:
