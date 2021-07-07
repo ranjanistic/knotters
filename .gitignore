@@ -10,7 +10,6 @@ migrate
 makemigrations
 *.sqlite3
 __pycache__
-backup/
 createsuperuser
 migrations
 media/
@@ -20,4 +19,5 @@ py
 nginx_waitress
 runserver.py
 main/__version__.py
-serverutils/
+_backup_/
+_utils_/
