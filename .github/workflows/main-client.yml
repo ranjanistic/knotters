@@ -27,21 +27,21 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Setup Environment
+    - name: Create environment
       run: |
         touch ${{ secrets.ENVPATH }}
         echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> ${{ secrets.ENVPATH }}
         echo "PUBNAME=${{ secrets.PUBNAME }}" >> ${{ secrets.ENVPATH }}
         echo "ENV=${{ secrets.ENV }}" >> ${{ secrets.ENVPATH }}
         echo "HOSTS=${{ secrets.HOSTS }}" >> ${{ secrets.ENVPATH }}
-        echo "DBNAME=${{ secrets.DBNAME }}" >> ${{ secrets.ENVPATH }}
-        echo "DBLINK=${{ secrets.DBLINK }}" >> ${{ secrets.ENVPATH }}
-        echo "DBUSER=${{ secrets.DBUSER }}" >> ${{ secrets.ENVPATH }}
-        echo "DBPASS=${{ secrets.DBPASS }}" >> ${{ secrets.ENVPATH }}
+        echo "DBNAME=${{ secrets.DBTESTNAME }}" >> ${{ secrets.ENVPATH }}
+        echo "DBLINK=${{ secrets.DBTESTLINK }}" >> ${{ secrets.ENVPATH }}
+        echo "DBUSER=${{ secrets.DBTESTUSER }}" >> ${{ secrets.ENVPATH }}
+        echo "DBPASS=${{ secrets.DBTESTPASS }}" >> ${{ secrets.ENVPATH }}
         echo "MAILUSER=${{ secrets.MAILUSER }}" >> ${{ secrets.ENVPATH }}
         echo "MAILPASS=${{ secrets.MAILPASS }}" >> ${{ secrets.ENVPATH }}
         echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> ${{ secrets.ENVPATH }}
@@ -51,9 +51,16 @@ jobs:
         echo "SENDERTOKEN=${{ secrets.SENDERTOKEN }}" >> ${{ secrets.ENVPATH }}
         echo "MEDIA_URL=${{ secrets.MEDIA_URL }}" >> ${{ secrets.ENVPATH }}
         echo "STATIC_URL=${{ secrets.STATIC_URL }}" >> ${{ secrets.ENVPATH }}
-    - name: Unit Testing
+    - name: Run Migrations
       run: |
-        python manage.py test
+        python manage.py makemigrations --noinput
+        python manage.py migrate --noinput
+    - name: Run tests
+      run: |
+        python manage.py test --noinput
+    - name: Clear environment
+      run: |
+        rm -f ${{ secrets.ENVPATH }}
 
   build_deploy:
     needs: [ testing ]
@@ -64,8 +71,10 @@ jobs:
         python-version: [3.9]
 
     steps:
-    - name: Fetch & Merge changes
-      run: git pull
+    - name: Merge changes
+      run: |
+        git fetch origin main:main
+        git pull origin
       working-directory: ${{ secrets.WORKINGDIR }}
     - name: Release new version
       run: |
