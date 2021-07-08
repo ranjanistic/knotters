@@ -1,7 +1,10 @@
 from functools import wraps
 from django.http.response import HttpResponseForbidden
 from .models import CompetitionJudge
+from main.decorators import decDec
+from django.contrib.auth.decorators import login_required
 
+@decDec(login_required)
 def judge_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
@@ -11,5 +14,5 @@ def judge_only(function):
                 return function(request, *args, **kwargs)
             else: raise Exception()
         except:
-            raise HttpResponseForbidden()
+            return HttpResponseForbidden()
     return wrap

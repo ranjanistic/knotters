@@ -20,8 +20,10 @@ ENVIRONMENTS = [environment.DEVELOPMENT,
 
 class URL():
     INDEX = ''
-    SERVICE_WORKER = 'service-worker.js'
+    FAVICON = 'favicon.ico'
     ROBOTS_TXT = 'robots.txt'
+    MANIFEST = 'manifest.json'
+    SERVICE_WORKER = 'service-worker.js'
     OFFLINE = 'off408'
     ACCOUNTS = "auth/"
     PROJECTS = f'{PROJECTS}/'

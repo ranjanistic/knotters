@@ -83,7 +83,6 @@ def create(request: WSGIRequest) -> HttpResponse:
     })
 
 
-@require_POST
 @login_required
 @require_JSON_body
 def validateField(request: WSGIRequest, field: str) -> JsonResponse:

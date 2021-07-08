@@ -9,7 +9,7 @@ from django.core.files.base import ContentFile, File
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from .env import ISPRODUCTION
-from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
+from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
 
 
 def renderData(data: dict = {}, fromApp: str = '') -> dict:
@@ -34,20 +34,41 @@ def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 
-def mapFilePaths(dir_name, traversed=[], results=[]):
 
+
+
+def getDeepFilePaths(dir_name,appendWhen):
+    """
+    Returns list of mapping of file paths only inside the given directory.
+
+    :appendWhen: a function, with argument as traversed path in loop, should return bool whether given arg path is to be included or not.
+    """
+    staticAssets = mapDeepPaths(os.path.join(BASE_DIR, f'{dir_name}/'))
+    assets = []
+    for stat in staticAssets:
+        path = str(stat).replace(str(os.getcwd()+"\\"), '/')
+        if appendWhen(path) and not assets.__contains__(path):
+            assets.append(path)
+
+    return assets
+
+
+def mapDeepPaths(dir_name, traversed=[], results=[]):
+    """
+    Returns list of mapping of paths inside the given directory.
+    """
     dirs = os.listdir(dir_name)
     if dirs:
         for f in dirs:
             new_dir = dir_name + f + '/'
             if os.path.isdir(new_dir) and new_dir not in traversed:
                 traversed.append(new_dir)
-                mapFilePaths(new_dir, traversed, results)
+                mapDeepPaths(new_dir, traversed, results)
             else:
                 results.append([new_dir[:-1], os.stat(new_dir[:-1])])
 
     paths = []
-    for file_name, stat in results:
+    for file_name, _ in results:
         paths.append(str(file_name).strip('.'))
     return paths
 
@@ -64,7 +85,6 @@ def base64ToImageFile(base64Data: base64) -> File:
     try:
         format, imgstr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
-        print('ext', ext)
         if not ['jpg', 'png', 'jpeg'].__contains__(ext):
             return False
         return ContentFile(base64.b64decode(imgstr), name='profile.' + ext)

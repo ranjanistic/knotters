@@ -1,0 +1,21 @@
+{% extends 'allauth_2fa/index.html' %}
+{% load i18n %}
+{% block nav_auth_links %}{% endblock %}
+{% block nav_noauth %}{% endblock %}
+{% block content %}
+<br/>
+<div class="w3-row w3-padding w3-center">
+<i class="w3-jumbo">lock</i>
+<h1>Two Factor Authentication</h1>
+<h4>Since you have enable 2FA on your account, this is an additional layer of authentication.</h4>
+<br/>
+<h6>Type the code from your autheticator app, below.</h6>
+<br/>
+<form method="POST">
+  {% csrf_token %}
+  <input type="text" name="otp_token" placeholder="Type the code here" autofocus="autofocus" autocomplete="off" inputmode="numeric" required="" id="id_otp_token"><br/><br/>
+  <button class="accent" type="submit" data-icon="">Proceed</button>
+</form>
+</div>
+<br/>
+{% endblock %}

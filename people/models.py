@@ -58,8 +58,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.email
 
-    def getID(self)->str:
-        return str(self.id).replace('-','')
+    def getID(self) -> str:
+        return str(self.id).replace('-', '')
 
     def has_perm(self, perm, obj=None):
         return self.is_admin
@@ -98,7 +98,8 @@ def defaultImagePath() -> str:
 
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='profile')
     picture = models.ImageField(
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
     is_moderator = models.BooleanField(default=False)
@@ -126,6 +127,9 @@ class Profile(models.Model):
         dp = str(self.picture)
         return dp if dp.startswith("http") else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
 
+    def isRemoteDp(self) -> bool:
+        return self.getDP().startswith("http")
+
     def getName(self) -> str:
         return self.user.getName()
 
@@ -149,14 +153,16 @@ class Profile(models.Model):
             return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
         return f"/{APPNAME}/profile/{self.user.getID()}{success}{alert}{error}"
 
-    def isReporter(self,profile):
-        if profile in self.reporters.all(): return True
+    def isReporter(self, profile):
+        if profile in self.reporters.all():
+            return True
         return False
 
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='settings_profile')
+    profile = models.OneToOneField(
+        Profile, on_delete=models.CASCADE, related_name='settings_profile')
     newsletter = models.BooleanField(default=True)
     recommendations = models.BooleanField(default=True)
     competitions = models.BooleanField(default=True)
@@ -168,18 +174,24 @@ class ProfileSetting(models.Model):
     def savePreferencesLink(self) -> str:
         return f"/{url.PEOPLE}account/preferences/{self.profile.user.id}"
 
+
 class ProfileReport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile,related_name='reported_profile', on_delete=models.CASCADE)
-    reporter = models.ForeignKey(Profile,related_name='profile_reporter', on_delete=models.CASCADE)
+    profile = models.ForeignKey(
+        Profile, related_name='reported_profile', on_delete=models.CASCADE)
+    reporter = models.ForeignKey(
+        Profile, related_name='profile_reporter', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('profile', 'reporter')
 
+
 class ProfileTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='topic_profile')
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='profile_topic')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='topic_profile')
+    topic = models.ForeignKey(
+        Topic, on_delete=models.CASCADE, related_name='profile_topic')
 
     class Meta:
         unique_together = ('profile', 'topic')

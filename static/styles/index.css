@@ -250,9 +250,6 @@ img.pallete {
     transition: var(--delay);
 }
 
-h1.text-negative,
-h2.text-negative,
-h3.text-negative,
 h4.text-negative,
 h5.text-negative,
 h6.text-negative {

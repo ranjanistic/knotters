@@ -69,7 +69,7 @@ class Project(models.Model):
             pass
         super(Project, self).save(*args, **kwargs)
 
-    def getLink(self, success='', error='', alert=''):
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         if error:
             error = f"?e={error}"
         elif alert:
@@ -82,19 +82,22 @@ class Project(models.Model):
             return mod.getLink()
         return f"/{url.PROJECTS}profile/{self.reponame}{error}{success}{alert}"
 
-    def getDP(self):
+    def getDP(self) -> str:
         return f"{MEDIA_URL}{str(self.image)}"
 
-    def isLive(self):
+    def isApproved(self) -> bool:
         return self.status == code.APPROVED
 
-    def rejected(self):
+    def isLive(self) -> bool:
+        return self.isApproved()
+
+    def rejected(self) -> bool:
         return self.status == code.REJECTED
 
-    def underModeration(self):
+    def underModeration(self) -> bool:
         return self.status == code.MODERATION
 
-    def getRepoLink(self):
+    def getRepoLink(self) -> str:
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
     def moderationRetriesLeft(self) -> int:

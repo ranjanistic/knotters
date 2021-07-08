@@ -1,0 +1,43 @@
+{
+    "short_name": "{{APPNAME}}",
+    "name": "{{APPNAME}}",
+    "version": "{{VERSION}}",
+    "author": "{{APPNAME}}",
+    "manifest_version": "{{VERSION}}",
+    "description": "{{DESCRIPTION}}",
+    "start_url": "{{ROOT}}",
+    "scope": "{{ROOT}}",
+    "display": "standalone",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "icons": [
+        {% for icon in icons %}
+        {
+            "src": "{{ icon.src }}",
+            "type": "image/png",
+            "sizes": "{{ icon.size }}",
+            "purpose": "any"
+        }{% if forloop.counter < icons|length %},{% endif %}
+        {% endfor %}
+    ],
+    "shortcuts": [
+    {% for app in SUBAPPSLIST %}
+        {
+            "name": "{{app|capfirst}}",
+            "short_name": "{{app|capfirst}}",
+            "url": "{{ROOT}}{{app}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/png",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        }
+        {% if forloop.counter < SUBAPPSLIST|length %},{% endif %}
+    {% endfor %}
+    ]
+}

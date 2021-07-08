@@ -2,17 +2,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from .views import redirector, docIndex, docs, landing, offline, ServiceWorker, Robots, index, mailtemplate, applanding, createMockUsers, clearMockUsers
+from .views import ServiceWorker, Robots, Manifest,redirector, docIndex, docs, landing, offline, index, mailtemplate, applanding, createMockUsers, clearMockUsers
 from .strings import PROJECTS, COMPETE, PEOPLE, MODERATION, url
 from . import env
 
 urlpatterns = [
+    path(url.ROBOTS_TXT, Robots.as_view(), name=url.ROBOTS_TXT),
+    path(url.MANIFEST, Manifest.as_view(), name=url.MANIFEST),
+    path(url.SERVICE_WORKER, ServiceWorker.as_view(), name=url.SERVICE_WORKER),
     path(env.ADMINPATH, admin.site.urls),
     path(url.INDEX, index),
     path(url.APPLANDING, applanding),
     path(url.LANDING, landing),
-    path(url.ROBOTS_TXT, Robots.as_view(), name=url.ROBOTS_TXT),
-    path(url.SERVICE_WORKER, ServiceWorker.as_view(), name=url.SERVICE_WORKER),
     path(url.OFFLINE, offline),
     path(url.ACCOUNTS, include('allauth_2fa.urls')),
     path(url.ACCOUNTS, include('allauth.urls')),

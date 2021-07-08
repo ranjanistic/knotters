@@ -73,7 +73,6 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        git fetch origin main:main
         git pull origin
       working-directory: ${{ secrets.WORKINGDIR }}
     - name: Unlock environment
