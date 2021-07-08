@@ -10,8 +10,12 @@
             {% endfor %}
             {% if self and profile.topics.all.count < 5 %}
             <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">Add topics</button>
+            {% else %}
+            <br/>
+                <h2>No topics yet.</h2>
             {% endif %}
             </div>
+            {% if self %}
             <div class="" id="edit-profiletopics">
                 {% for topic in allTopics %}
                     <button class="positive" data-icon="add">{{topic.name}}</button>
@@ -27,6 +31,7 @@
                     <button id="discard-edit-profiletopics">Cancel</button>
                 {% endfor %}
             </div>
+            {%endif%}
         </div>
         <div class="w3-col w3-half w3-center">
             <br/>

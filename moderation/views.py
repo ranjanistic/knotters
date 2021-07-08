@@ -75,9 +75,7 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
 @require_JSON_body
-@login_required
 @moderator_only
 def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
@@ -131,9 +129,7 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
 @require_JSON_body
-@login_required
 @moderator_only
 def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
     try:

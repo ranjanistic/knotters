@@ -60,7 +60,7 @@ self.addEventListener("fetch", async (event) => {
                         ) {
                             await caches.delete(dynamicCacheName);
                         }
-                        return ignorelist.some((ignorepath) =>
+                        const ignore = ignorelist.some((ignorepath) =>
                             ignorepath.includes("*")
                                 ? testAsteriskPathRegex(ignorepath, path)
                                 : ignorepath === path
@@ -70,15 +70,23 @@ self.addEventListener("fetch", async (event) => {
                                     ? testAsteriskPathRegex(noOfflinePath, path)
                                     : noOfflinePath === path
                             )
-                            ? FetchRes
-                            : caches.open(dynamicCacheName).then((cache) => {
-                                  cache.put(
-                                      event.request.url,
-                                      FetchRes.clone()
-                                  );
+                            if(!ignore && event.request.method!=="POST"){
+                                return caches.open(dynamicCacheName).then((cache) => {
+                                      cache.put(
+                                          event.request.url,
+                                          FetchRes.clone()
+                                      );
+    
+                                      return FetchRes;
+                                  });
 
-                                  return FetchRes;
-                              });
+                            } else {
+                                if(FetchRes.redirected && FetchRes.url.includes("/auth/") && event.request.url.includes(FetchRes.url.split('?next=')[1])){
+                                    throw Error()
+                                } else {
+                                    return FetchRes
+                                }
+                            }
                     });
                 }
             })

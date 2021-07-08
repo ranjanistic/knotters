@@ -9,11 +9,12 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from main.strings import code
-from people.models import User
+from people.models import User, Profile
 from main.decorators import require_JSON_body
 from moderation.decorators import moderator_only
 from .models import Competition, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
+from .apps import APPNAME
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, sendParticipantInvitationMail, sendSubmissionConfirmedMail
 
 
@@ -48,7 +49,6 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
 @require_JSON_body
 def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
@@ -144,7 +144,6 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         raise Http404()
 
 
-@require_POST
 @require_JSON_body
 @login_required
 def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
@@ -267,7 +266,6 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
 @require_JSON_body
 @login_required
 def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse:
@@ -306,9 +304,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         raise JsonResponse({'code': code.NO, "error": str(e)})
 
 
-@require_POST
 @require_JSON_body
-@login_required
 @judge_only
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
@@ -364,7 +360,6 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
 
 @require_POST
-@login_required
 @moderator_only
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:

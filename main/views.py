@@ -14,8 +14,8 @@ from compete.models import Competition
 from .env import ADMINPATH, SITE
 from .methods import renderData, renderView, replaceUrlParamsWithStr
 from .decorators import dev_only
-from .methods import renderView, mapFilePaths
-from .settings import BASE_DIR, STATIC_URL, MEDIA_URL
+from .methods import renderView, getDeepFilePaths
+from .settings import STATIC_URL, MEDIA_URL
 from .strings import code, COMPETE, url
 
 
@@ -119,6 +119,38 @@ class Robots(TemplateView):
         return context
 
 
+class Manifest(TemplateView):
+    content_type = 'application/json'
+    template_name = "manifest.json"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        sizes = []
+
+        def appendWhen(path: str):
+            condition = path.endswith('icon-circle.png')
+            if condition:
+                parts = path.split('/')
+                size = int(parts[len(parts)-2])
+                if not sizes.__contains__(size):
+                    sizes.append(size)
+            return condition
+
+        assets = getDeepFilePaths('static/graphics/self', appendWhen=appendWhen)
+
+        icons = []
+
+        for i in range(len(assets)):
+            icons.append({
+                'src': assets[i],
+                'size': f"{sizes[i]}x{sizes[i]}"
+            })
+
+        context['icons'] = icons
+        return context
+
+
 class ServiceWorker(TemplateView):
     content_type = 'application/javascript'
     template_name = "service-worker.js"
@@ -126,15 +158,13 @@ class ServiceWorker(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        staticAssets = mapFilePaths(os.path.join(BASE_DIR, 'static/'))
         assets = []
-        rep = str(os.getcwd()+"\\")
-        for stat in staticAssets:
-            path = str(stat).replace(rep, '/')
-            if path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2', '.jpeg')) and not assets.__contains__(path):
-                assets.append(path)
 
+        def appendWhen(path: str):
+            return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2', '.jpeg')) and not path.__contains__('/email/')
+        assets = getDeepFilePaths('static', appendWhen=appendWhen)
         assets.append(f"/{url.OFFLINE}")
+
         context = renderData({
             'OFFLINE': f"/{url.OFFLINE}",
             'assets': json.dumps(assets),

@@ -13,6 +13,7 @@ def Global(request):
     data['SUBAPPSLIST'] = []
     data['ICON'] = "/static/graphics/self/icon.svg"
     data['SERVICE_WORKER'] = f"/{url.SERVICE_WORKER}"
+    data['MANIFESTURL'] = f"/{url.MANIFEST}"
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
         data['SUBAPPSLIST'].append(div)
