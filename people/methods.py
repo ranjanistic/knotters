@@ -1,14 +1,16 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.loader import render_to_string
+from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.providers.github.provider import GitHubProvider
+from allauth.socialaccount.providers.google.provider import GoogleProvider
+from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import renderData, renderView
 from main.strings import code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
 from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
-from .receivers import *
-
 
 def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
@@ -116,3 +118,50 @@ def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str
             data = getSettingSectionData(sec, user, request)
             break
     return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
+
+def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
+    """
+    Returns user profile image url by social account.
+    """
+    if socialaccount.provider == GitHubProvider.id:
+        return socialaccount.extra_data['avatar_url']
+    if socialaccount.provider == GoogleProvider.id:
+        link = str(socialaccount.extra_data['picture'])
+        linkpart = link.split("=")[0]
+        sizesplit = link.split("=")[1].split("-")
+        sizesplit.remove(sizesplit[0])
+        return "=".join([linkpart, "-".join(["s512", "-".join(sizesplit)])])
+    if socialaccount.provider == DiscordProvider.id:
+        return f"https://cdn.discordapp.com/avatars/{socialaccount.uid}/{socialaccount.extra_data['avatar']}.png?size=1024"
+    return defaultImagePath()
+
+
+def isPictureSocialImage(picture: str) -> str:
+    """
+    If the given url points to a oauth provider account profile image, returns the provider id.
+    """
+    providerID = None
+    for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id]:
+        if str(picture).__contains__(id):
+            providerID = id
+            break
+    return providerID
+
+
+def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
+    """
+    Extracts github ID of user from their github profile url.
+    """
+    try:
+        url = ghSocial.get_profile_url()
+        urlparts = str(url).split('/')
+        return urlparts[len(urlparts)-1] if urlparts[len(urlparts)-1] else None
+    except:
+        return None
+
+
+def migrateUserAssets(predecessor: User, successor: User) -> bool:
+    done = Project.objects.filter(creator=predecessor.profile).update(creator=successor.profile)
+    return True if done else False
+
+from .receivers import *

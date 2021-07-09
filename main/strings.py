@@ -66,6 +66,13 @@ class URL():
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
         SETTINGTAB = 'settingtab/<str:section>'
         ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
+        ACCOUNTACTIVATION = "account/activation"
+        ACCOUNTDELETE = "account/delete"
+        
+        INVITESUCCESSOR = 'profile/successor/invite'
+
+        SUCCESSORINVITE = 'successor/<str:predID>/invite'
+        SUCCESSORINVITEACTION = 'successor/invite/action'
 
     class Projects():
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'

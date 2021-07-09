@@ -99,16 +99,22 @@ def defaultImagePath() -> str:
 class Profile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='profile')
+        User, null=True, on_delete=models.SET_NULL, related_name='profile')
     picture = models.ImageField(
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
     is_moderator = models.BooleanField(default=False)
-    githubID = models.CharField(max_length=40, blank=True, null=True)
+    githubID = models.CharField(max_length=40, null=True,unique=True, default=None)
     bio = models.CharField(max_length=100, blank=True, null=True)
+    successor = models.ForeignKey('User', null=True, blank=True, related_name='successor_profile', on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
+    successor_confirmed = models.BooleanField(default=True, help_text='Whether the successor is confirmed, if set.')
+    is_active = models.BooleanField(default=True, help_text='Account active/inactive status.')
+    is_verified = models.BooleanField(default=False, help_text='The blue tick.')
+    is_zombie = models.BooleanField(default=False, help_text='If user account deleted, this becomes true')
+    to_be_zombie = models.BooleanField(default=False, help_text='True if user scheduled for deletion. is_active should be false')
+    suspended = models.BooleanField(default=False, help_text='Illegal activities make this true.')
+
+    reporters = models.ManyToManyField('Profile', through='ProfileReport', related_name='profile_reporters',default=[])
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
-    is_verified = models.BooleanField(default=False)
-    suspended = models.BooleanField(default=False)
-    reporters = models.ManyToManyField('Profile', through='ProfileReport')
 
     def __str__(self) -> str:
         return self.user.email
@@ -123,6 +129,7 @@ class Profile(models.Model):
             pass
         super(Profile, self).save(*args, **kwargs)
 
+    
     def getDP(self) -> str:
         dp = str(self.picture)
         return dp if dp.startswith("http") else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
@@ -150,13 +157,16 @@ class Profile(models.Model):
         elif success:
             success = f"?s={success}"
         if self.githubID:
-            return f"/{APPNAME}/profile/{self.githubID}{success}{alert}{error}"
-        return f"/{APPNAME}/profile/{self.user.getID()}{success}{alert}{error}"
+            return f"/{url.PEOPLE}profile/{self.githubID}{success}{alert}{error}"
+        return f"/{url.PEOPLE}profile/{self.user.getID()}{success}{alert}{error}"
 
     def isReporter(self, profile):
         if profile in self.reporters.all():
             return True
         return False
+
+    def getSuccessorInviteLink(self):
+        return f"/{url.PEOPLE}successor/{self.user.getID()}/invite"
 
 
 class ProfileSetting(models.Model):

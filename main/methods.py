@@ -1,6 +1,6 @@
 import base64
 import os
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, JsonResponse
 import requests
 import re
 from django.http.request import HttpRequest
@@ -24,7 +24,29 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 
 
 def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = '') -> HttpResponse:
+    """
+    Returns text/html data as http response via given template view name.
+
+    :view: The template view name (without extension), under the fromApp named folder
+    :data: The dict data to be render in the view.
+    :fromApp: The subapplication division name under which the given view named template file resides
+    """
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
+
+
+def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') -> JsonResponse:
+    """
+    Returns application/json data as http response.
+
+    :code: A code name, indicating response type.
+    :data: The dict data to be sent along with code.
+    """
+    return JsonResponse({
+        'code': code,
+        'error': error,
+        'message': message,
+        **data
+    })
 
 
 def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
@@ -34,10 +56,7 @@ def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 
-
-
-
-def getDeepFilePaths(dir_name,appendWhen):
+def getDeepFilePaths(dir_name, appendWhen):
     """
     Returns list of mapping of file paths only inside the given directory.
 

@@ -10,6 +10,7 @@ from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile
 from main.strings import code
 from moderation.methods import requestModerationForObject
+from people.decorators import profile_active_required
 from .models import Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
@@ -22,6 +23,7 @@ def allProjects(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
+@profile_active_required
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame)
@@ -40,6 +42,7 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
 
 @require_POST
 @login_required
+@profile_active_required
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         changed = False
@@ -73,7 +76,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 
 
 @require_GET
-@login_required
+@profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
     tags = Tag.objects.all()[0:5]
     categories = Category.objects.all()
@@ -102,6 +105,7 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
 
 @require_POST
 @login_required
+@profile_active_required
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
