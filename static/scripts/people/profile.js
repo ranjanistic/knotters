@@ -144,13 +144,11 @@ const loadTabScript = (tab) => {
                     <button class="negative small" id="makesuccessor" ${useDefault || successorSet ? "hidden" : ""}>${Icon("schedule_send")}MAKE SUCCESSOR</button>
                     </div>
                     <div class="w3-col w3-quarter w3-center">
-                        <h1>Or</h1>
-                    </div>
-                    <div class="w3-col w3-quarter w3-center">
                     <label for="defaultsuccessor">
                         <input type="checkbox" id="defaultsuccessor" ${useDefault ? "checked" : ""} />
                         <span class="w3-large">Use default successor</span>
                     </label>
+                    <br/><br/><br/>
                     </div>
                     `,
                             () => {
