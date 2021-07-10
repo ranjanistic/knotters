@@ -65,14 +65,17 @@ class URL():
         PROFILEEDIT = 'profile/edit/<str:section>'
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
         SETTINGTAB = 'settingtab/<str:section>'
+
         ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
         ACCOUNTACTIVATION = "account/activation"
+        GETSUCCESSOR = 'account/successor'
+        INVITESUCCESSOR = 'account/successor/invite'
         ACCOUNTDELETE = "account/delete"
-        
-        INVITESUCCESSOR = 'profile/successor/invite'
 
-        SUCCESSORINVITE = 'successor/<str:predID>/invite'
-        SUCCESSORINVITEACTION = 'successor/invite/action'
+        SUCCESSORINVITE = 'invitation/successor/<str:predID>'
+        SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
+
+        ZOMBIE = 'zombie/<str:profileID>'
 
     class Projects():
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'

@@ -23,7 +23,11 @@
 {% block nav_href %}{{ROOT}}{% endblock %}
 
 {% block nav_icon %}
+{% if user.is_authenticated and user == person and not user.profile.is_active %}
+<img src="{{ICON}}" width="40" />
+{% else %}
 <button class="primary"><i class="material-icons">arrow_back</i></button>
+{% endif %}
 {% endblock %}     
 {% block nav_text %}{{person.getName}}{% endblock %} 
   

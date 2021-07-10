@@ -1,7 +1,7 @@
 from uuid import UUID
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import Q
+from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import verified_email_required, login_required
 from django.views.decorators.http import require_GET, require_POST
@@ -13,7 +13,7 @@ from .apps import APPNAME
 from .decorators import profile_active_required
 from .models import ProfileSetting, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets
-from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert, accountDeleteAlert
+from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
 @require_GET
@@ -45,7 +45,8 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         if user.profile.githubID:
             return redirect(user.profile.getLink())
         return renderer(request, 'profile', {"person": user})
-    except: pass
+    except:
+        pass
     try:
         profile = Profile.objects.get(githubID=userID)
         if profile.to_be_zombie or profile.is_zombie or not profile.is_active:
@@ -181,7 +182,7 @@ def profileSuccessor(request: WSGIRequest):
     which will change only when the invited successor acts on invitation.
     """
     set = request.POST.get('set', None)
-    userID = str(request.POST.get('userID', None)).strip()
+    userID = request.POST.get('userID', None)
     usedefault = request.POST.get('useDefault', False)
     unset = request.POST.get('unset', None)
 
@@ -192,29 +193,112 @@ def profileSuccessor(request: WSGIRequest):
         if set:
             if userID and request.user.email != userID:
                 try:
-                    successor = User.objects.filter(
-                        Q(email=userID), ~Q(id=request.user.id)).first()
+                    successor = User.objects.get(email=userID)
+                    if not successor.profile.githubID:
+                        return respondJson(code.NO, error='Your successor should have Github profile linked to their account.')
+                    if successor.profile.successor == request.user:
+                        if not successor.profile.successor_confirmed:
+                            successorInvite(request.user, successor)
+                        return respondJson(code.NO, error='You are the successor of this profile.')
+                    successor_confirmed = False
                 except:
-                    return respondJson(code.NO, error='Invalid successor ID')
-            elif usedefault == True:
+                    return respondJson(code.NO, error='Successor not found')
+            elif usedefault == True or userID == MAILUSER:
                 try:
                     successor = User.objects.get(email=MAILUSER)
-                except:
+                    successor_confirmed = True
+                except Exception as e:
+                    print(e)
                     return respondJson(code.NO)
             else:
-                return respondJson(code.NO)
+                return respondJson(code.NO, error="Invalid request")
         elif unset and request.user.profile.successor:
             successor = None
+            successor_confirmed = False
         else:
-            return respondJson(code.NO)
+            return respondJson(code.NO, error="Invalid request")
 
         Profile.objects.filter(user=request.user).update(
-            successor=successor, successor_confirmed=usedefault)
-        if not usedefault and successor:
+            successor=successor, successor_confirmed=successor_confirmed)
+        if successor and not successor_confirmed:
             successorInvite(successor=successor, predecessor=request.user)
         return respondJson(code.OK)
     except Exception as e:
+        print(e)
         return respondJson(code.NO, error=str(e))
+
+
+@require_JSON_body
+@login_required
+def getSuccessor(request: WSGIRequest) -> JsonResponse:
+    if request.user.profile.successor:
+        return respondJson(code.OK, {
+            'successorID': request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else ''
+        })
+    return respondJson(code.NO)
+
+
+@require_GET
+@login_required
+def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
+    """
+    Render profile successor invitation view.
+    """
+    try:
+        predecessor = User.objects.get(id=predID)
+        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
+            raise Exception()
+        return render(request, "invitation.html", renderData({
+            'predecessor': predecessor
+        }, APPNAME))
+    except Exception as e:
+        print(e)
+        raise Http404()
+
+
+@require_POST
+@verified_email_required
+def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
+    """
+    Sets the successor if accepted, or sets default successor.
+    Also deletes the predecessor account and migrates assets, only if it was scheduled to be deleted.
+    """
+    predID = request.POST.get('predID', None)
+    accept = action == 'accept'
+
+    try:
+        if True and (not accept and action != 'decline') or not predID or predID == request.user.getID():
+            raise Exception()
+
+        predecessor = User.objects.get(id=predID)
+
+        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
+            raise Exception()
+
+        if not accept:
+            if predecessor.profile.to_be_zombie:
+                successor = User.objects.get(email=MAILUSER)
+                predecessor.profile.successor_confirmed = True
+            else:
+                successor = None
+        else:
+            successor = request.user
+            predecessor.profile.successor_confirmed = True
+
+        predecessor.profile.successor = successor
+        predecessor.profile.save()
+
+        if predecessor.profile.to_be_zombie:
+            migrateUserAssets(predecessor, successor)
+            predecessor.delete()
+
+        alert = "You\'ve declined this profile\'s successorship"
+        if accept:
+            alert = "You\'re now the successor of this profile\'s assets."
+        profile = Profile.objects.get(id=predecessor.profile.id)
+        return redirect(profile.getLink(alert=alert))
+    except:
+        return HttpResponseForbidden()
 
 
 @require_JSON_body
@@ -229,73 +313,34 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
     For the requesting user, successfull response of this endpoint should imply permanent inaccess to their account,
     regardless of successor confirmation state.
     """
-    confirmed = request.POST.get('confirm', False)
+    confirmed = request.POST.get('confirmed', False)
     if not confirmed:
         return respondJson(code.NO)
     if not request.user.profile.successor:
         return respondJson(code.NO, error='Successor not set, use default successor if none.')
     try:
-        done = Profile.objects.filter(user=request.user).update(
-            to_be_zombie=True, is_moderator=False, is_active=False, is_zombie=request.user.profile.successor_confirmed)
+        done = Profile.objects.filter(
+            user=request.user).update(to_be_zombie=True)
         message = "Account will be deleted."
+        User.objects.filter(id=request.user.id).update(is_active=False)
         if request.user.profile.successor_confirmed:
             user = User.objects.get(id=request.user.id)
             migrateUserAssets(user, user.profile.successor)
             user.delete()
             message = "Account deleted successfully."
         return respondJson(code.OK if done else code.NO, message=message)
-    except:
+    except Exception as e:
+        print(e)
         return respondJson(code.NO)
 
 
-@require_GET
-@verified_email_required
-def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
-    """
-    Render profile successor invitation view.
-    """
+@login_required
+def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
     try:
-        predecessor = User.objects.get(id=predID)
-        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise Exception()
-        return render(request, "invitation.html", renderData({
-            'predecessor': predecessor
-        }, APPNAME))
-    except:
+        profile = Profile.objects.get(
+            id=profileID, successor=request.user, successor_confirmed=True)
+        profile.picture = str(profile.picture)
+        return respondJson(code.OK, model_to_dict(profile))
+    except Exception as e:
+        print(e)
         raise Http404()
-
-
-@require_JSON_body
-@verified_email_required
-def successorInviteAction(request: WSGIRequest) -> JsonResponse:
-    """
-    Sets the successor if accepted, or sets default successor.
-    Also deletes the predecessor account and migrates assets, only if it was scheduled to be deleted.
-    """
-    predID = str(request.POST.get('predID', None)).strip()
-    accept = request.POST.get('accept', None)
-
-    if not predID or accept == None or predID == str(request.user.id):
-        return respondJson(code.NO)
-
-    predecessor = User.objects.get(id=predID)
-
-    if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-        return respondJson(code.NO)
-
-    successor = request.user
-
-    if not accept:
-        if predecessor.profile.to_be_zombie:
-            successor = User.objects.get(email=MAILUSER)
-            predecessor.profile.successor_confirmed = True
-        else:
-            successor = None
-        predecessor.profile.successor = successor
-        predecessor.profile.save()
-
-    if predecessor.profile.to_be_zombie:
-        migrateUserAssets(predecessor, successor)
-        predecessor.delete()
-
-    return respondJson(code.OK)

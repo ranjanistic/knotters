@@ -505,6 +505,7 @@ label > input[type="checkbox"] {
     margin-right: 10px;
     transform: scale(1.5);
     margin-left: 10px;
+    cursor: pointer;
 }
 
 

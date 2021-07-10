@@ -1,4 +1,4 @@
-from main.methods import sendActionEmail, sendAlertEmail
+from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import SITE
 from people.models import Profile
 from .models import Submission

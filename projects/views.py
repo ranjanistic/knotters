@@ -109,6 +109,9 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
+        acceptedTerms = request.POST.get("acceptterms", False)
+        print(acceptedTerms)
+        if not acceptedTerms: return redirect(f"/{APPNAME}/create?e=You have not accepted the terms.")
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]

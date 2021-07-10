@@ -6,9 +6,10 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import renderData, renderView
-from main.strings import code, profile as profileString
+from main.strings import code, profile as profileString, PROJECTS
 from projects.models import Project
 from moderation.models import Moderation
+from moderation.methods import getModeratorToAssignModeration
 from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
 
@@ -161,7 +162,12 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
 
 
 def migrateUserAssets(predecessor: User, successor: User) -> bool:
-    done = Project.objects.filter(creator=predecessor.profile).update(creator=successor.profile)
-    return True if done else False
+    try:
+        Project.objects.filter(creator=predecessor.profile,status=code.MODERATION).delete()
+        Project.objects.filter(creator=predecessor.profile,status__in=[code.APPROVED,code.REJECTED]).update(migrated=True,creator=successor.profile)
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 from .receivers import *

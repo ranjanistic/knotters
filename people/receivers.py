@@ -1,7 +1,8 @@
+from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django.shortcuts import redirect
-from allauth.account.signals import user_signed_up, user_logged_in, user_logged_out
+from allauth.account.signals import user_signed_up, user_logged_in
+from allauth.account.adapter import django_logout
 from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -32,22 +33,24 @@ def on_profile_create(sender, instance, created, **kwargs):
         addUserToMailingServer(
             instance.user.email, instance.user.first_name, instance.user.last_name)
 
+
 @receiver(post_delete, sender=User)
 def on_user_delete(sender, instance, **kwargs):
     """
     User cleanup.
     """
     try:
-        profile = Profile.objects.get(user=instance)
-        profile.is_zombie = True
-        if profile.picture != defaultImagePath():
-            profile.picture = defaultImagePath()
-        profile.save()
-    except:
+        prof = Profile.objects.filter(id=instance.profile.id).update(
+            is_zombie=True, githubID=None, is_moderator=False, is_active=False, zombied_on=timezone.now(),picture=defaultImagePath())
+        if instance.profile.picture != defaultImagePath() and not str(instance.profile.picture).startswith('http'):
+            instance.profile.picture.delete(save=False)
+    except Exception as e:
+        print(e)
         pass
     try:
         removeUserFromMailingServer(instance.email)
-    except:
+    except Exception as e:
+        print(e)
         pass
     accountDeleteAlert(instance)
 
@@ -67,6 +70,7 @@ def on_profile_delete(sender, instance, **kwargs):
 @receiver(user_logged_in)
 def on_user_login(sender, user, request, **kwargs):
     pass
+
 
 @receiver(user_signed_up)
 def on_user_signup(request, user, **kwargs):
@@ -109,7 +113,6 @@ def social_added(request, sociallogin, **kwargs):
                 user=sociallogin.user, provider=GitHubProvider.id)
             if data:
                 profile.githubID = getUsernameFromGHSocial(data)
-        print(str(profile.picture) == defaultImagePath())
         if str(profile.picture) == defaultImagePath():
             profile.picture = getProfileImageBySocialAccount(
                 sociallogin.account)

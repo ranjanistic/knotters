@@ -3,37 +3,38 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from django.http.response import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
-from main.methods import renderView, sendActionEmail, sendAlertEmail, renderData
+from main.methods import renderView, renderData
 from main.strings import compete
-from main.env import SITE
-from people.models import Profile
 from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
-def renderer(request:WSGIRequest, file:str, data:dict={}) -> HttpResponse:
+def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def getIndexSectionHTML(section:str, request:WSGIRequest) -> str:
+def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
     try:
         now = timezone.now()
         data = {}
         if section == 'active':
             try:
-                actives = Competition.objects.filter(startAt__lte=now,endAt__gt=now).order_by('-endAt')
+                actives = Competition.objects.filter(
+                    startAt__lte=now, endAt__gt=now).order_by('-endAt')
             except:
                 actives = []
             data['actives'] = actives
         elif section == 'upcoming':
             try:
-                upcomings = Competition.objects.filter(startAt__gt=now).order_by('-startAt')
+                upcomings = Competition.objects.filter(
+                    startAt__gt=now).order_by('-startAt')
             except:
                 upcomings = []
             data['upcomings'] = upcomings
         elif section == 'history':
             try:
-                history = Competition.objects.filter(endAt__lte=now).order_by('-endAt')
+                history = Competition.objects.filter(
+                    endAt__lte=now).order_by('-endAt')
             except:
                 history = []
             data['history'] = history
@@ -44,7 +45,7 @@ def getIndexSectionHTML(section:str, request:WSGIRequest) -> str:
         return False
 
 
-def getCompetitionSectionData(section:str, competition:Competition, request:WSGIRequest) -> dict:
+def getCompetitionSectionData(section: str, competition: Competition, request: WSGIRequest) -> dict:
     data = renderData({
         'competition': competition
     }, fromApp=APPNAME)
@@ -65,7 +66,8 @@ def getCompetitionSectionData(section:str, competition:Competition, request:WSGI
         except:
             data['submission'] = None
     if section == compete.RESULT:
-        results = Result.objects.filter(competition=competition).order_by('rank')
+        results = Result.objects.filter(
+            competition=competition).order_by('rank')
         if request.user.is_authenticated:
             memberfound = False
             for res in results:
@@ -75,17 +77,19 @@ def getCompetitionSectionData(section:str, competition:Competition, request:WSGI
                         data['selfresult'] = res
                     break
 
-            if not memberfound: 
+            if not memberfound:
                 try:
-                    subm = Submission.objects.get(competition=competition,members=request.user.profile,valid=False)
+                    subm = Submission.objects.get(
+                        competition=competition, members=request.user.profile, valid=False)
                     data['selfInvaildSubmission'] = subm
-                except: pass
+                except:
+                    pass
 
         data['results'] = results
     return data
 
 
-def getCompetitionSectionHTML(competition:Competition, section:str, request:WSGIRequest) -> str:
+def getCompetitionSectionHTML(competition: Competition, section: str, request: WSGIRequest) -> str:
     if not compete.COMPETE_SECTIONS.__contains__(section):
         return False
     data = {}

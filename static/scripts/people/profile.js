@@ -70,8 +70,7 @@ const loadTabScript = (tab) => {
                             () => {},
                             async () => {
                                 message("Deactivating account...");
-                                loader(true);
-                                subLoader(true);
+                                loaders(true);
                                 const data = await postRequest(
                                     `${ROOT}/account/activation`,
                                     {
@@ -84,8 +83,7 @@ const loadTabScript = (tab) => {
                                     );
                                     return await logOut();
                                 }
-                                loader(false);
-                                subLoader(false);
+                                loaders(false);
                                 error(data.error);
                             }
                         )
@@ -101,37 +99,74 @@ const loadTabScript = (tab) => {
                     deactivationDialog();
                 };
 
-                const accountDeletionDialog = () => {
-                    let successorSet = false
+                const accountDeletionDialog = async () => {
+                    let successorSet = false;
+                    let successorID = "";
+                    let useDefault = false;
+                    loader();
+                    let sdata = await postRequest(`${ROOT}/account/successor`);
+                    if (sdata.code === code.OK) {
+                        successorSet = true;
+                        successorID = sdata.successorID;
+                        if (!successorID) useDefault = true;
+                    }
+                    loader(false);
                     const dial = alertify
                         .confirm(
-                            `<h4 class="negative-text">Account Deletion</h4>`,
-                            `<br/><h6>We can let you delete your account, but your projects, if any, will have to be transferred to you successor.<br/>
-                    By default, your projects will be transferred to and controlled by our <a class="positive-text" href="/people/profile/knottersbot">knottersbot</a>.<br/><br/>
-                    However, if you want to specify your own successor on ${APPNAME}, to which all your projects will be transferred, type their email address below.<br/><br/>
-                    Your chosen successor will receive an email with choice to confirm this or not under 10 days. Till then, your account will not be deleted, but deactivated.<br/><br/>
-                    If you login again during this period, then your account will be reactivated and deletion will be cancelled (successor will also not get appointed).<br/><br/>
-                    If your successor accepts this transfer, then your account will be deleted instantly.<br/><br/>
-                    If your successor declines this transfer, then knottersbot will become your successor.<br/><br/>
-                    If you don't appoint a successor, then knottersbot will become your successor and your account will be deleted in 24 hours, unless you login again in the same duration.<br/>
-                    </h6><br/>
-                    <strong>You can deactivate your account instead, if you want a break.</strong><br/><br/>
+                            `<h4>${NegativeText("Account Deletion")}</h4>`,
+                            `<br/><br/>
+                    
+                        <h1 class="negative-text">Deleting your account is a permanent action!</h1>
+                        <h3>Your account will be deleted, and you'll lose all your data on ${APPNAME}, ${NegativeText('permanently')}.</h3>
+                        <h5>
+                        By default, your profile assets will be transferred to and controlled by our <a class="positive-text" href="/people/profile/knottersbot">knottersbot</a>.<br/><br/>
+                        If you want to specify your own successor to which all your active assets will be transferred, type their email address below,
+                        they will receive an email to accept or decline your successor invite.<br/>If declined, then the default successor will be set.
+                        </h5>
+                        <br/>
+                    <br/>
+
+                    <strong>You can deactivate your account instead, if you want a break. This way you won't lose your account.</strong><br/><br/>
                     <button class="accent" id="deactivateaccount1">${Icon(
                         "toggle_off"
                     )}Deactivate Account</button><br/><br/>
-                    <input type="email" class="wide" id="successorID" placeholder="Your successor's email address" />
+
+                    <div class="w3-col w3-half">
+                    <input type="email" required ${
+                        successorSet ? "disabled" : ""
+                    } class="wide" id="successorID" placeholder="Your successor's email address" value="${
+                                useDefault
+                                    ? "Using default successor"
+                                    : successorID
+                            }"/>
+                    <br/>
+                    <br/>
+                    <button class="negative small" id="makesuccessor" ${useDefault || successorSet ? "hidden" : ""}>${Icon("schedule_send")}MAKE SUCCESSOR</button>
+                    </div>
+                    <div class="w3-col w3-quarter w3-center">
+                        <h1>Or</h1>
+                    </div>
+                    <div class="w3-col w3-quarter w3-center">
                     <label for="defaultsuccessor">
-                    Use default successor
-                    <input type="checkbox" id="defaultsuccessor"/>
+                        <input type="checkbox" id="defaultsuccessor" ${useDefault ? "checked" : ""} />
+                        <span class="w3-large">Use default successor</span>
                     </label>
-                    <button class="negative small" id="makesuccessor">${Icon(
-                        "schedule_send"
-                    )}MAKE SUCCESSOR</button>`,
+                    </div>
+                    `,
+                            () => {
+                                message("We thought we lost you!");
+                                clearInterval(intv);
+                                dial.close();
+                            },
                             async () => {
-                                if(!successorSet) return error("Successor email required, or set default successor.")
+                                clearInterval(intv);
+                                if (!successorSet) {
+                                    return error(
+                                        "Successor email required, or set default successor."
+                                    );
+                                }
                                 message("Preparing for deletion");
-                                loader(true);
-                                subLoader(true);
+                                loaders();
                                 const data = await postRequest(
                                     `${ROOT}/account/delete`,
                                     {
@@ -139,27 +174,50 @@ const loadTabScript = (tab) => {
                                     }
                                 );
                                 if (data.code === code.OK) {
-                                    logOut();
+                                    return await logOut();
                                 }
-                            },
-                            () => {
-                                message("We thought we lost you!");
+                                loaders(false);
+                                error("Failed to delete");
                             }
                         )
+                        .set("closable", false)
                         .set("labels", {
-                            cancel: "Cancel",
-                            ok: `${Icon(
+                            ok: `Cancel (<span id="cancelDeletionDialogSecs">100</span>s)`,
+                            cancel: `${Icon(
                                 "delete_forever"
                             )}DELETE MY ACCOUNT (no tricks)`,
-                        }, 'modal', true)
+                        })
+                        .set("modal", true)
                         .maximize();
 
                     getElement("deactivateaccount1").onclick = (_) => {
-                        dial.close()
+                        clearInterval(intv);
+                        dial.close();
                         deactivationDialog();
                     };
+
+                    getElement("defaultsuccessor").onchange = async (e) => {
+                        useDefault = e.target.checked;
+                        successorSet = useDefault;
+                        visibleElement("makesuccessor", !e.target.checked);
+                        getElement("successorID").disabled = e.target.checked;
+                        getElement("successorID").value = e.target.checked
+                            ? "Using default successor"
+                            : "";
+                        let done = await postRequest(
+                            `${ROOT}/account/successor/invite`,
+                            {
+                                set: useDefault,
+                                unset: !useDefault,
+                                useDefault,
+                            }
+                        );
+                        if (done.code === code.OK && useDefault) {
+                            successorSet = true;
+                        }
+                    };
                     getElement("makesuccessor").onclick = async () => {
-                        const useDefault = defaultsuccessor.checked
+                        let useDefault = defaultsuccessor.checked;
                         const successorID = getElement(
                             "successorID"
                         ).value.trim();
@@ -169,25 +227,36 @@ const loadTabScript = (tab) => {
                             );
                         subLoader(true);
                         const data = await postRequest(
-                            `${ROOT}/profile/successor/invite`,
+                            `${ROOT}/account/successor/invite`,
                             {
                                 set: true,
-                                userID:successorID||false,
-                                useDefault
+                                userID: successorID || false,
+                                useDefault,
                             }
                         );
                         subLoader(false);
                         if (data.code === code.OK) {
-                            successorSet = true
+                            successorSet = true;
                             hideElement("makesuccessor");
-                            getElement("successorID").value = successorID;
+                            getElement("successorID").value = useDefault
+                                ? "Using default successor"
+                                : successorID;
                             getElement("successorID").disabled = true;
-                            message(`Successor appointed.`);
+                            message(`Successor set.`);
                         } else {
                             subLoader(false);
                             error(data.error);
                         }
                     };
+                    let secs = 100;
+                    let intv = setInterval(() => {
+                        secs -= 1;
+                        getElement("cancelDeletionDialogSecs").innerHTML = secs;
+                        if (secs === 0) {
+                            clearInterval(intv);
+                            dial.close();
+                        }
+                    }, 1000);
                 };
 
                 getElement("deleteaccount").onclick = (_) => {

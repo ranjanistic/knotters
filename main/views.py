@@ -188,6 +188,8 @@ class ServiceWorker(TemplateView):
                 f"/{url.MODERATION}*",
                 f"/{url.COMPETE}*",
                 f"/{url.LANDING}",
+                replaceUrlParamsWithStr(f"/{url.People.ZOMBIE}"),
+                replaceUrlParamsWithStr(f"/{url.People.SUCCESSORINVITE}"),
                 replaceUrlParamsWithStr(f"/{url.APPLANDING}"),
                 replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
                 replaceUrlParamsWithStr(
