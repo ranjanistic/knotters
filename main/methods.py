@@ -1,8 +1,10 @@
 import base64
 import os
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, JsonResponse
 import requests
 import re
+from django.db.models.fields.files import ImageFieldFile
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.core.files.base import ContentFile, File
@@ -24,7 +26,29 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 
 
 def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = '') -> HttpResponse:
+    """
+    Returns text/html data as http response via given template view name.
+
+    :view: The template view name (without extension), under the fromApp named folder
+    :data: The dict data to be render in the view.
+    :fromApp: The subapplication division name under which the given view named template file resides
+    """
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
+
+
+def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') -> JsonResponse:
+    """
+    Returns application/json data as http response.
+
+    :code: A code name, indicating response type.
+    :data: The dict data to be sent along with code.
+    """
+    return JsonResponse({
+        'code': code,
+        'error': error,
+        'message': message,
+        **data
+    }, encoder=JsonEncoder)
 
 
 def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
@@ -34,10 +58,7 @@ def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 
-
-
-
-def getDeepFilePaths(dir_name,appendWhen):
+def getDeepFilePaths(dir_name, appendWhen):
     """
     Returns list of mapping of file paths only inside the given directory.
 
@@ -91,6 +112,12 @@ def base64ToImageFile(base64Data: base64) -> File:
     except:
         return None
 
+
+class JsonEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ImageFieldFile):
+            return str(obj)
+        return super(JsonEncoder, self).default(obj)
 
 def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     """
@@ -182,63 +209,3 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
     except:
         return None
 
-
-def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
-    if ISPRODUCTION:
-        try:
-            msg = EmailMultiAlternatives(subject, body=body, to=[to])
-            msg.attach_alternative(content=html, mimetype="text/html")
-            msg.send()
-            return True
-        except:
-            return False
-    else:
-        print(to, body)
-        return True
-
-
-def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
-    """
-    Creates html and body content using parameters via the application's standard email template.
-
-    :greeting: Top greeting to target
-    :header: Beginnning text
-    :footer: Ending text
-    :actions: Actions { name, url } to be included in content
-    :conclusion: Final short summary text
-
-    :returns: html, body
-    """
-    data = {
-        'greeting': greeting,
-        'headertext': header,
-        'footertext': footer,
-        'current_site': {
-            'name': 'Knotters',
-            'domain': 'knotters.org'
-        }
-    }
-    body = f"{greeting}\n\n{header}\n\n"
-    if actions:
-        data['actions'] = actions
-        for action in actions:
-            body = f"{body}{action['url']}\n"
-
-    if conclusion:
-        data['conclusion'] = conclusion
-        body = f"{body}\n{conclusion}"
-
-    html = render_to_string('account/email/email.html', data)
-    return html, body
-
-
-def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str) -> bool:
-    html, body = getEmailHtmlBody(
-        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
-    return sendEmail(to=to, subject=subject, html=html, body=body)
-
-
-def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []) -> bool:
-    html, body = getEmailHtmlBody(
-        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
-    return sendEmail(to=to, subject=subject, html=html, body=body)

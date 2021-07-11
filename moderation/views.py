@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.utils import timezone
 from projects.methods import setupApprovedProject
+from main.methods import respondJson
 from main.strings import code, PROJECTS, PEOPLE, COMPETE
 from main.decorators import require_JSON_body
 from .decorators import moderator_only
@@ -41,6 +42,7 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
     Message by moderator or requestor.
     """
     try:
+        now = timezone.now()
         responseData = str(request.POST.get('responsedata', "")).strip()
         requestData = str(request.POST.get('requestdata', "")).strip()
         if not responseData and not requestData:
@@ -59,7 +61,7 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
                 raise Exception()
             if mod.response != responseData:
                 mod.response = responseData
-                mod.respondOn = timezone.now()
+                mod.respondOn = now
                 mod.save()
             return redirect(mod.getLink(alert="Response saved"))
         elif isRequester:
@@ -83,22 +85,22 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
     try:
         approve = request.POST.get('approve', '')
-        print(modID)
+
         mod = Moderation.objects.get(
             id=modID, moderator=request.user.profile, resolved=False)
         if not approve:
             done = mod.reject()
-            return JsonResponse({'code': code.OK if done else code.NO})
+            return respondJson(code.OK if done else code.NO)
         elif approve:
             done = mod.approve()
             if done:
                 done = setupApprovedProject(mod.project, mod.moderator)
-            return JsonResponse({'code': code.OK if done else code.NO})
+            return respondJson(code.OK if done else code.NO)
         else:
-            return JsonResponse({'code': code.NO, 'error': "Invalid response"})
+            return respondJson(code.NO, error="Invalid response")
     except Exception as e:
         print(e)
-        return JsonResponse({'code': code.NO, 'error': "An error occurred"})
+        return respondJson(code.NO, error="An error occurred")
 
 
 @require_POST
@@ -132,6 +134,9 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
 @require_JSON_body
 @moderator_only
 def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
+    """
+    To finalize valid submissions for judgement of a competition under moderation.
+    """
     try:
         submissions = request.POST['submissions']
         invalidSubIDs = []
@@ -141,6 +146,6 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
         Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
         Moderation.objects.filter(id=modID, type=COMPETE, status=code.MODERATION, resolved=False).update(
             status=code.APPROVED, resolved=True)
-        return JsonResponse({'code': code.OK})
+        return respondJson(code.OK)
     except:
-        return JsonResponse({'code': code.NO, 'error': 'An error occurred'})
+        return respondJson(code.NO, error='An error occurred')

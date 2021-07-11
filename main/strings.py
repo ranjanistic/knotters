@@ -65,7 +65,17 @@ class URL():
         PROFILEEDIT = 'profile/edit/<str:section>'
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
         SETTINGTAB = 'settingtab/<str:section>'
+
         ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
+        ACCOUNTACTIVATION = "account/activation"
+        GETSUCCESSOR = 'account/successor'
+        INVITESUCCESSOR = 'account/successor/invite'
+        ACCOUNTDELETE = "account/delete"
+
+        SUCCESSORINVITE = 'invitation/successor/<str:predID>'
+        SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
+
+        ZOMBIE = 'zombie/<str:profileID>'
 
     class Projects():
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
@@ -93,6 +103,11 @@ class Codes():
 
 code = Codes()
 
+class Action():
+    ACCEPT = "accept"
+    DECLINE = "decline"
+
+action = Action()
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]

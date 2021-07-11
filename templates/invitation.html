@@ -1,5 +1,7 @@
 {% extends 'index.html' %}
 
+{% block nav_text %}Invitation{% endblock%}
+
 {% block content %}
 <div class="w3-row w3-padding w3-center">
 <br/>
@@ -51,6 +53,30 @@
     <button type="submit" class="negative" data-icon="cancel">Decline Politely</button>
     </form>
     {% endif %}
+{% elif SUBAPPNAME == SUBAPPS.people %}
+    <div class="material-icons w3-jumbo positive-text">supervisor_account</div>
+
+    <h1>Invitation for successorship</h1>
+
+    <h4><a href="{{predecessor.profile.getLink}}" target="_blank" class="positive-text">{{predecessor.getName}}</a> wants you to be the successor of their profile assets on {{APPNAME}}.</h4>
+    <br/>
+    <h6 class="dead-text">Accepting successorship will <span class="positive-text">grant you the authority</span> of {{predecessor.getName}}'s assets if they <span class="negative-text">have deleted or will delete</span> their account.</h6>
+    <h6 class="dead-text">Declining successorship will make the <a href="/people/profile/knottersbot" target="_blank" class="positive-text">knottersbot</a> their successor.</h6>
+    <br/>
+    <form method="POST" action="{{ROOT}}/invitation/successor/action/accept">
+    {% csrf_token %}
+    <input hidden name="predID" value="{{predecessor.getID}}" />
+    <button type="submit" class="positive" data-icon="check">Accept successorship</button>
+    </form>
+    <br/>
+    <form method="POST" action="{{ROOT}}/invitation/successor/action/decline">
+    {% csrf_token %}
+    <input hidden name="predID" value="{{predecessor.getID}}" />
+    <button type="submit" class="negative" data-icon="cancel">Decline successorship</button>
+    </form>
+</div>
+{% elif SUBAPPNAME == SUBAPPS.projects %}
+Nothing for projects yet.
 {% endif %}
 </div>
 <br/>

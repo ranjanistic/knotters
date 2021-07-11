@@ -95,6 +95,11 @@ const getElementsByTag = (tagname) =>
 
 const loader = (show = true) => visibleElement("viewloader", show);
 const subLoader = (show = true) => visibleElement("subloader", show);
+const loaders = (show = true) => {
+    loader(show);
+    subLoader(show)
+}
+
 
 const openSpinner = (id = "loader") => showElement(id);
 

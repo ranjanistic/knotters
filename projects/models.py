@@ -55,6 +55,8 @@ class Project(models.Model):
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    migrated = models.BooleanField(default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
+    acceptedTerms = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -99,6 +101,9 @@ class Project(models.Model):
 
     def getRepoLink(self) -> str:
         return f"https://github.com/{PUBNAME}/{self.reponame}"
+
+    def getModLink(self) -> str:
+        return (Moderation.objects.filter(project=self,type=APPNAME).order_by('requestOn').first()).getLink()
 
     def moderationRetriesLeft(self) -> int:
         if self.status != code.APPROVED:

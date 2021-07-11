@@ -50,6 +50,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Account state", {"fields": ("is_active",)}),
     )
     add_fieldsets = (
         (None, {
@@ -68,8 +69,8 @@ admin.site.unregister(Group)
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "githubID", "picture"]
-    list_filter = ["is_moderator"]
+    list_display = ["getName","user", "githubID", "picture"]
+    list_filter = ["is_moderator","to_be_zombie","is_zombie","is_active"]
     def get_queryset(self, request):
         query_set = super(ProfileAdmin, self).get_queryset(request)
         return query_set

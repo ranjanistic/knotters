@@ -39,7 +39,13 @@ const showStep = (n) => {
             formValues.forEach((input) => {
                 previews.some((preview) => {
                     if (`${input.id}preview` === preview.id) {
+                        localStorage.setItem(`createproject${input.id}`, input.value)
                         preview.innerHTML = input.value;
+                        if(preview.id==='referurlpreview'&&input.value){
+                            preview.onclick=_=>{
+                                miniWindow(input.value)
+                            }
+                        }
                         return true;
                     }
                 });
@@ -206,6 +212,7 @@ getElement("projectimage").onchange = (e) => {
 };
 
 formValues.forEach((value) => {
+    value.value = localStorage.getItem(`createproject${value.id}`)||''
     value.onblur = (_) => {
         validateForm(value.id);
     };

@@ -7,9 +7,10 @@ from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from moderation.models import Moderation
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
-from main.methods import base64ToImageFile
+from main.methods import base64ToImageFile, respondJson
 from main.strings import code
 from moderation.methods import requestModerationForObject
+from people.decorators import profile_active_required
 from .models import Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
@@ -22,6 +23,7 @@ def allProjects(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
+@profile_active_required
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame)
@@ -33,13 +35,15 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
                                             code.REJECTED, code.MODERATION]).order_by('-respondOn')[0]
             if request.user.is_authenticated and (project.creator == request.user.profile or mod.moderator == request.user.profile):
                 return redirect(mod.getLink())
-        raise Exception()
-    except:
+            raise Exception()
+    except Exception as e:
+        print(e)
         raise Http404()
 
 
 @require_POST
 @login_required
+@profile_active_required
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         changed = False
@@ -73,7 +77,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 
 
 @require_GET
-@login_required
+@profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
     tags = Tag.objects.all()[0:5]
     categories = Category.objects.all()
@@ -92,19 +96,24 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
             if not uniqueRepoName(data):
                 raise Exception(f"{data} already taken, try another.")
             else:
-                pass
+                return respondJson(code.OK)
         else:
-            return Http404()
-        return JsonResponse({'code': code.OK})
+            return respondJson(code.NO)
     except Exception as e:
-        return JsonResponse({'error': str(e)})
+        print(e)
+        return respondJson(code.NO, error="An error occurred")
 
 
 @require_POST
 @login_required
+@profile_active_required
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
+        acceptedTerms = request.POST.get("acceptterms", False)
+        print(acceptedTerms)
+        if not acceptedTerms:
+            return redirect(f"/{APPNAME}/create?e=You have not accepted the terms.")
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]

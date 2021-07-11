@@ -52,11 +52,12 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "main.middleware.TwoFactorMiddleware",
     'django_otp.middleware.OTPMiddleware',
-
     'allauth_2fa.middleware.AllauthTwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "main.middleware.ProfileActivationMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"

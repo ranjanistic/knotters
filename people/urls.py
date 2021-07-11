@@ -9,4 +9,11 @@ urlpatterns = [
     path(url.People.PROFILETAB, profileTab),
     path(url.People.SETTINGTAB, settingTab),
     path(url.People.ACCOUNTPREFERENCES, accountprefs),
+    path(url.People.ACCOUNTACTIVATION, accountActivation),
+    path(url.People.GETSUCCESSOR, getSuccessor),
+    path(url.People.INVITESUCCESSOR, profileSuccessor),
+    path(url.People.SUCCESSORINVITE, successorInvitation),
+    path(url.People.SUCCESSORINVITEACTION, successorInviteAction),
+    path(url.People.ACCOUNTDELETE, accountDelete),
+    path(url.People.ZOMBIE, zombieProfile)
 ]

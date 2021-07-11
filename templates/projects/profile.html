@@ -1,8 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
 
-{% block title %}{{project.name}}{% endblock %}
-
 {% block og_url %}{{project.getLink}}{% endblock %}
 {% block og_title %}{{project.name}}{% endblock %}
 {% block og_description %}{{ project.description }}{% endblock %}

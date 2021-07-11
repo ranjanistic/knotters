@@ -1,10 +1,10 @@
 from people.models import Profile
 from django.db.models import Q
 from django.db import models
-from .models import LocalStorage, Moderation
 from main.methods import renderView
-from .apps import APPNAME
 from main.strings import PROJECTS, PEOPLE, COMPETE, code
+from .apps import APPNAME
+from .models import LocalStorage, Moderation
 
 
 def renderer(request, file, data={}):
@@ -26,7 +26,6 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         current = LocalStorage.objects.get(key="moderator")
     except:
         current = LocalStorage.objects.create(key="moderator", value=0)
-        current.save()
 
     ignoreModProfileIDs = []
     if type == PROJECTS:
@@ -48,7 +47,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
 
     availableModProfiles = []
     try:
-        availableModProfiles = Profile.objects.filter(query,is_moderator=True)
+        availableModProfiles = Profile.objects.filter(query, is_moderator=True)
     except:
         pass
 
@@ -96,7 +95,7 @@ def requestModerationForObject(
             return False
 
         mod = Moderation.objects.get(query)
-        
+
         if (mod.isRejected() and reassignIfRejected) or (mod.isApproved() and reassignIfApproved):
             newmoderator = getModeratorToAssignModeration(
                 type=type, object=object, ignoreModProfiles=[mod.moderator])
@@ -105,12 +104,16 @@ def requestModerationForObject(
             requestData = requestData if requestData else mod.request
             referURL = referURL if referURL else mod.referURL
             if type == PROJECTS:
-                newmod = Moderation.objects.create(type=type,project=object,moderator=newmoderator, request=requestData,referURL=referURL)
+                newmod = Moderation.objects.create(
+                    type=type, project=object, moderator=newmoderator, request=requestData, referURL=referURL)
             elif type == PEOPLE:
-                newmod = Moderation.objects.create(type=type,profile=object,moderator=newmoderator, request=requestData,referURL=referURL)
+                newmod = Moderation.objects.create(
+                    type=type, profile=object, moderator=newmoderator, request=requestData, referURL=referURL)
             elif type == COMPETE:
-                newmod = Moderation.objects.create(type=type,competition=object,moderator=newmoderator, request=requestData,referURL=referURL)
-            else: return False
+                newmod = Moderation.objects.create(
+                    type=type, competition=object, moderator=newmoderator, request=requestData, referURL=referURL)
+            else:
+                return False
 
             if newmod.type == PROJECTS:
                 newmod.project.status = code.MODERATION
@@ -121,11 +124,17 @@ def requestModerationForObject(
         if not newmoderator:
             return False
         if type == PROJECTS:
-            newmod = Moderation.objects.create(project=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+            newmod = Moderation.objects.create(
+                project=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == PEOPLE:
-            newmod = Moderation.objects.create(profile=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+            newmod = Moderation.objects.create(
+                profile=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == COMPETE:
-            newmod = Moderation.objects.create(competiton=object,type=type, moderator=newmoderator, request=requestData, referURL=referURL)
-        else: return False
+            newmod = Moderation.objects.create(
+                competiton=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+        else:
+            return False
         return newmod
     return False
+
+from .receivers import *

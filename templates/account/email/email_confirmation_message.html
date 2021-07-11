@@ -7,15 +7,13 @@
 {% user_display user as user_display %}
 {% blocktrans with site_name=current_site.name site_domain=current_site.domain %}
 
-        <table id="u_content_heading_1" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
+<table id="u_content_heading_1" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
   <tbody>
     <tr>
-      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">
-        
-  <h1 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 22px;">
-    Hey there!
-  </h1>
-
+      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">        
+        <h1 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 22px;">
+          Hey there!
+        </h1>
       </td>
     </tr>
   </tbody>
@@ -24,12 +22,10 @@
 <table id="u_content_heading_2" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
   <tbody>
     <tr>
-      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">
-        
-  <h4 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
-    You're receiving this e-mail because your email address ({{user_display}}) was provided to register an account on {{site_domain}}.<br /><br />If you've registered yourself and you expected this email, click the following link to confirm.
-  </h4>
-
+      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">      
+        <h4 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
+          You're receiving this e-mail because your email address {{user_display}} was provided to register an account on {{site_domain}}.<br /><br />If you've registered yourself and you expected this email, click the following link to confirm.
+        </h4>
       </td>
     </tr>
   </tbody>
@@ -38,29 +34,28 @@
 <table style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
   <tbody>
     <tr>
-      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:'Raleway',sans-serif;" align="left">
-        
-<div class="v-text-align" align="center">
-  <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:'Raleway',sans-serif;"><tr><td class="v-text-align v-button-colors" style="font-family:'Raleway',sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ activate_url }}" style="height:43px; v-text-anchor:middle; width:150px;" arcsize="9.5%" stroke="f" fillcolor="#1657ce"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Raleway',sans-serif;"><![endif]-->
-    <a href="{{ activate_url }}" target="_blank" class="v-size-width v-button-colors" style="box-sizing: border-box;display: inline-block;font-family:'Raleway',sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #1657ce; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-width: 0px; border-top-style: solid; border-top-color: #CCC; border-left-width: 0px; border-left-style: solid; border-left-color: #CCC; border-right-width: 0px; border-right-style: solid; border-right-color: #CCC; border-bottom-width: 0px; border-bottom-style: solid; border-bottom-color: #CCC;">
-      <span class="v-line-height v-padding" style="display:block;padding:14px 28px 13px;line-height:120%;"><span style="font-size: 14px; line-height: 16.8px;">Verify Account</span></span>
-    </a>
-  <!--[if mso]></center></v:roundrect></td></tr></table><![endif]-->
-</div>
-<br/>
-<div class="v-text-align v-container-padding-padding">
-<h4 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
-  Or if the above button didn't work, use the following link.
-  </h4>
-</div>
-<br/>
-<div class="v-text-align" >
-  <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:'Raleway',sans-serif;"><tr><td class="v-text-align v-button-colors" style="font-family:'Raleway',sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ activate_url }}" style="height:43px; v-text-anchor:middle; width:150px;" arcsize="9.5%" stroke="f" fillcolor="#1657ce"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Raleway',sans-serif;"><![endif]-->
-    <a href="{{ activate_url }}" target="_blank" class="v-size-width" style="box-sizing: border-box;display: inline-block;font-family:'Raleway',sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #1657ce; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-width: 0px; border-top-style: solid; border-top-color: #CCC; border-left-width: 0px; border-left-style: solid; border-left-color: #CCC; border-right-width: 0px; border-right-style: solid; border-right-color: #CCC; border-bottom-width: 0px; border-bottom-style: solid; border-bottom-color: #CCC;">
-      <span style="font-size: 14px; line-height: 16.8px;">{{ activate_url }}</span>
-    </a>
-  <!--[if mso]></center></v:roundrect></td></tr></table><![endif]-->
-</div>
+      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:'Raleway',sans-serif;" align="left">        
+        <div class="v-text-align" align="center">
+          <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:'Raleway',sans-serif;"><tr><td class="v-text-align v-button-colors" style="font-family:'Raleway',sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ activate_url }}" style="height:43px; v-text-anchor:middle; width:150px;" arcsize="9.5%" stroke="f" fillcolor="#1657ce"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Raleway',sans-serif;"><![endif]-->
+            <a href="{{ activate_url }}" target="_blank" class="v-size-width v-button-colors" style="box-sizing: border-box;display: inline-block;font-family:'Raleway',sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #FFFFFF; background-color: #1657ce; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-width: 0px; border-top-style: solid; border-top-color: #CCC; border-left-width: 0px; border-left-style: solid; border-left-color: #CCC; border-right-width: 0px; border-right-style: solid; border-right-color: #CCC; border-bottom-width: 0px; border-bottom-style: solid; border-bottom-color: #CCC;">
+              <span class="v-line-height v-padding" style="display:block;padding:14px 28px 13px;line-height:120%;"><span style="font-size: 14px; line-height: 16.8px;">Verify Account</span></span>
+            </a>
+          <!--[if mso]></center></v:roundrect></td></tr></table><![endif]-->
+        </div>
+        <br/>
+        <div class="v-text-align v-container-padding-padding">
+        <h4 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
+          Or if the above button didn't work, use the following link.
+          </h4>
+        </div>
+        <br/>
+        <div class="v-text-align" >
+          <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:'Raleway',sans-serif;"><tr><td class="v-text-align v-button-colors" style="font-family:'Raleway',sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ activate_url }}" style="height:43px; v-text-anchor:middle; width:150px;" arcsize="9.5%" stroke="f" fillcolor="#1657ce"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Raleway',sans-serif;"><![endif]-->
+            <a href="{{ activate_url }}" target="_blank" class="v-size-width" style="box-sizing: border-box;display: inline-block;font-family:'Raleway',sans-serif;text-decoration: none;-webkit-text-size-adjust: none;text-align: center;color: #1657ce; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; width:auto; max-width:100%; overflow-wrap: break-word; word-break: break-word; word-wrap:break-word; mso-border-alt: none;border-top-width: 0px; border-top-style: solid; border-top-color: #CCC; border-left-width: 0px; border-left-style: solid; border-left-color: #CCC; border-right-width: 0px; border-right-style: solid; border-right-color: #CCC; border-bottom-width: 0px; border-bottom-style: solid; border-bottom-color: #CCC;">
+              <span style="font-size: 14px; line-height: 16.8px;">{{ activate_url }}</span>
+            </a>
+          <!--[if mso]></center></v:roundrect></td></tr></table><![endif]-->
+        </div>
       </td>
     </tr>
   </tbody>
@@ -69,12 +64,10 @@
 <table id="u_content_heading_4" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
   <tbody>
     <tr>
-      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">
-        
-  <h4 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
-    If this email is unfamiliar, then <strong>do not</strong> click the above button, as someone else is must be trying use your email address on {{site_domain}} without your permission.
-  </h4>
-
+      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">      
+        <h4 class="v-color v-text-align v-line-height" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
+          If this email is unfamiliar, then <strong>do not</strong> click the above button, as someone else is must be trying use your email address on {{site_domain}} without your permission.
+        </h4>
       </td>
     </tr>
   </tbody>
@@ -84,11 +77,9 @@
   <tbody>
     <tr>
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:18px;font-family:'Raleway',sans-serif;" align="left">
-        
-  <h4 class="v-color v-text-align v-line-height" style="margin: 0px; color: #cc352a; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
-    <strong>This link will expire in a day.</strong>
-  </h4>
-
+        <h4 class="v-color v-text-align v-line-height" style="margin: 0px; color: #cc352a; line-height: 140%; text-align: left; word-wrap: break-word; font-weight: normal; font-family: 'Montserrat',sans-serif; font-size: 16px;">
+          <strong>This link will expire in a day.</strong>
+        </h4>
       </td>
     </tr>
   </tbody>
