@@ -1,6 +1,6 @@
-from .models import Project, defaultImagePath
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
+from .models import Project, defaultImagePath
 
 @receiver(post_delete, sender=Project)
 def on_project_delete(sender, instance, **kwargs):

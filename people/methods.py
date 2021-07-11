@@ -13,8 +13,10 @@ from moderation.methods import getModeratorToAssignModeration
 from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
 
+
 def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
+
 
 def convertToFLname(string: str) -> str and str:
     """
@@ -120,6 +122,7 @@ def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str
             break
     return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
 
+
 def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
     """
     Returns user profile image url by social account.
@@ -149,6 +152,12 @@ def isPictureSocialImage(picture: str) -> str:
     return providerID
 
 
+def isPictureDeletable(picture: str) -> bool:
+    """
+    Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
+    """
+    return picture != defaultImagePath() and not str(picture).startswith('http')
+
 def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
     """
     Extracts github ID of user from their github profile url.
@@ -163,8 +172,10 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
 
 def migrateUserAssets(predecessor: User, successor: User) -> bool:
     try:
-        Project.objects.filter(creator=predecessor.profile,status=code.MODERATION).delete()
-        Project.objects.filter(creator=predecessor.profile,status__in=[code.APPROVED,code.REJECTED]).update(migrated=True,creator=successor.profile)
+        Project.objects.filter(creator=predecessor.profile,
+                               status=code.MODERATION).delete()
+        Project.objects.filter(creator=predecessor.profile, status__in=[
+                               code.APPROVED, code.REJECTED]).update(migrated=True, creator=successor.profile)
         return True
     except Exception as e:
         print(e)

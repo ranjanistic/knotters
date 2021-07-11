@@ -129,3 +129,5 @@ def requestModerationForObject(
         else: return False
         return newmod
     return False
+
+from .receivers import *

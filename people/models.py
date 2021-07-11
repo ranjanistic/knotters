@@ -139,7 +139,7 @@ class Profile(models.Model):
         try:
             previous = Profile.objects.get(id=self.id)
             if previous.picture != self.picture:
-                if previous.picture != defaultImagePath() and not str(previous.picture).startswith('http'):
+                if isPictureDeletable(previous.picture):
                     previous.picture.delete(False)
         except:
             pass
@@ -225,3 +225,5 @@ class ProfileTopic(models.Model):
 
     class Meta:
         unique_together = ('profile', 'topic')
+
+from .methods import isPictureDeletable

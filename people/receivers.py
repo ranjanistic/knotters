@@ -1,15 +1,14 @@
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
+from allauth.account.signals import user_signed_up, user_logged_in, password_changed, password_reset, email_changed, email_confirmed, email_added, email_removed
 from django.dispatch import receiver
-from allauth.account.signals import user_signed_up, user_logged_in
-from allauth.account.adapter import django_logout
 from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from main.methods import addUserToMailingServer, removeUserFromMailingServer
 from .models import ProfileSetting, User, Profile, defaultImagePath
-from .mailers import accountDeleteAlert
-from .methods import getProfileImageBySocialAccount, isPictureSocialImage, getUsernameFromGHSocial
+from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert
+from .methods import getProfileImageBySocialAccount, isPictureDeletable, isPictureSocialImage, getUsernameFromGHSocial
 
 
 @receiver(post_save, sender=User)
@@ -40,9 +39,9 @@ def on_user_delete(sender, instance, **kwargs):
     User cleanup.
     """
     try:
-        prof = Profile.objects.filter(id=instance.profile.id).update(
-            is_zombie=True, githubID=None, is_moderator=False, is_active=False, zombied_on=timezone.now(),picture=defaultImagePath())
-        if instance.profile.picture != defaultImagePath() and not str(instance.profile.picture).startswith('http'):
+        Profile.objects.filter(id=instance.profile.id).update(
+            is_zombie=True, githubID=None, is_moderator=False, is_active=False, zombied_on=timezone.now(), picture=defaultImagePath())
+        if isPictureDeletable(instance.profile.picture):
             instance.profile.picture.delete(save=False)
     except Exception as e:
         print(e)
@@ -61,7 +60,7 @@ def on_profile_delete(sender, instance, **kwargs):
     Profile cleanup.
     """
     try:
-        if instance.picture != defaultImagePath() and not str(instance.picture).startswith('http'):
+        if isPictureDeletable(instance.picture):
             instance.picture.delete(save=False)
     except:
         pass
@@ -88,6 +87,31 @@ def on_user_signup(request, user, **kwargs):
             githubID=githubID, picture=picture)
     except:
         pass
+
+
+@receiver(password_changed)
+def user_password_changed(request, user, **kwargs):
+    passordChangeAlert(user)
+
+
+@receiver(password_reset)
+def user_password_reset(request, user, **kwargs):
+    passordChangeAlert(user)
+
+
+@receiver(email_changed)
+def user_email_changed(request, user, from_email_address, to_email_address, **kwargs):
+    emailUpdateAlert(user, from_email_address, to_email_address)
+
+
+@receiver(email_added)
+def user_email_added(request, user, email_address, **kwargs):
+    emailAddAlert(user, email_address)
+
+
+@receiver(email_removed)
+def user_email_removed(request, user, email_address, **kwargs):
+    emailRemoveAlert(user, email_address)
 
 
 @receiver(social_account_removed)

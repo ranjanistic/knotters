@@ -15,7 +15,6 @@ from .models import Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 
-
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=code.MODERATION)
@@ -35,8 +34,9 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
                                             code.REJECTED, code.MODERATION]).order_by('-respondOn')[0]
             if request.user.is_authenticated and (project.creator == request.user.profile or mod.moderator == request.user.profile):
                 return redirect(mod.getLink())
-        raise Exception()
-    except:
+            raise Exception()
+    except Exception as e:
+        print(e)
         raise Http404()
 
 

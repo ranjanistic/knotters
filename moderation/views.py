@@ -132,6 +132,9 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
 @require_JSON_body
 @moderator_only
 def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
+    """
+    To finalize valid submissions for judgement of a competition under moderation.
+    """
     try:
         submissions = request.POST['submissions']
         invalidSubIDs = []

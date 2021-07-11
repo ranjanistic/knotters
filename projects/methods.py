@@ -1,10 +1,11 @@
 from people.models import Profile
-from main.bots import Github, GithubKnotters
-from .models import Category, Project, Tag
 from github import Organization, NamedUser, Repository
-from main.methods import renderView
-from .apps import APPNAME
+from main.bots import Github, GithubKnotters
 from main.strings import code
+from main.methods import renderView
+from .models import Category, Project, Tag
+from .apps import APPNAME
+from .mailers import sendProjectApprovedNotification
 from .receivers import *
 
 
@@ -28,6 +29,7 @@ def createProject(name:str, category:str, reponame:str, description:str, tags:li
             if tagobj:
                 project.tags.add(tagobj)
                 categoryObj.tags.add(tagobj)
+        sendProjectApprovedNotification(project)
         return project
     except Exception as e:
         print(e)

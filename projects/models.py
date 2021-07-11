@@ -102,6 +102,9 @@ class Project(models.Model):
     def getRepoLink(self) -> str:
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
+    def getModLink(self) -> str:
+        return (Moderation.objects.filter(project=self,type=APPNAME).order_by('requestOn').first()).getLink()
+
     def moderationRetriesLeft(self) -> int:
         if self.status != code.APPROVED:
             try:

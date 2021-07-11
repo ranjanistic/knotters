@@ -11,4 +11,5 @@ Discord = discord.Client()
 async def on_ready():
     print(f"{Discord.user} has connected to discord.")
 
+
 Discord.run(DISCORDBOTTOKEN)
