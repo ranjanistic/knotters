@@ -103,6 +103,11 @@ class Codes():
 
 code = Codes()
 
+class Action():
+    ACCEPT = "accept"
+    DECLINE = "decline"
+
+action = Action()
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]

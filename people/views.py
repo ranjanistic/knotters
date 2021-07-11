@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile, respondJson, renderData
 from main.env import MAILUSER
-from main.strings import code
+from main.strings import Action, code
 from .apps import APPNAME
 from .decorators import profile_active_required
 from .models import ProfileSetting, User, Profile
@@ -264,10 +264,10 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
     Also deletes the predecessor account and migrates assets, only if it was scheduled to be deleted.
     """
     predID = request.POST.get('predID', None)
-    accept = action == 'accept'
+    accept = action == Action.ACCEPT
 
     try:
-        if True and (not accept and action != 'decline') or not predID or predID == request.user.getID():
+        if True and (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
             raise Exception()
 
         predecessor = User.objects.get(id=predID)

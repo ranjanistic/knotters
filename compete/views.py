@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from main.decorators import require_JSON_body
 from main.methods import renderData
-from main.strings import code
+from main.strings import Action, code
 from people.models import User, Profile
 from moderation.decorators import moderator_only
 from .models import Competition, SubmissionParticipant, SubmissionTopicPoint, Submission
@@ -99,19 +99,17 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 competition=competition, members=request.user.profile)
             relation = SubmissionParticipant.objects.get(
                 submission=sub, profile=request.user.profile)
-            if relation.confirmed:
-                raise Exception()
-            else:
+            if not relation.confirmed:
                 sub.members.remove(request.user.profile)
+            else:
+                return redirect(competition.getLink(alert="You're already participating."))
         except:
             pass
         submission = Submission.objects.create(
             competition=competition)
         submission.members.add(request.user.profile)
-        relation = SubmissionParticipant.objects.get(
-            profile=request.user.profile, submission=submission)
-        relation.confirmed = True
-        relation.save()
+        SubmissionParticipant.objects.filter(
+            submission=submission, profile=request.user.profile).update(confirmed=True)
         sendParticipationWelcomeMail(request.user.profile, submission)
         return redirect(competition.getLink())
     except Exception as e:
@@ -227,24 +225,19 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
     try:
         if str(request.user.id) != str(userID):
             raise Exception()
-        user = request.user
+        
         submission = Submission.objects.get(id=subID, submitted=False)
         if not submission.competition.isActive():
             raise Exception()
-        relation = SubmissionParticipant.objects.get(
-            submission=submission, profile=user.profile)
-        if relation.confirmed:
-            raise Exception()
-        if action == 'decline':
-            relation.delete()
+        if action == Action.DECLINE:
+            SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile, confirmed=False).delete()
             return render(request, "invitation.html", renderData({
                 'submission': submission,
                 'declined': True
             }, APPNAME))
-        elif action == 'accept':
-            relation.confirmed = True
-            relation.save()
-            sendParticipationWelcomeMail(user.profile, submission)
+        elif action == Action.ACCEPT:
+            SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
+            sendParticipationWelcomeMail(request.user.profile, submission)
             return render(request, "invitation.html", renderData({
                 'submission': submission,
                 'accepted': True
@@ -260,13 +253,12 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
 @profile_active_required
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
+        now = timezone.now()
         competition = Competition.objects.get(id=compID)
-        submission = Submission.objects.get(
-            id=subID, competition=competition, members=request.user.profile)
-        if not submission.competition.isActive():
+        if not competition.isActive():
             raise Exception()
-        submission.repo = str(request.POST['submissionurl'])
-        submission.save()
+        Submission.objects.filter(id=subID, competition=competition, members=request.user.profile).update(
+            repo=str(request.POST.get('submissionurl', '')), modifiedOn=now)
         return redirect(competition.getLink(alert="Saved"), permanent=True)
     except Exception as e:
         raise Http404()
@@ -277,20 +269,13 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 @profile_active_required
 def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse:
     """
-    Already existing participation submission
+    Already existing participation final submission
     """
     now = timezone.now()
     try:
         competition = Competition.objects.get(id=compID)
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
-        try:
-            relations = SubmissionParticipant.objects.filter(
-                submission=submission, confirmed=False)
-            for relation in relations:
-                submission.members.remove(relation.profile)
-        except:
-            pass
         if submission.submitted:
             return JsonResponse({'code': code.OK, 'message': "Already submitted"})
         message = "Submitted successfully"
@@ -299,16 +284,18 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
                 return JsonResponse({'code': code.NO, 'error': "It is too late now."})
             submission.late = True
             message = "Submitted, but late."
+        try:
+            SubmissionParticipant.objects.filter(submission=submission, confirmed=False).delete()
+        except:
+            pass
         submission.submitOn = now
         submission.submitted = True
-
         submission.save()
-
         sendSubmissionConfirmedMail(submission.getMembers(), submission)
-
         return JsonResponse({'code': code.OK, 'message': message})
     except Exception as e:
-        raise JsonResponse({'code': code.NO, "error": str(e)})
+        print(e)
+        raise JsonResponse({'code': code.NO, "error": "An error occurred"})
 
 
 @require_JSON_body

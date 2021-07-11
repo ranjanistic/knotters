@@ -1,4 +1,3 @@
-
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.http.response import HttpResponse

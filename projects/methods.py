@@ -5,15 +5,14 @@ from main.strings import code
 from main.methods import renderView
 from .models import Category, Project, Tag
 from .apps import APPNAME
-from .mailers import sendProjectApprovedNotification
-from .receivers import *
+from .mailers import sendProjectApprovedNotification, sendProjectSubmissionNotification
 
 
 def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def createProject(name:str, category:str, reponame:str, description:str, tags:list, profile:Profile, url:str='') -> Project or bool:
+def createProject(name: str, category: str, reponame: str, description: str, tags: list, profile: Profile, url: str = '') -> Project or bool:
     """
     Creates project on knotters under moderation.
     """
@@ -21,69 +20,69 @@ def createProject(name:str, category:str, reponame:str, description:str, tags:li
         if not uniqueRepoName(reponame):
             return False
         categoryObj = addCategoryToDatabase(category)
-        if not categoryObj: return False
+        if not categoryObj:
+            return False
         project = Project.objects.create(
-            creator=profile, name=name, reponame=reponame, description=description,category=categoryObj,url=url)
+            creator=profile, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
         for tag in tags:
             tagobj = addTagToDatabase(tag)
             if tagobj:
                 project.tags.add(tagobj)
                 categoryObj.tags.add(tagobj)
-        sendProjectApprovedNotification(project)
+        sendProjectSubmissionNotification(project)
         return project
     except Exception as e:
         print(e)
         return False
 
-def addCategoryToDatabase(category:str) -> Category or bool:
-    category = str(category).strip().lower().replace('\n','')
-    if not category: return False
+
+def addCategoryToDatabase(category: str) -> Category or bool:
+    category = str(category).strip().replace('\n', '')
+    if not category:
+        return False
     categoryObj = None
     try:
-        allcategories = Category.objects.all()
-        for cat in allcategories:
-            if str(cat).strip().lower().replace('\n','') == category:
-                categoryObj = cat
-                break
+        categoryObj = Category.objects.filter(name__iexact=category).first()
         if not categoryObj:
             categoryObj = Category.objects.create(name=category)
     except:
         categoryObj = Category.objects.create(name=category)
     return categoryObj
 
-def addTagToDatabase(tag:str) -> Tag or bool:
-    tag = str(tag).strip().replace('\n','')
-    if not tag: return False
-    tag = tag.replace(" ", "_")
-    if uniqueTag(tag):
+
+def addTagToDatabase(tag: str) -> Tag or bool:
+    tag = str(tag).strip('#').strip().replace('\n', '').replace(" ", "_")
+    if not tag:
+        return False
+    tagobj = uniqueTag(tag)
+    if not tagobj:
         tagobj = Tag.objects.create(name=tag)
-    else:
-        tagobj = Tag.objects.get(name=tag)
     return tagobj
 
-def uniqueRepoName(reponame:str)-> bool:
+
+def uniqueRepoName(reponame: str) -> bool:
     """
     Checks for unique repository name among existing projects
     """
+    reponame = str(reponame).strip('-').strip().replace(' ', '-').lower()
     try:
-        Project.objects.get(reponame=str(reponame))
+        count = Project.objects.filter(reponame=str(reponame)).count()
+        return count < 1
     except Exception as e:
         return True
-    return False
 
 
-def uniqueTag(tagname:str) -> bool:
+def uniqueTag(tagname: str) -> bool:
     """
     Checks for unique tag name among existing tags
     """
     try:
-        Tag.objects.get(name=tagname)
+        return Tag.objects.filter(name__iexact=tagname).first()
     except Exception as e:
         return True
-    return False
 
 
-def setupApprovedProject(project:Project, moderator:Profile) -> bool:
+def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     """
     Setup project which has been approved from moderation. (project status should be: LIVE)
 
@@ -95,9 +94,11 @@ def setupApprovedProject(project:Project, moderator:Profile) -> bool:
         if project.status != code.APPROVED:
             return False
 
-        return True
+        sendProjectApprovedNotification(project)
+
         created = setupOrgGihtubRepository(
             project.reponame, project.creator, moderator, project.description)
+
         if not created:
             return False
 
@@ -112,7 +113,7 @@ def setupApprovedProject(project:Project, moderator:Profile) -> bool:
         return False
 
 
-def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, description:str) -> bool:
+def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile, description: str) -> bool:
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
 
@@ -125,9 +126,9 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
             return False
 
         ghUser = Github.get_user(creator.githubID)
-        
-        ghOrgRepo = ghOrgRepoExists(GithubKnotters,reponame)
-    
+
+        ghOrgRepo = ghOrgRepoExists(GithubKnotters, reponame)
+
         if not ghOrgRepo:
             ghOrgRepo = GithubKnotters.create_repo(
                 name=reponame,
@@ -141,7 +142,7 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
             )
 
         ghBranch = ghOrgRepo.get_branch("main")
-        
+
         ghBranch.edit_protection(
             strict=True,
             enforce_admins=False,
@@ -149,29 +150,31 @@ def setupOrgGihtubRepository(reponame:str, creator:Profile, moderator:Profile, d
             required_approving_review_count=1,
             user_push_restrictions=[moderator.githubID],
         )
-        
+
         invited = inviteMemberToGithubOrg(GithubKnotters, ghUser)
         if not invited:
             return False
-        
+
         ghOrgRepo.add_to_collaborators(
             collaborator=moderator.githubID, permission="maintain")
         ghOrgRepo.add_to_collaborators(
             collaborator=creator.githubID, permission="push")
-        
+
         return True
     except Exception as e:
         print(e)
         return False
 
-def ghOrgRepoExists(ghOrg:Organization,reponame:str) -> Repository or bool:
+
+def ghOrgRepoExists(ghOrg: Organization, reponame: str) -> Repository or bool:
     try:
         ghOrgRepo = ghOrg.get_repo(name=reponame)
         return ghOrgRepo
     except:
         return False
 
-def inviteMemberToGithubOrg(ghOrg:Organization, ghUser:NamedUser) -> bool:
+
+def inviteMemberToGithubOrg(ghOrg: Organization, ghUser: NamedUser) -> bool:
     try:
         already = ghOrg.has_in_members(ghUser)
         if not already:
@@ -182,8 +185,10 @@ def inviteMemberToGithubOrg(ghOrg:Organization, ghUser:NamedUser) -> bool:
         return False
 
 
-def setupProjectDiscordChannel(reponame:str, creator:Profile, moderator:Profile) -> bool:
+def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profile) -> bool:
     """
     Creates discord chat channel for corresponding project.
     """
     return True
+
+from .receivers import *

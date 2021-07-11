@@ -7,13 +7,14 @@ from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from moderation.models import Moderation
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
-from main.methods import base64ToImageFile
+from main.methods import base64ToImageFile, respondJson
 from main.strings import code
 from moderation.methods import requestModerationForObject
 from people.decorators import profile_active_required
 from .models import Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
+
 
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
@@ -95,12 +96,12 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
             if not uniqueRepoName(data):
                 raise Exception(f"{data} already taken, try another.")
             else:
-                pass
+                return respondJson(code.OK)
         else:
-            return Http404()
-        return JsonResponse({'code': code.OK})
+            return respondJson(code.NO)
     except Exception as e:
-        return JsonResponse({'error': str(e)})
+        print(e)
+        return respondJson(code.NO, error="An error occurred")
 
 
 @require_POST
@@ -111,7 +112,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         print(acceptedTerms)
-        if not acceptedTerms: return redirect(f"/{APPNAME}/create?e=You have not accepted the terms.")
+        if not acceptedTerms:
+            return redirect(f"/{APPNAME}/create?e=You have not accepted the terms.")
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]

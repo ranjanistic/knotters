@@ -6,10 +6,9 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import renderData, renderView
-from main.strings import code, profile as profileString, PROJECTS
+from main.strings import code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
-from moderation.methods import getModeratorToAssignModeration
 from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
 
@@ -157,6 +156,7 @@ def isPictureDeletable(picture: str) -> bool:
     Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
     """
     return picture != defaultImagePath() and not str(picture).startswith('http')
+
 
 def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
     """
