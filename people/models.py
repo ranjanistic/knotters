@@ -110,7 +110,7 @@ class Profile(models.Model):
     successor = models.ForeignKey('User', null=True, blank=True, related_name='successor_profile',
                                   on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     successor_confirmed = models.BooleanField(
-        default=True, help_text='Whether the successor is confirmed, if set.')
+        default=False, help_text='Whether the successor is confirmed, if set.')
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -128,9 +128,7 @@ class Profile(models.Model):
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
 
     def __str__(self) -> str:
-        if not self.is_zombie:
-            return self.user.email
-        return 'Zombie'
+        return self.getID() if self.is_zombie else self.user.email
 
     def getID(self) -> str:
         return self.id.hex

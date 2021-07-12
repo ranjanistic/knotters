@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from .strings import url
+from .settings import MEDIA_URL
 from django.core.handlers.wsgi import WSGIRequest
 
 class ProfileActivationMiddleware(object):
@@ -9,7 +10,7 @@ class ProfileActivationMiddleware(object):
 
     def __call__(self, request:WSGIRequest):
         if request.user.is_authenticated:
-            if not request.user.profile.is_active and request.method == 'GET':
+            if not request.user.profile.is_active and request.method == 'GET' and not request.get_full_path().startswith(MEDIA_URL):
                 if not request.get_full_path().__contains__(request.user.profile.getLink()) and not request.get_full_path().__contains__(url.ACCOUNTS+'logout'):
                     return redirect(request.user.profile.getLink())
         return self.get_response(request)
