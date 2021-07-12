@@ -119,7 +119,7 @@ class Profile(models.Model):
         default=False, help_text='True if user scheduled for deletion. is_active should be false')
     is_zombie = models.BooleanField(
         default=False, help_text='If user account deleted, this becomes true')
-    zombied_on = models.DateTimeField(blank=True,null=True)
+    zombied_on = models.DateTimeField(blank=True, null=True)
     suspended = models.BooleanField(
         default=False, help_text='Illegal activities make this true.')
 
@@ -128,12 +128,15 @@ class Profile(models.Model):
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
 
     def __str__(self) -> str:
-        if self.user:
+        if not self.is_zombie:
             return self.user.email
-        return 'Zombie Profile'
+        return 'Zombie'
 
-    def getID(self)->str:
+    def getID(self) -> str:
         return self.id.hex
+
+    def getUserID(self) -> str:
+        return self.getID() if self.is_zombie else self.user.getID()
 
     def save(self, *args, **kwargs):
         try:
@@ -153,9 +156,13 @@ class Profile(models.Model):
         return self.getDP().startswith("http")
 
     def getName(self) -> str:
-        if self.user:
-            return self.user.getName()
-        return 'Zombie Profile'
+        return 'Zombie' if self.is_zombie else self.user.getName()
+
+    def getFName(self) -> str:
+        return 'Zombie' if self.is_zombie else self.user.first_name
+
+    def getEmail(self) -> str:
+        return 'zombie@knotters.org' if self.is_zombie else self.user.email
 
     def getBio(self) -> str:
         return self.bio if self.bio else ''
@@ -199,7 +206,6 @@ class ProfileSetting(models.Model):
 
     def __str__(self) -> str:
         return self.profile.getID()
-        
 
     def savePreferencesLink(self) -> str:
         return f"/{url.PEOPLE}account/preferences/{self.profile.user.id}"

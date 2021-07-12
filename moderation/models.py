@@ -1,9 +1,8 @@
 from django.db import models
 from uuid import uuid4
-from main.strings import PROJECTS, PEOPLE, COMPETE, DIVISIONS, code, moderation, url
+from main.strings import PROJECTS, PEOPLE, COMPETE, code, moderation, url
 from main.methods import maxLengthInList
 from django.utils import timezone
-from .apps import APPNAME
 
 
 class Moderation(models.Model):
@@ -12,19 +11,21 @@ class Moderation(models.Model):
         f"{PROJECTS}.Project", on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_project")
 
     profile = models.ForeignKey(f"{PEOPLE}.Profile", blank=True, null=True,
-        on_delete=models.CASCADE, related_name="moderation_profile")
+                                on_delete=models.CASCADE, related_name="moderation_profile")
 
     competition = models.ForeignKey(
         f"{COMPETE}.Competition", blank=True, null=True, on_delete=models.CASCADE, related_name="moderation_compete")
 
-    type = models.CharField(choices=moderation.TYPECHOICES, max_length=maxLengthInList(moderation.TYPES))
+    type = models.CharField(choices=moderation.TYPECHOICES,
+                            max_length=maxLengthInList(moderation.TYPES))
 
     moderator = models.ForeignKey(
         f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="moderator_profile")
 
     request = models.CharField(max_length=100000)
     referURL = models.URLField(blank=True, null=True)
-    response = models.CharField(max_length=100000, blank=True, null=True, default='')
+    response = models.CharField(
+        max_length=100000, blank=True, null=True, default='')
 
     status = models.CharField(choices=moderation.MODSTATESCHOICES, max_length=maxLengthInList(
         moderation.MODSTATES), default=code.MODERATION)
@@ -33,7 +34,6 @@ class Moderation(models.Model):
     respondOn = models.DateTimeField(auto_now=False, null=True, blank=True)
     resolved = models.BooleanField(default=False)
 
-
     def __str__(self):
         if self.type == PROJECTS:
             return self.project.name
@@ -41,10 +41,10 @@ class Moderation(models.Model):
             return self.profile.getName()
         if self.type == COMPETE:
             return self.competition.title
-        return self.id
+        return self.getID()
 
-    def getID(self)->str:
-        return str(self.id).replace('-','')
+    def getID(self) -> str:
+        return self.id.hex
 
     def approve(self) -> bool:
         now = timezone.now()
@@ -80,6 +80,7 @@ class Moderation(models.Model):
 
     def approveCompeteLink(self):
         return f"/{url.MODERATION}compete/{self.getID()}"
+
     def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
             return profile == self.project.creator
@@ -96,7 +97,6 @@ class Moderation(models.Model):
 
     def isApproved(self) -> bool:
         return self.status == code.APPROVED
-
 
 
 class LocalStorage(models.Model):

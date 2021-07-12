@@ -37,6 +37,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def getID(self) -> str:
+        return self.id.hex
+
 
 class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -55,11 +58,15 @@ class Project(models.Model):
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
-    migrated = models.BooleanField(default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
+    migrated = models.BooleanField(
+        default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
     acceptedTerms = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
+
+    def getID(self) -> str:
+        return self.id.hex
 
     def save(self, *args, **kwargs):
         try:
@@ -103,7 +110,7 @@ class Project(models.Model):
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
     def getModLink(self) -> str:
-        return (Moderation.objects.filter(project=self,type=APPNAME).order_by('requestOn').first()).getLink()
+        return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
 
     def moderationRetriesLeft(self) -> int:
         if self.status != code.APPROVED:

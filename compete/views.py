@@ -1,21 +1,21 @@
-from people.decorators import profile_active_required
-from django.core.handlers.wsgi import WSGIRequest
 from uuid import UUID
+from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from main.decorators import require_JSON_body
-from main.methods import renderData
+from main.methods import renderData, respondJson
 from main.strings import Action, code
+from people.decorators import profile_active_required
 from people.models import User, Profile
 from moderation.decorators import moderator_only
 from .models import Competition, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
-from .apps import APPNAME
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer
-from .mailers import sendParticipantInvitationMail, sendSubmissionConfirmedMail, sendParticipationWelcomeMail
+from .mailers import participantInviteAlert, resultsDeclaredAlert, submissionConfirmedAlert, participantWelcomeAlert
+from .apps import APPNAME
 
 
 @require_GET
@@ -53,10 +53,7 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
 def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
         compete = Competition.objects.get(id=compID)
-        data = {
-            'code': code.OK,
-            'timeleft': compete.secondsLeft(),
-        }
+        data = {'timeleft': compete.secondsLeft()}
         if request.user.is_authenticated:
             try:
                 subm = Submission.objects.get(
@@ -65,9 +62,9 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
                 data['subID'] = subm.id
             except:
                 data['participated'] = False
-        return JsonResponse(data)
+        return respondJson(code.OK, data)
     except Exception as e:
-        return JsonResponse({'code': code.NO})
+        return respondJson(code.NO)
 
 
 @require_GET
@@ -110,7 +107,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         submission.members.add(request.user.profile)
         SubmissionParticipant.objects.filter(
             submission=submission, profile=request.user.profile).update(confirmed=True)
-        sendParticipationWelcomeMail(request.user.profile, submission)
+        participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink())
     except Exception as e:
         raise Http404()
@@ -154,9 +151,9 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     try:
         userID = str(request.POST.get('userID', '')).strip().lower()
         if not userID:
-            return JsonResponse({'code': code.NO, 'error': 'Invalid ID'})
+            return respondJson(code.NO, error='Invalid ID')
         if request.user.email == userID or request.user.profile.githubID == userID:
-            return JsonResponse({'code': code.NO, 'error': 'You\'re already participating, remember?'})
+            return respondJson(code.NO, error='You\'re already participating, remember?')
         try:
             user = User.objects.get(email=userID)
             person = user.profile
@@ -166,22 +163,22 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             except:
                 person = None
         if not person:
-            return JsonResponse({'code': code.NO, 'error': 'User doesn\'t exist.'})
+            return respondJson(code.NO, error='User doesn\'t exist.')
         try:
             Submission.objects.get(members=person)
-            return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
+            return respondJson(code.NO, error='User already participating or invited.')
         except:
             submission = Submission.objects.get(id=subID)
             if not submission.competition.isActive():
                 raise Exception()
             if submission.competition.isJudge(person) or submission.competition.isModerator(person):
-                return JsonResponse({'code': code.NO, 'error': 'User already participating or invited.'})
+                return respondJson(code.NO, error='User already participating or invited.')
             submission.members.add(person)
-            sendParticipantInvitationMail(
+            participantInviteAlert(
                 person, request.user.profile, submission)
-            return JsonResponse({'code': code.OK})
+            return respondJson(code.OK)
     except Exception as e:
-        return JsonResponse({'code': code.NO, 'error': str(e)})
+        return respondJson(code.NO, error=str(e))
 
 
 @require_GET
@@ -225,19 +222,21 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
     try:
         if str(request.user.id) != str(userID):
             raise Exception()
-        
+
         submission = Submission.objects.get(id=subID, submitted=False)
         if not submission.competition.isActive():
             raise Exception()
         if action == Action.DECLINE:
-            SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile, confirmed=False).delete()
+            SubmissionParticipant.objects.filter(
+                submission=submission, profile=request.user.profile, confirmed=False).delete()
             return render(request, "invitation.html", renderData({
                 'submission': submission,
                 'declined': True
             }, APPNAME))
         elif action == Action.ACCEPT:
-            SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
-            sendParticipationWelcomeMail(request.user.profile, submission)
+            SubmissionParticipant.objects.filter(
+                submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
+            participantWelcomeAlert(request.user.profile, submission)
             return render(request, "invitation.html", renderData({
                 'submission': submission,
                 'accepted': True
@@ -277,25 +276,26 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
         if submission.submitted:
-            return JsonResponse({'code': code.OK, 'message': "Already submitted"})
+            return respondJson(code.OK, message="Already submitted")
         message = "Submitted successfully"
         if competition.endAt < now:
             if competition.resultDeclared:
-                return JsonResponse({'code': code.NO, 'error': "It is too late now."})
+                return respondJson(code.NO, error="It is too late now.")
             submission.late = True
             message = "Submitted, but late."
         try:
-            SubmissionParticipant.objects.filter(submission=submission, confirmed=False).delete()
+            SubmissionParticipant.objects.filter(
+                submission=submission, confirmed=False).delete()
         except:
             pass
         submission.submitOn = now
         submission.submitted = True
         submission.save()
-        sendSubmissionConfirmedMail(submission.getMembers(), submission)
-        return JsonResponse({'code': code.OK, 'message': message})
+        submissionConfirmedAlert(submission)
+        return respondJson(code.OK, message=message)
     except Exception as e:
         print(e)
-        raise JsonResponse({'code': code.NO, "error": "An error occurred"})
+        raise respondJson(code.NO, error="An error occurred")
 
 
 @require_JSON_body
@@ -304,7 +304,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
         subs = request.POST.get('submissions', None)
         if not subs:
-            return JsonResponse({'code': code.NO, 'error': 'Invalid submission markings, try again.'})
+            return respondJson(code.NO, error='Invalid submission markings, try again.')
 
         comp = Competition.objects.get(
             id=compID, judges=request.user.profile, resultDeclared=False, endAt__lt=timezone.now())
@@ -347,10 +347,10 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                     ))
 
         SubmissionTopicPoint.objects.bulk_create(topicpointsList)
-        return JsonResponse({'code': code.OK})
+        return respondJson(code.OK)
     except Exception as e:
         print(e)
-        return JsonResponse({'code': code.NO, 'error': 'An error occurred'})
+        return respondJson(code.NO, error='An error occurred')
 
 
 @require_POST
@@ -368,6 +368,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         declared = comp.declareResults()
         if not declared:
             return redirect(comp.getJudgementLink(error="An error occurred."))
+        resultsDeclaredAlert(competition=declared)
         return redirect(comp.getJudgementLink(alert="Results declared!"))
     except Exception as e:
         print(e)

@@ -94,7 +94,7 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
         data = request.POST[field]
         if field == 'reponame':
             if not uniqueRepoName(data):
-                raise Exception(f"{data} already taken, try another.")
+                return respondJson(code.NO, error=f"{data} already taken, try another.")
             else:
                 return respondJson(code.OK)
         else:
@@ -123,7 +123,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
             return HttpResponse(f'{reponame} already exists')
-        projectobj = createProject(profile=request.user.profile, name=name,
+        projectobj = createProject(creator=request.user.profile, name=name,
                                    category=category, reponame=reponame, description=description, tags=tags, url=referURL)
         if not projectobj:
             raise Exception()

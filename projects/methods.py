@@ -12,9 +12,17 @@ def renderer(request, file, data={}):
     return renderView(request, file, data, fromApp=APPNAME)
 
 
-def createProject(name: str, category: str, reponame: str, description: str, tags: list, profile: Profile, url: str = '') -> Project or bool:
+def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, url: str = '') -> Project or bool:
     """
-    Creates project on knotters under moderation.
+    Creates project on knotters under moderation status.
+
+    :name: Display name of project
+    :category: The category of project
+    :reponame: Repository name, a unique indetifier of project
+    :description: Visible about (bio) of project
+    :tags: List of tag strings
+    :creator: The profile of project creator
+    :url: A display link for project, optional
     """
     try:
         if not uniqueRepoName(reponame):
@@ -23,7 +31,7 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         if not categoryObj:
             return False
         project = Project.objects.create(
-            creator=profile, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
+            creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
         for tag in tags:
             tagobj = addTagToDatabase(tag)
             if tagobj:
@@ -36,7 +44,7 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         return False
 
 
-def addCategoryToDatabase(category: str) -> Category or bool:
+def addCategoryToDatabase(category: str) -> Category:
     category = str(category).strip().replace('\n', '')
     if not category:
         return False
@@ -46,11 +54,12 @@ def addCategoryToDatabase(category: str) -> Category or bool:
         if not categoryObj:
             categoryObj = Category.objects.create(name=category)
     except:
-        categoryObj = Category.objects.create(name=category)
+        if not categoryObj:
+            categoryObj = Category.objects.create(name=category)
     return categoryObj
 
 
-def addTagToDatabase(tag: str) -> Tag or bool:
+def addTagToDatabase(tag: str) -> Tag:
     tag = str(tag).strip('#').strip().replace('\n', '').replace(" ", "_")
     if not tag:
         return False
@@ -69,6 +78,7 @@ def uniqueRepoName(reponame: str) -> bool:
         count = Project.objects.filter(reponame=str(reponame)).count()
         return count < 1
     except Exception as e:
+        print(e)
         return True
 
 
@@ -84,7 +94,7 @@ def uniqueTag(tagname: str) -> bool:
 
 def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     """
-    Setup project which has been approved from moderation. (project status should be: LIVE)
+    Setup project which has been approved by moderator. (project status should be: LIVE)
 
     Creates github org repository and setup restrictions & allowances.
 
@@ -122,12 +132,12 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
     :reponame: The name of repository to be created
     """
     try:
-        if not creator.githubID and not moderator.githubID:
+        if not creator.githubID or not moderator.githubID:
             return False
 
         ghUser = Github.get_user(creator.githubID)
 
-        ghOrgRepo = ghOrgRepoExists(GithubKnotters, reponame)
+        ghOrgRepo = getGhOrgRepo(GithubKnotters, reponame)
 
         if not ghOrgRepo:
             ghOrgRepo = GithubKnotters.create_repo(
@@ -166,12 +176,12 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
         return False
 
 
-def ghOrgRepoExists(ghOrg: Organization, reponame: str) -> Repository or bool:
+def getGhOrgRepo(ghOrg: Organization, reponame: str) -> Repository:
     try:
         ghOrgRepo = ghOrg.get_repo(name=reponame)
         return ghOrgRepo
     except:
-        return False
+        return None
 
 
 def inviteMemberToGithubOrg(ghOrg: Organization, ghUser: NamedUser) -> bool:

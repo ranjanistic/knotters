@@ -40,7 +40,8 @@ class Competition(models.Model):
     judges = models.ManyToManyField(
         Profile, through='CompetitionJudge', default=[])
 
-    topics = models.ManyToManyField(Topic, through='CompetitionTopic', default=[])
+    topics = models.ManyToManyField(
+        Topic, through='CompetitionTopic', default=[])
 
     eachTopicMaxPoint = models.IntegerField(default=10)
 
@@ -48,7 +49,7 @@ class Competition(models.Model):
         return self.title
 
     def getID(self) -> str:
-        return str(self.id).replace('-','')
+        return self.id.hex
 
     def getBanner(self) -> str:
         return f"{MEDIA_URL}{str(self.banner)}"
@@ -66,7 +67,7 @@ class Competition(models.Model):
         return f"/{url.COMPETE}{self.getID()}{success}{error}"
 
     def participationLink(self) -> str:
-        return f"/{url.COMPETE}participate/{self.id}"
+        return f"/{url.COMPETE}participate/{self.getID()}"
 
     def isActive(self) -> bool:
         """
@@ -119,6 +120,13 @@ class Competition(models.Model):
             return True
         except:
             return False
+
+    def getModerator(self)->Profile:
+        try:
+            mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by("-requestOn").only('moderator')[0]
+            return mod.moderator
+        except:
+            return None
 
     def moderated(self) -> bool:
         """
@@ -214,7 +222,7 @@ class Competition(models.Model):
             return 0
 
     def submissionPointsLink(self) -> str:
-        return f"/{url.COMPETE}submissionpoints/{self.id}"
+        return f"/{url.COMPETE}submissionpoints/{self.getID()}"
 
     def allSubmissionsMarkedByJudge(self, judge: Profile) -> bool:
         """
@@ -252,7 +260,7 @@ class Competition(models.Model):
         return count
 
     def declareResultsLink(self) -> str:
-        return f"/{url.COMPETE}declareresults/{self.id}"
+        return f"/{url.COMPETE}declareresults/{self.getID()}"
 
     def declareResults(self) -> bool:
         """
@@ -266,7 +274,7 @@ class Competition(models.Model):
             subs = self.getValidSubmissions()
             results = SubmissionTopicPoint.objects.filter(submission__in=subs).values(
                 'submission').annotate(totalPoints=Sum('points')).order_by('-totalPoints')
-            
+
             resultsList = []
 
             rank = 1
@@ -284,12 +292,13 @@ class Competition(models.Model):
                             rank=rank
                         )
                     )
-                rank=rank+1
+                rank = rank+1
             obj = Result.objects.bulk_create(resultsList)
-            if not obj: return False
+            if not obj:
+                return False
             self.resultDeclared = True
             self.save()
-            return True
+            return self
         except Exception as e:
             print(e)
             return False
@@ -344,11 +353,12 @@ class Submission(models.Model):
     late = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return f"{self.competition.title} - {self.id}"
+        return f"{self.competition.title} - {self.getID()}"
+
+    def getID(self) -> str:
+        return self.id.hex
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.createdOn = timezone.now()
         self.modifiedOn = timezone.now()
         return super(Submission, self).save(*args, **kwargs)
 
@@ -371,8 +381,7 @@ class Submission(models.Model):
         :profile: The profile object to be looked for.
         """
         try:
-            SubmissionParticipant.objects.get(
-                submission=self, profile=profile, confirmed=True)
+            SubmissionParticipant.objects.filter(submission=self, profile=profile, confirmed=True)
             return True
         except:
             return False
@@ -381,13 +390,7 @@ class Submission(models.Model):
         """
         List of members whomst membership with this submission is confirmed.
         """
-        members = []
-        relations = SubmissionParticipant.objects.filter(submission=self)
-        for member in self.members.all():
-            relation = relations.get(profile=member)
-            if relation.confirmed:
-                members.append(member)
-        return members
+        return SubmissionParticipant.objects.filter(submission=self,profile__in=self.members.all(),confirmed=True)
 
     def totalActiveMembers(self) -> int:
         """
@@ -455,9 +458,9 @@ class SubmissionParticipant(models.Model):
     class Meta:
         unique_together = (("profile", "submission"))
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     confirmed = models.BooleanField(default=False)
 
 
@@ -492,6 +495,9 @@ class Result(models.Model):
     points = models.IntegerField(default=0)
     rank = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f"{self.competition} - {self.rank}{self.rankSuptext()}"
+
     def rankSuptext(self) -> str:
         rank = self.rank
         rankstr = str(rank)
@@ -509,5 +515,3 @@ class Result(models.Model):
             else:
                 return "th"
 
-    def __str__(self) -> str:
-        return f"{self.competition} - {self.rank}{self.rankSuptext()}"

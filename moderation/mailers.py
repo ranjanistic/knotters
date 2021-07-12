@@ -1,3 +1,4 @@
+from people.models import Profile
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
 from .models import Moderation
@@ -5,8 +6,8 @@ from .models import Moderation
 
 def moderationAssignedAlert(moderation: Moderation) -> bool:
     return sendActionEmail(
-        to=moderation.moderator.user.email,
-        username=moderation.moderator.user.getName(),
+        to=moderation.moderator.getEmail(),
+        username=moderation.moderator.getName(),
         subject="New Moderation Assigned",
         header=f"A new moderation of type {moderation.type} has been assigned to you to review. The following link button will take you directly to the moderation view.",
         actions=[{
@@ -20,18 +21,18 @@ def moderationAssignedAlert(moderation: Moderation) -> bool:
 
 def moderationActionAlert(moderation: Moderation, status: str) -> bool:
     return sendAlertEmail(
-        to=moderation.moderator.user.email,
-        username=moderation.moderator.user.getName(),
+        to=moderation.moderator.getEmail(),
+        username=moderation.moderator.getFName(),
         subject=f"Moderation {status.capitalize()}",
         header=f"This is to inform you that a moderation of type {moderation.type} has been {status} by you as the assigned moderator.",
         footer="If you acknowledge this action, then this email can be ignored safely.",
         conclusion=f"You received this email because you're a moderator at {PUBNAME}. If this is an error, please report to us."
     )
 
-def madeModeratorAlert(profile) -> bool:
+def madeModeratorAlert(profile: Profile) -> bool:
     return sendActionEmail(
-        to=profile.user.email,
-        username=profile.user.getName(),
+        to=profile.getEmail(),
+        username=profile.getFName(),
         subject=f"Promotion to Moderator",
         header=f"Congratulations! You have been made one of our moderators. This brings previleges and duties with rewards! The following link button will brief you as a moderator.",
         actions=[{

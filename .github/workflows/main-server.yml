@@ -62,7 +62,7 @@ jobs:
       run: |
         rm -f ${{ secrets.ENVPATH }}
 
-  build_deploy:
+  server_deploy:
     needs: [ testing ]
     runs-on: self-hosted
     strategy:
@@ -71,6 +71,13 @@ jobs:
         python-version: [3.9]
 
     steps:
+    - name: Create backup
+      run: |
+        mongodump --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
+        tar czf _backup_\${{ secrets.DBNAME }}.tar.gz _backup_\${{ secrets.DBNAME }}
+        py _utils_\clearbackupgpg.py
+        gpg -e -r ${{ secrets.MAILUSER }} _backup_\${{ secrets.DBNAME }}.tar.gz
+        py _utils_\clearbackupdump.py
     - name: Merge changes
       run: |
         git pull origin
@@ -82,13 +89,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Create backup
-      run: |
-        mongodump --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
-        tar czf _backup_\${{ secrets.DBNAME }}.tar.gz _backup_\${{ secrets.DBNAME }}
-        py _utils_\clearbackupgpg.py
-        gpg -e -r ${{ secrets.MAILUSER }} _backup_\${{ secrets.DBNAME }}.tar.gz
-        py _utils_\clearbackupdump.py
     - name: Run migrations
       run: |
         py manage.py makemigrations --noinput

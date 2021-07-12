@@ -134,7 +134,7 @@
             <button id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
             <button hidden id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
             <button hidden id="activity" class="nav-tab"><i class="material-icons">history</i><span class="w3-hide-small">Activity</span></button>
-            {% if user.is_authenticated and user.profile.is_moderator %}
+            {% if user.is_authenticated and person.profile.is_moderator and user == person %}
             <button id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
             {% endif %}
           </div>

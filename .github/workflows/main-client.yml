@@ -62,7 +62,7 @@ jobs:
       run: |
         rm -f ${{ secrets.ENVPATH }}
 
-  build_deploy:
+  client_deploy:
     needs: [ testing ]
     runs-on: self-hosted
     strategy:

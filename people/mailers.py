@@ -36,16 +36,16 @@ def emailRemoveAlert(user: User, removedEmail: str) -> bool:
 
 
 def accountInactiveAlert(profile: Profile) -> bool:
-    return sendAlertEmail(to=profile.user.email, username=profile.user.first_name,subject='Account Deactivated',
-        header=f"This is to inform you that your {PUBNAME} account ({profile.user.email}) has been deactivated.",
+    return sendAlertEmail(to=profile.getEmail(), username=profile.getFName(),subject='Account Deactivated',
+        header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been deactivated.",
         footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} anytime and re-activate your account.",
         conclusion=f"If this action is suspicious and you didn't do such thing, then you should head on to {PUBNAME} and login now."
     )
 
 
 def accountReactiveAlert(profile: Profile) -> bool:
-    return sendAlertEmail(to=profile.user.email, username=profile.user.first_name,subject='Account Re-activated',
-        header=f"This is to inform you that your {PUBNAME} account ({profile.user.email}) has been re-activated.",
+    return sendAlertEmail(to=profile.getEmail(), username=profile.getFName(),subject='Account Re-activated',
+        header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been re-activated.",
         footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} and deactivate your account anytime.",
         conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
     )

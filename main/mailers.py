@@ -1,7 +1,8 @@
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from .env import ISPRODUCTION, PUBNAME,SITE
+from .env import ISPRODUCTION, PUBNAME, SITE
 from .strings import url
+
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
     if ISPRODUCTION:
@@ -15,6 +16,21 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
     else:
         print(to, body)
         return True
+
+
+def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
+    if ISPRODUCTION:
+        try:
+            msg = EmailMultiAlternatives(subject, body=body, to=to)
+            msg.attach_alternative(content=html, mimetype="text/html")
+            msg.send()
+            return True
+        except:
+            return False
+    else:
+        print(to, body)
+        return True
+
 
 def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
     """
@@ -66,19 +82,39 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
     try:
         html = render_to_string('account/email/email.html', data)
         return html, body
-    except: return '', body
+    except:
+        return '', body
 
 
-def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str) -> bool:
+def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str, greeting: str = '') -> bool:
+    greeting = greeting if greeting else f"Hello {username}"
     html, body = getEmailHtmlBody(
-        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion)
+        greeting=greeting, header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
-def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = []) -> bool:
+
+def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusion: str, greeting: str = 'Hello') -> bool:
+    html, body = getEmailHtmlBody(
+        greeting=greeting, header=header, footer=footer, conclusion=conclusion)
+    return sendEmail(to=to, subject=subject, html=html, body=body)
+
+
+def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], greeting: str = '') -> bool:
+    """
+
+    :actions: List of { text:str, url: str }
+    """
+    greeting = greeting if greeting else f"Hello {username}"
+    html, body = getEmailHtmlBody(
+        greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions)
+    return sendEmail(to=to, subject=subject, html=html, body=body)
+
+
+def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], greeting: str = 'Hello') -> bool:
     """
 
     :actions: List of { text:str, url: str }
     """
     html, body = getEmailHtmlBody(
-        greeting=f"Hello {username}", header=header, footer=footer, conclusion=conclusion, actions=actions)
-    return sendEmail(to=to, subject=subject, html=html, body=body)
+        greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions)
+    return sendCCEmail(to=to, subject=subject, html=html, body=body)
