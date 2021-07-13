@@ -2,10 +2,11 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from .env import ISPRODUCTION, PUBNAME, SITE
 from .strings import url
+from people.models import Profile
 
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
-    if ISPRODUCTION:
+    if not ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=[to])
             msg.attach_alternative(content=html, mimetype="text/html")
@@ -118,3 +119,24 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
     html, body = getEmailHtmlBody(
         greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions)
     return sendCCEmail(to=to, subject=subject, html=html, body=body)
+
+
+def downtimeAlert(tillTime:str = "July 13, 2021, 00:00 hours (IST Asia/Kolkata)") -> list:
+    profiles = Profile.objects.filter(is_zombie=False,to_be_zombie=False)
+    mails = []
+    for prof in profiles:
+        sendAlertEmail(
+            to=prof.getEmail(),
+            username=prof.getFName(),
+            subject="Scheduled Downtime Alert",
+            header=f"This is to inform you that our online platform will experience a downtime till {tillTime}, due to unavoidable changes for the good.",
+            footer="Any inconvenience is deeply regretted. Thank you for your understanding.",
+            conclusion="You received this alert because you are a member of our community. If this is an error, the please report to us."
+        )
+        mails.append({
+            'to': prof.getEmail(),
+            'username': prof.getFName()
+        })
+    print("Downtime alerted"),
+    print(mails)
+    return mails
