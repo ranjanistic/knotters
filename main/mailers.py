@@ -6,7 +6,7 @@ from people.models import Profile
 
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
-    if not ISPRODUCTION:
+    if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=[to])
             msg.attach_alternative(content=html, mimetype="text/html")
@@ -121,7 +121,13 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
     return sendCCEmail(to=to, subject=subject, html=html, body=body)
 
 
-def downtimeAlert(tillTime:str = "July 13, 2021, 00:00 hours (IST Asia/Kolkata)") -> list:
+def downtimeAlert() -> list:
+    """
+    To alert all users about any downtime, meant for manual invokation via shell.
+    """
+    
+    tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")) + " (IST Asia/Kolkata)"
+    print(tillTime)
     profiles = Profile.objects.filter(is_zombie=False,to_be_zombie=False)
     mails = []
     for prof in profiles:
@@ -138,5 +144,4 @@ def downtimeAlert(tillTime:str = "July 13, 2021, 00:00 hours (IST Asia/Kolkata)"
             'username': prof.getFName()
         })
     print("Downtime alerted"),
-    print(mails)
     return mails

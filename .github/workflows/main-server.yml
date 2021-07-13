@@ -73,26 +73,30 @@ jobs:
     steps:
     - name: Create backup
       run: |
-        mongodump --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
-        tar czf _backup_\${{ secrets.DBNAME }}.tar.gz _backup_\${{ secrets.DBNAME }}
-        py _utils_\clearbackupgpg.py
-        gpg -e -r ${{ secrets.MAILUSER }} _backup_\${{ secrets.DBNAME }}.tar.gz
-        py _utils_\clearbackupdump.py
+        mongodumpbot --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
+        tarbot czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
+        rmbot _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
+        gpgbot -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
+        rmbot -r _backup_/${{ secrets.DBNAME }}
+        rmbot _backup_/${{ secrets.DBNAME }}.tar.gz
+      working-directory: ${{ secrets.WORKINGDIR }}
     - name: Merge changes
       run: |
-        git pull origin
-      working-directory: ${{ secrets.WORKINGDIR }}
-    - name: Unlock environment
-      run: |
-        gpg --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
+        gitbot pull origin
     - name: Install dependencies
       run: |
+        workon knotters
         pip install --upgrade pip
         pip install -r requirements.txt
+    - name: Unlock environment
+      run: |
+        gpgbot --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
     - name: Run migrations
       run: |
-        py manage.py makemigrations --noinput
-        py manage.py migrate --noinput
+        python manage.py makemigrations --noinput
+        python manage.py migrate --noinput
     - name: Lock environment
       run: |
-        py _utils_\clearenv.py
+        rmbot {{ secrets.ENVPATH }}
+
+
