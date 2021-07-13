@@ -73,8 +73,8 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        git pull origin
+        gitbot pull origin
       working-directory: ${{ secrets.WORKINGDIR }}
     - name: Release new version
       run: |
-        py genversion.py
+        python genversion.py
