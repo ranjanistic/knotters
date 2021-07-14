@@ -22,3 +22,5 @@ main/__version__.py
 _backup_/
 _utils_/
 *.gpg
+bin/
+run/
