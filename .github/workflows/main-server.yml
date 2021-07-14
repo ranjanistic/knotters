@@ -89,6 +89,7 @@ jobs:
         pip install -r requirements.txt
     - name: Unlock environment
       run: |
+        sudo rm -f {{ secrets.ENVPATH }}
         sudo gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
     - name: Run migrations
       run: |
