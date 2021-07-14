@@ -71,23 +71,18 @@ jobs:
         python-version: [3.9]
 
     steps:
-    - name: Load aliases
-      run: |
-        shopt -s expand_aliases
-        alias
-        ls
     - name: Create backup
       run: |
-        mongodumpbot --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
-        tarbot czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
-        rmbot _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
-        gpgbot -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
-        rmbot -r _backup_/${{ secrets.DBNAME }}
-        rmbot _backup_/${{ secrets.DBNAME }}.tar.gz
+        sudo mongodump --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
+        sudo tar czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
+        sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
+        sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
+        sudo rm -f -r _backup_/${{ secrets.DBNAME }}
+        sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
       working-directory: ${{ secrets.WORKINGDIR }}
     - name: Merge changes
       run: |
-        gitbot pull origin
+        sudo git pull origin
     - name: Install dependencies
       run: |
         workon knotters
@@ -95,13 +90,14 @@ jobs:
         pip install -r requirements.txt
     - name: Unlock environment
       run: |
-        gpgbot --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
+        sudo gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }} 
     - name: Run migrations
       run: |
         python manage.py makemigrations --noinput
         python manage.py migrate --noinput
     - name: Lock environment
       run: |
-        rmbot {{ secrets.ENVPATH }}
+        sudo rm -f {{ secrets.ENVPATH }}
+        deactivate
 
 
