@@ -74,7 +74,7 @@ jobs:
     - name: Load aliases
       run: |
         shopt -s expand_aliases
-        aliases
+        alias
         ls
     - name: Create backup
       run: |
