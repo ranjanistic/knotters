@@ -71,6 +71,11 @@ jobs:
         python-version: [3.9]
 
     steps:
+    - name: Load aliases
+      run: |
+        shopt -s expand_aliases
+        aliases
+        ls
     - name: Create backup
       run: |
         mongodumpbot --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
