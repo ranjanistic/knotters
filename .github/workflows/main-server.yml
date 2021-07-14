@@ -85,7 +85,6 @@ jobs:
         sudo git pull origin
     - name: Install dependencies
       run: |
-        workon knotters
         pip install --upgrade pip
         pip install -r requirements.txt
     - name: Unlock environment
@@ -98,6 +97,3 @@ jobs:
     - name: Lock environment
       run: |
         sudo rm -f {{ secrets.ENVPATH }}
-        deactivate
-
-
