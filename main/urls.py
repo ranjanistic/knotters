@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from .views import ServiceWorker, Robots, Manifest,redirector, docIndex, docs, landing, offline, index, mailtemplate, applanding, createMockUsers, clearMockUsers
+from .views import ServiceWorker, Robots, Manifest,redirector, docIndex, docs, landing, offline, index, mailtemplate, applanding
 from .strings import PROJECTS, COMPETE, PEOPLE, MODERATION, url
 from . import env
 
@@ -24,7 +24,8 @@ urlpatterns = [
     path(url.REDIRECTOR, redirector),
     path(url.DOCS, docIndex),
     path(url.DOCTYPE, docs),
-    path('email/<str:template>', mailtemplate),
-    path('createmockusers/<int:total>', createMockUsers),
-    path('clearmockusers', clearMockUsers)
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('email/<str:template>', mailtemplate)
+]
+
+if not env.ISPRODUCTION:
+    urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

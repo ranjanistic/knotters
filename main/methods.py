@@ -67,7 +67,9 @@ def getDeepFilePaths(dir_name, appendWhen):
     staticAssets = mapDeepPaths(os.path.join(BASE_DIR, f'{dir_name}/'))
     assets = []
     for stat in staticAssets:
-        path = str(stat).replace(str(os.getcwd()+"\\"), '/')
+        path = str(stat).replace(str(BASE_DIR), '')
+        if path.startswith('\\'): path = str(path).strip("\\")
+        if path.startswith(dir_name): path = f"/{path}"
         if appendWhen(path) and not assets.__contains__(path):
             assets.append(path)
 
