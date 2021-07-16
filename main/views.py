@@ -161,7 +161,7 @@ class ServiceWorker(TemplateView):
         assets = []
 
         def appendWhen(path: str):
-            return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2', '.jpeg')) and not path.__contains__('/email/')
+            return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
         assets = getDeepFilePaths('static', appendWhen=appendWhen)
         assets.append(f"/{url.OFFLINE}")
 
