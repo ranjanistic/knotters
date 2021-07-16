@@ -1,7 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
-{% load socialaccount %}
+
+{% block og_title %}404 Not found{% endblock %}
+{% block og_description %}You can still continue with us.{% endblock %}
+{% block og_site_name %}404{% endblock %}
+
+{% block tw_title %}404 Not found{% endblock %}
+{% block tw_description %}You can still continue with us.{% endblock %}
+{% block tw_site_name %}404{% endblock %}
+
 {% block title %}404 Not found{% endblock %}
+
 {% block nav_text %}
 404
 {% endblock %}
@@ -15,7 +24,7 @@
 	<div class="w3-col w3-half">
   <h1>Not found</h1><br/>
   <h4>You can still continue with us.</h4><br/>
-  <a href="/"><button class="positive" type="button"><i class="material-icons">home</i>Return home</button></a>
+  <a href="/"><button class="positive" type="button" data-icon="home">Return home</button></a>
   </div>
   <div class="w3-row w3-padding"></div>
   <br/><br/>
