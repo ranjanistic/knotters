@@ -57,7 +57,7 @@ def clearMockUsers(request: WSGIRequest) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=code.LIVE)[0:3]
+    projects = Project.objects.filter(status=code.APPROVED)[0:3]
     data = {
         "projects": projects
     }
