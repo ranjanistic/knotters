@@ -94,11 +94,11 @@ class Codes():
     NO = "NO"
     APPROVED = "approved"
     REJECTED = "rejected"
-    LIVE = "live"
     MODERATION = "moderation"
     INVALID_DIVISION = "INVALID_DIVISION"
     SUBMISSION_ERROR = f"{COMPETE}/SUBMISSION_ERROR"
     SUBMISSION_EXISTS = f"{COMPETE}/SUBMISSION_EXISTS"
+    SWASSETS = 'swassets'
 
 
 code = Codes()

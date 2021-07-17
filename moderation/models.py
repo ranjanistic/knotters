@@ -102,7 +102,7 @@ class Moderation(models.Model):
 class LocalStorage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     key = models.CharField(max_length=100, blank=False, null=False)
-    value = models.CharField(max_length=100, blank=False, null=False)
+    value = models.CharField(max_length=5000, blank=False, null=False)
 
     def __str__(self):
         return self.key

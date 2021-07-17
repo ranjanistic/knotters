@@ -1,4 +1,5 @@
-import os
+import json
+import requests
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse
@@ -7,8 +8,7 @@ from django.utils import timezone
 from django.shortcuts import redirect
 from allauth.account.models import EmailAddress
 from people.models import User
-import json
-import requests
+from moderation.models import LocalStorage
 from projects.models import Project
 from compete.models import Competition
 from .env import ADMINPATH, SITE
@@ -137,7 +137,8 @@ class Manifest(TemplateView):
                     sizes.append(size)
             return condition
 
-        assets = getDeepFilePaths('static/graphics/self', appendWhen=appendWhen)
+        assets = getDeepFilePaths(
+            'static/graphics/self', appendWhen=appendWhen)
 
         icons = []
 
@@ -161,9 +162,35 @@ class ServiceWorker(TemplateView):
         assets = []
 
         def appendWhen(path: str):
-            return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.svg', '.png', '.woff2', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
-        assets = getDeepFilePaths('static', appendWhen=appendWhen)
+            return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
+        assets = getDeepFilePaths(STATIC_URL.strip('/'), appendWhen=appendWhen)
+        
         assets.append(f"/{url.OFFLINE}")
+
+        try:
+            swassets = LocalStorage.objects.get(key=code.SWASSETS)
+            oldassets = json.loads(swassets.value)
+            different = False
+            if len(oldassets) != len(assets):
+                different = True
+            else:
+                for old in oldassets:
+                    if not assets.__contains__(old):
+                        different = True
+                        break
+                if not different:
+                    for new in assets:
+                        if not oldassets.__contains__(new):
+                            different = True
+                            break
+
+            assets = assets if different else oldassets
+            if different:
+                swassets.value = json.dumps(assets)
+                swassets.save()
+        except:
+            LocalStorage.objects.update_or_create(
+                key=code.SWASSETS, value=json.dumps(assets))
 
         context = renderData({
             'OFFLINE': f"/{url.OFFLINE}",
