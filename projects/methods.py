@@ -5,7 +5,7 @@ from main.strings import code
 from main.methods import renderView
 from .models import Category, Project, Tag
 from .apps import APPNAME
-from .mailers import sendProjectApprovedNotification, sendProjectSubmissionNotification
+from .mailers import sendProjectApprovedNotification
 
 
 def renderer(request, file, data={}):
@@ -30,14 +30,12 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj:
             return False
-        project = Project.objects.create(
-            creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
+        project = Project.objects.create(creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
         for tag in tags:
             tagobj = addTagToDatabase(tag)
             if tagobj:
                 project.tags.add(tagobj)
                 categoryObj.tags.add(tagobj)
-        sendProjectSubmissionNotification(project)
         return project
     except Exception as e:
         print(e)

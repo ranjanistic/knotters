@@ -71,8 +71,8 @@ def getProfileSectionData(section: str, profile: Profile, request: WSGIRequest) 
             projects = Project.objects.filter(creator=profile)
         else:
             projects = Project.objects.filter(
-                creator=profile, status=code.LIVE)
-        data[code.LIVE] = projects.filter(status=code.APPROVED)
+                creator=profile, status=code.APPROVED)
+        data[code.APPROVED] = projects.filter(status=code.APPROVED)
         data[code.MODERATION] = projects.filter(status=code.MODERATION)
         data[code.REJECTED] = projects.filter(status=code.REJECTED)
         pass

@@ -57,18 +57,21 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
     body = f"{greeting}\n\n{header}\n\n"
 
     updatedActions = []
+
     for act in actions:
-        if str(act.url).__contains__(SITE):
+        acttext = act['text']
+        acturl = act['url']
+        if str(acturl).__contains__(SITE):
             updatedActions.append(act)
-        elif str(act.url).startswith('http'):
+        elif str(acturl).startswith('http'):
             updatedActions.append({
-                'text': act.text,
-                'url': f"{SITE}/{url.REDIRECTOR}?n={act.url}"
+                'text': acttext,
+                'url': f"{SITE}/{url.REDIRECTOR}?n={acturl}"
             })
         else:
             updatedActions.append({
-                'text': act.text,
-                'url': f"{SITE}{'' if str(act.url).startswith('/') else '/'}{act.url}"
+                'text': acttext,
+                'url': f"{SITE}{'' if str(acturl).startswith('/') else '/'}{acturl}"
             })
 
     if len(updatedActions):
@@ -125,10 +128,11 @@ def downtimeAlert() -> list:
     """
     To alert all users about any downtime, meant for manual invokation via shell.
     """
-    
-    tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")) + " (IST Asia/Kolkata)"
+
+    tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")
+                   ) + " (IST Asia/Kolkata)"
     print(tillTime)
-    profiles = Profile.objects.filter(is_zombie=False,to_be_zombie=False)
+    profiles = Profile.objects.filter(is_zombie=False, to_be_zombie=False)
     mails = []
     for prof in profiles:
         sendAlertEmail(

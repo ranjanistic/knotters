@@ -124,8 +124,7 @@ def requestModerationForObject(
         if not newmoderator:
             return False
         if type == PROJECTS:
-            newmod = Moderation.objects.create(
-                project=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+            newmod = Moderation.objects.create(project=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)    
         elif type == PEOPLE:
             newmod = Moderation.objects.create(
                 profile=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)

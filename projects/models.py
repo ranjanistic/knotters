@@ -62,6 +62,8 @@ class Project(models.Model):
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
     acceptedTerms = models.BooleanField(default=True)
 
+    trashed = models.BooleanField(default=False,help_text="Deleted for creator, used when rejected.")
+
     def __str__(self):
         return self.name
 

@@ -20,6 +20,7 @@ def sendProjectSubmissionNotification(project: Project):
     )
 
 
+
 def sendProjectApprovedNotification(project: Project):
     """
     Project has been approved by moderator
