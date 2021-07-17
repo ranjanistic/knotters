@@ -19,7 +19,7 @@
     <br/>
     <form method="post" action="{% url 'socialaccount_connections' %}">
         {% csrf_token %}
-        <fieldset>
+        
         <h5>Choose one to unlink</h5>
         {% if form.non_field_errors %}
         <div id="errorMsg">{{ form.non_field_errors }}</div>
@@ -40,7 +40,7 @@
         <div class="w3-row w3-padding">
             <button class="negative" type="submit" data-icon="link_off">Unlink</button>
         </div>
-        </fieldset>
+        
     </form>
     {% else %}
     <h5>You currently have no 3rd party accounts linked.</h5>
@@ -54,7 +54,7 @@
             <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
                 href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
                 <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
-                    <img src="/static/graphics/thirdparty/{{provider.name}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                    <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
                     Link {{provider.name}} account
                 </button>
             </a>
