@@ -45,7 +45,7 @@
 					</button>
 				</a>
 				<br/>
-				<h3 class="text-accent">Already a member?</h3>
+				<h4>Already a member?</h4>
 				<a class="w3-row" href="{% url 'account_login' %}?next={{request.GET.next}}">
 					<button class="primary">
 					<i class="material-icons">login</i>Existing Login
@@ -56,7 +56,7 @@
 				<form method="POST" action="{% url 'account_signup' %}" enctype="multipart/form-data">
 					{% csrf_token %}
 					<br/>
-					<h3 class="text-accent">or create a<br/>Knotters account</h3>
+					<h3>or create a<br/>Knotters account</h3>
 					<br/>
 					{{ form.media }}
 					{% for field in form %}
@@ -73,4 +73,9 @@
 		</div>
 	</div>
 </div>
+<br/>
+<center>
+<strong>By continuing via an identity on our platfrom, you agree to our <a href="/docs/termsofservice" target="_blank" class="positive-text">terms of service</a> and <a href="/docs/privacypolicy" target="_blank" class="positive-text">privacy policy</a>.</strong>
+</center>
+<br/>
 {%endblock%}
