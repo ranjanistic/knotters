@@ -4,8 +4,8 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 from main.settings import MEDIA_URL
+from main.strings import Code, PROJECTS, url
 from .apps import APPNAME
-from main.strings import PROJECTS, url
 
 
 class UserAccountManager(BaseUserManager):
@@ -74,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.first_name
 
     def getLink(self) -> str:
-        return f"/{APPNAME}/profile/{self.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.People.profile(userID=self.getID())}"
 
 
 class Topic(models.Model):
@@ -146,21 +146,21 @@ class Profile(models.Model):
             pass
         super(Profile, self).save(*args, **kwargs)
 
+    def isRemoteDp(self) -> bool:
+        return str(self.picture).startswith("http")
+
     def getDP(self) -> str:
         dp = str(self.picture)
-        return dp if dp.startswith("http") else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
-
-    def isRemoteDp(self) -> bool:
-        return self.getDP().startswith("http")
+        return dp if self.isRemoteDp() else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
 
     def getName(self) -> str:
-        return 'Zombie' if self.is_zombie else self.user.getName()
+        return Code.ZOMBIE if self.is_zombie else self.user.getName()
 
     def getFName(self) -> str:
-        return 'Zombie' if self.is_zombie else self.user.first_name
+        return Code.ZOMBIE if self.is_zombie else self.user.first_name
 
     def getEmail(self) -> str:
-        return 'zombie@knotters.org' if self.is_zombie else self.user.email
+        return Code.ZOMBIEMAIL if self.is_zombie else self.user.email
 
     def getBio(self) -> str:
         return self.bio if self.bio else ''
@@ -169,20 +169,14 @@ class Profile(models.Model):
         return self.bio if self.bio else self.githubID if self.githubID else ''
 
     def getGhUrl(self) -> str:
-        return f"https://github.com/{self.githubID}" if self.githubID else ''
+        return url.githubProfile(ghID=self.githubID) if self.githubID else ''
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
-        if error:
-            error = f"?e={error}"
-        elif alert:
-            alert = f"?a={alert}"
-        elif success:
-            success = f"?s={success}"
         if not self.is_zombie:
             if self.githubID:
-                return f"/{url.PEOPLE}profile/{self.githubID}{success}{alert}{error}"
-            return f"/{url.PEOPLE}profile/{self.user.getID()}{success}{alert}{error}"
-        return f'/{url.PEOPLE}zombie/{self.getID()}'
+                return f"{url.getRoot(APPNAME)}{url.People.profile(userID=self.githubID)}{url.getMessageQuery(alert,error,success)}"
+            return f"{url.getRoot(APPNAME)}{url.People.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
+        return f'{url.getRoot(APPNAME)}{url.People.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
 
     def isReporter(self, profile) -> bool:
         if profile in self.reporters.all():
@@ -190,7 +184,7 @@ class Profile(models.Model):
         return False
 
     def getSuccessorInviteLink(self) -> str:
-        return f"/{url.PEOPLE}invitation/successor/{self.user.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.People.successorInvite(predID=self.getUserID())}"
 
 
 class ProfileSetting(models.Model):
@@ -206,7 +200,7 @@ class ProfileSetting(models.Model):
         return self.profile.getID()
 
     def savePreferencesLink(self) -> str:
-        return f"/{url.PEOPLE}account/preferences/{self.profile.user.id}"
+        return f"{url.getRoot(APPNAME)}{url.People.accountPreferences(userID=self.profile.getUserID())}"
 
 
 class ProfileReport(models.Model):

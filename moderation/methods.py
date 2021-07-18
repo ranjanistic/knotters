@@ -2,7 +2,7 @@ from people.models import Profile
 from django.db.models import Q
 from django.db import models
 from main.methods import renderView
-from main.strings import PROJECTS, PEOPLE, COMPETE, code
+from main.strings import Code, PROJECTS, PEOPLE, COMPETE, code
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
@@ -23,9 +23,9 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles:, ignoreModProfiles will be preferred.
     """
     try:
-        current = LocalStorage.objects.get(key="moderator")
+        current = LocalStorage.objects.get(key=Code.MODERATOR)
     except:
-        current = LocalStorage.objects.create(key="moderator", value=0)
+        current = LocalStorage.objects.create(key=Code.MODERATOR, value=0)
 
     ignoreModProfileIDs = []
     if type == PROJECTS:

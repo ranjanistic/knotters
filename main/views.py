@@ -16,7 +16,7 @@ from .methods import renderData, renderView, replaceUrlParamsWithStr
 from .decorators import dev_only
 from .methods import renderView, getDeepFilePaths
 from .settings import STATIC_URL, MEDIA_URL
-from .strings import code, COMPETE, url
+from .strings import Code, COMPETE, URL
 
 
 @require_GET
@@ -38,7 +38,7 @@ def createMockUsers(request: WSGIRequest, total: int) -> HttpResponse:
         for i in range(int(total)):
             r = requests.post(f'{SITE}/auth/signup/', headers=headers, data={
                               'email': f"testing{i}@knotters.org", "first_name": f"Testing{i}", 'password1': 'ABCD@12345678'})
-            if r.status_code != 200:
+            if r.status_Code != 200:
                 break
         EmailAddress.objects.filter(
             email__startswith=f"testing", email__endswith="@knotters.org").update(verified=True)
@@ -57,7 +57,7 @@ def clearMockUsers(request: WSGIRequest) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=code.APPROVED)[0:3]
+    projects = Project.objects.filter(status=Code.APPROVED)[0:3]
     data = {
         "projects": projects
     }
@@ -65,7 +65,7 @@ def index(request: WSGIRequest) -> HttpResponse:
         comp = Competition.objects.get(endAt__lt=timezone.now)
         data["alert"] = {
             "message": f"The '{comp.title}' competition is on!",
-            "url": f"/{COMPETE}/{comp.id}"
+            "URL": f"/{COMPETE}/{comp.id}"
         }
     except:
         pass
@@ -165,10 +165,10 @@ class ServiceWorker(TemplateView):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
         assets = getDeepFilePaths(STATIC_URL.strip('/'), appendWhen=appendWhen)
         
-        assets.append(f"/{url.OFFLINE}")
+        assets.append(f"/{URL.OFFLINE}")
 
         try:
-            swassets = LocalStorage.objects.get(key=code.SWASSETS)
+            swassets = LocalStorage.objects.get(key=Code.SWASSETS)
             oldassets = json.loads(swassets.value)
             different = False
             if len(oldassets) != len(assets):
@@ -190,51 +190,51 @@ class ServiceWorker(TemplateView):
                 swassets.save()
         except:
             LocalStorage.objects.update_or_create(
-                key=code.SWASSETS, value=json.dumps(assets))
+                key=Code.SWASSETS, value=json.dumps(assets))
 
         context = renderData({
-            'OFFLINE': f"/{url.OFFLINE}",
+            'OFFLINE': f"/{URL.OFFLINE}",
             'assets': json.dumps(assets),
             'noOfflineList': json.dumps([
                 replaceUrlParamsWithStr(
-                    f"/{url.COMPETE}{url.Compete.COMPETETABSECTION}"),
+                    f"/{URL.COMPETE}{URL.Compete.COMPETETABSECTION}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.COMPETE}{url.Compete.INDEXTAB}"),
+                    f"/{URL.COMPETE}{URL.Compete.INDEXTAB}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PEOPLE}{url.People.SETTINGTAB}"),
+                    f"/{URL.PEOPLE}{URL.People.SETTINGTAB}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PEOPLE}{url.People.PROFILETAB}"),
+                    f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
             ]),
             'ignorelist': json.dumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
-                f"/{url.ROBOTS_TXT}",
+                f"/{URL.ROBOTS_TXT}",
                 f"{MEDIA_URL}*",
-                f"/{url.REDIRECTOR}*",
-                f"/{url.ACCOUNTS}*",
-                f"/{url.MODERATION}*",
-                f"/{url.COMPETE}*",
-                f"/{url.LANDING}",
-                replaceUrlParamsWithStr(f"/{url.People.ZOMBIE}"),
-                replaceUrlParamsWithStr(f"/{url.People.SUCCESSORINVITE}"),
-                replaceUrlParamsWithStr(f"/{url.APPLANDING}"),
-                replaceUrlParamsWithStr(f"/{url.DOCTYPE}"),
+                f"/{URL.REDIRECTOR}*",
+                f"/{URL.ACCOUNTS}*",
+                f"/{URL.MODERATION}*",
+                f"/{URL.COMPETE}*",
+                f"/{URL.LANDING}",
+                replaceUrlParamsWithStr(f"/{URL.People.ZOMBIE}"),
+                replaceUrlParamsWithStr(f"/{URL.People.SUCCESSORINVITE}"),
+                replaceUrlParamsWithStr(f"/{URL.APPLANDING}"),
+                replaceUrlParamsWithStr(f"/{URL.DOCTYPE}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PROJECTS}{url.Projects.CREATE}"),
+                    f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PROJECTS}{url.Projects.PROJECTINFO}"),
+                    f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
             ]),
             'recacheList': json.dumps([
-                f"/{url.REDIRECTOR}*",
-                f"/{url.ACCOUNTS}*",
+                f"/{URL.REDIRECTOR}*",
+                f"/{URL.ACCOUNTS}*",
                 replaceUrlParamsWithStr(
-                    f"/{url.COMPETE}{url.Compete.INVITEACTION}"),
+                    f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PEOPLE}{url.People.PROFILEEDIT}"),
+                    f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PEOPLE}{url.People.ACCOUNTPREFERENCES}"),
+                    f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
                 replaceUrlParamsWithStr(
-                    f"/{url.PROJECTS}{url.Projects.PROFILEEDIT}"),
+                    f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
         })
         return context

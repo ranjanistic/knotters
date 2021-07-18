@@ -58,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "main.middleware.ProfileActivationMiddleware",
+    "main.middleware.MessageFilterMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"

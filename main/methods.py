@@ -1,16 +1,14 @@
 import base64
 import os
-from django.http.response import HttpResponse, JsonResponse
 import requests
 import re
-from django.db.models.fields.files import ImageFieldFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http.request import HttpRequest
-from django.shortcuts import render
 from django.core.files.base import ContentFile, File
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
-from .env import ISPRODUCTION
+from django.db.models.fields.files import ImageFieldFile
+from django.http.response import HttpResponse, JsonResponse
+from django.http.request import HttpRequest
+from django.shortcuts import redirect, render
+from .strings import url
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
 
 
@@ -20,7 +18,7 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 
     :param: fromApp: The subapplication name from whose context this method will return udpated data.
     """
-    data['ROOT'] = f"/{fromApp}"
+    data['ROOT'] = url.getRoot(fromApp)
     data['SUBAPPNAME'] = fromApp
     return data
 
@@ -51,6 +49,13 @@ def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') 
     }, encoder=JsonEncoder)
 
 
+def respondRedirect(fromApp: str = '', path: str = '', alert: str = '', error: str = ''):
+    """
+    returns redirect http response, with some parametric modifications.
+    """
+    return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert,error)}")
+
+
 def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     """
     Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
@@ -68,8 +73,10 @@ def getDeepFilePaths(dir_name, appendWhen):
     assets = []
     for stat in staticAssets:
         path = str(stat).replace(str(BASE_DIR), '')
-        if path.startswith('\\'): path = str(path).strip("\\")
-        if path.startswith(dir_name): path = f"/{path}"
+        if path.startswith('\\'):
+            path = str(path).strip("\\")
+        if path.startswith(dir_name):
+            path = f"/{path}"
         if appendWhen(path) and not assets.__contains__(path):
             assets.append(path)
 
@@ -120,6 +127,7 @@ class JsonEncoder(DjangoJSONEncoder):
         if isinstance(obj, ImageFieldFile):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
+
 
 def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     """
@@ -210,4 +218,3 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
         return response['success']
     except:
         return None
-

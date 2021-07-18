@@ -1,9 +1,8 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from main.strings import code, PEOPLE, project
+from main.strings import Code, URL, PEOPLE, project, message
 from main.methods import maxLengthInList
-from main.strings import url
 from main.settings import MEDIA_URL
 from main.env import PUBNAME
 from moderation.models import Moderation
@@ -12,11 +11,11 @@ from .apps import APPNAME
 
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{url.PROJECTS}avatars/{str(instance.id).replace('-','')}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.id).replace('-','')}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultImagePath():
-    return f"{url.PROJECTS}default.png"
+    return f"{APPNAME}/default.png"
 
 
 class Tag(models.Model):
@@ -52,7 +51,7 @@ class Project(models.Model):
     description = models.CharField(max_length=5000, null=False, blank=False)
     tags = models.ManyToManyField(Tag, through='Relation', default=[])
     status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
-        project.PROJECTSTATES), default=code.MODERATION)
+        project.PROJECTSTATES), default=Code.MODERATION)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -62,7 +61,8 @@ class Project(models.Model):
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
     acceptedTerms = models.BooleanField(default=True)
 
-    trashed = models.BooleanField(default=False,help_text="Deleted for creator, used when rejected.")
+    trashed = models.BooleanField(
+        default=False, help_text="Deleted for creator, used when rejected.")
 
     def __str__(self):
         return self.name
@@ -81,32 +81,31 @@ class Project(models.Model):
         super(Project, self).save(*args, **kwargs)
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
-        if error:
+        if error and message.isValid(error):
             error = f"?e={error}"
-        elif alert:
+        elif alert and message.isValid(alert):
             alert = f"?a={alert}"
-        elif success:
+        elif success and message.isValid(success):
             success = f"?s={success}"
-        if self.status != code.APPROVED:
-            mod = Moderation.objects.filter(project=self, type=APPNAME, status__in=[
-                                            code.REJECTED, code.MODERATION]).order_by('-respondOn')[0]
-            return mod.getLink()
-        return f"/{url.PROJECTS}profile/{self.reponame}{error}{success}{alert}"
+        if self.status != Code.APPROVED:
+            return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[
+                Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
+        return f"/{URL.PROJECTS}profile/{self.reponame}{error}{success}{alert}"
 
     def getDP(self) -> str:
         return f"{MEDIA_URL}{str(self.image)}"
 
     def isApproved(self) -> bool:
-        return self.status == code.APPROVED
+        return self.status == Code.APPROVED
 
     def isLive(self) -> bool:
         return self.isApproved()
 
     def rejected(self) -> bool:
-        return self.status == code.REJECTED
+        return self.status == Code.REJECTED
 
     def underModeration(self) -> bool:
-        return self.status == code.MODERATION
+        return self.status == Code.MODERATION
 
     def getRepoLink(self) -> str:
         return f"https://github.com/{PUBNAME}/{self.reponame}"
@@ -115,7 +114,7 @@ class Project(models.Model):
         return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
 
     def moderationRetriesLeft(self) -> int:
-        if self.status != code.APPROVED:
+        if self.status != Code.APPROVED:
             try:
                 mods = Moderation.objects.filter(
                     type=APPNAME, project=self).count()

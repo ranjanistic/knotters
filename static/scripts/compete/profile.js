@@ -1,7 +1,7 @@
 let compdata = {};
 
 (async () => {
-    const data = await postRequest(`${ROOT}/data/${compID}`);
+    const data = await postRequest(`${ROOT}data/${compID}`);
     if (data.code === code.OK) {
         compdata = { ...data };
         if (isActive) {
@@ -38,7 +38,7 @@ const loadTabScript = (tab) => {
                             <div class="w3-row">
                                 <h4>Are you sure you want to <span class="negative-text">remove</span> 
                                 ${remove.getAttribute("data-name")}?</h4>
-                                <form method="POST" action="${ROOT}/remove/${
+                                <form method="POST" action="${ROOT}remove/${
                                         compdata.subID
                                     }/${remove.getAttribute("data-userID")}">
                                     ${csrfHiddenInput(csrfmiddlewaretoken)}
@@ -70,7 +70,7 @@ const loadTabScript = (tab) => {
                                     getElement("dialoginviteeID").value
                                 ).trim();
                                 const data = await postRequest(
-                                    `${ROOT}/invite/${compdata.subID}`,
+                                    `${ROOT}invite/${compdata.subID}`,
                                     { userID }
                                 );
                                 if (data.code === code.OK) {
@@ -104,7 +104,7 @@ const loadTabScript = (tab) => {
                                 </div>`,
                                     async () => {
                                         const data = await postRequest(
-                                            `${ROOT}/submit/${compID}/${compdata.subID}`
+                                            `${ROOT}submit/${compID}/${compdata.subID}`
                                         );
                                         if (data.code === code.OK) {
                                             alertify.success(data.message);
@@ -145,7 +145,7 @@ const loadTabScript = (tab) => {
                                 </div>`,
                                 async () => {
                                     const data = await postRequest(
-                                        `${ROOT}/submit/${compID}/${compdata.subID}`
+                                        `${ROOT}submit/${compID}/${compdata.subID}`
                                     );
                                     if (data.code === code.OK) {
                                         alertify.success(data.message);
@@ -172,7 +172,7 @@ const loadTabScript = (tab) => {
 
 initializeTabsView({
     onEachTab: async (tab) =>
-        await getRequest(`${ROOT}/competeTab/${compID}/${tab.id}`),
+        await getRequest(`${ROOT}competeTab/${compID}/${tab.id}`),
     uniqueID: "competetab",
     tabsClass: "side-nav-tab",
     activeTabClass: "active",

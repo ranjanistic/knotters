@@ -71,7 +71,7 @@ const nextPrev = (n) => {
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
-        postRequest(`${ROOT}/create/validate/reponame`, {
+        postRequest(`${ROOT}create/validate/reponame`, {
             reponame: formValues[1].value,
         })
             .then((res) => {

@@ -1,22 +1,21 @@
-from .apps import APPNAME
-from django.db.models import Sum
 import uuid
-from people.models import Profile
 from django.db import models
+from django.db.models import Sum
+from people.models import Profile
 from django.utils import timezone
 from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url
 from main.settings import MEDIA_URL
-
+from .apps import APPNAME
 
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
-    return f"{url.COMPETE}banners/{instance.id}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/banners/{instance.id}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultBannerPath():
-    return f"{url.COMPETE}default.png"
+    return f"{APPNAME}/default.png"
 
 
 class Competition(models.Model):
@@ -54,20 +53,14 @@ class Competition(models.Model):
     def getBanner(self) -> str:
         return f"{MEDIA_URL}{str(self.banner)}"
 
-    def getLink(self, error='', success='', alert='') -> str:
+    def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         """
         Link to competition profile page
         """
-        if error:
-            error = f"?e={error}"
-        elif alert:
-            success = f"?a={alert}"
-        elif success:
-            success = f"?s={success}"
-        return f"/{url.COMPETE}{self.getID()}{success}{error}"
+        return f"{url.getRoot(APPNAME)}{self.getID()}{url.getMessageQuery(alert,error,success)}"
 
     def participationLink(self) -> str:
-        return f"/{url.COMPETE}participate/{self.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.Compete.participate(compID=self.getID())}"
 
     def isActive(self) -> bool:
         """
@@ -121,9 +114,10 @@ class Competition(models.Model):
         except:
             return False
 
-    def getModerator(self)->Profile:
+    def getModerator(self) -> Profile:
         try:
-            mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by("-requestOn").only('moderator')[0]
+            mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by(
+                "-requestOn").only('moderator')[0]
             return mod.moderator
         except:
             return None
@@ -162,7 +156,7 @@ class Competition(models.Model):
         """
         return len(self.getJudges())
 
-    def getJudgementLink(self, error='', alert='') -> str:
+    def getJudgementLink(self, error: str = '', alert: str = '') -> str:
         try:
             return (Moderation.objects.filter(
                 type=APPNAME, competition=self).order_by("-requestOn").first()).getLink(error=error, alert=alert)
@@ -199,7 +193,7 @@ class Competition(models.Model):
         Count all submissions irrespective of their validity.
         """
         try:
-            return len(self.getSubmissions())
+            return Submission.objects.filter(competition=self).count()
         except:
             return 0
 
@@ -217,12 +211,12 @@ class Competition(models.Model):
         Count submissions with valid = True. By default all submissions are valid, unless marked invalid by the assigned competition moderator.
         """
         try:
-            return len(self.getValidSubmissions())
+            return Submission.objects.filter(competition=self, valid=True).count()
         except:
             return 0
 
     def submissionPointsLink(self) -> str:
-        return f"/{url.COMPETE}submissionpoints/{self.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.Compete.submitPoints(compID=self.getID())}"
 
     def allSubmissionsMarkedByJudge(self, judge: Profile) -> bool:
         """
@@ -260,7 +254,7 @@ class Competition(models.Model):
         return count
 
     def declareResultsLink(self) -> str:
-        return f"/{url.COMPETE}declareresults/{self.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.declareResults(compID=self.getID())}"
 
     def declareResults(self) -> bool:
         """
@@ -358,6 +352,9 @@ class Submission(models.Model):
     def getID(self) -> str:
         return self.id.hex
 
+    def getCompID(self) -> str:
+        return self.competition.getID()
+
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
         return super(Submission, self).save(*args, **kwargs)
@@ -366,13 +363,13 @@ class Submission(models.Model):
         """
         URL endpoint to save repo field value.
         """
-        return f"/{url.COMPETE}save/{self.competition.id}/{self.id}"
+        return f"{url.getRoot(APPNAME)}{url.Compete.save(compID=self.getCompID(),subID=self.getID())}"
 
     def totalMembers(self) -> int:
         """
         All members count, regardless of membership confirmation.
         """
-        return self.members.all().count()
+        return self.members.count()
 
     def isMember(self, profile: Profile) -> bool:
         """
@@ -381,7 +378,7 @@ class Submission(models.Model):
         :profile: The profile object to be looked for.
         """
         try:
-            SubmissionParticipant.objects.filter(submission=self, profile=profile, confirmed=True)
+            SubmissionParticipant.objects.get(submission=self, profile=profile, confirmed=True)
             return True
         except:
             return False
@@ -390,7 +387,7 @@ class Submission(models.Model):
         """
         List of members whomst membership with this submission is confirmed.
         """
-        return SubmissionParticipant.objects.filter(submission=self,profile__in=self.members.all(),confirmed=True)
+        return SubmissionParticipant.objects.filter(submission=self, profile__in=self.members.all(), confirmed=True)
 
     def totalActiveMembers(self) -> int:
         """
@@ -514,4 +511,3 @@ class Result(models.Model):
                 return self.rankSuptext(int(rankstr[rankstr.length - 1]))
             else:
                 return "th"
-

@@ -1,7 +1,7 @@
 from people.models import Profile
 from github import Organization, NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import code
+from main.strings import Code
 from main.methods import renderView
 from .models import Category, Project, Tag
 from .apps import APPNAME
@@ -99,7 +99,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     Creates discord chat channel.
     """
     try:
-        if project.status != code.APPROVED:
+        if project.status != Code.APPROVED:
             return False
 
         sendProjectApprovedNotification(project)

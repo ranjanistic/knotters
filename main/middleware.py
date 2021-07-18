@@ -1,7 +1,28 @@
 from django.shortcuts import redirect
-from .strings import url
+from .strings import url, message
 from .settings import MEDIA_URL
 from django.core.handlers.wsgi import WSGIRequest
+
+class MessageFilterMiddleware(object):
+    def __init__(self, get_response) -> None:
+        self.get_response = get_response
+        super().__init__()
+
+    def __call__(self, request:WSGIRequest):
+        if request.method == 'GET':
+            request.GET._mutable = True
+            alert = request.GET.get('a',None)
+            error = request.GET.get('e',None)
+            if not alert and not error:
+                pass
+            else:
+                if error and not message.isValid(error):
+                    request.GET['e'] = ''
+                elif alert and not message.isValid(alert):
+                    request.GET['a'] = ''
+                else: pass
+            request.GET._mutable = False
+        return self.get_response(request)
 
 class ProfileActivationMiddleware(object):
     def __init__(self, get_response) -> None:
