@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile, respondJson, renderData
 from main.env import MAILUSER
-from main.strings import Action, code
+from main.strings import Action, Code, Message, URL
 from .apps import APPNAME
 from .decorators import profile_active_required
 from .models import ProfileSetting, User, Profile
@@ -94,34 +94,47 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         profile = Profile.objects.get(user=request.user)
         if section == 'pallete':
+            userchanged = False
+            profilechanged = False
             try:
                 base64Data = str(request.POST['profilepic'])
                 imageFile = base64ToImageFile(base64Data)
                 if imageFile:
                     profile.picture = imageFile
+                    profilechanged = True
             except:
                 pass
             try:
                 fname, lname = convertToFLname(
                     str(request.POST['displayname']))
-                bio = str(request.POST['profilebio'])
-                profile.user.first_name = fname
-                profile.user.last_name = lname
-                profile.user.save()
-                profile.bio = filterBio(bio)
-                profile.save()
+                bio = str(request.POST['profilebio']).strip()
+                if fname != profile.user.first_name:
+                    profile.user.first_name = fname
+                    userchanged = True
+                if lname != profile.user.last_name:
+                    profile.user.last_name = lname
+                    userchanged = True
+                if filterBio(bio) != profile.bio:
+                    profile.bio = filterBio(bio)
+                    profilechanged = True
+                
+                if userchanged:
+                    profile.user.save()
+                if profilechanged:
+                    profile.save()
                 return redirect(profile.getLink())
             except:
-                return redirect(profile.getLink(error=f"Problem occurred."))
+                return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
+        else: raise Exception()
     except:
-        raise HttpResponseForbidden()
+        return HttpResponseForbidden()
 
 
 @require_POST
 @verified_email_required
 def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
     try:
-        if str(request.user.id) != str(userID):
+        if str(request.user.getID()) != str(userID):
             raise Exception()
         newsletter = True if str(request.POST.get(
             'newsletter', 'off')) != 'off' else False
@@ -137,10 +150,10 @@ def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
             competitions=competitions,
             privatemail=privatemail
         )
-        return redirect(request.user.profile.getLink(alert="Account preferences saved."))
+        return redirect(request.user.profile.getLink(alert=Message.ACCOUNT_PREF_SAVED))
     except Exception as e:
         print(e)
-        return redirect(request.user.profile.getLink(error="An error occurred"))
+        return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
 
 
 @require_JSON_body
@@ -154,23 +167,23 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
     deactivate = request.POST.get('deactivate', None)
     try:
         if activate == deactivate:
-            return respondJson(code.NO)
+            return respondJson(Code.NO)
         if activate and not request.user.profile.is_active:
             is_active = True
         elif deactivate and request.user.profile.is_active:
             is_active = False
         else:
-            return respondJson(code.NO)
+            return respondJson(Code.NO)
         done = Profile.objects.filter(
             user=request.user).update(is_active=is_active)
         if is_active:
             accountReactiveAlert(request.user.profile)
         else:
             accountInactiveAlert(request.user.profile)
-        return respondJson(code.OK)
+        return respondJson(Code.OK)
     except Exception as e:
         print(e)
-        return respondJson(code.NO, error=str(e))
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_JSON_body
@@ -188,54 +201,54 @@ def profileSuccessor(request: WSGIRequest):
 
     try:
         if set == unset:
-            return respondJson(code.NO)
+            return respondJson(Code.NO)
         successor = None
         if set:
             if userID and request.user.email != userID:
                 try:
                     successor = User.objects.get(email=userID)
                     if not successor.profile.githubID:
-                        return respondJson(code.NO, error='Your successor should have Github profile linked to their account.')
+                        return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
                             successorInvite(request.user, successor)
-                        return respondJson(code.NO, error='You are the successor of this profile.')
+                        return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
                     successor_confirmed = False
                 except:
-                    return respondJson(code.NO, error='Successor not found')
+                    return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
             elif usedefault == True or userID == MAILUSER:
                 try:
                     successor = User.objects.get(email=MAILUSER)
                     successor_confirmed = True
                 except Exception as e:
                     print(e)
-                    return respondJson(code.NO)
+                    return respondJson(Code.NO)
             else:
-                return respondJson(code.NO, error="Invalid request")
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         elif unset and request.user.profile.successor:
             successor = None
             successor_confirmed = False
         else:
-            return respondJson(code.NO, error="Invalid request")
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
         Profile.objects.filter(user=request.user).update(
             successor=successor, successor_confirmed=successor_confirmed)
         if successor and not successor_confirmed:
             successorInvite(successor=successor, predecessor=request.user)
-        return respondJson(code.OK)
+        return respondJson(Code.OK)
     except Exception as e:
         print(e)
-        return respondJson(code.NO, error=str(e))
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_JSON_body
 @login_required
 def getSuccessor(request: WSGIRequest) -> JsonResponse:
     if request.user.profile.successor:
-        return respondJson(code.OK, {
+        return respondJson(Code.OK, {
             'successorID': request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else ''
         })
-    return respondJson(code.NO)
+    return respondJson(Code.NO)
 
 
 @require_GET
@@ -292,9 +305,9 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
             migrateUserAssets(predecessor, successor)
             predecessor.delete()
 
-        alert = "You\'ve declined this profile\'s successorship"
+        alert = Message.SUCCESSORSHIP_DECLINED
         if accept:
-            alert = "You\'re now the successor of this profile\'s assets."
+            alert = Message.SUCCESSORSHIP_ACCEPTED
         profile = Profile.objects.get(id=predecessor.profile.id)
         return redirect(profile.getLink(alert=alert))
     except:
@@ -315,23 +328,21 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
     """
     confirmed = request.POST.get('confirmed', False)
     if not confirmed:
-        return respondJson(code.NO)
+        return respondJson(Code.NO)
     if not request.user.profile.successor:
-        return respondJson(code.NO, error='Successor not set, use default successor if none.')
+        return respondJson(Code.NO, error=Message.SUCCESSOR_UNSET)
     try:
         done = Profile.objects.filter(
             user=request.user).update(to_be_zombie=True)
-        message = "Account will be deleted."
         User.objects.filter(id=request.user.id).update(is_active=False)
         if request.user.profile.successor_confirmed:
             user = User.objects.get(id=request.user.id)
             migrateUserAssets(user, user.profile.successor)
             user.delete()
-            message = "Account deleted successfully."
-        return respondJson(code.OK if done else code.NO, message=message)
+        return respondJson(Code.OK if done else Code.NO, message=Message.ACCOUNT_DELETED)
     except Exception as e:
         print(e)
-        return respondJson(code.NO)
+        return respondJson(Code.NO)
 
 
 @login_required
@@ -340,7 +351,7 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
         profile = Profile.objects.get(
             id=profileID, successor=request.user, successor_confirmed=True)
         profile.picture = str(profile.picture)
-        return respondJson(code.OK, model_to_dict(profile))
+        return respondJson(Code.OK, model_to_dict(profile))
     except Exception as e:
         print(e)
         raise Http404()

@@ -4,6 +4,7 @@
 {% load l10n %}
 {% load account %} 
 {% load socialaccount %}
+{% load custom_tags %}
 
 {% block og_url %}{{person.profile.getLink}}{% endblock %}
 {% block og_title %}{{person.getName}}{% endblock %}
@@ -89,7 +90,7 @@
               <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
             </button>
             <br/>
-            <form method="POST" action="{{ROOT}}/profile/edit/pallete">
+            <form method="POST" action="{{URLS.PROFILEEDIT|params:'pallete'}}">
               {% csrf_token %}
               <input type="text" hidden id="profileImageData" name="profilepic" value="" />
               <div class="w3-row w3-padding">
@@ -146,7 +147,7 @@
         <br/>
         <div class="w3-row pallete w3-animate-right" id="setts">
           <div class="w3-row w3-padding">
-          <i class="w3-right material-icons">settings</i><h3>Settings</h3>
+          <i class="w3-right w3-spin">settings</i><h3>Settings</h3>
           </div>
           <div class="w3-row w3-padding-small">
             <button id="account" class="set-tab"><i class="material-icons">manage_accounts</i><span class="w3-hide-small">Account</span></button>
@@ -168,15 +169,15 @@
 
 {% block scripts %}
 <script>
-  const userID = "{{ person.id }}";
-  const selfProfile = authenticated?"{{user.id}}" === "{{person.id}}" && "{{user.profile.is_active}}" === 'True':false
+  const userID = "{{ person.getID }}";
+  const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && "{{user.profile.is_active}}" === 'True':false
   
   try{
     getElement("reactivateaccount").onclick=async()=>{
       subLoader()
       loader()
       message("Reactivating your account...")
-      const data = await postRequest('{{ROOT}}/account/activation',{
+      const data = await postRequest('{{URLS.ACCOUNTACTIVATION}}', {
         activate: true
       });
       if(data.code===code.OK){

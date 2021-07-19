@@ -1,19 +1,19 @@
 from django.urls import path
-from main.strings import url
+from main.strings import URL
 from .views import *
 
 urlpatterns = [
-    path(url.INDEX, index),
-    path(url.People.PROFILE, profile),
-    path(url.People.PROFILEEDIT, editProfile),
-    path(url.People.PROFILETAB, profileTab),
-    path(url.People.SETTINGTAB, settingTab),
-    path(url.People.ACCOUNTPREFERENCES, accountprefs),
-    path(url.People.ACCOUNTACTIVATION, accountActivation),
-    path(url.People.GETSUCCESSOR, getSuccessor),
-    path(url.People.INVITESUCCESSOR, profileSuccessor),
-    path(url.People.SUCCESSORINVITE, successorInvitation),
-    path(url.People.SUCCESSORINVITEACTION, successorInviteAction),
-    path(url.People.ACCOUNTDELETE, accountDelete),
-    path(url.People.ZOMBIE, zombieProfile)
+    path(URL.INDEX, index),
+    path(URL.People.PROFILE, profile),
+    path(URL.People.PROFILEEDIT, editProfile),
+    path(URL.People.PROFILETAB, profileTab),
+    path(URL.People.SETTINGTAB, settingTab),
+    path(URL.People.ACCOUNTPREFERENCES, accountprefs),
+    path(URL.People.ACCOUNTACTIVATION, accountActivation),
+    path(URL.People.GETSUCCESSOR, getSuccessor),
+    path(URL.People.INVITESUCCESSOR, profileSuccessor),
+    path(URL.People.SUCCESSORINVITE, successorInvitation),
+    path(URL.People.SUCCESSORINVITEACTION, successorInviteAction),
+    path(URL.People.ACCOUNTDELETE, accountDelete),
+    path(URL.People.ZOMBIE, zombieProfile)
 ]

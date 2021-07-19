@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load custom_tags %}
 
 {% block og_url %}{{project.getLink}}{% endblock %}
 {% block og_title %}{{project.name}}{% endblock %}
@@ -51,7 +52,8 @@
               <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
             </button>
             <br/>
-            <form method="POST" action="{{ROOT}}/profile/edit/{{project.id}}/pallete">
+            
+            <form method="POST" action="{{URLS.PROFILEEDIT|params:project.getID|params:'pallete'}}">
               {% csrf_token %}
               <input type="text" hidden id="projectimageData" name="projectimage" value="" />
               <div class="w3-row w3-padding">
@@ -111,7 +113,7 @@
 
 {% block scripts %}
 <script>
-const projectID = "{{ project.id }}"
+const projectID = "{{ project.getID }}"
 const selfProject = authenticated?"{{user.profile}}" === "{{project.creator}}":false;
 </script>
 <script src="{% static 'scripts/project/profile.js' %}" ></script>

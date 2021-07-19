@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from projects.methods import setupApprovedProject
 from main.methods import respondJson
-from main.strings import code, PROJECTS, PEOPLE, COMPETE
+from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE
 from main.decorators import require_JSON_body
 from .decorators import moderator_only
 from .models import Moderation
@@ -50,7 +50,7 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
 
         mod = Moderation.objects.get(id=modID)
         if mod.resolved:
-            raise redirect(mod.getLink(alert="Already resolved"))
+            raise redirect(mod.getLink(alert=Message.ALREADY_RESOLVED))
         isRequester = mod.isRequestor(request.user.profile)
         isModerator = mod.moderator == request.user.profile
         if not isRequester and not isModerator:
@@ -63,14 +63,14 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
                 mod.response = responseData
                 mod.respondOn = now
                 mod.save()
-            return redirect(mod.getLink(alert="Response saved"))
+            return redirect(mod.getLink(alert=Message.RES_MESSAGE_SAVED))
         elif isRequester:
             if not requestData:
                 raise Exception()
             if mod.request != requestData:
                 mod.request = requestData
                 mod.save()
-            return redirect(mod.getLink(alert="Message saved"))
+            return redirect(mod.getLink(alert=Message.REQ_MESSAGE_SAVED))
         else:
             raise Exception()
     except:
@@ -90,17 +90,17 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             id=modID, moderator=request.user.profile, resolved=False)
         if not approve:
             done = mod.reject()
-            return respondJson(code.OK if done else code.NO)
+            return respondJson(Code.OK if done else Code.NO)
         elif approve:
             done = mod.approve()
             if done:
                 done = setupApprovedProject(mod.project, mod.moderator)
-            return respondJson(code.OK if done else code.NO)
+            return respondJson(Code.OK if done else Code.NO)
         else:
-            return respondJson(code.NO, error="Invalid response")
+            return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
     except Exception as e:
         print(e)
-        return respondJson(code.NO, error="An error occurred")
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_POST
@@ -111,7 +111,7 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
     """
     try:
         mod = Moderation.objects.get(
-            id=modID, resolved=True, status=code.REJECTED)
+            id=modID, resolved=True, status=Code.REJECTED)
         if mod.type == PROJECTS:
             newmod = requestModerationForObject(
                 mod.project, mod.type, reassignIfRejected=True)
@@ -126,7 +126,7 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
         if not newmod:
             raise Exception()
         else:
-            return redirect(newmod.getLink(alert="Re-applied for moderation to another moderator."))
+            return redirect(newmod.getLink(alert=Message.MODERATION_REAPPLIED))
     except:
         raise Http404()
 
@@ -144,8 +144,8 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
             if not sub['valid']:
                 invalidSubIDs.append(sub['subID'])
         Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
-        Moderation.objects.filter(id=modID, type=COMPETE, status=code.MODERATION, resolved=False).update(
-            status=code.APPROVED, resolved=True)
-        return respondJson(code.OK)
+        Moderation.objects.filter(id=modID, type=COMPETE, status=Code.MODERATION, resolved=False).update(
+            status=Code.APPROVED, resolved=True)
+        return respondJson(Code.OK)
     except:
-        return respondJson(code.NO, error='An error occurred')
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

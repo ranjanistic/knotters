@@ -1,14 +1,24 @@
 from people.models import Profile
 from github import Organization, NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import code
-from main.methods import renderView
+from main.strings import Code, url
+from main.methods import renderView, classAttrsToDict, replaceUrlParamsWithStr
 from .models import Category, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
 
 def renderer(request, file, data={}):
+    data['URLS'] = {}
+
+    def cond(key, value):
+        return str(key).isupper()
+
+    urls = classAttrsToDict(url.Projects, cond)
+
+    for key in urls:
+        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
+
     return renderView(request, file, data, fromApp=APPNAME)
 
 
@@ -30,7 +40,8 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj:
             return False
-        project = Project.objects.create(creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
+        project = Project.objects.create(
+            creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
         for tag in tags:
             tagobj = addTagToDatabase(tag)
             if tagobj:
@@ -99,7 +110,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     Creates discord chat channel.
     """
     try:
-        if project.status != code.APPROVED:
+        if project.status != Code.APPROVED:
             return False
 
         sendProjectApprovedNotification(project)

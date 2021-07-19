@@ -57,7 +57,7 @@ const serviceWorkerRegistration = () => {
             refreshing = true;
         });
         navigator.serviceWorker
-            .register(SERVICE_WORKER)
+            .register(URLS.SERVICE_WORKER)
             .then((reg) => {
                 if (reg.waiting) {
                     const newServiceWorker = reg.waiting;
@@ -97,9 +97,8 @@ const loader = (show = true) => visibleElement("viewloader", show);
 const subLoader = (show = true) => visibleElement("subloader", show);
 const loaders = (show = true) => {
     loader(show);
-    subLoader(show)
-}
-
+    subLoader(show);
+};
 
 const openSpinner = (id = "loader") => showElement(id);
 
@@ -155,6 +154,13 @@ const setHtmlContent = (element, content = "") => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
+};
+
+const setUrlParams = (path, ...params) => {
+    params.forEach((param)=>{
+        path = String(path).replace('\*', param)
+    })
+    return path
 };
 
 const loadGlobalEventListeners = () => {

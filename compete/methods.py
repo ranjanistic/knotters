@@ -2,13 +2,22 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from django.http.response import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
-from main.methods import renderView, renderData
-from main.strings import compete
+from main.methods import renderView, renderData, classAttrsToDict, replaceUrlParamsWithStr
+from main.strings import Compete, url
 from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
+    data['URLS'] = {}
+
+    def cond(key, value):
+        return str(key).isupper()
+
+    urls = classAttrsToDict(url.Compete, cond)
+
+    for key in urls:
+        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
     return renderView(request, file, data, fromApp=APPNAME)
 
 
@@ -48,13 +57,13 @@ def getCompetitionSectionData(section: str, competition: Competition, request: W
     data = renderData({
         'competition': competition
     }, fromApp=APPNAME)
-    if section == compete.OVERVIEW:
+    if section == Compete.OVERVIEW:
         return {}
-    if section == compete.TASK:
+    if section == Compete.TASK:
         return {}
-    if section == compete.GUIDELINES:
+    if section == Compete.GUIDELINES:
         return {}
-    if section == compete.SUBMISSION:
+    if section == Compete.SUBMISSION:
         try:
             submission = Submission.objects.get(
                 competition=competition, members=request.user.profile)
@@ -64,7 +73,7 @@ def getCompetitionSectionData(section: str, competition: Competition, request: W
             data['confirmed'] = relation.confirmed
         except:
             data['submission'] = None
-    if section == compete.RESULT:
+    if section == Compete.RESULT:
         results = Result.objects.filter(
             competition=competition).order_by('rank')
         if request.user.is_authenticated:
@@ -89,10 +98,10 @@ def getCompetitionSectionData(section: str, competition: Competition, request: W
 
 
 def getCompetitionSectionHTML(competition: Competition, section: str, request: WSGIRequest) -> str:
-    if not compete.COMPETE_SECTIONS.__contains__(section):
+    if not Compete.COMPETE_SECTIONS.__contains__(section):
         return False
     data = {}
-    for sec in compete.COMPETE_SECTIONS:
+    for sec in Compete.COMPETE_SECTIONS:
         if sec == section:
             data = getCompetitionSectionData(sec, competition, request)
             break

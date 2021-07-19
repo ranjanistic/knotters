@@ -1,15 +1,14 @@
-from inspect import currentframe, getframeinfo
-from django.core.handlers.wsgi import WSGIRequest
 from uuid import UUID
+from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
-from moderation.models import Moderation
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
-from main.methods import base64ToImageFile, respondJson
-from main.strings import code
+from main.methods import base64ToImageFile, respondJson, respondRedirect
+from main.strings import Code, Message, URL
+from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.decorators import profile_active_required
 from .models import Project, Tag, Category
@@ -20,7 +19,7 @@ from .mailers import sendProjectSubmissionNotification
 
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=code.MODERATION)
+    projects = Project.objects.filter(status=Code.MODERATION)
     return renderer(request, 'index', {"projects": projects})
 
 
@@ -42,14 +41,14 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
         data = request.POST[field]
         if field == 'reponame':
             if not uniqueRepoName(data):
-                return respondJson(code.NO, error=f"{data} already taken, try another.")
+                return respondJson(Code.NO, error=f"{data} already taken, try another.")
             else:
-                return respondJson(code.OK)
+                return respondJson(Code.OK)
         else:
-            return respondJson(code.NO)
+            return respondJson(Code.NO)
     except Exception as e:
         print(e)
-        return respondJson(code.NO, error="An error occurred")
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_POST
@@ -60,7 +59,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         if not acceptedTerms:
-            return redirect(f"/{APPNAME}/create?e=You have not accepted the terms.")
+            return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.TERMS_UNACCEPTED)
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]
@@ -86,35 +85,35 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             projectobj, APPNAME, userRequest, referURL)
         if not mod:
             projectobj.delete()
-            return redirect(f"/{APPNAME}/create?e=Error in submission, try again later 1.")
+            return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
         sendProjectSubmissionNotification(projectobj)
-        return redirect(projectobj.getLink(alert="Sent for review"))
+        return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
     except Exception as e:
         if projectobj:
             projectobj.delete()
-        return redirect(f"/{APPNAME}/create?e=Error in submission, try again later.")
+        return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
 
 @require_POST
 @login_required
 def trashProject(request:WSGIRequest, projID:UUID) -> HttpResponse:
     try:
-        Project.objects.filter(id=projID,creator=request.user.profile,status=code.REJECTED).delete()
-        return redirect(request.user.profile.getLink(alert="Project deleted"))
+        Project.objects.filter(id=projID,creator=request.user.profile,status=Code.REJECTED).delete()
+        return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
     except:
         raise Http404()
 
 @require_GET
-@profile_active_required
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame)
-        if project.status == code.APPROVED:
+        if project.status == Code.APPROVED:
             return renderer(request, 'profile', {"project": project})
         else:
-            mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
-                                            code.REJECTED, code.MODERATION]).order_by('-respondOn')[0]
-            if request.user.is_authenticated and (project.creator == request.user.profile or mod.moderator == request.user.profile):
-                return redirect(mod.getLink())
+            if request.user.is_authenticated:
+                mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
+                                                Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()
+                if project.creator == request.user.profile or mod.moderator == request.user.profile:
+                    return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
         print(e)
@@ -126,10 +125,10 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
 @profile_active_required
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
-        changed = False
         project = Project.objects.get(
             id=projectID, creator=request.user.profile)
         if section == 'pallete':
+            changed = False
             try:
                 base64Data = str(request.POST['projectimage'])
                 imageFile = base64ToImageFile(base64Data)
@@ -151,6 +150,6 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                     project.save()
                 return redirect(project.getLink(), permanent=True)
             except:
-                return redirect(project.getLink(error=f"Problem occurred."), permanent=True)
+                return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
     except:
         return HttpResponseForbidden()

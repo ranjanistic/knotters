@@ -7,7 +7,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from main.decorators import require_JSON_body
 from main.methods import renderData, respondJson
-from main.strings import Action, code
+from main.strings import Action, Code, Message
 from people.decorators import profile_active_required
 from people.models import User, Profile
 from moderation.decorators import moderator_only
@@ -62,9 +62,9 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
                 data['subID'] = subm.id
             except:
                 data['participated'] = False
-        return respondJson(code.OK, data)
+        return respondJson(Code.OK, data)
     except Exception as e:
-        return respondJson(code.NO)
+        return respondJson(Code.NO)
 
 
 @require_GET
@@ -99,7 +99,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
             if not relation.confirmed:
                 sub.members.remove(request.user.profile)
             else:
-                return redirect(competition.getLink(alert="You're already participating."))
+                return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         except:
             pass
         submission = Submission.objects.create(
@@ -134,7 +134,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             submission.members.remove(member)
             if submission.totalActiveMembers() == 0:
                 submission.delete()
-            return redirect(submission.competition.getLink(alert=f"{'Participation withdrawn.' if request.user.profile == member else 'Removed member'}"))
+            return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
         except Exception as e:
             raise Exception()
     except Exception as e:
@@ -151,9 +151,9 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     try:
         userID = str(request.POST.get('userID', '')).strip().lower()
         if not userID:
-            return respondJson(code.NO, error='Invalid ID')
+            return respondJson(Code.NO, error=Message.INVALID_ID)
         if request.user.email == userID or request.user.profile.githubID == userID:
-            return respondJson(code.NO, error='You\'re already participating, remember?')
+            return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         try:
             user = User.objects.get(email=userID)
             person = user.profile
@@ -163,22 +163,22 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             except:
                 person = None
         if not person:
-            return respondJson(code.NO, error='User doesn\'t exist.')
+            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         try:
             Submission.objects.get(members=person)
-            return respondJson(code.NO, error='User already participating or invited.')
+            return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
         except:
             submission = Submission.objects.get(id=subID)
             if not submission.competition.isActive():
                 raise Exception()
             if submission.competition.isJudge(person) or submission.competition.isModerator(person):
-                return respondJson(code.NO, error='User already participating or invited.')
+                return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
             submission.members.add(person)
             participantInviteAlert(
                 person, request.user.profile, submission)
-            return respondJson(code.OK)
+            return respondJson(Code.OK)
     except Exception as e:
-        return respondJson(code.NO, error=str(e))
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_GET
@@ -201,7 +201,7 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
             relation = SubmissionParticipant.objects.get(
                 submission=submission, profile=user.profile)
             if relation.confirmed:
-                return redirect(submission.competition.getLink(error="You've already participated"))
+                return redirect(submission.competition.getLink(error=Message.ALREADY_PARTICIPATING))
             else:
                 return render(request, "invitation.html", renderData({
                     'submission': submission,
@@ -258,7 +258,7 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
             raise Exception()
         Submission.objects.filter(id=subID, competition=competition, members=request.user.profile).update(
             repo=str(request.POST.get('submissionurl', '')), modifiedOn=now)
-        return redirect(competition.getLink(alert="Saved"), permanent=True)
+        return redirect(competition.getLink(alert=Message.SAVED), permanent=True)
     except Exception as e:
         raise Http404()
 
@@ -276,13 +276,13 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission = Submission.objects.get(
             id=subID, competition=competition, members=request.user.profile)
         if submission.submitted:
-            return respondJson(code.OK, message="Already submitted")
-        message = "Submitted successfully"
+            return respondJson(Code.OK, message=Message.SUBMITTED_ALREADY)
+        message = Message.SUBMITTED_SUCCESS
         if competition.endAt < now:
             if competition.resultDeclared:
-                return respondJson(code.NO, error="It is too late now.")
+                return respondJson(Code.NO, error=Message.SUBMISSION_TOO_LATE)
             submission.late = True
-            message = "Submitted, but late."
+            message = Message.SUBMITTED_LATE
         try:
             SubmissionParticipant.objects.filter(
                 submission=submission, confirmed=False).delete()
@@ -292,19 +292,22 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission.submitted = True
         submission.save()
         submissionConfirmedAlert(submission)
-        return respondJson(code.OK, message=message)
+        return respondJson(Code.OK, message=message)
     except Exception as e:
         print(e)
-        raise respondJson(code.NO, error="An error occurred")
+        raise respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_JSON_body
 @judge_only
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
+    """
+    For judge to submit their markings of all submissions of a competition.
+    """
     try:
         subs = request.POST.get('submissions', None)
         if not subs:
-            return respondJson(code.NO, error='Invalid submission markings, try again.')
+            return respondJson(Code.NO, error=Message.SUBMISSION_MARKING_INVALID)
 
         comp = Competition.objects.get(
             id=compID, judges=request.user.profile, resultDeclared=False, endAt__lt=timezone.now())
@@ -347,15 +350,18 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                     ))
 
         SubmissionTopicPoint.objects.bulk_create(topicpointsList)
-        return respondJson(code.OK)
+        return respondJson(Code.OK)
     except Exception as e:
         print(e)
-        return respondJson(code.NO, error='An error occurred')
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_POST
 @moderator_only
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
+    """
+    For moderator to declare results after markings of all submissions by all judges have been completed.
+    """
     try:
         comp = Competition.objects.get(
             id=compID, endAt__lt=timezone.now(), resultDeclared=False)
@@ -363,13 +369,13 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         if not comp.isModerator(request.user.profile):
             raise Exception()
         if not (comp.moderated() and comp.allSubmissionsMarked()):
-            return redirect(comp.getJudgementLink(error="Invalid request"))
+            return redirect(comp.getJudgementLink(error=Message.INVALID_REQUEST))
 
         declared = comp.declareResults()
         if not declared:
-            return redirect(comp.getJudgementLink(error="An error occurred."))
+            return redirect(comp.getJudgementLink(error=Message.ERROR_OCCURRED))
         resultsDeclaredAlert(competition=declared)
-        return redirect(comp.getJudgementLink(alert="Results declared!"))
+        return redirect(comp.getJudgementLink(alert=Message.RESULT_DECLARED))
     except Exception as e:
         print(e)
         raise Http404()

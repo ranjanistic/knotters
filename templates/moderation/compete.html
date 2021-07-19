@@ -1,4 +1,5 @@
 {% extends 'moderation/index.html' %}
+{% load custom_tags %}
 
 {% block content %}
 
@@ -60,7 +61,7 @@
                 {% endif %}
                 {% for sub in moderation.competition.getValidSubmissions %}
                 
-                <div class="w3-row pallete-slab" id="subslab{{sub.id}}">
+                <div class="w3-row pallete-slab" id="subslab{{sub.getID}}">
                     <div class="w3-col w3-threequarter">
                         <strong class="w3-padding-small">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
                         <strong class="w3-padding-small {% if sub.submitted %}text-tertiary">Submitted{% else %}negative-text">Un-submitted{% endif %}</strong>
@@ -71,8 +72,8 @@
                         <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
                     </div>
                         <div class="w3-col w3-quarter w3-center w3-padding">
-                        <button class="rejectsubmission negative small" data-subID="{{sub.id}}" data-subItem="{{sub.getRepo}}" data-icon="cancel" id="reject{{sub.id}}" >Reject</button>
-                        <input class="selectsubmission w3-right" data-subID="{{sub.id}}" data-subItem="{{sub.getRepo}}" id="select{{sub.id}}" type="checkbox" />
+                        <button class="rejectsubmission negative small" data-subID="{{sub.getID}}" data-subItem="{{sub.getRepo}}" data-icon="cancel" id="reject{{sub.getID}}" >Reject</button>
+                        <input class="selectsubmission w3-right" data-subID="{{sub.getID}}" data-subItem="{{sub.getRepo}}" id="select{{sub.getID}}" type="checkbox" />
                     </div>
                 </div>
                 {% empty %}
@@ -148,7 +149,7 @@
                         <br/>
                         <h6>Submissions</h6>
                         {% for sub in moderation.competition.getValidSubmissions %}
-                        <div class="w3-row pallete-slab" id="subslab{{sub.id}}">
+                        <div class="w3-row pallete-slab" id="subslab{{sub.getID}}">
                             <div class="w3-col w3-padding l4">
                             <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
                             <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
@@ -158,14 +159,14 @@
                             {% for topic in moderation.competition.getTopics %}
                             <div class="w3-col w3-third w3-padding-small">
                             <strong>{{topic.name}}</strong>
-                            <input id="{{sub.id}}{{topic.id}}" data-subID="{{sub.id}}" data-topicID="{{topic.id}}"
-                                    class="primary wide w3-padding topic-point point-input-{{sub.id}}" name="{{sub.id}}{{topic.id}}" type="number" min="0" max="{{moderation.competition.eachTopicMaxPoint}}" placeholder="Points out of {{moderation.competition.eachTopicMaxPoint}}" />
+                            <input id="{{sub.getID}}{{topic.getID}}" data-subID="{{sub.getID}}" data-topicID="{{topic.getID}}"
+                                    class="primary wide w3-padding topic-point point-input-{{sub.getID}}" name="{{sub.getID}}{{topic.getID}}" type="number" min="0" max="{{moderation.competition.eachTopicMaxPoint}}" placeholder="Points out of {{moderation.competition.eachTopicMaxPoint}}" />
                             </div>
                             {% endfor %}
                             </div>
                             <div class="w3-col l2 w3-padding">
-                            <button class="small positive save-subpoints" data-icon="done" data-subID="{{sub.id}}" id="save{{sub.id}}">Save</button>
-                            <button class="small negative clear-subpoints" data-icon="close" data-subID="{{sub.id}}" id="clear{{sub.id}}">Clear</button>
+                            <button class="small positive save-subpoints" data-icon="done" data-subID="{{sub.getID}}" id="save{{sub.getID}}">Save</button>
+                            <button class="small negative clear-subpoints" data-icon="close" data-subID="{{sub.getID}}" id="clear{{sub.getID}}">Clear</button>
                             </div>
                         </div>
                         {% empty %}
@@ -215,7 +216,7 @@ if(allsubsMarked){
 
 }else if(!ismoderator){
     let finalData = [];
-    const localStorageKey = "{{moderation.id}}{{moderation.type}}{{request.user.id}}finalData";
+    const localStorageKey = "{{moderation.getID}}{{moderation.type}}{{request.user.getID}}finalData";
     const eachTopicMaxPoint = Number("{{moderation.competition.eachTopicMaxPoint}}")
     const totalSubmissions = Number("{{moderation.competition.totalValidSubmissions}}")
     const totalTopics = Number("{{moderation.competition.totalTopics}}")
@@ -387,7 +388,7 @@ if(allsubsMarked){
     }
 
 } else {
-    const localStorageKey = "{{moderation.id}}{{moderation.type}}{{request.user.id}}finalData";
+    const localStorageKey = "{{moderation.getID}}{{moderation.type}}{{request.user.getID}}finalData";
     let allsubmissionchecks = getElements("selectsubmission");
     let selectedAll = false;
 

@@ -39,12 +39,15 @@ const showStep = (n) => {
             formValues.forEach((input) => {
                 previews.some((preview) => {
                     if (`${input.id}preview` === preview.id) {
-                        localStorage.setItem(`createproject${input.id}`, input.value)
+                        localStorage.setItem(
+                            `createproject${input.id}`,
+                            input.value
+                        );
                         preview.innerHTML = input.value;
-                        if(preview.id==='referurlpreview'&&input.value){
-                            preview.onclick=_=>{
-                                miniWindow(input.value)
-                            }
+                        if (preview.id === "referurlpreview" && input.value) {
+                            preview.onclick = (_) => {
+                                miniWindow(input.value);
+                            };
                         }
                         return true;
                     }
@@ -71,7 +74,7 @@ const nextPrev = (n) => {
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
-        postRequest(`${ROOT}/create/validate/reponame`, {
+        postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"), {
             reponame: formValues[1].value,
         })
             .then((res) => {
@@ -81,7 +84,7 @@ const nextPrev = (n) => {
                     currentStep = currentStep + n;
                     showStep(currentStep);
                 } else {
-                    if(!res.error) return error()
+                    if (!res.error) return error();
                     validationError[1].innerHTML = res.error;
                 }
             })
@@ -212,7 +215,7 @@ getElement("projectimage").onchange = (e) => {
 };
 
 formValues.forEach((value) => {
-    value.value = localStorage.getItem(`createproject${value.id}`)||''
+    value.value = localStorage.getItem(`createproject${value.id}`) || "";
     value.onblur = (_) => {
         validateForm(value.id);
     };

@@ -1,8 +1,9 @@
 from django.db import models
 from uuid import uuid4
-from main.strings import PROJECTS, PEOPLE, COMPETE, code, moderation, url
+from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, moderation, message
 from main.methods import maxLengthInList
 from django.utils import timezone
+from .apps import APPNAME
 
 
 class Moderation(models.Model):
@@ -28,7 +29,7 @@ class Moderation(models.Model):
         max_length=100000, blank=True, null=True, default='')
 
     status = models.CharField(choices=moderation.MODSTATESCHOICES, max_length=maxLengthInList(
-        moderation.MODSTATES), default=code.MODERATION)
+        moderation.MODSTATES), default=Code.MODERATION)
 
     requestOn = models.DateTimeField(auto_now=False, default=timezone.now)
     respondOn = models.DateTimeField(auto_now=False, null=True, blank=True)
@@ -48,10 +49,10 @@ class Moderation(models.Model):
 
     def approve(self) -> bool:
         now = timezone.now()
-        self.status = code.APPROVED
+        self.status = Code.APPROVED
         self.respondOn = now
         if self.type == PROJECTS:
-            self.project.status = code.APPROVED
+            self.project.status = Code.APPROVED
             self.project.approvedOn = now
             self.project.save()
         self.resolved = True
@@ -59,27 +60,23 @@ class Moderation(models.Model):
         return True
 
     def reject(self) -> bool:
-        self.status = code.REJECTED
+        self.status = Code.REJECTED
         self.respondOn = timezone.now()
         if self.type == PROJECTS:
-            self.project.status = code.REJECTED
+            self.project.status = Code.REJECTED
             self.project.save()
         self.resolved = True
         self.save()
         return True
 
-    def getLink(self, alert='', error=''):
-        if error:
-            error = f"?e={error}"
-        elif alert:
-            alert = f"?a={alert}"
-        return f"/{url.MODERATION}{self.getID()}{error}{alert}"
+    def getLink(self, alert:str='', error:str='') -> str:
+        return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error)}"
 
     def reapplyLink(self):
-        return f"/{url.MODERATION}reapply/{self.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.moderation.reapply(modID=self.getID())}"
 
     def approveCompeteLink(self):
-        return f"/{url.MODERATION}compete/{self.getID()}"
+        return f"{url.getRoot(APPNAME)}{url.moderation.approveCompete(modID=self.getID())}"
 
     def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
@@ -90,13 +87,13 @@ class Moderation(models.Model):
             return self.competition.isJudge(profile)
 
     def isPending(self) -> bool:
-        return self.status == code.MODERATION
+        return self.status == Code.MODERATION
 
     def isRejected(self) -> bool:
-        return self.status == code.REJECTED
+        return self.status == Code.REJECTED
 
     def isApproved(self) -> bool:
-        return self.status == code.APPROVED
+        return self.status == Code.APPROVED
 
 
 class LocalStorage(models.Model):

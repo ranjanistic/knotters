@@ -1,16 +1,14 @@
 import base64
 import os
-from django.http.response import HttpResponse, JsonResponse
 import requests
 import re
-from django.db.models.fields.files import ImageFieldFile
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http.request import HttpRequest
-from django.shortcuts import render
 from django.core.files.base import ContentFile, File
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
-from .env import ISPRODUCTION
+from django.db.models.fields.files import ImageFieldFile
+from django.http.response import HttpResponse, JsonResponse
+from django.http.request import HttpRequest
+from django.shortcuts import redirect, render
+from .strings import URL, url
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
 
 
@@ -20,7 +18,7 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 
     :param: fromApp: The subapplication name from whose context this method will return udpated data.
     """
-    data['ROOT'] = f"/{fromApp}"
+    data['ROOT'] = url.getRoot(fromApp)
     data['SUBAPPNAME'] = fromApp
     return data
 
@@ -33,6 +31,15 @@ def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = 
     :data: The dict data to be render in the view.
     :fromApp: The subapplication division name under which the given view named template file resides
     """
+    data['URLS'] = data.get('URLS',{})
+
+    def cond(key,value):
+        return str(key).isupper()
+    urls = classAttrsToDict(URL,cond)
+    
+    for key in urls:
+        data['URLS'][key] = f"{url.getRoot() if urls[key] != URL.ROOT else ''}{replaceUrlParamsWithStr(str(urls[key]))}"
+
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
 
@@ -51,11 +58,18 @@ def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') 
     }, encoder=JsonEncoder)
 
 
+def respondRedirect(fromApp: str = '', path: str = '', alert: str = '', error: str = ''):
+    """
+    returns redirect http response, with some parametric modifications.
+    """
+    return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert,error)}")
+
+
 def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     """
     Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
     """
-    return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
+    return re.sub(r'(<str:|<int:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 
 def getDeepFilePaths(dir_name, appendWhen):
@@ -68,8 +82,10 @@ def getDeepFilePaths(dir_name, appendWhen):
     assets = []
     for stat in staticAssets:
         path = str(stat).replace(str(BASE_DIR), '')
-        if path.startswith('\\'): path = str(path).strip("\\")
-        if path.startswith(dir_name): path = f"/{path}"
+        if path.startswith('\\'):
+            path = str(path).strip("\\")
+        if path.startswith(dir_name):
+            path = f"/{path}"
         if appendWhen(path) and not assets.__contains__(path):
             assets.append(path)
 
@@ -120,6 +136,16 @@ class JsonEncoder(DjangoJSONEncoder):
         if isinstance(obj, ImageFieldFile):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
+
+
+
+def classAttrsToDict(className, appendCondition)->dict:
+    data = {}
+    for key in className.__dict__:
+        if not (str(key).startswith('__') and str(key).endswith('__')):
+            if appendCondition(key,className.__dict__.get(key)):
+                data[key] = className.__dict__.get(key)
+    return data
 
 def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     """
@@ -210,4 +236,3 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
         return response['success']
     except:
         return None
-

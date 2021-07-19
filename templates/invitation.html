@@ -43,12 +43,12 @@
 
     <h5>on the team.</h5>
 
-    <form method="POST" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/accept">
+    <form method="POST" action="{{ROOT}}/invitation/{{submission.getID}}/{{request.user.getID}}/accept">
     {% csrf_token %}
     <button type="submit" class="positive" data-icon="check">Accept Invitation</button>
     </form>
     <br/>
-    <form method="POST" action="{{ROOT}}/invitation/{{submission.id}}/{{request.user.id}}/decline">
+    <form method="POST" action="{{ROOT}}/invitation/{{submission.getID}}/{{request.user.getID}}/decline">
     {% csrf_token %}
     <button type="submit" class="negative" data-icon="cancel">Decline Politely</button>
     </form>

@@ -1,12 +1,12 @@
 from django.urls import path
-from main.strings import url
+from main.strings import URL
 from .views import *
 
 urlpatterns = [
-    path(url.INDEX, allProjects),
-    path(url.Projects.CREATEVALIDATEFIELD, validateField),
-    path(url.Projects.CREATE, create),
-    path(url.Projects.SUBMIT, submitProject),
-    path(url.Projects.PROFILE, profile),
-    path(url.Projects.PROFILEEDIT, editProfile),
+    path(URL.INDEX, allProjects),
+    path(URL.Projects.CREATEVALIDATEFIELD, validateField),
+    path(URL.Projects.CREATE, create),
+    path(URL.Projects.SUBMIT, submitProject),
+    path(URL.Projects.PROFILE, profile),
+    path(URL.Projects.PROFILEEDIT, editProfile),
 ]

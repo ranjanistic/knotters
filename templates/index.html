@@ -237,13 +237,13 @@
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";
             const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
-            const SERVICE_WORKER = "{{SERVICE_WORKER}}";
             const dialog = alertify;
             if("{{request.GET.e}}") {
                 error("{{request.GET.e}}");
             } else if("{{request.GET.a}}") {
                 message("{{request.GET.a}}");
             }
+            const URLS = {{URLS|safe}}
         </script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}

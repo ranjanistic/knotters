@@ -2,7 +2,7 @@ const loadTabScript = (tab) => {
 
 };
 initializeTabsView({
-    onEachTab: async (tab) => await getRequest(`${ROOT}/indexTab/${tab.id}`),
+    onEachTab: async (tab) => await getRequest(setUrlParams(URLS.INDEXTAB,tab.id)),
     uniqueID: "competitionstab",
     tabsClass: "compete-nav-tab",
     onShowTab: loadTabScript,

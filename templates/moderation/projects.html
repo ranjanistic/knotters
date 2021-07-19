@@ -1,4 +1,5 @@
 {% extends 'moderation/index.html' %}
+{% load custom_tags %}
 
 {% block content %}
 <div class="w3-row w3-padding">
@@ -29,7 +30,7 @@
         {% endif %}
 
         Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
-        <form method="POST" action="{{ROOT}}/message/{{moderation.id}}">
+        <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
         {% csrf_token %}
         <strong>Requestor message</strong>
         {% if ismoderator %}<button class="w3-right report-button" data-icon="warning">Report</button><br/>{% endif %}
@@ -99,6 +100,7 @@
 
 {% block scripts %}
 <script>
+{% if ismoderator %}
 getElements("modaction").forEach((action)=>{
     action.addEventListener('click',()=>{
         alertify.confirm(`<h5>Final confirmation</h5>`, `<strong class="text-tertiary w3-large">Are you sure that to <h4>${action.id}</h4> this project -
@@ -109,7 +111,7 @@ getElements("modaction").forEach((action)=>{
             subLoader(true);
             loader(true);
             message('Resolving moderation, please wait.')
-            const data = await postRequest(`${ROOT}/action/{{moderation.id}}`, {
+            const data = await postRequest(`{{URLS.ACTION|params:moderation.getID}}`, {
                 approve: action.id === 'approve'
             })
             if(data.code === code.OK){
@@ -127,5 +129,6 @@ getElements("modaction").forEach((action)=>{
         ).set('labels', {ok:`Yes, ${action.id} this project`, cancel:'No, wait!'}); 
     })
 })
+{% endif %}
 </script>
 {% endblock %}

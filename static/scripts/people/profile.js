@@ -72,7 +72,7 @@ const loadTabScript = (tab) => {
                                 message("Deactivating account...");
                                 loaders(true);
                                 const data = await postRequest(
-                                    `${ROOT}/account/activation`,
+                                    URLS.ACCOUNTACTIVATION,
                                     {
                                         deactivate: true,
                                     }
@@ -104,7 +104,7 @@ const loadTabScript = (tab) => {
                     let successorID = "";
                     let useDefault = false;
                     loader();
-                    let sdata = await postRequest(`${ROOT}/account/successor`);
+                    let sdata = await postRequest(URLS.GETSUCCESSOR);
                     if (sdata.code === code.OK) {
                         successorSet = true;
                         successorID = sdata.successorID;
@@ -166,7 +166,7 @@ const loadTabScript = (tab) => {
                                 message("Preparing for deletion");
                                 loaders();
                                 const data = await postRequest(
-                                    `${ROOT}/account/delete`,
+                                    URLS.ACCOUNTDELETE,
                                     {
                                         confirmed: true,
                                     }
@@ -203,7 +203,7 @@ const loadTabScript = (tab) => {
                             ? "Using default successor"
                             : "";
                         let done = await postRequest(
-                            `${ROOT}/account/successor/invite`,
+                            URLS.INVITESUCCESSOR,
                             {
                                 set: useDefault,
                                 unset: !useDefault,
@@ -225,7 +225,7 @@ const loadTabScript = (tab) => {
                             );
                         subLoader(true);
                         const data = await postRequest(
-                            `${ROOT}/account/successor/invite`,
+                            URLS.INVITESUCCESSOR,
                             {
                                 set: true,
                                 userID: successorID || false,
@@ -269,7 +269,7 @@ const loadTabScript = (tab) => {
 
 initializeTabsView({
     onEachTab: async (tab) => {
-        return await getRequest(`${ROOT}/profiletab/${userID}/${tab.id}`);
+        return await getRequest(setUrlParams(URLS.PROFILETAB,userID,tab.id));
     },
     uniqueID: "profiletab",
     onShowTab: loadTabScript,
@@ -278,7 +278,7 @@ initializeTabsView({
 if (selfProfile) {
     initializeTabsView({
         onEachTab: async (tab) => {
-            return await getRequest(`${ROOT}/settingtab/${tab.id}`);
+            return await getRequest(setUrlParams(URLS.SETTINGTAB,tab.id));
         },
         uniqueID: "profilestab",
         tabsClass: "set-tab",

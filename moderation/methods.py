@@ -1,13 +1,23 @@
+from django.core.handlers.wsgi import WSGIRequest
 from people.models import Profile
 from django.db.models import Q
 from django.db import models
-from main.methods import renderView
-from main.strings import PROJECTS, PEOPLE, COMPETE, code
+from main.methods import renderView, classAttrsToDict, replaceUrlParamsWithStr
+from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, code
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
 
-def renderer(request, file, data={}):
+def renderer(request: WSGIRequest, file: str, data: dict = {}):
+    data['URLS'] = {}
+
+    def cond(key, value):
+        return str(key).isupper()
+
+    urls = classAttrsToDict(url.Moderation, cond)
+
+    for key in urls:
+        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
     return renderView(request, file, data, fromApp=APPNAME)
 
 
@@ -23,9 +33,9 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles:, ignoreModProfiles will be preferred.
     """
     try:
-        current = LocalStorage.objects.get(key="moderator")
+        current = LocalStorage.objects.get(key=Code.MODERATOR)
     except:
-        current = LocalStorage.objects.create(key="moderator", value=0)
+        current = LocalStorage.objects.create(key=Code.MODERATOR, value=0)
 
     ignoreModProfileIDs = []
     if type == PROJECTS:
@@ -124,7 +134,8 @@ def requestModerationForObject(
         if not newmoderator:
             return False
         if type == PROJECTS:
-            newmod = Moderation.objects.create(project=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)    
+            newmod = Moderation.objects.create(
+                project=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == PEOPLE:
             newmod = Moderation.objects.create(
                 profile=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)

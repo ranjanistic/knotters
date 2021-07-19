@@ -1,11 +1,11 @@
 from django.urls import path
-from main.strings import url
-from .views import moderation, message, action, reapply, approveCompetition
+from main.strings import URL
+from .views import *
 
 urlpatterns = [
-    path(url.Moderation.MODID, moderation),
-    path(url.Moderation.MESSAGE, message),
-    path(url.Moderation.ACTION, action),
-    path(url.Moderation.REAPPLY, reapply),
-    path(url.Moderation.APPROVECOMPETE, approveCompetition),
+    path(URL.Moderation.MODID, moderation),
+    path(URL.Moderation.MESSAGE, message),
+    path(URL.Moderation.ACTION, action),
+    path(URL.Moderation.REAPPLY, reapply),
+    path(URL.Moderation.APPROVECOMPETE, approveCompetition),
 ]
