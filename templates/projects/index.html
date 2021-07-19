@@ -1,11 +1,12 @@
 {% extends 'index.html' %} 
 {% load static %}
+{% load custom_tags %}
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 
 {% block nav_href %}/{% endblock %}
 
 {% block nav_auth_links %}
-<a href="{{ROOT}}/create"
+<a href="{{URLS.CREATE}}"
   ><button title="New project" class="positive">
     <i class="material-icons">add</i
     ><span class="w3-hide-small">New project</span>
@@ -36,7 +37,7 @@
         <i class="material-icons">volunteer_activism</i>Contribute
       </button>
     </a>
-    <a href="{{ROOT}}/landing" hidden>
+    <a href="{{URLS.APPLANDING|params:SUBAPPNAME}}" hidden>
       <button class="secondary display-button">
         <i class="material-icons">open_in_new</i>Learn More
       </button>

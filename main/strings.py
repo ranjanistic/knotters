@@ -5,13 +5,14 @@ from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 
 
-def setPathParams(path: str, *replacingChars: str) -> str:
+def setPathParams(path: str, *replacingChars: str, lookfor:str='') -> str:
     """
     Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
     """
+    lookfor = lookfor if lookfor else Code.URLPARAM
     i = 0
     while i < len(replacingChars):
-        path = re.sub(Code.URLPARAM, str(replacingChars[i]), path, 1)
+        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
     return path
 
@@ -41,7 +42,9 @@ class Code():
     ZOMBIEMAIL = 'zombie@knotters.org'
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
 
+
 code = Code()
+
 
 class Message():
     ERROR_OCCURRED = "An error occurred."
@@ -67,6 +70,7 @@ class Message():
     PROJECT_DELETED = "Project deleted"
     TERMS_UNACCEPTED = "You have not accepted the terms"
 
+    UNDER_MODERATION = "Currently under moderation"
     ALREADY_RESOLVED = "Already resolved"
     REQ_MESSAGE_SAVED = "Request message saved"
     RES_MESSAGE_SAVED = "Response message saved"
@@ -80,6 +84,7 @@ class Message():
     SUCCESSORSHIP_DECLINED = "You\'ve declined this profile\'s successorship"
     SUCCESSORSHIP_ACCEPTED = "You\'re now the successor of this profile\'s assets."
 
+    ACCOUNT_DEACTIVATED = "Account deactivated."
     ACCOUNT_DELETED = "Account deleted successfully."
 
     def isValid(self, message: str) -> bool:
@@ -115,6 +120,7 @@ class Message():
             self.PROJECT_DELETED,
             self.TERMS_UNACCEPTED,
 
+            self.UNDER_MODERATION,
             self.ALREADY_RESOLVED,
             self.REQ_MESSAGE_SAVED,
             self.RES_MESSAGE_SAVED,
@@ -191,8 +197,6 @@ class URL():
         if success:
             success = f"{'&' if error or alert else '?'}s={success}" if message.isValid(
                 success) else ''
-        else:
-            return ''
         return f"{error}{alert}{success}"
 
     def githubProfile(self, ghID):
@@ -205,8 +209,19 @@ class URL():
             return setPathParams(self.COMPID, compID)
 
         INDEXTAB = 'indexTab/<str:tab>'
+        
+        def indexTab(self, tab):
+            return setPathParams(self.INDEXTAB, tab)
+
         COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
+
+        def competeTabSection(self, compID, section):
+            return setPathParams(self.COMPETETABSECTION, compID, section)
+
         DATA = "data/<str:compID>"
+
+        def data(self, compID):
+            return setPathParams(self.DATA, compID)
 
         PARTICIPATE = 'participate/<str:compID>'
 
@@ -214,9 +229,24 @@ class URL():
             return setPathParams(self.PARTICIPATE, compID)
 
         REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
+
+        def removeMember(self, subID, userID):
+            return setPathParams(self.REMOVEMEMBER,subID, userID)
+
         INVITE = 'invite/<str:subID>'
+
+        def invite(self, subID):
+            return setPathParams(self.INVITE, subID)
+
         INVITATION = 'invitation/<str:subID>/<str:userID>'
+
+        def invitation(self, subID, userID):
+            return setPathParams(self.INVITATION, subID, userID)
+
         INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
+
+        def inviteAction(self, subID, userID, action):
+            return setPathParams(self.INVITEACTION, subID, userID, action)
 
         SAVE = 'save/<str:compID>/<str:subID>'
 
@@ -224,6 +254,9 @@ class URL():
             return setPathParams(self.SAVE, compID, subID)
 
         SUBMIT = 'submit/<str:compID>/<str:subID>'
+
+        def submit(self, compID, subID):
+            return setPathParams(self.SUBMIT, compID, subID)
 
         SUBMITPOINTS = 'submissionpoints/<str:compID>'
 
@@ -244,7 +277,14 @@ class URL():
             return setPathParams(self.MODID, modID)
 
         MESSAGE = 'message/<str:modID>'
+
+        def message(self, modID):
+            return setPathParams(self.MESSAGE, modID)
+
         ACTION = 'action/<str:modID>'
+
+        def action(self, modID):
+            return setPathParams(self.ACTION, modID)
 
         REAPPLY = 'reapply/<str:modID>'
 
@@ -254,7 +294,6 @@ class URL():
         APPROVECOMPETE = 'compete/<str:modID>'
 
         def approveCompete(self, modID):
-
             return setPathParams(self.APPROVECOMPETE, modID)
 
     moderation = Moderation()
@@ -266,8 +305,19 @@ class URL():
             return setPathParams(self.PROFILE, userID)
 
         PROFILEEDIT = 'profile/edit/<str:section>'
+
+        def profileEdit(self, section):
+            return setPathParams(self.PROFILEEDIT, section)
+
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
+
+        def profileTab(self, userID, section):
+            return setPathParams(self.PROFILETAB, userID, section)
+
         SETTINGTAB = 'settingtab/<str:section>'
+
+        def settingTab(self, section):
+            return setPathParams(self.SETTINGTAB, section)
 
         ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
 
@@ -286,6 +336,9 @@ class URL():
 
         SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
 
+        def successorInviteAction(self, action):
+            return setPathParams(self.SUCCESSORINVITEACTION, action)
+
         ZOMBIE = 'zombie/<str:profileID>'
 
         def zombie(self, profileID):
@@ -295,6 +348,10 @@ class URL():
 
     class Projects():
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
+
+        def createValidField(self, field):
+            return setPathParams(self.CREATEVALIDATEFIELD, field)
+
         CREATE = 'create'
         SUBMIT = 'submit'
 
@@ -304,11 +361,20 @@ class URL():
             return setPathParams(self.PROFILE, reponame)
 
         PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>'
+
+        def profileEdit(self, projectID, section):
+            return setPathParams(self.PROFILEEDIT, projectID, section)
+
         PROJECTINFO = 'projectinfo/<str:projectID>/<str:info>'
+
+        def projectInfo(self, projectID, info):
+            return setPathParams(self.PROJECTINFO, projectID, info)
 
     projects = Projects()
 
+
 url = URL()
+
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
@@ -338,19 +404,18 @@ class Moderation():
 
 moderation = Moderation()
 
-
-class ProfileSetting():
-    ACCOUNT = "account"
-    PREFERENCE = "preference"
-
-
 class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
     MODERATION = "moderation"
-    setting = ProfileSetting()
+
+    class Setting():
+        ACCOUNT = "account"
+        PREFERENCE = "preference"
+
+    setting = Setting()
 
 
 class Compete():

@@ -86,6 +86,9 @@ class Topic(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    def getID(self) -> str:
+        return self.id.hex
+
 
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')

@@ -56,7 +56,7 @@ self.addEventListener("fetch", async (event) => {
                                 recachepath.includes("*")
                                     ? testAsteriskPathRegex(recachepath, path)
                                     : recachepath === path
-                            )
+                            ) || event.request.method === "POST"
                         ) {
                             await caches.delete(dynamicCacheName);
                         }
@@ -70,7 +70,7 @@ self.addEventListener("fetch", async (event) => {
                                     ? testAsteriskPathRegex(noOfflinePath, path)
                                     : noOfflinePath === path
                             )
-                            if(!ignore && event.request.method!=="POST"){
+                            if(!ignore && event.request.method !== "POST"){
                                 return caches.open(dynamicCacheName).then((cache) => {
                                       cache.put(
                                           event.request.url,

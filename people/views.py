@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from main.decorators import require_JSON_body
 from main.methods import base64ToImageFile, respondJson, renderData
 from main.env import MAILUSER
-from main.strings import Action, Code, Message
+from main.strings import Action, Code, Message, URL
 from .apps import APPNAME
 from .decorators import profile_active_required
 from .models import ProfileSetting, User, Profile
@@ -125,15 +125,16 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 return redirect(profile.getLink())
             except:
                 return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
+        else: raise Exception()
     except:
-        raise HttpResponseForbidden()
+        return HttpResponseForbidden()
 
 
 @require_POST
 @verified_email_required
 def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
     try:
-        if str(request.user.id) != str(userID):
+        if str(request.user.getID()) != str(userID):
             raise Exception()
         newsletter = True if str(request.POST.get(
             'newsletter', 'off')) != 'off' else False

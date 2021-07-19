@@ -103,17 +103,17 @@ def trashProject(request:WSGIRequest, projID:UUID) -> HttpResponse:
         raise Http404()
 
 @require_GET
-@profile_active_required
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame)
         if project.status == Code.APPROVED:
             return renderer(request, 'profile', {"project": project})
         else:
-            mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
-                                            Code.REJECTED, Code.MODERATION]).order_by('-respondOn')[0]
-            if request.user.is_authenticated and (project.creator == request.user.profile or mod.moderator == request.user.profile):
-                return redirect(mod.getLink())
+            if request.user.is_authenticated:
+                mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
+                                                Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()
+                if project.creator == request.user.profile or mod.moderator == request.user.profile:
+                    return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
         print(e)

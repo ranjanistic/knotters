@@ -1,20 +1,20 @@
 from django.urls import path
-from main.strings import url
+from main.strings import URL
 from .views import *
 
 urlpatterns = [
-    path(url.INDEX, index),
-    path(url.Compete.INDEXTAB, indexTab),
-    path(url.Compete.COMPETETABSECTION, competitionTab),
-    path(url.Compete.COMPID, competition),
-    path(url.Compete.PARTICIPATE, createSubmission),
-    path(url.Compete.REMOVEMEMBER, removeMember),
-    path(url.Compete.DATA, data),
-    path(url.Compete.INVITE, invite),
-    path(url.Compete.INVITEACTION, inviteAction),
-    path(url.Compete.INVITATION, invitation),
-    path(url.Compete.SAVE, save),
-    path(url.Compete.SUBMIT, finalSubmit),
-    path(url.Compete.SUBMITPOINTS, submitPoints),
-    path(url.Compete.DECLARERESULTS, declareResults),
+    path(URL.INDEX, index),
+    path(URL.Compete.INDEXTAB, indexTab),
+    path(URL.Compete.COMPETETABSECTION, competitionTab),
+    path(URL.Compete.COMPID, competition),
+    path(URL.Compete.PARTICIPATE, createSubmission),
+    path(URL.Compete.REMOVEMEMBER, removeMember),
+    path(URL.Compete.DATA, data),
+    path(URL.Compete.INVITE, invite),
+    path(URL.Compete.INVITEACTION, inviteAction),
+    path(URL.Compete.INVITATION, invitation),
+    path(URL.Compete.SAVE, save),
+    path(URL.Compete.SUBMIT, finalSubmit),
+    path(URL.Compete.SUBMITPOINTS, submitPoints),
+    path(URL.Compete.DECLARERESULTS, declareResults),
 ]

@@ -8,7 +8,7 @@ from django.db.models.fields.files import ImageFieldFile
 from django.http.response import HttpResponse, JsonResponse
 from django.http.request import HttpRequest
 from django.shortcuts import redirect, render
-from .strings import url
+from .strings import URL, url
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
 
 
@@ -31,6 +31,15 @@ def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = 
     :data: The dict data to be render in the view.
     :fromApp: The subapplication division name under which the given view named template file resides
     """
+    data['URLS'] = data.get('URLS',{})
+
+    def cond(key,value):
+        return str(key).isupper()
+    urls = classAttrsToDict(URL,cond)
+    
+    for key in urls:
+        data['URLS'][key] = f"{url.getRoot() if urls[key] != URL.ROOT else ''}{replaceUrlParamsWithStr(str(urls[key]))}"
+
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
 
@@ -60,7 +69,7 @@ def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     """
     Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
     """
-    return re.sub(r'(<str:)+[a-zA-Z0-9]+(>)', replacingChar, path)
+    return re.sub(r'(<str:|<int:)+[a-zA-Z0-9]+(>)', replacingChar, path)
 
 
 def getDeepFilePaths(dir_name, appendWhen):
@@ -128,6 +137,15 @@ class JsonEncoder(DjangoJSONEncoder):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
 
+
+
+def classAttrsToDict(className, appendCondition)->dict:
+    data = {}
+    for key in className.__dict__:
+        if not (str(key).startswith('__') and str(key).endswith('__')):
+            if appendCondition(key,className.__dict__.get(key)):
+                data[key] = className.__dict__.get(key)
+    return data
 
 def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     """
