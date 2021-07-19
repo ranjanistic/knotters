@@ -57,10 +57,10 @@ class Competition(models.Model):
         """
         Link to competition profile page
         """
-        return f"{url.getRoot(APPNAME)}{self.getID()}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.compete.compID(compID=self.getID())}{url.getMessageQuery(alert,error,success)}"
 
     def participationLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.Compete.participate(compID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.compete.participate(compID=self.getID())}"
 
     def isActive(self) -> bool:
         """
@@ -216,7 +216,7 @@ class Competition(models.Model):
             return 0
 
     def submissionPointsLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.Compete.submitPoints(compID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.compete.submitPoints(compID=self.getID())}"
 
     def allSubmissionsMarkedByJudge(self, judge: Profile) -> bool:
         """
@@ -254,7 +254,7 @@ class Competition(models.Model):
         return count
 
     def declareResultsLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.declareResults(compID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.compete.declareResults(compID=self.getID())}"
 
     def declareResults(self) -> bool:
         """
@@ -363,7 +363,7 @@ class Submission(models.Model):
         """
         URL endpoint to save repo field value.
         """
-        return f"{url.getRoot(APPNAME)}{url.Compete.save(compID=self.getCompID(),subID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.compete.save(compID=self.getCompID(),subID=self.getID())}"
 
     def totalMembers(self) -> int:
         """

@@ -1,9 +1,19 @@
+import re
 from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION]
+
+def setPathParams(path: str, *replacingChars: str) -> str:
+    """
+    Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
+    """
+    i = 0
+    while i < len(replacingChars):
+        path = re.sub(Code.URLPARAM, str(replacingChars[i]), path, 1)
+        i += 1
+    return path
 
 
 class Environment():
@@ -18,144 +28,6 @@ ENVIRONMENTS = [Environment.DEVELOPMENT,
                 Environment.TESTING, Environment.PRODUCTION]
 
 
-class URL():
-    INDEX = ''
-    FAVICON = 'favicon.ico'
-    ROBOTS_TXT = 'robots.txt'
-    MANIFEST = 'manifest.json'
-    SERVICE_WORKER = 'service-worker.js'
-    OFFLINE = 'off408'
-    ACCOUNTS = "auth/"
-    ROOT = '/'
-    PROJECTS = f'{PROJECTS}/'
-    COMPETE = f'{COMPETE}/'
-    PEOPLE = f'{PEOPLE}/'
-    MODERATION = f'{MODERATION}/'
-    REDIRECTOR = 'redirector/'
-    DOCS = 'docs/'
-    DOCTYPE = 'docs/<str:type>'
-    LANDINGS = 'landing/'
-    LANDING = 'landing'
-    APPLANDING = '<str:subapp>/landing'
-
-    def getRoot(self, fromApp: str = '') -> str:
-        """
-        Returns root path of given sub application name.
-
-        :fromApp: The app name, if nothing or invalid value is passed, returns root.
-        """
-        if fromApp == COMPETE:
-            return f"/{self.COMPETE}"
-        elif fromApp == PROJECTS:
-            return f"/{self.PROJECTS}"
-        elif fromApp == PEOPLE:
-            return f"/{self.PEOPLE}"
-        elif fromApp == MODERATION:
-            return f"/{self.MODERATION}"
-        else:
-            return self.ROOT
-
-    def getMessageQuery(self, alert: str = '', error: str = '', success: str = ''):
-        if error and message.isValid(error):
-            error = f"?e={error}"
-        elif alert and message.isValid(alert):
-            alert = f"?a={alert}"
-        elif success and message.isValid(success):
-            success = f"?s={success}"
-        else:
-            return ''
-        return f"{error}{alert}{success}"
-
-    def githubProfile(self, ghID):
-        return f"https://github.com/{ghID}"
-
-    class Compete():
-        COMPID = '<str:compID>'
-        INDEXTAB = 'indexTab/<str:tab>'
-        COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
-        DATA = "data/<str:compID>"
-        PARTICIPATE = 'participate/<str:compID>'
-
-        def participate(self, compID):
-            return f"participate/{compID}"
-
-        REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
-        INVITE = 'invite/<str:subID>'
-        INVITATION = 'invitation/<str:subID>/<str:userID>'
-        INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
-        SAVE = 'save/<str:compID>/<str:subID>'
-
-        def save(self, compID, subID):
-            return f'save/{compID}/{subID}'
-        SUBMIT = 'submit/<str:compID>/<str:subID>'
-
-        SUBMITPOINTS = 'submissionpoints/<str:compID>'
-
-        def submitPoints(self, compID):
-            return f'submissionpoints/{compID}'
-
-        DECLARERESULTS = 'declareresults/<str:compID>'
-
-        def declareResults(self, compID):
-            return f'declareresults/{compID}'
-
-    class Moderation():
-        MODID = '<str:id>'
-        MESSAGE = 'message/<str:modID>'
-        ACTION = 'action/<str:modID>'
-        REAPPLY = 'reapply/<str:modID>'
-
-        def reapply(self, modID):
-            return f'reapply/{modID}'
-
-        APPROVECOMPETE = 'compete/<str:modID>'
-
-        def approveCompete(self, modID):
-            return f'compete/{modID}'
-
-    class People():
-        PROFILE = 'profile/<str:userID>'
-
-        def profile(self, userID):
-            return f'profile/{userID}'
-
-        PROFILEEDIT = 'profile/edit/<str:section>'
-        PROFILETAB = 'profiletab/<str:userID>/<str:section>'
-        SETTINGTAB = 'settingtab/<str:section>'
-
-        ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
-
-        def accountPreferences(self, userID):
-            return f"account/preferences/{userID}"
-        ACCOUNTACTIVATION = "account/activation"
-        GETSUCCESSOR = 'account/successor'
-        INVITESUCCESSOR = 'account/successor/invite'
-        ACCOUNTDELETE = "account/delete"
-
-        SUCCESSORINVITE = 'invitation/successor/<str:predID>'
-
-        def successorInvite(self, predID):
-            return f'invitation/successor/{predID}'
-
-        SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
-
-        ZOMBIE = 'zombie/<str:profileID>'
-
-        def zombie(self, profileID):
-            return f'zombie/{profileID}'
-
-    class Projects():
-        CREATEVALIDATEFIELD = 'create/validate/<str:field>'
-        CREATE = 'create'
-        SUBMIT = 'submit'
-        PROFILE = 'profile/<str:reponame>'
-        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>'
-        PROJECTINFO = 'projectinfo/<str:projectID>/<str:info>'
-
-
-url = URL()
-
-
 class Code():
     OK = "OK"
     NO = "NO"
@@ -167,10 +39,9 @@ class Code():
     MODERATOR = "moderator"
     ZOMBIE = 'Zombie'
     ZOMBIEMAIL = 'zombie@knotters.org'
-
+    URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
 
 code = Code()
-
 
 class Message():
     ERROR_OCCURRED = "An error occurred."
@@ -271,6 +142,173 @@ class Action():
 
 action = Action()
 
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION]
+
+
+class URL():
+    INDEX = ''
+    FAVICON = 'favicon.ico'
+    ROBOTS_TXT = 'robots.txt'
+    MANIFEST = 'manifest.json'
+    SERVICE_WORKER = 'service-worker.js'
+    OFFLINE = 'off408'
+    ACCOUNTS = "auth/"
+    ROOT = '/'
+    PROJECTS = f'{PROJECTS}/'
+    COMPETE = f'{COMPETE}/'
+    PEOPLE = f'{PEOPLE}/'
+    MODERATION = f'{MODERATION}/'
+    REDIRECTOR = 'redirector/'
+    DOCS = 'docs/'
+    DOCTYPE = 'docs/<str:type>'
+    LANDINGS = 'landing/'
+    LANDING = 'landing'
+    APPLANDING = '<str:subapp>/landing'
+
+    def getRoot(self, fromApp: str = '') -> str:
+        """
+        Returns root path of given sub application name.
+
+        :fromApp: The app name, if nothing or invalid value is passed, returns root.
+        """
+        if fromApp == COMPETE:
+            return f"/{self.COMPETE}"
+        elif fromApp == PROJECTS:
+            return f"/{self.PROJECTS}"
+        elif fromApp == PEOPLE:
+            return f"/{self.PEOPLE}"
+        elif fromApp == MODERATION:
+            return f"/{self.MODERATION}"
+        else:
+            return self.ROOT
+
+    def getMessageQuery(self, alert: str = '', error: str = '', success: str = ''):
+        if error:
+            error = f"?e={error}" if message.isValid(error) else ''
+        if alert:
+            alert = f"{'&' if error else '?' }a={alert}" if message.isValid(
+                alert) else ''
+        if success:
+            success = f"{'&' if error or alert else '?'}s={success}" if message.isValid(
+                success) else ''
+        else:
+            return ''
+        return f"{error}{alert}{success}"
+
+    def githubProfile(self, ghID):
+        return f"https://github.com/{ghID}"
+
+    class Compete():
+        COMPID = '<str:compID>'
+
+        def compID(self, compID):
+            return setPathParams(self.COMPID, compID)
+
+        INDEXTAB = 'indexTab/<str:tab>'
+        COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
+        DATA = "data/<str:compID>"
+
+        PARTICIPATE = 'participate/<str:compID>'
+
+        def participate(self, compID):
+            return setPathParams(self.PARTICIPATE, compID)
+
+        REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
+        INVITE = 'invite/<str:subID>'
+        INVITATION = 'invitation/<str:subID>/<str:userID>'
+        INVITEACTION = 'invitation/<str:subID>/<str:userID>/<str:action>'
+
+        SAVE = 'save/<str:compID>/<str:subID>'
+
+        def save(self, compID, subID):
+            return setPathParams(self.SAVE, compID, subID)
+
+        SUBMIT = 'submit/<str:compID>/<str:subID>'
+
+        SUBMITPOINTS = 'submissionpoints/<str:compID>'
+
+        def submitPoints(self, compID):
+            return setPathParams(self.SUBMITPOINTS, compID)
+
+        DECLARERESULTS = 'declareresults/<str:compID>'
+
+        def declareResults(self, compID):
+            return setPathParams(self.DECLARERESULTS, compID)
+
+    compete = Compete()
+
+    class Moderation():
+        MODID = '<str:id>'
+
+        def modID(self, modID):
+            return setPathParams(self.MODID, modID)
+
+        MESSAGE = 'message/<str:modID>'
+        ACTION = 'action/<str:modID>'
+
+        REAPPLY = 'reapply/<str:modID>'
+
+        def reapply(self, modID):
+            return setPathParams(self.REAPPLY, modID)
+
+        APPROVECOMPETE = 'compete/<str:modID>'
+
+        def approveCompete(self, modID):
+
+            return setPathParams(self.APPROVECOMPETE, modID)
+
+    moderation = Moderation()
+
+    class People():
+        PROFILE = 'profile/<str:userID>'
+
+        def profile(self, userID):
+            return setPathParams(self.PROFILE, userID)
+
+        PROFILEEDIT = 'profile/edit/<str:section>'
+        PROFILETAB = 'profiletab/<str:userID>/<str:section>'
+        SETTINGTAB = 'settingtab/<str:section>'
+
+        ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
+
+        def accountPreferences(self, userID):
+            return setPathParams(self.ACCOUNTPREFERENCES, userID)
+
+        ACCOUNTACTIVATION = "account/activation"
+        GETSUCCESSOR = 'account/successor'
+        INVITESUCCESSOR = 'account/successor/invite'
+        ACCOUNTDELETE = "account/delete"
+
+        SUCCESSORINVITE = 'invitation/successor/<str:predID>'
+
+        def successorInvite(self, predID):
+            return setPathParams(self.SUCCESSORINVITE, predID)
+
+        SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
+
+        ZOMBIE = 'zombie/<str:profileID>'
+
+        def zombie(self, profileID):
+            return setPathParams(self.ZOMBIE, profileID)
+
+    people = People()
+
+    class Projects():
+        CREATEVALIDATEFIELD = 'create/validate/<str:field>'
+        CREATE = 'create'
+        SUBMIT = 'submit'
+
+        PROFILE = 'profile/<str:reponame>'
+
+        def profile(self, reponame):
+            return setPathParams(self.PROFILE, reponame)
+
+        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>'
+        PROJECTINFO = 'projectinfo/<str:projectID>/<str:info>'
+
+    projects = Projects()
+
+url = URL()
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]

@@ -125,10 +125,10 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
 @profile_active_required
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
-        changed = False
         project = Project.objects.get(
             id=projectID, creator=request.user.profile)
         if section == 'pallete':
+            changed = False
             try:
                 base64Data = str(request.POST['projectimage'])
                 imageFile = base64ToImageFile(base64Data)

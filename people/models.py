@@ -74,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.first_name
 
     def getLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.People.profile(userID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getID())}"
 
 
 class Topic(models.Model):
@@ -174,9 +174,9 @@ class Profile(models.Model):
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
             if self.githubID:
-                return f"{url.getRoot(APPNAME)}{url.People.profile(userID=self.githubID)}{url.getMessageQuery(alert,error,success)}"
-            return f"{url.getRoot(APPNAME)}{url.People.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
-        return f'{url.getRoot(APPNAME)}{url.People.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
+                return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.githubID)}{url.getMessageQuery(alert,error,success)}"
+            return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
+        return f'{url.getRoot(APPNAME)}{url.people.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
 
     def isReporter(self, profile) -> bool:
         if profile in self.reporters.all():
@@ -184,7 +184,7 @@ class Profile(models.Model):
         return False
 
     def getSuccessorInviteLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.People.successorInvite(predID=self.getUserID())}"
+        return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
 
 
 class ProfileSetting(models.Model):
@@ -200,7 +200,7 @@ class ProfileSetting(models.Model):
         return self.profile.getID()
 
     def savePreferencesLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.People.accountPreferences(userID=self.profile.getUserID())}"
+        return f"{url.getRoot(APPNAME)}{url.people.accountPreferences(userID=self.profile.getUserID())}"
 
 
 class ProfileReport(models.Model):

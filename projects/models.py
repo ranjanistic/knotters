@@ -1,10 +1,10 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from main.strings import Code, URL, PEOPLE, project, message
-from main.methods import maxLengthInList
-from main.settings import MEDIA_URL
 from main.env import PUBNAME
+from main.settings import MEDIA_URL
+from main.methods import maxLengthInList
+from main.strings import Code, url, PEOPLE, project, message
 from moderation.models import Moderation
 from .apps import APPNAME
 
@@ -90,7 +90,7 @@ class Project(models.Model):
         if self.status != Code.APPROVED:
             return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[
                 Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
-        return f"/{URL.PROJECTS}profile/{self.reponame}{error}{success}{alert}"
+        return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
 
     def getDP(self) -> str:
         return f"{MEDIA_URL}{str(self.image)}"

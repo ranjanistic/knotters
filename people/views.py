@@ -94,22 +94,34 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         profile = Profile.objects.get(user=request.user)
         if section == 'pallete':
+            userchanged = False
+            profilechanged = False
             try:
                 base64Data = str(request.POST['profilepic'])
                 imageFile = base64ToImageFile(base64Data)
                 if imageFile:
                     profile.picture = imageFile
+                    profilechanged = True
             except:
                 pass
             try:
                 fname, lname = convertToFLname(
                     str(request.POST['displayname']))
-                bio = str(request.POST['profilebio'])
-                profile.user.first_name = fname
-                profile.user.last_name = lname
-                profile.user.save()
-                profile.bio = filterBio(bio)
-                profile.save()
+                bio = str(request.POST['profilebio']).strip()
+                if fname != profile.user.first_name:
+                    profile.user.first_name = fname
+                    userchanged = True
+                if lname != profile.user.last_name:
+                    profile.user.last_name = lname
+                    userchanged = True
+                if filterBio(bio) != profile.bio:
+                    profile.bio = filterBio(bio)
+                    profilechanged = True
+                
+                if userchanged:
+                    profile.user.save()
+                if profilechanged:
+                    profile.save()
                 return redirect(profile.getLink())
             except:
                 return redirect(profile.getLink(error=Message.ERROR_OCCURRED))

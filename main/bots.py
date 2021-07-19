@@ -1,5 +1,5 @@
-from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
 from github import Github as GHub
+from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
 
 if ISPRODUCTION:
     Github = GHub(GITHUBBOTTOKEN)

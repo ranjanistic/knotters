@@ -1,8 +1,8 @@
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-from .env import ISPRODUCTION, PUBNAME, SITE
-from .strings import url
 from people.models import Profile
+from .env import ISPRODUCTION, PUBNAME, SITE
+from .strings import URL
 
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
@@ -26,10 +26,13 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
             msg.attach_alternative(content=html, mimetype="text/html")
             msg.send()
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
     else:
-        print(to, body)
+        print(to)
+        print(subject)
+        print(body)
         return True
 
 
@@ -66,7 +69,7 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
         elif str(acturl).startswith('http'):
             updatedActions.append({
                 'text': acttext,
-                'url': f"{SITE}/{url.REDIRECTOR}?n={acturl}"
+                'url': f"{SITE}/{URL.REDIRECTOR}?n={acturl}"
             })
         else:
             updatedActions.append({
@@ -126,14 +129,15 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
 
 def downtimeAlert() -> list:
     """
-    To alert all users about any downtime, meant for manual invokation via shell.
+    To alert all users about any downtime, meant for manual invokation via shell only.
     """
 
     tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")
-                   ) + " (IST Asia/Kolkata)"
+                   ).strip() + " (IST Asia/Kolkata)"
     print(tillTime)
     profiles = Profile.objects.filter(is_zombie=False, to_be_zombie=False)
     mails = []
+    print('Looping...')
     for prof in profiles:
         sendAlertEmail(
             to=prof.getEmail(),
@@ -147,5 +151,5 @@ def downtimeAlert() -> list:
             'to': prof.getEmail(),
             'username': prof.getFName()
         })
-    print("Downtime alerted"),
+    print("Downtime alerted")
     return mails

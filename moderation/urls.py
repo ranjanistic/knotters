@@ -1,6 +1,6 @@
 from django.urls import path
 from main.strings import url
-from .views import moderation, message, action, reapply, approveCompetition
+from .views import *
 
 urlpatterns = [
     path(url.Moderation.MODID, moderation),

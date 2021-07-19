@@ -70,13 +70,13 @@ class Moderation(models.Model):
         return True
 
     def getLink(self, alert:str='', error:str='') -> str:
-        return f"{url.getRoot(APPNAME)}{self.getID()}{url.getMessageQuery(alert,error)}"
+        return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error)}"
 
     def reapplyLink(self):
-        return f"{url.getRoot(APPNAME)}{url.Moderation.reapply(self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.moderation.reapply(modID=self.getID())}"
 
     def approveCompeteLink(self):
-        return f"{url.getRoot(APPNAME)}{url.Moderation.approveCompete(self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.moderation.approveCompete(modID=self.getID())}"
 
     def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
