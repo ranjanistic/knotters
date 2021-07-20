@@ -4,6 +4,10 @@ from django import forms
 from main.strings import code
 
 class CompetitionAdminForm(forms.ModelForm):
+    description = forms.CharField(widget=forms.Textarea,max_length=20000, help_text="This will be shown in the overview, along with perks, only after the competition as started.")
+    taskSummary = forms.CharField(widget=forms.Textarea,max_length=50000,help_text="The summary of task (HTML allowed).")
+    taskDetail = forms.CharField(widget=forms.Textarea,max_length=100000,help_text="The details of task (HTML allowed).")
+    taskSample = forms.CharField(widget=forms.Textarea,max_length=10000,help_text="The task sample submission (HTML allowed).")
     class Meta:
         model = Competition
         fields = "__all__"

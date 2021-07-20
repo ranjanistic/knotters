@@ -189,17 +189,14 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     Renders invitation action page for invitee to which the url was sent via email.
     """
     try:
-        if str(request.user.id) != str(userID):
+        if str(request.user.getID()) != str(userID):
             raise Exception()
-        user = request.user
         submission = Submission.objects.get(id=subID, submitted=False)
-        if not submission.competition.isActive():
-            raise Exception()
-        if not submission.canInvite():
+        if not submission.competition.isActive() or not submission.canInvite():
             raise Exception()
         try:
             relation = SubmissionParticipant.objects.get(
-                submission=submission, profile=user.profile)
+                submission=submission, profile=request.user.profile)
             if relation.confirmed:
                 return redirect(submission.competition.getLink(error=Message.ALREADY_PARTICIPATING))
             else:
@@ -220,9 +217,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
     To accpet/decline participation invitation, by invitee for a submission of a competition.
     """
     try:
-        if str(request.user.id) != str(userID):
+        if str(request.user.getID()) != str(userID):
             raise Exception()
-
         submission = Submission.objects.get(id=subID, submitted=False)
         if not submission.competition.isActive():
             raise Exception()
@@ -249,23 +245,23 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
 
 @require_POST
 @login_required
-@profile_active_required
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         now = timezone.now()
         competition = Competition.objects.get(id=compID)
         if not competition.isActive():
             raise Exception()
-        Submission.objects.filter(id=subID, competition=competition, members=request.user.profile).update(
-            repo=str(request.POST.get('submissionurl', '')), modifiedOn=now)
-        return redirect(competition.getLink(alert=Message.SAVED), permanent=True)
+        repo = str(request.POST.get('submissionurl', '')).strip()
+        Submission.objects.filter(id=subID, competition=competition, members=request.user.profile).update(repo=repo, modifiedOn=now)
+        return redirect(competition.getLink(alert=Message.SAVED))
     except Exception as e:
+        print('error')
+        print(e)
         raise Http404()
 
 
 @require_JSON_body
 @login_required
-@profile_active_required
 def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse:
     """
     Already existing participation final submission
@@ -317,7 +313,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         modifiedTops = {}
 
         for top in topics:
-            modifiedTops[str(top.id)] = []
+            modifiedTops[str(top.getID())] = []
 
         for sub in subs:
             subID = str(sub['subID']).strip()
@@ -330,14 +326,14 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
         topicpointsList = []
         for topic in topics:
-            subspointslist = modifiedTops[str(topic.id)]
+            subspointslist = modifiedTops[str(topic.getID())]
             for sub in subspointslist:
                 point = None
                 submission = None
                 for subm in submissions:
-                    if sub.keys().__contains__(str(subm.id)):
+                    if sub.keys().__contains__(str(subm.getID())):
                         submission = subm
-                        point = int(sub[str(subm.id)])
+                        point = int(sub[str(subm.getID())])
                         break
                 if point == None or submission == None:
                     raise Exception()

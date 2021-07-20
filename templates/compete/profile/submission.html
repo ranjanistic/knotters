@@ -10,7 +10,7 @@
         </h4>
         <div class="w3-row pallete positive">
             <h3>Submission</h3>
-            {% if not submission.submitted and competition.isActive %}
+            {% if not submission.submitted and compete.isActive %}
             <form class="w3-row" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
             <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
@@ -25,7 +25,7 @@
             <input disabled class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
             {% endif %}
         </div>
-        {% if not submission.submitted and not competition.resultDeclared %}
+        {% if not submission.submitted and not compete.resultDeclared %}
         <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
         {% if submission.submittingLate %}
             Late Submit
@@ -43,17 +43,19 @@
             <div class="w3-col w3-third w3-padding-small">
                 <div class="pallete accent w3-center">
                     <a target="_blank" href="{{member.getLink}}">
-                    <img src="{{member.getDP}}" width="100" />
-                    <h6 class="text-accent">{{member.getName}}</h6>
+                    <img src="{{member.getDP}}" width="100" class="pallete" />
+                    <br/>
+                    <strong class="text-accent">{{member.getName}}</strong>
                     </a>
                     {% if not submission.submittingLate and not submission.submitted %}
-                    <button class="negative remove-person" data-name="{{member.getName}}" data-userID="{{member.getUserID}}" data-icon="delete"></button>
+                    <br/>
+                    <button class="small negative remove-person" data-name="{{member.getName}}" data-userID="{{member.getUserID}}" data-icon="delete"></button>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
-        {% if competition.isActive and not submission.submitted %}
+        {% if compete.isActive and not submission.submitted %}
         <br/>
         {% if submission.canInvite %}
         <button class="w3-right active" data-icon="person_add" id="invitepeople">Invite</button>
@@ -76,7 +78,7 @@
         {% endif %}
     </div>
     {% else %}
-        {% if not competition.isActive %}
+        {% if not compete.isActive %}
             <br/><br/>
             <center>
             <div class="w3-jumbo material-icons">hourglass_bottom</div>
@@ -90,13 +92,15 @@
             
             <h1>Competition is a thrill way to learn.</h1>
             {% if request.user.is_authenticated%}
-            <form action="{{competition.participationLink}}" 
+            <form action="{{compete.participationLink}}" 
                 method="POST">
                 {% csrf_token %}
-                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="join">Participate Independently</button></a>
+                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">Participate Independently</button></a>
+                <br/><br/><br/>
+                <strong>If you have been invited, then the above button will cancel your pending invitations.</strong>
             </form>
             {% else %}
-                <a href="{% url 'account_login' %}?next={{competition.getLink}}#mainframe"><button class="display-button positive" data-icon="login">Login to Participate</button></a>
+                <a href="{% url 'account_login' %}?next={{compete.getLink}}#mainframe"><button class="display-button positive" data-icon="login">Login to Participate</button></a>
             {% endif %}
             </div>
         {% endif %}

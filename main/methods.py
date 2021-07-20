@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile, File
 from django.db.models.fields.files import ImageFieldFile
 from django.http.response import HttpResponse, JsonResponse
 from django.http.request import HttpRequest
+from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from .strings import URL, url
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
@@ -18,6 +19,15 @@ def renderData(data: dict = {}, fromApp: str = '') -> dict:
 
     :param: fromApp: The subapplication name from whose context this method will return udpated data.
     """
+    data['URLS'] = data.get('URLS', {})
+
+    def cond(key, value):
+        return str(key).isupper()
+    urls = classAttrsToDict(URL, cond)
+
+    for key in urls:
+        data['URLS'][key] = f"{url.getRoot() if urls[key] != URL.ROOT else ''}{replaceUrlParamsWithStr(str(urls[key]))}"
+
     data['ROOT'] = url.getRoot(fromApp)
     data['SUBAPPNAME'] = fromApp
     return data
@@ -31,16 +41,19 @@ def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = 
     :data: The dict data to be render in the view.
     :fromApp: The subapplication division name under which the given view named template file resides
     """
-    data['URLS'] = data.get('URLS',{})
-
-    def cond(key,value):
-        return str(key).isupper()
-    urls = classAttrsToDict(URL,cond)
-    
-    for key in urls:
-        data['URLS'][key] = f"{url.getRoot() if urls[key] != URL.ROOT else ''}{replaceUrlParamsWithStr(str(urls[key]))}"
 
     return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
+
+
+def renderString(request: HttpRequest, view: str, data: dict = {}, fromApp: str = '') -> str:
+    """
+    Returns text/html data as string via given template view name.
+
+    :view: The template view name (without extension), under the fromApp named folder
+    :data: The dict data to be render in the view.
+    :fromApp: The subapplication division name under which the given view named template file resides
+    """
+    return render_to_string(f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
 
 
 def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') -> JsonResponse:
@@ -138,14 +151,14 @@ class JsonEncoder(DjangoJSONEncoder):
         return super(JsonEncoder, self).default(obj)
 
 
-
-def classAttrsToDict(className, appendCondition)->dict:
+def classAttrsToDict(className, appendCondition) -> dict:
     data = {}
     for key in className.__dict__:
         if not (str(key).startswith('__') and str(key).endswith('__')):
-            if appendCondition(key,className.__dict__.get(key)):
+            if appendCondition(key, className.__dict__.get(key)):
                 data[key] = className.__dict__.get(key)
     return data
+
 
 def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
     """

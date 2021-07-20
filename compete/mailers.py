@@ -13,7 +13,7 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
         to=profile.getEmail(), username=profile.getFName(), subject='Invitation to Participate Together',
         header=f"{host.getName()} ({host.getEmail()}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.",
         actions=[{'text': "See invitation",
-                  'url': f'{APPNAME}/invitation/{submission.id}/{profile.getUserID()}'}],
+                  'url': f'{APPNAME}/invitation/{submission.getID()}/{profile.getUserID()}'}],
         footer=f"You may accept or deny this invitation. If you won't respond, then this invitation will automatically become invalid at the end of competition, or, upon final submission, or, cancellation of your invitation by {host.getName()}, whichever occurrs earlier.",
         conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
     )

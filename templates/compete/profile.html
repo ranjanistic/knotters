@@ -46,11 +46,8 @@
       <div class="w3-col w3-twothird w3-left w3-padding">
         <h2>{{compete.title}}</h2>
         <h4>{{compete.tagline}}</h4>
-        <span>{{compete.shortdescription}}</span>
+        <strong>{{compete.shortdescription}}</strong>
         <br />
-        <div class="w3-row ">
-          <b>Description</b><br /><span>{{compete.description}}</span>
-        </div>
       </div>
       <div class="w3-col w3-third w3-center">
       <br/>
@@ -124,7 +121,7 @@
 {% endblock %}
 {% block scripts %}
 <script>
-const compID = "{{compete.id}}"
+const compID = "{{compete.getID}}"
 const isActive = "{{compete.isActive}}" == 'True';
 const resultDeclared = "{{compete.resultDeclared}}" == 'True';
 </script>

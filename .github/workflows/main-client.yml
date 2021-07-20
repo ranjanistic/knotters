@@ -1,4 +1,4 @@
-name: Knotters Django Client CI
+name: Knotters Client Static CI
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     paths:
       - "genversion.py"
       - "static/**"
-      - "templates/**"
+      - "!templates/**"
       - "!main/**"
       - "!moderation/**"
       - "!people/**"
