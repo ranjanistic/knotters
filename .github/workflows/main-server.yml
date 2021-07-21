@@ -5,9 +5,9 @@ on:
     branches: [ main ]
     paths:
       - ".github/workflows/main-server.yml"
-      - "compete/**"
       - "main/**"
       - "moderation/**"
+      - "compete/**"
       - "people/**"
       - "projects/**"
       - "manage.py"

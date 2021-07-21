@@ -9,6 +9,7 @@ on:
       - "!templates/**"
       - "!main/**"
       - "!moderation/**"
+      - "!compete/**"
       - "!people/**"
       - "!projects/**"
       - "!manage.py"
