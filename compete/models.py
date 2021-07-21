@@ -9,6 +9,7 @@ from main.strings import url
 from main.settings import MEDIA_URL
 from .apps import APPNAME
 
+
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/banners/{instance.id}.{fileparts[len(fileparts)-1]}"
@@ -23,18 +24,21 @@ class Competition(models.Model):
     A competition.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=1000, blank=False, null=False)
-    tagline = models.CharField(max_length=2000, blank=False, null=False)
+    title = models.CharField(max_length=1000, blank=False,
+                             null=False, help_text='The competition name.')
+    tagline = models.CharField(max_length=2000, blank=False, null=False,
+                               help_text='This will be shown in introduction and url previews.')
     shortdescription = models.CharField(
-        max_length=5000, blank=False, null=False)
-    description = models.CharField(max_length=20000, blank=False, null=False)
+        max_length=5000, blank=False, null=False, help_text='This will be shown in introduction.')
+    description = models.CharField(max_length=20000, blank=False, null=False,
+                                   help_text='This will be shown in the overview, along with perks, only after the competition as started.')
     banner = models.ImageField(
         upload_to=competeBannerPath, default=defaultBannerPath)
 
-    startAt = models.DateTimeField(auto_now=False, default=timezone.now)
-    endAt = models.DateTimeField(auto_now=False)
-
-    resultDeclared = models.BooleanField(default=False)
+    startAt = models.DateTimeField(auto_now=False, default=timezone.now,
+                                   help_text='When this competition will start accepting submissions.')
+    endAt = models.DateTimeField(
+        auto_now=False, help_text='When this competition will stop accepting submissions.')
 
     judges = models.ManyToManyField(
         Profile, through='CompetitionJudge', default=[])
@@ -42,7 +46,17 @@ class Competition(models.Model):
     topics = models.ManyToManyField(
         Topic, through='CompetitionTopic', default=[])
 
-    eachTopicMaxPoint = models.IntegerField(default=10)
+    perks = models.CharField(max_length=1000, null=True, blank=True,
+                             help_text='Use semi-colon (;) separated perks for each rank, starting from 1st.')
+    eachTopicMaxPoint = models.IntegerField(
+        default=10, help_text='The maximum points each judge can appoint for each topic to each submission of this competition.')
+
+    taskSummary = models.CharField(max_length=50000)
+    taskDetail = models.CharField(max_length=100000)
+    taskSample = models.CharField(max_length=10000)
+
+    resultDeclared = models.BooleanField(
+        default=False, help_text='Whether the results have been declared or not. Strictly restricted to be edited via server.')
 
     def __str__(self) -> str:
         return self.title
@@ -67,7 +81,7 @@ class Competition(models.Model):
         Whether the competition is active or not, depending on startAt & endAt.
         """
         now = timezone.now()
-        return self.startAt <= now < self.endAt
+        return self.startAt <= now < self.endAt and not self.resultDeclared
 
     def isUpcoming(self) -> bool:
         """
@@ -89,13 +103,20 @@ class Competition(models.Model):
         if time >= self.endAt:
             return 0
         diff = self.endAt - time
-        return diff.seconds
+        return diff.total_seconds()
 
     def getTopics(self) -> list:
         """
         List of topics of this competition
         """
         return self.topics.all()
+
+    def getPerks(self) -> list:
+        perks = []
+        for p in str(self.perks).split(';'):
+            if p:
+                perks.append(p)
+        return perks
 
     def totalTopics(self) -> list:
         """
@@ -286,7 +307,7 @@ class Competition(models.Model):
                             rank=rank
                         )
                     )
-                rank = rank+1
+                rank += 1
             obj = Result.objects.bulk_create(resultsList)
             if not obj:
                 return False
@@ -378,7 +399,8 @@ class Submission(models.Model):
         :profile: The profile object to be looked for.
         """
         try:
-            SubmissionParticipant.objects.get(submission=self, profile=profile, confirmed=True)
+            SubmissionParticipant.objects.get(
+                submission=self, profile=profile, confirmed=True)
             return True
         except:
             return False
@@ -387,7 +409,20 @@ class Submission(models.Model):
         """
         List of members whomst membership with this submission is confirmed.
         """
-        return SubmissionParticipant.objects.filter(submission=self, profile__in=self.members.all(), confirmed=True)
+        members = []
+        submps = SubmissionParticipant.objects.filter(
+            submission=self, profile__in=self.members.all(), confirmed=True)
+
+        for submp in submps:
+            members.append(submp.profile)
+        return members
+
+    def getMembersEmail(self) -> list:
+        members = self.getMembers()
+        emails = []
+        for member in members:
+            emails.append(member.getEmail())
+        return emails
 
     def totalActiveMembers(self) -> int:
         """
@@ -414,11 +449,10 @@ class Submission(models.Model):
         List of members whomst relation to this submission is not confirmed.
         """
         invitees = []
-        relations = SubmissionParticipant.objects.filter(submission=self)
-        for member in self.members.all():
-            relation = relations.get(profile=member)
-            if not relation.confirmed:
-                invitees.append(member)
+        relations = SubmissionParticipant.objects.filter(
+            submission=self, confirmed=False)
+        for relation in relations:
+            invitees.append(relation.profile)
         return invitees
 
     def canInvite(self) -> bool:
@@ -452,13 +486,15 @@ class SubmissionParticipant(models.Model):
     """
     For participant member in a submission in a competition.
     """
-    class Meta:
-        unique_together = (("profile", "submission"))
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     confirmed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("profile", "submission")
 
 
 class SubmissionTopicPoint(models.Model):
@@ -466,7 +502,7 @@ class SubmissionTopicPoint(models.Model):
     For each topic, points marked by each judge for each submission in a competition.
     """
     class Meta:
-        unique_together = ("submission", "topic", "judge")
+        unique_together = (("submission", "topic"), ("submission", "judge"))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.PROTECT)

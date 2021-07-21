@@ -1,0 +1,29 @@
+name: Knotters Client Views CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "templates/**"
+      - "!static/**"
+      - "!main/**"
+      - "!moderation/**"
+      - "!compete/**"
+      - "!people/**"
+      - "!projects/**"
+      - "!manage.py"
+      - "!genversion.py"
+
+jobs:
+  client_view_deploy:
+    runs-on: self-hosted
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - name: Merge changes
+      run: |
+        sudo git pull origin
+      working-directory: ${{ secrets.WORKINGDIR }}

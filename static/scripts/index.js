@@ -157,10 +157,10 @@ const setHtmlContent = (element, content = "") => {
 };
 
 const setUrlParams = (path, ...params) => {
-    params.forEach((param)=>{
-        path = String(path).replace('\*', param)
-    })
-    return path
+    params.forEach((param) => {
+        path = String(path).replace("*", param);
+    });
+    return path;
 };
 
 const loadGlobalEventListeners = () => {
@@ -576,3 +576,30 @@ const loadReporters = () => {
 
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
+
+const secsToTime = (secs) => {
+    secs = Number(secs)
+    let mins = secs / 60;
+    let secrem = Math.floor(secs % 60);
+    if (mins < 60) {
+        mins = Math.floor(mins);
+        return `${mins >= 10 ? mins : `0${mins}`}:${
+            secrem >= 10 ? secrem : `0${secrem}`
+        }`;
+    }
+    let hours = mins / 60;
+    let minrem = Math.floor(mins % 60);
+    if (hours < 24) {
+        hours = Math.floor(hours);
+        return `${hours >= 10 ? hours : `0${hours}`}:${
+            minrem >= 10 ? minrem : `0${minrem}`
+        }:${secrem >= 10 ? secrem : `0${secrem}`}`;
+    }
+    let days = Math.floor(hours / 24);
+    let hourrem = Math.floor(hours % 24);
+    return `${days >= 10 ? days : `0${days}`}:${
+        hourrem >= 10 ? hourrem : `0${hourrem}`
+    }:${minrem >= 10 ? minrem : `0${minrem}`}:${
+        secrem >= 10 ? secrem : `0${secrem}`
+    }`;
+};

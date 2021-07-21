@@ -1,1 +1,19 @@
-overview
+<div class="w3-row w3-padding-small">
+    <center>
+        <h3>Judging criteria for this competition</h3>
+        {% for topic in compete.getTopics %}
+        <button class="small secondary">{{topic.name}}</button>
+        {% endfor %}
+    </center>
+    <br/>
+    <h4>Description</h4>
+    <p>{{compete.description}}</p>
+    <h4>Perks</h4>
+    <p>
+        {% for perk in  compete.getPerks %}
+        <h6>Rank {{forloop.counter}} : {{perk}}</<h6>
+        {% endfor %}
+        <h6>All participants will receive e-certificates.</h6>
+        <strong>The points obtained from this competition will be incremented in participants' personal profiles.</strong>
+    </p>
+</div>

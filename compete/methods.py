@@ -2,7 +2,7 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from django.http.response import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
-from main.methods import renderView, renderData, classAttrsToDict, replaceUrlParamsWithStr
+from main.methods import renderView, renderData, renderString, classAttrsToDict, replaceUrlParamsWithStr
 from main.strings import Compete, url
 from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
@@ -31,6 +31,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
                     startAt__lte=now, endAt__gt=now).order_by('-endAt')
             except:
                 actives = []
+            print(actives)
             data['actives'] = actives
         elif section == 'upcoming':
             try:
@@ -54,16 +55,16 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
 
 
 def getCompetitionSectionData(section: str, competition: Competition, request: WSGIRequest) -> dict:
-    data = renderData({
-        'competition': competition
-    }, fromApp=APPNAME)
+    data = {
+        'compete': competition
+    }
     if section == Compete.OVERVIEW:
-        return {}
-    if section == Compete.TASK:
-        return {}
-    if section == Compete.GUIDELINES:
-        return {}
-    if section == Compete.SUBMISSION:
+        pass
+    elif section == Compete.TASK:
+        pass
+    elif section == Compete.GUIDELINES:
+        pass
+    elif section == Compete.SUBMISSION:
         try:
             submission = Submission.objects.get(
                 competition=competition, members=request.user.profile)
@@ -73,7 +74,7 @@ def getCompetitionSectionData(section: str, competition: Competition, request: W
             data['confirmed'] = relation.confirmed
         except:
             data['submission'] = None
-    if section == Compete.RESULT:
+    elif section == Compete.RESULT:
         results = Result.objects.filter(
             competition=competition).order_by('rank')
         if request.user.is_authenticated:
@@ -98,11 +99,11 @@ def getCompetitionSectionData(section: str, competition: Competition, request: W
 
 
 def getCompetitionSectionHTML(competition: Competition, section: str, request: WSGIRequest) -> str:
-    if not Compete.COMPETE_SECTIONS.__contains__(section):
+    if not Compete().COMPETE_SECTIONS.__contains__(section):
         return False
     data = {}
-    for sec in Compete.COMPETE_SECTIONS:
+    for sec in Compete().COMPETE_SECTIONS:
         if sec == section:
             data = getCompetitionSectionData(sec, competition, request)
             break
-    return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
+    return renderString(request, f'profile/{section}', data, APPNAME)

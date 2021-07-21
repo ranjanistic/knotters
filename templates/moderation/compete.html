@@ -210,7 +210,7 @@
 <script>
 
 const ismoderator = "{{ismoderator}}" === 'True'
-const allsubsMarked = "{{moderation.competition.allSubmissionsMarked}}";
+const allsubsMarked = "{{moderation.competition.allSubmissionsMarked}}" === "True";
 
 if(allsubsMarked){
 
@@ -386,8 +386,8 @@ if(allsubsMarked){
         }
         ).set('labels',{ok:`No, wait!`, cancel:`${Icon('delete')}Yes, discard`})
     }
-
-} else {
+  
+}  else {
     const localStorageKey = "{{moderation.getID}}{{moderation.type}}{{request.user.getID}}finalData";
     let allsubmissionchecks = getElements("selectsubmission");
     let selectedAll = false;
@@ -455,7 +455,7 @@ if(allsubsMarked){
         reject.onclick=_=>{
             const rejectDialog = alertify.confirm(`Confirm rejection?`,
             `<h4>Confirm to <span class="negative-text">reject</span> the following submission?</h4>
-                <button class="primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}${reject.getAttribute("data-subItem")}</button>
+                <button class="small primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}${reject.getAttribute("data-subItem")}</button>
             `,()=>{
                 message(`rejecting ${reject.getAttribute("data-subID")}...`)
                 finalData = finalData.filter((fd)=>fd.subID!=reject.getAttribute("data-subID"))
