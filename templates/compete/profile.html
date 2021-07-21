@@ -52,10 +52,10 @@
       <div class="w3-col w3-third w3-center">
       <br/>
         {% if compete.isActive %}
-        <div class="pallete active">
-          <h6 class="text-active">Time remaining</h6>
+        <div class="pallete pointer" id="reload-time">
+          <h6 class="text-active">Remaining</h6>
           <h1 class="w3-jumbo text-active" id="remainingTime"><div class="loader"></div></h1>
-          <h6 class="text-active">seconds to end</h6>
+          <h6 class="text-active">To submit</h6>
         </div>
         {% elif compete.isHistory %}
         <div class="pallete secondary">

@@ -1,16 +1,21 @@
 let compdata = {};
+let intv;
 
-(async () => {
+const loadData = async () => {
     const data = await postRequest(setUrlParams(URLS.DATA, compID));
     if (data.code === code.OK) {
         compdata = { ...data };
+        Object.freeze(compdata);
+        clearInterval(intv);
         if (isActive) {
             let timeleft = data.timeleft;
             if (timeleft === 0) return;
-            let intv = setInterval(() => {
-                getElement("remainingTime").innerHTML = timeleft;
+            getElement("remainingTime").innerHTML = secsToTime(timeleft);
+            intv = setInterval(() => {
+                const disptime = secsToTime(timeleft);
+                getElement("remainingTime").innerHTML = disptime;
                 try {
-                    getElement("finalTimeLeft").innerHTML = timeleft;
+                    getElement("finalTimeLeft").innerHTML = disptime;
                 } catch {}
                 if (!timeleft) {
                     clearInterval(intv);
@@ -22,7 +27,15 @@ let compdata = {};
             }, 1000);
         }
     }
-})();
+};
+
+try {
+    loadData();
+    getElement("remainingTime").innerHTML = loaderHTML();
+    getElement("reload-time").onclick = (_) => {
+        loadData();
+    };
+} catch {}
 
 const loadTabScript = (tab) => {
     switch (tab.id) {

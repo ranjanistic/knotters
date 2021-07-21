@@ -2,6 +2,7 @@ import base64
 import os
 import requests
 import re
+from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.files.base import ContentFile, File
 from django.db.models.fields.files import ImageFieldFile
@@ -249,3 +250,11 @@ def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
         return response['success']
     except:
         return None
+
+def errorLog(error):
+    file = open('_logs_/errors.txt','r')
+    existing = file.read()
+    file2 = open('_logs_/errors.txt','w')
+    new = f"{existing}\n{timezone.now()}\n{error}"
+    file2.write(new)
+    file2.close()

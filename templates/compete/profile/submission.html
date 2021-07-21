@@ -64,12 +64,11 @@
         <div class="w3-row">
             {% for invitee in submission.getInvitees %}
             <div class="w3-col w3-third w3-padding-small">
-                <a target="_blank" href="{{invitee.getLink}}">
                 <div class="pallete">
                     <h6>{{invitee.getName}}</h6>
-                    <button class="negative remove-person" data-name="{{invitee.getName}}" data-userID="{{invitee.getUserID}}" data-icon="delete"></button>
+                    <button class="small negative remove-person" data-name="{{invitee.getName}}" data-userID="{{invitee.getUserID}}" data-icon="delete"></button>
+                    <a href="{{invitee.getLink}}" target="_blank"><button class="small positive" data-icon="open_in_new"></button></a>
                 </div>
-                </a>
             </div>
             {% empty %}
             <center><h4>No pending invites</h4></center>

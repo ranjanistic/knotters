@@ -81,7 +81,7 @@ class Competition(models.Model):
         Whether the competition is active or not, depending on startAt & endAt.
         """
         now = timezone.now()
-        return self.startAt <= now < self.endAt
+        return self.startAt <= now < self.endAt and not self.resultDeclared
 
     def isUpcoming(self) -> bool:
         """
@@ -103,7 +103,7 @@ class Competition(models.Model):
         if time >= self.endAt:
             return 0
         diff = self.endAt - time
-        return diff.seconds
+        return diff.total_seconds()
 
     def getTopics(self) -> list:
         """
@@ -417,6 +417,13 @@ class Submission(models.Model):
             members.append(submp.profile)
         return members
 
+    def getMembersEmail(self) -> list:
+        members = self.getMembers()
+        emails = []
+        for member in members:
+            emails.append(member.getEmail())
+        return emails
+
     def totalActiveMembers(self) -> int:
         """
         All members count with confirmed membership.
@@ -479,13 +486,15 @@ class SubmissionParticipant(models.Model):
     """
     For participant member in a submission in a competition.
     """
-    class Meta:
-        unique_together = (("profile", "submission"))
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     confirmed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("profile", "submission")
 
 
 class SubmissionTopicPoint(models.Model):
@@ -493,7 +502,7 @@ class SubmissionTopicPoint(models.Model):
     For each topic, points marked by each judge for each submission in a competition.
     """
     class Meta:
-        unique_together = ("submission", "topic", "judge")
+        unique_together = (("submission", "topic"), ("submission", "judge"))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.PROTECT)

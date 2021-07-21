@@ -106,7 +106,7 @@ def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusio
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
-def sendActionEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], greeting: str = '') -> bool:
+def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], username: str='', greeting: str = '') -> bool:
     """
 
     :actions: List of { text:str, url: str }
