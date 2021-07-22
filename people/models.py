@@ -106,14 +106,14 @@ class Profile(models.Model):
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     picture = models.ImageField(
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
-    is_moderator = models.BooleanField(default=False)
     githubID = models.CharField(
-        max_length=40, null=True, unique=True, default=None, blank=True)
+        max_length=40, null=True, default=None, blank=True)
     bio = models.CharField(max_length=100, blank=True, null=True)
     successor = models.ForeignKey('User', null=True, blank=True, related_name='successor_profile',
                                   on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     successor_confirmed = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
+    is_moderator = models.BooleanField(default=False)
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -193,7 +193,7 @@ class Profile(models.Model):
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(
-        Profile, on_delete=models.CASCADE, related_name='settings_profile')
+        Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False,blank=False)
     newsletter = models.BooleanField(default=True)
     recommendations = models.BooleanField(default=True)
     competitions = models.BooleanField(default=True)

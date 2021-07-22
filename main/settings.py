@@ -12,6 +12,8 @@ VERSION = env.VERSION
 DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS
+SERVER_EMAIL = env.SERVER_EMAIL
+ADMINS = [(env.PUBNAME, env.MAILUSER)]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -112,6 +114,7 @@ if not DEBUG:
                 "password": env.DBPASS,
                 "authMechanism": "SCRAM-SHA-1",
             },
+            "CONN_MAX_AGE": None
         }
     }
 else:
@@ -121,7 +124,7 @@ else:
             "NAME": env.DBNAME,
             "CLIENT": {
                 "host": env.DBLINK,
-            },
+            }
         }
     }
 

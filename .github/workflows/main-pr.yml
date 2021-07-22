@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     paths-ignore:
       - "*.md"
+      - "templates/**"
+      - "static/**"
 
 jobs:
   testing:
@@ -50,7 +52,7 @@ jobs:
         python manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput
+        python manage.py test --noinput --verbosity=3
     - name: Clear Environment
       run: |
         rm -f ${{ secrets.ENVPATH }}

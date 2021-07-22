@@ -93,7 +93,7 @@ class Competition(models.Model):
         """
         Whether the competition is history or not, depending on endAt.
         """
-        return self.endAt <= timezone.now()
+        return self.endAt and self.endAt <= timezone.now()
 
     def secondsLeft(self) -> int:
         """

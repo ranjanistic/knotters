@@ -131,10 +131,8 @@ class SubmissionTopicPointForm(forms.ModelForm):
 
 class ResultAdminForm(forms.ModelForm):
     
-    competition = forms.ModelChoiceField(queryset=Competition.objects.filter(
-        resultDeclared=False, endAt__lt=timezone.now()))
-    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
-        competition__resultDeclared=False, valid=True, competition__endAt__lt=timezone.now()))
+    competition = forms.ModelChoiceField(queryset=Competition.objects.filter(resultDeclared=True))
+    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(competition__resultDeclared=True, valid=True))
 
     class Meta:
         model = Result

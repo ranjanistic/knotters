@@ -2,6 +2,7 @@ import os
 import sys
 
 ENVPATH = 'main/.env'
+ENVSAMPLEPATH = 'main/.env.example'
 
 def main(ENVPATH):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')

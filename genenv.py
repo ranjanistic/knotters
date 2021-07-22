@@ -1,8 +1,9 @@
 import os
-from manage import ENVPATH
+from manage import ENVPATH, ENVSAMPLEPATH
 
 filepath = ENVPATH
-readpath = 'main\.env.example'
+readpath = ENVSAMPLEPATH
+
 print(f"Sample from: {readpath}")
 
 if str(input(f'This will create/overwrite {filepath}. Continue? (y/N) ')) == 'y':
@@ -40,3 +41,4 @@ if str(input(f'This will create/overwrite {filepath}. Continue? (y/N) ')) == 'y'
         email = str(input(f'email: '))
         os.system(f'gpg -e -r {email} {filepath}')
         os.remove(f'{filepath}')
+    

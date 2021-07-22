@@ -25,3 +25,5 @@ _utils_/
 bin/
 run/
 _logs_/
+.coverage
+htmlcov/
