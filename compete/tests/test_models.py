@@ -100,7 +100,6 @@ class SubmissionTest(TestCase):
     def test_submission_invalidation(self):
         submissions = []
         i = 0
-        print(len(self.users),self.users.count())
         for repo in getSubmissionRepos(len(self.users)):
             submissions.append(Submission(
                 competition=self.comp,
@@ -114,7 +113,7 @@ class SubmissionTest(TestCase):
             s+=1
         Submission.objects.filter(competition=self.comp, repo__endswith='0').update(valid=False)
         comp = Competition.objects.get(id=self.comp.getID())
-        self.assertEquals(comp.totalValidSubmissions(),Submission.objects.filter(Q(competition=self.comp),~Q(repo__endswith='0')).count())
+        self.assertNotEquals(comp.totalValidSubmissions(),Submission.objects.filter(competition=self.comp).count())
 
 
 @tag(Code.Test.MODEL, APPNAME)
