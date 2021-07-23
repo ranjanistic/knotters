@@ -130,6 +130,8 @@ class Profile(models.Model):
         'Profile', through='ProfileReport', related_name='profile_reporters', default=[])
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
 
+    xp = models.IntegerField(default=0, help_text='Experience count')
+
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
 
