@@ -58,7 +58,7 @@ jobs:
         python manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput --verbosity=3 --tag=static
+        python manage.py test --noinput --verbosity=2 --tag=static
     - name: Clear environment
       run: |
         rm -f ${{ secrets.ENVPATH }}

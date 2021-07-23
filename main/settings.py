@@ -124,7 +124,8 @@ else:
             "NAME": env.DBNAME,
             "CLIENT": {
                 "host": env.DBLINK,
-            }
+            },
+            "CONN_MAX_AGE": None if env.ISTESTING else 0
         }
     }
 

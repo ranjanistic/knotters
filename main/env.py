@@ -1,5 +1,5 @@
 import environ
-from .strings import environment
+from .strings import Environment
 from pathlib import Path
 import os
 
@@ -7,27 +7,30 @@ env = environ.Env()
 
 environ.Env.read_env(env_file=os.path.join(Path(__file__).resolve().parent.parent, env('ENVPATH')))
 
-PUBNAME = env('PUBNAME')
 PROJECTKEY = env('PROJECTKEY')
-PUBNAME = env('PUBNAME')
-ENV = env('ENV')
+PUBNAME = env('PUBNAME').strip()
+ENV = env('ENV').strip()
 HOSTS = env('HOSTS').split(',')
-DBNAME = env('DBNAME')
-DBLINK = env('DBLINK')
-DBUSER = env('DBUSER')
-DBPASS = env('DBPASS')
-MAILUSER = env('MAILUSER')
-MAILPASS = env('MAILPASS')
-ADMINPATH = env('ADMINPATH')
-GITHUBBOTTOKEN = env('GITHUBBOTTOKEN')
-DISCORDBOTTOKEN = env('DISCORDBOTTOKEN')
-SITE = env('SITE')
-SENDERTOKEN = env('SENDERTOKEN')
-STATIC_URL = env('STATIC_URL')
-MEDIA_URL = env('MEDIA_URL')
-SERVER_EMAIL = env('SERVER_EMAIL')
+DBNAME = env('DBNAME').strip()
+DBLINK = env('DBLINK').strip()
+DBUSER = env('DBUSER').strip()
+DBPASS = env('DBPASS').strip()
+MAILUSER = env('MAILUSER').strip()
+MAILPASS = env('MAILPASS').strip()
+ADMINPATH = env('ADMINPATH').strip()
+GITHUBBOTTOKEN = env('GITHUBBOTTOKEN').strip()
+DISCORDBOTTOKEN = env('DISCORDBOTTOKEN').strip()
+SITE = env('SITE').strip()
+SENDERTOKEN = env('SENDERTOKEN').strip()
+STATIC_URL = env('STATIC_URL').strip()
+MEDIA_URL = env('MEDIA_URL').strip()
+SERVER_EMAIL = env('SERVER_EMAIL').strip()
 
-ISPRODUCTION = ENV == environment.PRODUCTION
+ISPRODUCTION = ENV == Environment.PRODUCTION
+
+ISDEVELOPMENT = ENV == Environment.DEVELOPMENT
+
+ISTESTING = ENV == Environment.TESTING
 
 VERSION = 'v--16'
 

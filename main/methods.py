@@ -1,4 +1,5 @@
 import base64
+from main.env import ISDEVELOPMENT
 import os
 import requests
 import re
@@ -10,7 +11,7 @@ from django.http.response import HttpResponse, JsonResponse
 from django.http.request import HttpRequest
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
-from .strings import URL, url
+from .strings import Code, URL, url
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, BASE_DIR
 
 
@@ -83,7 +84,7 @@ def replaceUrlParamsWithStr(path: str, replacingChar: str = '*') -> str:
     """
     Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
     """
-    return re.sub(r'(<str:|<int:)+[a-zA-Z0-9]+(>)', replacingChar, path)
+    return re.sub(Code.URLPARAM, replacingChar, path)
 
 
 def getDeepFilePaths(dir_name, appendWhen):
@@ -258,3 +259,5 @@ def errorLog(error):
     new = f"{existing}\n{timezone.now()}\n{error}"
     file2.write(new)
     file2.close()
+    if ISDEVELOPMENT:
+        print(error)

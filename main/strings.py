@@ -5,7 +5,7 @@ from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 
 
-def setPathParams(path: str, *replacingChars: str, lookfor:str='') -> str:
+def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
     """
     Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
     """
@@ -41,6 +41,12 @@ class Code():
     ZOMBIE = 'Zombie'
     ZOMBIEMAIL = 'zombie@knotters.org'
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
+
+    class Test():
+        MODEL = 'model'
+        VIEW = 'view'
+        METHOD = 'method'
+        STATIC = 'static'
 
 
 code = Code()
@@ -209,7 +215,7 @@ class URL():
             return setPathParams(self.COMPID, compID)
 
         INDEXTAB = 'indexTab/<str:tab>'
-        
+
         def indexTab(self, tab):
             return setPathParams(self.INDEXTAB, tab)
 
@@ -231,7 +237,7 @@ class URL():
         REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
 
         def removeMember(self, subID, userID):
-            return setPathParams(self.REMOVEMEMBER,subID, userID)
+            return setPathParams(self.REMOVEMEMBER, subID, userID)
 
         INVITE = 'invite/<str:subID>'
 
@@ -403,6 +409,7 @@ class Moderation():
 
 
 moderation = Moderation()
+
 
 class Profile():
     OVERVIEW = "overview"

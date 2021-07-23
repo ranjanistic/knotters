@@ -4,15 +4,14 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "templates/**"
       - "!static/**"
       - "!main/**"
       - "!moderation/**"
       - "!compete/**"
       - "!people/**"
       - "!projects/**"
-      - "!manage.py"
-      - "!genversion.py"
+      - "!*.py"
+      - "templates/**"
 
 jobs:
   client_view_deploy:
