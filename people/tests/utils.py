@@ -1,4 +1,6 @@
 from people.models import User, Topic
+from random import randint
+from uuid import uuid4
 from django.contrib.auth.hashers import make_password
 
 TEST_NAME = 'Testing'
@@ -12,27 +14,27 @@ TEST_DP = 'testing.png'
 def getTestEmails(count=1,start=0):
     emails = []
     for i in range(count):
-        emails.append(f"testing{i+start}@knotters.org")
+        emails.append(f"testing{i+start}.{uuid4().hex}@knotters.org")
     return emails
 
 
 def getTestNames(count=1,start=0):
     names = []
     for i in range(count):
-        names.append(f"Testing {i+start}")
+        names.append(f"Testing {i+start}{randint(0,count)}")
     return names
 
 
 def getTestPasswords(count=1,start=0):
     passwords = []
     for i in range(count):
-        passwords.append(f"12345@abcde{i+start}")
+        passwords.append(f"12345@abcde{i+start}{randint(0,count)}")
     return passwords
 
 def getTestPasswordsHash(count=1,start=0):
     hashes = []
     for i in range(count):
-        hashes.append(make_password(f"12345@abcde{i+start}", None, 'md5'))
+        hashes.append(make_password(f"12345@abcde{i+start}{randint(0,count)}", None, 'md5'))
     return hashes
 
 
@@ -49,7 +51,7 @@ def getTestUsersInst(count=1, start=0):
 def getTestTopics(count=1,start=0):
     topics = []
     for i in range(count):
-        topics.append(f"Test Topic {i+start}")
+        topics.append(f"Test Topic {i+start}{uuid4().hex}")
     return topics
 
 def getTestTopicsInst(count=1,start=0):

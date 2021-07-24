@@ -7,6 +7,7 @@ from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url
 from main.settings import MEDIA_URL
+from main.methods import errorLog
 from .apps import APPNAME
 
 
@@ -81,7 +82,9 @@ class Competition(models.Model):
         Whether the competition is active or not, depending on startAt & endAt.
         """
         now = timezone.now()
-        return self.startAt <= now < self.endAt and not self.resultDeclared
+        if not self.endAt:
+            return (self.startAt <= now) and not self.resultDeclared
+        return (self.startAt <= now < self.endAt) and not self.resultDeclared
 
     def isUpcoming(self) -> bool:
         """
@@ -114,7 +117,7 @@ class Competition(models.Model):
     def getPerks(self) -> list:
         perks = []
         for p in str(self.perks).split(';'):
-            if p:
+            if p and p != '' and p != 'None':
                 perks.append(p)
         return perks
 
@@ -181,7 +184,8 @@ class Competition(models.Model):
         try:
             return (Moderation.objects.filter(
                 type=APPNAME, competition=self).order_by("-requestOn").first()).getLink(error=error, alert=alert)
-        except:
+        except Exception as e:
+            errorLog(e)
             return ''
 
     def isParticipant(self, profile: Profile) -> bool:
@@ -205,7 +209,7 @@ class Competition(models.Model):
         Returns a list of all submissions of this competition irrespective of validity.
         """
         try:
-            return Submission.objects.filter(competition=self).order_by('submitOn')
+            return Submission.objects.filter(competition=self).order_by('-submitOn')
         except:
             return []
 
@@ -245,6 +249,8 @@ class Competition(models.Model):
         """
         try:
             subslist = self.getValidSubmissions()
+            if len(subslist) < 1:
+                return False
             judgeTopicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__in=subslist, judge=judge).count()
             return judgeTopicPointsCount == len(subslist)*self.totalTopics()
@@ -257,13 +263,16 @@ class Competition(models.Model):
         """
         try:
             subslist = self.getValidSubmissions()
+            if len(subslist) < 1:
+                return False
             topicPointsCount = SubmissionTopicPoint.objects.filter(
+                submission__competition=self,
                 submission__in=subslist).count()
             return topicPointsCount == len(subslist)*self.totalTopics()*self.totalJudges()
         except:
             return False
 
-    def countJudgesWhoMarkedSumissions(self) -> int:
+    def countJudgesWhoMarkedSubmissions(self) -> int:
         """
         Count judges of this competition who have submitted topic points of all valid submissions.
         """
@@ -315,7 +324,7 @@ class Competition(models.Model):
             self.save()
             return self
         except Exception as e:
-            print(e)
+            errorLog(e)
             return False
 
 
@@ -460,7 +469,7 @@ class Submission(models.Model):
         Whether this submission can invite more participants or not, 
         depending on current totalmembers, submission status & competition active status.
         """
-        return self.totalMembers() < 5 and not self.submitted and self.competition.isActive()
+        return (self.totalMembers() < 5) and not self.submitted and self.competition.isActive()
 
     def getRepo(self) -> bool:
         """
@@ -475,7 +484,7 @@ class Submission(models.Model):
         """
         return self.competition.isHistory() and not self.submitted
 
-    def pointedTopicsByJudge(self, judge: Profile):
+    def pointedTopicsByJudge(self, judge: Profile) -> int:
         """
         Count of topics pointed by given judge for this submission.
         """
@@ -486,7 +495,7 @@ class SubmissionParticipant(models.Model):
     """
     For participant member in a submission in a competition.
     """
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     profile = models.ForeignKey(
@@ -502,7 +511,7 @@ class SubmissionTopicPoint(models.Model):
     For each topic, points marked by each judge for each submission in a competition.
     """
     class Meta:
-        unique_together = (("submission", "topic"), ("submission", "judge"))
+        unique_together = (("submission", "judge", "topic"))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.PROTECT)
@@ -511,7 +520,7 @@ class SubmissionTopicPoint(models.Model):
     points = models.IntegerField(default=0)
 
     def __str__(self) -> str:
-        return f"{self.submission}"
+        return self.submission.getID()
 
 
 class Result(models.Model):
@@ -531,8 +540,11 @@ class Result(models.Model):
     def __str__(self) -> str:
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
 
-    def rankSuptext(self) -> str:
-        rank = self.rank
+    def submitOn(self):
+        return self.submission.submitOn
+
+    def rankSuptext(self, rnk=0) -> str:
+        rank = self.rank if rnk == 0 else rnk
         rankstr = str(rank)
         if rank == 1:
             return 'st'
@@ -542,8 +554,8 @@ class Result(models.Model):
             return 'rd'
         else:
             if rank > 9:
-                if rankstr[len(rankstr) - 2] == "1":
+                if rankstr[len(rankstr) - 2] == "1" or rankstr[len(rankstr) - 1] == "0":
                     return "th"
-                return self.rankSuptext(int(rankstr[rankstr.length - 1]))
+                return self.rankSuptext(rnk=int(rankstr[len(rankstr) - 1]))
             else:
                 return "th"
