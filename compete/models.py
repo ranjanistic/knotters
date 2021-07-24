@@ -160,8 +160,6 @@ class Competition(models.Model):
         """
         Whether the given profile is a judge in this comopetition or not.
         """
-        if not self.judges:
-            return False
         if profile in self.judges.all():
             return True
         return False
@@ -176,7 +174,7 @@ class Competition(models.Model):
         """
         Total judges in this competition
         """
-        return len(self.getJudges())
+        return self.judges.count()
 
     def getJudgementLink(self, error: str = '', alert: str = '') -> str:
         try:
