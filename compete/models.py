@@ -13,7 +13,7 @@ from .apps import APPNAME
 
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/banners/{instance.id}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/banners/{instance.getID()}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultBannerPath():
@@ -125,23 +125,21 @@ class Competition(models.Model):
         """
         Count total topics of this competition
         """
-        return len(self.topics.all())
+        return self.topics.count()
 
     def isModerator(self, profile: Profile) -> bool:
         """
         Whether the given profile is assigned as moderator of this competition or not.
         """
         try:
-            Moderation.objects.filter(
-                type=APPNAME, competition=self, moderator=profile).order_by("-requestOn")[0]
+            Moderation.objects.get(type=APPNAME, competition=self, moderator=profile)
             return True
-        except:
+        except Exception as e:
             return False
 
     def getModerator(self) -> Profile:
         try:
-            mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by(
-                "-requestOn").only('moderator')[0]
+            mod = Moderation.objects.get(type=APPNAME, competition=self)
             return mod.moderator
         except:
             return None
@@ -152,8 +150,8 @@ class Competition(models.Model):
         Being moderated indicates that the valid submissions in this competition are ready to be marked.
         """
         try:
-            Moderation.objects.filter(
-                type=APPNAME, competition=self, resolved=True).order_by("-requestOn")[0]
+            Moderation.objects.get(
+                type=APPNAME, competition=self, resolved=True)
             return True
         except:
             return False
@@ -208,37 +206,25 @@ class Competition(models.Model):
         """
         Returns a list of all submissions of this competition irrespective of validity.
         """
-        try:
-            return Submission.objects.filter(competition=self).order_by('-submitOn')
-        except:
-            return []
+        return Submission.objects.filter(competition=self).order_by('-submitOn')
 
     def totalSubmissions(self) -> int:
         """
         Count all submissions irrespective of their validity.
         """
-        try:
-            return Submission.objects.filter(competition=self).count()
-        except:
-            return 0
+        return Submission.objects.filter(competition=self).count()
 
     def getValidSubmissions(self) -> list:
         """
         Returns a list of valid submissions of this competition.
         """
-        try:
-            return Submission.objects.filter(competition=self, valid=True).order_by('submitOn')
-        except:
-            return []
+        return Submission.objects.filter(competition=self, valid=True).order_by('submitOn')
 
     def totalValidSubmissions(self) -> int:
         """
         Count submissions with valid = True. By default all submissions are valid, unless marked invalid by the assigned competition moderator.
         """
-        try:
-            return Submission.objects.filter(competition=self, valid=True).count()
-        except:
-            return 0
+        return Submission.objects.filter(competition=self, valid=True).count()
 
     def submissionPointsLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.submitPoints(compID=self.getID())}"
@@ -250,11 +236,13 @@ class Competition(models.Model):
         try:
             subslist = self.getValidSubmissions()
             if len(subslist) < 1:
-                return False
+                raise Exception(
+                    f"No valid submissions available for {self.title} to judge.")
             judgeTopicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__in=subslist, judge=judge).count()
             return judgeTopicPointsCount == len(subslist)*self.totalTopics()
-        except:
+        except Exception as e:
+            errorLog(e)
             return False
 
     def allSubmissionsMarked(self) -> bool:
@@ -264,7 +252,8 @@ class Competition(models.Model):
         try:
             subslist = self.getValidSubmissions()
             if len(subslist) < 1:
-                return False
+                raise Exception(
+                    f"No valid submissions available for {self.title} to judge.")
             topicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__competition=self,
                 submission__in=subslist).count()
@@ -294,7 +283,8 @@ class Competition(models.Model):
         """
         try:
             if not self.allSubmissionsMarked():
-                return False
+                raise Exception(
+                    f"Cannot declare results of {self.title} unless all valid submissions have been marked")
             subs = self.getValidSubmissions()
             results = SubmissionTopicPoint.objects.filter(submission__in=subs).values(
                 'submission').annotate(totalPoints=Sum('points')).order_by('-totalPoints')
@@ -317,9 +307,7 @@ class Competition(models.Model):
                         )
                     )
                 rank += 1
-            obj = Result.objects.bulk_create(resultsList)
-            if not obj:
-                return False
+            Result.objects.bulk_create(resultsList)
             self.resultDeclared = True
             self.save()
             return self
@@ -403,7 +391,7 @@ class Submission(models.Model):
 
     def isMember(self, profile: Profile) -> bool:
         """
-        Checks if provided profile object is a confirmed memeber or not.
+        Checks if provided profile object is a confirmed member or not.
 
         :profile: The profile object to be looked for.
         """

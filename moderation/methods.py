@@ -55,11 +55,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     query = Q(~Q(id__in=ignoreModProfileIDs), id__in=onlyModProfileIDs) if len(
         onlyModProfileIDs) > 0 else ~Q(id__in=ignoreModProfileIDs)
 
-    availableModProfiles = []
-    try:
-        availableModProfiles = Profile.objects.filter(query, is_moderator=True)
-    except:
-        pass
+    availableModProfiles = Profile.objects.filter(query, is_moderator=True)
 
     totalAvailableModProfiles = len(availableModProfiles)
     if totalAvailableModProfiles == 0:
@@ -141,7 +137,7 @@ def requestModerationForObject(
                 profile=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == COMPETE:
             newmod = Moderation.objects.create(
-                competiton=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+                competition=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         else:
             return False
         return newmod
