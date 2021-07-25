@@ -4,8 +4,6 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "genversion.py"
-      - "static/**"
       - "!templates/**"
       - "!main/**"
       - "!moderation/**"
@@ -13,6 +11,9 @@ on:
       - "!people/**"
       - "!projects/**"
       - "!manage.py"
+      - ".github/workflows/main-client.yml"
+      - "genversion.py"
+      - "static/**"
 
 jobs:
   testing:
@@ -52,13 +53,14 @@ jobs:
         echo "SENDERTOKEN=${{ secrets.SENDERTOKEN }}" >> ${{ secrets.ENVPATH }}
         echo "MEDIA_URL=${{ secrets.MEDIA_URL }}" >> ${{ secrets.ENVPATH }}
         echo "STATIC_URL=${{ secrets.STATIC_URL }}" >> ${{ secrets.ENVPATH }}
+        echo "SERVER_EMAIL=${{ secrets.SERVER_EMAIL }}" >> ${{ secrets.ENVPATH }}
     - name: Run Migrations
       run: |
         python manage.py makemigrations --noinput
         python manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput --verbosity=2 --tag=static
+        python manage.py test --noinput --verbosity=2 --tag=static --keepdb
     - name: Clear environment
       run: |
         rm -f ${{ secrets.ENVPATH }}

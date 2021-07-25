@@ -11,6 +11,7 @@ on:
       - "!people/**"
       - "!projects/**"
       - "!*.py"
+      - ".github/workflows/main-client-view.yml"
       - "templates/**"
 
 jobs:

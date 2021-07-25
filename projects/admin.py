@@ -1,22 +1,5 @@
 from django.contrib import admin
-from .models import Category, Project, Relation, Tag
-
-admin.site.register(Tag)
-
-admin.site.register(Category)
-
-
-@admin.register(Relation)
-class RelationAdmin(admin.ModelAdmin):
-    list_filter = ["tag", "project", "topic", "category"]
-    list_display = ["tag", "project", "topic", "category"]
-
-    def get_queryset(self, request):
-        query_set = super(RelationAdmin, self).get_queryset(request)
-        return query_set
-
-    class Meta:
-        ordering = ("")
+from .models import Category, CategoryTag, Project, Tag, ProjectTag, ProjectTopic
 
 
 @admin.register(Project)
@@ -26,6 +9,69 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         query_set = super(ProjectAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+    def get_queryset(self, request):
+        query_set = super(TagAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+    def get_queryset(self, request):
+        query_set = super(CategoryAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+
+@admin.register(CategoryTag)
+class CategoryTagAdmin(admin.ModelAdmin):
+    list_display = ["category", "tag"]
+    list_filter = ["category"]
+
+    def get_queryset(self, request):
+        query_set = super(CategoryTagAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+
+@admin.register(ProjectTag)
+class ProjectTagAdmin(admin.ModelAdmin):
+    list_display = ["project", "tag"]
+    list_filter = ["project"]
+
+    def get_queryset(self, request):
+        query_set = super(ProjectTagAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+
+@admin.register(ProjectTopic)
+class ProjectTopicAdmin(admin.ModelAdmin):
+    list_display = ["project", "topic"]
+    list_filter = ["project", "topic"]
+
+    def get_queryset(self, request):
+        query_set = super(ProjectTopicAdmin, self).get_queryset(request)
         return query_set
 
     class Meta:

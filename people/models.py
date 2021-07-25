@@ -81,7 +81,7 @@ class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     tags = models.ManyToManyField(
-        f'{PROJECTS}.Tag', default=[], through=f'{PROJECTS}.Relation')
+        f'{PROJECTS}.Tag', default=[], through='TopicTag')
 
     def __str__(self) -> str:
         return self.name
@@ -90,9 +90,18 @@ class Topic(models.Model):
         return self.id.hex
 
 
+class TopicTag(models.Model):
+    class Meta:
+        unique_together = ('topic', 'tag')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    tag = models.ForeignKey(f'{PROJECTS}.Tag', on_delete=models.CASCADE)
+
+
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.id).replace('-','')}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultImagePath() -> str:
@@ -195,7 +204,7 @@ class Profile(models.Model):
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(
-        Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False,blank=False)
+        Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False, blank=False)
     newsletter = models.BooleanField(default=True)
     recommendations = models.BooleanField(default=True)
     competitions = models.BooleanField(default=True)
