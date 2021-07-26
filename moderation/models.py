@@ -1,7 +1,8 @@
 from django.db import models
 from uuid import uuid4
-from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, moderation, message
+from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, moderation
 from main.methods import maxLengthInList
+from main.exceptions import IllegalModerationEntity
 from django.utils import timezone
 from .apps import APPNAME
 
@@ -38,38 +39,15 @@ class Moderation(models.Model):
     def __str__(self):
         if self.type == PROJECTS:
             return self.project.name
-        if self.type == PEOPLE:
+        elif self.type == PEOPLE:
             return self.profile.getName()
-        if self.type == COMPETE:
+        elif self.type == COMPETE:
             return self.competition.title
-        return self.getID()
 
     def getID(self) -> str:
         return self.id.hex
 
-    def approve(self) -> bool:
-        now = timezone.now()
-        self.status = Code.APPROVED
-        self.respondOn = now
-        if self.type == PROJECTS:
-            self.project.status = Code.APPROVED
-            self.project.approvedOn = now
-            self.project.save()
-        self.resolved = True
-        self.save()
-        return True
-
-    def reject(self) -> bool:
-        self.status = Code.REJECTED
-        self.respondOn = timezone.now()
-        if self.type == PROJECTS:
-            self.project.status = Code.REJECTED
-            self.project.save()
-        self.resolved = True
-        self.save()
-        return True
-
-    def getLink(self, alert:str='', error:str='') -> str:
+    def getLink(self, alert: str = '', error: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error)}"
 
     def reapplyLink(self):
@@ -95,11 +73,45 @@ class Moderation(models.Model):
     def isApproved(self) -> bool:
         return self.status == Code.APPROVED
 
+    def getModerateeFieldByType(self, type: str = '') -> models.Model:
+        type = type if type else self.type
+        if type == PROJECTS and self.project:
+            return self.project
+        elif type == COMPETE and self.competition:
+            return self.competition
+        elif type == PEOPLE and self.profile:
+            return self.profile
+        else:
+            raise IllegalModerationEntity()
+
+    def approve(self) -> bool:
+        now = timezone.now()
+        self.status = Code.APPROVED
+        self.respondOn = now
+        if self.type == PROJECTS:
+            self.project.status = Code.APPROVED
+            self.project.approvedOn = now
+            self.project.save()
+        self.resolved = True
+        self.save()
+        return True
+
+    def reject(self) -> bool:
+        self.status = Code.REJECTED
+        self.respondOn = timezone.now()
+        if self.type == PROJECTS:
+            self.project.status = Code.REJECTED
+            self.project.save()
+        self.resolved = True
+        self.save()
+        return True
+
 
 class LocalStorage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    key = models.CharField(max_length=100, blank=False, null=False)
+    key = models.CharField(max_length=100, blank=False,
+                           null=False, unique=True)
     value = models.CharField(max_length=5000, blank=False, null=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.key

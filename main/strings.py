@@ -23,8 +23,6 @@ class Environment():
     PRODUCTION = 'production'
 
 
-environment = Environment()
-
 ENVIRONMENTS = [Environment.DEVELOPMENT,
                 Environment.TESTING, Environment.PRODUCTION]
 
@@ -402,7 +400,7 @@ class Moderation():
         [code.REJECTED, code.REJECTED.capitalize()]
     )
 
-    TYPES = DIVISIONS
+    TYPES = [PROJECTS, PEOPLE, COMPETE]
 
     TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
     )], [COMPETE, COMPETE.capitalize()])

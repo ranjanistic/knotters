@@ -1,5 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 from people.models import Profile
+from compete.models import Competition
+from projects.models import Project
 from django.db.models import Q
 from django.db import models
 from main.methods import renderView, classAttrsToDict, replaceUrlParamsWithStr
@@ -20,6 +22,13 @@ def renderer(request: WSGIRequest, file: str, data: dict = {}):
         data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
     return renderView(request, file, data, fromApp=APPNAME)
 
+def getModelByType(type:str)-> models.Model:
+    if type == PROJECTS: return Project
+    elif type == COMPETE: return Competition
+    elif type == PEOPLE: return Profile
+    else: raise IllegalModerationType()
+
+    
 
 def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], onlyModProfiles: list = []) -> Profile:
     """

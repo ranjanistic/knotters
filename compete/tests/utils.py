@@ -11,3 +11,7 @@ def getSubmissionRepos(count=1, start=0):
         repos.append(
             f"https://testing.knotters.org/submission{i+start}{uuid4().hex}")
     return repos
+
+
+TEST_KEY = f'testing-{uuid4().hex}'
+TEST_VALUE = f'testing-value-{uuid4().hex}'
