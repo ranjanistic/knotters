@@ -4,29 +4,6 @@ from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 
-
-def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
-    """
-    Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
-    """
-    lookfor = lookfor if lookfor else Code.URLPARAM
-    i = 0
-    while i < len(replacingChars):
-        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
-        i += 1
-    return path
-
-
-class Environment():
-    DEVELOPMENT = 'development'
-    TESTING = 'testing'
-    PRODUCTION = 'production'
-
-
-ENVIRONMENTS = [Environment.DEVELOPMENT,
-                Environment.TESTING, Environment.PRODUCTION]
-
-
 class Code():
     OK = "OK"
     NO = "NO"
@@ -46,8 +23,30 @@ class Code():
         METHOD = 'method'
         STATIC = 'static'
 
-
 code = Code()
+
+def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
+    """
+    Replaces 'lookfor' of given 'path' with given with replacingChars. Replaces each finding with each element of replacingChars.
+
+    :path: The string (primarily url path) to be operated on.
+    :replacingChars: Tuple of characters to replace findings one by one with each element. If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings Defaults to '*' for all findings.
+    :lookfor: String or pattern to be looked for and replaced in path.
+    """
+    lookfor = lookfor if lookfor else Code.URLPARAM
+    if len(replacingChars) < 1:
+        replacingChars = ['*']
+    i = 0
+    while i < len(replacingChars):
+        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
+        i += 1
+    return re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+
+setPathParams('asf')
+
+
+# ENVIRONMENTS = [Environment.DEVELOPMENT,
+#                 Environment.TESTING, Environment.PRODUCTION]
 
 
 class Message():
@@ -100,47 +99,13 @@ class Message():
 
         :message: The message string to be checked for validity.
         """
-        return [
-            self.ERROR_OCCURRED,
-            self.INVALID_REQUEST,
-            self.INVALID_RESPONSE,
-            self.SAVED,
-
-            self.RESULT_DECLARED,
-            self.ALREADY_PARTICIPATING,
-            self.PARTICIPATION_WITHDRAWN,
-            self.MEMBER_REMOVED,
-            self.INVALID_ID,
-            self.USER_NOT_EXIST,
-            self.USER_PARTICIPANT_OR_INVITED,
-            self.SUBMITTED_ALREADY,
-            self.SUBMITTED_SUCCESS,
-            self.SUBMITTED_LATE,
-            self.SUBMISSION_TOO_LATE,
-            self.SUBMISSION_MARKING_INVALID,
-            self.SUBMISSION_ERROR,
-
-            self.SENT_FOR_REVIEW,
-            self.PROJECT_DELETED,
-            self.TERMS_UNACCEPTED,
-
-            self.UNDER_MODERATION,
-            self.ALREADY_RESOLVED,
-            self.REQ_MESSAGE_SAVED,
-            self.RES_MESSAGE_SAVED,
-            self.MODERATION_REAPPLIED,
-
-            self.ACCOUNT_PREF_SAVED,
-            self.SUCCESSOR_GH_UNLINKED,
-            self.SUCCESSOR_OF_PROFILE,
-            self.SUCCESSOR_NOT_FOUND,
-            self.SUCCESSOR_UNSET,
-            self.SUCCESSORSHIP_DECLINED,
-            self.SUCCESSORSHIP_ACCEPTED,
-
-            self.ACCOUNT_DELETED
-        ].__contains__(message)
-
+        def conditn(key,_):
+            return str(key).isupper()
+        attrs = classAttrsToDict(Message, conditn)
+        validMessages = []
+        for key in attrs:
+            validMessages.append(attrs[key])
+        return validMessages.__contains__(message)
 
 message = Message()
 
@@ -271,6 +236,14 @@ class URL():
 
         def declareResults(self, compID):
             return setPathParams(self.DECLARERESULTS, compID)
+
+        def getURLSForClient(self):
+            URLS=dict()
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(self, cond)
+            for key in urls:
+                URLS[key] = f"{url.getRoot(COMPETE)}{setPathParams(urls[key])}"
 
     compete = Compete()
 
@@ -441,3 +414,5 @@ class Compete():
 
 profile = Profile()
 compete = Compete()
+
+from main.methods import classAttrsToDict

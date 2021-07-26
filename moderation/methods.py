@@ -4,8 +4,8 @@ from compete.models import Competition
 from projects.models import Project
 from django.db.models import Q
 from django.db import models
-from main.methods import renderView, classAttrsToDict, replaceUrlParamsWithStr
-from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, code
+from main.methods import renderView, classAttrsToDict
+from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, code, setPathParams
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
@@ -19,7 +19,7 @@ def renderer(request: WSGIRequest, file: str, data: dict = {}):
     urls = classAttrsToDict(url.Moderation, cond)
 
     for key in urls:
-        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
+        data['URLS'][key] = f"{url.getRoot(APPNAME)}{setPathParams(urls[key])}"
     return renderView(request, file, data, fromApp=APPNAME)
 
 def getModelByType(type:str)-> models.Model:

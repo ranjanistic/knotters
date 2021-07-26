@@ -1,8 +1,8 @@
 from people.models import Profile
 from github import Organization, NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import Code, url
-from main.methods import renderView, classAttrsToDict, replaceUrlParamsWithStr
+from main.strings import Code, url, setPathParams
+from main.methods import renderView, classAttrsToDict
 from .models import Category, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
@@ -17,7 +17,7 @@ def renderer(request, file, data={}):
     urls = classAttrsToDict(url.Projects, cond)
 
     for key in urls:
-        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
+        data['URLS'][key] = f"{url.getRoot(APPNAME)}{setPathParams(urls[key])}"
 
     return renderView(request, file, data, fromApp=APPNAME)
 

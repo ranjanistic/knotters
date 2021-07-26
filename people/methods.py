@@ -5,8 +5,8 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
-from main.methods import renderData, renderView, classAttrsToDict, replaceUrlParamsWithStr
-from main.strings import url, code, profile as profileString
+from main.methods import renderData, renderView, classAttrsToDict
+from main.strings import url, code, profile as profileString, setPathParams
 from projects.models import Project
 from moderation.models import Moderation
 from .models import ProfileSetting, User, Profile
@@ -21,7 +21,7 @@ def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
     urls = classAttrsToDict(url.People,cond)
 
     for key in urls:
-        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
+        data['URLS'][key] = f"{url.getRoot(APPNAME)}{setPathParams(urls[key])}"
 
     return renderView(request, file, data, fromApp=APPNAME)
 

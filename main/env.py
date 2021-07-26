@@ -1,7 +1,11 @@
 import environ
-from .strings import Environment
 from pathlib import Path
 import os
+
+class Environment():
+    DEVELOPMENT = 'development'
+    TESTING = 'testing'
+    PRODUCTION = 'production'
 
 env = environ.Env()
 
@@ -35,5 +39,5 @@ ISTESTING = ENV == Environment.TESTING
 VERSION = 'v--16'
 
 if ISPRODUCTION:
-    from main.__version__ import VERSION as V
+    from .__version__ import VERSION as V
     VERSION = V
