@@ -12,6 +12,8 @@ VERSION = env.VERSION
 DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS
+SERVER_EMAIL = env.SERVER_EMAIL
+ADMINS = [(env.PUBNAME, env.MAILUSER)]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -96,6 +98,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+    'django.contrib.auth.hashers.CryptPasswordHasher'
+]
+
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -112,6 +124,7 @@ if not DEBUG:
                 "password": env.DBPASS,
                 "authMechanism": "SCRAM-SHA-1",
             },
+            "CONN_MAX_AGE": None
         }
     }
 else:
@@ -122,6 +135,7 @@ else:
             "CLIENT": {
                 "host": env.DBLINK,
             },
+            "CONN_MAX_AGE": None if env.ISTESTING else 0
         }
     }
 

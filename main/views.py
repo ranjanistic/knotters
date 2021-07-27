@@ -12,11 +12,11 @@ from moderation.models import LocalStorage
 from projects.models import Project
 from compete.models import Competition
 from .env import ADMINPATH, SITE
-from .methods import renderData, renderView, replaceUrlParamsWithStr
+from .methods import renderData, renderView
 from .decorators import dev_only
-from .methods import renderView, getDeepFilePaths
+from .methods import renderView, getDeepFilePaths, errorLog
 from .settings import STATIC_URL, MEDIA_URL
-from .strings import Code, COMPETE, URL
+from .strings import Code, COMPETE, URL, setPathParams
 
 
 @require_GET
@@ -44,6 +44,7 @@ def createMockUsers(request: WSGIRequest, total: int) -> HttpResponse:
             email__startswith=f"testing", email__endswith="@knotters.org").update(verified=True)
         return HttpResponse('ok')
     except Exception as e:
+        errorLog(e)
         return HttpResponse(str(e))
 
 
@@ -164,7 +165,7 @@ class ServiceWorker(TemplateView):
         def appendWhen(path: str):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
         assets = getDeepFilePaths(STATIC_URL.strip('/'), appendWhen=appendWhen)
-        
+
         assets.append(f"/{URL.OFFLINE}")
 
         try:
@@ -192,20 +193,20 @@ class ServiceWorker(TemplateView):
             LocalStorage.objects.update_or_create(
                 key=Code.SWASSETS, value=json.dumps(assets))
 
-        context = renderData({
-            'OFFLINE': f"/{URL.OFFLINE}",
-            'assets': json.dumps(assets),
-            'noOfflineList': json.dumps([
-                replaceUrlParamsWithStr(
+        context = dict(**context, **renderData(dict(
+            OFFLINE=f"/{URL.OFFLINE}",
+            assets=json.dumps(assets),
+            noOfflineList=json.dumps([
+                setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.COMPETETABSECTION}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.INDEXTAB}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.PEOPLE}{URL.People.SETTINGTAB}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
             ]),
-            'ignorelist': json.dumps([
+            ignorelist=json.dumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",
@@ -215,26 +216,26 @@ class ServiceWorker(TemplateView):
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",
                 f"/{URL.LANDING}",
-                replaceUrlParamsWithStr(f"/{URL.People.ZOMBIE}"),
-                replaceUrlParamsWithStr(f"/{URL.People.SUCCESSORINVITE}"),
-                replaceUrlParamsWithStr(f"/{URL.APPLANDING}"),
-                replaceUrlParamsWithStr(f"/{URL.DOCTYPE}"),
-                replaceUrlParamsWithStr(
+                setPathParams(f"/{URL.People.ZOMBIE}"),
+                setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
+                setPathParams(f"/{URL.APPLANDING}"),
+                setPathParams(f"/{URL.DOCTYPE}"),
+                setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
             ]),
-            'recacheList': json.dumps([
+            recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.ACCOUNTS}*",
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
-                replaceUrlParamsWithStr(
+                setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
-        })
+        )))
         return context

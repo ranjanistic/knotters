@@ -4,14 +4,14 @@ from django.utils import timezone
 from main.env import PUBNAME
 from main.settings import MEDIA_URL
 from main.methods import maxLengthInList
-from main.strings import Code, url, PEOPLE, project, message
+from main.strings import Code, url, PEOPLE, project
 from moderation.models import Moderation
 from .apps import APPNAME
 
 
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.id).replace('-','')}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultImagePath():
@@ -31,13 +31,22 @@ class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
-    tags = models.ManyToManyField(Tag, through='Relation', default=[])
+    tags = models.ManyToManyField(Tag, through='CategoryTag', default=[])
 
     def __str__(self):
         return self.name
 
     def getID(self) -> str:
         return self.id.hex
+
+
+class CategoryTag(models.Model):
+    class Meta:
+        unique_together = ('category', 'tag')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
 class Project(models.Model):
@@ -49,20 +58,23 @@ class Project(models.Model):
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
     description = models.CharField(max_length=5000, null=False, blank=False)
-    tags = models.ManyToManyField(Tag, through='Relation', default=[])
     status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
-    category = models.ForeignKey(Category, on_delete=models.PROTECT)
     migrated = models.BooleanField(
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
     acceptedTerms = models.BooleanField(default=True)
 
     trashed = models.BooleanField(
-        default=False, help_text="Deleted for creator, used when rejected.")
+        default=False, help_text="Deleted for creator, can be used when rejected.")
+
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
+    topics = models.ManyToManyField(
+        f'{PEOPLE}.Topic', through='ProjectTopic', default=[])
 
     def __str__(self):
         return self.name
@@ -81,16 +93,12 @@ class Project(models.Model):
         super(Project, self).save(*args, **kwargs)
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
-        if error and message.isValid(error):
-            error = f"?e={error}"
-        elif alert and message.isValid(alert):
-            alert = f"?a={alert}"
-        elif success and message.isValid(success):
-            success = f"?s={success}"
-        if self.status != Code.APPROVED:
-            return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[
-                Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
-        return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
+        try:
+            if self.status != Code.APPROVED:
+                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
+            return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
+        except:
+            return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
 
     def getDP(self) -> str:
         return f"{MEDIA_URL}{str(self.image)}"
@@ -111,36 +119,37 @@ class Project(models.Model):
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
     def getModLink(self) -> str:
-        return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
+        try:
+            return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
+        except:
+            return str()
 
     def moderationRetriesLeft(self) -> int:
         if self.status != Code.APPROVED:
-            try:
-                mods = Moderation.objects.filter(
-                    type=APPNAME, project=self).count()
-                return 3 - mods
-            except:
-                return 3
+            return 3 - Moderation.objects.filter(type=APPNAME, project=self).count()
         return 0
 
     def canRetryModeration(self) -> bool:
-        try:
-            return self.moderationRetriesLeft() > 0
-        except:
-            return True
+        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0
 
 
-class Relation(models.Model):
+class ProjectTag(models.Model):
+    class Meta:
+        unique_together = ('project', 'tag')
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, null=True, blank=True)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE,
                             related_name='project_tag')
+
+
+class ProjectTopic(models.Model):
+    class Meta:
+        unique_together = ('project', 'topic')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
                               null=True, blank=True, related_name='project_topic')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE,
-                                 null=True, blank=True, related_name='project_category')
-
-    class Meta:
-        unique_together = (('project', 'tag'),
-                           ('topic', 'tag'), ('category', 'tag'))

@@ -1,7 +1,8 @@
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from people.models import Profile
-from .env import ISPRODUCTION, PUBNAME, SITE
+from .methods import errorLog
+from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE
 from .strings import URL
 
 
@@ -12,11 +13,16 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
             msg.attach_alternative(content=html, mimetype="text/html")
             msg.send()
             return True
-        except:
+        except Exception as e:
+            errorLog(e)
             return False
     else:
-        print(to, body)
-        return True
+        if ISDEVELOPMENT:
+            print(to)
+            print(subject)
+            print(body)
+        else:
+            return True
 
 
 def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
@@ -27,12 +33,15 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
             msg.send()
             return True
         except Exception as e:
-            print(e)
+            errorLog(e)
             return False
     else:
-        print(to)
-        print(subject)
-        print(body)
+        if ISDEVELOPMENT:
+            print(to)
+            print(subject)
+            print(body)
+        else:
+            return True
         return True
 
 
@@ -89,7 +98,8 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
     try:
         html = render_to_string('account/email/email.html', data)
         return html, body
-    except:
+    except Exception as e:
+        errorLog(e)
         return '', body
 
 

@@ -1,75 +1,112 @@
 from django.core.handlers.wsgi import WSGIRequest
 from people.models import Profile
+from compete.models import Competition
+from projects.models import Project
 from django.db.models import Q
 from django.db import models
-from main.methods import renderView, classAttrsToDict, replaceUrlParamsWithStr
-from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, code
+from main.methods import renderView
+from main.strings import Code, URL, PROJECTS, PEOPLE, COMPETE
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
 
-def renderer(request: WSGIRequest, file: str, data: dict = {}):
-    data['URLS'] = {}
-
-    def cond(key, value):
-        return str(key).isupper()
-
-    urls = classAttrsToDict(url.Moderation, cond)
-
-    for key in urls:
-        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
-    return renderView(request, file, data, fromApp=APPNAME)
+def renderer(request: WSGIRequest, file: str, data: dict = dict()):
+    return renderView(request, file, dict(**data, URLS=URL.moderation.getURLSForClient()), fromApp=APPNAME)
 
 
-def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], onlyModProfiles: list = []) -> Profile:
+def getModelByType(type: str) -> models.Model:
+    if type == PROJECTS:
+        return Project
+    elif type == COMPETE:
+        return Competition
+    elif type == PEOPLE:
+        return Profile
+    else:
+        raise IllegalModerationType()
+
+
+def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: list = list()) -> list:
+    ignoreModProfileIDs = list()
+    if modType == PROJECTS and isinstance(object, Project):
+        ignoreModProfileIDs.append(object.creator.id)
+    elif modType == PEOPLE and isinstance(object, Profile):
+        ignoreModProfileIDs.append(object.id)
+    elif modType == COMPETE and isinstance(object, Competition):
+        if object.totalJudges() > 0:
+            for judge in object.getJudges():
+                ignoreModProfileIDs.append(judge.id)
+        if object.totalAllParticipants() > 0:
+            for participant in object.getAllParticipants():
+                ignoreModProfileIDs.append(participant.id)
+    else:
+        return False
+    for ignoreModProfile in extraProfiles:
+        if not ignoreModProfileIDs.__contains__(ignoreModProfile.id):
+            ignoreModProfileIDs.append(ignoreModProfile.id)
+    return ignoreModProfileIDs
+
+
+def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = list(), preferModProfiles: list = list(), onlyModProfiles: list = list()) -> Profile:
     """
     Implementes round robin algorithm to retreive an available moderator, along with other restrictions.
 
     :type: The type of sub application for which the entity is to be moderated
-    :object: The model object of the entity to be moderated.
+    :object: The model object of the entity to be moderated. (Profile | Project | Competition)
     :ignoreModProfiles: The profile object list of moderators to be ignored, optionally.
+    :preferModProfiles: The profile object list of moderators to be considered preferably, optionally.
     :onlyModProfiles: The profile object list of moderators to only be considered, optionally.
 
-    In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles:, ignoreModProfiles will be preferred.
+    If :preferModProfiles: and :onlyModProfiles: are provided simultaneously, :onlyModProfiles: will only be considered.
+
+    In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles: or :preferModProfiles:, :ignoreModProfiles: will be preferred.
+
     """
-    try:
-        current = LocalStorage.objects.get(key=Code.MODERATOR)
-    except:
-        current = LocalStorage.objects.create(key=Code.MODERATOR, value=0)
 
-    ignoreModProfileIDs = []
-    if type == PROJECTS:
-        ignoreModProfileIDs.append(object.creator.id)
-    if type == PEOPLE:
-        ignoreModProfileIDs.append(object.id)
+    ignoreModProfileIDs = getIgnoreModProfileIDs(
+        type, object, ignoreModProfiles)
 
-    for ignoreModProfile in ignoreModProfiles:
-        ignoreModProfileIDs.append(ignoreModProfile.id)
+    if ignoreModProfileIDs == False:
+        raise IllegalModeration()
 
-    onlyModProfileIDs = []
+    defaultQuery = Q(~Q(id__in=ignoreModProfileIDs), is_moderator=True,
+                     suspended=False, to_be_zombie=False, is_zombie=False, is_active=True)
+    query = defaultQuery
+
+    preferred = False
     if len(onlyModProfiles) > 0:
+        onlyModProfileIDs = list()
         for onlyModProfile in onlyModProfiles:
             if not ignoreModProfileIDs.__contains__(onlyModProfile.id):
                 onlyModProfileIDs.append(onlyModProfile.id)
+        query = Q(query, id__in=onlyModProfileIDs)
+    elif len(preferModProfiles) > 0:
+        preferred = True
+        preferModProfileIDs = list()
+        for preferModProfile in preferModProfiles:
+            if not ignoreModProfileIDs.__contains__(preferModProfile.id):
+                preferModProfileIDs.append(preferModProfile.id)
+        query = Q(query, id__in=preferModProfileIDs)
 
-    query = Q(~Q(id__in=ignoreModProfileIDs), id__in=onlyModProfileIDs) if len(
-        onlyModProfileIDs) > 0 else ~Q(id__in=ignoreModProfileIDs)
-
-    availableModProfiles = []
-    try:
-        availableModProfiles = Profile.objects.filter(query, is_moderator=True)
-    except:
-        pass
+    availableModProfiles = Profile.objects.filter(query)
 
     totalAvailableModProfiles = len(availableModProfiles)
     if totalAvailableModProfiles == 0:
+        if preferred:
+            availableModProfiles = Profile.objects.filter(defaultQuery)
+            totalAvailableModProfiles = len(availableModProfiles)
+            if totalAvailableModProfiles == 0:
+                return False
         return False
 
+    current, _ = LocalStorage.objects.get_or_create(
+        key=Code.MODERATOR, defaults={'value': 0})
+
     temp = int(current.value)
+
     if temp >= totalAvailableModProfiles:
         temp = 1
     else:
-        temp = temp + 1
+        temp += 1
     current.value = temp
     current.save()
 
@@ -79,8 +116,8 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
 def requestModerationForObject(
     object: models.Model,
     type: str,
-    requestData: str = '',
-    referURL: str = '',
+    requestData: str = str(),
+    referURL: str = str(),
     reassignIfRejected: bool = False,
     reassignIfApproved: bool = False
 ) -> Moderation or bool:
@@ -91,8 +128,8 @@ def requestModerationForObject(
     :type: The subapplication or entity type.
     :requestData: Relevent string data regarding moderation.
     :referUrl: Relevant url regarding moderation.
-    :reassignIfRejected: If True, and if a moderation already exists for the :object: with status code.REJECTED, then a new moderation instance is created for it. Default False.
-    :reassignIfApproved: If True, and if a moderation already exists for the :object: with status code.APPROVED, then a new moderation instance is created for it. Default False.
+    :reassignIfRejected: If True, and if a moderation already exists for the :object: with status Code.REJECTED, then a new moderation instance is created for it. Default False.
+    :reassignIfApproved: If True, and if a moderation already exists for the :object: with status Code.APPROVED, then a new moderation instance is created for it. Default False.
     """
     try:
         if type == PROJECTS:
@@ -126,7 +163,7 @@ def requestModerationForObject(
                 return False
 
             if newmod.type == PROJECTS:
-                newmod.project.status = code.MODERATION
+                newmod.project.status = Code.MODERATION
                 newmod.project.save()
             return newmod
     except Exception as e:
@@ -141,7 +178,7 @@ def requestModerationForObject(
                 profile=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         elif type == COMPETE:
             newmod = Moderation.objects.create(
-                competiton=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
+                competition=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
         else:
             return False
         return newmod

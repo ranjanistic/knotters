@@ -4,15 +4,15 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "templates/**"
       - "!static/**"
       - "!main/**"
       - "!moderation/**"
       - "!compete/**"
       - "!people/**"
       - "!projects/**"
-      - "!manage.py"
-      - "!genversion.py"
+      - "!*.py"
+      - ".github/workflows/main-client-view.yml"
+      - "templates/**"
 
 jobs:
   client_view_deploy:

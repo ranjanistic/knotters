@@ -5,36 +5,15 @@ from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 
 
-def setPathParams(path: str, *replacingChars: str, lookfor:str='') -> str:
-    """
-    Replaces <str:param> of defined urls with given character (default: *), primarily for dynamic client side service worker.
-    """
-    lookfor = lookfor if lookfor else Code.URLPARAM
-    i = 0
-    while i < len(replacingChars):
-        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
-        i += 1
-    return path
-
-
-class Environment():
-    DEVELOPMENT = 'development'
-    TESTING = 'testing'
-    PRODUCTION = 'production'
-
-
-environment = Environment()
-
-ENVIRONMENTS = [Environment.DEVELOPMENT,
-                Environment.TESTING, Environment.PRODUCTION]
-
-
 class Code():
     OK = "OK"
     NO = "NO"
     APPROVED = "approved"
     REJECTED = "rejected"
     MODERATION = "moderation"
+    RESOLVED = "resolved"
+    UNRESOLVED = "unresolved"
+    SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
     MODERATOR = "moderator"
@@ -42,8 +21,39 @@ class Code():
     ZOMBIEMAIL = 'zombie@knotters.org'
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
 
+    class Test():
+        MODEL = 'model'
+        VIEW = 'view'
+        METHOD = 'method'
+        STATIC = 'static'
+
 
 code = Code()
+
+
+def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
+    """
+    Replaces 'lookfor' of given 'path' with given with replacingChars. Replaces each finding with each element of replacingChars.
+
+    :path: The string (primarily url path) to be operated on.
+    :replacingChars: Tuple of characters to replace findings one by one with each element. If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings Defaults to '*' for all findings.
+    :lookfor: String or pattern to be looked for and replaced in path.
+    """
+    lookfor = lookfor if lookfor else Code.URLPARAM
+    if len(replacingChars) < 1:
+        replacingChars = ['*']
+    i = 0
+    while i < len(replacingChars):
+        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
+        i += 1
+    return re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+
+
+setPathParams('asf')
+
+
+# ENVIRONMENTS = [Environment.DEVELOPMENT,
+#                 Environment.TESTING, Environment.PRODUCTION]
 
 
 class Message():
@@ -96,46 +106,13 @@ class Message():
 
         :message: The message string to be checked for validity.
         """
-        return [
-            self.ERROR_OCCURRED,
-            self.INVALID_REQUEST,
-            self.INVALID_RESPONSE,
-            self.SAVED,
-
-            self.RESULT_DECLARED,
-            self.ALREADY_PARTICIPATING,
-            self.PARTICIPATION_WITHDRAWN,
-            self.MEMBER_REMOVED,
-            self.INVALID_ID,
-            self.USER_NOT_EXIST,
-            self.USER_PARTICIPANT_OR_INVITED,
-            self.SUBMITTED_ALREADY,
-            self.SUBMITTED_SUCCESS,
-            self.SUBMITTED_LATE,
-            self.SUBMISSION_TOO_LATE,
-            self.SUBMISSION_MARKING_INVALID,
-            self.SUBMISSION_ERROR,
-
-            self.SENT_FOR_REVIEW,
-            self.PROJECT_DELETED,
-            self.TERMS_UNACCEPTED,
-
-            self.UNDER_MODERATION,
-            self.ALREADY_RESOLVED,
-            self.REQ_MESSAGE_SAVED,
-            self.RES_MESSAGE_SAVED,
-            self.MODERATION_REAPPLIED,
-
-            self.ACCOUNT_PREF_SAVED,
-            self.SUCCESSOR_GH_UNLINKED,
-            self.SUCCESSOR_OF_PROFILE,
-            self.SUCCESSOR_NOT_FOUND,
-            self.SUCCESSOR_UNSET,
-            self.SUCCESSORSHIP_DECLINED,
-            self.SUCCESSORSHIP_ACCEPTED,
-
-            self.ACCOUNT_DELETED
-        ].__contains__(message)
+        def conditn(key, _):
+            return str(key).isupper()
+        attrs = classAttrsToDict(Message, conditn)
+        validMessages = []
+        for key in attrs:
+            validMessages.append(attrs[key])
+        return validMessages.__contains__(message)
 
 
 message = Message()
@@ -209,7 +186,7 @@ class URL():
             return setPathParams(self.COMPID, compID)
 
         INDEXTAB = 'indexTab/<str:tab>'
-        
+
         def indexTab(self, tab):
             return setPathParams(self.INDEXTAB, tab)
 
@@ -231,7 +208,7 @@ class URL():
         REMOVEMEMBER = 'remove/<str:subID>/<str:userID>'
 
         def removeMember(self, subID, userID):
-            return setPathParams(self.REMOVEMEMBER,subID, userID)
+            return setPathParams(self.REMOVEMEMBER, subID, userID)
 
         INVITE = 'invite/<str:subID>'
 
@@ -268,6 +245,17 @@ class URL():
         def declareResults(self, compID):
             return setPathParams(self.DECLARERESULTS, compID)
 
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Compete, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(COMPETE)}{setPathParams(urls[key])}"
+            return URLS
+
     compete = Compete()
 
     class Moderation():
@@ -295,6 +283,17 @@ class URL():
 
         def approveCompete(self, modID):
             return setPathParams(self.APPROVECOMPETE, modID)
+
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Moderation, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(MODERATION)}{setPathParams(urls[key])}"
+            return URLS
 
     moderation = Moderation()
 
@@ -344,6 +343,17 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.People, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(PEOPLE)}{setPathParams(urls[key])}"
+            return URLS
+
     people = People()
 
     class Projects():
@@ -370,11 +380,31 @@ class URL():
         def projectInfo(self, projectID, info):
             return setPathParams(self.PROJECTINFO, projectID, info)
 
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Projects, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(PROJECTS)}{setPathParams(urls[key])}"
+            return URLS
+
     projects = Projects()
 
+    def getURLSForClient(self) -> dict:
+        URLS = dict()
+
+        def cond(key, value):
+            return str(key).isupper()
+        urls = classAttrsToDict(URL, cond)
+
+        for key in urls:
+            URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
+        return URLS
 
 url = URL()
-
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
@@ -396,13 +426,14 @@ class Moderation():
         [code.REJECTED, code.REJECTED.capitalize()]
     )
 
-    TYPES = DIVISIONS
+    TYPES = [PROJECTS, PEOPLE, COMPETE]
 
     TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
     )], [COMPETE, COMPETE.capitalize()])
 
 
 moderation = Moderation()
+
 
 class Profile():
     OVERVIEW = "overview"
@@ -419,6 +450,9 @@ class Profile():
 
 
 class Compete():
+    ACTIVE = "active"
+    UPCOMING = "upcoming"
+    HISTORY = "history"
     OVERVIEW = "overview"
     TASK = "task"
     GUIDELINES = "guidelines"
@@ -436,3 +470,5 @@ class Compete():
 
 profile = Profile()
 compete = Compete()
+
+from main.methods import classAttrsToDict

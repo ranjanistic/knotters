@@ -1,17 +1,17 @@
 import os
 import sys
 
-ENVPATH = 'main/.env'
-ENVSAMPLEPATH = 'main/.env.example'
+ENVTESTPATH = 'main/.env.testing'
 
 def main(ENVPATH):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
     os.environ.setdefault('ENVPATH', ENVPATH)
-    from main.env import ISPRODUCTION, ENV, DBNAME, VERSION
-    if not ISPRODUCTION:
-        print(f"Environment from: {ENVPATH}")
-        print(f"Database: {DBNAME}")
-        print(f"Version: {VERSION}")
+    from main.env import ISTESTING, ENV, DBNAME, VERSION
+    if not ISTESTING:
+        raise Exception('Incorrectly configured environment.')
+    print(f"Environment from: {ENVPATH}")
+    print(f"Database: test_{DBNAME}")
+    print(f"Version: {VERSION}")
     print(f"Environment: {ENV}")
     try:
         from django.core.management import execute_from_command_line
@@ -25,5 +25,5 @@ def main(ENVPATH):
     execute_from_command_line(sys.argv)
 
 if __name__ == '__main__':
-    main(ENVPATH=ENVPATH)
+    main(ENVPATH=ENVTESTPATH)
 

@@ -4,11 +4,18 @@
 
 _All commands/bash scripts should be assumed to be executed in the root of project directory, unless specified explicitly._
 
+_`py` (python), `pip` (python package manager) - these cmdlets may vary depending on your system platform, therefore, act accordingly._
+
+### Prerequisites
+
+- Python 3.x, pip 21.x
+- MongoDB connection string
+
+### Initial setup
+
 ```bash
 py setup.py
 ```
-
-For initial setup.
 
 ### Environment
 
@@ -32,47 +39,44 @@ The above cmd will generate env vars step by step.
 pip install -r requirements.txt
 ```
 
-or similar command depending on your system platform.
-
 ### DB setup
 
 ```bash
 py manage.py makemigrations
-```
-
-```bash
 py manage.py migrate
 ```
 
 ### Server
 
 ```bash
-py manage.py runserver
+py manage.py runserver 8000
 ```
 
-or similar command depending on your system platform.
+_Port `8000` must be available._
 
 ## Testing
 
+Make sure that [main/.env.testing](main/.env.testing) is set appropriately.
+
 ```bash
-set ENV=testing && py manage.py test
+py testmanage.py test
 ```
 
 ```bash
-set ENV=testing && py manage.py test <appname>
+py testmanage.py test <appname>
 ```
 
 ```bash
-set ENV=testing && py manage.py test --tag=<tagname>
+py testmanage.py test --tag=<tagname>
 ```
 
+See [main.strings.Code.Test](main/strings.py) for available `tagname(s)`.
+
 ```bash
-set ENV=testing && coverage run --source='.' manage.py test
+coverage run --source='.' testmanage.py test
 coverage report
 coverage html
 ```
-
-or similar commands depending on your system platform.
 
 ## Contribution
 

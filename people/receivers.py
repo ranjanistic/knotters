@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
-from main.methods import addUserToMailingServer, removeUserFromMailingServer
+from main.bots import Sender
 from .models import ProfileSetting, User, Profile, defaultImagePath
 from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert
 from .methods import getProfileImageBySocialAccount, isPictureDeletable, isPictureSocialImage, getUsernameFromGHSocial
@@ -29,7 +29,7 @@ def on_profile_create(sender, instance, created, **kwargs):
     """
     if created:
         ProfileSetting.objects.create(profile=instance)
-        addUserToMailingServer(
+        Sender.addUserToMailingServer(
             instance.user.email, instance.user.first_name, instance.user.last_name)
 
 
@@ -39,7 +39,7 @@ def on_user_delete(sender, instance, **kwargs):
     User cleanup.
     """
     try:
-        Profile.objects.filter(id=instance.profile.id).update(
+        Profile.objects.filter(id=instance.profile.id).update(to_be_zombie=True,
             is_zombie=True, githubID=None, is_moderator=False, is_active=False, zombied_on=timezone.now(), picture=defaultImagePath())
         if isPictureDeletable(instance.profile.picture):
             instance.profile.picture.delete(save=False)
@@ -47,7 +47,7 @@ def on_user_delete(sender, instance, **kwargs):
         print(e)
         pass
     try:
-        removeUserFromMailingServer(instance.email)
+        Sender.removeUserFromMailingServer(instance.email)
     except Exception as e:
         print(e)
         pass

@@ -5,25 +5,16 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
-from main.methods import renderData, renderView, classAttrsToDict, replaceUrlParamsWithStr
-from main.strings import url, code, profile as profileString
+from main.methods import errorLog, renderData, renderView
+from main.strings import URL, Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
 from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
 
 
-def renderer(request: WSGIRequest, file: str, data: dict = {}) -> HttpResponse:
-    data['URLS'] = {}
-    def cond(key,value):
-        return str(key).isupper()
-
-    urls = classAttrsToDict(url.People,cond)
-
-    for key in urls:
-        data['URLS'][key] = f"{url.getRoot(APPNAME)}{replaceUrlParamsWithStr(urls[key])}"
-
-    return renderView(request, file, data, fromApp=APPNAME)
+def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    return renderView(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME)
 
 
 def convertToFLname(string: str) -> str and str:
@@ -40,7 +31,7 @@ def convertToFLname(string: str) -> str and str:
     if len(namesequence) > 0:
         lastname = " ".join(namesequence)
     else:
-        lastname = ''
+        lastname = str()
     fullname = f"{firstname} {lastname}"
     if len(fullname) > 70:
         fullname = fullname[:(70-len(fullname))]
@@ -68,53 +59,55 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
                     profileString.setting.PREFERENCE]
 
 
-def getProfileSectionData(section: str, profile: Profile, request: WSGIRequest) -> dict:
-    data = renderData({
-        'self': request.user == profile.user,
-        'person': profile.user
-    }, APPNAME)
+def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
+    data = renderData(
+        dict(
+            self=requestUser == profile.user,
+            person=profile.user
+        ), APPNAME)
     if section == profileString.OVERVIEW:
         pass
-    if section == profileString.PROJECTS:
-        if request.user == profile.user:
+    elif section == profileString.PROJECTS:
+        if requestUser == profile.user:
             projects = Project.objects.filter(creator=profile)
         else:
             projects = Project.objects.filter(
-                creator=profile, status=code.APPROVED)
-        data[code.APPROVED] = projects.filter(status=code.APPROVED)
-        data[code.MODERATION] = projects.filter(status=code.MODERATION)
-        data[code.REJECTED] = projects.filter(status=code.REJECTED)
+                creator=profile, status=Code.APPROVED)
+        data[Code.APPROVED] = projects.filter(status=Code.APPROVED)
+        data[Code.MODERATION] = projects.filter(status=Code.MODERATION)
+        data[Code.REJECTED] = projects.filter(status=Code.REJECTED)
+    elif section == profileString.CONTRIBUTION:
         pass
-    if section == profileString.CONTRIBUTION:
+    elif section == profileString.ACTIVITY:
         pass
-    if section == profileString.ACTIVITY:
-        pass
-    if section == profileString.MODERATION:
+    elif section == profileString.MODERATION:
         if profile.is_moderator:
             mods = Moderation.objects.filter(moderator=profile)
-            data['resolved'] = mods.filter(resolved=True)
-            data['unresolved'] = mods.filter(resolved=False)
+            data[Code.RESOLVED] = mods.filter(resolved=True)
+            data[Code.UNRESOLVED] = mods.filter(resolved=False)
+    else: return False
     return data
 
 
 def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) -> str:
     if not PROFILE_SECTIONS.__contains__(section):
         return False
-    data = {}
+    data = dict()
     for sec in PROFILE_SECTIONS:
         if sec == section:
-            data = getProfileSectionData(sec, profile, request)
+            data = getProfileSectionData(sec, profile, request.user)
             break
     return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
 
 
-def getSettingSectionData(section: str, user: User, request: WSGIRequest) -> dict:
+def getSettingSectionData(section: str, user: User, requestuser: User) -> dict:
     data = renderData(fromApp=APPNAME)
-    if section == profileString.setting.ACCOUNT:
+    if not requestuser.is_authenticated: return data
+    if section == profileString.Setting.ACCOUNT:
         pass
-    if section == profileString.setting.PREFERENCE:
+    if section == profileString.Setting.PREFERENCE:
         try:
-            data['setting'] = ProfileSetting.objects.get(profile=user.profile)
+            data[Code.SETTING] = ProfileSetting.objects.get(profile=user.profile)
         except:
             pass
     return data
@@ -123,10 +116,10 @@ def getSettingSectionData(section: str, user: User, request: WSGIRequest) -> dic
 def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str:
     if not SETTING_SECTIONS.__contains__(section) or request.user != user:
         return False
-    data = {}
+    data = dict()
     for sec in SETTING_SECTIONS:
         if sec == section:
-            data = getSettingSectionData(sec, user, request)
+            data = getSettingSectionData(sec, user, request.user)
             break
     return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
 
@@ -148,23 +141,24 @@ def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
     return defaultImagePath()
 
 
+def isPictureDeletable(picture: str) -> bool:
+    """
+    Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
+    """
+    return picture != defaultImagePath() and not str(picture).startswith('http')
+
 def isPictureSocialImage(picture: str) -> str:
     """
     If the given url points to a oauth provider account profile image, returns the provider id.
     """
+    if isPictureDeletable(picture): return False
+
     providerID = None
     for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id]:
         if str(picture).__contains__(id):
             providerID = id
             break
     return providerID
-
-
-def isPictureDeletable(picture: str) -> bool:
-    """
-    Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
-    """
-    return picture != defaultImagePath() and not str(picture).startswith('http')
 
 
 def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
@@ -181,13 +175,14 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
 
 def migrateUserAssets(predecessor: User, successor: User) -> bool:
     try:
+        if predecessor == successor: return True
         Project.objects.filter(creator=predecessor.profile,
-                               status=code.MODERATION).delete()
+                               status=Code.MODERATION).delete()
         Project.objects.filter(creator=predecessor.profile, status__in=[
-                               code.APPROVED, code.REJECTED]).update(migrated=True, creator=successor.profile)
+                               Code.APPROVED, Code.REJECTED]).update(migrated=True, creator=successor.profile)
         return True
     except Exception as e:
-        print(e)
+        errorLog(e)
         return False
 
 from .receivers import *

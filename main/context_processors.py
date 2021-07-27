@@ -1,20 +1,25 @@
-from .methods import renderData
+from main.methods import renderData
 from .env import PUBNAME, MAILUSER, SITE, VERSION
-from .strings import DIVISIONS, url
+from .strings import DIVISIONS, URL
+from .settings import STATIC_URL
+
 
 def Global(request):
-    data = {}
-    data['APPNAME'] = PUBNAME
-    data['CONTACTMAIL'] = MAILUSER
-    data['DESCRIPTION'] = "Solving problems together."
-    data['SITE'] = SITE
-    data['VERSION'] = VERSION
-    data['SUBAPPS'] = {}
-    data['SUBAPPSLIST'] = []
-    data['ICON'] = "/static/graphics/self/icon.svg"
-    data['SERVICE_WORKER'] = f"/{url.SERVICE_WORKER}"
-    data['MANIFESTURL'] = f"/{url.MANIFEST}"
+    data = dict(
+        APPNAME=PUBNAME,
+        CONTACTMAIL=MAILUSER,
+        DESCRIPTION="Solving problems together.",
+        SITE=SITE,
+        VERSION=VERSION,
+        SUBAPPS=dict(),
+        SUBAPPSLIST=[],
+        ICON=f"{STATIC_URL}graphics/self/icon.svg",
+        SERVICE_WORKER=f"/{URL.SERVICE_WORKER}",
+        MANIFESTURL=f"/{URL.MANIFEST}",
+    )
+
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
         data['SUBAPPSLIST'].append(div)
-    return renderData(data=data)
+
+    return renderData(data)

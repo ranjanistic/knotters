@@ -81,7 +81,7 @@ class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     tags = models.ManyToManyField(
-        f'{PROJECTS}.Tag', default=[], through=f'{PROJECTS}.Relation')
+        f'{PROJECTS}.Tag', default=[], through='TopicTag')
 
     def __str__(self) -> str:
         return self.name
@@ -90,9 +90,18 @@ class Topic(models.Model):
         return self.id.hex
 
 
+class TopicTag(models.Model):
+    class Meta:
+        unique_together = ('topic', 'tag')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    tag = models.ForeignKey(f'{PROJECTS}.Tag', on_delete=models.CASCADE)
+
+
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.id).replace('-','')}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultImagePath() -> str:
@@ -106,14 +115,14 @@ class Profile(models.Model):
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     picture = models.ImageField(
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
-    is_moderator = models.BooleanField(default=False)
     githubID = models.CharField(
-        max_length=40, null=True, unique=True, default=None, blank=True)
+        max_length=40, null=True, default=None, blank=True)
     bio = models.CharField(max_length=100, blank=True, null=True)
     successor = models.ForeignKey('User', null=True, blank=True, related_name='successor_profile',
                                   on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     successor_confirmed = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
+    is_moderator = models.BooleanField(default=False)
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -129,6 +138,8 @@ class Profile(models.Model):
     reporters = models.ManyToManyField(
         'Profile', through='ProfileReport', related_name='profile_reporters', default=[])
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
+
+    xp = models.IntegerField(default=0, help_text='Experience count')
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -193,7 +204,7 @@ class Profile(models.Model):
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(
-        Profile, on_delete=models.CASCADE, related_name='settings_profile')
+        Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False, blank=False)
     newsletter = models.BooleanField(default=True)
     recommendations = models.BooleanField(default=True)
     competitions = models.BooleanField(default=True)
