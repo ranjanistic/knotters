@@ -1,28 +1,20 @@
+from django.core.handlers.wsgi import WSGIRequest
 from people.models import Profile
 from github import Organization, NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import Code, url, setPathParams
-from main.methods import renderView, classAttrsToDict
+from main.strings import Code, URL
+from main.methods import errorLog, renderView
+from main.env import ISPRODUCTION
 from .models import Category, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
 
-def renderer(request, file, data={}):
-    data['URLS'] = {}
-
-    def cond(key, value):
-        return str(key).isupper()
-
-    urls = classAttrsToDict(url.Projects, cond)
-
-    for key in urls:
-        data['URLS'][key] = f"{url.getRoot(APPNAME)}{setPathParams(urls[key])}"
-
-    return renderView(request, file, data, fromApp=APPNAME)
+def renderer(request: WSGIRequest, file: str, data: dict = dict()):
+    return renderView(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
 
-def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, url: str = '') -> Project or bool:
+def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, url: str = str()) -> Project or bool:
     """
     Creates project on knotters under moderation status.
 
@@ -35,7 +27,8 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
     :url: A display link for project, optional
     """
     try:
-        if not uniqueRepoName(reponame):
+        reponame = uniqueRepoName(reponame)
+        if not reponame:
             return False
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj:
@@ -50,11 +43,12 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         return project
     except Exception as e:
         print(e)
+        errorLog(e)
         return False
 
 
 def addCategoryToDatabase(category: str) -> Category:
-    category = str(category).strip().replace('\n', '')
+    category = str(category).strip().replace('\n', str())
     if not category:
         return False
     categoryObj = None
@@ -69,11 +63,11 @@ def addCategoryToDatabase(category: str) -> Category:
 
 
 def addTagToDatabase(tag: str) -> Tag:
-    tag = str(tag).strip('#').strip().replace('\n', '').replace(" ", "_")
+    tag = str(tag).strip('#').strip().replace('\n', str()).replace(" ", "_")
     if not tag:
         return False
     tagobj = uniqueTag(tag)
-    if not tagobj:
+    if tagobj == True:
         tagobj = Tag.objects.create(name=tag)
     return tagobj
 
@@ -82,23 +76,23 @@ def uniqueRepoName(reponame: str) -> bool:
     """
     Checks for unique repository name among existing projects
     """
-    reponame = str(reponame).strip('-').strip().replace(' ', '-').lower()
-    try:
-        count = Project.objects.filter(reponame=str(reponame)).count()
-        return count < 1
-    except Exception as e:
-        print(e)
-        return True
+    reponame = str(reponame).strip('-').strip().replace(' ', '-').replace('--','-').lower()
+    if len(reponame) > 20: return False
+    count = Project.objects.filter(reponame=str(reponame)).count()
+    if count >= 1: return False
+    return reponame if reponame and reponame != str() else False
 
 
-def uniqueTag(tagname: str) -> bool:
+def uniqueTag(tagname: str) -> Tag:
     """
     Checks for unique tag name among existing tags
     """
     try:
-        return Tag.objects.filter(name__iexact=tagname).first()
-    except Exception as e:
+        return Tag.objects.get(name__iexact=tagname)
+    except:
         return True
+
+    
 
 
 def setupApprovedProject(project: Project, moderator: Profile) -> bool:
@@ -118,7 +112,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         created = setupOrgGihtubRepository(
             project.reponame, project.creator, moderator, project.description)
 
-        if not created:
+        if not created and ISPRODUCTION:
             return False
 
         # created = setupProjectDiscordChannel(
@@ -129,6 +123,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         return True
     except Exception as e:
         print(e)
+        errorLog(e)
         return False
 
 
@@ -181,7 +176,7 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
 
         return True
     except Exception as e:
-        print(e)
+        errorLog(e)
         return False
 
 
@@ -200,7 +195,7 @@ def inviteMemberToGithubOrg(ghOrg: Organization, ghUser: NamedUser) -> bool:
             ghOrg.invite_user(user=ghUser, role="direct_member")
         return True
     except Exception as e:
-        print(e)
+        errorLog(e)
         return False
 
 

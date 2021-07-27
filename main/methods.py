@@ -8,29 +8,21 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.http.request import HttpRequest
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
-from .strings import URL, setPathParams, url
 
-def renderData(data: dict = {}, fromApp: str = '') -> dict:
+
+def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
     Adds default meta data to the dictionary 'data' which is assumed to be sent with a rendering template.
 
     :param: fromApp: The subapplication name from whose context this method will return udpated data.
     """
-    data['URLS'] = data.get('URLS', {})
-
-    def cond(key, value):
-        return str(key).isupper()
-    urls = classAttrsToDict(URL, cond)
-
-    for key in urls:
-        data['URLS'][key] = f"{url.getRoot() if urls[key] != URL.ROOT else ''}{setPathParams(str(urls[key]))}"
-
-    data['ROOT'] = url.getRoot(fromApp)
-    data['SUBAPPNAME'] = fromApp
-    return data
+    URLS = dict(**data.get('URLS', dict()), **url.getURLSForClient())
+    if data.get('URLS',None):
+        del data['URLS']
+    return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 
 
-def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = '') -> HttpResponse:
+def renderView(request: HttpRequest, view: str, data: dict = dict(), fromApp: str = str()) -> HttpResponse:
     """
     Returns text/html data as http response via given template view name.
 
@@ -39,10 +31,10 @@ def renderView(request: HttpRequest, view: str, data: dict = {}, fromApp: str = 
     :fromApp: The subapplication division name under which the given view named template file resides
     """
 
-    return render(request, f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
+    return render(request, f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
 
-def renderString(request: HttpRequest, view: str, data: dict = {}, fromApp: str = '') -> str:
+def renderString(request: HttpRequest, view: str, data: dict = dict(), fromApp: str = str()) -> str:
     """
     Returns text/html data as string via given template view name.
 
@@ -50,10 +42,10 @@ def renderString(request: HttpRequest, view: str, data: dict = {}, fromApp: str 
     :data: The dict data to be render in the view.
     :fromApp: The subapplication division name under which the given view named template file resides
     """
-    return render_to_string(f"{'' if fromApp == '' else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
+    return render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
 
 
-def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') -> JsonResponse:
+def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str()) -> JsonResponse:
     """
     Returns application/json data as http response.
 
@@ -68,11 +60,12 @@ def respondJson(code: str, data: dict = {}, error: str = '', message: str = '') 
     }, encoder=JsonEncoder)
 
 
-def respondRedirect(fromApp: str = '', path: str = '', alert: str = '', error: str = '') -> HttpResponseRedirect:
+def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(), error: str = str()) -> HttpResponseRedirect:
     """
     returns redirect http response, with some parametric modifications.
     """
     return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert,error)}")
+
 
 def getDeepFilePaths(dir_name, appendWhen):
     from .settings import BASE_DIR
@@ -83,9 +76,9 @@ def getDeepFilePaths(dir_name, appendWhen):
     :appendWhen: a function, with argument as traversed path in loop, should return bool whether given arg path is to be included or not.
     """
     allassets = mapDeepPaths(os.path.join(BASE_DIR, f'{dir_name}/'))
-    assets = []
+    assets = list()
     for asset in allassets:
-        path = str(asset).replace(str(BASE_DIR), '')
+        path = str(asset).replace(str(BASE_DIR), str())
         if path.startswith('\\'):
             path = str(path).strip("\\")
         if path.startswith(dir_name):
@@ -95,7 +88,7 @@ def getDeepFilePaths(dir_name, appendWhen):
     return assets
 
 
-def mapDeepPaths(dir_name, traversed=[], results=[]):
+def mapDeepPaths(dir_name, traversed=list(), results=list()):
     """
     Returns list of mapping of paths inside the given directory.
     """
@@ -109,20 +102,21 @@ def mapDeepPaths(dir_name, traversed=[], results=[]):
             else:
                 results.append([new_dir[:-1], os.stat(new_dir[:-1])])
 
-    paths = []
+    paths = list()
     for file_name, _ in results:
         paths.append(str(file_name).strip('.'))
     return paths
 
 
-def maxLengthInList(list: list = []) -> int:
+def maxLengthInList(list: list = list()) -> int:
     max = len(str(list[0]))
     for item in list:
         if max < len(str(item)):
             max = len(str(item))
     return max
 
-def minLengthInList(list: list = []) -> int:
+
+def minLengthInList(list: list = list()) -> int:
     min = len(str(list[0]))
     for item in list:
         if min > len(str(item)):
@@ -157,17 +151,18 @@ def classAttrsToDict(className, appendCondition) -> dict:
                 data[key] = className.__dict__.get(key)
     return data
 
+
 def errorLog(error):
     from .env import ISDEVELOPMENT, ISTESTING
     if not ISTESTING:
-        file = open('_logs_/errors.txt','w+')
+        file = open('_logs_/errors.txt', 'w+')
         existing = file.read()
         file.close()
-        file2 = open('_logs_/errors.txt','w')
+        file2 = open('_logs_/errors.txt', 'w')
         new = f"{existing}\n{timezone.now()}\n{error}"
         file2.write(new)
         file2.close()
         if ISDEVELOPMENT:
             print(error)
-
-
+            
+from .strings import url

@@ -165,7 +165,7 @@ class ServiceWorker(TemplateView):
         def appendWhen(path: str):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
         assets = getDeepFilePaths(STATIC_URL.strip('/'), appendWhen=appendWhen)
-        
+
         assets.append(f"/{URL.OFFLINE}")
 
         try:
@@ -193,10 +193,10 @@ class ServiceWorker(TemplateView):
             LocalStorage.objects.update_or_create(
                 key=Code.SWASSETS, value=json.dumps(assets))
 
-        context = renderData({
-            'OFFLINE': f"/{URL.OFFLINE}",
-            'assets': json.dumps(assets),
-            'noOfflineList': json.dumps([
+        context = dict(**context, **renderData(dict(
+            OFFLINE=f"/{URL.OFFLINE}",
+            assets=json.dumps(assets),
+            noOfflineList=json.dumps([
                 setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.COMPETETABSECTION}"),
                 setPathParams(
@@ -206,7 +206,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(
                     f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
             ]),
-            'ignorelist': json.dumps([
+            ignorelist=json.dumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",
@@ -225,7 +225,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
             ]),
-            'recacheList': json.dumps([
+            recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.ACCOUNTS}*",
                 setPathParams(
@@ -237,5 +237,5 @@ class ServiceWorker(TemplateView):
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
-        })
+        )))
         return context

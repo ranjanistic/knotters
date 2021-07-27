@@ -4,12 +4,16 @@ from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 
+
 class Code():
     OK = "OK"
     NO = "NO"
     APPROVED = "approved"
     REJECTED = "rejected"
     MODERATION = "moderation"
+    RESOLVED = "resolved"
+    UNRESOLVED = "unresolved"
+    SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
     MODERATOR = "moderator"
@@ -23,7 +27,9 @@ class Code():
         METHOD = 'method'
         STATIC = 'static'
 
+
 code = Code()
+
 
 def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
     """
@@ -41,6 +47,7 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
         path = re.sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
     return re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+
 
 setPathParams('asf')
 
@@ -99,13 +106,14 @@ class Message():
 
         :message: The message string to be checked for validity.
         """
-        def conditn(key,_):
+        def conditn(key, _):
             return str(key).isupper()
         attrs = classAttrsToDict(Message, conditn)
         validMessages = []
         for key in attrs:
             validMessages.append(attrs[key])
         return validMessages.__contains__(message)
+
 
 message = Message()
 
@@ -238,12 +246,15 @@ class URL():
             return setPathParams(self.DECLARERESULTS, compID)
 
         def getURLSForClient(self):
-            URLS=dict()
+            URLS = dict()
+
             def cond(key, value):
                 return str(key).isupper()
-            urls = classAttrsToDict(self, cond)
+            urls = classAttrsToDict(URL.Compete, cond)
+
             for key in urls:
                 URLS[key] = f"{url.getRoot(COMPETE)}{setPathParams(urls[key])}"
+            return URLS
 
     compete = Compete()
 
@@ -272,6 +283,17 @@ class URL():
 
         def approveCompete(self, modID):
             return setPathParams(self.APPROVECOMPETE, modID)
+
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Moderation, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(MODERATION)}{setPathParams(urls[key])}"
+            return URLS
 
     moderation = Moderation()
 
@@ -321,6 +343,17 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.People, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(PEOPLE)}{setPathParams(urls[key])}"
+            return URLS
+
     people = People()
 
     class Projects():
@@ -347,11 +380,31 @@ class URL():
         def projectInfo(self, projectID, info):
             return setPathParams(self.PROJECTINFO, projectID, info)
 
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Projects, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(PROJECTS)}{setPathParams(urls[key])}"
+            return URLS
+
     projects = Projects()
 
+    def getURLSForClient(self) -> dict:
+        URLS = dict()
+
+        def cond(key, value):
+            return str(key).isupper()
+        urls = classAttrsToDict(URL, cond)
+
+        for key in urls:
+            URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
+        return URLS
 
 url = URL()
-
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
@@ -397,6 +450,9 @@ class Profile():
 
 
 class Compete():
+    ACTIVE = "active"
+    UPCOMING = "upcoming"
+    HISTORY = "history"
     OVERVIEW = "overview"
     TASK = "task"
     GUIDELINES = "guidelines"

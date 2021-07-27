@@ -93,9 +93,12 @@ class Project(models.Model):
         super(Project, self).save(*args, **kwargs)
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
-        if self.status != Code.APPROVED:
-            return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
-        return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
+        try:
+            if self.status != Code.APPROVED:
+                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
+            return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
+        except:
+            return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
 
     def getDP(self) -> str:
         return f"{MEDIA_URL}{str(self.image)}"
@@ -116,7 +119,10 @@ class Project(models.Model):
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
     def getModLink(self) -> str:
-        return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
+        try:
+            return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
+        except:
+            return str()
 
     def moderationRetriesLeft(self) -> int:
         if self.status != Code.APPROVED:

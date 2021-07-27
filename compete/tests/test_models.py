@@ -97,8 +97,13 @@ class CompetitionAttributeTest(TestCase):
         self.assertTrue(self.comp.declareResultsLink().endswith(
             url.compete.declareResults(compID=self.comp.getID())))
         self.assertFalse(self.comp.declareResults())
+        self.assertCountEqual(self.comp.getParticipants(),[])
+        self.assertEqual(self.comp.totalParticipants(),0)
+        self.assertCountEqual(self.comp.getAllParticipants(),[])
+        self.assertEqual(self.comp.totalAllParticipants(),0)
 
 
+    @tag("mod")
     def test_modified_comp_methods(self):
         self.comp.endAt = timezone.now()
         self.comp.perks = TEST_COMP_PERKS

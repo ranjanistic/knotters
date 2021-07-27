@@ -1,5 +1,5 @@
 from django.test import TestCase, tag
-from main.strings import Code, Message, PROJECTS
+from main.strings import Code, Message
 from main.methods import *
 from .utils import B64
 

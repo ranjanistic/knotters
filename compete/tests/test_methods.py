@@ -23,4 +23,3 @@ class CompeteMethodsTest(TestCase):
         self.assertDictEqual(getCompetitionSectionData(Compete.GUIDELINES, self.comp, self.user), dict(compete=self.comp))
         self.assertDictEqual(getCompetitionSectionData(Compete.SUBMISSION, self.comp, self.user),dict(compete=self.comp,submission=None))
         self.assertDictEqual(getCompetitionSectionData(Compete.RESULT, self.comp, self.user),dict(compete=self.comp,results=None))
-        pass

@@ -206,6 +206,26 @@ class Competition(models.Model):
         """
         return Submission.objects.filter(competition=self).order_by('-submitOn')
 
+    def getParticipants(self):
+        parts = SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True).only('profile')
+        profiles = list()
+        for part in parts:
+            profiles.append(part.profile)
+        return profiles
+
+    def totalParticipants(self):
+        return SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True).count()
+
+    def getAllParticipants(self) -> list:
+        parts =  SubmissionParticipant.objects.filter(submission__competition=self).only('profile')
+        profiles = list()
+        for part in parts:
+            profiles.append(part.profile)
+        return profiles
+
+    def totalAllParticipants(self):
+        return SubmissionParticipant.objects.filter(submission__competition=self).count()
+
     def totalSubmissions(self) -> int:
         """
         Count all submissions irrespective of their validity.
@@ -481,15 +501,14 @@ class SubmissionParticipant(models.Model):
     """
     For participant member in a submission in a competition.
     """
+    class Meta:
+        unique_together = ("profile", "submission")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     confirmed = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ("profile", "submission")
 
 
 class SubmissionTopicPoint(models.Model):

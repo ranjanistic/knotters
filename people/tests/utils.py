@@ -1,49 +1,50 @@
 from people.models import User, Topic
-from random import randint
 from uuid import uuid4
 from django.contrib.auth.hashers import make_password
 
-TEST_NAME = f'Testing{uuid4().hex}'
-TEST_EMAIL = f'testing@knotters.org{uuid4().hex}'
-TEST_PASSWORD = f'12345@abcde{uuid4().hex}'
-TEST_TOPIC = f'Test Topic{uuid4().hex}'
-TEST_GHID = f'testing{uuid4().hex}'
-TEST_DP = f'testing{uuid4().hex}.png'
+TEST_FNAME = uuid4().hex
+TEST_LNAME = uuid4().hex
+TEST_NAME = f'Testing {uuid4().hex}'
+TEST_EMAIL = f'{uuid4().hex}@knotters.org'
+TEST_PASSWORD = uuid4().hex
+TEST_TOPIC = uuid4().hex
+TEST_GHID = uuid4().hex
+TEST_DP = f'{uuid4().hex}.png'
+TEST_BIO = f"{uuid4().hex} {uuid4().hex} {uuid4().hex}"
 
-
-def getTestEmails(count=1, start=0):
+def getTestEmails(count=1):
     emails = []
-    for i in range(count):
-        emails.append(f"testing{i+start}.{uuid4().hex}@knotters.org")
+    for _ in range(count):
+        emails.append(f"{uuid4().hex}@knotters.org")
     return emails
 
 
-def getTestNames(count=1, start=0):
+def getTestNames(count=1):
     names = []
-    for i in range(count):
-        names.append(f"Testing {i+start}{randint(0,count)}")
+    for _ in range(count):
+        names.append(f"Testing {uuid4().hex}")
     return names
 
 
-def getTestPasswords(count=1, start=0):
+def getTestPasswords(count=1):
     passwords = []
-    for i in range(count):
-        passwords.append(f"12345@abcde{i+start}{randint(0,count)}")
+    for _ in range(count):
+        passwords.append(uuid4().hex)
     return passwords
 
 
-def getTestPasswordsHash(count=1, start=0):
+def getTestPasswordsHash(count=1):
     hashes = []
-    for i in range(count):
+    for _ in range(count):
         hashes.append(make_password(
-            f"12345@abcde{i+start}{randint(0,count)}", None, 'md5'))
+            uuid4().hex, None, 'md5'))
     return hashes
 
 
 def getTestUsersInst(count=1, start=0):
-    testemails = getTestEmails(count, start)
-    testnames = getTestNames(count, start)
-    testpswds = getTestPasswords(count, start)
+    testemails = getTestEmails(count)
+    testnames = getTestNames(count)
+    testpswds = getTestPasswords(count)
     users = []
     for i in range(len(testemails)):
         users.append(User(email=testemails[i], first_name=testnames[i], password=make_password(
@@ -51,15 +52,15 @@ def getTestUsersInst(count=1, start=0):
     return users
 
 
-def getTestTopics(count=1, start=0):
+def getTestTopics(count=1):
     topics = []
-    for i in range(count):
-        topics.append(f"Test Topic {i+start}{uuid4().hex}")
+    for _ in range(count):
+        topics.append(uuid4().hex)
     return topics
 
 
 def getTestTopicsInst(count=1, start=0):
     topics = []
-    for name in getTestTopics(count, start):
+    for name in getTestTopics(count):
         topics.append(Topic(name=name))
     return topics

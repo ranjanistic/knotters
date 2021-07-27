@@ -53,7 +53,7 @@ jobs:
         python manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput --verbosity=1 --keepdb --exclude-tag=model
+        python manage.py test --noinput --verbosity=1 --keepdb --tag=method
     - name: Clear Environment
       run: |
         rm -f ${{ secrets.ENVPATH }}
