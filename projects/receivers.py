@@ -9,7 +9,10 @@ def on_project_create(sender, instance, created, **kwargs):
     Project submitted.
     """
     if created:
-        instance.creator.xp = instance.creator.xp + 2
+        if instance.creator.xp:
+            instance.creator.xp = instance.creator.xp + 2
+        else:
+            instance.creator.xp = 2
         instance.creator.save()
 
 

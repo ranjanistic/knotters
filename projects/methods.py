@@ -35,11 +35,12 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
             return False
         project = Project.objects.create(
             creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
-        for tag in tags:
-            tagobj = addTagToDatabase(tag)
-            if tagobj:
-                project.tags.add(tagobj)
-                categoryObj.tags.add(tagobj)
+        if tags:
+            for tag in tags:
+                tagobj = addTagToDatabase(tag)
+                if tagobj:
+                    project.tags.add(tagobj)
+                    categoryObj.tags.add(tagobj)
         return project
     except Exception as e:
         print(e)

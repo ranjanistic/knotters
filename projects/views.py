@@ -6,7 +6,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body
-from main.methods import base64ToImageFile, respondJson, respondRedirect
+from main.methods import base64ToImageFile, errorLog, respondJson, respondRedirect
 from main.strings import Code, Message, URL
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
@@ -89,6 +89,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         sendProjectSubmissionNotification(projectobj)
         return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
     except Exception as e:
+        errorLog(e)
         if projectobj:
             projectobj.delete()
         return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
