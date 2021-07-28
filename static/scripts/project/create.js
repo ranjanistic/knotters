@@ -71,6 +71,7 @@ const showStep = (n) => {
 };
 
 const nextPrev = (n) => {
+    console.log(currentStep)
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
@@ -92,7 +93,7 @@ const nextPrev = (n) => {
                 alertify.error(error);
             });
     } else {
-        if (n > 0 && currentStep >= stepviews.length - 1) {
+        if (n > 0 && (currentStep === (stepviews.length - 1))) {
             if (!validateForm())
                 return alertify.error(
                     "Some values are invalid. Please refresh page and start over."
@@ -101,7 +102,7 @@ const nextPrev = (n) => {
                 return alertify.error(
                     "Please check the acceptance of terms checkbox at bottom."
                 );
-            }
+            }        
             actionLoader(true);
             subLoader(true);
             alertify.message("Creating project...");

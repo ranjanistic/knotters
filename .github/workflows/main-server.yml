@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
     paths:
-      - ".github/workflows/main-server.yml"
       - "main/**"
       - "moderation/**"
       - "compete/**"
@@ -80,6 +79,10 @@ jobs:
         sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
         sudo rm -f -r _backup_/${{ secrets.DBNAME }}
         sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
+        sudo tar czf _backup_/media.tar.gz media
+        sudo rm -f _backup_/media.tar.gz.gpg
+        sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
+        sudo rm -f _backup_/media.tar.gz
       working-directory: ${{ secrets.WORKINGDIR }}
     - name: Merge changes
       run: |

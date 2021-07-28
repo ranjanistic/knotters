@@ -7,9 +7,6 @@
 <html lang="en">
     {% block head %}
     <head>
-        <link rel="preload" as="font" href="{% static 'fonts/Poppins/Latin.woff2' %}" />
-        <link rel="preload" as="font" href="{% static 'fonts/Questrial/Latin.woff2' %}" />
-        <link rel="preload" as="font" href="{% static 'icons/material.woff2' %}" />
 
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -114,11 +111,9 @@
                 </div>
                 {% endif %}
                 <div class="w3-row w3-center w3-padding">
-                    <img alt={{APPNAME}} src="{{ICON}}" width="100" height="100"/>
-                    <h1>Knotters Community</h1>
-                    <h2>Solving problems together</h2>
-                    <br/>
+                    <img alt={{APPNAME}} src="{{ICON}}" width="200" height="200"/>
                 </div>
+                    <br/>
                 <div class="w3-row w3-center w3-padding tertiary">
                     <br/>
                     <h3>Active projects of this month</h3>
@@ -186,6 +181,8 @@
                 <a href="/press" class="text-secondary" hidden>For the press</a><br/>
                 <a href="/report" class="text-secondary" hidden>Report a problem</a><br/>
                 <a href="/docs" class="text-secondary">Docs &amp; statements</a><br/>
+                <a href="/docs/termsofservice" class="text-secondary">Terms of service</a><br/>
+                <a href="/docs/privacypolicy" class="text-secondary">Privacy Policy</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small">
                 <br/><br/>
@@ -243,7 +240,7 @@
             } else if("{{request.GET.a}}") {
                 message("{{request.GET.a}}");
             }
-            const URLS = {{URLS|safe}}
+            const URLS = Object.freeze({{URLS|safe}})
         </script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}

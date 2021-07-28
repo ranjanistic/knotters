@@ -2,8 +2,8 @@
 <div class="w3-row w3-padding">
     <div class="w3-row">
         <div class="w3-col w3-half w3-center">
-            <br/>
-            <div class="" id="view-profiletopics">
+            <center><h1>{% if profile.xp %}{{profile.xp}}{% else %}0{% endif %} XP</h1></center>
+            <div id="view-profiletopics">
             {% for topic in profile.topics.all %}
             Interested in <button>{{topic.name}}</button>
             {% empty %}
@@ -25,7 +25,7 @@
                 {% empty %}
                     <br/>
                     <br/>
-                    <h2>No topics available yet.<br/>Stay tuned!</h2>
+                    <h4>No topics available yet.<br/>Stay tuned!</h4>
                     <br/>
                     <button hidden id="save-edit-profiletopics">Save</button>
                     <button id="discard-edit-profiletopics">Cancel</button>
