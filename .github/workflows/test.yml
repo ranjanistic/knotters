@@ -1,7 +1,7 @@
 name: Knotters Django CI Testing
 
 on:
-  pull_request:
+  push:
     branches: [ main ]
     paths:
       - ".github/workflows/test.yml"
