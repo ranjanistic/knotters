@@ -1,0 +1,53 @@
+name: Knotters Django CI Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - ".github/workflows/test.yml"
+
+jobs:
+  testing:
+    runs-on: [self-hosted, testing]
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Create Environment
+      run: |
+        touch ${{ secrets.ENVPATH }}
+        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> ${{ secrets.ENVPATH }}
+        echo "PUBNAME=${{ secrets.PUBNAME }}" >> ${{ secrets.ENVPATH }}
+        echo "ENV=${{ secrets.ENV }}" >> ${{ secrets.ENVPATH }}
+        echo "HOSTS=${{ secrets.HOSTS }}" >> ${{ secrets.ENVPATH }}
+        echo "DBNAME=${{ secrets.DBTESTNAME }}" >> ${{ secrets.ENVPATH }}
+        echo "DBLINK=${{ secrets.DBTESTLINK }}" >> ${{ secrets.ENVPATH }}
+        echo "DBUSER=${{ secrets.DBTESTUSER }}" >> ${{ secrets.ENVPATH }}
+        echo "DBPASS=${{ secrets.DBTESTPASS }}" >> ${{ secrets.ENVPATH }}
+        echo "MAILUSER=${{ secrets.MAILUSER }}" >> ${{ secrets.ENVPATH }}
+        echo "MAILPASS=${{ secrets.MAILPASS }}" >> ${{ secrets.ENVPATH }}
+        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> ${{ secrets.ENVPATH }}
+        echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
+        echo "DISCORDBOTTOKEN=${{ secrets.DISCORDBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
+        echo "SITE=${{ secrets.SITE }}" >> ${{ secrets.ENVPATH }}
+        echo "SENDERTOKEN=${{ secrets.SENDERTOKEN }}" >> ${{ secrets.ENVPATH }}
+        echo "MEDIA_URL=${{ secrets.MEDIA_URL }}" >> ${{ secrets.ENVPATH }}
+        echo "STATIC_URL=${{ secrets.STATIC_URL }}" >> ${{ secrets.ENVPATH }}
+        echo "SERVER_EMAIL=${{ secrets.SERVER_EMAIL }}" >> ${{ secrets.ENVPATH }}
+    - name: Run Migrations
+      run: |
+        python manage.py makemigrations --noinput
+        python manage.py migrate --noinput
+    - name: Run tests
+      run: |
+        python manage.py test --noinput --verbosity=1 --keepdb --tag=static
+    - name: Clear Environment
+      run: |
+        sudo rm -f ${{ secrets.ENVPATH }}
