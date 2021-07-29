@@ -15,14 +15,14 @@ on:
 
 jobs:
   client_view_deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, deployment]
     strategy:
       max-parallel: 1
       matrix:
-        python-version: [3.9]
+        python-version: [3.8]
 
     steps:
     - name: Merge changes
       run: |
-        sudo git pull origin
+        sudo git pull --depth=1
       working-directory: ${{ secrets.WORKINGDIR }}
