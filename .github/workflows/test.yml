@@ -49,6 +49,6 @@ jobs:
     - name: Run tests
       run: |
         python manage.py test --noinput --verbosity=1 --keepdb --tag=static
-    - name: Clear Environment
+    - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}
