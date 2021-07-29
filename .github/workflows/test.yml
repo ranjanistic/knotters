@@ -15,7 +15,8 @@ jobs:
         python-version: [3.8]
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Setup source
+      uses: actions/checkout@v2
     - name: Install Dependencies
       run: |
         pip install --upgrade pip
