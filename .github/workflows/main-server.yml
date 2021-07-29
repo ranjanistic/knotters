@@ -82,7 +82,7 @@ jobs:
         sudo rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
-        sudo git pull --depth=1
+        sudo git pull --depth=10
     - name: Install dependencies
       run: |
         pip install --upgrade pip

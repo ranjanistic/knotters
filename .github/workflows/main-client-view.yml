@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
     paths:
-      - ".github/workflows/main-client-view.yml"
       - "!static/**"
       - "!main/**"
       - "!moderation/**"
