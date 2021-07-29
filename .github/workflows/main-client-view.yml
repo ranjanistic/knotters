@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
+      - ".github/workflows/main-client-view.yml"
       - "!static/**"
       - "!main/**"
       - "!moderation/**"
@@ -24,5 +25,5 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        sudo git pull --depth=1
+        sudo git pull --depth=10
       working-directory: ${{ secrets.WORKINGDIR }}
