@@ -31,32 +31,6 @@ def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
 
 
 @require_GET
-@dev_only
-def createMockUsers(request: WSGIRequest, total: int) -> HttpResponse:
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        for i in range(int(total)):
-            r = requests.post(f'{SITE}/auth/signup/', headers=headers, data={
-                              'email': f"testing{i}@knotters.org", "first_name": f"Testing{i}", 'password1': 'ABCD@12345678'})
-            if r.status_Code != 200:
-                break
-        EmailAddress.objects.filter(
-            email__startswith=f"testing", email__endswith="@knotters.org").update(verified=True)
-        return HttpResponse('ok')
-    except Exception as e:
-        errorLog(e)
-        return HttpResponse(str(e))
-
-
-@require_GET
-@dev_only
-def clearMockUsers(request: WSGIRequest) -> HttpResponse:
-    User.objects.filter(email__startswith=f"testing",
-                        email__endswith="@knotters.org").delete()
-    return HttpResponse('ok')
-
-
-@require_GET
 def index(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=Code.APPROVED)[0:3]
     data = {
