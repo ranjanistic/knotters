@@ -17,4 +17,5 @@ urlpatterns = [
     path(URL.Compete.SUBMIT, finalSubmit),
     path(URL.Compete.SUBMITPOINTS, submitPoints),
     path(URL.Compete.DECLARERESULTS, declareResults),
+    path(URL.Compete.CLAIMXP, claimXP),
 ]

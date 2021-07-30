@@ -1,11 +1,11 @@
 import os
 import base64
+from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.files.base import ContentFile, File
 from django.db.models.fields.files import ImageFieldFile
 from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.http.request import HttpRequest
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 
@@ -22,7 +22,7 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 
 
-def renderView(request: HttpRequest, view: str, data: dict = dict(), fromApp: str = str()) -> HttpResponse:
+def renderView(request: WSGIRequest, view: str, data: dict = dict(), fromApp: str = str()) -> HttpResponse:
     """
     Returns text/html data as http response via given template view name.
 
@@ -34,7 +34,7 @@ def renderView(request: HttpRequest, view: str, data: dict = dict(), fromApp: st
     return render(request, f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
 
-def renderString(request: HttpRequest, view: str, data: dict = dict(), fromApp: str = str()) -> str:
+def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: str = str()) -> str:
     """
     Returns text/html data as string via given template view name.
 

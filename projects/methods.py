@@ -1,18 +1,21 @@
 from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import HttpResponse
 from people.models import Profile
 from github import Organization, NamedUser, Repository
 from main.bots import Github, GithubKnotters
 from main.strings import Code, URL
-from main.methods import errorLog, renderView
+from main.methods import errorLog, renderString, renderView
 from main.env import ISPRODUCTION
 from .models import Category, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
 
-def renderer(request: WSGIRequest, file: str, data: dict = dict()):
+def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderView(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
+def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    return renderString(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
 def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, url: str = str()) -> Project or bool:
     """

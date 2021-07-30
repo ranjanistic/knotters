@@ -1,7 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from django.http.response import HttpResponse
-from django.template.loader import render_to_string
 from main.methods import renderView, renderString
 from main.strings import Compete, URL
 from people.models import User
@@ -12,6 +11,8 @@ from .apps import APPNAME
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderView(request, file, dict(**data, URLS=URL.compete.getURLSForClient()), fromApp=APPNAME)
 
+def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    return renderString(request, file, dict(**data, URLS=URL.compete.getURLSForClient()), fromApp=APPNAME)
 
 def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
     try:
@@ -40,7 +41,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
             data[f'{Compete.HISTORY}'] = history
         else:
             return False
-        return render_to_string(f'{APPNAME}/index/{section}.html', data, request=request)
+        return rendererstr(request,f'index/{section}', data)
     except:
         return False
 
@@ -106,6 +107,6 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
         if sec == section:
             data = getCompetitionSectionData(sec, competition, request.user)
             break
-    return renderString(request, f'profile/{section}', data, APPNAME)
+    return rendererstr(request,f'profile/{section}', data)
 
 from .receivers import *

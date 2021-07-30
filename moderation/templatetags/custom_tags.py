@@ -10,4 +10,4 @@ def addstr(arg1, arg2):
 
 @register.filter(name='params')
 def replaceParams(url,params):
-    return setPathParams(url,params,lookfor='\*')
+    return setPathParams(url,params,lookfor='\*',extendRemaining=False)

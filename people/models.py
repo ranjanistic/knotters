@@ -200,6 +200,21 @@ class Profile(models.Model):
     def getSuccessorInviteLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
 
+    def increaseXP(self,by:int=0) -> int:
+        self.xp = self.xp + by
+        self.save()
+        return self.xp
+
+    def decreaseXP(self,by:int=0) -> int:
+        diff = self.xp - by
+        if diff < 0:
+            diff = 0
+            if self.xp == diff:
+                return self.xp
+        self.xp = int(diff)
+        self.save()
+        return self.xp
+
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

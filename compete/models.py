@@ -541,6 +541,8 @@ class Result(models.Model):
     submission = models.OneToOneField(Submission, on_delete=models.PROTECT)
     points = models.IntegerField(default=0)
     rank = models.IntegerField()
+    xpclaimers = models.ManyToManyField(
+        Profile, through='ResultXPClaimer', related_name='result_xpclaimers', default=[])
 
     def __str__(self) -> str:
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
@@ -564,3 +566,17 @@ class Result(models.Model):
                 return self.rankSuptext(rnk=int(rankstr[len(rankstr) - 1]))
             else:
                 return "th"
+
+    def hasClaimedXP(self, profile: Profile) -> bool:
+        return profile in self.xpclaimers.all()
+
+    def allXPClaimed(self)->bool:
+        return self.submission.totalMembers() == self.xpclaimers.count
+
+class ResultXPClaimer(models.Model):
+    class Meta:
+        unique_together = ("result", "profile")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    result = models.ForeignKey(Result, on_delete=models.PROTECT, related_name='xpclaimer_result')
+    profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='xpclaimer_profile')

@@ -1,4 +1,3 @@
-from django.db.models.query import QuerySet
 from main.strings import Code
 from django.test import TestCase, tag
 from people.methods import *
@@ -34,7 +33,7 @@ class PeopleMethodsTest(TestCase):
         self.assertFalse(len(filterBio(TEST_BIO+TEST_BIO))>120)
 
     def test_getProfileSectionData(self):
-        defdata = renderData(dict(self=True,person=self.user), APPNAME)
+        defdata = dict(self=True,person=self.user)
         self.assertFalse(getProfileSectionData("abcd", self.profile,self.user))
         self.assertDictEqual(getProfileSectionData(profileString.OVERVIEW, self.profile,self.user),defdata)
         self.assertIsInstance(getProfileSectionData(profileString.PROJECTS, self.profile,self.user), dict)
@@ -43,7 +42,7 @@ class PeopleMethodsTest(TestCase):
         self.assertDictEqual(getProfileSectionData(profileString.MODERATION, self.profile,self.user),defdata)
 
     def test_settingSectionData(self):
-        defdata = renderData(dict(), APPNAME)
+        defdata = dict()
         self.assertDictEqual(getSettingSectionData(profileString.Setting.ACCOUNT, self.user,self.user),defdata)
         self.assertDictEqual(getSettingSectionData(profileString.Setting.PREFERENCE, self.user,self.user),{**defdata, f"{Code.SETTING}":ProfileSetting.objects.get(profile=self.profile)})
 

@@ -31,13 +31,14 @@ class Code():
 code = Code()
 
 
-def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
+def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """
     Replaces 'lookfor' of given 'path' with given with replacingChars. Replaces each finding with each element of replacingChars.
 
     :path: The string (primarily url path) to be operated on.
-    :replacingChars: Tuple of characters to replace findings one by one with each element. If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings Defaults to '*' for all findings.
+    :replacingChars: Tuple of characters to replace findings one by one with each element. Defaults to '*' for all findings.
     :lookfor: String or pattern to be looked for and replaced in path.
+    :extendRemaining: If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings.Defaults to True
     """
     lookfor = lookfor if lookfor else Code.URLPARAM
     if len(replacingChars) < 1:
@@ -46,7 +47,8 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '') -> str:
     while i < len(replacingChars):
         path = re.sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
-    return re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+    return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+
 
 
 setPathParams('asf')
@@ -96,6 +98,8 @@ class Message():
 
     ACCOUNT_DEACTIVATED = "Account deactivated."
     ACCOUNT_DELETED = "Account deleted successfully."
+
+    XP_ADDED = "Profile XP increased"
 
     def isValid(self, message: str) -> bool:
         """
@@ -244,6 +248,11 @@ class URL():
 
         def declareResults(self, compID):
             return setPathParams(self.DECLARERESULTS, compID)
+
+        CLAIMXP = 'claimxp/<str:compID>/<str:subID>'
+
+        def claimXP(self, compID, subID):
+            return setPathParams(self.CLAIMXP, compID, subID)
 
         def getURLSForClient(self):
             URLS = dict()

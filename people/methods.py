@@ -5,7 +5,7 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
-from main.methods import errorLog, renderData, renderView
+from main.methods import errorLog, renderData, renderString, renderView
 from main.strings import URL, Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
@@ -16,6 +16,8 @@ from .apps import APPNAME
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderView(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME)
 
+def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    return renderString(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME)
 
 def convertToFLname(string: str) -> str and str:
     """
@@ -60,11 +62,10 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
 
 
 def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
-    data = renderData(
-        dict(
+    data = dict(
             self=requestUser == profile.user,
             person=profile.user
-        ), APPNAME)
+        )
     if section == profileString.OVERVIEW:
         pass
     elif section == profileString.PROJECTS:
@@ -97,11 +98,11 @@ def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) 
         if sec == section:
             data = getProfileSectionData(sec, profile, request.user)
             break
-    return render_to_string(f'{APPNAME}/profile/{section}.html',  data, request=request)
+    return rendererstr(request,f"profile/{section}", data)
 
 
 def getSettingSectionData(section: str, user: User, requestuser: User) -> dict:
-    data = renderData(fromApp=APPNAME)
+    data = dict()
     if not requestuser.is_authenticated: return data
     if section == profileString.Setting.ACCOUNT:
         pass
@@ -121,7 +122,7 @@ def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str
         if sec == section:
             data = getSettingSectionData(sec, user, request.user)
             break
-    return render_to_string(f'{APPNAME}/setting/{section}.html',  data, request=request)
+    return rendererstr(request,f"setting/{section}", data)
 
 
 def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:

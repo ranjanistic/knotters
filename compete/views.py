@@ -12,7 +12,7 @@ from main.strings import Action, Code, Message
 from people.decorators import profile_active_required
 from people.models import User, Profile
 from moderation.decorators import moderator_only
-from .models import Competition, SubmissionParticipant, SubmissionTopicPoint, Submission
+from .models import Competition, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer
 from .mailers import participantInviteAlert, resultsDeclaredAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert
@@ -288,7 +288,6 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         if not subs:
             return respondJson(Code.NO, error=Message.SUBMISSION_MARKING_INVALID)
 
-        # comp = Competition.objects.get(id=compID, judges=request.user.profile, resultDeclared=False, endAt__lt=timezone.now())
         submissions = Submission.objects.filter(competition__id=compID, competition__judges=request.user.profile,
                                                 competition__resultDeclared=False, competition__endAt__lt=timezone.now(), valid=True).order_by('submitOn')
         topics = submissions.first().competition.getTopics()
@@ -352,9 +351,24 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         declared = comp.declareResults()
         if not declared:
             return redirect(comp.getJudgementLink(error=Message.ERROR_OCCURRED))
-        print(declared)
+        
         resultsDeclaredAlert(competition=declared)
         return redirect(comp.getJudgementLink(alert=Message.RESULT_DECLARED))
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
+
+@require_POST
+@login_required
+def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
+    try:
+        result = Result.objects.get(submission__competition__id=compID,submission__id=subID,submission__members=request.user.profile)
+        if request.user.profile in result.xpclaimers.all():
+            raise Exception()
+        profile = Profile.objects.get(user=request.user)
+        profile.increaseXP(by=result.points)
+        result.xpclaimers.add(profile)
+        return redirect(result.submission.competition.getLink(alert=Message.XP_ADDED))
     except Exception as e:
         errorLog(e)
         raise Http404()
