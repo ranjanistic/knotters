@@ -25,4 +25,4 @@ jobs:
     - name: Merge changes
       run: |
         sudo git pull --depth=10
-      working-directory: ${{ secrets.WORKINGDIR }}
+
