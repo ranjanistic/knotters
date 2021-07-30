@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main ]
     paths:
-      - ".github/workflows/main-server.yml"
       - "main/**"
       - "moderation/**"
       - "compete/**"
@@ -53,9 +52,9 @@ jobs:
       run: |
         python manage.py makemigrations --noinput
         python manage.py migrate --noinput
-    # - name: Run tests
-    #   run: |
-    #     python manage.py test --noinput --verbosity=1 --keepdb
+    - name: Run tests
+      run: |
+        python manage.py test --noinput --verbosity=1 --keepdb
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}
