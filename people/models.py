@@ -201,11 +201,16 @@ class Profile(models.Model):
         return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
 
     def increaseXP(self,by:int=0) -> int:
+        if self.xp == None: self.xp = 0
         self.xp = self.xp + by
         self.save()
         return self.xp
 
     def decreaseXP(self,by:int=0) -> int:
+        if self.xp == None:
+            self.xp = 0
+            self.save()
+            return self.xp
         diff = self.xp - by
         if diff < 0:
             diff = 0

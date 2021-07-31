@@ -48,6 +48,19 @@ class CategoryTag(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
+class License(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=1000)
+    url = models.URLField(max_length=500, null=True, blank=True)
+    content = models.CharField(max_length=300000, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    def getID(self):
+        return self.id.hex
+
 
 class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -67,7 +80,7 @@ class Project(models.Model):
     migrated = models.BooleanField(
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
     acceptedTerms = models.BooleanField(default=True)
-
+    license = models.ForeignKey(License, on_delete=models.PROTECT)
     trashed = models.BooleanField(
         default=False, help_text="Deleted for creator, can be used when rejected.")
 
@@ -95,7 +108,7 @@ class Project(models.Model):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()).getLink(alert=alert, error=error)
+                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error)
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
         except:
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
@@ -130,7 +143,18 @@ class Project(models.Model):
         return 0
 
     def canRetryModeration(self) -> bool:
-        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0
+        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed
+
+    def getTrashLink(self)->str:
+        return url.projects.trash(self.getID())
+
+    def moveToTrash(self) -> bool:
+        if not self.isApproved():
+            self.trashed = True
+            self.creator.decreaseXP(by=2)
+            self.save()
+            return self.trashed
+        return self.trashed
 
 
 class ProjectTag(models.Model):

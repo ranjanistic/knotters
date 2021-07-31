@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render
 from allauth.account.decorators import verified_email_required, login_required
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import require_JSON_body
-from main.methods import base64ToImageFile, respondJson, renderData
+from main.methods import base64ToImageFile, errorLog, respondJson, renderData
 from main.env import MAILUSER
 from main.strings import Action, Code, Message, URL
 from .apps import APPNAME
@@ -20,7 +20,8 @@ from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 def index(request: WSGIRequest) -> HttpResponse:
     people = Profile.objects.filter(
         is_active=True, is_zombie=False, to_be_zombie=False, suspended=False)
-    return renderer(request, 'index', {"people": people})
+    data = dict(people=people)
+    return renderer(request, 'index', data)
 
 
 @require_GET
@@ -30,12 +31,11 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             if request.user.profile.to_be_zombie or request.user.profile.is_zombie:
                 raise Http404()
             if request.user.profile.githubID == userID:
-                return renderer(request, 'profile', {"person": request.user})
+                return renderer(request, 'profile', dict(person=request.user))
             if request.user.id == UUID(userID):
-                return renderer(request, 'profile', {"person": request.user})
-            profile = Profile.objects.get(
-                githubID=userID, is_zombie=False, to_be_zombie=False, is_active=True)
-            return renderer(request, 'profile', {"person": profile.user})
+                return renderer(request, 'profile', dict(person=request.user))
+            profile = Profile.objects.get(githubID=userID, is_zombie=False, to_be_zombie=False, is_active=True)
+            return renderer(request, 'profile', dict(person=profile.user))
     except:
         pass
     try:
@@ -44,14 +44,14 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             raise Exception()
         if user.profile.githubID:
             return redirect(user.profile.getLink())
-        return renderer(request, 'profile', {"person": user})
+        return renderer(request, 'profile', dict(person=user))
     except:
         pass
     try:
         profile = Profile.objects.get(githubID=userID)
         if profile.to_be_zombie or profile.is_zombie or not profile.is_active:
             raise Exception()
-        return renderer(request, 'profile', {"person": profile.user})
+        return renderer(request, 'profile', dict(person=profile.user))
     except:
         raise Http404()
 
@@ -69,7 +69,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         else:
             raise Exception()
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
 
 
@@ -84,6 +84,7 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
         else:
             raise Exception()
     except Exception as e:
+        errorLog(e)
         raise Http404()
 
 
@@ -261,11 +262,9 @@ def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
         predecessor = User.objects.get(id=predID)
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
             raise Exception()
-        return render(request, "invitation.html", renderData({
-            'predecessor': predecessor
-        }, APPNAME))
+        return render(request, "invitation.html", renderData(dict(predecessor=predecessor), APPNAME))
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
 
 
@@ -341,7 +340,7 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
             user.delete()
         return respondJson(Code.OK if done else Code.NO, message=Message.ACCOUNT_DELETED)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO)
 
 
@@ -353,5 +352,5 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
         profile.picture = str(profile.picture)
         return respondJson(Code.OK, model_to_dict(profile))
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()

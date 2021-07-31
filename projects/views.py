@@ -11,7 +11,7 @@ from main.strings import Code, Message, URL
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.decorators import profile_active_required
-from .models import Project, Tag, Category
+from .models import License, Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 from .mailers import sendProjectSubmissionNotification
@@ -19,19 +19,24 @@ from .mailers import sendProjectSubmissionNotification
 
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=Code.MODERATION)
-    return renderer(request, 'index', {"projects": projects})
+    projects = Project.objects.filter(status=Code.APPROVED)
+    return renderer(request, 'index', dict(projects=projects))
 
+@require_GET
+def licence(request:WSGIRequest, id: UUID) -> HttpResponse:
+    try:
+        license = License.objects.get(id=id)
+        return renderer(request,'license', dict(license=license))
+    except:
+        raise Http404()
 
 @require_GET
 @profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
     tags = Tag.objects.all()[0:5]
     categories = Category.objects.all()
-    return renderer(request, 'create', {
-        "tags": tags,
-        "categories": categories
-    })
+    licenses = License.objects.all()
+    return renderer(request, 'create', dict(tags=tags,categories=categories,licenses=licenses))
 
 
 @login_required
@@ -52,14 +57,16 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
 
 
 @require_POST
-@login_required
 @profile_active_required
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         if not acceptedTerms:
-            return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.TERMS_UNACCEPTED)
+            return respondRedirect(APPNAME,URL.projects.create(step=3),error=Message.TERMS_UNACCEPTED)
+        license = request.POST.get('license', None)
+        if not license:
+            return respondRedirect(APPNAME,URL.projects.create(step=3),error=Message.LICENSE_UNSELECTED)
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]
@@ -68,9 +75,9 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         referURL = request.POST.get("referurl", "")
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
-            return HttpResponse(f'{reponame} already exists')
+            return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
         projectobj = createProject(creator=request.user.profile, name=name,
-                category=category, reponame=reponame, description=description, tags=tags, url=referURL)
+                category=category, reponame=reponame, description=description, tags=tags, url=referURL, licenseID=license)
         if not projectobj:
             raise Exception()
         try:
@@ -98,17 +105,19 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
 @login_required
 def trashProject(request:WSGIRequest, projID:UUID) -> HttpResponse:
     try:
-        Project.objects.filter(id=projID,creator=request.user.profile,status=Code.REJECTED).delete()
+        project = Project.objects.get(id=projID,creator=request.user.profile,status=Code.REJECTED,trashed=False)
+        project.moveToTrash()
         return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
-    except:
+    except Exception as e:
+        errorLog(e)
         raise Http404()
 
 @require_GET
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
-        project = Project.objects.get(reponame=reponame)
+        project = Project.objects.get(reponame=reponame,trashed=False)
         if project.status == Code.APPROVED:
-            return renderer(request, 'profile', {"project": project})
+            return renderer(request, 'profile', dict(project=project))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
@@ -117,7 +126,7 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
 
 
@@ -152,5 +161,6 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                 return redirect(project.getLink(), permanent=True)
             except:
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
-    except:
+    except Exception as e:
+        errorLog(e)
         return HttpResponseForbidden()

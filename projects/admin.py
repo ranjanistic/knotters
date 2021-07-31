@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, CategoryTag, Project, Tag, ProjectTag, ProjectTopic
+from .models import Category, CategoryTag, License, Project, Tag, ProjectTag, ProjectTopic
 
 
 @admin.register(Project)
@@ -76,3 +76,5 @@ class ProjectTopicAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
+admin.site.register(License)

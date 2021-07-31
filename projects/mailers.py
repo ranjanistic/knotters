@@ -40,7 +40,7 @@ def sendProjectApprovedNotification(project: Project):
     )
 
 
-def sendProjectRejectedNotification(project: Project):
+def projectRejectedNotification(project: Project):
     """
     Project has been rejected by moderator
     """
@@ -54,6 +54,6 @@ def sendProjectRejectedNotification(project: Project):
             'text': 'View moderation',
             'url': project.getModLink()
         }],
-        footer=f"We don't generally reject projects, but if you think this is a mistake, then you can see if you can resubmit the same project for moderation. This is unfortunate.",
+        footer=f"The moderator must have found something unacceptable, but if you think this is a mistake, then you might be able to resubmit the same project for moderation. This is unfortunate.",
         conclusion="This email was generated we have rejected a project submission received from your Knotters account. If this is unfamiliar, then please report to us."
     )

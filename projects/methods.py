@@ -1,3 +1,4 @@
+from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from people.models import Profile
@@ -6,7 +7,7 @@ from main.bots import Github, GithubKnotters
 from main.strings import Code, URL
 from main.methods import errorLog, renderString, renderView
 from main.env import ISPRODUCTION
-from .models import Category, Project, Tag
+from .models import Category, License, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
@@ -17,7 +18,7 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderString(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
-def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, url: str = str()) -> Project or bool:
+def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, licenseID:UUID, url: str = str()) -> Project or bool:
     """
     Creates project on knotters under moderation status.
 
@@ -33,11 +34,12 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         reponame = uniqueRepoName(reponame)
         if not reponame:
             return False
+        license = License.objects.get(id=licenseID)
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj:
             return False
         project = Project.objects.create(
-            creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url)
+            creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
         if tags:
             for tag in tags:
                 tagobj = addTagToDatabase(tag)
@@ -46,7 +48,6 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
                     categoryObj.tags.add(tagobj)
         return project
     except Exception as e:
-        print(e)
         errorLog(e)
         return False
 
@@ -82,8 +83,8 @@ def uniqueRepoName(reponame: str) -> bool:
     """
     reponame = str(reponame).strip('-').strip().replace(' ', '-').replace('--','-').lower()
     if len(reponame) > 20: return False
-    count = Project.objects.filter(reponame=str(reponame)).count()
-    if count >= 1: return False
+    project = Project.objects.filter(reponame=str(reponame),trashed=False).first()
+    if project and not project.canRetryModeration(): return False
     return reponame if reponame and reponame != str() else False
 
 
@@ -186,8 +187,7 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
 
 def getGhOrgRepo(ghOrg: Organization, reponame: str) -> Repository:
     try:
-        ghOrgRepo = ghOrg.get_repo(name=reponame)
-        return ghOrgRepo
+        return ghOrg.get_repo(name=reponame)
     except:
         return None
 

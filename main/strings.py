@@ -81,6 +81,7 @@ class Message():
     SENT_FOR_REVIEW = "Sent for review"
     PROJECT_DELETED = "Project deleted"
     TERMS_UNACCEPTED = "You have not accepted the terms"
+    LICENSE_UNSELECTED = "You have to choose a license"
 
     UNDER_MODERATION = "Currently under moderation"
     ALREADY_RESOLVED = "Already resolved"
@@ -169,14 +170,15 @@ class URL():
         else:
             return self.ROOT
 
-    def getMessageQuery(self, alert: str = '', error: str = '', success: str = ''):
+    def getMessageQuery(self, alert: str = '', error: str = '', success: str = '', otherQueries:bool=False) -> str:
         if error:
-            error = f"?e={error}" if message.isValid(error) else ''
+            error = f"{'&' if otherQueries else '?'}e={error}" if message.isValid(error) else ''
+            otherQueries = message.isValid(error)
         if alert:
-            alert = f"{'&' if error else '?' }a={alert}" if message.isValid(
-                alert) else ''
+            alert = f"{'&' if otherQueries else '?' }a={alert}" if message.isValid(alert) else ''
+            otherQueries = message.isValid(alert)
         if success:
-            success = f"{'&' if error or alert else '?'}s={success}" if message.isValid(
+            success = f"{'&' if otherQueries else '?'}s={success}" if message.isValid(
                 success) else ''
         return f"{error}{alert}{success}"
 
@@ -366,13 +368,26 @@ class URL():
     people = People()
 
     class Projects():
+
+        LICENSE = 'license/<str:id>'
+        def license(self, id):
+            return setPathParams(self.LICENSE, id)
+
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
         def createValidField(self, field):
             return setPathParams(self.CREATEVALIDATEFIELD, field)
 
         CREATE = 'create'
+        def create(self,step:int=0):
+            return f"{self.CREATE}?step={step}"
+
         SUBMIT = 'submit'
+
+        TRASH = 'trash/<str:projID>'
+
+        def trash(self,projID):
+            return setPathParams(self.TRASH,projID)
 
         PROFILE = 'profile/<str:reponame>'
 

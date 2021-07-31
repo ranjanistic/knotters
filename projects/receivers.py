@@ -4,16 +4,12 @@ from .models import Project, defaultImagePath
 
 
 @receiver(post_save, sender=Project)
-def on_project_create(sender, instance, created, **kwargs):
+def on_project_create(sender, instance:Project, created, **kwargs):
     """
     Project submitted.
     """
     if created:
-        if instance.creator.xp:
-            instance.creator.xp = instance.creator.xp + 2
-        else:
-            instance.creator.xp = 2
-        instance.creator.save()
+        instance.creator.increaseXP(by=2)
 
 
 @receiver(post_delete, sender=Project)

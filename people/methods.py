@@ -70,10 +70,10 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         pass
     elif section == profileString.PROJECTS:
         if requestUser == profile.user:
-            projects = Project.objects.filter(creator=profile)
+            projects = Project.objects.filter(creator=profile,trashed=False)
         else:
             projects = Project.objects.filter(
-                creator=profile, status=Code.APPROVED)
+                creator=profile, status=Code.APPROVED,trashed=False)
         data[Code.APPROVED] = projects.filter(status=Code.APPROVED)
         data[Code.MODERATION] = projects.filter(status=Code.MODERATION)
         data[Code.REJECTED] = projects.filter(status=Code.REJECTED)

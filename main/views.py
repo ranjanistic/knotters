@@ -1,22 +1,17 @@
 import json
-import requests
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse
 from django.views.decorators.http import require_GET
-from django.utils import timezone
 from django.shortcuts import redirect
-from allauth.account.models import EmailAddress
-from people.models import User
 from moderation.models import LocalStorage
 from projects.models import Project
-from compete.models import Competition
-from .env import ADMINPATH, SITE
+from .env import ADMINPATH
 from .methods import renderData, renderView
 from .decorators import dev_only
-from .methods import renderView, getDeepFilePaths, errorLog
+from .methods import renderView, getDeepFilePaths
 from .settings import STATIC_URL, MEDIA_URL
-from .strings import Code, COMPETE, URL, setPathParams
+from .strings import Code, URL, setPathParams
 
 
 @require_GET
@@ -33,17 +28,7 @@ def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=Code.APPROVED)[0:3]
-    data = {
-        "projects": projects
-    }
-    try:
-        comp = Competition.objects.get(endAt__lt=timezone.now)
-        data["alert"] = {
-            "message": f"The '{comp.title}' competition is on!",
-            "URL": f"/{COMPETE}/{comp.id}"
-        }
-    except:
-        pass
+    data = dict(projects=projects)
     return renderView(request, 'index', data)
 
 
@@ -86,11 +71,8 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = {
-            'admin': ADMINPATH,
-            'static': STATIC_URL,
-            'media': MEDIA_URL
-        }
+        context = dict(**context, admin=ADMINPATH,
+                       static=STATIC_URL, media=MEDIA_URL)
         return context
 
 
@@ -118,12 +100,12 @@ class Manifest(TemplateView):
         icons = []
 
         for i in range(len(assets)):
-            icons.append({
-                'src': assets[i],
-                'size': f"{sizes[i]}x{sizes[i]}"
-            })
+            icons.append(dict(
+                src=assets[i],
+                size=f"{sizes[i]}x{sizes[i]}"
+            ))
 
-        context['icons'] = icons
+        context = dict(**context, icons=icons)
         return context
 
 
@@ -173,18 +155,14 @@ class ServiceWorker(TemplateView):
             noOfflineList=json.dumps([
                 setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.COMPETETABSECTION}"),
-                setPathParams(
-                    f"/{URL.COMPETE}{URL.Compete.INDEXTAB}"),
-                setPathParams(
-                    f"/{URL.PEOPLE}{URL.People.SETTINGTAB}"),
-                setPathParams(
-                    f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
+                setPathParams(f"/{URL.COMPETE}{URL.Compete.INDEXTAB}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.SETTINGTAB}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
             ]),
             ignorelist=json.dumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",
-                f"{MEDIA_URL}*",
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.ACCOUNTS}*",
                 f"/{URL.MODERATION}*",
@@ -194,22 +172,17 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),
                 setPathParams(f"/{URL.DOCTYPE}"),
-                setPathParams(
-                    f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
-                setPathParams(
-                    f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.ACCOUNTS}*",
-                setPathParams(
-                    f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
-                setPathParams(
-                    f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
-                setPathParams(
-                    f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
-                setPathParams(
-                    f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
+                setPathParams(f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
         )))
         return context

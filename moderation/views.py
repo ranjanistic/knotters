@@ -2,12 +2,14 @@ from django.http.response import Http404, HttpResponse, JsonResponse
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from compete.models import Submission
+from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.utils import timezone
 from projects.methods import setupApprovedProject
-from main.methods import respondJson
+from projects.mailers import projectRejectedNotification
+from main.methods import errorLog, respondJson
 from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE
 from main.decorators import require_JSON_body
 from .decorators import moderator_only
@@ -24,12 +26,13 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
         isRequestor = moderation.isRequestor(request.user.profile)
         if not isRequestor and not isModerator:
             raise Exception()
-        data = {'moderation': moderation, 'ismoderator': isModerator}
-
+        data = dict(moderation=moderation,ismoderator=isModerator)
         if moderation.type == COMPETE:
             if isRequestor:
-                data['allSubmissionsMarkedByJudge'] = moderation.competition.allSubmissionsMarkedByJudge(
-                    request.user.profile)
+                data = dict(**data, allSubmissionsMarkedByJudge=moderation.competition.allSubmissionsMarkedByJudge(request.user.profile))
+        if moderation.type == PROJECTS and moderation.resolved:
+            forwarded = Moderation.objects.filter(~Q(id=id),type=PROJECTS,project=moderation.project,resolved=False).order_by('-requestOn').first()
+            data = dict(**data,forwarded=forwarded)
         return renderer(request, moderation.type, data)
     except:
         raise Http404()
@@ -84,22 +87,24 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     Moderator action on moderation. (Project, primarily)
     """
     try:
-        approve = request.POST.get('approve', '')
-
-        mod = Moderation.objects.get(
-            id=modID, moderator=request.user.profile, resolved=False)
+        approve = request.POST.get('approve', None)
+        if approve == None:
+            return respondJson(Code.NO)
+        mod = Moderation.objects.get(id=modID, moderator=request.user.profile, resolved=False)
         if not approve:
             done = mod.reject()
+            if done and mod.type == PROJECTS:
+                projectRejectedNotification(mod.project)
             return respondJson(Code.OK if done else Code.NO)
         elif approve:
             done = mod.approve()
-            if done:
+            if done and mod.type == PROJECTS:
                 done = setupApprovedProject(mod.project, mod.moderator)
             return respondJson(Code.OK if done else Code.NO)
         else:
             return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
@@ -122,9 +127,9 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
             newmod = requestModerationForObject(
                 mod.competition, mod.type, reassignIfRejected=True)
         else:
-            raise Exception()
+            return redirect(mod.getLink(alert=Message.ERROR_OCCURRED))
         if not newmod:
-            raise Exception()
+            return redirect(mod.getLink(alert=Message.ERROR_OCCURRED))
         else:
             return redirect(newmod.getLink(alert=Message.MODERATION_REAPPLIED))
     except:

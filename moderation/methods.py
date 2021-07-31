@@ -141,7 +141,8 @@ def requestModerationForObject(
         else:
             return False
 
-        mod = Moderation.objects.get(query)
+        mod = Moderation.objects.filter(query).order_by('-respondOn').first()
+        if not mod: raise Exception()
 
         if (mod.isRejected() and reassignIfRejected) or (mod.isApproved() and reassignIfApproved):
             newmoderator = getModeratorToAssignModeration(
@@ -150,9 +151,13 @@ def requestModerationForObject(
                 return False
             requestData = requestData if requestData else mod.request
             referURL = referURL if referURL else mod.referURL
+            print(requestData)
             if type == PROJECTS:
                 newmod = Moderation.objects.create(
                     type=type, project=object, moderator=newmoderator, request=requestData, referURL=referURL)
+                object.status = Code.MODERATION
+                print(object.status)
+                object.save()
             elif type == PEOPLE:
                 newmod = Moderation.objects.create(
                     type=type, profile=object, moderator=newmoderator, request=requestData, referURL=referURL)
@@ -161,10 +166,7 @@ def requestModerationForObject(
                     type=type, competition=object, moderator=newmoderator, request=requestData, referURL=referURL)
             else:
                 return False
-
-            if newmod.type == PROJECTS:
-                newmod.project.status = Code.MODERATION
-                newmod.project.save()
+                
             return newmod
     except Exception as e:
         newmoderator = getModeratorToAssignModeration(type, object)
