@@ -7,6 +7,8 @@ TEST_IMAGE = f"testimage{uuid4().hex}.png"
 TEST_TAG = f'test_tag_{uuid4().hex}'
 TEST_DESC = f"{uuid4().hex} {uuid4().hex} {uuid4().hex}"
 TEST_CATEGORY = f'Test category {uuid4().hex}'
+TEST_LIC_NAME = uuid4().hex
+TEST_LIC_DESC = uuid4().hex
 
 def getTestTags(count=1,start=0):
     topics = []
