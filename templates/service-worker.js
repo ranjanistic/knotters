@@ -96,7 +96,7 @@ self.addEventListener("fetch", async (event) => {
                         noOfflinePath.includes("*")
                             ? testAsteriskPathRegex(noOfflinePath, path)
                             : noOfflinePath === path
-                    )
+                    ) && event.request.method !== "POST"
                 ) {
                     return caches.match(offlinePath);
                 }

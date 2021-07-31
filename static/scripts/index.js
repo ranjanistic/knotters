@@ -20,71 +20,6 @@ const logOut = async (
     afterLogout();
 };
 
-const newUpdateDialog = (newServiceWorker) => {
-    alertify
-        .confirm(
-            `Update available`,
-            `
-            <img src="/static/graphics/self/icon.svg" width="50" />
-            <h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>
-            <h6 class="positive-text">Updates are important. It will hardly take a few seconds.</h6>`,
-            () => {
-                subLoader(true);
-                loader(true);
-                message("Updating...");
-                localStorage.setItem(Key.appUpdated, 1);
-                try {
-                    newServiceWorker.postMessage({ action: "skipWaiting" });
-                } catch {
-                    window.location.reload();
-                }
-            },
-            () => {
-                message("We'll remind you later.");
-            }
-        )
-        .set("labels", { ok: `Yes, update now`, cancel: "Not now" })
-        .set("closable", false)
-        .set("modal", true);
-};
-
-const serviceWorkerRegistration = () => {
-    if (navigator.serviceWorker) {
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-            if (refreshing) return;
-            window.location.reload();
-            refreshing = true;
-        });
-        navigator.serviceWorker
-            .register(URLS.SERVICE_WORKER)
-            .then((reg) => {
-                if (reg.waiting) {
-                    const newServiceWorker = reg.waiting;
-                    newUpdateDialog(newServiceWorker);
-                }
-                reg.addEventListener("updatefound", () => {
-                    const newServiceWorker = reg.installing;
-                    newServiceWorker.addEventListener("statechange", () => {
-                        switch (newServiceWorker.state) {
-                            case "installed":
-                                if (navigator.serviceWorker.controller) {
-                                    newUpdateDialog(newServiceWorker);
-                                }
-                                break;
-                        }
-                    });
-                });
-            })
-            .catch((err) => console.log("Service worker not registered", err));
-
-        if (Number(localStorage.getItem(Key.appUpdated))) {
-            success("App updated successfully.");
-            localStorage.removeItem(Key.appUpdated);
-        }
-    }
-};
-
 const getElement = (id) => document.getElementById(id);
 
 const getElements = (classname) =>
@@ -203,7 +138,7 @@ const loadGlobalEventListeners = () => {
     });
 };
 
-const Icon = (name) => `<i class="material-icons">${name}</i>`;
+const Icon = (name, classnames='') => `<i class="material-icons ${classnames}">${name}</i>`;
 
 const loadCarousels = ({
     container = "swiper-container",
@@ -246,21 +181,30 @@ const initializeTabsView = ({
     viewID = "tabview",
     spinnerID = "loader",
 }) => {
-    const tabs = getElements(tabsClass),
-        tabview = getElement(viewID);
+    const tabs = getElements(tabsClass);
+    let tabview = null;
+    try{
+        tabview = getElement(viewID)
+    } catch{}        
 
     const showTabLoading = () => {
-        setHtmlContent(tabview, loaderHTML(spinnerID));
-        openSpinner(spinnerID);
+        if(tabview){
+            setHtmlContent(tabview, loaderHTML(spinnerID));
+            openSpinner(spinnerID);
+        }
     };
 
     const showTabError = (tabindex = 0) => {
-        setHtmlContent(tabview, loadErrorHTML(`${uniqueID}retry`));
-        getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
+        if(tabview){
+            setHtmlContent(tabview, loadErrorHTML(`${uniqueID}retry`));
+            getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
+        }
     };
 
     const showTabContent = (tab, content) => {
-        setHtmlContent(tabview, content);
+        if(tabview){
+            setHtmlContent(tabview, content);
+        }
         onShowTab(tab);
     };
 
@@ -273,16 +217,16 @@ const initializeTabsView = ({
                 onclicks[t1] = tab1.onclick;
                 tab1.onclick = (_) => {};
                 if (t1 === t) {
-                    tab1.classList.add(activeTabClass);
-                    tab1.classList.remove(inactiveTabClass);
+                    activeTabClass.split(' ').forEach((active)=>tab1.classList.add(active))
+                    inactiveTabClass.split(' ').forEach((inactive)=>tab1.classList.remove(inactive))
                 } else {
                     tab1.style.opacity = 0;
-                    tab1.classList.remove(activeTabClass);
-                    tab1.classList.add(inactiveTabClass);
+                    activeTabClass.split(' ').forEach((active)=>tab1.classList.remove(active))
+                    inactiveTabClass.split(' ').forEach((inactive)=>tab1.classList.add(inactive))
                 }
             });
             const response = await onEachTab(tab);
-            hideSpinner(spinnerID);
+            if(tabview) hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
                     tab1.style.opacity = 1;
@@ -306,7 +250,7 @@ const postRequest = async (path, data = {}) => {
     const body = { ...data };
     try {
         subLoader();
-        const response = await fetch(path, {
+        const response = await window.fetch(path, {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -319,8 +263,9 @@ const postRequest = async (path, data = {}) => {
         subLoader(false);
         return data;
     } catch (e) {
+        error('An error occurred');
         subLoader(false);
-        return e;
+        return false;
     }
 };
 
@@ -333,11 +278,7 @@ const getRequest = async (url) => {
                 "X-CSRFToken": csrfmiddlewaretoken,
             },
         });
-        if (response.status - 200 > 100) {
-            subLoader(false);
-            return false;
-        }
-        const data = response.text();
+        const data = await response.text();
         subLoader(false);
         return data;
     } catch (e) {

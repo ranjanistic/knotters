@@ -19,6 +19,7 @@
         <img class="w3-right w3-circle" width="150" src="{{moderation.project.getDP}}">
         <h5 class="dead-text">Status: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">Category: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
+        <h5 class="dead-text">License: <a class="positive-text" href="{{moderation.project.license.url}}" target="_blank">{{moderation.project.license.name}}</a></h5>
         <h2>{{moderation.project.name}}</h2>
         {% if moderation.project.isLive %}
         <a target="_blank" href="{{moderation.project.getRepoLink}}"><h4 class="positive-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4></a>
@@ -28,7 +29,6 @@
         {% if moderation.referURL %}
         <a onclick="miniWindow('{{moderation.referURL}}')" title="Be careful with the URLs provided by requestors." class="positive-text"><strong>{{moderation.referURL}}</strong></a><br/>
         {% endif %}
-
         Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
         <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
         {% csrf_token %}
@@ -74,15 +74,27 @@
             {% if moderation.project.isLive %} 
             <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">View</button></a>
             {% endif %}
-            {% if not ismoderator and moderation.resolved and moderation.isRejected %}
-            <h2>{{moderation.project.moderationRetriesLeft}} retries left.</h2>
-                {% if moderation.project.canRetryModeration %}
-                <form method="POST" action="{{moderation.reapplyLink}}">
-                {% csrf_token %}
-                <button class="secondary" type="submit" data-icon="refresh">Re-apply for moderation</button>
-                </form>
+            {% if not ismoderator %}
+                {% if moderation.resolved and moderation.isRejected and not forwarded%}
+                    {% if moderation.project.canRetryModeration %}
+                        <h2>{{moderation.project.moderationRetriesLeft}} retries left.</h2>
+                        <form method="POST" action="{{moderation.reapplyLink}}">
+                        {% csrf_token %}
+                        <button class="secondary" type="submit" data-icon="refresh">Re-apply for moderation</button>
+                        </form>
+                    {% endif %}
+                    {% if not moderation.project.trashed %}
+                        <form method="POST" action="{{URLS.PROJECTS}}{{moderation.project.getTrashLink}}">
+                        {% csrf_token %}
+                        <button class="negative" type="submit" data-icon="delete">Delete project</button>
+                        </form>
+                    {% else %}
+                        <h4>Project deleted</h4>
+                    {% endif %}
+                {% elif forwarded %}
+                    <h4>Moderation re-applied</h4>
+                    <a href="{{forwarded.getLink}}"><button class="positive" data-icon="open_in_new">View moderation</button></a>
                 {% endif %}
-            <br/>
             {% endif %}
         {% endif %}
         
@@ -102,31 +114,42 @@
 <script>
 {% if ismoderator %}
 getElements("modaction").forEach((action)=>{
+    const approve = action.id === 'approve';
+    const modaction = async() => {
+        loader(true);
+        message('Resolving moderation, please wait.')
+        const data = await postRequest(`{{URLS.ACTION|params:moderation.getID}}`, {approve})
+        if (!data) return loader(false);;
+        if(data.code === code.OK){
+            success('Resolved.')
+            window.location.reload()
+        } else {
+            loader(false);
+            error(data.error)
+        }
+    }
     action.addEventListener('click',()=>{
-        alertify.confirm(`<h5>Final confirmation</h5>`, `<strong class="text-tertiary w3-large">Are you sure that to <h4>${action.id}</h4> this project -
-            <h5>{{moderation.project.name}}</h5> (@{{moderation.project.reponame}}) <br/>- will be your final decision?
-        <br/><br/>
-        <h5>This action is irreversible.</h5></b>`,
+        alertify.confirm(
+            `<h5>Final confirmation</h5>`,
+            `<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this project {{moderation.project.name}} (@{{moderation.project.reponame}}) 
+            will be your final decision?
+                <br/><br/>
+            <h5>This action is irreversible.</h5>`,
         async ()=>{
-            subLoader(true);
-            loader(true);
-            message('Resolving moderation, please wait.')
-            const data = await postRequest(`{{URLS.ACTION|params:moderation.getID}}`, {
-                approve: action.id === 'approve'
-            })
-            if(data.code === code.OK){
-                success('Resolved!')
-                window.location.reload()
-            } else {
-                subLoader(false);
-                loader(false);
-                error(data.error)
+            if (approve){
+                await modaction()   
             }
         },
-        ()=>{
-
+        async()=>{
+            if (!approve){
+                await modaction()
+            }
         }
-        ).set('labels', {ok:`Yes, ${action.id} this project`, cancel:'No, wait!'}); 
+        ).set('closable',false).set('labels', {
+            cancel:approve?'No, wait!':`${Icon('done')} Yes, ${action.id} this project`,
+            ok:!approve?'No, wait!':`${Icon('done')} Yes, ${action.id} this project`,
+        })
+        .set('reverseButtons', !approve);
     })
 })
 {% endif %}

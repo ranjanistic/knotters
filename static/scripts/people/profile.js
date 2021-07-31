@@ -77,7 +77,7 @@ const loadTabScript = (tab) => {
                                         deactivate: true,
                                     }
                                 );
-                                if (data.code === code.OK) {
+                                if (data && data.code === code.OK) {
                                     message(
                                         "Your account has been deactivated."
                                     );
@@ -92,7 +92,7 @@ const loadTabScript = (tab) => {
                             cancel: `${Icon(
                                 "toggle_off"
                             )} Deactivate my account`,
-                        });
+                        }).set('closable',false);
                 };
 
                 getElement("deactivateaccount").onclick = (_) => {
@@ -105,6 +105,7 @@ const loadTabScript = (tab) => {
                     let useDefault = false;
                     loader();
                     let sdata = await postRequest(URLS.GETSUCCESSOR);
+                    if(!sdata) return loader(sdata);
                     if (sdata.code === code.OK) {
                         successorSet = true;
                         successorID = sdata.successorID;
@@ -195,24 +196,26 @@ const loadTabScript = (tab) => {
                     };
 
                     getElement("defaultsuccessor").onchange = async (e) => {
-                        useDefault = e.target.checked;
-                        successorSet = useDefault;
-                        visibleElement("makesuccessor", !e.target.checked);
-                        getElement("successorID").disabled = e.target.checked;
-                        getElement("successorID").value = e.target.checked
-                            ? "Using default successor"
-                            : "";
                         let done = await postRequest(
                             URLS.INVITESUCCESSOR,
                             {
-                                set: useDefault,
-                                unset: !useDefault,
-                                useDefault,
+                                set: e.target.checked,
+                                unset: !e.target.checked,
+                                useDefault:e.target.checked,
                             }
                         );
-                        if (done.code === code.OK && useDefault) {
-                            successorSet = true;
+                        if (done && done.code === code.OK) {
+                            useDefault = e.target.checked;
+                        } else {
+                            error('An error occurred');
+                            e.target.checked = !e.target.checked
                         }
+                        successorSet = useDefault;
+                        visibleElement("makesuccessor", !useDefault);
+                        getElement("successorID").disabled = useDefault;
+                        getElement("successorID").value = useDefault
+                            ? "Using default successor"
+                            : "";
                     };
                     getElement("makesuccessor").onclick = async () => {
                         let useDefault = defaultsuccessor.checked;
@@ -223,7 +226,6 @@ const loadTabScript = (tab) => {
                             return error(
                                 "Successor email required, or set default successor."
                             );
-                        subLoader(true);
                         const data = await postRequest(
                             URLS.INVITESUCCESSOR,
                             {
@@ -232,8 +234,7 @@ const loadTabScript = (tab) => {
                                 useDefault,
                             }
                         );
-                        subLoader(false);
-                        if (data.code === code.OK) {
+                        if (data && data.code === code.OK) {
                             successorSet = true;
                             hideElement("makesuccessor");
                             getElement("successorID").value = useDefault
@@ -242,7 +243,6 @@ const loadTabScript = (tab) => {
                             getElement("successorID").disabled = true;
                             message(`Successor set.`);
                         } else {
-                            subLoader(false);
                             error(data.error);
                         }
                     };

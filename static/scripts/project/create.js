@@ -23,8 +23,6 @@ const validationError = Array.from(
     )
 );
 
-let currentStep = 0;
-
 const showStep = (n) => {
     if (n >= stepviews.length) return;
     show(stepviews[n]);
@@ -56,22 +54,20 @@ const showStep = (n) => {
         });
     }
     if (n == stepviews.length - 1) {
-        nextStepBtn.type = "submit";
         setHtmlContent(
             nextStepBtn,
-            "Submit <i class='material-icons big-icon'>done</i>"
+            `Submit ${Icon('done', 'big-icon')}`
         );
     } else {
         setHtmlContent(
             nextStepBtn,
-            "Next<i class='material-icons big-icon'>navigate_next</i>"
+            `Next ${Icon('navigate_next', 'big-icon')}`
         );
     }
     fixStepIndicator(n);
 };
 
 const nextPrev = (n) => {
-    console.log(currentStep)
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
@@ -102,13 +98,16 @@ const nextPrev = (n) => {
                 return alertify.error(
                     "Please check the acceptance of terms checkbox at bottom."
                 );
-            }        
+            }
+            
+            nextStepBtn.type = "submit";
             actionLoader(true);
             subLoader(true);
             alertify.message("Creating project...");
             getElement("create-project-form").submit();
             return false;
         } else {
+            nextStepBtn.type = "button";
             hide(stepviews[currentStep]);
             currentStep += n;
             showStep(currentStep);
@@ -227,3 +226,13 @@ validationError.forEach((value) => {
 
 showStep(currentStep);
 actionLoader(false);
+
+initializeTabsView({
+    uniqueID: 'license',
+    activeTabClass: 'positive text-positive',
+    inactiveTabClass: 'primary dead-text',
+    tabsClass: 'license-choice',
+    onEachTab: (tab)=>{
+        getElement('license').value=tab.id;
+    }
+})

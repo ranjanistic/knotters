@@ -9,9 +9,7 @@
 {% endblock %}
 
 {% block nav_icon %}
-<button title="Abort" class="primary">
-    <i class="material-icons">close</i>
-</button>
+<button title="Abort" class="primary" data-icon="close"></button>
 {% endblock %}
 {% block nav_style %}accent{% endblock %}
 {% block nav_text_style %}text-accent{% endblock %}
@@ -23,7 +21,7 @@
 {% if user.profile.githubID %}
 <div class="w3-center w3-padding-small tertiary">
     <h5>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
-    moderation guidelines</a> before submission.</h5></div>
+    moderation guidelines</a>.</h5></div>
     
 <div class="w3-row w3-padding-64 w3-container">
     <div class="w3-col w3-half w3-padding">
@@ -166,7 +164,17 @@
                         <div id="descriptionpreview"></div>
                         <strong class="positive-text pointer" id="referurlpreview"></strong>
                     </div>
+                    <br/>
+                    <div class="w3-row">
+                        <h6>License</h6>
+                        {% for license in licenses %}
+                        <button type="button" class="license-choice" id="{{license.getID}}" title="{{license.name}}: {{license.description}}">{{license.name}}</button>
+                        {% endfor %}
+                        <input type="hidden" id="license" name="license" value="{{licenses.0.getID}}" />
+                    </div>
                 </div>
+                <br/>
+                <strong>Learn more about <a class="positive-text" target="_blank" rel="noreferrer" href="https://choosealicense.com/appendix/">choosing a license</a>.</strong>
                 <br/>
                 <label id="confirm-check-box">
                     <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
@@ -187,7 +195,7 @@
                         id="prevBtn"
                         onclick="nextPrev(-1)"
                     >
-                        <i class="material-icons">navigate_before</i>Previous
+                        <i class="big-icon">navigate_before</i> Previous
                     </button>
                     <button
                         type="button"
@@ -195,7 +203,7 @@
                         id="nextBtn"
                         onclick="nextPrev(1)"
                     >
-                        Next<i class="material-icons">navigate_next</i>
+                        Next <i class="big-icon">navigate_next</i>
                     </button>
                 </div>
                 </div>
@@ -219,9 +227,12 @@
 {% block footer %}{% endblock %}
 {% endif %}
 {% block scripts %}
+<script>
+let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");
+</script>
 {% if not user.profile.githubID %}
 <script>
-dialog.alert("Github ID",`<div class="w3-row w3-padding">
+alertify.alert("Github ID",`<div class="w3-row w3-padding">
     <h4>Your Github identity must be linked with Knotters before creating a project.</h4>
     <br/>
     <a href="/auth/github/login/?process=connect&next=/redirector?n={{URLS.CREATE}}">
@@ -232,7 +243,7 @@ dialog.alert("Github ID",`<div class="w3-row w3-padding">
     </a>
 </div>`,()=>{
     window.location.replace('{{ROOT}}')
-}).set({'closable':false, 'label':'Cancel'})
+}).set('closable',false).set('label','Cancel')
 </script>
 {% else %}
 <script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>

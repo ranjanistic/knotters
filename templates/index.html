@@ -235,6 +235,7 @@
             const VERSION = "{{VERSION}}";
             const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
             const dialog = alertify;
+            const ICON = "{{ICON}}"
             if("{{request.GET.e}}") {
                 error("{{request.GET.e}}");
             } else if("{{request.GET.a}}") {
@@ -242,6 +243,7 @@
             }
             const URLS = Object.freeze({{URLS|safe}})
         </script>
+        <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
         {% block errors %}
