@@ -373,6 +373,8 @@ class URL():
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
+        LICENSES = 'licenses'
+        
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
         def createValidField(self, field):

@@ -1,6 +1,7 @@
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.auth.decorators import login_required
+from django.db.models.query_utils import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
@@ -15,7 +16,7 @@ from .models import License, Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 from .mailers import sendProjectSubmissionNotification
-
+import json
 
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
@@ -30,12 +31,21 @@ def licence(request:WSGIRequest, id: UUID) -> HttpResponse:
     except:
         raise Http404()
 
+@require_POST
+def licences(request:WSGIRequest) -> JsonResponse:
+    licenses = License.objects.filter().values()
+    return respondJson(Code.OK,{"licenses":list(licenses)})
+
 @require_GET
 @profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
     tags = Tag.objects.all()[0:5]
     categories = Category.objects.all()
     licenses = License.objects.all()
+    projects = Project.objects.filter(Q(creator=request.user.profile),~Q(license__in=licenses))
+    if len(projects) > 0:
+        for project in projects:
+            project.license
     return renderer(request, 'create', dict(tags=tags,categories=categories,licenses=licenses))
 
 

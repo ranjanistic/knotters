@@ -347,7 +347,7 @@ const handleCropImageUpload = (
     reader.onload = (_) => {
         const base64String = reader.result;
 
-        dialog
+        alertify
             .confirm(
                 "Crop Image",
                 `<div class="w3-row w3-center">
@@ -369,7 +369,11 @@ const handleCropImageUpload = (
                 },
                 () => {}
             )
-            .set("closable", false);
+            .set("closable", false)
+            .set('labels',{
+                ok: 'Confirm',
+                cancel: 'Cancel'
+            });
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
             aspectRatio: ratio,
             viewMode: 1,

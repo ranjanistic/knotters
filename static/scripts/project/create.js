@@ -54,14 +54,11 @@ const showStep = (n) => {
         });
     }
     if (n == stepviews.length - 1) {
-        setHtmlContent(
-            nextStepBtn,
-            `Submit ${Icon('done', 'big-icon')}`
-        );
+        setHtmlContent(nextStepBtn, `Submit ${Icon("done", "big-icon")}`);
     } else {
         setHtmlContent(
             nextStepBtn,
-            `Next ${Icon('navigate_next', 'big-icon')}`
+            `Next ${Icon("navigate_next", "big-icon")}`
         );
     }
     fixStepIndicator(n);
@@ -89,7 +86,7 @@ const nextPrev = (n) => {
                 alertify.error(error);
             });
     } else {
-        if (n > 0 && (currentStep === (stepviews.length - 1))) {
+        if (n > 0 && currentStep === stepviews.length - 1) {
             if (!validateForm())
                 return alertify.error(
                     "Some values are invalid. Please refresh page and start over."
@@ -99,7 +96,7 @@ const nextPrev = (n) => {
                     "Please check the acceptance of terms checkbox at bottom."
                 );
             }
-            
+
             nextStepBtn.type = "submit";
             actionLoader(true);
             subLoader(true);
@@ -227,12 +224,52 @@ validationError.forEach((value) => {
 showStep(currentStep);
 actionLoader(false);
 
-initializeTabsView({
-    uniqueID: 'license',
-    activeTabClass: 'positive text-positive',
-    inactiveTabClass: 'primary dead-text',
-    tabsClass: 'license-choice',
-    onEachTab: (tab)=>{
-        getElement('license').value=tab.id;
+getElement("more-licenses").onclick = async _ => {
+    const data = await postRequest(URLS.LICENSES)
+    if(!data) return
+    if(data.code!==code.OK){
+        return error(data.error)
     }
-})
+    let licenses = '';
+    data.licenses.forEach((license)=>{
+        licenses+=`<button type="button" class="license-choice" id="${license.id}" title="${license.name}: ${license.description}">${license.name}</button>`
+    })
+    alertify
+        .confirm(
+            `<h6>Licenses</h6>`,
+            `
+        <div class="w3-row">
+        <button class="primary" id="custom-license">${Icon('add')} Add custom license</button>
+        </div>
+        <div class="w3-row">
+        ${licenses}
+        </div>
+        `,
+            () => {},
+            () => {}
+        )
+        .set("closable", false)
+        .set("labels", {
+            ok: "Set license",
+            cancel: "Cancel",
+        })
+
+    getElement('custom-license').onclick=_=>{
+        //customLicenseDialog()
+    }
+    loadLicenseChoices()
+};
+
+const loadLicenseChoices = () => 
+    initializeTabsView({
+        uniqueID: "license",
+        activeTabClass: "positive text-positive",
+        inactiveTabClass: "primary dead-text",
+        tabsClass: "license-choice",
+        onEachTab: (tab) => {
+            getElement("license").value = tab.id;
+        },
+    });
+
+alertify.closeAll();
+loadLicenseChoices()
