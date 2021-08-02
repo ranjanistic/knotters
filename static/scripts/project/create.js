@@ -1,12 +1,3 @@
-const actionLoader = (visible = true) => {
-    visibleElement("actionloader", visible);
-    visibleElement("actionbuttons", !visible);
-};
-actionLoader();
-const stepviews = getElements("step-tab");
-const nextStepBtn = getElement("nextBtn");
-const prevStepBtn = getElement("prevBtn");
-
 const previews = Array.from(
     document.querySelectorAll(
         "#projectnamepreview, #reponamepreview, #projectaboutpreview, #descriptionpreview, #projectcategorypreview, #tagspreview, #referurlpreview"
@@ -22,6 +13,18 @@ const validationError = Array.from(
         "#projectnameerror, #reponameerror, #projectabouterror,#descriptionerror, #projectcategoryerror, #tagserror, #referurlerror"
     )
 );
+
+const actionLoader = (visible = true) => {
+    formValues.forEach((input)=>{
+        input.disabled = visible
+    })
+    visibleElement("actionloader", visible);
+    visibleElement("actionbuttons", !visible);
+};
+actionLoader();
+const stepviews = getElements("step-tab");
+const nextStepBtn = getElement("nextBtn");
+const prevStepBtn = getElement("prevBtn");
 
 const showStep = (n) => {
     if (n >= stepviews.length) return;
@@ -64,42 +67,43 @@ const showStep = (n) => {
     fixStepIndicator(n);
 };
 
-const nextPrev = (n) => {
+const nextPrev = async (n) => {
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
-        postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"), {
-            reponame: formValues[1].value,
+        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"), {
+            reponame: formValues[formValues.indexOf(formValues.find((input)=>input.id==='reponame'))].value,
         })
-            .then((res) => {
-                actionLoader(false);
-                if (res.code === "OK") {
-                    hide(stepviews[currentStep]);
-                    currentStep = currentStep + n;
-                    showStep(currentStep);
-                } else {
-                    if (!res.error) return error();
-                    validationError[1].innerHTML = res.error;
-                }
-            })
-            .catch((error) => {
-                alertify.error(error);
-            });
+        actionLoader(false);
+        if(!data) return;
+        if (data.code === code.OK) {
+            hide(stepviews[currentStep]);
+            currentStep = currentStep + n;
+            showStep(currentStep);
+        } else {
+            validationError[validationError.indexOf(validationError.find((input)=>input.id==='reponameerror'))].innerHTML = data.error;
+        }
     } else {
         if (n > 0 && currentStep === stepviews.length - 1) {
             if (!validateForm())
-                return alertify.error(
+                return error(
                     "Some values are invalid. Please refresh page and start over."
+                    );
+            if(!getElements('license-choice').some((choice)=>Array.from(choice.classList).includes('positive'))){
+                return error(
+                    "Click on a license bubble to choose one."
                 );
+            }
             if (!getElement("acceptterms").checked) {
-                return alertify.error(
+                return error(
                     "Please check the acceptance of terms checkbox at bottom."
                 );
             }
-
-            nextStepBtn.type = "submit";
             actionLoader(true);
-            subLoader(true);
+            subLoader(true)
+            formValues.forEach((input)=>{
+                input.disabled = false
+            })
             alertify.message("Creating project...");
             getElement("create-project-form").submit();
             return false;
@@ -191,6 +195,9 @@ const tagbutton = getElements("tagbutton");
 tagbutton.forEach((button) => {
     button.onclick = (e) => {
         if (expr.reg.tags.test(formValues[5].value)) {
+            if(formValues[5].value.split(',').length>=5){
+                return error('Max 5 tags allowed')
+            }
             formValues[5].value +=
                 button.innerHTML
                     .replace("#", formValues[5].value.endsWith(",") ? "" : ",")
@@ -224,43 +231,121 @@ validationError.forEach((value) => {
 showStep(currentStep);
 actionLoader(false);
 
-getElement("more-licenses").onclick = async _ => {
-    const data = await postRequest(URLS.LICENSES)
-    if(!data) return
-    if(data.code!==code.OK){
-        return error(data.error)
+getElement("more-licenses").onclick = async (_) => {
+    const data = await postRequest(URLS.LICENSES, {
+        givenlicenses: getElements("license-choice").map((elem) => elem.id),
+    });
+    if (!data) return;
+    if (data.code !== code.OK) {
+        return error(data.error);
     }
-    let licenses = '';
-    data.licenses.forEach((license)=>{
-        licenses+=`<button type="button" class="license-choice" id="${license.id}" title="${license.name}: ${license.description}">${license.name}</button>`
-    })
-    alertify
+    let licenses = [];
+    data.licenses.forEach((license) => {
+        licenses.push(`<button type="button" class="license-choice" id="${license.id.replaceAll('-','')}" title="${license.name}: ${license.description}">${license.name}</button>`)
+    });
+    const dial = alertify
         .confirm(
             `<h6>Licenses</h6>`,
             `
         <div class="w3-row">
-        <button class="primary" id="custom-license">${Icon('add')} Add custom license</button>
+        <button class="primary" type="button" id="custom-license">${Icon(
+            "add"
+        )} Add custom license</button>
         </div>
-        <div class="w3-row">
-        ${licenses}
+        <div class="w3-row" id="more-licenses-view">
+        ${licenses.join('')}
         </div>
         `,
-            () => {},
-            () => {}
+            () => {
+                if(!licenses.length) return
+                let button = licenses.find(lic=>lic.includes(getElement("license").value))
+                if(!button) return
+                getElement('licenses').innerHTML+=button
+                dial.destroy()
+                loadLicenseChoices();
+            },
+            () => {
+                dial.destroy()
+            }
         )
         .set("closable", false)
         .set("labels", {
             ok: "Set license",
             cancel: "Cancel",
-        })
+        });
+    loadLicenseChoices();
 
-    getElement('custom-license').onclick=_=>{
-        //customLicenseDialog()
-    }
-    loadLicenseChoices()
+    getElement("custom-license").onclick = (_) => {
+        customLicenseDialog();
+    };
 };
 
-const loadLicenseChoices = () => 
+const customLicenseDialog = () => {
+    const dial = alertify
+        .confirm(
+            `<h6>Add custom license</h6>`,
+            `
+        <div class="w3-row">
+        <input class="wide" placeholder="License name" id='custom-license-name' type='text' required maxlength='50'/><br/><br/>
+        <input class="wide" placeholder="Short description" id='custom-license-description' type='text' required maxlength='500'/><br/><br/>
+        <textarea class="wide" placeholder="Full license text" id='custom-license-content' rows="5" type='text' required maxlength='300000'></textarea><br/>
+        <label for='custom-license-public'>
+            <input id='custom-license-public' type='checkbox' />
+            This license can be used without modification by anyone
+        </label>
+        </div>
+        `,
+            async (e) => {
+                let name = String(getElement("custom-license-name").value).trim();
+                let description = String(
+                    getElement("custom-license-description").value
+                ).trim();
+                let content = String(getElement("custom-license-content").value);
+                let public = getElement("custom-license-public").checked;
+                if(!name){
+                    return error('License name is required')
+                }
+                if(!description){
+                    return error('License description is required')
+                }
+                if(!content.trim()){
+                    return error('License text is required')
+                }
+                const data = await postRequest(URLS.ADDLICENSE, {
+                    name,
+                    description,
+                    content,
+                    public,
+                });
+                if(!data) return;
+                
+                if(data.code === code.OK){
+                    success(`${data.license.name} license added`)
+                    const button = document.createElement('button')
+                    button.setAttribute('id', data.license.id)
+                    button.setAttribute('title', data.license.description)
+                    button.setAttribute('type', "button")
+                    button.classList.add('license-choice')
+                    getElement('licenses').appendChild(button)
+                    getElement(data.license.id).innerHTML=data.license.name
+                    loadLicenseChoices()
+                } else {
+                    error(data.error)
+                }
+                dial.destroy()
+            },
+            () => {
+                dial.destroy()
+            }
+        )
+        .set("closable", false)
+        .set("labels", {
+            ok: "Create & set license",
+            cancel: "Cancel",
+        });
+};
+
+const loadLicenseChoices = (selected=0) =>
     initializeTabsView({
         uniqueID: "license",
         activeTabClass: "positive text-positive",
@@ -269,7 +354,8 @@ const loadLicenseChoices = () =>
         onEachTab: (tab) => {
             getElement("license").value = tab.id;
         },
+        selected
     });
 
 alertify.closeAll();
-loadLicenseChoices()
+loadLicenseChoices();

@@ -180,6 +180,7 @@ const initializeTabsView = ({
     inactiveTabClass = "primary",
     viewID = "tabview",
     spinnerID = "loader",
+    selected = 0,
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
@@ -240,7 +241,7 @@ const initializeTabsView = ({
         try {
             tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
         } catch (e) {
-            tabs[0].click();
+            tabs[selected].click();
         }
     }
     return tabs;

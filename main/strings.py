@@ -374,6 +374,8 @@ class URL():
             return setPathParams(self.LICENSE, id)
 
         LICENSES = 'licenses'
+
+        ADDLICENSE = 'addlicense'
         
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 

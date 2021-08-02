@@ -16,6 +16,7 @@ from .models import License, Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 from .mailers import sendProjectSubmissionNotification
+from django.core import serializers
 import json
 
 @require_GET
@@ -31,21 +32,63 @@ def licence(request:WSGIRequest, id: UUID) -> HttpResponse:
     except:
         raise Http404()
 
-@require_POST
+@require_JSON_body
+@login_required
 def licences(request:WSGIRequest) -> JsonResponse:
-    licenses = License.objects.filter().values()
+    licenses = License.objects.filter(~Q(id__in=request.POST.get('givenlicenses',[]))).values()
     return respondJson(Code.OK,{"licenses":list(licenses)})
+
+@require_JSON_body
+@login_required
+def addLicense(request:WSGIRequest) -> JsonResponse:
+    name = request.POST.get('name',None)
+    description = request.POST.get('description',None)
+    content = request.POST.get('content',None)
+    public = request.POST.get('public',False)
+
+    if not (name and description and content):
+        return respondJson(Code.NO,error='Invalid license data')
+
+    if License.objects.filter(name__iexact=str(name).strip()).count() > 0:
+        return respondJson(Code.NO,error=f'{name} already exists')
+    try:
+        lic = License.objects.create(
+            name=str(name).strip(),
+            description=str(description).strip(),
+            content=str(content),
+            public=public
+        )
+        return respondJson(Code.OK,{'license': dict(
+            id=lic.getID(),
+            name=lic.name,
+            description=lic.description,
+        )})
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
 
 @require_GET
 @profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
-    tags = Tag.objects.all()[0:5]
+    tags = []
+    for topic in request.user.profile.topics.all():
+        tags.append(topic.tags.all()[0])
+    if len(tags) < 1:
+        tags = list(Tag.objects.all()[0:5])
+    if len(tags) < 5:
+        tags.append(Tag.objects.all()[0:5-len(tags)])
+
     categories = Category.objects.all()
-    licenses = License.objects.all()
-    projects = Project.objects.filter(Q(creator=request.user.profile),~Q(license__in=licenses))
+
+
+    projects = Project.objects.filter(creator=request.user.profile)
+    licIDs = []
     if len(projects) > 0:
         for project in projects:
-            project.license
+            licIDs.append(project.license.id)
+
+    licenses = License.objects.filter(Q(id__in=licIDs)| Q(public=True))[0:5]
+
     return renderer(request, 'create', dict(tags=tags,categories=categories,licenses=licenses))
 
 
@@ -77,6 +120,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         license = request.POST.get('license', None)
         if not license:
             return respondRedirect(APPNAME,URL.projects.create(step=3),error=Message.LICENSE_UNSELECTED)
+        print(request.POST.__dict__)
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]

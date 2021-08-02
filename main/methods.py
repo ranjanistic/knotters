@@ -52,6 +52,7 @@ def respondJson(code: str, data: dict = dict(), error: str = str(), message: str
     :code: A code name, indicating response type.
     :data: The dict data to be sent along with code.
     """
+    
     return JsonResponse({
         'code': code,
         'error': error,

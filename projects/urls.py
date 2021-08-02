@@ -6,6 +6,7 @@ urlpatterns = [
     path(URL.INDEX, allProjects),
     path(URL.Projects.LICENSE, licence),
     path(URL.Projects.LICENSES, licences),
+    path(URL.Projects.ADDLICENSE, addLicense),
     path(URL.Projects.CREATEVALIDATEFIELD, validateField),
     path(URL.Projects.CREATE, create),
     path(URL.Projects.SUBMIT, submitProject),

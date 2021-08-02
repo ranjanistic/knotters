@@ -54,6 +54,8 @@ class License(models.Model):
     description = models.CharField(max_length=1000)
     url = models.URLField(max_length=500, null=True, blank=True)
     content = models.CharField(max_length=300000, null=True, blank=True)
+    public = models.BooleanField(default=False)
+    default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

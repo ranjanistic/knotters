@@ -41,11 +41,14 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         project = Project.objects.create(
             creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
         if tags:
+            count = 0
             for tag in tags:
+                if count == 5: break
                 tagobj = addTagToDatabase(tag)
                 if tagobj:
                     project.tags.add(tagobj)
                     categoryObj.tags.add(tagobj)
+                    count = count + 1
         return project
     except Exception as e:
         errorLog(e)
@@ -68,8 +71,8 @@ def addCategoryToDatabase(category: str) -> Category:
 
 
 def addTagToDatabase(tag: str) -> Tag:
-    tag = str(tag).strip('#').strip().replace('\n', str()).replace(" ", "_")
-    if not tag:
+    tag = str(tag).strip('#').strip().replace('\n', str()).replace(" ", "_").strip()
+    if not tag or tag == '':
         return False
     tagobj = uniqueTag(tag)
     if tagobj == True:
@@ -81,10 +84,17 @@ def uniqueRepoName(reponame: str) -> bool:
     """
     Checks for unique repository name among existing projects
     """
+    if reponame.startswith('-') or reponame.endswith('-') or reponame.__contains__('--'):
+        return False
     reponame = str(reponame).strip('-').strip().replace(' ', '-').replace('--','-').lower()
-    if len(reponame) > 20: return False
+    if len(reponame) > 20 or len(reponame) < 3: return False
     project = Project.objects.filter(reponame=str(reponame),trashed=False).first()
-    if project and not project.canRetryModeration(): return False
+    if project: 
+        if project.rejected() and project.canRetryModeration():
+            return False
+        if project.underModeration() or project.isApproved():
+            return False
+
     return reponame if reponame and reponame != str() else False
 
 
