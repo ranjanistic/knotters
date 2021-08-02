@@ -1,6 +1,7 @@
 from uuid import UUID
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import verified_email_required, login_required
@@ -11,7 +12,7 @@ from main.env import MAILUSER
 from main.strings import Action, Code, Message, URL
 from .apps import APPNAME
 from .decorators import profile_active_required
-from .models import ProfileSetting, User, Profile
+from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets
 from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
@@ -156,6 +157,59 @@ def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
         print(e)
         return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
 
+@require_JSON_body
+def topicsSearch(request:WSGIRequest)->JsonResponse:
+    query = request.POST.get('query',None)
+    if not query:
+        return respondJson(Code.NO)
+    excluding = []
+    if request.user.is_authenticated:
+        for topic in request.user.profile.getTopics():
+            excluding.append(topic.id)
+
+    topics = Topic.objects.exclude(id__in=excluding).filter(Q(name__startswith=query.capitalize())|Q(name__iexact=query))[0:5]
+    topicslist = []
+    for topic in topics:
+        topicslist.append(dict(
+            id=topic.getID(),
+            name=topic.name
+        ))
+    
+    return respondJson(Code.OK,dict(
+        topics=topicslist
+    ))
+
+@require_POST
+@profile_active_required
+def topicsUpdate(request:WSGIRequest) -> HttpResponse:
+    try:
+        addtopicIDs = request.POST.get('addtopicIDs',None)
+        removetopicIDs = request.POST.get('removetopicIDs',None)
+        if not (addtopicIDs.strip() or removetopicIDs.strip()):
+            return redirect(request.user.profile.getLink())
+
+        if removetopicIDs:
+            removetopicIDs = removetopicIDs.strip(',').split(',')
+            ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=removetopicIDs).update(trashed=True)
+
+        if addtopicIDs:
+            addtopicIDs = addtopicIDs.strip(',').split(',')
+            proftops = ProfileTopic.objects.filter(profile=request.user.profile)
+            currentcount = proftops.filter(trashed=False).count()
+            if currentcount + len(addtopicIDs) > 5:
+                return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
+
+            newcount = currentcount + len(addtopicIDs)
+            proftops.filter(topic__id__in=addtopicIDs).update(trashed=False)
+            if request.user.profile.totalTopics() != newcount:
+                for topic in Topic.objects.filter(id__in=addtopicIDs):
+                    request.user.profile.topics.add(topic)
+
+        return redirect(request.user.profile.getLink())
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
+        
 
 @require_JSON_body
 @login_required

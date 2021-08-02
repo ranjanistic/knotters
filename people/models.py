@@ -220,6 +220,37 @@ class Profile(models.Model):
         self.save()
         return self.xp
 
+    def getTopics(self):
+        proftops =  ProfileTopic.objects.filter(profile=self,trashed=False)
+        topics = []
+        for proftop in proftops:
+            topics.append(proftop.topic)
+        return topics
+
+    def totalTopics(self):
+        return ProfileTopic.objects.filter(profile=self,trashed=False).count()
+
+
+    def getTrahedTopics(self):
+        proftops = ProfileTopic.objects.filter(profile=self,trahsed=True)
+        topics = []
+        for proftop in proftops:
+            topics.append(proftop.topic)
+        return topics        
+
+    def totalTrahedTopics(self):
+        return ProfileTopic.objects.filter(profile=self,trahsed=True).count()
+
+    def getAllTopics(self):
+        proftops = ProfileTopic.objects.filter(profile=self)
+        topics = []
+        for proftop in proftops:
+            topics.append(proftop.topic)
+        return topics
+
+    def totalAllTopics(self):
+        return ProfileTopic.objects.filter(profile=self).count()
+    
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -254,6 +285,8 @@ class ProfileTopic(models.Model):
         Profile, on_delete=models.CASCADE, related_name='topic_profile')
     topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name='profile_topic')
+    trashed = models.BooleanField(default=False)
+    score = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ('profile', 'topic')

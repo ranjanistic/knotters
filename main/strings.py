@@ -334,6 +334,9 @@ class URL():
         def accountPreferences(self, userID):
             return setPathParams(self.ACCOUNTPREFERENCES, userID)
 
+        TOPICSEARCH = "topics/search"
+        TOPICSUPDATE = "topics/update"
+
         ACCOUNTACTIVATION = "account/activation"
         GETSUCCESSOR = 'account/successor'
         INVITESUCCESSOR = 'account/successor/invite'

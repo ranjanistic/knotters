@@ -4,19 +4,22 @@
         <div class="w3-col w3-half w3-center">
             <center><h1>{% if profile.xp %}{{profile.xp}}{% else %}0{% endif %} XP</h1></center>
             <div id="view-profiletopics">
-            {% for topic in profile.topics.all %}
-            Interested in <button>{{topic.name}}</button>
+            {% for topic in profile.getTopics %}
+                <button class="accent" data-icon="celebration">{{topic.name}}</button>
             {% empty %}
+                {% if self %}
+                    <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">Add topics</button>
+                {% else %}
+                    <h2>No topics yet.</h2>
+                {% endif %}
             {% endfor %}
-            {% if self and profile.topics.all.count < 5 %}
-            <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">Add topics</button>
-            {% else %}
-            <br/>
-                <h2>No topics yet.</h2>
+            {% if self and profile.totalTopics > 0 %}
+            <br/><br/>
+            <button class="w3-padding-small primary edit-action" data-edittarget="profiletopics" data-icon="edit"></button>
             {% endif %}
             </div>
             {% if self %}
-            <div class="" id="edit-profiletopics">
+            <div id="edit-profiletopics">
                 {% for topic in allTopics %}
                     <button class="positive" data-icon="add">{{topic.name}}</button>
                     <br/>
@@ -24,11 +27,23 @@
                     <button id="discard-edit-profiletopics">Cancel</button>
                 {% empty %}
                     <br/>
-                    <br/>
-                    <h4>No topics available yet.<br/>Stay tuned!</h4>
-                    <br/>
-                    <button hidden id="save-edit-profiletopics">Save</button>
-                    <button id="discard-edit-profiletopics">Cancel</button>
+                    Add upto 5 topics
+                    <form action="{{URLS.TOPICSUPDATE}}" method="POST">
+                        {% csrf_token %}
+                        <input class="wide" placeholder="Search topics" id="topic-search-input" />
+                        <div class="w3-row w3-padding" id="topics-viewer">
+                            {% for topic in profile.getTopics %}
+                            <button type="button" class="negative topic-existing" data-icon="close" id="{{topic.id}}">{{topic.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="topics-viewer-new">
+                            </div>
+                        </div>
+                        <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                        <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                        <br/>
+                        <button id="save-edit-profiletopics">Save</button>
+                        <button id="discard-edit-profiletopics">Cancel</button>
+                    </form>
                 {% endfor %}
             </div>
             {%endif%}

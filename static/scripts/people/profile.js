@@ -8,17 +8,6 @@ const loadTabScript = (tab) => {
                         data: {
                             labels: [
                                 "Jan",
-                                "Feb",
-                                "Mar",
-                                "Apr",
-                                "May",
-                                "Jun",
-                                "Jul",
-                                "Aug",
-                                "Sep",
-                                "Oct",
-                                "Nov",
-                                "Dec",
                             ],
                             datasets: [
                                 {
@@ -40,12 +29,41 @@ const loadTabScript = (tab) => {
                         options: {
                             scales: {
                                 y: {
-                                    beginAtZero: true,
+                                    beginAtZero: false,
                                 },
                             },
                         },
                     });
                 });
+                let lastquery = ''
+                getElement("topic-search-input").oninput=async(e)=>{
+                    if(e.target.value.length != lastquery.length){
+                        if(e.target.value.length < lastquery.length){
+                            lastquery=e.target.value
+                            return
+                        } else {
+                            lastquery=e.target.value
+                        }
+                    }
+                    getElement('topics-viewer-new').innerHTML = ''
+                    const data = await postRequest(URLS.TOPICSEARCH, {
+                        query:e.target.value,
+                    })
+                    if(!data) return
+                    if (data.code===code.OK){
+                        let buttons = []
+                        data.topics.forEach((topic)=>{
+                            buttons.push(`<button type="button" class="primary dead-text topic-choice topic-new" id="${topic.id}">${Icon('add')}${topic.name}</button>`)
+                        })
+                        if(buttons.length){
+                            getElement('topics-viewer-new').innerHTML = buttons.join('')
+                        } else {
+                            getElement('topics-viewer-new').innerHTML = `No topics for '${e.target.value}'`
+                        }
+                    } else {
+                        error(data.error)
+                    }
+                }
             }
             break;
         case "account":

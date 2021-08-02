@@ -9,6 +9,8 @@ urlpatterns = [
     path(URL.People.PROFILETAB, profileTab),
     path(URL.People.SETTINGTAB, settingTab),
     path(URL.People.ACCOUNTPREFERENCES, accountprefs),
+    path(URL.People.TOPICSEARCH, topicsSearch),
+    path(URL.People.TOPICSUPDATE, topicsUpdate),
     path(URL.People.ACCOUNTACTIVATION, accountActivation),
     path(URL.People.GETSUCCESSOR, getSuccessor),
     path(URL.People.INVITESUCCESSOR, profileSuccessor),
