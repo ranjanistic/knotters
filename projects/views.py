@@ -16,63 +16,31 @@ from .models import License, Project, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 from .mailers import sendProjectSubmissionNotification
-from django.core import serializers
-import json
+
 
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=Code.APPROVED)
     return renderer(request, 'index', dict(projects=projects))
 
+
 @require_GET
-def licence(request:WSGIRequest, id: UUID) -> HttpResponse:
+def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
-        return renderer(request,'license', dict(license=license))
+        return renderer(request, 'license', dict(license=license))
     except:
         raise Http404()
 
-@require_JSON_body
-@login_required
-def licences(request:WSGIRequest) -> JsonResponse:
-    licenses = License.objects.filter(~Q(id__in=request.POST.get('givenlicenses',[]))).values()
-    return respondJson(Code.OK,{"licenses":list(licenses)})
-
-@require_JSON_body
-@login_required
-def addLicense(request:WSGIRequest) -> JsonResponse:
-    name = request.POST.get('name',None)
-    description = request.POST.get('description',None)
-    content = request.POST.get('content',None)
-    public = request.POST.get('public',False)
-
-    if not (name and description and content):
-        return respondJson(Code.NO,error='Invalid license data')
-
-    if License.objects.filter(name__iexact=str(name).strip()).count() > 0:
-        return respondJson(Code.NO,error=f'{name} already exists')
-    try:
-        lic = License.objects.create(
-            name=str(name).strip(),
-            description=str(description).strip(),
-            content=str(content),
-            public=public
-        )
-        return respondJson(Code.OK,{'license': dict(
-            id=lic.getID(),
-            name=lic.name,
-            description=lic.description,
-        )})
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
 
 @require_GET
 @profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
     tags = []
-    for topic in request.user.profile.topics.all():
-        tags.append(topic.tags.all()[0])
+    for topic in request.user.profile.getTopics():
+        if topic.tags.count():
+            tags.append(topic.tags.all()[0])
+            
     if len(tags) < 1:
         tags = list(Tag.objects.all()[0:5])
     if len(tags) < 5:
@@ -80,16 +48,15 @@ def create(request: WSGIRequest) -> HttpResponse:
 
     categories = Category.objects.all()
 
-
     projects = Project.objects.filter(creator=request.user.profile)
     licIDs = []
     if len(projects) > 0:
         for project in projects:
             licIDs.append(project.license.id)
 
-    licenses = License.objects.filter(Q(id__in=licIDs)| Q(public=True))[0:5]
+    licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
 
-    return renderer(request, 'create', dict(tags=tags,categories=categories,licenses=licenses))
+    return renderer(request, 'create', dict(tags=tags, categories=categories, licenses=licenses))
 
 
 @login_required
@@ -109,6 +76,44 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
+@require_JSON_body
+@login_required
+def licences(request: WSGIRequest) -> JsonResponse:
+    licenses = License.objects.filter(
+        ~Q(id__in=request.POST.get('givenlicenses', []))).values()
+    return respondJson(Code.OK, {"licenses": list(licenses)})
+
+
+@require_JSON_body
+@login_required
+def addLicense(request: WSGIRequest) -> JsonResponse:
+    name = request.POST.get('name', None)
+    description = request.POST.get('description', None)
+    content = request.POST.get('content', None)
+    public = request.POST.get('public', False)
+
+    if not (name and description and content):
+        return respondJson(Code.NO, error='Invalid license data')
+
+    if License.objects.filter(name__iexact=str(name).strip()).count() > 0:
+        return respondJson(Code.NO, error=f'{name} already exists')
+    try:
+        lic = License.objects.create(
+            name=str(name).strip(),
+            description=str(description).strip(),
+            content=str(content),
+            public=public
+        )
+        return respondJson(Code.OK, {'license': dict(
+            id=lic.getID(),
+            name=lic.name,
+            description=lic.description,
+        )})
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
 @require_POST
 @profile_active_required
 def submitProject(request: WSGIRequest) -> HttpResponse:
@@ -116,10 +121,10 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         if not acceptedTerms:
-            return respondRedirect(APPNAME,URL.projects.create(step=3),error=Message.TERMS_UNACCEPTED)
+            return respondRedirect(APPNAME, URL.projects.create(step=3), error=Message.TERMS_UNACCEPTED)
         license = request.POST.get('license', None)
         if not license:
-            return respondRedirect(APPNAME,URL.projects.create(step=3),error=Message.LICENSE_UNSELECTED)
+            return respondRedirect(APPNAME, URL.projects.create(step=3), error=Message.LICENSE_UNSELECTED)
         print(request.POST.__dict__)
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
@@ -129,9 +134,9 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         referURL = request.POST.get("referurl", "")
         tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
-            return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
+            return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
         projectobj = createProject(creator=request.user.profile, name=name,
-                category=category, reponame=reponame, description=description, tags=tags, url=referURL, licenseID=license)
+                                   category=category, reponame=reponame, description=description, tags=tags, url=referURL, licenseID=license)
         if not projectobj:
             raise Exception()
         try:
@@ -146,30 +151,33 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             projectobj, APPNAME, userRequest, referURL)
         if not mod:
             projectobj.delete()
-            return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
+            return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
         sendProjectSubmissionNotification(projectobj)
         return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
     except Exception as e:
         errorLog(e)
         if projectobj:
             projectobj.delete()
-        return respondRedirect(APPNAME,URL.Projects.CREATE,error=Message.SUBMISSION_ERROR)
+        return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
+
 
 @require_POST
 @login_required
-def trashProject(request:WSGIRequest, projID:UUID) -> HttpResponse:
+def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = Project.objects.get(id=projID,creator=request.user.profile,status=Code.REJECTED,trashed=False)
+        project = Project.objects.get(
+            id=projID, creator=request.user.profile, status=Code.REJECTED, trashed=False)
         project.moveToTrash()
         return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
     except Exception as e:
         errorLog(e)
         raise Http404()
 
+
 @require_GET
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
-        project = Project.objects.get(reponame=reponame,trashed=False)
+        project = Project.objects.get(reponame=reponame, trashed=False)
         if project.status == Code.APPROVED:
             return renderer(request, 'profile', dict(project=project))
         else:

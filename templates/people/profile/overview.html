@@ -1,56 +1,67 @@
+{% load custom_tags %}
+
 {% with profile=person.profile%}
-<div class="w3-row w3-padding">
+<div class="w3-row w3-padding-small">
     <div class="w3-row">
         <div class="w3-col w3-half w3-center">
-            <center><h1>{% if profile.xp %}{{profile.xp}}{% else %}0{% endif %} XP</h1></center>
-            <div id="view-profiletopics">
-            {% for topic in profile.getTopics %}
-                <button class="accent" data-icon="celebration">{{topic.name}}</button>
+            <h1 class="positive-text">{{profile.xp|or:'0'}}{% if not self %} XP {% else %}<span class="dead-text w3-large">/{{profile.xpTarget|or:'100'}} XP</span>{% endif %}</h1>
+            <div class="w3-row" id="view-profiletopics">
+            {% for topicdata in profile.getTopicsData %}
+                <div class="w3-row pallete-slab w3-padding">
+                    <h5 class=" w3-left topic-name">{{topicdata.topic}}</h5>
+                    <h5 class=" w3-right positive-text"><span class="topic-points">{{topicdata.points|or:'0' }}</span> XP</h5>
+                </div>
             {% empty %}
                 {% if self %}
                     <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">Add topics</button>
                 {% else %}
-                    <h2>No topics yet.</h2>
+                    <br/>
+                    <div class="dead-text">
+                        <i class="w3-jumbo">hourglass_top</i>
+                        <h2>No topics yet.</h2>
+                    </div>
                 {% endif %}
             {% endfor %}
-            {% if self and profile.totalTopics > 0 %}
-            <br/><br/>
-            <button class="w3-padding-small primary edit-action" data-edittarget="profiletopics" data-icon="edit"></button>
-            {% endif %}
+            {% if self and profile.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="profiletopics">edit</i>{% endif %}</span>
             </div>
             {% if self %}
             <div id="edit-profiletopics">
-                {% for topic in allTopics %}
-                    <button class="positive" data-icon="add">{{topic.name}}</button>
+                <br/>
+                <strong class="dead-text">Total 5 topics allowed</strong>
+                <form action="{{URLS.TOPICSUPDATE}}" method="POST">
+                    {% csrf_token %}
+                    <input class="wide" placeholder="Search topics" id="topic-search-input" />
+                    <div class="w3-row w3-padding" id="topics-viewer">
+                        {% for topic in profile.getTopics %}
+                        <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                        {% endfor %}
+                        <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                    </div>
+                    <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                    <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
                     <br/>
                     <button id="save-edit-profiletopics">Save</button>
                     <button id="discard-edit-profiletopics">Cancel</button>
-                {% empty %}
-                    <br/>
-                    Add upto 5 topics
-                    <form action="{{URLS.TOPICSUPDATE}}" method="POST">
-                        {% csrf_token %}
-                        <input class="wide" placeholder="Search topics" id="topic-search-input" />
-                        <div class="w3-row w3-padding" id="topics-viewer">
-                            {% for topic in profile.getTopics %}
-                            <button type="button" class="negative topic-existing" data-icon="close" id="{{topic.id}}">{{topic.name}}</button>
-                            {% endfor %}
-                            <div class="w3-row w3-padding" id="topics-viewer-new">
-                            </div>
-                        </div>
-                        <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
-                        <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
-                        <br/>
-                        <button id="save-edit-profiletopics">Save</button>
-                        <button id="discard-edit-profiletopics">Cancel</button>
-                    </form>
-                {% endfor %}
+                </form>
             </div>
-            {%endif%}
+            {% endif %}
         </div>
-        <div class="w3-col w3-half w3-center">
-            <br/>
-            <canvas id="myChart" class="chart-view" data-type="line" height="220"></canvas>
+        <div class="w3-col w3-half w3-center w3-padding">
+            {% if profile.totalTopics == 0 %}
+                {% if self %}
+                    <br/><br/>
+                    <center class="dead-text">
+                        <i class="w3-jumbo">hourglass_top</i>
+                        <h2>Graph depends on topics.</h2>
+                        <h4>Add topics in your profile to enable graph.</h4>
+                    </center>
+                    {% else %}
+                    <img src="{{ICON}}" style="opacity: 0.1;" width="300" />
+                    <h2 class="dead-text">No topics for graph, yet.</h2>
+                {% endif %}
+            {% else %}
+            <canvas id="myChart" class="chart-view" data-type="radar" width="400" height="400"></canvas>
+            {% endif %}
         </div>
     </div>
 </div>

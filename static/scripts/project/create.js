@@ -221,9 +221,12 @@ getElement("projectimage").onchange = (e) => {
 formValues.forEach((value) => {
     value.value = localStorage.getItem(`createproject${value.id}`) || "";
     value.onblur = (_) => {
-        validateForm(value.id);
+        if(validateForm(value.id)){
+            localStorage.setItem(`createproject${value.id}`,value.value);
+        }
     };
 });
+
 validationError.forEach((value) => {
     value.classList.add("w3-right", "bold");
 });

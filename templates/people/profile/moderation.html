@@ -1,59 +1,130 @@
-<div class="w3-row w3-padding">
-    <div class="w3-col w3-half w3-padding">
-    <div class="pallete accent">
-    <center>
-        <i class="material-icons" title="Private to you">lock</i>
-        <h6>Pending</h6>
-    </center>
-    {% for mod in unresolved %}
-    <div class="pallete-slab">
-    {% if mod.type == SUBAPPS.projects %}
-    <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
-    <h6>{{mod.project.name}}</h6>
-    <span>{{mod.project.description}}</span>
-    {% endif %}
-    <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
-    </div>
-    {% empty %}
-    <br/>
-    <center>
-    <i class="w3-jumbo material-icons">done</i>
-    <h4>All resolved</h4>
-    </center>
-    <br/>
-    {% endfor %}
-    </div>
-    </div>
+{% load custom_tags %}
+<div class="w3-row">
+    {% if self %}
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
 
-    <div class="w3-col w3-half w3-padding">
-    <div class="pallete active">
-    <center>
-        <i class="material-icons" title="Private to you">lock</i>
-        <h6>History</h6>
-    </center>
-    {% for mod in resolved %}
-    <div class="pallete-slab">
-        {% if mod.type == SUBAPPS.projects %}
-        <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
-        <h6>{{mod.project.name}}</h6>
-        <span>{{mod.project.description}}</span>
-        {% elif mod.type == SUBAPPS.people %}
-        <h6>{{mod.profile.getName}}</h6>
-        <span>{{mod.profile.getBio}}</span>
-        {% elif mod.type == SUBAPPS.compete %}
-        <h6>{{mod.competition.title}}</h6>
-        <span>{{mod.competition.tagline}}</span>
-        {% endif %}
-        <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+            <div class="w3-col w3-padding-small swiper-slide">
+                <div class="pallete active" style="height:55vh;">
+                    <center>
+                        <i class="material-icons" title="Public">lock_open</i>
+                        <h6>Approved</h6>
+                    </center>
+                    <div class="w3-row" style="height:45vh;overflow-y:scroll">
+                        {% for mod in approved %}
+                        <div class="pallete-slab">
+                            {% if mod.type == SUBAPPS.projects %}
+                            <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+                            <h6>{{mod.project.name}}</h6>
+                            <span>{{mod.respondOn}}</span>
+                            {% elif mod.type == SUBAPPS.people %}
+                            <h6>{{mod.profile.getName}}</h6>
+                            <span>{{mod.profile.getBio}}</span>
+                            {% elif mod.type == SUBAPPS.compete %}
+                            <h6>{{mod.competition.title}}</h6>
+                            <span>{{mod.competition.tagline}}</span>
+                            {% endif %}
+                            <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                        </div>
+                        {% empty %}
+                        <br/>
+                        <center>
+                        <i class="w3-jumbo material-icons">hourglass_top</i>
+                        <h4>Wait for it.</h4>
+                        </center>
+                        <br/>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="w3-col w3-padding-small swiper-slide">
+                <div class="pallete accent">
+                <center>
+                    <i class="material-icons" title="Private to you">lock</i>
+                    <h6>Pending</h6>
+                </center>
+                {% for mod in unresolved %}
+                <div class="pallete-slab">
+                {% if mod.type == SUBAPPS.projects %}
+                <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+                <h6>{{mod.project.name}}</h6>
+                <span>{{mod.project.reponame}}</span>
+                {% endif %}
+                <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
+                </div>
+                {% empty %}
+                <br/>
+                <center>
+                <i class="w3-jumbo material-icons">done</i>
+                <h4>All resolved</h4>
+                </center>
+                <br/>
+                {% endfor %}
+                </div>
+            </div>
+
+            <div class="w3-col w3-padding-small swiper-slide">
+                <div class="pallete negative text-negative" style="height:55vh;">
+                    <center>
+                        <i class="material-icons" title="Private to you">lock</i>
+                        <h6>Rejected</h6>
+                    </center>
+                    <div class="w3-row" style="height:45vh;overflow-y:scroll">
+                        {% for mod in rejected %}
+                        <div class="pallete-slab dead-text">
+                            {% if mod.type == SUBAPPS.projects %}
+                            <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+                            <h6>{{mod.project.name}}</h6>
+                            <span>{{mod.respondOn}}</span>
+                            {% elif mod.type == SUBAPPS.people %}
+                            <h6>{{mod.profile.getName}}</h6>
+                            <span>{{mod.profile.getBio}}</span>
+                            {% elif mod.type == SUBAPPS.compete %}
+                            <h6>{{mod.competition.title}}</h6>
+                            <span>{{mod.competition.tagline}}</span>
+                            {% endif %}
+                            <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                        </div>
+                        {% empty %}
+                        <br/>
+                        <center>
+                        <i class="w3-jumbo material-icons">hourglass_top</i>
+                        <h4>Wait for it.</h4>
+                        </center>
+                        <br/>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    {% empty %}
-    <br/>
-    <center>
-    <i class="w3-jumbo material-icons">hourglass_top</i>
-    <h4>Wait for it.</h4>
-    </center>
-    <br/>
-    {% endfor %}
-    </div>
-    </div>
+    {% else %}
+        {% for mod in approved %}
+            <div class="w3-col w3-half w3-padding-small">
+                {% if mod.type == SUBAPPS.projects %}
+                <div class="pallete-slab">
+                    <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+                    <h6>{{mod.project.name}}</h6>
+                    <span>{{mod.project.reponame}}</span>
+                    <a target="_blank" href="{{mod.project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                </div>
+                {% elif mod.type == SUBAPPS.compete and mod.competition.resultDeclared %}
+                <div class="pallete-slab">
+                    <img class="w3-round w3-right" width="30" src="{{mod.competition.getBanner}}" />
+                    <h6>{{mod.competition.title}}</h6>
+                    <span>{{mod.competition.tagline}}</span>
+                    <a target="_blank" href="{{mod.competition.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                </div>
+                {% endif %}
+            </div>
+
+        {% empty %}
+            <br/><br/>
+            <center class="dead-text">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h2>No moderations, yet.</h2>
+            </center>
+        {% endfor %}
+    {% endif %}
 </div>

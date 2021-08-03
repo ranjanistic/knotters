@@ -4,7 +4,7 @@
 
 {% block title %}Logout{% endblock %}
 
-{% block nav_href %}/people/profile/{{request.user.id}}{% endblock %}
+{% block nav_href %}{{request.user.profile.getLink}}{% endblock %}
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}

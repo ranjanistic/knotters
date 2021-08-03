@@ -6,63 +6,195 @@ const loadTabScript = (tab) => {
                     const myChart = new Chart(chart.getContext("2d"), {
                         type: chart.getAttribute("data-type"),
                         data: {
-                            labels: [
-                                "Jan",
-                            ],
+                            labels: getElements('topic-name').map((top)=>top.innerHTML),
                             datasets: [
                                 {
-                                    label: "Project activity",
-                                    data: [0],
-                                    backgroundColor: ["rgba(255, 99, 132, 1)"],
-                                    borderColor: ["rgba(255, 99, 132, 1)"],
-                                    borderWidth: 1,
-                                },
-                                {
-                                    label: "Competition activity",
-                                    data: [0],
-                                    backgroundColor: ["rgba(255, 159, 64, 1)"],
-                                    borderColor: ["rgba(255, 99, 132, 1)"],
-                                    borderWidth: 1,
+                                    data: getElements('topic-points').map((top)=>Number(top.innerHTML)).every((p)=>p===0)?[]:getElements('topic-points').map((top)=>Number(top.innerHTML)),
+                                    borderColor: "#f5d702",
+                                    backgroundColor: "#f5d70255",
                                 },
                             ],
                         },
                         options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: false,
+                            maintainAspectRatio: !false,
+                            scale: {
+                               ticks: {
+                                  display: false,
+                                  maxTicksLimit: 2
+                               }
+                            },
+                            responsive: true,
+                            gridLines: {
+                                display: false
+                            },
+                            plugins: {
+                                legend: false,
+                                tooltip: false,
+                                title: {
+                                    display: false,
+                                    text: "",
                                 },
                             },
-                        },
+                        }
                     });
                 });
-                let lastquery = ''
-                getElement("topic-search-input").oninput=async(e)=>{
-                    if(e.target.value.length != lastquery.length){
-                        if(e.target.value.length < lastquery.length){
-                            lastquery=e.target.value
-                            return
-                        } else {
-                            lastquery=e.target.value
+                if (selfProfile) {
+                    const loadExistingTopics = () => {
+                        initializeMultiSelector({
+                            candidateClass: "topic-existing",
+                            selectedClass: "negative",
+                            deselectedClass: "primary negative-text",
+                            onSelect: (btn) => {
+                                if (
+                                    !getElement(
+                                        "removetopicIDs"
+                                    ).value.includes(btn.id)
+                                )
+                                    getElement(
+                                        "removetopicIDs"
+                                    ).value += getElement("removetopicIDs")
+                                        .value
+                                        ? "," + btn.id
+                                        : btn.id;
+                                return true;
+                            },
+                            onDeselect: (btn) => {
+                                let addtopids = getElement(
+                                    "addtopicIDs"
+                                ).value.split(",");
+                                let addtoplen = addtopids.length;
+                                if (addtoplen === 1 && addtopids.includes("")) {
+                                    addtoplen = 0;
+                                }
+                                let remtopids = getElement(
+                                    "removetopicIDs"
+                                ).value.split(",");
+                                let remtoplen = remtopids.length;
+                                if (remtoplen === 1 && remtopids.includes("")) {
+                                    remtoplen = 0;
+                                }
+                                if (
+                                    getElements("topic-existing").length -
+                                        remtoplen +
+                                        addtoplen ===
+                                    5
+                                ) {
+                                    error("Only upto 5 topics allowed");
+                                    return false;
+                                }
+                                let ids = getElement("removetopicIDs").value;
+                                ids = ids.replaceAll(btn.id, "");
+                                if (ids.endsWith(",")) {
+                                    ids = ids.split(",");
+                                    ids.pop();
+                                    ids.join(",");
+                                }
+                                getElement("removetopicIDs").value = ids;
+                                return true;
+                            },
+                        });
+                    };
+                    const loadNewTopics = () => {
+                        initializeMultiSelector({
+                            candidateClass: "topic-new",
+                            selectedClass: "positive",
+                            deselectedClass: "primary",
+                            onSelect: (btn) => {
+                                let addtopids = getElement(
+                                    "addtopicIDs"
+                                ).value.split(",");
+                                let addtoplen = addtopids.length;
+                                if (addtoplen === 1 && addtopids.includes("")) {
+                                    addtoplen = 0;
+                                }
+                                let remtopids = getElement(
+                                    "removetopicIDs"
+                                ).value.split(",");
+                                let remtoplen = remtopids.length;
+                                if (remtoplen === 1 && remtopids.includes("")) {
+                                    remtoplen = 0;
+                                }
+                                if (
+                                    getElements("topic-existing").length -
+                                        remtoplen +
+                                        addtoplen ===
+                                    5
+                                ) {
+                                    error("Only upto 5 topics allowed");
+                                    return false;
+                                }
+                                if (
+                                    !getElement("addtopicIDs").value.includes(
+                                        btn.id
+                                    )
+                                )
+                                    getElement(
+                                        "addtopicIDs"
+                                    ).value += getElement("addtopicIDs").value
+                                        ? "," + btn.id
+                                        : btn.id;
+                                return true;
+                            },
+                            onDeselect: (btn) => {
+                                let ids = getElement("addtopicIDs").value;
+                                ids = ids.replaceAll(btn.id, "");
+                                if (ids.endsWith(",")) {
+                                    ids = ids.split(",");
+                                    ids.pop();
+                                    ids.join(",");
+                                }
+                                getElement("addtopicIDs").value = ids;
+                                return true;
+                            },
+                        });
+                    };
+                    let lastquery = "";
+                    getElement("topic-search-input").oninput = async (e) => {
+                        if (!e.target.value.trim()) return;
+                        if (e.target.value.length != lastquery.length) {
+                            if (e.target.value.length < lastquery.length) {
+                                lastquery = e.target.value;
+                                return;
+                            } else {
+                                lastquery = e.target.value;
+                            }
                         }
-                    }
-                    getElement('topics-viewer-new').innerHTML = ''
-                    const data = await postRequest(URLS.TOPICSEARCH, {
-                        query:e.target.value,
-                    })
-                    if(!data) return
-                    if (data.code===code.OK){
-                        let buttons = []
-                        data.topics.forEach((topic)=>{
-                            buttons.push(`<button type="button" class="primary dead-text topic-choice topic-new" id="${topic.id}">${Icon('add')}${topic.name}</button>`)
-                        })
-                        if(buttons.length){
-                            getElement('topics-viewer-new').innerHTML = buttons.join('')
+                        getElement("topics-viewer-new").innerHTML = "";
+                        const data = await postRequest(URLS.TOPICSEARCH, {
+                            query: e.target.value,
+                        });
+                        if (!data) return;
+                        if (data.code === code.OK) {
+                            let buttons = [];
+                            data.topics.forEach((topic) => {
+                                buttons.push(
+                                    `<button type="button" class="${
+                                        getElement(
+                                            "addtopicIDs"
+                                        ).value.includes(topic.id)
+                                            ? "positive"
+                                            : "primary"
+                                    } topic-new" id="${topic.id}">${Icon(
+                                        "add"
+                                    )}${topic.name}</button>`
+                                );
+                            });
+                            if (buttons.length) {
+                                getElement(
+                                    "topics-viewer-new"
+                                ).innerHTML = buttons.join("");
+                                loadNewTopics();
+                                loadExistingTopics();
+                            } else {
+                                getElement(
+                                    "topics-viewer-new"
+                                ).innerHTML = `No topics for '${e.target.value}'`;
+                            }
                         } else {
-                            getElement('topics-viewer-new').innerHTML = `No topics for '${e.target.value}'`
+                            error(data.error);
                         }
-                    } else {
-                        error(data.error)
-                    }
+                    };
+                    loadExistingTopics();
                 }
             }
             break;
@@ -110,7 +242,8 @@ const loadTabScript = (tab) => {
                             cancel: `${Icon(
                                 "toggle_off"
                             )} Deactivate my account`,
-                        }).set('closable',false);
+                        })
+                        .set("closable", false);
                 };
 
                 getElement("deactivateaccount").onclick = (_) => {
@@ -123,7 +256,7 @@ const loadTabScript = (tab) => {
                     let useDefault = false;
                     loader();
                     let sdata = await postRequest(URLS.GETSUCCESSOR);
-                    if(!sdata) return loader(sdata);
+                    if (!sdata) return loader(sdata);
                     if (sdata.code === code.OK) {
                         successorSet = true;
                         successorID = sdata.successorID;
@@ -136,7 +269,9 @@ const loadTabScript = (tab) => {
                             `<br/><br/>
                     
                         <h1 class="negative-text">Deleting your account is a permanent action!</h1>
-                        <h3>Your account will be deleted, and you'll lose all your data on ${APPNAME}, ${NegativeText('permanently')}.</h3>
+                        <h3>Your account will be deleted, and you'll lose all your data on ${APPNAME}, ${NegativeText(
+                                "permanently"
+                            )}.</h3>
                         <h5>
                         By default, your profile assets will be transferred to and controlled by our <a class="positive-text" href="/people/profile/knottersbot">knottersbot</a>.<br/><br/>
                         If you want to specify your own successor to which all your active assets will be transferred, type their email address below,
@@ -160,11 +295,15 @@ const loadTabScript = (tab) => {
                             }"/>
                     <br/>
                     <br/>
-                    <button class="negative small" id="makesuccessor" ${useDefault || successorSet ? "hidden" : ""}>${Icon("schedule_send")}MAKE SUCCESSOR</button>
+                    <button class="negative small" id="makesuccessor" ${
+                        useDefault || successorSet ? "hidden" : ""
+                    }>${Icon("schedule_send")}MAKE SUCCESSOR</button>
                     </div>
                     <div class="w3-col w3-quarter w3-center">
                     <label for="defaultsuccessor">
-                        <input type="checkbox" id="defaultsuccessor" ${useDefault ? "checked" : ""} />
+                        <input type="checkbox" id="defaultsuccessor" ${
+                            useDefault ? "checked" : ""
+                        } />
                         <span class="w3-large">Use default successor</span>
                     </label>
                     <br/><br/><br/>
@@ -214,19 +353,16 @@ const loadTabScript = (tab) => {
                     };
 
                     getElement("defaultsuccessor").onchange = async (e) => {
-                        let done = await postRequest(
-                            URLS.INVITESUCCESSOR,
-                            {
-                                set: e.target.checked,
-                                unset: !e.target.checked,
-                                useDefault:e.target.checked,
-                            }
-                        );
+                        let done = await postRequest(URLS.INVITESUCCESSOR, {
+                            set: e.target.checked,
+                            unset: !e.target.checked,
+                            useDefault: e.target.checked,
+                        });
                         if (done && done.code === code.OK) {
                             useDefault = e.target.checked;
                         } else {
-                            error('An error occurred');
-                            e.target.checked = !e.target.checked
+                            error("An error occurred");
+                            e.target.checked = !e.target.checked;
                         }
                         successorSet = useDefault;
                         visibleElement("makesuccessor", !useDefault);
@@ -244,14 +380,11 @@ const loadTabScript = (tab) => {
                             return error(
                                 "Successor email required, or set default successor."
                             );
-                        const data = await postRequest(
-                            URLS.INVITESUCCESSOR,
-                            {
-                                set: true,
-                                userID: successorID || false,
-                                useDefault,
-                            }
-                        );
+                        const data = await postRequest(URLS.INVITESUCCESSOR, {
+                            set: true,
+                            userID: successorID || false,
+                            useDefault,
+                        });
                         if (data && data.code === code.OK) {
                             successorSet = true;
                             hideElement("makesuccessor");
@@ -287,7 +420,7 @@ const loadTabScript = (tab) => {
 
 initializeTabsView({
     onEachTab: async (tab) => {
-        return await getRequest(setUrlParams(URLS.PROFILETAB,userID,tab.id));
+        return await getRequest(setUrlParams(URLS.PROFILETAB, userID, tab.id));
     },
     uniqueID: "profiletab",
     onShowTab: loadTabScript,
@@ -296,7 +429,7 @@ initializeTabsView({
 if (selfProfile) {
     initializeTabsView({
         onEachTab: async (tab) => {
-            return await getRequest(setUrlParams(URLS.SETTINGTAB,tab.id));
+            return await getRequest(setUrlParams(URLS.SETTINGTAB, tab.id));
         },
         uniqueID: "profilestab",
         tabsClass: "set-tab",

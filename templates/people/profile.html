@@ -131,16 +131,16 @@
       <div class="w3-col w3-container m8 l9 ">
         <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
           <div class="w3-row w3-center w3-animate-top">
-            <button id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
-            <button id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
+            <button title="Profile overview" id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
+            <button title="Personal projects" id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
             <button hidden id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
             <button hidden id="activity" class="nav-tab"><i class="material-icons">history</i><span class="w3-hide-small">Activity</span></button>
-            {% if user.is_authenticated and person.profile.is_moderator and user == person %}
-            <button id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
+            {% if person.profile.is_moderator %}
+            <button title="Moderation record" id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
             {% endif %}
           </div>
           <br/>
-          <div id="tabview" style="height: 60vh;overflow-y: scroll;"></div>
+          <div id="tabview" style="min-height:60vh;max-height:70vh;overflow-y: scroll;"></div>
         </div>
 
         {% if user.is_authenticated and user == person %}

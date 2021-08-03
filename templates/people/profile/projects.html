@@ -87,13 +87,20 @@
   
   {% else %}
     {% for project in approved %} 
-      <a href="{{project.getLink}}">
-      <div class="w3-row wide-button"><i >launch</i><b>{{project.name}}</b><br />
-        <span> {{project.reponame}}</span>
-      </div>
-      </a>
+		<div class="w3-col w3-half w3-padding-small">
+			<div class="pallete-slab">
+			<img class="w3-circle w3-right" width="30" src="{{project.getDP}}" />
+			<h6>{{project.name}}</h6>
+			<span>{{project.reponame}}</span>
+			<a target="_blank" href="{{project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+        	</div>
+        </div>
       {% empty %}
-        <center><h3>No projects yet.</h3></center>
+        <br/><br/>
+            <center class="dead-text">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h2>No projects, yet.</h2>
+            </center>
       {% endfor %}
   {% endif  %}
 </div>

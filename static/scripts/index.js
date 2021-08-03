@@ -127,9 +127,7 @@ const loadGlobalEventListeners = () => {
     getElementsByTag("button").forEach((button) => {
         if (button.getAttribute("data-icon")) {
             if (!button.innerHTML.includes("material-icons")) {
-                button.innerHTML = `<i class="material-icons">${button.getAttribute(
-                    "data-icon"
-                )}</i>${button.innerHTML}`;
+                button.innerHTML = `${Icon(button.getAttribute("data-icon"))}${button.innerHTML}`;
             }
         }
     });
@@ -246,6 +244,46 @@ const initializeTabsView = ({
     }
     return tabs;
 };
+
+const initializeMultiSelector = ({
+    candidateClass = "multi-select-candidate",
+    selectedClass = 'positive',
+    deselectedClass = 'primary',
+    onSelect = async (candidate) => true,
+    onDeselect = async (candidate) => true,
+    uniqueID = String(Math.random()),
+}) => {
+    const candidates = getElements(candidateClass);
+    let selectedlist = [], deselectedList = candidates;
+    candidates.forEach((candidate)=>{
+        candidate.addEventListener('click',()=>{
+            if (deselectedList.includes(candidate)){
+                if(onSelect(candidate)){
+                    deselectedList = deselectedList.filter((cand)=>cand!=candidate)
+                    selectedlist.push(candidate)
+                    deselectedClass.split(' ').forEach((cl)=>{
+                        if(cl) candidate.classList.remove(cl)
+                    })
+                    selectedClass.split(' ').forEach((cl)=>{
+                        if(cl) candidate.classList.add(cl)
+                    })
+                }
+            } else if(selectedlist.includes(candidate)){
+                if(onDeselect(candidate)){
+                    selectedlist = selectedlist.filter((cand)=>cand!=candidate)
+                    deselectedList.push(candidate)
+                    deselectedClass.split(' ').forEach((cl)=>{
+                        if(cl) candidate.classList.add(cl)
+                    })
+                    selectedClass.split(' ').forEach((cl)=>{
+                        if(cl) candidate.classList.remove(cl)
+                    })
+                }
+            }
+        })
+    })
+    return candidates
+}
 
 const postRequest = async (path, data = {}) => {
     const body = { ...data };

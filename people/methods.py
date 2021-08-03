@@ -84,8 +84,9 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
     elif section == profileString.MODERATION:
         if profile.is_moderator:
             mods = Moderation.objects.filter(moderator=profile)
-            data[Code.RESOLVED] = mods.filter(resolved=True)
-            data[Code.UNRESOLVED] = mods.filter(resolved=False)
+            data[Code.UNRESOLVED] = mods.filter(resolved=False).order_by('-requestOn')
+            data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
+            data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
     else: return False
     return data
 

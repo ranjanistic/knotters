@@ -220,12 +220,29 @@ class Profile(models.Model):
         self.save()
         return self.xp
 
+    def xpTarget(self):
+        xp = self.xp
+        strxp = str(xp)
+        if xp > 100:
+            target = str()
+            for i in range(len(strxp)):
+                if i == 0:
+                    target = str(int(strxp[i]) + 1)
+                else:
+                    target = target + '0'
+            return int(target)
+        else:
+            return 100
+
     def getTopics(self):
         proftops =  ProfileTopic.objects.filter(profile=self,trashed=False)
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
         return topics
+
+    def getTopicsData(self):
+        return ProfileTopic.objects.filter(profile=self,trashed=False).order_by('-points')
 
     def totalTopics(self):
         return ProfileTopic.objects.filter(profile=self,trashed=False).count()
@@ -236,7 +253,10 @@ class Profile(models.Model):
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
-        return topics        
+        return topics
+
+    def getTrahedTopicsData(self):
+        return ProfileTopic.objects.filter(profile=self,trahsed=True)
 
     def totalTrahedTopics(self):
         return ProfileTopic.objects.filter(profile=self,trahsed=True).count()
@@ -247,6 +267,9 @@ class Profile(models.Model):
         for proftop in proftops:
             topics.append(proftop.topic)
         return topics
+
+    def getAllTopicsData(self):
+        return ProfileTopic.objects.filter(profile=self)
 
     def totalAllTopics(self):
         return ProfileTopic.objects.filter(profile=self).count()
@@ -286,9 +309,30 @@ class ProfileTopic(models.Model):
     topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name='profile_topic')
     trashed = models.BooleanField(default=False)
-    score = models.IntegerField(default=0)
+    points = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ('profile', 'topic')
+
+    def increasePoints(self,by:int=0)->int:
+        points = 0
+        if not self.points:
+            points = by
+        else:
+            points = self.points + by
+        self.points = points
+        self.save()
+        return self.points
+
+    def decreasePoints(self,by:int=0)->int:
+        if not self.points:
+            points = 0
+        elif self.points - by < 0:
+            points = 0
+        else:
+            points = self.points - by
+        self.points = points
+        self.save()
+        return self.points
 
 from .methods import isPictureDeletable

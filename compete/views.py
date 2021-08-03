@@ -1,4 +1,5 @@
 from uuid import UUID
+from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -10,7 +11,7 @@ from main.decorators import require_JSON_body
 from main.methods import errorLog, renderData, respondJson
 from main.strings import Action, Code, Message
 from people.decorators import profile_active_required
-from people.models import User, Profile
+from people.models import ProfileTopic, User, Profile
 from moderation.decorators import moderator_only
 from .models import Competition, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
@@ -368,6 +369,18 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         profile = Profile.objects.get(user=request.user)
         profile.increaseXP(by=result.points)
         result.xpclaimers.add(profile)
+        topicpoints = SubmissionTopicPoint.objects.filter(submission=result.submission).values('topic').annotate(points=Sum('points'))
+        proftops = ProfileTopic.objects.filter(profile=request.user.profile)
+        for topicpoint in topicpoints:
+            for proftop in proftops:
+                if proftop.topic.id == topicpoint['topic']:
+                    try:
+                        finaltop = ProfileTopic.objects.get(profile=request.user.profile,topic=proftop.topic)
+                        finaltop.increasePoints(by=topicpoint['points'])
+                    except Exception as e:
+                        errorLog(e)
+                        pass
+
         return redirect(result.submission.competition.getLink(alert=Message.XP_ADDED))
     except Exception as e:
         errorLog(e)

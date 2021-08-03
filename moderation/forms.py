@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django import forms
-from main.strings import Code, code, PROJECTS, PEOPLE, COMPETE
+from main.strings import Code, PROJECTS, PEOPLE, COMPETE
 from people.models import Profile
 from compete.models import Competition
 from projects.models import Project
@@ -9,7 +9,7 @@ from .models import Moderation
 
 class ModerationAdminForm(forms.ModelForm):
     moderator = forms.ModelChoiceField(queryset=Profile.objects.filter(
-        is_zombie=False, to_be_zombie=False, is_active=True, is_moderator=True))
+        is_zombie=False, to_be_zombie=False, is_active=True, is_moderator=True,suspended=False))
     project = forms.ModelChoiceField(queryset=Project.objects.filter(~Q(status=Code.APPROVED),trashed=False),required=False)
     competition = forms.ModelChoiceField(queryset=Competition.objects.filter(resultDeclared=False),required=False)
 
@@ -31,13 +31,13 @@ class ModerationAdminForm(forms.ModelForm):
             raise forms.ValidationError(
                 f"The selected moderator is not a valid moderator.")
 
-        if resolved and status == code.MODERATION:
+        if resolved and status == Code.MODERATION:
             raise forms.ValidationError(
-                f"resolved cannot be true while status is {code.MODERATION}, and vice versa.")
+                f"resolved cannot be true while status is {Code.MODERATION}, and vice versa.")
 
-        if not resolved and status != code.MODERATION:
+        if not resolved and status != Code.MODERATION:
             raise forms.ValidationError(
-                f"resolved cannot be false while status is not {code.MODERATION}, and vice versa.")
+                f"resolved cannot be false while status is not {Code.MODERATION}, and vice versa.")
 
         if type == PROJECTS:
             if profile or competition:
@@ -47,15 +47,19 @@ class ModerationAdminForm(forms.ModelForm):
             if status != project.status:
                 raise forms.ValidationError(
                     f"Project status and moderation status cannot conflict.")
+            
+            if moderator == project.creator:
+                raise forms.ValidationError(
+                    f"Project creator cannot be its moderator.")
 
         if type == COMPETE:
             if profile or project:
                 raise forms.ValidationError(
                     f"Cannot accept profile or project for moderation type {type}.")
 
-            if status == code.REJECTED:
+            if status == Code.REJECTED:
                 raise forms.ValidationError(
-                    f"Cannot set status as {code.REJECTED} for moderation type {type}.")
+                    f"Cannot set status as {Code.REJECTED} for moderation type {type}.")
 
             if competition.isParticipant(moderator):
                 raise forms.ValidationError(
