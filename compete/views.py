@@ -378,6 +378,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                         finaltop = ProfileTopic.objects.get(profile=request.user.profile,topic=proftop.topic)
                         finaltop.increasePoints(by=topicpoint['points'])
                     except Exception as e:
+                        ProfileTopic.objects.create(profile=request.user.profile,topic=proftop.topic,trashed=True,points=topicpoint['points'])
                         errorLog(e)
                         pass
 
