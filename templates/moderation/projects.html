@@ -72,7 +72,7 @@
             <h3 class="text-accent">Action taken</h3>
             <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}Pending{% endif %}</h4>
             {% if moderation.project.isLive %} 
-            <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">View</button></a>
+            <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">View project</button></a>
             {% endif %}
             {% if not ismoderator %}
                 {% if moderation.resolved and moderation.isRejected and not forwarded%}

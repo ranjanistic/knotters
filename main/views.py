@@ -168,6 +168,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",
                 f"/{URL.LANDING}",
+                '/projects/profile/covidcare',
                 setPathParams(f"/{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),

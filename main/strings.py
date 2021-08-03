@@ -406,6 +406,20 @@ class URL():
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
 
+        TOPICSEARCH = "topics/search/<str:projID>"
+        def topicsSearch(self,projID):
+            return setPathParams(self.TOPICSEARCH,projID)
+        TOPICSUPDATE = "topics/update/<str:projID>"
+        def topicsUpdate(self,projID):
+            return setPathParams(self.TOPICSUPDATE,projID)
+
+        TAGSEARCH = "tags/search/<str:projID>"
+        def tagsSearch(self,projID):
+            return setPathParams(self.TAGSEARCH,projID)
+        TAGSUPDATE = "tags/update/<str:projID>"
+        def tagsUpdate(self,projID):
+            return setPathParams(self.TAGSUPDATE,projID)
+
         PROJECTINFO = 'projectinfo/<str:projectID>/<str:info>'
 
         def projectInfo(self, projectID, info):

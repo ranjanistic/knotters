@@ -13,6 +13,7 @@ from .mailers import sendProjectApprovedNotification
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    URL.projects.getURLSForClient()
     return renderView(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:

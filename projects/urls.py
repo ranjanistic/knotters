@@ -13,4 +13,8 @@ urlpatterns = [
     path(URL.Projects.TRASH, trashProject),
     path(URL.Projects.PROFILE, profile),
     path(URL.Projects.PROFILEEDIT, editProfile),
+    path(URL.Projects.TOPICSEARCH, topicsSearch),
+    path(URL.Projects.TOPICSUPDATE, topicsUpdate),
+    path(URL.Projects.TAGSEARCH, tagsSearch),
+    path(URL.Projects.TAGSUPDATE, tagsUpdate),
 ]

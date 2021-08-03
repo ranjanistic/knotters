@@ -26,6 +26,9 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+    def getID(self):
+        return self.id.hex
+
 
 class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -133,6 +136,12 @@ class Project(models.Model):
     def getRepoLink(self) -> str:
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
+    def getModerator(self)->models.Model:
+        if not self.isApproved():
+            return None
+        mod = Moderation.objects.filter(project=self, type=APPNAME, status=Code.APPROVED,resolved=True).order_by('-respondOn').first()
+        return None if not mod else mod.moderator
+
     def getModLink(self) -> str:
         try:
             return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
@@ -158,6 +167,14 @@ class Project(models.Model):
             return self.trashed
         return self.trashed
 
+    def getTopics(self)->list:
+        return self.topics.all()
+        
+    def getTopicsData(self):
+        return ProjectTopic.objects.filter(project=self)
+
+    def totalTopics(self):
+        return self.topics.count()
 
 class ProjectTag(models.Model):
     class Meta:

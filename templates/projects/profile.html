@@ -24,7 +24,7 @@
 {% block nav_icon %}
   <button class="primary"><i class="material-icons">arrow_back</i></button>
 {% endblock %}
-{% block nav_text %}{% endblock %}
+{% block nav_text %}{{project.name}}{% endblock %}
 
 {% block content %}
 <div class="w3-row tertiary">
@@ -43,7 +43,7 @@
                 <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{project.name}}', '{{project.description}}', '{{site}}{{project.getLink}}')">share</i>
             </div>
         </div>
-        {% if user.is_authenticated and user.profile == project.creator %}
+        {% if iscreator %}
         <div class="pallete w3-center" id="edit-pallete">
             <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
             <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
@@ -60,49 +60,113 @@
                 <input type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
                 <input type="text" placeholder="About project" value="{{project.description}}" name="projectabout" /><br/>
               </div>
-              <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
-              <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
+              <button id="save-edit-pallete" data-icon="done">Save</button>
+              <button id="discard-edit-pallete" data-icon="close">Discard</button>
             </form>
         </div>
         {% endif %}
         <br/>
-        <div class="w3-row w3-padding-small">
-            {% for tag in project.tags.all %}
-            <a href="/projects?q={{tag}}&type=tag"><button class="positive">#{{tag}}</button></a>
-            {% empty %}
-                <button class="primary">No tags assigned</button>
-            {% endfor %}
-            <br/>
-        </div>
         <div class="w3-row w3-padding-small">
             {% if project.isLive %}
             <a target="_blank" rel="noreferrer" href="{{project.getRepoLink}}">
                 <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.reponame}}</button>
             </a>
             {% endif %}
+        </div>
+        <br/>
+        <div class="w3-row pallete w3-padding">
             {% if project.url %}
-            <a target="_blank" rel="noreferrer" href="{{project.url}}">
-                <button class="sub-accent"><i class="material-icons">launch</i>Website</button>
-            </a>
+            <strong><a class="positive-text" target="_blank" rel="noreferrer" href="{{project.url}}">{{project.url}}</a></strong>
             {% endif %}
+
+            
         </div>
         <br/>
     </div>
     <div class="w3-col w3-container w3-threequarter">
         <div class="w3-col w3-half">
-            <div class="pallete">
-            <center><h5>Contributions</h5>
-            <hr/></center>
+            <div class="pallete w3-center">
+            <center><h5>Overview</h5><hr/></center>
+            <div class="w3-row" id="view-projecttopics">
+            {% for topicdata in project.getTopicsData %}
+                <div class="w3-row pallete-slab w3-padding">
+                    <h5 class=" w3-left topic-name">{{topicdata.topic}}</h5>
+                </div>
+            {% empty %}
+                {% if iscreator %}
+                    <button class="accent edit-action w3-padding" data-edittarget="projecttopics" data-icon="add">Add topics</button>
+                {% else %}
+                    <div class="dead-text">
+                        <i class="w3-jumbo">hourglass_top</i>
+                        <h2>No topics yet.</h2>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {% if iscreator and project.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="projecttopics">edit</i>{% endif %}
+            </div>
+            {% if iscreator %}
+            <div id="edit-projecttopics">
+                <br/>
+                <strong class="dead-text">Total 5 topics allowed</strong>
+                <form action="{{URLS.TOPICSUPDATE|params:project.getID}}" method="POST">
+                    {% csrf_token %}
+                    <input class="wide" placeholder="Search topics" id="topic-search-input" />
+                    <div class="w3-row w3-padding" id="topics-viewer">
+                        {% for topic in project.getTopics %}
+                        <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                        {% endfor %}
+                        <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                    </div>
+                    <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                    <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                    <br/>
+                    <button id="save-edit-projecttopics" data-icon="done">Save</button>
+                    <button id="discard-edit-projecttopics" data-icon="close">Cancel</button>
+                </form>
+            </div>
+            {% endif %}
+            </div>
+            <br/>
+            <div class="w3-row  w3-padding" id='tags'>
+                <div id="view-projecttags">
+                {% for tag in project.tags.all %}
+                <a href="/projects?q={{tag}}&type=tag"><button class="positive">#{{tag}}</button></a>
+                {% empty %}
+                    <h5 class="dead-text">No tags assigned</h5>
+                {% endfor %}
+                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+                </div>
+                {% if iscreator %}
+                <div id="edit-projecttags">
+                    <strong class="dead-text">Total 5 tags allowed</strong>
+                    <form action="{{URLS.TAGSUPDATE|params:project.getID}}" method="POST">
+                        {% csrf_token %}
+                        <input class="wide" placeholder="Search topics" id="tag-search-input" />
+                        <div class="w3-row w3-padding" id="topics-viewer">
+                            {% for tag in project.tags.all %}
+                            <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                        </div>
+                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                        <br/>
+                        <button id="save-edit-projecttags" data-icon="done">Save</button>
+                        <button id="discard-edit-projecttags" data-icon="close">Cancel</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
         <div class="w3-col w3-container w3-half">
             <div class="pallete">
-            <center><h5>Overview</h5>
-                <hr/>
-            </center>
-            <p><span>{{project.description}}</span></p>
-            <p>Created on:<span> {{project.createdOn}}</span></p>
-            <p>Creator: <span> {{project.creator.getName}} </span></p>
+            <center><h5>Description</h5><hr/></center>
+            <div class="w3-row">
+            <strong>Created on <span> {{project.createdOn}}</span></strong><br/><br/>
+            <strong>Created by</strong><a target="_blank" href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}} </button></a><br/><br/>
+            <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
+            <strong>Moderated by</strong><a target="_blank" href="{{project.getModerator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.getModerator.getDP}}"  width="20"/>&nbsp;{{project.getModerator.getName}} </button></a><br/><br/>
+            </div>
         </div>
         
         </div>
@@ -114,7 +178,7 @@
 {% block scripts %}
 <script>
 const projectID = "{{ project.getID }}"
-const selfProject = authenticated?"{{user.profile}}" === "{{project.creator}}":false;
+const selfProject = "{{iscreator}}"==='True';
 </script>
 <script src="{% static 'scripts/project/profile.js' %}" ></script>
 

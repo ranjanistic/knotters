@@ -12,7 +12,8 @@ from main.strings import Code, Message, URL
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.decorators import profile_active_required
-from .models import License, Project, Tag, Category
+from people.models import Topic
+from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category
 from .methods import renderer, uniqueRepoName, createProject
 from .apps import APPNAME
 from .mailers import sendProjectSubmissionNotification
@@ -179,11 +180,13 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame, trashed=False)
         if project.status == Code.APPROVED:
-            return renderer(request, 'profile', dict(project=project))
+            iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+            ismoderator = False if not request.user.is_authenticated else project.getModerator() == request.user.profile
+            return renderer(request, 'profile', dict(project=project,iscreator=iscreator,ismoderator=ismoderator))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
-                                                Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()
+                                                Code.REJECTED, Code.MODERATION],resolved=False).order_by('-respondOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
@@ -226,3 +229,116 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
     except Exception as e:
         errorLog(e)
         return HttpResponseForbidden()
+
+@require_JSON_body
+@login_required
+def topicsSearch(request:WSGIRequest,projID: UUID)->JsonResponse:
+    query = request.POST.get('query',None)
+    if not query or not query.strip():
+        return respondJson(Code.NO)
+
+    project = Project.objects.filter(id=projID,status=Code.APPROVED).first()
+    excluding = []
+    if project:
+        for topic in project.getTopics():
+            excluding.append(topic.id)
+
+    topics = Topic.objects.exclude(id__in=excluding).filter(Q(name__startswith=query.capitalize())|Q(name__iexact=query))[0:5]
+    topicslist = []
+    for topic in topics:
+        topicslist.append(dict(
+            id=topic.getID(),
+            name=topic.name
+        ))
+    
+    return respondJson(Code.OK,dict(
+        topics=topicslist
+    ))
+
+@require_POST
+@profile_active_required
+def topicsUpdate(request:WSGIRequest, projID: UUID) -> HttpResponse:
+    try:
+        addtopicIDs = request.POST.get('addtopicIDs',None)
+        removetopicIDs = request.POST.get('removetopicIDs',None)
+        project = Project.objects.get(id=projID,status=Code.APPROVED)
+        if not (addtopicIDs.strip() or removetopicIDs.strip()):
+            return redirect(project.getLink())
+
+        if removetopicIDs:
+            removetopicIDs = removetopicIDs.strip(',').split(',')
+            ProjectTopic.objects.filter(project=project,topic__id__in=removetopicIDs).delete()
+
+        if addtopicIDs:
+            addtopicIDs = addtopicIDs.strip(',').split(',')
+            projtops = ProjectTopic.objects.filter(project=project)
+            currentcount = projtops.count()
+            if currentcount + len(addtopicIDs) > 5:
+                return redirect(project.getLink())
+
+            for topic in Topic.objects.filter(id__in=addtopicIDs):
+                project.topics.add(topic)
+
+        return redirect(project.getLink())
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
+
+
+@require_JSON_body
+@login_required
+def tagsSearch(request:WSGIRequest, projID: UUID)->JsonResponse:
+    try:
+        query = request.POST.get('query',None)
+        if not query or not query.strip():
+            return respondJson(Code.NO)
+        project = Project.objects.filter(id=projID,status=Code.APPROVED).first()
+        excludeIDs = []
+        if project:
+            for tag in project.tags.all():
+                excludeIDs.append(tag.id)
+
+        tags = Tag.objects.exclude(id__in=excludeIDs).filter(Q(name__startswith=query.lower())|Q(name__iexact=query))[0:5]
+        tagslist = []
+        for tag in tags:
+            tagslist.append(dict(
+                id=tag.getID(),
+                name=tag.name
+            ))
+        
+        return respondJson(Code.OK,dict(
+            tags=tagslist
+        ))
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
+
+@require_POST
+@profile_active_required
+def tagsUpdate(request:WSGIRequest, projID: UUID) -> HttpResponse:
+    try:
+        addtagIDs = request.POST.get('addtagIDs',None)
+        removetagIDs = request.POST.get('removetagIDs',None)
+        project = Project.objects.get(id=projID,status=Code.APPROVED)
+        if not (addtagIDs.strip() or removetagIDs.strip()):
+            return redirect(project.getLink())
+
+        if removetagIDs:
+            removetagIDs = removetagIDs.strip(',').split(',')
+            ProjectTag.objects.filter(project=project,tag__id__in=removetagIDs).delete()
+
+        print(addtagIDs)
+        if addtagIDs:
+            addtagIDs = addtagIDs.strip(',').split(',')
+            projtags = ProjectTag.objects.filter(project=project)
+            currentcount = projtags.count()
+            if currentcount + len(addtagIDs) > 5:
+                return redirect(project.getLink())
+
+            for tag in Tag.objects.filter(id__in=addtagIDs):
+                project.tags.add(tag)
+
+        return redirect(project.getLink())
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
