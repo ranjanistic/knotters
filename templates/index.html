@@ -70,7 +70,7 @@
             {% block nav_title %}
             <a href="{% block nav_href %}{{ROOT}}{% endblock %}" class="w3-left w3-padding w3-animate-left">
                 <span hidden>{{APPNAME}}</span>
-                {% block nav_icon %}<img alt="{{APPNAME}}" src="{{ICON}}" width="40" height="40" />{% endblock %}
+                {% block nav_icon %}<img alt="{{APPNAME}}" src="{{ICON}}" class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />{% endblock %}
             </a>
             <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
@@ -111,7 +111,7 @@
                 </div>
                 {% endif %}
                 <div class="w3-row w3-center w3-padding">
-                    <img alt={{APPNAME}} src="{{ICON}}" width="200" height="200"/>
+                    <img alt={{APPNAME}} src="{{ICON}}" class="darkimg" data-ext="svg" data-name="self/icon" width="200" height="200"/>
                 </div>
                     <br/>
                 <div class="w3-row w3-center w3-padding tertiary">
@@ -178,20 +178,20 @@
         <footer class="w3-row secondary w3-padding w3-animate-bottom">
             <br/><br/>
             <div class="w3-col w3-half primary-text w3-padding">
-                <a href="/press" class="text-secondary" hidden>For the press</a><br/>
-                <a href="/report" class="text-secondary" hidden>Report a problem</a><br/>
-                <a href="/docs" class="text-secondary">Docs &amp; statements</a><br/>
-                <a href="/docs/termsofservice" class="text-secondary">Terms of service</a><br/>
-                <a href="/docs/privacypolicy" class="text-secondary">Privacy Policy</a><br/>
+                <a href="/press" class="text-secondary w3-animate-left" hidden>For the press</a><br/>
+                <a href="/report" class="text-secondary w3-animate-left">Report &amp; Feedback</a><br/>
+                <a href="/docs" class="text-secondary w3-animate-left">Docs &amp; statements</a><br/>
+                <a href="/docs/termsofservice" class="text-secondary w3-animate-left">Terms of service</a><br/>
+                <a href="/docs/privacypolicy" class="text-secondary w3-animate-left">Privacy Policy</a><br/>
             </div>
-            <div class="w3-col w3-half w3-padding-small">
+            <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>
                 <a href="/">
                 <div class="w3-row">
                     <h2 class="text-secondary w3-right">Knotters Community</h2>
                 </div>
                 <div class="w3-row">
-                    <img alt={{APPNAME}} class="w3-right" src="{{ICON}}" width="120" height="120" />
+                    <img alt={{APPNAME}} class="w3-right darkimg" src="{{ICON}}" data-ext="svg" data-name="self/icon" width="120" height="120" />
                 </div>
                 </a>
             </div>
@@ -208,7 +208,7 @@
                 <a target="_blank" rel="noreferrer" href="https://linkedin.com/company/knottersdotorg"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" height="20" /></button></a>
             {% endblock %}
             <br/><br/>
-            <a href="/docs/copyright">Copyright 2021</a>
+            <a href="/docs/copyright" class="text-secondary">Copyright 2021</a>
             </center>
             </div>
         </footer>

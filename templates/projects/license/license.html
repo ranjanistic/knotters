@@ -1,0 +1,43 @@
+{% extends 'projects/license/index.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block og_url %}{{license.getLink}}{% endblock %}
+{% block og_title %}{{license.name}}{% endblock %}
+{% block og_description %}{{license.description}}{% endblock %}
+{% block og_site_name %}{{license.name}}{% endblock %}
+
+{% block tw_url %}{{URLS.ALLLICENSES}}{% endblock %}
+{% block tw_title %}{{license.name}}{% endblock %}
+{% block tw_description %}{{license.description}}{% endblock %}
+
+{% block title%}{{license.name}}{%endblock%}
+
+{% block nav_icon %}
+  <button class="primary" data-icon="arrow_back"></button>
+{% endblock %}
+{% block nav_text %}{{license.name}} License{% endblock %}
+{% block nav_href%}{{URLS.ALLLICENSES}}{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-padding">
+<div class="w3-row w3-padding">
+    <h1>{{license.name}}</h1>
+    <strong>{{license.description}}</strong>
+    <br/><br/>
+    <h3>CONTENT</h3>
+    <br/>
+    <div class="w3-col" style="white-space: pre-wrap;">
+        <code>{{license.content|safechars}}</code>
+    </div>
+</div>
+<br/>
+{% if not license.isCustom %}
+<center><strong><span class="dead-text">Source:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> </strong></center>
+{% else %}
+<center><strong><span class="dead-text">This license is not provided by {{APPNAME}}, and may require modification/permission from the <a target="_blank" href="{{license.creator.getLink}}">creator</a> to use.</strong></center>
+{% endif %}
+</div>
+<br/>
+{% endblock %}

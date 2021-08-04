@@ -365,11 +365,15 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
 
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (navigator.share) {
+        subLoader()
         navigator.share({ title, text, url }).then(() => {
+            subLoader(false)
             afterShared();
+        }).catch(()=>{
+            error("Failed to share")
         });
     } else {
-        alert("Sharing not available on your system.");
+        error("Sharing not available on your system.");
     }
 };
 
