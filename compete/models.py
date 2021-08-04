@@ -7,7 +7,7 @@ from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url
 from main.settings import MEDIA_URL
-from main.methods import errorLog
+from main.methods import errorLog, getNumberSuffix
 from .apps import APPNAME
 
 
@@ -547,31 +547,28 @@ class Result(models.Model):
     def __str__(self) -> str:
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
 
+    def getID(self):
+        return self.id.hex
+
     def submitOn(self):
         return self.submission.submitOn
 
     def rankSuptext(self, rnk=0) -> str:
         rank = self.rank if rnk == 0 else rnk
-        rankstr = str(rank)
-        if rank == 1:
-            return 'st'
-        elif rank == 2:
-            return 'nd'
-        elif rank == 3:
-            return 'rd'
-        else:
-            if rank > 9:
-                if rankstr[len(rankstr) - 2] == "1" or rankstr[len(rankstr) - 1] == "0":
-                    return "th"
-                return self.rankSuptext(rnk=int(rankstr[len(rankstr) - 1]))
-            else:
-                return "th"
-
+        return getNumberSuffix(int(rank))
+        
     def hasClaimedXP(self, profile: Profile) -> bool:
         return profile in self.xpclaimers.all()
 
     def allXPClaimed(self)->bool:
         return self.submission.totalMembers() == self.xpclaimers.count
+
+    def getCertLink(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.certficate(resID=self.getID(),userID='*')}"
+    
+    def getCertDownloadLink(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.certficateDownload(resID=self.getID(),userID='*')}"
+
 
 class ResultXPClaimer(models.Model):
     class Meta:

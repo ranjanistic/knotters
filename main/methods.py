@@ -166,4 +166,20 @@ def errorLog(error):
         if ISDEVELOPMENT:
             print(error)
             
+def getNumberSuffix(value:int)->str:
+    valuestr = str(value)
+    if value == 1:
+        return 'st'
+    elif value == 2:
+        return 'nd'
+    elif value == 3:
+        return 'rd'
+    else:
+        if value > 9:
+            if valuestr[len(valuestr) - 2] == "1" or valuestr[len(valuestr) - 1] == "0":
+                return "th"
+            return getNumberSuffix(value=int(valuestr[len(valuestr) - 1]))
+        else:
+            return "th"
+
 from .strings import url

@@ -256,6 +256,14 @@ class URL():
         def claimXP(self, compID, subID):
             return setPathParams(self.CLAIMXP, compID, subID)
 
+        CERTIFICATE = 'certificate/<str:resID>/<str:userID>'
+        def certficate(self, resID, userID):
+            return setPathParams(self.CERTIFICATE, resID, userID)
+
+        CERTDOWNLOAD = 'certificate/download/<str:resID>/<str:userID>'
+        def certficateDownload(self, resID, userID):
+            return setPathParams(self.CERTDOWNLOAD, resID, userID)
+
         def getURLSForClient(self):
             URLS = dict()
 

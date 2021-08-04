@@ -386,3 +386,16 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         raise Http404()
+
+@require_GET
+def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
+    try:
+        if request.user.is_authenticated and request.user.getID() == userID:
+            member = request.user.profile
+        else:
+            member = Profile.objects.get(user__id=userID)
+        result = Result.objects.get(id=resID,submission__members=member)
+        return renderer(request,'certificate',dict(result=result,member=member))
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
