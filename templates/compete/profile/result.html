@@ -34,9 +34,14 @@
 {% if selfresult %}
 <div class="w3-row pallete-slab w3-padding-small">
     <div class="w3-col m3">
-    <button class="pallete w3-padding-small limit-width">
-        <i>card_giftcard</i>{{selfresult.rank}}<sup>{{selfresult.rankSuptext}}</sup>
-    </button>
+        <div class="w3-col w3-half">
+            <button class="pallete w3-padding-small limit-width">
+                <i>card_giftcard</i>{{selfresult.rank}}<sup>{{selfresult.rankSuptext}}</sup>
+            </button>
+        </div>
+        <div class="w3-col w3-half w3-padding-small">
+            <button class="small primary">{{selfresult.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
+        </div>
     </div>
     <div class="w3-col m9">
     <div class="w3-col m9 w3-padding-small">
@@ -44,7 +49,7 @@
     <a target="_blank" href="{{member.getLink}}">
     <button class="small primary">
         <img src="{{member.getDP}}" class="w3-circle" width="18" />
-        <span class="w3-hide-small">{{ member.getFame }}</span>
+        <span class="w3-hide-small">{{ member.getFName }}</span>
     </button>
     </a>
     {% endfor %}
@@ -57,7 +62,21 @@
     {% else %}
     href="{% url 'account_login' %}?next=/compete/{{competition.id}}"
     {% endif %}
-    ><button class="primary" data-icon="open_in_new">View</button></a>
+    ><button class="w3-right small primary" data-icon="open_in_new">View</button>
+    </a>
+    {% if request.user.is_authenticated and request.user.profile in selfresult.submission.getMembers %}
+        <a href="{{selfresult.getCertLink|params:request.user.getID}}" target="_blank">
+            <button class="w3-right small positive" data-icon="badge">Certificate</button>
+        </a>
+        {% if request.user.profile not in selfresult.xpclaimers.all %}
+        <form method="POST" action="{{URLS.CLAIMXP|params:selfresult.submission.competition.getID|params:selfresult.submission.getID}}">
+            {% csrf_token %}
+            <button type="submit" class="w3-right small positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
+        </form>
+        {% else %}
+        <button class="w3-right small secondary" title="You have already claimed {{selfresult.points}} XP of your result">XP Claimed</button>
+        {% endif %}
+    {% endif %}
     </div>
     </div>
 </div>
