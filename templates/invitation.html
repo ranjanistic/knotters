@@ -15,7 +15,7 @@
     </a>
     {% endfor %}
     <h5>in the competition</h5>
-    <h2><a target="_blank" class="positive-text" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
+    <h2><a target="_blank" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
     <br/>
     <a href="{{ROOT}}"><button class="accent" data-icon="done">Acknowledged</button></a>
 
@@ -27,13 +27,13 @@
     </a>
     {% endfor %}
     <h5>in the competition</h5>
-    <h2><a target="_blank" class="positive-text" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
+    <h2><a target="_blank" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
     <br/>
     <a href="{{submission.competition.getLink}}"><button type="submit" class="positive" data-icon="celebration">Let's go!</button></a>
     
     {% else %}
     <h3>You have been invited to participate in the competition </h3>
-    <h2><a target="_blank" class="positive-text" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
+    <h2><a target="_blank" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
     <h5>together with</h5>
     {% for member in submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
@@ -58,10 +58,10 @@
 
     <h1>Invitation for successorship</h1>
 
-    <h4><a href="{{predecessor.profile.getLink}}" target="_blank" class="positive-text">{{predecessor.getName}}</a> wants you to be the successor of their profile assets on {{APPNAME}}.</h4>
+    <h4><a href="{{predecessor.profile.getLink}}" target="_blank">{{predecessor.getName}}</a> wants you to be the successor of their profile assets on {{APPNAME}}.</h4>
     <br/>
     <h6 class="dead-text">Accepting successorship will <span class="positive-text">grant you the authority</span> of {{predecessor.getName}}'s assets if they <span class="negative-text">have deleted or will delete</span> their account.</h6>
-    <h6 class="dead-text">Declining successorship will make the <a href="/people/profile/knottersbot" target="_blank" class="positive-text">knottersbot</a> their successor.</h6>
+    <h6 class="dead-text">Declining successorship will make the <a href="/people/profile/knottersbot" target="_blank">knottersbot</a> their successor.</h6>
     <br/>
     <form method="POST" action="{{ROOT}}invitation/successor/action/accept">
     {% csrf_token %}
