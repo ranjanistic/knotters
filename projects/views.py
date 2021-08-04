@@ -26,10 +26,23 @@ def allProjects(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
+def allLicences(request: WSGIRequest) -> HttpResponse:
+    try:
+        alllicenses = License.objects.filter()
+        public = alllicenses.filter(public=True)
+        custom = []
+        if request.user.is_authenticated:
+            custom = alllicenses.filter(public=False,creator=request.user.profile)
+        return renderer(request, 'license/index', dict(licenses=public,custom=custom))
+    except Exception as e:
+        print(e)
+        raise Http404()
+
+@require_GET
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
-        return renderer(request, 'license', dict(license=license))
+        return renderer(request, 'license/license', dict(license=license))
     except:
         raise Http404()
 
@@ -103,7 +116,8 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
             name=str(name).strip(),
             description=str(description).strip(),
             content=str(content),
-            public=public
+            public=public,
+            creator=request.user.profile
         )
         return respondJson(Code.OK, {'license': dict(
             id=lic.getID(),

@@ -168,7 +168,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",
                 f"/{URL.LANDING}",
-                '/projects/profile/covidcare',
+                f"/{URL.PROJECTS}{URL.Projects.ALLLICENSES}",
                 setPathParams(f"/{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),
@@ -176,6 +176,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",

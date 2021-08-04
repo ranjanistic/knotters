@@ -372,11 +372,13 @@ class URL():
 
     class Projects():
 
-        LICENSE = 'license/<str:id>'
+        ALLLICENSES = 'licenses'
+
+        LICENSE = 'licenses/<str:id>'
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
-        LICENSES = 'licenses'
+        LICENSES = 'alllicenses'
 
         ADDLICENSE = 'addlicense'
         

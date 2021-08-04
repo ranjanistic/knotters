@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from main.env import PUBNAME
+from main.env import BOTMAIL, PUBNAME
 from main.settings import MEDIA_URL
 from main.methods import maxLengthInList
 from main.strings import Code, url, PEOPLE, project
@@ -59,12 +59,19 @@ class License(models.Model):
     content = models.CharField(max_length=300000, null=True, blank=True)
     public = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
+    creator = models.ForeignKey(f"{PEOPLE}.Profile",on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name
 
     def getID(self):
         return self.id.hex
+
+    def getLink(self):
+        return f'{url.projects.license(id=self.getID())}'
+
+    def isCustom(self):
+        return self.creator.getEmail() != BOTMAIL
 
 
 class Project(models.Model):

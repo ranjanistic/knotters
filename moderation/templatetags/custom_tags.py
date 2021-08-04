@@ -11,3 +11,8 @@ def replaceParams(url,params):
 @register.filter(name='or')
 def useOR(value,Or):
     return value or Or
+
+@register.filter(name='safechars')
+def safechars(value):
+    return str(value).replace('\\n','\n').replace('\"','').replace('\\','\"').replace('&lt;','[').replace('&gt;',']')
+

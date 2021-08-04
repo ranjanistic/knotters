@@ -1,5 +1,5 @@
 from main.methods import renderData
-from .env import PUBNAME, MAILUSER, SITE, VERSION
+from .env import PUBNAME, BOTMAIL, SITE, VERSION
 from .strings import DIVISIONS, URL
 from .settings import STATIC_URL
 
@@ -7,7 +7,7 @@ from .settings import STATIC_URL
 def Global(request):
     data = dict(
         APPNAME=PUBNAME,
-        CONTACTMAIL=MAILUSER,
+        CONTACTMAIL=BOTMAIL,
         DESCRIPTION="Solving problems together.",
         SITE=SITE,
         VERSION=VERSION,
