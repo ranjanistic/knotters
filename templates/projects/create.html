@@ -177,14 +177,14 @@
                     </div>
                 </div>
                 <br/>
-                <strong>Learn more about <a class="positive-text" target="_blank" rel="noreferrer" href="https://choosealicense.com/appendix/">choosing a license</a>.</strong>
+                <strong>Learn more about <a target="_blank" href="{{URLS.ALLLICENSES}}">choosing a license</a>.</strong>
                 <br/>
                 <label id="confirm-check-box">
                     <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
                     I've read the {{appname}} 
-                        <a class="positive-text" onclick="miniWindow('/docs/moderationguidelines')">moderation guidelines</a>, 
-                        <a class="positive-text" onclick="miniWindow('/docs/privacypolicy')">privacy policy</a> & 
-                        <a class="positive-text" onclick="miniWindow('/docs/termsofservice')">terms of service</a>.
+                        <a onclick="miniWindow('/docs/moderationguidelines')">moderation guidelines</a>, 
+                        <a onclick="miniWindow('/docs/privacypolicy')">privacy policy</a> & 
+                        <a onclick="miniWindow('/docs/termsofservice')">terms of service</a>.
                 </label>
             </div>
             <br/>
@@ -227,9 +227,7 @@
 </div>
 {% endif %}
 {% endblock %}
-{% if not user.profile.githubID %}
-{% block footer %}{% endblock %}
-{% endif %}
+
 {% block scripts %}
 <script>
 let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");

@@ -2,6 +2,19 @@
 {% load static %}
 {% load custom_tags %}
 
+{% block og_url %}{{compete.getLink}}{% endblock %}
+{% block og_title %}{{ compete.title }}{% endblock %}
+{% block og_description %}{{ compete.tagline }}{% endblock %}
+{% block og_site_name %}{{compete.title}}{% endblock %}
+{% block og_image_url %}{{compete.getBanner}}{% endblock %}
+
+{% block ld_image_url %}{{compete.getBanner}}{% endblock %}
+
+{% block tw_image_url %}{{compete.getBanner}}{% endblock %}
+{% block tw_url %}{{compete.getLink}}{% endblock %}
+{% block tw_title %}{{compete.title}}{% endblock %}
+{% block tw_description %}{{ compete.shortdescription }}{% endblock %}
+
 {% block title %}{{ compete.title }}{%endblock %} 
 
 {% block stylesheets %}
