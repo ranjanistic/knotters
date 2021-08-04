@@ -37,6 +37,7 @@ jobs:
         echo "DBPASS=${{ secrets.DBTESTPASS }}" >> ${{ secrets.ENVPATH }}
         echo "MAILUSER=${{ secrets.MAILUSER }}" >> ${{ secrets.ENVPATH }}
         echo "MAILPASS=${{ secrets.MAILPASS }}" >> ${{ secrets.ENVPATH }}
+        echo "BOTMAIL=${{ secrets.BOTMAIL }}" >> ${{ secrets.ENVPATH }}
         echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> ${{ secrets.ENVPATH }}
         echo "GITHUBBOTTOKEN=${{ secrets.GITHUBBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
         echo "DISCORDBOTTOKEN=${{ secrets.DISCORDBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
