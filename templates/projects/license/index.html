@@ -1,0 +1,55 @@
+{% extends 'projects/index.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block og_url %}{{URLS.ALLLICENSES}}{% endblock %}
+{% block og_title %}Licenses{% endblock %}
+{% block og_description %}Licenses for projects{% endblock %}
+{% block og_site_name %}Licenses{% endblock %}
+
+{% block tw_url %}{{URLS.ALLLICENSES}}{% endblock %}
+{% block tw_title %}Licenses{% endblock %}
+{% block tw_description %}Licenses for projects{% endblock %}
+
+{% block title%}Licenses{%endblock%}
+
+{% block nav_text %}Licenses{% endblock %}
+{% block nav_href %}{{URLS.PROJECTS}}{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-padding">
+    {% if custom.0 %}
+    <center><h4>Your private custom licenses</h4></center>
+
+    <br/>
+    <div class="w3-row">
+    {% for license in custom %}
+        <div class="w3-col w3-half w3-padding-small">
+        <div class="w3-row pallete-slab">
+        <h4>{{license}}</h4>
+        <strong>{{license.description}}</strong>
+        <a href="{{license.getLink}}" class="w3-right"><button class="primary">View</button></a>
+        </div>
+        </div>
+    {% endfor%}
+    </div>
+    {% endif %}
+    <br/>
+    <center><h4>Public licenses</h4></center>
+    <br/>
+    <div class="w3-row">
+    {% for license in licenses %}
+        <div class="w3-col w3-half w3-padding-small">
+        <div class="w3-row pallete-slab">
+        <h4>{{license}}</h4>
+        <strong>{{license.description}}</strong>
+        <a href="{{license.getLink}}" class="w3-right"><button class="primary">View</button></a>
+        </div>
+        </div>
+    {% endfor%}
+    </div>
+</div>
+<br/>
+
+{% endblock %}
