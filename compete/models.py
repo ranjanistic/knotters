@@ -10,7 +10,6 @@ from main.settings import MEDIA_URL
 from main.methods import errorLog, getNumberSuffix
 from .apps import APPNAME
 
-
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/banners/{instance.getID()}.{fileparts[len(fileparts)-1]}"
@@ -132,7 +131,8 @@ class Competition(models.Model):
         Whether the given profile is assigned as moderator of this competition or not.
         """
         try:
-            Moderation.objects.get(type=APPNAME, competition=self, moderator=profile)
+            Moderation.objects.get(
+                type=APPNAME, competition=self, moderator=profile)
             return True
         except Exception as e:
             return False
@@ -207,23 +207,37 @@ class Competition(models.Model):
         return Submission.objects.filter(competition=self).order_by('-submitOn')
 
     def getParticipants(self):
-        parts = SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True).only('profile')
+        """
+        All confirmed participants
+        """
+        parts = SubmissionParticipant.objects.filter(
+            submission__competition=self, confirmed=True).only('profile')
         profiles = list()
         for part in parts:
             profiles.append(part.profile)
         return profiles
 
     def totalParticipants(self):
+        """
+        Total confirmed participants
+        """
         return SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True).count()
 
     def getAllParticipants(self) -> list:
-        parts =  SubmissionParticipant.objects.filter(submission__competition=self).only('profile')
+        """
+        All participants + invitees
+        """
+        parts = SubmissionParticipant.objects.filter(
+            submission__competition=self).only('profile')
         profiles = list()
         for part in parts:
             profiles.append(part.profile)
         return profiles
 
     def totalAllParticipants(self):
+        """
+        Total participants + invitees
+        """
         return SubmissionParticipant.objects.filter(submission__competition=self).count()
 
     def totalSubmissions(self) -> int:
@@ -332,6 +346,21 @@ class Competition(models.Model):
         except Exception as e:
             errorLog(e)
             return False
+
+    def getResults(self):
+        return Result.objects.filter(competition=self)
+
+    def totalResults(self) -> int:
+        return Result.objects.filter(competition=self).count()
+
+    def allResultsDeclared(self):
+        return self.totalResults() == self.totalSubmissions()
+
+    def totalCertificates(self) -> int:
+        return ParticipantCertificate.objects.filter(result__submission__competition=self).count()
+
+    def certificatesGenerated(self) -> bool:
+        return self.totalParticipants() == self.totalCertificates()
 
 
 class CompetitionJudge(models.Model):
@@ -543,6 +572,8 @@ class Result(models.Model):
     rank = models.IntegerField()
     xpclaimers = models.ManyToManyField(
         Profile, through='ResultXPClaimer', related_name='result_xpclaimers', default=[])
+    certificates = models.ManyToManyField(
+        Profile, through='ParticipantCertificate', related_name='result_certificates', default=[])
 
     def __str__(self) -> str:
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
@@ -556,16 +587,16 @@ class Result(models.Model):
     def rankSuptext(self, rnk=0) -> str:
         rank = self.rank if rnk == 0 else rnk
         return getNumberSuffix(int(rank))
-        
+
     def hasClaimedXP(self, profile: Profile) -> bool:
         return profile in self.xpclaimers.all()
 
-    def allXPClaimed(self)->bool:
+    def allXPClaimed(self) -> bool:
         return self.submission.totalMembers() == self.xpclaimers.count
 
     def getCertLink(self):
         return f"{url.getRoot(APPNAME)}{url.compete.certficate(resID=self.getID(),userID='*')}"
-    
+
     def getCertDownloadLink(self):
         return f"{url.getRoot(APPNAME)}{url.compete.certficateDownload(resID=self.getID(),userID='*')}"
 
@@ -575,5 +606,28 @@ class ResultXPClaimer(models.Model):
         unique_together = ("result", "profile")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    result = models.ForeignKey(Result, on_delete=models.PROTECT, related_name='xpclaimer_result')
-    profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='xpclaimer_profile')
+    result = models.ForeignKey(
+        Result, on_delete=models.PROTECT, related_name='xpclaimer_result')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.PROTECT, related_name='xpclaimer_profile')
+
+
+def resultCertificatePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/certificates/{instance.result.getID()}/{instance.profile.getUserID()}.{fileparts[len(fileparts)-1]}"
+
+
+class ParticipantCertificate(models.Model):
+    class Meta:
+        unique_together = ("result", "profile")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    result = models.ForeignKey(
+        Result, on_delete=models.PROTECT, related_name='participant_certificate_result')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.PROTECT, related_name='participant_certificate_profile')
+    certificate = models.ImageField(
+        default='', upload_to=resultCertificatePath)
+
+    def getCertificate(self):
+        return f"{MEDIA_URL}{str(self.certificate)}"

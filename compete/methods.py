@@ -1,18 +1,20 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from django.http.response import HttpResponse
-from main.methods import renderView, renderString
+from main.methods import errorLog, renderView, renderString
 from main.strings import Compete, URL
 from people.models import User
-from .models import Competition, SubmissionParticipant, Result, Submission
+from .models import Competition, ParticipantCertificate, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderView(request, file, dict(**data, URLS=URL.compete.getURLSForClient()), fromApp=APPNAME)
 
+
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderString(request, file, dict(**data, URLS=URL.compete.getURLSForClient()), fromApp=APPNAME)
+
 
 def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
     try:
@@ -41,7 +43,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
             data[f'{Compete.HISTORY}'] = history
         else:
             return False
-        return rendererstr(request,f'index/{section}', data)
+        return rendererstr(request, f'index/{section}', data)
     except:
         return False
 
@@ -107,6 +109,33 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
         if sec == section:
             data = getCompetitionSectionData(sec, competition, request.user)
             break
-    return rendererstr(request,f'profile/{section}', data)
+    return rendererstr(request, f'profile/{section}', data)
+
+
+def generateResultCertificates() -> bool:
+    compID = str(input('COMP ID : '))
+    try:
+        competition = Competition.objects.get(id=compID)
+        if not (competition.resultDeclared and competition.allResultsDeclared()):
+            print("Results not declared")
+            return False
+        if competition.certificatesGenerated():
+            print("Certs already generated")
+            return False
+        participantCerts = []
+        for result in competition.getResults():
+            for member in result.submission.getMembers():
+                participantCerts.append(
+                    ParticipantCertificate(
+                        result=result,
+                        profile=member,
+                        certificate=''
+                    )
+                )
+        certs = ParticipantCertificate.objects.bulk_create(participantCerts,ignore_conflicts=True,batch_size=100)
+        return len(certs) == competition.totalParticipants()
+    except Exception as e:
+        errorLog(e)
+        return False
 
 from .receivers import *

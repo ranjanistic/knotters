@@ -1,4 +1,5 @@
 from uuid import UUID
+import os
 from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
@@ -11,9 +12,10 @@ from main.decorators import require_JSON_body
 from main.methods import errorLog, renderData, respondJson
 from main.strings import Action, Code, Message
 from people.decorators import profile_active_required
-from people.models import ProfileTopic, User, Profile
+from main.settings import MEDIA_ROOT
+from people.models import ProfileTopic, Profile
 from moderation.decorators import moderator_only
-from .models import Competition, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
+from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer
 from .mailers import participantInviteAlert, resultsDeclaredAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert
@@ -391,11 +393,37 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
+            self = True
+            member = request.user.profile
+        else:
+            self = False
+            member = Profile.objects.get(user__id=userID)
+        result = Result.objects.get(id=resID,submission__members=member)
+        
+        partcert = ParticipantCertificate.objects.filter(result__id=resID,profile=member).first()
+        print(partcert)
+        certpath = False if not partcert else partcert.getCertificate()
+        return renderer(request,'certificate',dict(result=result,member=member,certpath=certpath,self=self))
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
+
+@require_GET
+def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
+    try:
+        if request.user.is_authenticated and request.user.getID() == userID:
             member = request.user.profile
         else:
             member = Profile.objects.get(user__id=userID)
-        result = Result.objects.get(id=resID,submission__members=member)
-        return renderer(request,'certificate',dict(result=result,member=member))
+        partcert = ParticipantCertificate.objects.get(result__id=resID,profile=member)
+        
+        file_path = os.path.join(MEDIA_ROOT, str(partcert.certificate))
+        if os.path.exists(file_path):
+            with open(file_path, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type="image/jpg")
+                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+                return response
+        raise Exception()
     except Exception as e:
         errorLog(e)
         raise Http404()

@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django import forms
 from people.models import Profile
-from .models import Competition, CompetitionJudge, Result, Submission, SubmissionParticipant, SubmissionTopicPoint
+from .models import *
 
 
 class CompetitionAdminForm(forms.ModelForm):
@@ -184,3 +184,14 @@ class ResultAdminForm(forms.ModelForm):
                 u"Result for this submission is already present for this competition.")
 
         return cleaned_data
+
+
+
+class ParticipantCertificateAdminForm(forms.ModelForm):
+    
+    result = forms.ModelChoiceField(queryset=Result.objects.all())
+    profile = forms.ModelChoiceField(queryset=Profile.objects.filter())
+
+    class Meta:
+        model = ParticipantCertificate
+        fields = "__all__"
