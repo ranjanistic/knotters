@@ -141,7 +141,7 @@
                     <strong class="dead-text">Total 5 tags allowed</strong>
                     <form action="{{URLS.TAGSUPDATE|params:project.getID}}" method="POST">
                         {% csrf_token %}
-                        <input class="wide" placeholder="Search topics" id="tag-search-input" />
+                        <input class="wide" placeholder="Search tags" id="tag-search-input" />
                         <div class="w3-row w3-padding" id="topics-viewer">
                             {% for tag in project.tags.all %}
                             <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
@@ -166,7 +166,7 @@
             <strong>Created by</strong><a target="_blank" href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}} </button></a><br/><br/>
             <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
             <strong>Moderated by</strong><a target="_blank" href="{{project.getModerator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.getModerator.getDP}}"  width="20"/>&nbsp;{{project.getModerator.getName}} </button></a><br/><br/>
-            <strong>License: <a href="{{project.license.url}}" target="_blank"> {{project.license.name}}</a></strong><br/>
+            <strong>License: <a href="{{URLS.PROJECTS}}{{project.license.getLink}}" target="_blank"> {{project.license.name}}</a></strong><br/>
             </div>
         </div>
         

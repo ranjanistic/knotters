@@ -37,7 +37,7 @@ ISDEVELOPMENT = ENV == Environment.DEVELOPMENT
 
 ISTESTING = ENV == Environment.TESTING
 
-VERSION = 'v--161'
+VERSION = 'v--16'
 
 if ISPRODUCTION:
     from .__version__ import VERSION as V
