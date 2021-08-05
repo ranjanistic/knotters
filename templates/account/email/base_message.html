@@ -165,7 +165,7 @@
 {% endblock %}
 
 {% block body %}
-{% with site_name='Knotters' site_domain='http://127.0.0.1:8000' %}
+{% with site_name=current_site.name site_domain=current_site.domain %}
 <body class="clean-body" style="margin: 0;padding: 0;-webkit-text-size-adjust: 100%;background-color: #ffffff;color: #2e2e2e">
   <!--[if IE]><div class="ie-container"><![endif]-->
   <!--[if mso]><div class="mso-container"><![endif]-->
