@@ -92,7 +92,7 @@
                                                         font-size: 20px;
                                                         line-height: 28px;
                                                     "
-                                                    >We have received a password reset request for your {{site_name}} account. You can reset your password using the button below.</span>
+                                                    >{{headertext}}</span>
                                             </p>
                                         </div>
                                     </td>
@@ -185,8 +185,9 @@
                                             align="center"
                                         >
                                             <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-spacing: 0; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;font-family:'Questrial',sans-serif;"><tr><td class="v-text-align" style="font-family:'Questrial',sans-serif;" align="center"><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{action.url}}" style="height:40px; v-text-anchor:middle; width:144px;" arcsize="60%" stroke="f" fillcolor="#1657ce"><w:anchorlock/><center style="color:#FFFFFF;font-family:'Questrial',sans-serif;"><![endif]-->
+                                            {% for action in actions %}
                                             <a
-                                                href="{{password_reset_url}}"
+                                                href="{{action.url}}"
                                                 target="_blank"
                                                 style="
                                                     box-sizing: border-box;
@@ -232,10 +233,11 @@
                                                             font-size: 14px;
                                                             line-height: 16.8px;
                                                         "
-                                                        >Reset password</span
+                                                        >{{action.text}}</span
                                                     ></span
                                                 >
                                             </a>
+                                            {% endfor %}
                                             <!--[if mso]></center></v:roundrect></td></tr></table><![endif]-->
                                         </div>
                                     </td>
@@ -276,7 +278,7 @@
                                                 font-size: 18px;
                                             "
                                         >
-                                            or use the following link
+                                            or use the following link{% if actions.1 %}s{% endif %}
                                         </h1>
                                     </td>
                                 </tr>
@@ -311,6 +313,7 @@
                                                 word-wrap: break-word;
                                             "
                                         >
+                                            {% for action in actions %}
                                             <p
                                                 style="
                                                     font-size: 14px;
@@ -318,11 +321,13 @@
                                                 "
                                             >
                                                 <a
-                                                    href="{{password_reset_url}}"
+                                                    href="{{action.url}}"
                                                     target="_blank"
                                                     rel="noopener"
-                                                    >{{password_reset_url}}</a>
+                                                    >{{action.url}}</a
+                                                >
                                             </p>
+                                            {% endfor %}
                                         </div>
                                     </td>
                                 </tr>
@@ -430,7 +435,7 @@
                                                         font-size: 20px;
                                                         line-height: 28px;
                                                     "
-                                                    >If you didn't request this change, then you can safely ignore this email. Someone else must be trying to reset your password.</span>
+                                                    >{{footertext}}</span>
                                             </p>
                                         </div>
                                     </td>
@@ -479,7 +484,7 @@
                                                         font-size: 20px;
                                                         line-height: 28px;
                                                         color: #95a5a6;
-                                                    ">Do not share this email or the provided link with anyone to avoid danger to your {{site_name}} account, even if they claim to be someone from {{site_name}}.</span>
+                                                    ">{{conclusion}}</span>
                                             </p>
                                         </div>
                                     </td>

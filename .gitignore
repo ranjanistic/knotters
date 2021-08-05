@@ -27,3 +27,4 @@ run/
 _logs_/
 .coverage
 htmlcov/
+.history/
