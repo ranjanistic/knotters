@@ -60,6 +60,8 @@ const visibleElement = (id, show = true) => {
     getElement(id).style.display = show ? "block" : "none";
 };
 
+const visible = (element,show=true) => visibleElement(element.id, show);
+
 const miniWindow = (url, name = APPNAME) =>
     window.open(url, name, "height=650,width=450");
 
@@ -591,3 +593,86 @@ const secsToTime = (secs) => {
         secrem >= 10 ? secrem : `0${secrem}`
     }`;
 };
+
+const reportFeedback = async ({
+    isReport = true,
+    email = '',
+    category = '',
+    summary = '',
+    detail = ''
+}) => {
+    const data = await postRequest(URLS.REPORT_FEEDBACK,{
+        isReport,
+        email,
+        category,
+        summary,
+        detail
+    })
+    if(!data) return false
+    if(data.code===code.OK) {
+        success(`${isReport?'Report':'Feedback'} received and will be looked into.`)
+        return true
+    }
+    error(data.error)
+    return false
+}
+
+const reportFeedbackView = () => {
+    let isReport = false;
+    const dial = alertify;
+    dial.confirm().set({onshow: ()=>
+        initializeTabsView({
+            tabsClass: 'report-feed-tab',
+            onEachTab: (tab)=>{
+                isReport = tab.id === 'report'
+                getElements('report-feed-view').forEach((view)=>{
+                    visible(view,`${tab.id}-view`===view.id)
+                })
+            }
+        })
+    })
+    dial.confirm(
+        `Report or Feedback`,
+        `
+        <div class="w3-row w3-center">
+            <button class="report-feed-tab" id="report">${Icon('flag')} Report</button>
+            <button class="report-feed-tab" id="feedback">${Icon('feedback')} Feedback</button>
+        </div>
+        <br/>
+        <div class="w3-row w3-center">
+            <h6>Your identity will remain private.</h6>
+            <input class="wide" type="email" autocomplete="email" id="report-feed-email" placeholder="Your email address (optional)" /><br/><br/>
+            <div class="w3-row w3-center report-feed-view" id="report-view">
+                <textarea class="wide" rows="3" id="report-feed-summary" placeholder="Short description" ></textarea><br/><br/>
+                <textarea class="wide" rows="5" id="report-feed-detail" placeholder="Explain everything here in detail" ></textarea>
+            </div>
+            <div class="w3-row report-feed-view" id="feedback-view">
+                <textarea class="wide" rows="6" id="report-feed-feed-detail" placeholder="Please describe your feedback" ></textarea>
+            </div>
+        </div>
+        `,
+        async ()=>{
+            let data = {}
+            if(isReport){
+                const summary = String(getElement('report-feed-summary').value).trim()
+                if(!summary) return error('Short description required')
+                data['summary'] = summary
+                data['detail'] = String(getElement('report-feed-detail').value).trim()
+            } else {
+                const detail = String(getElement('report-feed-feed-detail').value).trim()
+                if(!detail) return error('Feedback description required')
+                data['detail'] = detail
+            }
+            loader()
+            data['isReport'] = isReport
+            data['email'] = String(getElement("report-feed-email").value).trim()
+            message(`Submitting ${isReport?'report':'feedback'}...`)
+            await reportFeedback(data)
+            loader(false)
+        },
+        ()=>{}
+    ).set('labels', {
+        ok: 'Submit',
+        cancel: 'Discard'
+    }).set('closable',false).set('transition','flipx')
+}

@@ -22,6 +22,7 @@ const newUpdateDialog = (newServiceWorker) => {
             }
         )
         .set("labels", { ok: `Yes, update now`, cancel: "Not now" })
+        .set('transition','flipx')
         .set("closable", false)
         .set("modal", true);
 };

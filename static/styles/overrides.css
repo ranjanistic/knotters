@@ -1,9 +1,17 @@
 .ajs-header{
     border-radius: 12px 12px 0 0 !important;
+    border-bottom: 0 !important;
 }
 .ajs-footer{
     border-radius: 0 0 12px 12px !important;
+    border-top: 0 !important;
 }
+
+.ajs-maximized .ajs-header,
+.ajs-maximized .ajs-footer {
+    border-radius: 0 !important
+}
+
 .ajs-header,
 .ajs-footer {
     background-color: var(--tertiary) !important;
@@ -17,6 +25,7 @@
     border-radius: 12px !important;
     color: var(--primary-text);
 }
+
 
 .ajs-content{
     color: var(--primary-text);
