@@ -45,7 +45,7 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
         return True
 
 
-def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = [], conclusion: str = '') -> str and str:
+def getEmailHtmlBody(greeting: str, header: str, footer: str, username:str='',actions: list = [], conclusion: str = '',action=False) -> str and str:
     """
     Creates html and body content using parameters via the application's standard email template.
 
@@ -54,11 +54,13 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
     :footer: Ending text
     :actions: Actions, list of { text, url } to be included in content
     :conclusion: Final short summary text
+    :action: Final short summary text
 
     :returns: html, body
     """
     data = {
         'greeting': greeting,
+        'username': username,
         'headertext': header,
         'footertext': footer,
         'current_site': {
@@ -68,35 +70,36 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
     }
     body = f"{greeting}\n\n{header}\n\n"
 
-    updatedActions = []
+    if action:
+        updatedActions = []
 
-    for act in actions:
-        acttext = act['text']
-        acturl = act['url']
-        if str(acturl).__contains__(SITE):
-            updatedActions.append(act)
-        elif str(acturl).startswith('http'):
-            updatedActions.append({
-                'text': acttext,
-                'url': f"{SITE}/{URL.REDIRECTOR}?n={acturl}"
-            })
-        else:
-            updatedActions.append({
-                'text': acttext,
-                'url': f"{SITE}{'' if str(acturl).startswith('/') else '/'}{acturl}"
-            })
+        for act in actions:
+            acttext = act['text']
+            acturl = act['url']
+            if str(acturl).__contains__(SITE):
+                updatedActions.append(act)
+            elif str(acturl).startswith('http'):
+                updatedActions.append({
+                    'text': acttext,
+                    'url': f"{SITE}/{URL.REDIRECTOR}?n={acturl}"
+                })
+            else:
+                updatedActions.append({
+                    'text': acttext,
+                    'url': f"{SITE}{'' if str(acturl).startswith('/') else '/'}{acturl}"
+                })
 
-    if len(updatedActions):
-        data['actions'] = updatedActions
-        for action in updatedActions:
-            body = f"{body}{action['url']}\n"
+        if len(updatedActions):
+            data['actions'] = updatedActions
+            for action in updatedActions:
+                body = f"{body}{action['url']}\n"
 
     if conclusion:
         data['conclusion'] = conclusion
         body = f"{body}\n{footer}\n{conclusion}"
 
     try:
-        html = render_to_string('account/email/email.html', data)
+        html = render_to_string(f"account/email/{'action' if action else 'alert'}.html", data)
         return html, body
     except Exception as e:
         errorLog(e)
@@ -104,9 +107,8 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, actions: list = []
 
 
 def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str, greeting: str = '') -> bool:
-    greeting = greeting if greeting else f"Hello {username}"
     html, body = getEmailHtmlBody(
-        greeting=greeting, header=header, footer=footer, conclusion=conclusion)
+        greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
@@ -121,9 +123,8 @@ def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion:
 
     :actions: List of { text:str, url: str }
     """
-    greeting = greeting if greeting else f"Hello {username}"
     html, body = getEmailHtmlBody(
-        greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions)
+        greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
@@ -133,7 +134,7 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
     :actions: List of { text:str, url: str }
     """
     html, body = getEmailHtmlBody(
-        greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions)
+        greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
     return sendCCEmail(to=to, subject=subject, html=html, body=body)
 
 

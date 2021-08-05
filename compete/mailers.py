@@ -46,7 +46,8 @@ def participantJoinedAlert(profile:Profile,submission:Submission) -> bool:
     return sendCCActionEmail(
         to=finalEmails,
         subject=f"Teammate Joined Submission",
-        greeting="Hello participant",
+        username='participant!',
+
         header=f"This is to inform you that '{profile.getName()}' has joined your team in '{submission.competition.title}' competition.",
         actions=[{'text': "View competition",
                 'url': f'{submission.competition.getLink()}'}],
@@ -99,7 +100,6 @@ def resultsDeclaredParticipantAlert(competition: Competition):
         done.append(sendCCActionEmail(
             to=sub.getMembersEmail(),
             subject=f"Results Declared: {competition.title}",
-            greeting="Greetings participant!",
             header=f"This is to inform you that the results of '{competition.title}' competition have been decalred. You may check your submission rankings now.",
             actions=[{
                 'text': 'View results',
@@ -120,7 +120,8 @@ def resultsDeclaredJudgeAlert(competition: Competition):
         done.append(sendActionEmail(
             to=judge.getEmail(),
             subject=f"Results Declared: {competition.title}",
-            greeting=f"Respected Judge {judge.getFName()}",
+            greeting=f"Respected judge",
+            username=judge.getName(),
             header=f"This is to inform you that the results of '{competition.title}' competition have been decalred. This marks the successfull end of this competition. The following link button will lead you to competition results page.",
             actions=[{
                 'text': 'View results',
