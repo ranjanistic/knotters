@@ -335,4 +335,13 @@ class ProfileTopic(models.Model):
         self.save()
         return self.points
 
+class Report(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reporter = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='reporter_profile',null=True,blank=True)
+    isReport = models.BooleanField(default=True)
+    anonymous = models.BooleanField(default=True)
+    summary = models.CharField(max_length=1000)
+    detail = models.CharField(max_length=10000)
+
+
 from .methods import isPictureDeletable

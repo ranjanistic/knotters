@@ -1,17 +1,18 @@
 import json
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
-from django.http.response import Http404, HttpResponse
-from django.views.decorators.http import require_GET
+from django.http.response import Http404, HttpResponse, JsonResponse
+from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import Project
+from people.models import Profile, Report
 from .env import ADMINPATH
-from .methods import renderData, renderView
-from .decorators import dev_only
+from .methods import renderData, renderView, respondJson
+from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .settings import STATIC_URL, MEDIA_URL
-from .strings import Code, URL, setPathParams
+from .strings import Code, Message, URL, setPathParams
 
 
 @require_GET
@@ -64,6 +65,23 @@ def landing(request: WSGIRequest) -> HttpResponse:
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, "landing", fromApp=subapp)
 
+@require_JSON_body
+def reportFeedback(request:WSGIRequest) -> JsonResponse:
+    email = request.POST.get('email',None)
+    anonymous = not (email and str(email).strip())
+    email = str(email).strip()
+    reporter = None
+    if not anonymous:
+        if email == request.user.email:
+            reporter = request.user.profile
+        else:
+            reporter = Profile.objects.filter(user__email__iexact=email).first()
+            if not reporter: anonymous = True
+    isReport = request.POST.get('isReport',True)
+    summary = request.POST.get('summary','')
+    detail = request.POST.get('detail','')
+    report = Report.objects.create(isReport=isReport,reporter=reporter,summary=summary,detail=detail,anonymous=anonymous)
+    return respondJson(Code.OK if report else Code.NO, error=Message.ERROR_OCCURRED if not report else '')
 
 class Robots(TemplateView):
     content_type = 'text/plain'

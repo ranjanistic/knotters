@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .models import Profile, ProfileTopic, ProfileReport, ProfileSetting, Topic, User
+from .models import *
 
 
 class UserCreationForm(forms.ModelForm):
@@ -92,3 +92,4 @@ class RelationAdmin(admin.ModelAdmin):
 admin.site.register(ProfileSetting)
 admin.site.register(Topic)
 admin.site.register(ProfileReport)
+admin.site.register(Report)

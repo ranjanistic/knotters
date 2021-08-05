@@ -24,6 +24,7 @@ urlpatterns = [
     path(URL.REDIRECTOR, redirector),
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
+    path(URL.REPORT_FEEDBACK, reportFeedback),
     path('email/<str:template>', mailtemplate)
 ]
 

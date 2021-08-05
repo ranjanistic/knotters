@@ -153,6 +153,8 @@ class URL():
     LANDING = 'landing'
     APPLANDING = '<str:subapp>/landing'
 
+    REPORT_FEEDBACK = 'report-feedback'
+
     def getRoot(self, fromApp: str = '') -> str:
         """
         Returns root path of given sub application name.
