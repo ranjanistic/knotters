@@ -96,6 +96,17 @@ class Moderation(models.Model):
         self.save()
         return True
 
+    def revertApproval(self) -> bool:
+        self.status = Code.MODERATION
+        self.respondOn = None
+        if self.type == PROJECTS:
+            self.project.status = Code.MODERATION
+            self.project.approvedOn = None
+            self.project.save()
+        self.resolved = False
+        self.save()
+        return True
+
     def reject(self) -> bool:
         self.status = Code.REJECTED
         self.respondOn = timezone.now()

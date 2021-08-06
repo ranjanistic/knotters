@@ -100,7 +100,9 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             done = mod.approve()
             if done and mod.type == PROJECTS:
                 done = setupApprovedProject(mod.project, mod.moderator)
-            return respondJson(Code.OK if done else Code.NO)
+                if not done:
+                    mod.revertApproval()
+            return respondJson(Code.OK if done else Code.NO, error=Message.ERROR_OCCURRED if not done else str())
         else:
             return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
     except Exception as e:

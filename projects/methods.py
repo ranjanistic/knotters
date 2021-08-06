@@ -2,9 +2,9 @@ from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from people.models import Profile
-from github import Organization, NamedUser, Repository
+from github import NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import Code, URL
+from main.strings import URL
 from main.methods import errorLog, renderString, renderView
 from main.env import ISPRODUCTION, SITE
 from .models import Category, License, Project, Tag
@@ -123,12 +123,13 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         if not project.isApproved():
             return False
 
-        sendProjectApprovedNotification(project)
 
         created = setupOrgGihtubRepository(project, moderator)
 
         if not created and ISPRODUCTION:
             return False
+
+        sendProjectApprovedNotification(project)
 
         # created = setupProjectDiscordChannel(
         #     project.reponame, project.creator.profile, moderator)
@@ -173,7 +174,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                 private=False,
                 has_downloads=True,
                 allow_squash_merge=False,
-                allow_merge_commit=False,
+                allow_merge_commit=True,
                 allow_rebase_merge=False,
                 delete_branch_on_merge=False
             )
@@ -194,7 +195,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
 
         ghrepoteam = GithubKnotters.create_team(
             name=f"team-{project.reponame}",
-            repo_names=list(ghOrgRepo),
+            repo_names=[ghOrgRepo],
             permission="push",
             description=f"{project.name}'s team",
             privacy='closed'
@@ -207,7 +208,10 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             )
 
         if GithubKnotters.has_in_members(ghUser):
-            ghrepoteam.add_membership(member=ghUser)
+            ghrepoteam.add_membership(
+                member=ghUser,
+                role="member"
+            )
 
         ghOrgRepo.add_to_collaborators(
             collaborator=moderator.githubID, permission="maintain")

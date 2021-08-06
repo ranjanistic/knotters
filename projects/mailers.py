@@ -35,8 +35,8 @@ def sendProjectApprovedNotification(project: Project):
             'text': 'View moderation',
             'url': project.getModLink()
         }],
-        footer=f"Your project's profile page & other related setup will be available in a few moments. Cheers! The community at Knotters will be working together with you on {project.name}.",
-        conclusion="This email was generated we have approved a project submission received from your Knotters account. If this is unfamiliar, then please report to us."
+        footer=f"Your project's profile page & other related setup will be available in a few moments. Cheers! The moderator & community at Knotters will be working together with you on {project.name}.",
+        conclusion="This email was generated because a project submission received from your Knotters account has been approved. If this is unfamiliar, then please report to us."
     )
 
 
