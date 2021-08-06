@@ -169,6 +169,8 @@ class URL():
             return f"/{self.PEOPLE}"
         elif fromApp == MODERATION:
             return f"/{self.MODERATION}"
+        elif fromApp == 'docs':
+            return f"/{self.DOCS}"
         else:
             return self.ROOT
 

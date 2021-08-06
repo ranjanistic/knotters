@@ -1,5 +1,5 @@
 
-from django.http.response import HttpResponseForbidden, HttpResponseNotAllowed
+from django.http.response import Http404, HttpResponseForbidden, HttpResponseNotAllowed
 from functools import wraps
 import json
 
@@ -38,6 +38,6 @@ def dev_only(function):
         if not ISPRODUCTION:
             return function(request, *args, **kwargs)
         else:
-            return HttpResponseForbidden()
+            raise Http404()
 
     return wrap

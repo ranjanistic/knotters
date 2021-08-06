@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Category, CategoryTag, License, Project, Tag, ProjectTag, ProjectTopic
-
+from .models import *
+from .forms import *
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
@@ -78,3 +78,9 @@ class ProjectTopicAdmin(admin.ModelAdmin):
         ordering = ("")
 
 admin.site.register(License)
+
+@admin.register(LegalDoc)
+class LegalDocAdmin(admin.ModelAdmin):
+    list_display = ["name", "pseudonym", "icon", 'lastUpdate', 'effectiveDate']
+
+    form = LegalDocForm

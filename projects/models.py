@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from main.env import BOTMAIL, PUBNAME
+from main.env import BOTMAIL, MAILUSER, PUBNAME
 from main.settings import MEDIA_URL
 from main.methods import maxLengthInList
 from main.strings import Code, url, PEOPLE, project
@@ -203,3 +203,27 @@ class ProjectTopic(models.Model):
         Project, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
                               null=True, blank=True, related_name='project_topic')
+
+
+class LegalDoc(models.Model):
+    class Meta:
+        unique_together = ('name', 'pseudonym')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=1000)
+    pseudonym = models.CharField(max_length=1000, unique=True)
+    about = models.CharField(max_length=100, null=True,blank=True)
+    content = models.CharField(max_length=100000)
+    icon = models.CharField(max_length=20,default='policy')
+    contactmail = models.CharField(max_length=30,default=MAILUSER)
+    lastUpdate = models.DateTimeField(auto_now=False, default=timezone.now,editable=False)
+    effectiveDate = models.DateTimeField(auto_now=False, default=timezone.now)
+
+
+    def save(self,*args, **kwargs):
+        self.lastUpdate = timezone.now()
+        super(LegalDoc, self).save(*args, **kwargs)
+        
+
+    def getLink(self):
+        return f"{url.getRoot('docs')}{self.pseudonym}"

@@ -1,14 +1,15 @@
 import json
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
+from django.db.models import Q
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
-from projects.models import Project
+from projects.models import LegalDoc, Project
 from people.models import Profile, Report
 from .env import ADMINPATH
-from .methods import renderData, renderView, respondJson
+from .methods import errorLog, renderData, renderView, respondJson
 from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .settings import STATIC_URL, MEDIA_URL
@@ -45,15 +46,22 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 @require_GET
 def docIndex(request: WSGIRequest) -> HttpResponse:
-    return renderView(request, "index", fromApp='docs')
+    docs = LegalDoc.objects.all()
+    return renderView(request, "index", fromApp='docs', data=dict(docs=docs))
 
 
 @require_GET
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
-        return renderView(request, type, fromApp='docs')
-    except:
-        raise Http404()
+        doc = LegalDoc.objects.get(pseudonym=type)
+        return renderView(request, 'doc', fromApp='docs', data=dict(doc=doc))
+    except Exception as e:
+        errorLog(e)
+        try:
+            return renderView(request, type, fromApp='docs')
+        except Exception as e:
+            errorLog(e)
+            raise Http404()
 
 
 @require_GET
