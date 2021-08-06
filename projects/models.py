@@ -54,6 +54,7 @@ class CategoryTag(models.Model):
 class License(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
+    keyword = models.CharField(max_length=80, help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
     description = models.CharField(max_length=1000)
     url = models.URLField(max_length=500, null=True, blank=True)
     content = models.CharField(max_length=300000, null=True, blank=True)

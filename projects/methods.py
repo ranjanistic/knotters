@@ -6,7 +6,7 @@ from github import Organization, NamedUser, Repository
 from main.bots import Github, GithubKnotters
 from main.strings import Code, URL
 from main.methods import errorLog, renderString, renderView
-from main.env import ISPRODUCTION
+from main.env import ISPRODUCTION, SITE
 from .models import Category, License, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
@@ -120,13 +120,12 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     Creates discord chat channel.
     """
     try:
-        if project.status != Code.APPROVED:
+        if not project.isApproved():
             return False
 
         sendProjectApprovedNotification(project)
 
-        created = setupOrgGihtubRepository(
-            project.reponame, project.creator, moderator, project.description)
+        created = setupOrgGihtubRepository(project, moderator)
 
         if not created and ISPRODUCTION:
             return False
@@ -138,12 +137,11 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
 
         return True
     except Exception as e:
-        print(e)
         errorLog(e)
         return False
 
 
-def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile, description: str) -> bool:
+def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
 
@@ -152,23 +150,32 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
     :reponame: The name of repository to be created
     """
     try:
-        if not creator.githubID or not moderator.githubID:
+        if not project.isApproved():
+            return False
+        if not project.creator.githubID or not moderator.githubID:
             return False
 
-        ghUser = Github.get_user(creator.githubID)
+        ghUser = Github.get_user(project.creator.githubID)
+        ghMod = Github.get_user(moderator.githubID)
 
-        ghOrgRepo = getGhOrgRepo(GithubKnotters, reponame)
+        ghOrgRepo = getGhOrgRepo(project.reponame)
 
         if not ghOrgRepo:
             ghOrgRepo = GithubKnotters.create_repo(
-                name=reponame,
-                allow_rebase_merge=False,
+                name=project.reponame,
+                homepage=f"{SITE}{project.getLink()}",
+                description=project.description,
+                license_template=project.license.keyword,
                 auto_init=True,
-                description=description,
                 has_issues=True,
                 has_projects=True,
                 has_wiki=True,
                 private=False,
+                has_downloads=True,
+                allow_squash_merge=False,
+                allow_merge_commit=False,
+                allow_rebase_merge=False,
+                delete_branch_on_merge=False
             )
 
         ghBranch = ghOrgRepo.get_branch("main")
@@ -181,14 +188,31 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
             user_push_restrictions=[moderator.githubID],
         )
 
-        invited = inviteMemberToGithubOrg(GithubKnotters, ghUser)
+        invited = inviteMemberToGithubOrg(ghUser)
         if not invited:
             return False
+
+        ghrepoteam = GithubKnotters.create_team(
+            name=f"team-{project.reponame}",
+            repo_names=list(ghOrgRepo),
+            permission="push",
+            description=f"{project.name}'s team",
+            privacy='closed'
+        )
+
+        if GithubKnotters.has_in_members(ghMod):
+            ghrepoteam.add_membership(
+                member=ghMod,
+                role="maintainer"
+            )
+
+        if GithubKnotters.has_in_members(ghUser):
+            ghrepoteam.add_membership(member=ghUser)
 
         ghOrgRepo.add_to_collaborators(
             collaborator=moderator.githubID, permission="maintain")
         ghOrgRepo.add_to_collaborators(
-            collaborator=creator.githubID, permission="push")
+            collaborator=project.creator.githubID, permission="push")
 
         return True
     except Exception as e:
@@ -196,18 +220,18 @@ def setupOrgGihtubRepository(reponame: str, creator: Profile, moderator: Profile
         return False
 
 
-def getGhOrgRepo(ghOrg: Organization, reponame: str) -> Repository:
+def getGhOrgRepo(reponame: str) -> Repository:
     try:
-        return ghOrg.get_repo(name=reponame)
+        return GithubKnotters.get_repo(name=reponame)
     except:
         return None
 
 
-def inviteMemberToGithubOrg(ghOrg: Organization, ghUser: NamedUser) -> bool:
+def inviteMemberToGithubOrg(ghUser: NamedUser) -> bool:
     try:
-        already = ghOrg.has_in_members(ghUser)
+        already = GithubKnotters.has_in_members(ghUser)
         if not already:
-            ghOrg.invite_user(user=ghUser, role="direct_member")
+            GithubKnotters.invite_user(user=ghUser, role="direct_member")
         return True
     except Exception as e:
         errorLog(e)
