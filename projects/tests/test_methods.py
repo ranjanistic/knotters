@@ -1,4 +1,5 @@
 from people.tests.utils import getTestUsersInst
+from main.strings import Code
 from people.models import User
 from django.test import TestCase, tag
 from projects.methods import *
