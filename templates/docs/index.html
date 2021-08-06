@@ -1,13 +1,14 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load custom_tags %}
 
 
-{% block og_url %}/docs{% endblock %}
+{% block og_url %}{{ROOT}}{% endblock %}
 {% block og_title %}Docs{% endblock %}
 {% block og_description %}Refer these in case of any legal or moral doubts.{% endblock %}
 {% block og_site_name %}Docs{% endblock %}
 
-{% block tw_url %}/docs{% endblock %}
+{% block tw_url %}{{ROOT}}{% endblock %}
 {% block tw_title %}Docs{% endblock %}
 {% block tw_description %}Refer these in case of any legal or moral doubts.{% endblock %}
 {% block tw_site_name %}Docs{% endblock %}
@@ -27,56 +28,42 @@
         <h3>Refer these in case of any legal or moral doubts.</h3>
     </center><br/>
     <div class="w3-row">
+        <center><h2>Guidelines</h2></center><br/>
         <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/communityguidelines">
+            <a href="{{ROOT}}communityguidelines">
                 <div class="w3-row pallete active w3-animate-bottom">
                     <h1 class="w3-padding text-active">Community Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/moderationguidelines">
+            <a href="{{ROOT}}moderationguidelines">
                 <div class="w3-row pallete accent w3-animate-bottom">
                     <h1 class="w3-padding text-accent">Moderation Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/competitionguidelines">
+            <a href="{{ROOT}}competitionguidelines">
                 <div class="w3-row pallete positive w3-animate-bottom">
                     <h1 class="w3-padding text-positive">Competition Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
+    </div>
+    <br/>
+    <div class="w3-row">
+        <center><h2>Legal Docs</h2></center><br/>
+        {% for doc in docs%}
         <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/disclaimer">
-                <div class="w3-row pallete w3-animate-bottom">
-                    <h1 class="w3-padding">Disclaimer<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+            <a href="{{doc.getLink}}">
+                <div class="w3-row pallete w3-animate-bottom secondary text-secondary">
+                    <h1 class="w3-padding">{{doc.name}}<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
-        <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/termsofservice">
-                <div class="w3-row pallete w3-animate-bottom">
-                    <h1 class="w3-padding">Terms of service<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
-                </div>
-            </a>
-        </div>
-        <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/privacypolicy">
-                <div class="w3-row pallete w3-animate-bottom">
-                    <h1 class="w3-padding">Privacy Policy<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
-                </div>
-            </a>
-        </div>
-        <div class="w3-col w3-half w3-padding-small">
-            <a href="/docs/copyright">
-                <div class="w3-row pallete w3-animate-bottom">
-                    <h1 class="w3-padding">Copyright 2021<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
-                </div>
-            </a>
-        </div>
+        {% endfor %}
     </div>
 </div>
-
+<br/>
 {% endblock %}

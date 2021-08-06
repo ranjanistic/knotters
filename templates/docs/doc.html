@@ -1,0 +1,37 @@
+{% extends 'docs/index.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block og_url %}{{doc.getLink}}{% endblock %}
+{% block og_title %}{{doc.name}}{% endblock %}
+{% block og_description %}{{doc.about|or:doc.name}}{% endblock %}
+{% block og_site_name %}{{doc.name}}{% endblock %}
+
+{% block tw_url %}{{doc.getLink}}{% endblock %}
+{% block tw_title %}{{doc.name}}{% endblock %}
+{% block tw_description %}{{doc.about|or:doc.name}}{% endblock %}
+{% block tw_site_name %}{{doc.name}}{% endblock %}
+
+{% block title %}{{doc.name}}{% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row w3-padding">
+    <center>
+        <div class="material-icons w3-jumbo">{{doc.icon}}</div>
+        <h1>{{doc.name}}</h1>
+        <h3>{{doc.about|or:''}}</h3>
+        <strong>Effective from {{doc.effectiveDate}}</strong>,
+        <strong>Last updated on {{doc.lastUpdate}}</strong>
+    </center>
+    <br/>
+    {{doc.content|safe}}
+    <br/>
+    <h4 id="queries">Questions Or Concerns</h4>
+    <p>
+    If you have any questions or concerns regarding this, please send us a detailed message at <a href="mailto:{{doc.contactmail|or:CONTACTMAIL}}">{{doc.contactmail|or:CONTACTMAIL}}</a>. We will make every effort to resolve your concerns.
+    </p>
+</div>
+<br/>
+{% endblock %}
