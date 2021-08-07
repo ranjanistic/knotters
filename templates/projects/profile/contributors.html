@@ -1,0 +1,7 @@
+<div class="w3-row">
+{% for contributor in contributors %}
+<div class="pallete-slab w3-padding-small">
+    <a href="{{contributor.getLink}}" target="_blank"><button class="primary"><img class="w3-circle primary" src="{{contributor.getDP}}" width="20"/> {{ contributor.getName }}</button></a>
+</div>
+{% endfor %}
+</div>

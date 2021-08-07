@@ -82,7 +82,7 @@ const success = (msg = "Success") => {
 
 const loaderHTML = (loaderID = "loader") =>
     `<div class="loader" id="${loaderID}"></div>`;
-const loadErrorHTML = (retryID) => `<div class="w3-center w3-padding-32">
+const loadErrorHTML = (retryID='retryload') => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
@@ -195,10 +195,10 @@ const initializeTabsView = ({
         }
     };
 
-    const showTabError = (tabindex = 0) => {
+    const showTabError = (tab) => {
         if(tabview){
             setHtmlContent(tabview, loadErrorHTML(`${uniqueID}retry`));
-            getElement(`${uniqueID}retry`).onclick = (_) => tabs[tabindex].click();
+            getElement(`${uniqueID}retry`).onclick = (_) => tab.click();
         }
     };
 
@@ -234,7 +234,7 @@ const initializeTabsView = ({
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response ? showTabContent(tab, response) : showTabError(t);
+            return response ? showTabContent(tab, response) : showTabError(tab);
         };
     });
     if (tabs.length) {
@@ -372,6 +372,7 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
             subLoader(false)
             afterShared();
         }).catch(()=>{
+            subLoader(false)
             error("Failed to share")
         });
     } else {

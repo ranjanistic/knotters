@@ -18,4 +18,6 @@ urlpatterns = [
     path(URL.Projects.TOPICSUPDATE, topicsUpdate),
     path(URL.Projects.TAGSEARCH, tagsSearch),
     path(URL.Projects.TAGSUPDATE, tagsUpdate),
+    path(URL.Projects.LIVEDATA, liveData),
+    path(URL.Projects.GITHUB_EVENTS, githubEventsListener),
 ]

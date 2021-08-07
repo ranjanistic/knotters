@@ -208,6 +208,8 @@ SENDER_API_HEADERS = {
 SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
 SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
 
+GITHUB_API_URL = "https://api.github.com"
+
 if not DEBUG:
     os.environ["HTTPS"] = "on"
     os.environ["wsgi.url_scheme"] = "https"

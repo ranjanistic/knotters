@@ -2,10 +2,11 @@ from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from people.models import Profile
-from github import NamedUser, Repository
+from github import NamedUser, Repository, PaginatedList
 from main.bots import Github, GithubKnotters
-from main.strings import URL
+from main.strings import Code, Event, URL, url
 from main.methods import errorLog, renderString, renderView
+from django.conf import settings
 from main.env import ISPRODUCTION, SITE
 from .models import Category, License, Project, Tag
 from .apps import APPNAME
@@ -17,7 +18,7 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
     return renderView(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return renderString(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
+    return HttpResponse(renderString(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME))
 
 def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, licenseID:UUID, url: str = str()) -> Project or bool:
     """
@@ -162,22 +163,40 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         ghOrgRepo = getGhOrgRepo(project.reponame)
 
         if not ghOrgRepo:
-            ghOrgRepo = GithubKnotters.create_repo(
-                name=project.reponame,
-                homepage=f"{SITE}{project.getLink()}",
-                description=project.description,
-                license_template=project.license.keyword,
-                auto_init=True,
-                has_issues=True,
-                has_projects=True,
-                has_wiki=True,
-                private=False,
-                has_downloads=True,
-                allow_squash_merge=False,
-                allow_merge_commit=True,
-                allow_rebase_merge=False,
-                delete_branch_on_merge=False
-            )
+            if project.license.keyword:
+                ghOrgRepo = GithubKnotters.create_repo(
+                    name=project.reponame,
+                    homepage=f"{SITE}{project.getLink()}",
+                    description=project.description,
+                    license_template=project.license.keyword,
+                    auto_init=True,
+                    has_issues=True,
+                    has_projects=True,
+                    has_wiki=True,
+                    private=False,
+                    has_downloads=True,
+                    allow_squash_merge=False,
+                    allow_merge_commit=True,
+                    allow_rebase_merge=False,
+                    delete_branch_on_merge=False
+                )
+            else:
+                ghOrgRepo = GithubKnotters.create_repo(
+                    name=project.reponame,
+                    homepage=f"{SITE}{project.getLink()}",
+                    description=project.description,
+                    auto_init=True,
+                    has_issues=True,
+                    has_projects=True,
+                    has_wiki=True,
+                    private=False,
+                    has_downloads=True,
+                    allow_squash_merge=False,
+                    allow_merge_commit=True,
+                    allow_rebase_merge=False,
+                    delete_branch_on_merge=False
+                )
+
 
         ghBranch = ghOrgRepo.get_branch("main")
 
@@ -218,16 +237,31 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         ghOrgRepo.add_to_collaborators(
             collaborator=project.creator.githubID, permission="push")
 
+        ghOrgRepo.create_hook(
+            name='web',
+            events='push',
+            config=dict(
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.getID())}",
+                content_type='form',
+                secret=settings.SECRET_KEY,
+                insecure_ssl=0,
+                token=settings.SECRET_KEY,
+                digest='sha256'
+            )
+        )
+
         return True
     except Exception as e:
         errorLog(e)
         return False
 
+print(f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID='project.getID()')}")
 
 def getGhOrgRepo(reponame: str) -> Repository:
     try:
         return GithubKnotters.get_repo(name=reponame)
-    except:
+    except Exception as e:
+        errorLog(e)
         return None
 
 
@@ -247,5 +281,18 @@ def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profi
     Creates discord chat channel for corresponding project.
     """
     return True
+
+
+def getProjectLiveData(project:Project) -> dict:
+    # if ISPRODUCTION:
+    ghOrgRepo = getGhOrgRepo('covidcare')
+    contribs = ghOrgRepo.get_contributors()
+    languages = ghOrgRepo.get_languages()
+    ghIDs = []
+
+    for cont in contribs:
+        ghIDs.append(str(cont.login))
+    contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')    
+    return dict(contributors=contributors,languages=languages)
 
 from .receivers import *

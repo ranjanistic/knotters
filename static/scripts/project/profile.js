@@ -279,4 +279,17 @@ if (selfProject) {
         }
     };
     loadExistingTags();
+
 }
+const loadLiveData = async () => {
+    const contribview = getElement('project-contibutors-view');
+    setHtmlContent(contribview, loaderHTML());
+    const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID))
+    if(!data){
+        setHtmlContent(contribview, loadErrorHTML(`livedataretry`));
+        getElement(`livedataretry`).onclick = (_) => loadLiveData();
+        return
+    }
+    setHtmlContent(contribview, data);
+}
+loadLiveData()

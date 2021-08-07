@@ -184,6 +184,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INDEXTAB}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.SETTINGTAB}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LIVEDATA}"),
             ]),
             ignorelist=json.dumps([
                 f"/{ADMINPATH}*",
@@ -202,7 +203,6 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.DOCTYPE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECTINFO}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
             ]),
             recacheList=json.dumps([

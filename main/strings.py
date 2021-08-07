@@ -21,6 +21,8 @@ class Code():
     ZOMBIEMAIL = 'zombie@knotters.org'
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
 
+    HOOK = 'hook'
+
     class Test():
         MODEL = 'model'
         VIEW = 'view'
@@ -30,6 +32,9 @@ class Code():
 
 code = Code()
 
+class Event():
+    PING = 'ping'
+    PUSH = 'push'
 
 def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """
@@ -48,7 +53,6 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRema
         path = re.sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
     return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
-
 
 
 setPathParams('asf')
@@ -101,6 +105,8 @@ class Message():
     ACCOUNT_DELETED = "Account deleted successfully."
 
     XP_ADDED = "Profile XP increased"
+
+    UNAUTHORIZED = 'Unauthorized access'
 
     def isValid(self, message: str) -> bool:
         """
@@ -174,12 +180,14 @@ class URL():
         else:
             return self.ROOT
 
-    def getMessageQuery(self, alert: str = '', error: str = '', success: str = '', otherQueries:bool=False) -> str:
+    def getMessageQuery(self, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
         if error:
-            error = f"{'&' if otherQueries else '?'}e={error}" if message.isValid(error) else ''
+            error = f"{'&' if otherQueries else '?'}e={error}" if message.isValid(
+                error) else ''
             otherQueries = message.isValid(error)
         if alert:
-            alert = f"{'&' if otherQueries else '?' }a={alert}" if message.isValid(alert) else ''
+            alert = f"{'&' if otherQueries else '?' }a={alert}" if message.isValid(
+                alert) else ''
             otherQueries = message.isValid(alert)
         if success:
             success = f"{'&' if otherQueries else '?'}s={success}" if message.isValid(
@@ -261,10 +269,12 @@ class URL():
             return setPathParams(self.CLAIMXP, compID, subID)
 
         CERTIFICATE = 'certificate/<str:resID>/<str:userID>'
+
         def certficate(self, resID, userID):
             return setPathParams(self.CERTIFICATE, resID, userID)
 
         CERTDOWNLOAD = 'certificate/download/<str:resID>/<str:userID>'
+
         def certficateDownload(self, resID, userID):
             return setPathParams(self.CERTDOWNLOAD, resID, userID)
 
@@ -387,28 +397,30 @@ class URL():
         ALLLICENSES = 'licenses'
 
         LICENSE = 'licenses/<str:id>'
+
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
         LICENSES = 'alllicenses'
 
         ADDLICENSE = 'addlicense'
-        
+
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
         def createValidField(self, field):
             return setPathParams(self.CREATEVALIDATEFIELD, field)
 
         CREATE = 'create'
-        def create(self,step:int=0):
+
+        def create(self, step: int = 0):
             return f"{self.CREATE}?step={step}"
 
         SUBMIT = 'submit'
 
         TRASH = 'trash/<str:projID>'
 
-        def trash(self,projID):
-            return setPathParams(self.TRASH,projID)
+        def trash(self, projID):
+            return setPathParams(self.TRASH, projID)
 
         PROFILE = 'profile/<str:reponame>'
 
@@ -421,23 +433,32 @@ class URL():
             return setPathParams(self.PROFILEEDIT, projectID, section)
 
         TOPICSEARCH = "topics/search/<str:projID>"
-        def topicsSearch(self,projID):
-            return setPathParams(self.TOPICSEARCH,projID)
+
+        def topicsSearch(self, projID):
+            return setPathParams(self.TOPICSEARCH, projID)
         TOPICSUPDATE = "topics/update/<str:projID>"
-        def topicsUpdate(self,projID):
-            return setPathParams(self.TOPICSUPDATE,projID)
+
+        def topicsUpdate(self, projID):
+            return setPathParams(self.TOPICSUPDATE, projID)
 
         TAGSEARCH = "tags/search/<str:projID>"
-        def tagsSearch(self,projID):
-            return setPathParams(self.TAGSEARCH,projID)
+
+        def tagsSearch(self, projID):
+            return setPathParams(self.TAGSEARCH, projID)
         TAGSUPDATE = "tags/update/<str:projID>"
-        def tagsUpdate(self,projID):
-            return setPathParams(self.TAGSUPDATE,projID)
 
-        PROJECTINFO = 'projectinfo/<str:projectID>/<str:info>'
+        def tagsUpdate(self, projID):
+            return setPathParams(self.TAGSUPDATE, projID)
 
-        def projectInfo(self, projectID, info):
-            return setPathParams(self.PROJECTINFO, projectID, info)
+        LIVEDATA = 'livedata/<str:projID>'
+
+        def liveData(self, projectID):
+            return setPathParams(self.LIVEDATA, projectID)
+
+        GITHUB_EVENTS = 'github-events/<str:type>/<str:event>/<str:projID>'
+
+        def githubEvents(self, type, event, projID):
+            return setPathParams(self.GITHUB_EVENTS, type, event, projID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -463,7 +484,9 @@ class URL():
             URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
         return URLS
 
+
 url = URL()
+
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
@@ -472,6 +495,7 @@ class Project():
         [code.APPROVED, code.APPROVED.capitalize()],
         [code.REJECTED, code.REJECTED.capitalize()]
     )
+    PALLETE = 'pallete'
 
 
 project = Project()
