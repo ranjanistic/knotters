@@ -239,13 +239,23 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
 
         ghOrgRepo.create_hook(
             name='web',
-            events='push',
+            events=Event.PUSH,
             config=dict(
                 url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.getID())}",
                 content_type='form',
                 secret=settings.SECRET_KEY,
                 insecure_ssl=0,
-                token=settings.SECRET_KEY,
+                digest='sha256'
+            )
+        )
+        ghOrgRepo.create_hook(
+            name='web',
+            events=Event.PR,
+            config=dict(
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PR,projID=project.getID())}",
+                content_type='form',
+                secret=settings.SECRET_KEY,
+                insecure_ssl=0,
                 digest='sha256'
             )
         )
