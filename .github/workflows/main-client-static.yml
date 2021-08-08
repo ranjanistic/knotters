@@ -10,7 +10,7 @@ on:
       - "!compete/**"
       - "!people/**"
       - "!projects/**"
-      - "!manage.py"
+      - "!**.py"
       - "genversion.py"
       - "static/**"
 

@@ -10,7 +10,7 @@ on:
       - "!compete/**"
       - "!people/**"
       - "!projects/**"
-      - "!*.py"
+      - "!**.py"
       - "templates/**"
 
 jobs:

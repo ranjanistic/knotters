@@ -381,6 +381,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
         ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
+        print(type, ghevent,Event.PING)
         if type != Code.HOOK:
             return HttpResponseForbidden('Invaild event type')
         if ghevent == Event.PING:
@@ -400,9 +401,13 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
                 Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email']))).first()
             if committer:
                 committer.increaseXP(by=2)
-            project.creator.increaseXP(by=1)
-            project.moderator.increaseXP(by=1)
-
+                project.creator.increaseXP(by=1)
+                project.moderator.increaseXP(by=1)
+        elif event == Event.PR:
+            action = request.POST.get('action')
+            if action == 'merged':
+                project.creator.increaseXP(by=5)
+                project.moderator.increaseXP(by=2)
         return HttpResponse(Code.OK)
     except:
         return Http404()

@@ -35,6 +35,7 @@ code = Code()
 class Event():
     PING = 'ping'
     PUSH = 'push'
+    PR = 'pull_request'
 
 def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """

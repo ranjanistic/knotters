@@ -149,6 +149,7 @@ class ServiceWorker(TemplateView):
         assets = getDeepFilePaths(STATIC_URL.strip('/'), appendWhen=appendWhen)
 
         assets.append(f"/{URL.OFFLINE}")
+        assets.append(f"/{URL.MANIFEST}")
 
         try:
             swassets = LocalStorage.objects.get(key=Code.SWASSETS)
