@@ -75,7 +75,7 @@ def github_only(function):
         if sha_name != 'sha256':
             return HttpResponseServerError('Operation not supported', status=501)
 
-        mac = hmac.new(force_bytes(settings.SECRET_KEY), msg=force_bytes(request.body), digestmod=sha256)
+        mac = hmac.new(force_bytes(settings.GH_HOOK_SECRET), msg=force_bytes(request.body), digestmod=sha256)
         if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
             return HttpResponseForbidden('Permission denied')
 

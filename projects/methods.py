@@ -1,3 +1,4 @@
+from .receivers import *
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
@@ -17,10 +18,12 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
     URL.projects.getURLSForClient()
     return renderView(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
 
+
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return HttpResponse(renderString(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME))
 
-def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, licenseID:UUID, url: str = str()) -> Project or bool:
+
+def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, licenseID: UUID, url: str = str()) -> Project or bool:
     """
     Creates project on knotters under moderation status.
 
@@ -45,7 +48,8 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         if tags:
             count = 0
             for tag in tags:
-                if count == 5: break
+                if count == 5:
+                    break
                 tagobj = addTagToDatabase(tag)
                 if tagobj:
                     project.tags.add(tagobj)
@@ -73,7 +77,8 @@ def addCategoryToDatabase(category: str) -> Category:
 
 
 def addTagToDatabase(tag: str) -> Tag:
-    tag = str(tag).strip('#').strip().replace('\n', str()).replace(" ", "_").strip()
+    tag = str(tag).strip('#').strip().replace(
+        '\n', str()).replace(" ", "_").strip()
     if not tag or tag == '':
         return False
     tagobj = uniqueTag(tag)
@@ -88,10 +93,13 @@ def uniqueRepoName(reponame: str) -> bool:
     """
     if reponame.startswith('-') or reponame.endswith('-') or reponame.__contains__('--'):
         return False
-    reponame = str(reponame).strip('-').strip().replace(' ', '-').replace('--','-').lower()
-    if len(reponame) > 20 or len(reponame) < 3: return False
-    project = Project.objects.filter(reponame=str(reponame),trashed=False).first()
-    if project: 
+    reponame = str(reponame).strip(
+        '-').strip().replace(' ', '-').replace('--', '-').lower()
+    if len(reponame) > 20 or len(reponame) < 3:
+        return False
+    project = Project.objects.filter(
+        reponame=str(reponame), trashed=False).first()
+    if project:
         if project.rejected() and project.canRetryModeration():
             return False
         if project.underModeration() or project.isApproved():
@@ -109,8 +117,6 @@ def uniqueTag(tagname: str) -> Tag:
     except:
         return True
 
-    
-
 
 def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     """
@@ -124,10 +130,9 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         if not project.isApproved():
             return False
 
-
         created = setupOrgGihtubRepository(project, moderator)
 
-        if not created and ISPRODUCTION:
+        if not created and not ISPRODUCTION:
             return False
 
         sendProjectApprovedNotification(project)
@@ -197,7 +202,6 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                     delete_branch_on_merge=False
                 )
 
-
         ghBranch = ghOrgRepo.get_branch("main")
 
         ghBranch.edit_protection(
@@ -239,7 +243,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
 
         ghOrgRepo.create_hook(
             name='web',
-            events=Event.PUSH,
+            events=[Event.PUSH],
             config=dict(
                 url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.getID())}",
                 content_type='form',
@@ -250,7 +254,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         )
         ghOrgRepo.create_hook(
             name='web',
-            events=Event.PR,
+            events=[Event.PR],
             config=dict(
                 url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PR,projID=project.getID())}",
                 content_type='form',
@@ -259,11 +263,11 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                 digest='sha256'
             )
         )
-
         return True
     except Exception as e:
         errorLog(e)
         return False
+
 
 def getGhOrgRepo(reponame: str) -> Repository:
     try:
@@ -291,7 +295,7 @@ def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profi
     return True
 
 
-def getProjectLiveData(project:Project) -> dict:
+def getProjectLiveData(project: Project) -> dict:
     # if ISPRODUCTION:
     ghOrgRepo = getGhOrgRepo('covidcare')
     contribs = ghOrgRepo.get_contributors()
@@ -300,7 +304,5 @@ def getProjectLiveData(project:Project) -> dict:
 
     for cont in contribs:
         ghIDs.append(str(cont.login))
-    contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')    
-    return dict(contributors=contributors,languages=languages)
-
-from .receivers import *
+    contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
+    return dict(contributors=contributors, languages=languages)

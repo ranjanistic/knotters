@@ -209,6 +209,7 @@ SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
 SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
 
 GITHUB_API_URL = "https://api.github.com"
+GH_HOOK_SECRET = env.GH_HOOK_SECRET
 
 if not DEBUG:
     os.environ["HTTPS"] = "on"

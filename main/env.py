@@ -30,6 +30,7 @@ SENDERTOKEN = env('SENDERTOKEN').strip()
 STATIC_URL = env('STATIC_URL').strip()
 MEDIA_URL = env('MEDIA_URL').strip()
 SERVER_EMAIL = env('SERVER_EMAIL').strip()
+GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
 
 ISPRODUCTION = ENV == Environment.PRODUCTION
 

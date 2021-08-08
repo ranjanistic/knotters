@@ -3,7 +3,7 @@ from github import Github as GHub
 from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 
-if ISPRODUCTION:
+if not ISPRODUCTION:
     Github = GHub(GITHUBBOTTOKEN)
     GithubKnotters = Github.get_organization(PUBNAME)
 else:
