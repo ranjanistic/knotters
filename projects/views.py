@@ -1,4 +1,5 @@
 from uuid import UUID
+from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
@@ -376,8 +377,9 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
+@csrf_exempt
 @github_only
+@require_POST
 def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
         ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
