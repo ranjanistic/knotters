@@ -379,14 +379,13 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 @csrf_exempt
 @github_only
-@require_POST
 def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
         ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
         if type != Code.HOOK:
             return HttpResponseForbidden('Invaild event type')
         if ghevent == Event.PING:
-            sender = request.POST.get('sender',{'login':None})
+            sender = request.POST.get('sender', {'login': None})
             print(sender, sender['login'])
             return HttpResponse(Code.OK)
 
@@ -399,18 +398,21 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
             return HttpResponse(Code.NO)
 
         if event == Event.PUSH:
-            pusher = request.POST.get('pusher')
-            committer = Profile.objects.filter(
-                Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email']))).first()
-            if committer:
-                committer.increaseXP(by=2)
-                project.creator.increaseXP(by=1)
-                project.moderator.increaseXP(by=1)
+            sender = request.POST.get('sender', None)
+            if sender:
+                pusher = request.POST.get('pusher', {'email': ''})
+                committer = Profile.objects.filter(Q(Q(githubID=sender['login']) | Q(
+                    user__email=pusher['email']) | Q(user__email=sender['login']))).first()
+                if committer:
+                    committer.increaseXP(by=2)
+                    project.creator.increaseXP(by=2)
+                    project.moderator.increaseXP(by=2)
         elif event == Event.PR:
-            action = request.POST.get('action')
+            action = request.POST.get('action', '')
             if action == 'merged':
                 project.creator.increaseXP(by=5)
-                project.moderator.increaseXP(by=2)
+                project.moderator.increaseXP(by=5)
         return HttpResponse(Code.OK)
-    except:
+    except Exception as e:
+        errorLog(f"GH-EVENT: {e}")
         return Http404()

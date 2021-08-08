@@ -1,3 +1,4 @@
+from urllib.parse import unquote
 import hmac
 from hashlib import sha256
 from django.views.decorators.csrf import csrf_exempt
@@ -5,6 +6,7 @@ from django.http.response import Http404, HttpResponseForbidden, HttpResponseNot
 from django.utils.encoding import force_bytes
 from functools import wraps
 from ipaddress import ip_address, ip_network
+from .methods import errorLog
 import json
 import requests
 from django.conf import settings
@@ -77,5 +79,11 @@ def github_only(function):
         if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
             return HttpResponseForbidden('Permission denied')
 
+        try:
+            request.POST = json.loads(unquote(request.body.decode("utf-8")).split('payload=')[1])
+            return function(request, *args, **kwargs)
+        except Exception as e:
+            errorLog(e)
+            pass
         return function(request, *args, **kwargs)
     return wrap
