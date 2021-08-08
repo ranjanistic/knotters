@@ -54,6 +54,8 @@ def dev_only(function):
 def github_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
+        print(request.META.get('HTTP_X_FORWARDED_FOR'))
+        print(request.META.get('REMOTE_ADDR'))
         forwarded_for = u'{}'.format(request.META.get('HTTP_X_FORWARDED_FOR'))
         print("fwdfor", forwarded_for)
         if not forwarded_for or forwarded_for == 'None':
