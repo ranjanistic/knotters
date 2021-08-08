@@ -56,6 +56,10 @@ def github_only(function):
     def wrap(request, *args, **kwargs):
         print(request.META.get('HTTP_X_FORWARDED_FOR'))
         print(request.META.get('REMOTE_ADDR'))
+        print(request.META.get('HTTP_X_REAL_IP'))
+        whitelist = requests.get(f'{settings.GITHUB_API_URL}/meta').json()['hooks']
+        print("whitelist", whitelist)
+        print(ip_address(request.META.get('HTTP_X_REAL_IP')))
         forwarded_for = u'{}'.format(request.META.get('HTTP_X_FORWARDED_FOR'))
         print("fwdfor", forwarded_for)
         if not forwarded_for or forwarded_for == 'None':
