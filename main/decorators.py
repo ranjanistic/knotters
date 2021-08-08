@@ -54,20 +54,15 @@ def dev_only(function):
 def github_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        print(request.META.get('HTTP_X_FORWARDED_FOR'))
-        print(request.META.get('REMOTE_ADDR'))
-        print(request.META.get('HTTP_X_REAL_IP'))
         whitelist = requests.get(f'{settings.GITHUB_API_URL}/meta').json()['hooks']
         print("whitelist", whitelist)
-        print(ip_address(request.META.get('HTTP_X_REAL_IP')))
-        forwarded_for = u'{}'.format(request.META.get('HTTP_X_FORWARDED_FOR'))
-        print("fwdfor", forwarded_for)
-        if not forwarded_for or forwarded_for == 'None':
+        print(request.META.get('HTTP_X_REAL_IP'))
+        real_ip = u'{}'.format(request.META.get('HTTP_X_REAL_IP'))
+        print("real_ip", real_ip)
+        if not real_ip or real_ip == 'None':
             print("not fwdfor")
             return HttpResponseForbidden('Permission denied')
-
-        client_ip_address = ip_address(forwarded_for)
-        whitelist = requests.get(f'{settings.GITHUB_API_URL}/meta').json()['hooks']
+        client_ip_address = ip_address(real_ip)
         print("cia", client_ip_address)
         print("whitelist", whitelist)
         for valid_ip in whitelist:
