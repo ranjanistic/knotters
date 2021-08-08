@@ -55,40 +55,26 @@ def github_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         whitelist = requests.get(f'{settings.GITHUB_API_URL}/meta').json()['hooks']
-        print("whitelist", whitelist)
-        print(request.META.get('HTTP_X_REAL_IP'))
         real_ip = u'{}'.format(request.META.get('HTTP_X_REAL_IP'))
-        print("real_ip", real_ip)
         if not real_ip or real_ip == 'None':
-            print("not fwdfor")
             return HttpResponseForbidden('Permission denied')
         client_ip_address = ip_address(real_ip)
-        print("cia", client_ip_address)
-        print("whitelist", whitelist)
         for valid_ip in whitelist:
             if client_ip_address in ip_network(valid_ip):
                 break
         else:
-            print('Nin whitlist')
             return HttpResponseForbidden('Permission denied')
 
         header_signature = request.META.get('HTTP_X_HUB_SIGNATURE_256')
-        print('hs', header_signature)
         if header_signature is None:
-            print("hs none")
             return HttpResponseForbidden('Permission denied')
 
         sha_name, signature = header_signature.split('=')
-        print('sha_name (sha256)', sha_name)
-        print('signature ', True if signature else False)
         if sha_name != 'sha256':
-            print("sha false")
             return HttpResponseServerError('Operation not supported', status=501)
 
         mac = hmac.new(force_bytes(settings.SECRET_KEY), msg=force_bytes(request.body), digestmod=sha256)
-        print('hmac', hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)))
         if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
-            print('not hmac')
             return HttpResponseForbidden('Permission denied')
 
         return function(request, *args, **kwargs)
