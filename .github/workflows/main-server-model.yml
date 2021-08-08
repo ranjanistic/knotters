@@ -1,4 +1,4 @@
-name: Server Model CI
+name: Server Models CI
 
 on:
   push:

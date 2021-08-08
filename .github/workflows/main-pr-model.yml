@@ -1,20 +1,11 @@
-name: Server CI Testing
+name: Server Models CI Testing
 
 on:
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - '**/test_views.py'
-      - '**/views.py'
-      - '**/test_methods.py'
-      - '**/methods.py'
+    paths:
       - '**/test_models.py'
       - '**/models.py'
-      - '**.md'
-      - 'static/**'
-      - 'templates/**'
-      - '.gitignore'
-      - ".github/**"
 
 jobs:
   testing:
@@ -59,7 +50,7 @@ jobs:
         python manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput --verbosity=1 --keepdb --tag=rest
+        python manage.py test --noinput --verbosity=1 --keepdb
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}

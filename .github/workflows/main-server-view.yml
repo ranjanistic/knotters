@@ -1,4 +1,4 @@
-name: Server View CI
+name: Server Views CI
 
 on:
   push:

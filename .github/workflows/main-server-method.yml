@@ -1,4 +1,4 @@
-name: Server Method CI
+name: Server Methods CI
 
 on:
   push:

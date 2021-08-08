@@ -1,4 +1,4 @@
-name: Knotters Client Static CI
+name: Client Static CI
 
 on:
   push:

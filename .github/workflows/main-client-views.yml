@@ -1,4 +1,4 @@
-name: Knotters Client Views CI
+name: Client Views CI
 
 on:
   push:
