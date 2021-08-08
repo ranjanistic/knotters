@@ -132,7 +132,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
 
         created = setupOrgGihtubRepository(project, moderator)
 
-        if not created and not ISPRODUCTION:
+        if not created and ISPRODUCTION:
             return False
 
         sendProjectApprovedNotification(project)
