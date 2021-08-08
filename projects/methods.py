@@ -255,8 +255,6 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         errorLog(e)
         return False
 
-print(f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID='project.getID()')}")
-
 def getGhOrgRepo(reponame: str) -> Repository:
     try:
         return GithubKnotters.get_repo(name=reponame)

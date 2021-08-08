@@ -385,8 +385,6 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
         if type != Code.HOOK:
             return HttpResponseForbidden('Invaild event type')
         if ghevent == Event.PING:
-            sender = request.POST.get('sender', {'login': None})
-            print(sender, sender['login'])
             return HttpResponse(Code.OK)
 
         if ghevent != event:
