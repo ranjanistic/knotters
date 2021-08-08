@@ -297,6 +297,7 @@ const postRequest = async (path, data = {}) => {
                 Accept: "application/json",
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfmiddlewaretoken,
+                "X-KNOT-REQ-SCRIPT": true
             },
             body: JSON.stringify(body),
         });
@@ -317,6 +318,7 @@ const getRequest = async (url) => {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
+                "X-KNOT-REQ-SCRIPT": true
             },
         });
         const data = await response.text();

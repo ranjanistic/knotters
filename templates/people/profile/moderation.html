@@ -39,28 +39,30 @@
             </div>
 
             <div class="w3-col w3-padding-small swiper-slide">
-                <div class="pallete accent">
-                <center>
-                    <i class="material-icons" title="Private to you">lock</i>
-                    <h6>Pending</h6>
-                </center>
-                {% for mod in unresolved %}
-                <div class="pallete-slab">
-                {% if mod.type == SUBAPPS.projects %}
-                <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
-                <h6>{{mod.project.name}}</h6>
-                <span>{{mod.project.reponame}}</span>
-                {% endif %}
-                <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
-                </div>
-                {% empty %}
-                <br/>
-                <center>
-                <i class="w3-jumbo material-icons">done</i>
-                <h4>All resolved</h4>
-                </center>
-                <br/>
-                {% endfor %}
+                <div class="pallete accent" style="height:55vh;">
+                    <center>
+                        <i class="material-icons" title="Private to you">lock</i>
+                        <h6>Pending</h6>
+                    </center>
+                    <div class="w3-row" style="height:45vh;overflow-y:scroll">
+                        {% for mod in unresolved %}
+                        <div class="pallete-slab">
+                        {% if mod.type == SUBAPPS.projects %}
+                        <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
+                        <h6>{{mod.project.name}}</h6>
+                        <span>{{mod.project.reponame}}</span>
+                        {% endif %}
+                        <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
+                        </div>
+                        {% empty %}
+                        <br/>
+                        <center>
+                        <i class="w3-jumbo material-icons">done</i>
+                        <h4>All resolved</h4>
+                        </center>
+                        <br/>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 

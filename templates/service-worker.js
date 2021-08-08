@@ -49,6 +49,9 @@ self.addEventListener("fetch", async (event) => {
                 } else {
                     return fetch(event.request).then(async (FetchRes) => {
                         if (FetchRes.status >= 300) {
+                            if(event.request.method === "GET" && event.request.headers.get('X-KNOT-REQ-SCRIPT')==='true'){
+                                throw Error()
+                            }
                             return FetchRes
                         }
                         if (
@@ -96,7 +99,7 @@ self.addEventListener("fetch", async (event) => {
                         noOfflinePath.includes("*")
                             ? testAsteriskPathRegex(noOfflinePath, path)
                             : noOfflinePath === path
-                    ) && event.request.method !== "POST"
+                    ) || event.request.headers.get('X-KNOT-REQ-SCRIPT')!=='true'
                 ) {
                     return caches.match(offlinePath);
                 }
