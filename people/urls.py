@@ -17,5 +17,7 @@ urlpatterns = [
     path(URL.People.SUCCESSORINVITE, successorInvitation),
     path(URL.People.SUCCESSORINVITEACTION, successorInviteAction),
     path(URL.People.ACCOUNTDELETE, accountDelete),
-    path(URL.People.ZOMBIE, zombieProfile)
+    path(URL.People.ZOMBIE, zombieProfile),
+
+    path(URL.People.NEWBIES, newbieProfiles)
 ]

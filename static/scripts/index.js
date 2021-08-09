@@ -86,11 +86,12 @@ const loadErrorHTML = (retryID='retryload') => `<div class="w3-center w3-padding
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
-const setHtmlContent = (element, content = "") => {
+const setHtmlContent = (element, content = "", afterset=()=>{}) => {
     element.innerHTML = content;
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
+    afterset()
 };
 
 const setUrlParams = (path, ...params) => {

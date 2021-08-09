@@ -19,6 +19,8 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     URLS = dict(**data.get('URLS', dict()), **url.getURLSForClient())
     if data.get('URLS',None):
         del data['URLS']
+    if fromApp==str():
+        URLS = dict(**URLS,Projects=url.projects.getURLSForClient(),People=url.people.getURLSForClient(),Compete=url.compete.getURLSForClient())
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 
 

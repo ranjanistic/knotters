@@ -123,6 +123,7 @@ class Profile(models.Model):
     successor_confirmed = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
     is_moderator = models.BooleanField(default=False)
+    is_manager = models.BooleanField(default=False)
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -200,13 +201,17 @@ class Profile(models.Model):
     def getSuccessorInviteLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
 
-    def increaseXP(self,by:int=0) -> int:
-        if self.xp == None: self.xp = 0
+    def getXP(self) -> str:
+        return f"{self.xp} XP"
+
+    def increaseXP(self, by: int = 0) -> int:
+        if self.xp == None:
+            self.xp = 0
         self.xp = self.xp + by
         self.save()
         return self.xp
 
-    def decreaseXP(self,by:int=0) -> int:
+    def decreaseXP(self, by: int = 0) -> int:
         if self.xp == None:
             self.xp = 0
             self.save()
@@ -235,31 +240,30 @@ class Profile(models.Model):
             return 100
 
     def getTopics(self):
-        proftops =  ProfileTopic.objects.filter(profile=self,trashed=False)
+        proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
         return topics
 
     def getTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self,trashed=False).order_by('-points')
+        return ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points')
 
     def totalTopics(self):
-        return ProfileTopic.objects.filter(profile=self,trashed=False).count()
-
+        return ProfileTopic.objects.filter(profile=self, trashed=False).count()
 
     def getTrahedTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self,trahsed=True)
+        proftops = ProfileTopic.objects.filter(profile=self, trahsed=True)
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
         return topics
 
     def getTrahedTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self,trahsed=True)
+        return ProfileTopic.objects.filter(profile=self, trahsed=True)
 
     def totalTrahedTopics(self):
-        return ProfileTopic.objects.filter(profile=self,trahsed=True).count()
+        return ProfileTopic.objects.filter(profile=self, trahsed=True).count()
 
     def getAllTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self)
@@ -273,7 +277,7 @@ class Profile(models.Model):
 
     def totalAllTopics(self):
         return ProfileTopic.objects.filter(profile=self).count()
-    
+
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -314,7 +318,7 @@ class ProfileTopic(models.Model):
     class Meta:
         unique_together = ('profile', 'topic')
 
-    def increasePoints(self,by:int=0)->int:
+    def increasePoints(self, by: int = 0) -> int:
         points = 0
         if not self.points:
             points = by
@@ -324,7 +328,7 @@ class ProfileTopic(models.Model):
         self.save()
         return self.points
 
-    def decreasePoints(self,by:int=0)->int:
+    def decreasePoints(self, by: int = 0) -> int:
         if not self.points:
             points = 0
         elif self.points - by < 0:
@@ -335,13 +339,14 @@ class ProfileTopic(models.Model):
         self.save()
         return self.points
 
+
 class Report(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reporter = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='reporter_profile',null=True,blank=True)
+    reporter = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='reporter_profile', null=True, blank=True)
     isReport = models.BooleanField(default=True)
     anonymous = models.BooleanField(default=True)
     summary = models.CharField(max_length=1000)
     detail = models.CharField(max_length=10000)
-
 
 from .methods import isPictureDeletable

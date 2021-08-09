@@ -58,6 +58,7 @@
         <link rel="stylesheet" href="{% static 'styles/scrollbar.css' %}">
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
+        <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
         {% block stylesheets %}
         <link rel="manifest" href="{{MANIFESTURL}}" />
         {% endblock %}
@@ -110,66 +111,19 @@
                 <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
                 </div>
                 {% endif %}
+                <br/><br/>
                 <div class="w3-row w3-center w3-padding">
-                    <img alt={{APPNAME}} src="{{ICON}}" class="darkimg" data-ext="svg" data-name="self/icon" width="200" height="200"/>
+                    <h1>Let's start.</h1>
+                    <h2>Shall we?</h2>
+                    <button class="display-button accent">Less Go!</button>
+                    <button class="display-button positive">Start where?</button>
                 </div>
-                    <br/>
-                <div class="w3-row w3-center w3-padding tertiary">
-                    <br/>
-                    <h3>Active projects of this month</h3>
-                    <br/>
-                    {% for project in projects %}
-                    <div class="w3-col w3-third w3-padding-small">
-                    <a href="{{project.getLink}}">
-                    <div class="pallete primary">
-                        <div class="w3-row">
-                            <img alt={{project.name}} src="{{project.getDP}}" width="150" />
-                        </div>
-                        <h2>{{project.name}}</h2>
-                        <span>{{project.description}}</span>
-                    </div>
-                    </a>
-                    </div>
-                    {% empty %}
-                    <div class="w3-row w3-center">
-                    <h3 >We'll bring you projects as soon as they're available.</h3>
-                    <h4 >There is still some work left here for us to do.</h4>
-                    </div>
-                    {% endfor %}
-                    <div class="w3-row" hidden>
-                        <br/>
-                        <a href="/{{SUBAPPS.projects}}"><button class="positive"><i class="material-icons">launch</i>More interesting projects</button></a>
-                    </div>
-                    <br/>
+                <br/>
+                <div class="w3-row tertiary" id='newbie-projects-view'>
+                    
                 </div>
-
-                <div class="w3-row w3-center w3-padding accent">
-                    <br/>
-                    <h3 class="text-accent">Top contributors of this month</h3>
-                    <br/>
-                    {% for person in topcontributors %}
-                    <div class="w3-col w3-third w3-padding-small">
-                    <a href="/projects/profile/{{project.reponame}}">
-                    <div class="pallete primary">
-                        <div class="w3-row">
-                            <img alt={{person.getName}} src="{{person.profile.getDP}}" width="150" />
-                        </div>
-                        <h2>{{person.name}}</h2>
-                        <span>{{person.description}}</span>
-                    </div>
-                    </a>
-                    </div>
-                    {% empty %}
-                    <div class="w3-row w3-center">
-                    <h3>We'll bring you contributors as soon as they're available.</h3>
-                    <h4>There is still some work left here for us to do.</h4>
-                    </div>
-                    {% endfor %}
-                    <div class="w3-row" hidden>
-                        <br/>
-                        <a href="/{{SUBAPPS.people}}"><button class="positive"><i class="material-icons">people</i>Browse community</button></a>
-                    </div>
-                    <br/>
+                <div class="w3-row accent" id='newbie-profiles-view'>
+                    
                 </div>
             </div>
             {% endblock %}
@@ -245,7 +199,13 @@
         </script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
-        {% block scripts %}{% endblock %}
+        {% block scripts %}
+        <script src="{% static 'scripts/browser.js' %}"></script>
+        <script>
+            loadNewbieProjects()
+            loadNewbieProfiles()
+        </script>
+        {% endblock %}
         {% block errors %}
         <script>
         {% if form.errors %}

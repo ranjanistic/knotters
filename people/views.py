@@ -13,7 +13,7 @@ from main.strings import Action, Code, Message, URL
 from .apps import APPNAME
 from .decorators import profile_active_required
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
-from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets
+from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr
 from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
@@ -61,14 +61,10 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
 def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.id == userID:
-            user = request.user
+            profile = request.user.profile
         else:
-            user = User.objects.get(id=userID)
-        data = getProfileSectionHTML(user.profile, section, request)
-        if data:
-            return HttpResponse(data)
-        else:
-            raise Exception()
+            profile = Profile.objects.get(user__id=userID)
+        return getProfileSectionHTML(profile, section, request)
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -81,7 +77,7 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         data = getSettingSectionHTML(request.user, section, request)
         if data:
-            return HttpResponse(data)
+            return data
         else:
             raise Exception()
     except Exception as e:
@@ -408,3 +404,12 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         raise Http404()
+
+
+@require_GET
+def newbieProfiles(request:WSGIRequest) -> HttpResponse:
+    excludeIDs = []
+    if request.user.is_authenticated:
+        excludeIDs.append(request.user.profile.getID())
+    profiles = Profile.objects.exclude(id__in=excludeIDs).filter(suspended=False,is_zombie=False,to_be_zombie=False,is_active=True).order_by('-createdOn')[0:10]
+    return rendererstr(request,'browse/newbie', dict(profiles=profiles))

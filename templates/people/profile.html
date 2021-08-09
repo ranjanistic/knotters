@@ -55,9 +55,13 @@
       <i class="w3-jumbo negative-text">toggle_off</i>
       <h2>Your account is currently deactived.</h2><br/>
       <h3>This means your profile is currently not visible to anyone in the world.</h3>
+      {% if user.profile.suspended %}
+      <strong>Your profile is currently suspended. We must have emailed you regarding this, please check your inbox.</strong>
+      {% else %}
       <h5>If you have changed your mind, then you can reactivate your account.</h5>
       <button class="big-button positive" data-icon="restart_alt" id="reactivateaccount">Re-activate my account</button><br/><br/>
       <strong>You'll have to login again after reactivating.</strong>
+      {% endif %}
     </div>
     <br/>
     <br/>

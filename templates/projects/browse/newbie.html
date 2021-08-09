@@ -1,0 +1,41 @@
+{% load custom_tags %}
+<div class="w3-row">
+    <br/>
+    <div class="w3-padding">
+    <h3>Newbie projects</h3>
+    </div>
+    <br/>
+    <div class="swiper-container swiper-browser">
+        <div class="swiper-wrapper swiper-wrap">
+            {% for project in projects %}
+            <div class="w3-col swiper-slide">
+                <a href="{{project.getLink}}">
+                <div class="pallete w3-center" style="padding:0">
+                    <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                    <div class="w3-row w3-padding">
+                        <h5>{{ project.name }}</h5>
+                        <span>{{ project.description }}</span>
+                    </div>
+                    <div class="w3-row w3-padding-small">
+                        <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{ project.name }}', '{{ project.description }}', '{{SITE}}{{project.getLink}}')">share</i>
+                    </div>
+                </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="dead-text w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>No projects yet. Yours could be the first!</h3>
+            </center>
+            </div>
+            {% endfor %}
+            {% if projects.0 %}
+            <div class="w3-col swiper-slide w3-padding">
+                <a href="{{URLS.PROJECTS}}"><button class="primary display-button" data-icon="open_in_new">More</button></a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<br/>

@@ -1,11 +1,10 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
-from django.template.loader import render_to_string
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
-from main.methods import errorLog, renderData, renderString, renderView
+from main.methods import errorLog, renderString, renderView
 from main.strings import URL, Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
@@ -17,7 +16,7 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
     return renderView(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME)
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return renderString(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME)
+    return HttpResponse(renderString(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME))
 
 def convertToFLname(string: str) -> str and str:
     """
@@ -99,6 +98,7 @@ def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) 
         if sec == section:
             data = getProfileSectionData(sec, profile, request.user)
             break
+
     return rendererstr(request,f"profile/{section}", data)
 
 

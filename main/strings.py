@@ -380,6 +380,8 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
+        NEWBIES = 'newbies'
+
         def getURLSForClient(self):
             URLS = dict()
 
@@ -460,6 +462,8 @@ class URL():
 
         def githubEvents(self, type, event, projID):
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
+
+        NEWBIES = 'newbies'
 
         def getURLSForClient(self):
             URLS = dict()

@@ -1,4 +1,3 @@
-from .receivers import *
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
@@ -306,3 +305,5 @@ def getProjectLiveData(project: Project) -> dict:
         ghIDs.append(str(cont.login))
     contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
     return dict(contributors=contributors, languages=languages)
+
+from .receivers import *

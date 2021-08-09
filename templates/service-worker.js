@@ -5,6 +5,7 @@ const version = "{{VERSION}}",
     ignorelist = {{ignorelist|safe}},
     recacheList = {{recacheList|safe}},
     noOfflineList = {{noOfflineList|safe}},
+    netFirstList = {{netFirstList|safe}},
     paramRegex = "[a-zA-Z0-9.\\-_?=&%#]";
 
 const staticCacheName = `static-cache-${version}`,
@@ -27,8 +28,10 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
 
 self.addEventListener("activate", (event) => {
     event.waitUntil(
-        caches.keys().then(async(keys) => {
-            const prom = Promise.all(keys.map((key) => caches.delete(key))).then(()=>{
+        caches.keys().then(async (keys) => {
+            const prom = Promise.all(
+                keys.map((key) => caches.delete(key))
+            ).then(() => {
                 return caches.open(staticCacheName).then((cache) => {
                     return cache.addAll(assets);
                 });
@@ -40,71 +43,208 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", async (event) => {
     const path = event.request.url.replace(site, "");
-    event.respondWith(
-        caches
-            .match(event.request)
-            .then((cachedResponse) => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                } else {
-                    return fetch(event.request).then(async (FetchRes) => {
-                        if (FetchRes.status >= 300) {
-                            if(event.request.method === "GET" && event.request.headers.get('X-KNOT-REQ-SCRIPT')==='true'){
-                                throw Error()
-                            }
-                            return FetchRes
-                        }
+    if (
+        netFirstList.some((netFirstPath) =>
+            netFirstPath.includes("*")
+                ? testAsteriskPathRegex(netFirstPath, path)
+                : netFirstPath === path
+        )
+    ) {
+        event.respondWith(
+            fetch(event.request)
+                .then(async (FetchRes) => {
+                    if (FetchRes.status < 300) {
                         if (
                             recacheList.some((recachepath) =>
                                 recachepath.includes("*")
                                     ? testAsteriskPathRegex(recachepath, path)
                                     : recachepath === path
-                            ) || event.request.method === "POST"
+                            ) ||
+                            event.request.method === "POST"
                         ) {
                             await caches.delete(dynamicCacheName);
                         }
-                        const ignore = ignorelist.some((ignorepath) =>
-                            ignorepath.includes("*")
-                                ? testAsteriskPathRegex(ignorepath, path)
-                                : ignorepath === path
-                        ) ||
+                        const ignore =
+                            ignorelist.some((ignorepath) =>
+                                ignorepath.includes("*")
+                                    ? testAsteriskPathRegex(ignorepath, path)
+                                    : ignorepath === path
+                            ) ||
                             noOfflineList.some((noOfflinePath) =>
                                 noOfflinePath.includes("*")
                                     ? testAsteriskPathRegex(noOfflinePath, path)
                                     : noOfflinePath === path
-                            )
-                            if(!ignore && event.request.method !== "POST"){
-                                return caches.open(dynamicCacheName).then((cache) => {
-                                      cache.put(
-                                          event.request.url,
-                                          FetchRes.clone()
-                                      );
-    
-                                      return FetchRes;
-                                  });
+                            );
+                        if (!ignore && event.request.method !== "POST") {
+                            return caches
+                                .open(dynamicCacheName)
+                                .then((cache) => {
+                                    cache.put(
+                                        event.request.url,
+                                        FetchRes.clone()
+                                    );
 
+                                    return FetchRes;
+                                });
+                        } else {
+                            if (
+                                FetchRes.redirected &&
+                                FetchRes.url.includes("/auth/") &&
+                                event.request.url.includes(
+                                    FetchRes.url.split("?next=")[1]
+                                )
+                            ) {
+                                throw Error();
                             } else {
-                                if(FetchRes.redirected && FetchRes.url.includes("/auth/") && event.request.url.includes(FetchRes.url.split('?next=')[1])){
-                                    throw Error()
+                                return FetchRes;
+                            }
+                        }
+                    } else {
+                        return caches
+                            .match(event.request)
+                            .then((cachedResponse) => {
+                                if (cachedResponse) {
+                                    return cachedResponse;
+                                }
+                            })
+                            .catch(() => {
+                                if (
+                                    !noOfflineList.find((noOfflinePath) =>
+                                        noOfflinePath.includes("*")
+                                            ? testAsteriskPathRegex(
+                                                  noOfflinePath,
+                                                  path
+                                              )
+                                            : noOfflinePath === path
+                                    ) ||
+                                    event.request.headers.get(
+                                        "X-KNOT-REQ-SCRIPT"
+                                    ) !== "true"
+                                ) {
+                                    return caches.match(offlinePath);
+                                }
+                            });
+                    }
+                })
+                .catch(() => {
+                    return caches
+                        .match(event.request)
+                        .then((cachedResponse) => {
+                            if (cachedResponse) {
+                                return cachedResponse;
+                            } else throw Error();
+                        })
+                        .catch(() => {
+                            if (
+                                !noOfflineList.find((noOfflinePath) =>
+                                    noOfflinePath.includes("*")
+                                        ? testAsteriskPathRegex(
+                                              noOfflinePath,
+                                              path
+                                          )
+                                        : noOfflinePath === path
+                                ) &&
+                                event.request.headers.get(
+                                    "X-KNOT-REQ-SCRIPT"
+                                ) !== "true"
+                            ) {
+                                return caches.match(offlinePath);
+                            }
+                        });
+                })
+        );
+    } else {
+        event.respondWith(
+            caches
+                .match(event.request)
+                .then((cachedResponse) => {
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    } else {
+                        return fetch(event.request).then(async (FetchRes) => {
+                            if (FetchRes.status >= 300) {
+                                if (
+                                    event.request.method === "GET" &&
+                                    event.request.headers.get(
+                                        "X-KNOT-REQ-SCRIPT"
+                                    ) === "true"
+                                ) {
+                                    throw Error();
+                                }
+                                return FetchRes;
+                            }
+                            if (
+                                recacheList.some((recachepath) =>
+                                    recachepath.includes("*")
+                                        ? testAsteriskPathRegex(
+                                              recachepath,
+                                              path
+                                          )
+                                        : recachepath === path
+                                ) ||
+                                event.request.method === "POST"
+                            ) {
+                                await caches.delete(dynamicCacheName);
+                            }
+                            const ignore =
+                                ignorelist.some((ignorepath) =>
+                                    ignorepath.includes("*")
+                                        ? testAsteriskPathRegex(
+                                              ignorepath,
+                                              path
+                                          )
+                                        : ignorepath === path
+                                ) ||
+                                noOfflineList.some((noOfflinePath) =>
+                                    noOfflinePath.includes("*")
+                                        ? testAsteriskPathRegex(
+                                              noOfflinePath,
+                                              path
+                                          )
+                                        : noOfflinePath === path
+                                );
+                            if (!ignore && event.request.method !== "POST") {
+                                return caches
+                                    .open(dynamicCacheName)
+                                    .then((cache) => {
+                                        cache.put(
+                                            event.request.url,
+                                            FetchRes.clone()
+                                        );
+
+                                        return FetchRes;
+                                    });
+                            } else {
+                                if (
+                                    FetchRes.redirected &&
+                                    FetchRes.url.includes("/auth/") &&
+                                    event.request.url.includes(
+                                        FetchRes.url.split("?next=")[1]
+                                    )
+                                ) {
+                                    throw Error();
                                 } else {
-                                    return FetchRes
+                                    return FetchRes;
                                 }
                             }
-                    });
-                }
-            })
-            .catch((_) => {
-                if (
-                    !noOfflineList.find((noOfflinePath) =>
-                        noOfflinePath.includes("*")
-                            ? testAsteriskPathRegex(noOfflinePath, path)
-                            : noOfflinePath === path
-                    ) || event.request.headers.get('X-KNOT-REQ-SCRIPT')!=='true'
-                ) {
-                    return caches.match(offlinePath);
-                }
-            })
-    );
+                        });
+                    }
+                })
+                .catch((_) => {
+                    if (
+                        !noOfflineList.find((noOfflinePath) =>
+                            noOfflinePath.includes("*")
+                                ? testAsteriskPathRegex(noOfflinePath, path)
+                                : noOfflinePath === path
+                        ) &&
+                        event.request.headers.get("X-KNOT-REQ-SCRIPT") !==
+                            "true"
+                    ) {
+                        return caches.match(offlinePath);
+                    }
+                })
+        );
+    }
 });
 
 self.addEventListener("message", (event) => {
