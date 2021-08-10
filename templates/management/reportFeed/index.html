@@ -1,0 +1,12 @@
+{% extends 'management/index.html' %}
+
+
+{% block nav_text %}Reports {% endblock %}
+
+{% block content %}
+
+{% for report in reports %}
+    {{report}}
+{% endfor %}
+
+{% endblock %}

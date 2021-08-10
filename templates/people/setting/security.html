@@ -1,0 +1,10 @@
+<div class="w3-row">
+    <h4>Oauth Accounts</h4>
+    <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">Linked Accounts</button>
+    <br/>
+    <br/>
+    <h4>Danger</h4>
+    <button hidden class="active" data-icon="shield" id="twofactor">Two factor auth</button>
+    <button class="accent" data-icon="toggle_off" id="deactivateaccount">Deactivate Account</button>
+    <button class="negative" data-icon="delete" id="deleteaccount">Delete Account</button>
+</div>

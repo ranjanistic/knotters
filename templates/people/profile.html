@@ -124,7 +124,7 @@
 
         {% if user.is_authenticated and user == person %}
         <div class="w3-row pallete">
-          <p>Email ID: <span>{{ person.email }}</span></p>
+          <p><b>Email ID</b> <span>{{ person.email }}</span></p>
           <p><b>Date joined</b> <span>{{ person.date_joined }}</span></p>
           <p><b>Last login</b> <span> {{ person.last_login }}</span></p>
         </div>
@@ -135,12 +135,13 @@
       <div class="w3-col w3-container m8 l9 ">
         <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
           <div class="w3-row w3-center w3-animate-top">
-            <button title="Profile overview" id="overview" class="nav-tab"><i class="material-icons">insights</i><span class="w3-hide-small">Overview</span></button>
-            <button title="Personal projects" id="projects" class="nav-tab"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button>
-            <button hidden id="contribution" class="nav-tab"><i class="material-icons">group_work</i><span class="w3-hide-small">Contribution</span></button>
-            <button hidden id="activity" class="nav-tab"><i class="material-icons">history</i><span class="w3-hide-small">Activity</span></button>
+            <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">Overview</span></button>
+            <button title="Personal projects" id="projects" class="nav-tab" data-icon="widgets"><span class="w3-hide-small">Projects</span></button>
+            <button title="Acheivements" id="acheivements" class="nav-tab" data-icon="emoji_events"><span class="w3-hide-small">Acheivements</span></button>
+            <button hidden id="contribution" class="nav-tab" data-icon="group_work"><span class="w3-hide-small">Contribution</span></button>
+            <button hidden id="activity" class="nav-tab" data-icon="history"><span class="w3-hide-small">Activity</span></button>
             {% if person.profile.is_moderator %}
-            <button title="Moderation record" id="moderation" class="nav-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
+            <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">Moderation</span></button>
             {% endif %}
           </div>
           <br/>
@@ -154,8 +155,9 @@
           <i class="w3-right w3-spin">settings</i><h3>Settings</h3>
           </div>
           <div class="w3-row w3-padding-small">
-            <button id="account" class="set-tab"><i class="material-icons">manage_accounts</i><span class="w3-hide-small">Account</span></button>
-            <button id="preference" class="set-tab"><i class="material-icons">settings</i><span class="w3-hide-small">Preference</span></button>
+            <button id="account" class="set-tab" data-icon="manage_accounts"><span class="w3-hide-small">Account</span></button>
+            <button id="preference" class="set-tab" data-icon="settings"><span class="w3-hide-small">Preference</span></button>
+            <button id="security" class="set-tab" data-icon="shield"><span class="w3-hide-small">Security</span></button>
             {% if user.is_authenticated and user.is_moderator %}
               <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
             {% endif %}

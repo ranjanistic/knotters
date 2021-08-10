@@ -1,0 +1,11 @@
+{% extends 'management/index.html' %}
+
+{% block nav_text %}Manage Competitions{% endblock %}
+
+{% block content %}
+
+{% for compete in competes %}
+    {{compete}}
+{% endfor %}
+
+{% endblock %}

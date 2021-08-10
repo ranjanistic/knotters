@@ -1,0 +1,14 @@
+{% extends 'management/competition/index.html' %}
+
+{% block nav_text %}Create Competition{% endblock %}
+
+{% block content %}
+
+{% for field in fields %}
+
+    <input placeholder="{{field.placeholder}}" name="{{field.name}}" id="{{field.id}}" />
+
+{% endfor %}
+
+
+{% endblock %}
