@@ -198,7 +198,7 @@ const loadTabScript = (tab) => {
                 }
             }
             break;
-        case "account":
+        case "security":
             {
                 const deactivationDialog = () => {
                     const ddial = alertify
@@ -338,7 +338,7 @@ const loadTabScript = (tab) => {
                         )
                         .set("closable", false)
                         .set("labels", {
-                            ok: `Cancel (<span id="cancelDeletionDialogSecs">100</span>s)`,
+                            ok: `Cancel (<span id="cancelDeletionDialogSecs">60</span>s)`,
                             cancel: `${Icon(
                                 "delete_forever"
                             )}DELETE MY ACCOUNT (no tricks)`,
@@ -397,7 +397,7 @@ const loadTabScript = (tab) => {
                             error(data.error);
                         }
                     };
-                    let secs = 100;
+                    let secs = 60;
                     let intv = setInterval(() => {
                         secs -= 1;
                         getElement("cancelDeletionDialogSecs").innerHTML = secs;
