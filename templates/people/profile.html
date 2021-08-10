@@ -27,7 +27,7 @@
 {% if user.is_authenticated and user == person and not user.profile.is_active %}
 <img src="{{ICON}}" width="40" />
 {% else %}
-<button class="primary"><i class="material-icons">arrow_back</i></button>
+<button class="primary previous-navigation-button" data-icon="arrow_back"></button>
 {% endif %}
 {% endblock %}     
 {% block nav_text %}{{person.getName}}{% endblock %} 

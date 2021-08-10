@@ -5,7 +5,7 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import errorLog, renderString, renderView
-from main.strings import URL, Code, profile as profileString
+from main.strings import Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
 from .models import ProfileSetting, User, Profile
@@ -13,10 +13,10 @@ from .apps import APPNAME
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return renderView(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return HttpResponse(renderString(request, file, dict(**data, URLS=URL.people.getURLSForClient()), fromApp=APPNAME))
+    return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 def convertToFLname(string: str) -> str and str:
     """

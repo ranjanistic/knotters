@@ -4,6 +4,7 @@ from hashlib import sha256
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import Http404, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseServerError
 from django.utils.encoding import force_bytes
+from allauth.account.decorators import login_required
 from functools import wraps
 from ipaddress import ip_address, ip_network
 from .methods import errorLog
@@ -51,6 +52,15 @@ def dev_only(function):
 
     return wrap
 
+@decDec(login_required)
+def manager_only(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if request.user.profile.is_manager:
+            return function(request, *args, **kwargs)
+        else:
+            raise Http404()
+    return wrap
 
 @decDec(csrf_exempt)
 def github_only(function):

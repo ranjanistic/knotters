@@ -2,11 +2,14 @@
 
 const Key = {
     appUpdated: "app-updated",
+    navigated: "navigated"
 };
 
 const code = {
     OK: "OK",
     NO: "NO",
+    LEFT: "left",
+    RIGHT: "right"
 };
 
 const logOut = async (

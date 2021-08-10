@@ -2,18 +2,18 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from django.http.response import HttpResponse
 from main.methods import errorLog, renderView, renderString
-from main.strings import Compete, URL
+from main.strings import Compete
 from people.models import User
 from .models import Competition, ParticipantCertificate, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return renderView(request, file, dict(**data, URLS=URL.compete.getURLSForClient()), fromApp=APPNAME)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return renderString(request, file, dict(**data, URLS=URL.compete.getURLSForClient()), fromApp=APPNAME)
+    return renderString(request, file, data, fromApp=APPNAME)
 
 
 def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:

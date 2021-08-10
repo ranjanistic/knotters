@@ -3,7 +3,7 @@ from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
-
+from management.apps import APPNAME as MANAGEMENT
 
 class Code():
     OK = "OK"
@@ -137,7 +137,7 @@ class Action():
 
 action = Action()
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION]
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT]
 
 
 class URL():
@@ -153,6 +153,7 @@ class URL():
     COMPETE = f'{COMPETE}/'
     PEOPLE = f'{PEOPLE}/'
     MODERATION = f'{MODERATION}/'
+    MANAGEMENT = f'{MANAGEMENT}/'
     REDIRECTOR = 'redirector/'
     DOCS = 'docs/'
     DOCTYPE = 'docs/<str:type>'
@@ -176,6 +177,8 @@ class URL():
             return f"/{self.PEOPLE}"
         elif fromApp == MODERATION:
             return f"/{self.MODERATION}"
+        elif fromApp == MANAGEMENT:
+            return f"/{self.MANAGEMENT}"
         elif fromApp == 'docs':
             return f"/{self.DOCS}"
         else:
@@ -478,6 +481,22 @@ class URL():
 
     projects = Projects()
 
+    class Management():
+
+        def getURLSForClient(self) -> dict:
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Management, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(MANAGEMENT)}{setPathParams(urls[key])}"
+            return URLS
+    
+    managemnt = Management()
+    management = Management()
+
     def getURLSForClient(self) -> dict:
         URLS = dict()
 
@@ -559,4 +578,4 @@ class Compete():
 profile = Profile()
 compete = Compete()
 
-from main.methods import classAttrsToDict
+from .methods import classAttrsToDict

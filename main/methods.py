@@ -9,7 +9,6 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 
-
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
     Adds default meta data to the dictionary 'data' which is assumed to be sent with a rendering template.
@@ -17,10 +16,27 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     :param: fromApp: The subapplication name from whose context this method will return udpated data.
     """
     URLS = dict(**data.get('URLS', dict()), **url.getURLSForClient())
-    if data.get('URLS',None):
+    if data.get('URLS', None):
         del data['URLS']
-    if fromApp==str():
-        URLS = dict(**URLS,Projects=url.projects.getURLSForClient(),People=url.people.getURLSForClient(),Compete=url.compete.getURLSForClient())
+    if fromApp == str():
+        URLS = dict(**URLS, Projects=url.projects.getURLSForClient(), People=url.people.getURLSForClient(),
+                    Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
+    elif fromApp == PEOPLE:
+        URLS = dict(**URLS, **url.people.getURLSForClient(), Projects=url.projects.getURLSForClient(), Compete=url.compete.getURLSForClient(),
+                    Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
+    elif fromApp == PROJECTS:
+        URLS = dict(**URLS, **url.projects.getURLSForClient(), People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(),
+                    Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
+    elif fromApp == COMPETE:
+        URLS = dict(**URLS, **url.compete.getURLSForClient(), People=url.people.getURLSForClient(), Projects=url.projects.getURLSForClient(),
+                    Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
+    elif fromApp == MODERATION:
+        URLS = dict(**URLS, **url.moderation.getURLSForClient(), Projects=url.projects.getURLSForClient(),
+                    People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Management=url.management.getURLSForClient())
+    elif fromApp == MANAGEMENT:
+        URLS = dict(**URLS, **url.management.getURLSForClient(), Projects=url.projects.getURLSForClient(),
+                    People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient())
+
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 
 
@@ -40,7 +56,7 @@ def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: 
     """
     Returns text/html data as string via given template view name.
 
-    :view: The template view name (without extension), under the fromApp named folder
+    :view: The template view name (without extension), under the fromApp named folder.
     :data: The dict data to be render in the view.
     :fromApp: The subapplication division name under which the given view named template file resides
     """
@@ -54,7 +70,7 @@ def respondJson(code: str, data: dict = dict(), error: str = str(), message: str
     :code: A code name, indicating response type.
     :data: The dict data to be sent along with code.
     """
-    
+
     return JsonResponse({
         'code': code,
         'error': error,
@@ -167,8 +183,9 @@ def errorLog(error):
         file2.close()
         if ISDEVELOPMENT:
             print(error)
-            
-def getNumberSuffix(value:int)->str:
+
+
+def getNumberSuffix(value: int) -> str:
     valuestr = str(value)
     if value == 1:
         return 'st'
@@ -184,4 +201,4 @@ def getNumberSuffix(value:int)->str:
         else:
             return "th"
 
-from .strings import url
+from .strings import url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE

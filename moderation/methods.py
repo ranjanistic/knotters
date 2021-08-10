@@ -5,13 +5,13 @@ from projects.models import Project
 from django.db.models import Q
 from django.db import models
 from main.methods import renderView
-from main.strings import Code, URL, PROJECTS, PEOPLE, COMPETE
+from main.strings import Code, PROJECTS, PEOPLE, COMPETE
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()):
-    return renderView(request, file, dict(**data, URLS=URL.moderation.getURLSForClient()), fromApp=APPNAME)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 
 def getModelByType(type: str) -> models.Model:

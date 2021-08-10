@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from .views import *
-from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION
+from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
 from . import env
 
 urlpatterns = [
@@ -21,6 +21,7 @@ urlpatterns = [
     path(URL.COMPETE, include(f'{COMPETE}.urls')),
     path(URL.PEOPLE, include(f'{PEOPLE}.urls')),
     path(URL.MODERATION, include(f'{MODERATION}.urls')),
+    path(URL.MANAGEMENT, include(f'{MANAGEMENT}.urls')),
     path(URL.REDIRECTOR, redirector),
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),

@@ -2,9 +2,9 @@ from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from people.models import Profile
-from github import NamedUser, Repository, PaginatedList
+from github import NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import Code, Event, URL, url
+from main.strings import Code, Event, url
 from main.methods import errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
@@ -14,12 +14,11 @@ from .mailers import sendProjectApprovedNotification
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    URL.projects.getURLSForClient()
-    return renderView(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME)
+    return renderView(request, file, data, fromApp=APPNAME)
 
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    return HttpResponse(renderString(request, file, dict(**data, URLS=URL.projects.getURLSForClient()), fromApp=APPNAME))
+    return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
 def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, licenseID: UUID, url: str = str()) -> Project or bool:

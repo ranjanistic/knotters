@@ -4,7 +4,7 @@
 {% load socialaccount %}
 {% load account %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
     {% block head %}
     <head>
 
@@ -69,7 +69,7 @@
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
             {% block nav_title %}
-            <a href="{% block nav_href %}{{ROOT}}{% endblock %}" class="w3-left w3-padding w3-animate-left">
+            <a href="{% block nav_href %}{{ROOT}}{% endblock %}" class="w3-left w3-padding w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
                 {% block nav_icon %}<img alt="{{APPNAME}}" src="{{ICON}}" class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />{% endblock %}
             </a>
@@ -188,6 +188,7 @@
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";
             const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
+            const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
             const ICON = "{{ICON}}"
             if("{{request.GET.e}}") {
