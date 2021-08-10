@@ -4,7 +4,7 @@ from compete.models import Competition
 from projects.models import Project
 from django.db.models import Q
 from django.db import models
-from main.methods import renderView
+from main.methods import renderView, errorLog
 from main.strings import Code, PROJECTS, PEOPLE, COMPETE
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
@@ -185,5 +185,26 @@ def requestModerationForObject(
             return False
         return newmod
     return False
+
+def assignModeratorToObject(type,object,moderator:Profile, requestData):
+    try:
+        if not (moderator.is_moderator and moderator.is_active and not moderator.is_zombie and not moderator.to_be_zombie and not moderator.suspended):
+            raise Exception('Invalid moderator')
+        if type == PROJECTS:
+            newmod = Moderation.objects.create(
+                project=object, type=type, moderator=moderator, request=requestData)
+        elif type == PEOPLE:
+            newmod = Moderation.objects.create(
+                profile=object, type=type, moderator=moderator, request=requestData)
+        elif type == COMPETE:
+            newmod = Moderation.objects.create(
+                competition=object, type=type, moderator=moderator, request=requestData, referURL=object.getLink())
+        else:
+            return False
+        return newmod
+    except Exception as e:
+        errorLog(e)
+        return False
+
 
 from .receivers import *

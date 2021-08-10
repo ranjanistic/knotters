@@ -4,21 +4,19 @@ from django.core.handlers.wsgi import WSGIRequest
 from compete.models import Submission
 from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
-from allauth.account.decorators import login_required
 from django.shortcuts import redirect
 from django.utils import timezone
 from projects.methods import setupApprovedProject
 from projects.mailers import projectRejectedNotification
 from main.methods import errorLog, respondJson
 from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE
-from main.decorators import require_JSON_body
-from .decorators import moderator_only
+from main.decorators import require_JSON_body, moderator_only, normal_profile_required
 from .models import Moderation
 from .methods import renderer, requestModerationForObject
 
 
+@normal_profile_required
 @require_GET
-@login_required
 def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         moderation = Moderation.objects.get(id=id)
@@ -38,8 +36,8 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
 @require_POST
-@login_required
 def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
     """
     Message by moderator or requestor.
@@ -80,8 +78,8 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_JSON_body
 @moderator_only
+@require_JSON_body
 def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
     Moderator action on moderation. (Project, primarily)
@@ -110,8 +108,8 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
+@normal_profile_required
 @require_POST
-@login_required
 def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
     """
     Re-request for moderation if possible, and if previous one rejected. (Project, primarily)
@@ -138,8 +136,8 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_JSON_body
 @moderator_only
+@require_JSON_body
 def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
     To finalize valid submissions for judgement of a competition under moderation.

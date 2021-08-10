@@ -53,11 +53,37 @@ def dev_only(function):
     return wrap
 
 @decDec(login_required)
+def normal_profile_required(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if request.user.profile.isNormal():
+            return function(request, *args, **kwargs)
+        else:
+            raise Http404()
+    return wrap
+
+@decDec(login_required)
+def moderator_only(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if request.user.profile.is_moderator:
+            if request.user.profile.isNormal():
+                return function(request, *args, **kwargs)
+            else:
+                raise Http404()
+        else:
+            raise Http404()
+    return wrap
+
+@decDec(login_required)
 def manager_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         if request.user.profile.is_manager:
-            return function(request, *args, **kwargs)
+            if request.user.profile.isNormal():
+                return function(request, *args, **kwargs)
+            else:
+                raise Http404()
         else:
             raise Http404()
     return wrap

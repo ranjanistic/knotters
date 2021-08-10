@@ -6,31 +6,32 @@ from allauth.socialaccount.signals import social_account_added, social_account_u
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from main.bots import Sender
+from main.methods import errorLog
 from .models import ProfileSetting, User, Profile, defaultImagePath
-from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert
+from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert, welcomeAlert
 from .methods import getProfileImageBySocialAccount, isPictureDeletable, isPictureSocialImage, getUsernameFromGHSocial
 
 
 @receiver(post_save, sender=User)
-def on_user_create(sender, instance, created, **kwargs):
+def on_user_create(sender, instance:User, created, **kwargs):
     """
     Creates Profile 121 after new User creation.
     Adds user to mailing server.
     """
     if created:
         Profile.objects.create(user=instance)
+        welcomeAlert(instance)
 
 
 @receiver(post_save, sender=Profile)
-def on_profile_create(sender, instance, created, **kwargs):
+def on_profile_create(sender, instance:Profile, created, **kwargs):
     """
     Creates Setting 121 after new Profile creation.
     Adds user to mailing server.
     """
     if created:
         ProfileSetting.objects.create(profile=instance)
-        Sender.addUserToMailingServer(
-            instance.user.email, instance.user.first_name, instance.user.last_name)
+        Sender.addUserToMailingServer(instance.user.email, instance.user.first_name, instance.user.last_name)
 
 
 @receiver(post_delete, sender=User)
@@ -44,12 +45,12 @@ def on_user_delete(sender, instance, **kwargs):
         if isPictureDeletable(instance.profile.picture):
             instance.profile.picture.delete(save=False)
     except Exception as e:
-        print(e)
+        errorLog(e)
         pass
     try:
         Sender.removeUserFromMailingServer(instance.email)
     except Exception as e:
-        print(e)
+        errorLog(e)
         pass
     accountDeleteAlert(instance)
 
@@ -62,7 +63,8 @@ def on_profile_delete(sender, instance, **kwargs):
     try:
         if isPictureDeletable(instance.picture):
             instance.picture.delete(save=False)
-    except:
+    except Exception as e:
+        errorLog(e)
         pass
 
 
@@ -124,7 +126,8 @@ def social_removed(request, socialaccount, **kwargs):
         if provider and provider == socialaccount.provider:
             profile.picture = defaultImagePath()
         profile.save()
-    except:
+    except Exception as e:
+        errorLog(e)
         pass
 
 

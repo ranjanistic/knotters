@@ -193,6 +193,9 @@ class Profile(models.Model):
             return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
         return f'{url.getRoot(APPNAME)}{url.people.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
 
+    def isNormal(self)->bool:
+        return self.is_active and not (self.suspended or self.to_be_zombie or self.is_zombie)
+        
     def isReporter(self, profile) -> bool:
         if profile in self.reporters.all():
             return True
@@ -338,15 +341,5 @@ class ProfileTopic(models.Model):
         self.points = points
         self.save()
         return self.points
-
-
-class Report(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reporter = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name='reporter_profile', null=True, blank=True)
-    isReport = models.BooleanField(default=True)
-    anonymous = models.BooleanField(default=True)
-    summary = models.CharField(max_length=1000)
-    detail = models.CharField(max_length=10000)
 
 from .methods import isPictureDeletable

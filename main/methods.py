@@ -174,7 +174,7 @@ def classAttrsToDict(className, appendCondition) -> dict:
 def errorLog(error):
     from .env import ISDEVELOPMENT, ISTESTING
     if not ISTESTING:
-        file = open('_logs_/errors.txt', 'w+')
+        file = open('_logs_/errors.txt', 'r')
         existing = file.read()
         file.close()
         file2 = open('_logs_/errors.txt', 'w')

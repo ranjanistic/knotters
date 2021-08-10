@@ -92,4 +92,3 @@ class RelationAdmin(admin.ModelAdmin):
 admin.site.register(ProfileSetting)
 admin.site.register(Topic)
 admin.site.register(ProfileReport)
-admin.site.register(Report)

@@ -58,6 +58,8 @@ class Competition(models.Model):
     resultDeclared = models.BooleanField(
         default=False, help_text='Whether the results have been declared or not. Strictly restricted to be edited via server.')
 
+    creator = models.ForeignKey(Profile,on_delete=models.PROTECT, related_name='competition_creator')
+
     def __str__(self) -> str:
         return self.title
 
@@ -587,6 +589,10 @@ class Result(models.Model):
     def rankSuptext(self, rnk=0) -> str:
         rank = self.rank if rnk == 0 else rnk
         return getNumberSuffix(int(rank))
+
+    def getRank(self, rnk=0) -> str:
+        return f"{self.rank}{self.rankSuptext(rnk=rnk)}"
+
 
     def hasClaimedXP(self, profile: Profile) -> bool:
         return profile in self.xpclaimers.all()

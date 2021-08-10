@@ -2,15 +2,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from .views import *
 from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
-from . import env
+from .env import ISPRODUCTION, ADMINPATH
+from .views import *
 
 urlpatterns = [
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),
     path(URL.MANIFEST, Manifest.as_view(), name=URL.MANIFEST),
     path(URL.SERVICE_WORKER, ServiceWorker.as_view(), name=URL.SERVICE_WORKER),
-    path(env.ADMINPATH, admin.site.urls),
+    path(ADMINPATH, admin.site.urls),
     path(URL.INDEX, index),
     path(URL.APPLANDING, applanding),
     path(URL.LANDING, landing),
@@ -25,10 +25,9 @@ urlpatterns = [
     path(URL.REDIRECTOR, redirector),
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
-    path(URL.REPORT_FEEDBACK, reportFeedback),
     path('email/<str:template>', mailtemplate)
 ]
 
-if not env.ISPRODUCTION:
+if not ISPRODUCTION:
     urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + \
         static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

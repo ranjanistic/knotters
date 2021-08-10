@@ -8,6 +8,7 @@ from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
+from compete.models import Result
 from .models import ProfileSetting, User, Profile
 from .apps import APPNAME
 
@@ -54,10 +55,10 @@ def filterBio(string: str) -> str:
 
 
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
-                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION]
+                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS]
 
 SETTING_SECTIONS = [profileString.setting.ACCOUNT,
-                    profileString.setting.PREFERENCE]
+                    profileString.setting.PREFERENCE,profileString.setting.SECURITY]
 
 
 def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
@@ -76,6 +77,8 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         data[Code.APPROVED] = projects.filter(status=Code.APPROVED)
         data[Code.MODERATION] = projects.filter(status=Code.MODERATION)
         data[Code.REJECTED] = projects.filter(status=Code.REJECTED)
+    elif section == profileString.ACHEIVEMENTS:
+        data[Code.RESULTS] = Result.objects.filter(submission__members=profile)
     elif section == profileString.CONTRIBUTION:
         pass
     elif section == profileString.ACTIVITY:

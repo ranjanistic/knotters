@@ -1,20 +1,17 @@
 import json
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
-from django.db.models import Q
-from django.http.response import Http404, HttpResponse, JsonResponse
-from django.views.decorators.http import require_GET, require_POST
+from django.http.response import Http404, HttpResponse
+from django.views.decorators.http import require_GET
+from django.conf import settings
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
-from people.models import Profile, Report
 from .env import ADMINPATH
-from .methods import errorLog, renderData, renderView, respondJson
-from .decorators import dev_only, require_JSON_body
+from .methods import errorLog, renderData, renderView
+from .decorators import dev_only
 from .methods import renderView, getDeepFilePaths
-from .settings import STATIC_URL, MEDIA_URL
-from .strings import Code, Message, URL, setPathParams
-
+from .strings import Code, URL, setPathParams
 
 @require_GET
 def offline(request: WSGIRequest) -> HttpResponse:
@@ -73,23 +70,6 @@ def landing(request: WSGIRequest) -> HttpResponse:
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, "landing", fromApp=subapp)
 
-@require_JSON_body
-def reportFeedback(request:WSGIRequest) -> JsonResponse:
-    email = request.POST.get('email',None)
-    anonymous = not (email and str(email).strip())
-    email = str(email).strip()
-    reporter = None
-    if not anonymous:
-        if email == request.user.email:
-            reporter = request.user.profile
-        else:
-            reporter = Profile.objects.filter(user__email__iexact=email).first()
-            if not reporter: anonymous = True
-    isReport = request.POST.get('isReport',True)
-    summary = request.POST.get('summary','')
-    detail = request.POST.get('detail','')
-    report = Report.objects.create(isReport=isReport,reporter=reporter,summary=summary,detail=detail,anonymous=anonymous)
-    return respondJson(Code.OK if report else Code.NO, error=Message.ERROR_OCCURRED if not report else '')
 
 class Robots(TemplateView):
     content_type = 'text/plain'
@@ -98,7 +78,7 @@ class Robots(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context = dict(**context, admin=ADMINPATH,
-                       static=STATIC_URL, media=MEDIA_URL)
+                       static=settings.STATIC_URL, media=settings.MEDIA_URL)
         return context
 
 
@@ -146,7 +126,8 @@ class ServiceWorker(TemplateView):
 
         def appendWhen(path: str):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
-        assets = getDeepFilePaths(STATIC_URL.strip('/'), appendWhen=appendWhen)
+        assets = getDeepFilePaths(
+            settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
 
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
@@ -214,11 +195,12 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
-            netFirstList = json.dumps([
+            netFirstList=json.dumps([
+                f"/{settings.MEDIA_URL}",
                 f"/{URL.PROJECTS}{URL.Projects.NEWBIES}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
                 f"/{URL.PEOPLE}{URL.People.NEWBIES}",
-                setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}")
+                setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
             ])
         )))
         return context

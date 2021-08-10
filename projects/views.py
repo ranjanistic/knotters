@@ -1,23 +1,21 @@
 from uuid import UUID
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
-from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
-from main.decorators import require_JSON_body, github_only
+from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, respondRedirect
 from main.strings import Code, Event, Message, URL
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
-from people.decorators import profile_active_required
 from people.models import Profile, Topic
 from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category
+from .mailers import sendProjectSubmissionNotification
 from .methods import renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
-from .mailers import sendProjectSubmissionNotification
 
 
 @require_GET
@@ -50,8 +48,8 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
 @require_GET
-@profile_active_required
 def create(request: WSGIRequest) -> HttpResponse:
     tags = []
     for topic in request.user.profile.getTopics():
@@ -76,7 +74,7 @@ def create(request: WSGIRequest) -> HttpResponse:
     return renderer(request, 'create', dict(tags=tags, categories=categories, licenses=licenses))
 
 
-@login_required
+@normal_profile_required
 @require_JSON_body
 def validateField(request: WSGIRequest, field: str) -> JsonResponse:
     try:
@@ -93,16 +91,16 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
+@normal_profile_required
 @require_JSON_body
-@login_required
 def licences(request: WSGIRequest) -> JsonResponse:
     licenses = License.objects.filter(
         ~Q(id__in=request.POST.get('givenlicenses', []))).values()
-    return respondJson(Code.OK, {"licenses": list(licenses)})
+    return respondJson(Code.OK, dict(licenses=list(licenses)))
 
 
+@normal_profile_required
 @require_JSON_body
-@login_required
 def addLicense(request: WSGIRequest) -> JsonResponse:
     name = request.POST.get('name', None)
     description = request.POST.get('description', None)
@@ -132,8 +130,8 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@require_POST
-@profile_active_required
+@ normal_profile_required
+@ require_POST
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
@@ -178,8 +176,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
 
 
-@require_POST
-@login_required
+@ normal_profile_required
+@ require_POST
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(
@@ -191,7 +189,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_GET
+@ require_GET
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame, trashed=False)
@@ -203,7 +201,7 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
-                                                Code.REJECTED, Code.MODERATION], resolved=False).order_by('-respondOn').first()
+                    Code.REJECTED, Code.MODERATION], resolved=False).order_by('-respondOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
@@ -212,9 +210,8 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
-@login_required
-@profile_active_required
+@ normal_profile_required
+@ require_POST
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = Project.objects.get(
@@ -248,8 +245,8 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
         return HttpResponseForbidden()
 
 
-@require_JSON_body
-@login_required
+@ normal_profile_required
+@ require_JSON_body
 def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     query = request.POST.get('query', None)
     if not query or not query.strip():
@@ -275,8 +272,8 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     ))
 
 
-@require_POST
-@profile_active_required
+@ normal_profile_required
+@ require_POST
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
@@ -306,8 +303,8 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_JSON_body
-@login_required
+@ normal_profile_required
+@ require_JSON_body
 def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     try:
         query = request.POST.get('query', None)
@@ -337,8 +334,8 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@require_POST
-@profile_active_required
+@ normal_profile_required
+@ require_POST
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
@@ -368,7 +365,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_GET
+@ require_GET
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
@@ -377,8 +374,8 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@csrf_exempt
-@github_only
+@ csrf_exempt
+@ github_only
 def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
         ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
@@ -415,8 +412,9 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
         errorLog(f"GH-EVENT: {e}")
         return Http404()
 
-@require_GET
-def newbieProjects(request:WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=Code.APPROVED).order_by('-approvedOn')[0:10]
-    return rendererstr(request,'browse/newbie', dict(projects=projects))
-    
+
+@ require_GET
+def newbieProjects(request: WSGIRequest) -> HttpResponse:
+    projects = Project.objects.filter(
+        status=Code.APPROVED).order_by('-approvedOn')[0:10]
+    return rendererstr(request, 'browse/newbie', dict(projects=projects))

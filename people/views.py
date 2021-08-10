@@ -6,14 +6,13 @@ from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import verified_email_required, login_required
 from django.views.decorators.http import require_GET, require_POST
-from main.decorators import require_JSON_body
+from main.decorators import require_JSON_body, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, renderData
 from main.env import MAILUSER
-from main.strings import Action, Code, Message, URL
+from main.strings import Action, Code, Message
 from .apps import APPNAME
-from .decorators import profile_active_required
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
-from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr
+from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
 from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
@@ -34,14 +33,16 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             if request.user.profile.githubID == userID:
                 return renderer(request, 'profile', dict(person=request.user))
             if request.user.id == UUID(userID):
-                return renderer(request, 'profile', dict(person=request.user))
-            profile = Profile.objects.get(githubID=userID, is_zombie=False, to_be_zombie=False, is_active=True)
+                if not request.user.githubID:
+                    return renderer(request, 'profile', dict(person=request.user))
+                return redirect(request.user.getLink())
+            profile = Profile.objects.get(githubID=userID, is_zombie=False, to_be_zombie=False, is_active=True,suspended=False)
             return renderer(request, 'profile', dict(person=profile.user))
     except:
         pass
     try:
         user = User.objects.get(id=userID)
-        if user.profile.to_be_zombie or user.profile.is_zombie or not user.profile.is_active:
+        if not user.profile.isNormal():
             raise Exception()
         if user.profile.githubID:
             return redirect(user.profile.getLink())
@@ -50,7 +51,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         pass
     try:
         profile = Profile.objects.get(githubID=userID)
-        if profile.to_be_zombie or profile.is_zombie or not profile.is_active:
+        if not profile.isNormal():
             raise Exception()
         return renderer(request, 'profile', dict(person=profile.user))
     except:
@@ -71,8 +72,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
 
 
 @require_GET
-@login_required
-@profile_active_required
+@normal_profile_required
 def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         data = getSettingSectionHTML(request.user, section, request)
@@ -87,7 +87,7 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
 
 @require_POST
 @verified_email_required
-@profile_active_required
+@normal_profile_required
 def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         profile = Profile.objects.get(user=request.user)
@@ -150,7 +150,7 @@ def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
         )
         return redirect(request.user.profile.getLink(alert=Message.ACCOUNT_PREF_SAVED))
     except Exception as e:
-        print(e)
+        errorLog(e)
         return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
 
 @require_JSON_body
@@ -176,7 +176,7 @@ def topicsSearch(request:WSGIRequest)->JsonResponse:
     ))
 
 @require_POST
-@profile_active_required
+@normal_profile_required
 def topicsUpdate(request:WSGIRequest) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs',None)
@@ -227,18 +227,20 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
             return respondJson(Code.NO)
         done = Profile.objects.filter(
             user=request.user).update(is_active=is_active)
+        if not done:
+            return respondJson(Code.NO)
         if is_active:
             accountReactiveAlert(request.user.profile)
         else:
             accountInactiveAlert(request.user.profile)
         return respondJson(Code.OK)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_JSON_body
-@login_required
+@normal_profile_required
 def profileSuccessor(request: WSGIRequest):
     """
     To set/modify/unset profile successor. If default is chosen by the requestor, then sets the default successor and successor confirmed as true.
@@ -293,17 +295,17 @@ def profileSuccessor(request: WSGIRequest):
 
 
 @require_JSON_body
-@login_required
+@normal_profile_required
 def getSuccessor(request: WSGIRequest) -> JsonResponse:
     if request.user.profile.successor:
-        return respondJson(Code.OK, {
-            'successorID': request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else ''
-        })
+        return respondJson(Code.OK, dict(
+            successorID=(request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else '')
+        ))
     return respondJson(Code.NO)
 
 
 @require_GET
-@login_required
+@normal_profile_required
 def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
     """
     Render profile successor invitation view.
@@ -364,7 +366,7 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
 
 
 @require_JSON_body
-@login_required
+@normal_profile_required
 def accountDelete(request: WSGIRequest) -> JsonResponse:
     """
     Account for deletion, only if a successor is set.
@@ -394,7 +396,7 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO)
 
 
-@login_required
+@normal_profile_required
 def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
     try:
         profile = Profile.objects.get(

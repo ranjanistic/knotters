@@ -23,6 +23,11 @@ class Code():
 
     HOOK = 'hook'
 
+    TOPIC = 'topic'
+    CATEGORY = 'category'
+
+    RESULTS = "results"
+
     class Test():
         MODEL = 'model'
         VIEW = 'view'
@@ -109,6 +114,9 @@ class Message():
 
     UNAUTHORIZED = 'Unauthorized access'
 
+    INVALID_MODERATOR = 'Invalid moderator'
+    COMP_TITLE_EXISTS = 'Competition with similar title exists'
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -160,8 +168,6 @@ class URL():
     LANDINGS = 'landing/'
     LANDING = 'landing'
     APPLANDING = '<str:subapp>/landing'
-
-    REPORT_FEEDBACK = 'report-feedback'
 
     def getRoot(self, fromApp: str = '') -> str:
         """
@@ -483,6 +489,30 @@ class URL():
 
     class Management():
 
+        COMPETITIONS = 'competitions'
+        CREATE_COMP = 'competitions/create'
+        SUBMIT_COMP = 'competitions/submit'
+        COMPETITION = 'competitions/<str:compID>'
+
+        REPORT_FEED = 'report-feedback'
+        REPORTS = 'report-feedback/reports'
+        CREATE_REPORT = 'report-feedback/reports/create'
+        REPORT = 'report-feedback/reports/<str:reportID>'
+        FEEDBACKS = 'report-feedback/feedbacks'
+        CREATE_FEED = 'report-feedback/feedbacks/create'
+        FEEDBACK = 'report-feedback/feedbacks/<str:feedID>'
+
+
+        COMMUNITY = 'community'
+        MODERATORS = 'community/moderators'
+        LABELS = 'community/labels'
+        LABEL = 'community/labels/<str:type>/<str:labelID>'
+        LABEL_TOPICS = 'community/labels/topics'
+        LABEL_CATEGORYS = 'community/labels/categories'
+
+        def competition(self, compID):
+            return setPathParams(self.COMPETITION,compID)
+
         def getURLSForClient(self) -> dict:
             URLS = dict()
 
@@ -545,13 +575,14 @@ moderation = Moderation()
 class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
+    ACHEIVEMENTS = "acheivements"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
     MODERATION = "moderation"
-
     class Setting():
         ACCOUNT = "account"
         PREFERENCE = "preference"
+        SECURITY = "security"
 
     setting = Setting()
 

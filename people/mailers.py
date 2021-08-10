@@ -1,7 +1,23 @@
 from main.mailers import sendAlertEmail, sendActionEmail
+from main.strings import URL
 from main.env import PUBNAME
 from .models import User, Profile
 
+def welcomeAlert(user:User)->bool:
+    return sendActionEmail(
+        to=user.email,
+        username=user.getName(),
+        greeting='Welcome',
+        subject=f"Welcome to {PUBNAME} Community",
+        header="We're pleased let to your know that you're now a part of our booming community! This comes with lot of opportunities"\
+            "to create, learn and contribute towards the betterment of everyone.",
+        actions=[dict(
+            text='Get started',
+            url=f"/{URL.LANDING}"
+        )],
+        footer="Please do not hesitate if you have any doubts or queries to ask. Do checkout our social channels (links below) for direct interactions.",
+        conclusion=f"This email was sent because you created an account on {PUBNAME}. If there's a problem, then please report to us."
+    )
 
 def passordChangeAlert(user: User) -> bool:
     return sendAlertEmail(to=user.email, username=user.first_name,subject='Account Password Changed',

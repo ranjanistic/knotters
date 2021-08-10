@@ -4,17 +4,14 @@ from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.db.models import Q
-from main.decorators import require_JSON_body
+from django.conf import settings
+from main.decorators import require_JSON_body, normal_profile_required, moderator_only
 from main.methods import errorLog, renderData, respondJson
 from main.strings import Action, Code, Message
-from people.decorators import profile_active_required
-from main.settings import MEDIA_ROOT
 from people.models import ProfileTopic, Profile
-from moderation.decorators import moderator_only
 from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
 from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer
@@ -86,9 +83,8 @@ def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResp
         raise Http404()
 
 
+@normal_profile_required
 @require_POST
-@login_required
-@profile_active_required
 def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     Take participation
@@ -98,7 +94,8 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         competition = Competition.objects.get(
             id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False)
         try:
-            done = SubmissionParticipant.objects.filter(submission__competition=competition, profile=request.user.profile, confirmed=False).delete()
+            done = SubmissionParticipant.objects.filter(
+                submission__competition=competition, profile=request.user.profile, confirmed=False).delete()
             if not done:
                 return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         except:
@@ -114,17 +111,19 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
 @require_POST
-@login_required
-@profile_active_required
 def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """
     Remove member/Withdraw participation
     """
     try:
-        member = request.user.profile if request.user.getID() == userID else Profile.objects.get(user__id=userID)
-        submission = Submission.objects.get(id=subID, members=member, submitted=False, competition__resultDeclared=False)
-        SubmissionParticipant.objects.get(submission=submission,profile=request.user.profile,confirmed=True)
+        member = request.user.profile if request.user.getID(
+        ) == userID else Profile.objects.get(user__id=userID)
+        submission = Submission.objects.get(
+            id=subID, members=member, submitted=False, competition__resultDeclared=False)
+        SubmissionParticipant.objects.get(
+            submission=submission, profile=request.user.profile, confirmed=True)
         if not submission.competition.isActive():
             raise Exception()
         try:
@@ -141,9 +140,8 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         raise Http404()
 
 
+@normal_profile_required
 @require_JSON_body
-@login_required
-@profile_active_required
 def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     """
     To invite a member in submission, relation to be confirmed via mail link. (Must not be judge or moderator for the competition)
@@ -152,16 +150,19 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
         userID = str(request.POST.get('userID', '')).strip().lower()
         if not userID:
             return respondJson(Code.NO, error=Message.INVALID_ID)
-        submission = Submission.objects.get(id=subID,members=request.user.profile, submitted=False)
-        SubmissionParticipant.objects.get(submission=submission,profile=request.user.profile,confirmed=True)
+        submission = Submission.objects.get(
+            id=subID, members=request.user.profile, submitted=False)
+        SubmissionParticipant.objects.get(
+            submission=submission, profile=request.user.profile, confirmed=True)
         if request.user.email == userID or request.user.profile.githubID == userID:
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
-        person = Profile.objects.filter(
-            Q(user__email__iexact=userID) | Q(githubID__iexact=userID)).first()
+        person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID), Q(
+            is_active=True, suspended=False, to_be_zombie=False, is_zombie=False)).first()
         if not person:
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         try:
-            SubmissionParticipant.objects.get(submission__competition=submission.competition, profile=person)
+            SubmissionParticipant.objects.get(
+                submission__competition=submission.competition, profile=person)
             return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
         except:
             if not submission.competition.isActive():
@@ -176,9 +177,8 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
+@normal_profile_required
 @require_GET
-@login_required
-@profile_active_required
 def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """
     Renders invitation action page for invitee to which the url was sent via email.
@@ -186,7 +186,8 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.getID() != userID:
             raise Exception()
-        submission = Submission.objects.get(id=subID, submitted=False, members=request.user.profile)
+        submission = Submission.objects.get(
+            id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive() or not submission.canInvite():
             raise Exception()
         try:
@@ -201,9 +202,8 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
 @require_POST
-@login_required
-@profile_active_required
 def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -> HttpResponse:
     """
     To accpet/decline participation invitation, by invitee for a submission of a competition.
@@ -211,7 +211,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
     try:
         if request.user.getID() != userID:
             raise Exception()
-        submission = Submission.objects.get(id=subID, submitted=False, members=request.user.profile)
+        submission = Submission.objects.get(
+            id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
             raise Exception()
         if action == Action.DECLINE:
@@ -235,16 +236,16 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
         raise Http404()
 
 
+@normal_profile_required
 @require_POST
-@login_required
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         now = timezone.now()
         subm = Submission.objects.get(id=subID, competition__id=compID, competition__startAt__lt=now,
-                                  competition__endAt__gte=now, competition__resultDeclared=False, members=request.user.profile
-                                  )
-        subm.repo=str(request.POST.get('submissionurl', '')).strip()
-        subm.modifiedOn=now
+                                      competition__endAt__gte=now, competition__resultDeclared=False, members=request.user.profile
+                                      )
+        subm.repo = str(request.POST.get('submissionurl', '')).strip()
+        subm.modifiedOn = now
         subm.save()
         return redirect(subm.competition.getLink(alert=Message.SAVED))
     except Exception as e:
@@ -252,8 +253,8 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
 @require_JSON_body
-@login_required
 def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse:
     """
     Already existing participation final submission
@@ -337,14 +338,15 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@require_POST
 @moderator_only
+@require_POST
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     For moderator to declare results after markings of all submissions by all judges have been completed.
     """
     try:
-        comp = Competition.objects.get(id=compID, endAt__lt=timezone.now(), resultDeclared=False)
+        comp = Competition.objects.get(
+            id=compID, endAt__lt=timezone.now(), resultDeclared=False)
 
         if not comp.isModerator(request.user.profile):
             raise Exception()
@@ -354,33 +356,38 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         declared = comp.declareResults()
         if not declared:
             return redirect(comp.getJudgementLink(error=Message.ERROR_OCCURRED))
-        
+
         resultsDeclaredAlert(competition=declared)
         return redirect(comp.getJudgementLink(alert=Message.RESULT_DECLARED))
     except Exception as e:
         errorLog(e)
         raise Http404()
 
+
+@normal_profile_required
 @require_POST
-@login_required
 def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
-        result = Result.objects.get(submission__competition__id=compID,submission__id=subID,submission__members=request.user.profile)
+        result = Result.objects.get(submission__competition__id=compID,
+                                    submission__id=subID, submission__members=request.user.profile)
         if request.user.profile in result.xpclaimers.all():
             raise Exception()
         profile = Profile.objects.get(user=request.user)
         profile.increaseXP(by=result.points)
         result.xpclaimers.add(profile)
-        topicpoints = SubmissionTopicPoint.objects.filter(submission=result.submission).values('topic').annotate(points=Sum('points'))
+        topicpoints = SubmissionTopicPoint.objects.filter(
+            submission=result.submission).values('topic').annotate(points=Sum('points'))
         proftops = ProfileTopic.objects.filter(profile=request.user.profile)
         for topicpoint in topicpoints:
             for proftop in proftops:
                 if proftop.topic.id == topicpoint['topic']:
                     try:
-                        finaltop = ProfileTopic.objects.get(profile=request.user.profile,topic=proftop.topic)
+                        finaltop = ProfileTopic.objects.get(
+                            profile=request.user.profile, topic=proftop.topic)
                         finaltop.increasePoints(by=topicpoint['points'])
                     except Exception as e:
-                        ProfileTopic.objects.create(profile=request.user.profile,topic=proftop.topic,trashed=True,points=topicpoint['points'])
+                        ProfileTopic.objects.create(
+                            profile=request.user.profile, topic=proftop.topic, trashed=True, points=topicpoint['points'])
                         errorLog(e)
                         pass
 
@@ -388,6 +395,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         raise Http404()
+
 
 @require_GET
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
@@ -397,16 +405,18 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
             member = request.user.profile
         else:
             self = False
-            member = Profile.objects.get(user__id=userID)
-        result = Result.objects.get(id=resID,submission__members=member)
-        
-        partcert = ParticipantCertificate.objects.filter(result__id=resID,profile=member).first()
-        print(partcert)
+            member = Profile.objects.get(user__id=userID,suspended=False,is_active=True,is_zombie=False,to_be_zombie=False)
+        result = Result.objects.get(id=resID, submission__members=member)
+
+        partcert = ParticipantCertificate.objects.filter(
+            result__id=resID, profile=member).first()
+
         certpath = False if not partcert else partcert.getCertificate()
-        return renderer(request,'certificate',dict(result=result,member=member,certpath=certpath,self=self))
+        return renderer(request, 'certificate', dict(result=result, member=member, certpath=certpath, self=self))
     except Exception as e:
         errorLog(e)
         raise Http404()
+
 
 @require_GET
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
@@ -415,13 +425,15 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
             member = request.user.profile
         else:
             member = Profile.objects.get(user__id=userID)
-        partcert = ParticipantCertificate.objects.get(result__id=resID,profile=member)
-        
-        file_path = os.path.join(MEDIA_ROOT, str(partcert.certificate))
+        partcert = ParticipantCertificate.objects.get(
+            result__id=resID, profile=member)
+
+        file_path = os.path.join(settings.MEDIA_ROOT, str(partcert.certificate))
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
                 response = HttpResponse(fh.read(), content_type="image/jpg")
-                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+                response['Content-Disposition'] = 'inline; filename=' + \
+                    os.path.basename(file_path)
                 return response
         raise Exception()
     except Exception as e:
