@@ -179,6 +179,8 @@ class ServiceWorker(TemplateView):
                 f"/{URL.LANDING}",
                 f"/{URL.PROJECTS}{URL.Projects.ALLLICENSES}",
                 f"/email/*",
+                f"/{URL.MANAGEMENT}*",
+                f"/{URL.MANAGEMENT}",
                 setPathParams(f"/{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),

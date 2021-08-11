@@ -120,7 +120,7 @@ const expr = {
     reg: {
         projectname: /^[a-zA-Z0-9 ]{1,40}$/,
         reponame: /^[a-z\-]{2,15}$/,
-        projectabout: /^[a-zA-Z0-9.:,_= \?\/\-]{1,200}$/,
+        projectabout: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{1,200}$/,
         tags: /^[a-zA-Z_, ]{3,60}/,
         projectcategory: /^[a-zA-Z ]{3,}$/,
         description: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{5,5000}$/,

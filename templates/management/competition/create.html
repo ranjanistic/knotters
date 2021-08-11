@@ -2,13 +2,207 @@
 
 {% block nav_text %}Create Competition{% endblock %}
 
+{% block nav_href %}{{URLS.COMPETITIONS}}{% endblock %}
+
+{% block nav_icon %}
+<button class="primary previous-action-button" data-icon="arrow_back"></button>
+{% endblock %}
+
 {% block content %}
+<br/>
+<div class="w3-row w3-padding">
+    <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
+        {% csrf_token %}
+        <div class="w3-col w3-half">
+            <input type="file" id="compbanner" name="compbanner" hidden /><br/>
+            <input required class="create-compete-input" placeholder="Title" type="text" name="comptitle" id="comptitle">
+            <input required class="create-compete-input" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
 
-{% for field in fields %}
+            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Short description" type="text" name="compshortdesc" id="compshortdesc"></textarea>
+            <textarea rows="5" cols="25" class="create-compete-input"  required placeholder="Description" type="text" name="compdesc" id="compdesc"></textarea><br/><br/>
 
-    <input placeholder="{{field.placeholder}}" name="{{field.name}}" id="{{field.id}}" />
+            <span id="selectedmodview"></span>
+            <button title="Select moderator" type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
+            <input hidden placeholder="Moderator" type="text" name="compmodID" id="compmodID" />
+            <br/><br/>
+            <fieldset>
+                <legend>Topics</legend>
+                <span id="selectedtopicsview">
+                </span>
+                <input hidden name="comptopicIDs" id="topicIDs" />
+                <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
+            </fieldset>
+            <fieldset>
+                <legend>Judges</legend>
+                <span id="selectedjudgesview">
+                </span>
+                <input hidden name="compjudgeIDs" id="judgeIDs" />
+                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
+            </fieldset>
+            <br/><br/>
+            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Task summary" type="text" name="comptaskSummary" id="comptaskSummary"></textarea>
+            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Task details" type="text" name="comptaskDetail" id="comptaskDetail"></textarea>
+            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Task sample" type="text" name="comptaskSample" id="comptaskSample"></textarea>
+        
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row w3-center">
+                <img class="pallete" src="/media/compete/default.png" width="100%" /><br/><br/>
+                <button class="active" type="button" data-icon="upload">Select image</button><br/><br/>
+            </div>
+            <div class="w3-row">
+                <fieldset class="w3-col w3-third">
+                    <legend>Starts at</legend>
+                    <input required placeholder="Start at"  class="create-compete-input" type="datetime-local" name="compstartAt" id="compstartAt">
+                </fieldset>
+                <fieldset class="w3-col w3-third">
+                    <legend>Ends at</legend>
+                    <input required placeholder="End at"  class="create-compete-input" type="datetime-local" name="compendAt" id="compendAt">
+                </fieldset>
+                <fieldset class="w3-col w3-third">
+                    <legend>Max score of each topic for each submission by each judge</legend>
+                    <input class="wide create-compete-input" required placeholder="Each topic max points" type="number" min="10" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/><br/>
+                </fieldset>
+                <fieldset class="w3-col w3-half">
+                    <legend>Perks</legend>
+                    <input class="wide create-compete-input" required placeholder="For Rank 1" type="text" name="compperk1" id="compperk1"><br/><br/>
+                    <input class="wide create-compete-input" required placeholder="For Rank 2" type="text" name="compperk2" id="compperk2"><br/><br/>
+                    <input class="wide create-compete-input" required placeholder="For Rank 3" type="text" name="compperk3" id="compperk3"><br/><br/>
+                </fieldset>
+            </div>
 
-{% endfor %}
+        </div>
+    </form>
+</div>
+<center><button form="create-compete-form" type="submit" class="positive big-button" data-icon="done">Create Competition</button></center>
+<br/>
+{% endblock %}
 
-
+{% block scripts %}
+<script>
+    getElements('create-compete-input').forEach(element => {
+        element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
+        element.oninput=(e)=>{
+            sessionStorage.setItem(`create-compete-input-${e.target.id}`,e.target.value)
+        }
+    });
+    getElement('addtopicbutton').onclick=_=>{
+        alertify.alert(
+            'Search topics',
+            `
+            <input id='topicquery' placeholder="Type to search topic" class="wide"></input><br/><br/>
+            <div id='topicqueryresult'>
+            </div>
+            `,
+            ()=>{
+                getElements('selected-compete-topic').forEach((btn)=>{
+                    btn.onclick=(e)=>{
+                        const id = btn.getAttribute('data-topicID')
+                        if(getElement('topicIDs').value.includes(id)){
+                            getElement('topicIDs').value = getElement('topicIDs').value.replaceAll(`,${id}`,'')
+                            e.target.hidden = true
+                            e.target.remove()
+                        }
+                    }
+                })
+            }
+        )
+        getElement('topicquery').oninput=async(e)=>{
+            const data = await postRequest("{{URLS.TOPICSEARCH}}", {
+                query: e.target.value
+            })
+            if(!data) return
+            if(data.code===code.OK && data.topic){
+                getElement('topicqueryresult').innerHTML=`<button class="primary" type='button' id="${data.topic.id}">${data.topic.name}</button>`
+                getElement(data.topic.id).onclick=(e)=>{
+                    const id = e.target.id.replaceAll('-','')
+                    let existing = String(getElement('topicIDs').value).trim();
+                    if(existing.includes(id)){
+                        return error('Already selected');
+                    }
+                    getElement('topicIDs').value = existing + ',' + id;
+                    getElement('selectedtopicsview').innerHTML+=`<button type='button' class="primary negative-text selected-compete-topic" data-topicID='${id}' id="removetopic${id}">${Icon('close')}${data.topic.name}</button>`
+                    
+                }
+            }
+        }
+    }
+    getElement('addjudgebutton').onclick=_=>{
+        alertify.alert(
+            'Search judges',
+            `
+            <input id='judgequery' placeholder="Type to search judge" class="wide"></input><br/><br/>
+            <div id='judgequeryresult'>
+            </div>
+            `,
+            ()=>{
+                getElements('selected-compete-judge').forEach((btn)=>{
+                    btn.onclick=(e)=>{
+                        const id = btn.getAttribute('data-judgeID')
+                        if(getElement('judgeIDs').value.includes(id)){
+                            getElement('judgeIDs').value = getElement('judgeIDs').value.replaceAll(`,${id}`,'')
+                            e.target.hidden = true
+                            e.target.remove()
+                        }
+                    }
+                })
+            }
+        )
+        getElement('judgequery').oninput=async(e)=>{
+            const data = await postRequest("{{URLS.JUDGESEARCH}}", {
+                query: e.target.value
+            })
+            if(!data) return
+            if(data.code===code.OK && data.judge){
+                getElement('judgequeryresult').innerHTML=`<button class="primary" type='button' id="${data.judge.id}">${data.judge.name}</button>`
+                getElement(data.judge.id).onclick=(e)=>{
+                    const id = e.target.id.replaceAll('-','')
+                    let existing = String(getElement('judgeIDs').value).trim();
+                    if(existing.includes(id)){
+                        return error('Already selected');
+                    }
+                    getElement('judgeIDs').value = existing + ',' + id;
+                    getElement('selectedjudgesview').innerHTML+=`<button type='button' class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">${Icon('close')}${data.judge.name}</button>`
+                    
+                }
+            }
+        }
+    }
+    getElement('selectmodbutton').onclick=(ebtn)=>{
+        alertify.alert(
+            'Search mods',
+            `
+            <input id='modquery' placeholder="Type to search mod" class="wide"></input><br/><br/>
+            <div id='modqueryresult'>
+            </div>
+            `,
+            ()=>{
+                getElements('selected-compete-mod').forEach((btn)=>{
+                    btn.onclick=(e)=>{
+                        getElement('compmodID').value = ""
+                        e.target.hidden = true
+                        e.target.remove()
+                        show(ebtn.target)
+                    }
+                })
+            }
+        )
+        getElement('modquery').oninput=async(e)=>{
+            const data = await postRequest("{{URLS.MODSEARCH}}", {
+                query: e.target.value
+            })
+            if(!data) return
+            if(data.code===code.OK && data.mod){
+                getElement('modqueryresult').innerHTML=`<button class="primary" type='button' id="${data.mod.id}">${data.mod.name}</button>`
+                getElement(data.mod.id).onclick=(e)=>{
+                    const id = e.target.id.replaceAll('-','')
+                    getElement('compmodID').value = id;
+                    getElement('selectedmodview').innerHTML =`<button type='button' class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">${Icon('close')}${data.mod.name}</button>`
+                    hide(ebtn.target)
+                    
+                }
+            }
+        }
+    }
+</script>
 {% endblock %}

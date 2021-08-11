@@ -278,6 +278,13 @@ class URL():
         def claimXP(self, compID, subID):
             return setPathParams(self.CLAIMXP, compID, subID)
 
+        GENERATE_CERTS = 'generatecertificate/<str:compID>'
+        def generateCert(self,compID):
+            return setPathParams(self.GENERATE_CERTS, compID)
+
+        def certficate(self, resID, userID):
+            return setPathParams(self.CERTIFICATE, resID, userID)
+
         CERTIFICATE = 'certificate/<str:resID>/<str:userID>'
 
         def certficate(self, resID, userID):
@@ -493,6 +500,9 @@ class URL():
         CREATE_COMP = 'competitions/create'
         SUBMIT_COMP = 'competitions/submit'
         COMPETITION = 'competitions/<str:compID>'
+        TOPICSEARCH = 'topicsearch'
+        JUDGESEARCH = 'judgesearch'
+        MODSEARCH = 'moderatorsearch'
 
         REPORT_FEED = 'report-feedback'
         REPORTS = 'report-feedback/reports'

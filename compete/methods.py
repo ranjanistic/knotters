@@ -111,31 +111,4 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             break
     return rendererstr(request, f'profile/{section}', data)
 
-
-def generateResultCertificates() -> bool:
-    compID = str(input('COMP ID : '))
-    try:
-        competition = Competition.objects.get(id=compID)
-        if not (competition.resultDeclared and competition.allResultsDeclared()):
-            print("Results not declared")
-            return False
-        if competition.certificatesGenerated():
-            print("Certs already generated")
-            return False
-        participantCerts = []
-        for result in competition.getResults():
-            for member in result.submission.getMembers():
-                participantCerts.append(
-                    ParticipantCertificate(
-                        result=result,
-                        profile=member,
-                        certificate=''
-                    )
-                )
-        certs = ParticipantCertificate.objects.bulk_create(participantCerts,ignore_conflicts=True,batch_size=100)
-        return len(certs) == competition.totalParticipants()
-    except Exception as e:
-        errorLog(e)
-        return False
-
 from .receivers import *

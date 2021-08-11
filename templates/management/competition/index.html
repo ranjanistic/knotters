@@ -1,11 +1,42 @@
 {% extends 'management/index.html' %}
+{% load custom_tags %}
 
 {% block nav_text %}Manage Competitions{% endblock %}
 
 {% block content %}
+<div class="w3-row w3-padding">
 
+<a href="{{URLS.CREATE_COMP}}"><button class="accent w3-right">Create<i>add</i></button></a>
+
+<h3>Created by you</h3>
 {% for compete in competes %}
-    {{compete}}
+    {% if compete.creator == request.user.profile %}
+    <div class="w3-col w3-third">
+        <div class="w3-row pallete-slab">
+        <img class="w3-round w3-right" width="60" src="{{compete.getBanner}}" />
+        <h6>{{compete.title}}</h6>
+        <strong>{{compete.totalParticipants}} participants</strong><br/>
+        <strong>{{compete.totalValidSubmissions}} submissions</strong>
+        <a href="{{compete.getManagementLink}}" class="w3-right"><button class="positive small" data-icon="visibility">View</button></a>
+        </div>
+    </div>
+    {% endif %}
 {% endfor %}
 
+<h3>Created by others</h3>
+{% for compete in competes %}
+    {% if compete.creator != request.user.profile %}
+    <div class="w3-col w3-third">
+        <div class="w3-row pallete-slab">
+        <img class="w3-round w3-right" width="60" src="{{compete.getBanner}}" />
+        <h6>{{compete.title}}</h6>
+        <strong>{{compete.totalParticipants}} participants</strong><br/>
+        <strong>{{compete.totalValidSubmissions}} submissions</strong>
+        <a href="{{URLS.COMPETITION|params:compete.getID}}" class="w3-right"><button class="positive small" data-icon="visibility">View</button></a>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+</div>
 {% endblock %}

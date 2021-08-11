@@ -366,10 +366,8 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     try:
         comp = Competition.objects.get(
-            id=compID, endAt__lt=timezone.now(), resultDeclared=False)
+            id=compID, endAt__lt=timezone.now(), resultDeclared=False,creator=request.user.profile)
 
-        if not comp.isModerator(request.user.profile):
-            raise Exception()
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getJudgementLink(error=Message.INVALID_REQUEST))
 
@@ -416,6 +414,33 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404()
 
+
+@manager_only
+@require_POST
+def generateCertificates(request:WSGIRequest, compID:UUID) -> HttpResponse:
+    try:
+        competition = Competition.objects.get(id=compID,creator=request.user.profile)
+        if not (competition.resultDeclared and competition.allResultsDeclared()):
+            raise Exception('Results not declared')
+        if competition.certificatesGenerated():
+            raise Exception("Certs already generated")
+        participantCerts = []
+        for result in competition.getResults():
+            for member in result.submission.getMembers():
+                raise Exception('gen_certificate: Not yet supported')
+                # TODO: Generate certificates in media
+                # participantCerts.append(
+                #     ParticipantCertificate(
+                #         result=result,
+                #         profile=member,
+                #         certificate=''
+                #     )
+                # )
+        certs = ParticipantCertificate.objects.bulk_create(participantCerts,batch_size=100)
+        return len(certs) == competition.totalParticipants()
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
 
 @require_GET
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:

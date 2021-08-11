@@ -10,6 +10,7 @@ from moderation.methods import assignModeratorToObject
 from compete.models import Competition
 from projects.models import Category
 from people.models import Topic, Profile
+from main.env import BOTMAIL
 from .methods import renderer, createCompetition, rendererstr
 from .models import Report, Feedback
 from .apps import APPNAME
@@ -93,76 +94,68 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
             compete=compete,
             iscreator=(compete.creator == request.user.profile)
         ))
-    except:
+    except Exception as e:
+        print(e)
         raise Http404()
 
 
 @manager_only
 @require_JSON_body
+def searchTopic(request: WSGIRequest) -> JsonResponse:
+    try:
+        query = request.POST.get('query', None)
+        if not query or not str(query).strip():
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        print(query.capitalize())
+        topic = Topic.objects.filter(name__istartswith=query.capitalize()).first()
+        print(topic)
+        return respondJson(Code.OK, dict(topic=dict(
+            id=topic.id,
+            name=topic.name
+        )))
+    except Exception as e:
+        return respondJson(Code.NO)
+
+
+@manager_only
+@require_JSON_body
 def searchJudge(request: WSGIRequest) -> JsonResponse:
-    query = request.POST.get('query', None)
-    if not query or not str(query).strip():
-        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-    profiles = Profile.objects.filter(Q(Q(is_active=True, suspended=False, is_zombie=False, to_be_zombie=False), Q(
-        user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query)))[0:5]
-    return respondJson(Code.OK, dict(profiles=profiles))
+    try:
+        query = request.POST.get('query', None)
+        if not query or not str(query).strip():
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        profile = Profile.objects.exclude(user=request.user,user__email=BOTMAIL).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
+            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        return respondJson(Code.OK, dict(judge=dict(
+            id=profile.user.id,
+            name=profile.getName()
+        )))
+    except Exception as e:
+        return respondJson(Code.NO)
+
 
 @manager_only
 @require_JSON_body
 def searchModerator(request: WSGIRequest) -> JsonResponse:
-    query = request.POST.get('query', None)
-    if not query or not str(query).strip():
-        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-    profiles = Profile.objects.filter(Q(Q(is_active=True, suspended=False, is_zombie=False, to_be_zombie=False, is_moderator=True), Q(
-        user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query)))[0:5]
-    return respondJson(Code.OK, dict(profiles=profiles))
+    try:
+        query = request.POST.get('query', None)
+        if not query or not str(query).strip():
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        profile = Profile.objects.exclude(user=request.user,user__email=BOTMAIL).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
+            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        return respondJson(Code.OK, dict(mod=dict(
+            id=profile.user.id,
+            name=profile.getName()
+        )))
+    except Exception as e:
+        return respondJson(Code.NO)
+    
+
 
 @manager_only
 @require_GET
 def createCompete(request: WSGIRequest) -> HttpResponse:
-    fields = [dict(name="comptitle",
-                   title="comptitle",
-                   placeholder="comptitle"),
-              dict(name="comptagline",
-                   title="comptagline",
-                   placeholder="comptagline"),
-              dict(name="compshortdesc",
-                   title="compshortdesc",
-                   placeholder="compshortdesc"),
-              dict(name="compdesc",
-                   title="compdesc",
-                   placeholder="compdesc"),
-              dict(name="compmodID",
-                   title="compmodID",
-                   placeholder="compmodID"),
-              dict(name="compstartAt",
-                   title="compstartAt",
-                   placeholder="compstartAt"),
-              dict(name="compendAt",
-                   title="compendAt",
-                   placeholder="compendAt"),
-              dict(name="compeachTopicMaxPoint",
-                   title="compeachTopicMaxPoint",
-                   placeholder="compeachTopicMaxPoint"),
-              dict(name="comptopicIDs",
-                   title="comptopicIDs",
-                   placeholder="comptopicIDs"),
-              dict(name="compjudgeIDs",
-                   title="compjudgeIDs",
-                   placeholder="compjudgeIDs"),
-              dict(name="compperks",
-                   title="compperks",
-                   placeholder="compperks"),
-              dict(name="comptaskSummary",
-                   title="comptaskSummary",
-                   placeholder="comptaskSummary"),
-              dict(name="comptaskDetail",
-                   title="comptaskDetail",
-                   placeholder="comptaskDetail"),
-              dict(name="comptaskSample",
-                   title="comptaskSample",
-                   placeholder="comptaskSample")]
-    return renderer(request, 'competition/create', dict(fields=fields))
+    return renderer(request, 'competition/create')
 
 
 @manager_only
@@ -173,7 +166,7 @@ def submitCompetition(request) -> HttpResponse:
         tagline = str(request.POST["comptagline"]).strip()
         shortdesc = str(request.POST["compshortdesc"]).strip()
         desc = str(request.POST["compdesc"]).strip()
-        modID = str(request.POST['modID']).strip()
+        modID = str(request.POST['compmodID']).strip()
         startAt = request.POST['compstartAt']
         endAt = request.POST['compendAt']
         eachTopicMaxPoint = int(request.POST['compeachTopicMaxPoint'])
@@ -181,7 +174,7 @@ def submitCompetition(request) -> HttpResponse:
                        ).strip().strip(',').split(',')
         judgeIDs = str(request.POST['compjudgeIDs']
                        ).strip().strip(',').split(',')
-        perks = str(request.POST['compPerks']).strip().strip(';').split(';')
+        perks = [str(request.POST['compPerk1']).strip(),str(request.POST['compPerk2']).strip(),str(request.POST['compPerk3']).strip()]
         taskSummary = str(request.POST['comptaskSummary']).strip()
         taskDetail = str(request.POST['comptaskDetail']).strip()
         taskSample = str(request.POST['comptaskSample']).strip()

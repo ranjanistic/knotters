@@ -10,6 +10,7 @@ from main.settings import MEDIA_URL
 from main.methods import errorLog, getNumberSuffix
 from .apps import APPNAME
 
+
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/banners/{instance.getID()}.{fileparts[len(fileparts)-1]}"
@@ -58,7 +59,8 @@ class Competition(models.Model):
     resultDeclared = models.BooleanField(
         default=False, help_text='Whether the results have been declared or not. Strictly restricted to be edited via server.')
 
-    creator = models.ForeignKey(Profile,on_delete=models.PROTECT, related_name='competition_creator')
+    creator = models.ForeignKey(
+        Profile, on_delete=models.PROTECT, related_name='competition_creator')
 
     def __str__(self) -> str:
         return self.title
@@ -318,45 +320,55 @@ class Competition(models.Model):
         try:
             if not self.allSubmissionsMarked():
                 raise Exception(
-                    f"Cannot declare results of {self.title} unless all valid submissions have been marked")
+                    f"Cannot declare results of {self.title} unless all valid submissions have been marked.")
             subs = self.getValidSubmissions()
-            results = SubmissionTopicPoint.objects.filter(submission__in=subs).values(
-                'submission').annotate(totalPoints=Sum('points')).order_by('-totalPoints')
+
+            submissionPoints = SubmissionTopicPoint.objects.filter(submission__in=subs).values('submission', 'submission__submitOn').annotate(
+                totalPoints=Sum('points')).order_by('-totalPoints', 'submission__submitOn')
 
             resultsList = []
 
             rank = 1
-            for res in results:
+            for submissionpoint in submissionPoints:
                 subm = None
                 for sub in subs:
-                    if str(res['submission']) == str(sub.id):
+                    if str(sub.id) == str(submissionpoint['submission']):
                         subm = sub
+                        break
                 if subm:
                     resultsList.append(
                         Result(
                             competition=self,
                             submission=subm,
-                            points=res['totalPoints'],
+                            points=submissionpoint['totalPoints'],
                             rank=rank
                         )
                     )
-                rank += 1
+                    rank = rank + 1
+                else:
+                    raise Exception(f"Results declaration: Submission not found (valid) but submission points found! subID: {submissionpoint['submission']}")
             Result.objects.bulk_create(resultsList)
             self.resultDeclared = True
             self.save()
+            if not self.allResultsDeclared():
+                raise Exception(
+                    'Results declaration: All results not declared!')
             return self
         except Exception as e:
             errorLog(e)
             return False
 
-    def getResults(self):
+    def getResults(self) -> models.QuerySet:
         return Result.objects.filter(competition=self)
 
     def totalResults(self) -> int:
         return Result.objects.filter(competition=self).count()
 
-    def allResultsDeclared(self):
-        return self.totalResults() == self.totalSubmissions()
+    def allResultsDeclared(self) -> bool:
+        return self.totalResults() == self.totalValidSubmissions()
+
+    def generateCertificatesLink(self) -> str:
+        return f"{url.getRoot(APPNAME)}{url.compete.generateCert(compID=self.getID())}"
 
     def totalCertificates(self) -> int:
         return ParticipantCertificate.objects.filter(result__submission__competition=self).count()
@@ -592,7 +604,6 @@ class Result(models.Model):
 
     def getRank(self, rnk=0) -> str:
         return f"{self.rank}{self.rankSuptext(rnk=rnk)}"
-
 
     def hasClaimedXP(self, profile: Profile) -> bool:
         return profile in self.xpclaimers.all()

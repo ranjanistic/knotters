@@ -7,8 +7,11 @@ urlpatterns = [
     path(URL.INDEX, index),
     path(URL.Management.COMPETITIONS, competitions),
     path(URL.Management.CREATE_COMP, createCompete),
-    path(URL.Management.COMPETITION, competition),
     path(URL.Management.SUBMIT_COMP, submitCompetition),
+    path(URL.Management.COMPETITION, competition),
+    path(URL.Management.TOPICSEARCH, searchTopic),
+    path(URL.Management.JUDGESEARCH, searchJudge),
+    path(URL.Management.MODSEARCH, searchModerator),
 
     path(URL.Management.REPORT_FEED, reportFeedbacks),
     path(URL.Management.REPORTS, reports),

@@ -25,6 +25,8 @@ def createCompetition(creator, title, tagline, shortdescription,
             raise Exception(f"invalid perks {perks}")
         if startAt >= endAt:
             raise Exception(f"invalid timings")
+        if eachTopicMaxPoint < 0:
+            raise Exception(f"invalid eachTopicMaxPoint")
 
         compete = Competition.objects.create(
             creator=creator,
@@ -37,14 +39,14 @@ def createCompetition(creator, title, tagline, shortdescription,
             taskSample=taskSample,
             startAt=startAt,
             endAt=endAt,
+            perks=";".join(perks),
             eachTopicMaxPoint=eachTopicMaxPoint,
             resultDeclared=False,
         )
         topics = Topic.objects.filter(id__in=topicIDs)
         for topic in topics:
             compete.topics.add(topic)
-        judges = Profile.objects.filter(
-            suspended=False, is_active=True, to_be_zombie=False, is_zombie=False, user__id__in=judgeIDs)
+        judges = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, user__id__in=judgeIDs)
         for judge in judges:
             compete.judges.add(judge)
         return compete

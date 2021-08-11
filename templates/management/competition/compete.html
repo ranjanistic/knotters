@@ -1,22 +1,60 @@
 {% extends 'management/competition/index.html' %}
 
-{% block nav_text %}Manage '{{compete.title}}'{% endblock %}
+{% block nav_text %}Manage: {{compete.title}}{% endblock %}
+
+{% block nav_icon %}
+<button class="primary previous-action-button" data-icon="arrow_back"></button>
+{% endblock %}
+{% block nav_href %}{{URLS.COMPETITIONS}}{% endblock %}
 
 {% block content %}
+<br/>
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-third w3-center w3-padding">
+        <img src="{{compete.getBanner}}" class="w3-round" width="100%" />
+        <h4>{{compete.title}}</h4>
+    </div>
 
-{{compete}}
+    <div class="w3-col w3-twothird w3-padding">
+        <a href="{{compete.getLink}}" target="_blank"><button class="primary small w3-right" data-icon="open_in_new">View homepage</button></a>
+        <h5>Title: {{compete.title}}</h5>
+        <h6>Creator: {% if iscreator %}You{% else %}<a href="{{compete.creator.getLink}}" target="_blank">{{compete.creator.getName}}</a>{% endif %}</h6>
+        <h6>Moderator: <a href="{{compete.getModerator.getLink}}" target="_blank">{{compete.getModerator.getName}}</a></h6>
+        <h6>Judges: {%for judge in compete.getJudges %}[<a href="{{judge.getLink}}" target="_blank">{{judge.getName}}</a>] {% endfor %}</h6>
+        <strong>Short description: {{compete.shortdescription}}</strong><br/>
+        <strong>Description: {{compete.description}}</strong><br/>
+        <strong>Start At: {{compete.startAt}}</strong><br/>
+        <strong>End At: {{compete.endAt}}</strong><br/>
+        <strong>Is Upcoming? {{compete.isUpcoming|yesno}}</strong><br/>
+        <strong>Is Active? {{compete.isActive|yesno}}</strong><br/>
+        <strong>Is History? {{compete.isHistory|yesno}}</strong><br/>
+        <strong>Topics: {%for topic in compete.getTopics %}[{{topic.name}}] {% endfor %}</strong><br/>
+        <strong>Perks: {%for perk in compete.getPerks %}[{{perk}}] {% endfor %}</strong><br/>
+        <strong>Task summary: {{compete.taskSummary}}</strong><br/>
+        <strong>Task detail: {{compete.taskDetail}}</strong><br/>
+        <strong>Task sample: {{compete.taskSample}}</strong><br/>
 
-{{iscreator}}
-
-{% if compete.allSubmissionsMarked and not compete.resultDeclared %}
-    {% if iscreator %}
-    <form method="POST" action="{{compete.declareResultsLink}}">
-        {% csrf_token %}
-        <button onclick="loader()" class="accent display-button" data-icon="celebration">Declare results now</button>
-    </form>
-    {% else %}
-    <h4>Results are waiting to be declared by {{compete.creator.getName}}</h4>
-    {% endif %}
-{% endif %}
-
+        {% if compete.allSubmissionsMarked %}
+            {% if compete.resultDeclared %}
+                <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
+                <strong>Certificates Generated: {{compete.certificatesGenerated|yesno}}</strong><br/>
+                {% if not compete.certificatesGenerated and iscreator %}
+                    <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
+                        {% csrf_token %}
+                        <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                {% if iscreator %}
+                    <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
+                        {% csrf_token %}
+                        <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        {% elif not compete.allSubmissionsMarked %}
+        {% endif %}
+    </div>
+</div>
+<br/>
 {% endblock %}

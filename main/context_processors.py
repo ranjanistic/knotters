@@ -1,7 +1,7 @@
 from main.methods import renderData
 from .env import PUBNAME, BOTMAIL, SITE, VERSION
 from .strings import DIVISIONS, URL
-from .settings import STATIC_URL
+from django.conf import settings
 
 
 def Global(request):
@@ -13,7 +13,7 @@ def Global(request):
         VERSION=VERSION,
         SUBAPPS=dict(),
         SUBAPPSLIST=[],
-        ICON=f"{STATIC_URL}graphics/self/icon.svg",
+        ICON=f"{settings.STATIC_URL}graphics/self/icon.svg",
         SERVICE_WORKER=f"/{URL.SERVICE_WORKER}",
         MANIFESTURL=f"/{URL.MANIFEST}",
     )
