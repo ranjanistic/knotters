@@ -196,7 +196,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
             netFirstList=json.dumps([
-                f"/{settings.MEDIA_URL}",
+                settings.MEDIA_URL,
                 f"/{URL.PROJECTS}{URL.Projects.NEWBIES}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
                 f"/{URL.PEOPLE}{URL.People.NEWBIES}",
