@@ -27,7 +27,7 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
-        if request.user.is_authenticated and (request.user.getID() == userID or request.user.githubID == userID):
+        if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.githubID == userID):
             person = request.user
         else:
             try:
