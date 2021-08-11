@@ -608,8 +608,7 @@ const reportFeedback = async ({
     summary = '',
     detail = ''
 }) => {
-    const data = await postRequest(URLS.REPORT_FEEDBACK,{
-        isReport,
+    const data = await postRequest('/'+URLS.MANAGEMENT+ (isReport?URLS.Management.CREATE_REPORT:URLS.Management.CREATE_FEEDBACK),{
         email,
         category,
         summary,
