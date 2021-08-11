@@ -1,11 +1,22 @@
 {% extends 'management/competition/index.html' %}
 
-{% block nav_text %}Manage Competition{% endblock %}
+{% block nav_text %}Manage '{{compete.title}}'{% endblock %}
 
 {% block content %}
 
 {{compete}}
 
 {{iscreator}}
+
+{% if compete.allSubmissionsMarked and not compete.resultDeclared %}
+    {% if iscreator %}
+    <form method="POST" action="{{compete.declareResultsLink}}">
+        {% csrf_token %}
+        <button onclick="loader()" class="accent display-button" data-icon="celebration">Declare results now</button>
+    </form>
+    {% else %}
+    <h4>Results are waiting to be declared by {{compete.creator.getName}}</h4>
+    {% endif %}
+{% endif %}
 
 {% endblock %}

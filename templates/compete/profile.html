@@ -31,13 +31,15 @@
 {% block content %}
   {% if isJudge or isMod %}
     <strong>
-  <div class="w3-row w3-center accent w3-padding">
-    {% if isJudge %}
-      You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for judgement view.
-    {% elif isMod %}
-      You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for moderation view.
-  {% endif %}
-  </div>
+      <div class="w3-row w3-center accent w3-padding">
+        {% if isJudge %}
+          You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for judgement view.
+        {% elif isMod %}
+          You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for moderation view.
+        {% elif isManager %}
+          You {% if compete.resultDeclared %}were{% else %}are{% endif %} the manager of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for management view.
+        {% endif %}
+      </div>
     </strong>
   {% endif %}
 <div class="w3-row tertiary">

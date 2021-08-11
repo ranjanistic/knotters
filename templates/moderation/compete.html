@@ -1,5 +1,8 @@
 {% extends 'moderation/index.html' %}
 {% load custom_tags %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
 
 {% block content %}
 
@@ -10,8 +13,8 @@
             <div class="w3-col w3-half w3-padding-small">
                 <div class="pallete secondary">
                     <h5 class="text-secondary">{{moderation.competition.title}}</h5>
-                    <h6 class="text-secondary">{{moderation.competition.tagline}}askldfjl</h6>
-                    <div class="text-secondary"><strong>{{moderation.competition.shortdescription}}askldfjlskadjflkjaskldfjlskadjflkjaskldfjlskadjflkjaskldfjlskadjflkjaskldfjlskadjflkj</strong></div>
+                    <h6 class="text-secondary">{{moderation.competition.tagline}}</h6>
+                    <div class="text-secondary"><strong>{{moderation.competition.shortdescription}}</strong></div>
                     <a target="_blank" href="{{moderation.competition.getLink}}#mainframe"><button class="accent small w3-right" data-icon="open_in_new">More details</button></a>
                 </div>
             </div>
@@ -104,23 +107,13 @@
                     <a href="{{moderation.competition.getLink}}"><button class="positive" data-icon="open_in_new">See results</button></a>
                     </center>
                 {% else %}    
-                    {% if ismoderator %}
-                        <center>
-                        <h4>All submissions have been marked & results are ready to be declared.</h4>
-                        <form method="POST" action="{{moderation.competition.declareResultsLink}}">
-                            {% csrf_token %}
-                            <button onclick="loader()" class="accent display-button" data-icon="celebration">Declare results now</button>
-                        </form>
-                        </center>
-                    {% else %}
-                        <center>
-                        <i class="w3-jumbo active-text">verified</i>
-                        <h3>All submissions have been marked & results are waiting to be declared by the moderator.</h3>
-                        <h4>Results will be declared soon.</h4>
-                        <h6>We'll surely notify you about the results, once declared.</h6>
-                        {% comment %} <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button> {% endcomment %}
-                        </center>
-                    {% endif %}
+                    <center>
+                    <i class="w3-jumbo active-text">verified</i>
+                    <h3>All submissions have been marked & results are waiting to be declared.</h3>
+                    <h4>Results will be declared by managers, soon.</h4>
+                    <h6>We'll notify you about the results, once declared.</h6>
+                    {% comment %} <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button> {% endcomment %}
+                    </center>
                 {% endif %}
             {% else %}
                 {% if ismoderator %}
@@ -130,7 +123,7 @@
                     <h1>Judges on duty</h1>
                     <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
                     <h3>{{moderation.competition.countJudgesWhoMarkedSumissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
-                    <h6 class="positive-text">We'll email you once all valid submissions are marked for result declaration.</h6>
+                    <h6 class="positive-text">We'll notify you once when all results are ready to be declared.</h6>
                     </center>
                 {% else %}
                     {% if allSubmissionsMarkedByJudge %}
@@ -138,7 +131,7 @@
                         <i class="w3-jumbo positive-text">verified</i>
                         <h3>All submissions have been marked by you.<br/>Results will be declared soon.</h3>
                         <h4>We're so grateful to have you as judge in this competition.</h4>
-                        <h6>We'll surely notify you about the results, once declared.</h6>
+                        <h6>We'll notify you about the results, once declared.</h6>
                         </center>
                     {% else %}
                         <center><h4 class="dead-text">Moderator is waiting for submissions to be marked by you.</h4></center>
