@@ -93,6 +93,7 @@ class Moderation(models.Model):
             self.project.approvedOn = now
             self.project.save()
         self.resolved = True
+        self.moderator.increaseXP(by=5)
         self.save()
         return True
 
@@ -104,6 +105,7 @@ class Moderation(models.Model):
             self.project.approvedOn = None
             self.project.save()
         self.resolved = False
+        self.moderator.decreaseXP(by=5)
         self.save()
         return True
 

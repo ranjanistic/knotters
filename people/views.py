@@ -18,8 +18,7 @@ from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    people = Profile.objects.filter(
-        is_active=True, is_zombie=False, to_be_zombie=False, suspended=False)
+    people = Profile.objects.filter(~Q(Q(is_zombie=True) | Q(to_be_zombie=True)), is_active=True, suspended=False)
     data = dict(people=people)
     return renderer(request, 'index', data)
 
@@ -29,16 +28,17 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
         if request.user.is_authenticated:
             if request.user.profile.to_be_zombie or request.user.profile.is_zombie:
-                raise Http404()
+                raise Exception()
             if request.user.profile.githubID == userID:
                 return renderer(request, 'profile', dict(person=request.user))
             if request.user.id == UUID(userID):
                 if not request.user.githubID:
                     return renderer(request, 'profile', dict(person=request.user))
                 return redirect(request.user.getLink())
-            profile = Profile.objects.get(githubID=userID, is_zombie=False, to_be_zombie=False, is_active=True,suspended=False)
+            profile = Profile.objects.get(Q(Q(githubID=userID)|Q(user__id=userID)), is_zombie=False, to_be_zombie=False, is_active=True,suspended=False)
             return renderer(request, 'profile', dict(person=profile.user))
     except:
+        print('her')
         pass
     try:
         user = User.objects.get(id=userID)
@@ -48,6 +48,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             return redirect(user.profile.getLink())
         return renderer(request, 'profile', dict(person=user))
     except:
+        print(2)
         pass
     try:
         profile = Profile.objects.get(githubID=userID)

@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
-from main.decorators import require_JSON_body, normal_profile_required, moderator_only
+from main.decorators import require_JSON_body, normal_profile_required, manager_only
 from main.methods import errorLog, renderData, respondJson
 from main.strings import Action, Code, Message
 from people.models import ProfileTopic, Profile
@@ -40,10 +40,14 @@ def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
-        data = {"compete": compete}
+        data = dict(compete=compete)
         if request.user.is_authenticated:
-            data["isJudge"] = compete.isJudge(request.user.profile)
-            data["isMod"] = compete.isModerator(request.user.profile)
+            data = dict(
+                **data,
+                isJudge=compete.isJudge(request.user.profile),
+                isMod=compete.isModerator(request.user.profile),
+                isManager=(compete.creator == request.user.profile),
+            )
         return renderer(request, 'profile', data)
     except Exception as e:
         errorLog(e)
@@ -54,15 +58,19 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
 def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
         compete = Competition.objects.get(id=compID)
-        data = {'timeleft': compete.secondsLeft()}
+        data = dict(timeleft=compete.secondsLeft())
         if request.user.is_authenticated:
             try:
                 subm = Submission.objects.get(
                     competition=compete, members=request.user.profile)
-                data['participated'] = True
-                data['subID'] = subm.getID()
+                data = dict(**data,
+                    participated=True,
+                    subID=subm.getID()
+                )
             except:
-                data['participated'] = False
+                data = dict(**data,
+                    participated=False,
+                )
         return respondJson(Code.OK, data)
     except Exception as e:
         errorLog(e)
@@ -104,6 +112,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         submission.members.add(request.user.profile)
         SubmissionParticipant.objects.filter(
             submission=submission, profile=request.user.profile).update(confirmed=True)
+        request.user.profile.increaseXP(by=5)
         participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink())
     except Exception as e:
@@ -130,6 +139,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             submission.members.remove(member)
             if submission.totalActiveMembers() == 0:
                 submission.delete()
+            member.decreaseXP(by=5)
             participationWithdrawnAlert(member, submission)
             return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
         except Exception as e:
@@ -218,18 +228,19 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
         if action == Action.DECLINE:
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).delete()
-            return render(request, "invitation.html", renderData({
-                'submission': submission,
-                'declined': True
-            }, APPNAME))
+            return render(request, "invitation.html", renderData(dict(
+                submission=submission,
+                declined=True
+            ), APPNAME))
         elif action == Action.ACCEPT:
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
+            request.user.profile.increaseXP(by=5)
             participantWelcomeAlert(request.user.profile, submission)
-            return render(request, "invitation.html", renderData({
-                'submission': submission,
-                'accepted': True
-            }, APPNAME))
+            return render(request, "invitation.html", renderData(dict(
+                submission=submission,
+                accepted=True
+            ), APPNAME))
         else:
             raise Exception()
     except:
@@ -274,15 +285,17 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission.submitOn = now
         submission.submitted = True
         submission.save()
+        for member in submission.getMembers():
+            member.increaseXP(by=2)
         submissionConfirmedAlert(submission)
         return respondJson(Code.OK, message=message)
     except Exception as e:
         errorLog(e)
         raise respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
-
-@require_JSON_body
+@normal_profile_required
 @judge_only
+@require_JSON_body
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     """
     For judge to submit their markings of all submissions of a competition.
@@ -294,7 +307,13 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
         submissions = Submission.objects.filter(competition__id=compID, competition__judges=request.user.profile,
                                                 competition__resultDeclared=False, competition__endAt__lt=timezone.now(), valid=True).order_by('submitOn')
-        topics = submissions.first().competition.getTopics()
+
+        competition = submissions.first().competition
+
+        if competition.allSubmissionsMarkedByJudge(judge=request.user.profile):
+            raise Exception()
+
+        topics = competition.getTopics()
 
         modifiedTops = {}
 
@@ -331,18 +350,19 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                         points=point
                     ))
 
-        SubmissionTopicPoint.objects.bulk_create(topicpointsList)
+        subtopicpoints = SubmissionTopicPoint.objects.bulk_create(topicpointsList)
+        request.user.profile.increaseXP(by=len(submissions))
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@moderator_only
+@manager_only
 @require_POST
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
-    For moderator to declare results after markings of all submissions by all judges have been completed.
+    For manager to declare results after markings of all submissions by all judges have been completed.
     """
     try:
         comp = Competition.objects.get(

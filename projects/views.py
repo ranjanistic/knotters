@@ -130,8 +130,8 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@ normal_profile_required
-@ require_POST
+@normal_profile_required
+@require_POST
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
@@ -176,8 +176,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
 
 
-@ normal_profile_required
-@ require_POST
+@normal_profile_required
+@require_POST
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(
@@ -189,7 +189,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@ require_GET
+@require_GET
 def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame, trashed=False)
@@ -210,8 +210,8 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
         raise Http404()
 
 
-@ normal_profile_required
-@ require_POST
+@normal_profile_required
+@require_POST
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = Project.objects.get(
@@ -245,8 +245,8 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
         return HttpResponseForbidden()
 
 
-@ normal_profile_required
-@ require_JSON_body
+@normal_profile_required
+@require_JSON_body
 def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     query = request.POST.get('query', None)
     if not query or not query.strip():
@@ -272,8 +272,8 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     ))
 
 
-@ normal_profile_required
-@ require_POST
+@normal_profile_required
+@require_POST
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
@@ -303,8 +303,8 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@ normal_profile_required
-@ require_JSON_body
+@normal_profile_required
+@require_JSON_body
 def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     try:
         query = request.POST.get('query', None)
@@ -334,8 +334,8 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@ normal_profile_required
-@ require_POST
+@normal_profile_required
+@require_POST
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
@@ -365,7 +365,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@ require_GET
+@require_GET
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
@@ -374,8 +374,8 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@ csrf_exempt
-@ github_only
+@csrf_exempt
+@github_only
 def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
         ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
@@ -413,7 +413,7 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
         return Http404()
 
 
-@ require_GET
+@require_GET
 def newbieProjects(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(
         status=Code.APPROVED).order_by('-approvedOn')[0:10]
