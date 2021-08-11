@@ -99,13 +99,15 @@ self.addEventListener("fetch", async (event) => {
                                 return FetchRes;
                             }
                         }
+                    } else if (FetchRes.status > 300) {
+                        return FetchRes;
                     } else {
                         return caches
                             .match(event.request)
                             .then((cachedResponse) => {
                                 if (cachedResponse) {
                                     return cachedResponse;
-                                }
+                                } else throw Error();
                             })
                             .catch(() => {
                                 if (
@@ -116,7 +118,7 @@ self.addEventListener("fetch", async (event) => {
                                                   path
                                               )
                                             : noOfflinePath === path
-                                    ) ||
+                                    ) &&
                                     event.request.headers.get(
                                         "X-KNOT-REQ-SCRIPT"
                                     ) !== "true"

@@ -18,7 +18,8 @@ from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    people = Profile.objects.filter(~Q(Q(is_zombie=True) | Q(to_be_zombie=True)), is_active=True, suspended=False)
+    people = Profile.objects.filter(~Q(Q(is_zombie=True) | Q(
+        to_be_zombie=True)), is_active=True, suspended=False)
     data = dict(people=people)
     return renderer(request, 'index', data)
 
@@ -26,36 +27,24 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
-        if request.user.is_authenticated:
-            if request.user.profile.to_be_zombie or request.user.profile.is_zombie:
-                raise Exception()
-            if request.user.profile.githubID == userID:
-                return renderer(request, 'profile', dict(person=request.user))
-            if request.user.id == UUID(userID):
-                if not request.user.githubID:
-                    return renderer(request, 'profile', dict(person=request.user))
-                return redirect(request.user.getLink())
-            profile = Profile.objects.get(Q(Q(githubID=userID)|Q(user__id=userID)), is_zombie=False, to_be_zombie=False, is_active=True,suspended=False)
-            return renderer(request, 'profile', dict(person=profile.user))
-    except:
-        print('her')
-        pass
-    try:
-        user = User.objects.get(id=userID)
-        if not user.profile.isNormal():
-            raise Exception()
-        if user.profile.githubID:
-            return redirect(user.profile.getLink())
-        return renderer(request, 'profile', dict(person=user))
-    except:
-        print(2)
-        pass
-    try:
-        profile = Profile.objects.get(githubID=userID)
-        if not profile.isNormal():
-            raise Exception()
-        return renderer(request, 'profile', dict(person=profile.user))
-    except:
+        if request.user.is_authenticated and (request.user.getID() == userID or request.user.githubID == userID):
+            person = request.user
+        else:
+            try:
+                person = User.objects.get(
+                    id=userID, profile__to_be_zombie=False, profile__suspended=False)
+                if person.profile.githubID:
+                    return redirect(person.profile.getLink())
+            except:
+                try:
+                    profile = Profile.objects.get(
+                        githubID=userID, to_be_zombie=False, suspended=False)
+                    person = profile.user
+                except:
+                    raise Exception()
+        return renderer(request, 'profile', dict(person=person))
+    except Exception as e:
+        errorLog(e)
         raise Http404()
 
 
@@ -116,7 +105,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 if filterBio(bio) != profile.bio:
                     profile.bio = filterBio(bio)
                     profilechanged = True
-                
+
                 if userchanged:
                     profile.user.save()
                 if profilechanged:
@@ -124,7 +113,8 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 return redirect(profile.getLink())
             except:
                 return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
-        else: raise Exception()
+        else:
+            raise Exception()
     except:
         return HttpResponseForbidden()
 
@@ -154,9 +144,10 @@ def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
         errorLog(e)
         return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
 
+
 @require_JSON_body
-def topicsSearch(request:WSGIRequest)->JsonResponse:
-    query = request.POST.get('query',None)
+def topicsSearch(request: WSGIRequest) -> JsonResponse:
+    query = request.POST.get('query', None)
     if not query:
         return respondJson(Code.NO)
     excluding = []
@@ -164,34 +155,38 @@ def topicsSearch(request:WSGIRequest)->JsonResponse:
         for topic in request.user.profile.getTopics():
             excluding.append(topic.id)
 
-    topics = Topic.objects.exclude(id__in=excluding).filter(Q(name__startswith=query.capitalize())|Q(name__iexact=query))[0:5]
+    topics = Topic.objects.exclude(id__in=excluding).filter(
+        Q(name__startswith=query.capitalize()) | Q(name__iexact=query))[0:5]
     topicslist = []
     for topic in topics:
         topicslist.append(dict(
             id=topic.getID(),
             name=topic.name
         ))
-    
-    return respondJson(Code.OK,dict(
+
+    return respondJson(Code.OK, dict(
         topics=topicslist
     ))
 
+
 @require_POST
 @normal_profile_required
-def topicsUpdate(request:WSGIRequest) -> HttpResponse:
+def topicsUpdate(request: WSGIRequest) -> HttpResponse:
     try:
-        addtopicIDs = request.POST.get('addtopicIDs',None)
-        removetopicIDs = request.POST.get('removetopicIDs',None)
+        addtopicIDs = request.POST.get('addtopicIDs', None)
+        removetopicIDs = request.POST.get('removetopicIDs', None)
         if not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(request.user.profile.getLink())
 
         if removetopicIDs:
             removetopicIDs = removetopicIDs.strip(',').split(',')
-            ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=removetopicIDs).update(trashed=True)
+            ProfileTopic.objects.filter(
+                profile=request.user.profile, topic__id__in=removetopicIDs).update(trashed=True)
 
         if addtopicIDs:
             addtopicIDs = addtopicIDs.strip(',').split(',')
-            proftops = ProfileTopic.objects.filter(profile=request.user.profile)
+            proftops = ProfileTopic.objects.filter(
+                profile=request.user.profile)
             currentcount = proftops.filter(trashed=False).count()
             if currentcount + len(addtopicIDs) > 5:
                 return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
@@ -206,7 +201,7 @@ def topicsUpdate(request:WSGIRequest) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         raise Http404()
-        
+
 
 @require_JSON_body
 @login_required
@@ -300,7 +295,8 @@ def profileSuccessor(request: WSGIRequest):
 def getSuccessor(request: WSGIRequest) -> JsonResponse:
     if request.user.profile.successor:
         return respondJson(Code.OK, dict(
-            successorID=(request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else '')
+            successorID=(
+                request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else '')
         ))
     return respondJson(Code.NO)
 
@@ -410,9 +406,10 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
 
 
 @require_GET
-def newbieProfiles(request:WSGIRequest) -> HttpResponse:
+def newbieProfiles(request: WSGIRequest) -> HttpResponse:
     excludeIDs = []
     if request.user.is_authenticated:
         excludeIDs.append(request.user.profile.getID())
-    profiles = Profile.objects.exclude(id__in=excludeIDs).filter(suspended=False,is_zombie=False,to_be_zombie=False,is_active=True).order_by('-createdOn')[0:10]
-    return rendererstr(request,'browse/newbie', dict(profiles=profiles))
+    profiles = Profile.objects.exclude(id__in=excludeIDs).filter(
+        suspended=False, is_zombie=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+    return rendererstr(request, 'browse/newbie', dict(profiles=profiles))
