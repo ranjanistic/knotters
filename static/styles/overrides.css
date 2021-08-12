@@ -12,6 +12,21 @@
     border-radius: 0 !important
 }
 
+.ajs-basic.ajs-maximized .ajs-header,
+.ajs-basic.ajs-maximized .ajs-footer {
+    border-radius: 0 !important
+}
+
+.ajs-basic.ajs-maximized .ajs-content{
+    left:0 !important;
+    right:0 !important;
+    padding: 0 !important;
+}
+
+.ajs-basic {
+    padding: 0 !important;
+}
+
 .ajs-header,
 .ajs-footer {
     background-color: var(--tertiary) !important;

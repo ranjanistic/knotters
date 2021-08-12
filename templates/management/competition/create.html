@@ -1,5 +1,7 @@
 {% extends 'management/competition/index.html' %}
 
+{% block title %}Create Competition{% endblock %}
+
 {% block nav_text %}Create Competition{% endblock %}
 
 {% block nav_href %}{{URLS.COMPETITIONS}}{% endblock %}
@@ -11,10 +13,11 @@
 {% block content %}
 <br/>
 <div class="w3-row w3-padding">
+    <input type="file" accept="image/png,image/jpg" id="compbannerfile" hidden />
     <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
         {% csrf_token %}
         <div class="w3-col w3-half">
-            <input type="file" id="compbanner" name="compbanner" hidden /><br/>
+            <input type="text" id="compbanner" name="compbanner" hidden /><br/>
             <input required class="create-compete-input" placeholder="Title" type="text" name="comptitle" id="comptitle">
             <input required class="create-compete-input" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
 
@@ -23,20 +26,20 @@
 
             <span id="selectedmodview"></span>
             <button title="Select moderator" type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
-            <input hidden placeholder="Moderator" type="text" name="compmodID" id="compmodID" />
+            <input hidden placeholder="Moderator" class="create-compete-input no-retain" type="text" name="compmodID" id="compmodID" />
             <br/><br/>
             <fieldset>
                 <legend>Topics</legend>
                 <span id="selectedtopicsview">
                 </span>
-                <input hidden name="comptopicIDs" id="topicIDs" />
+                <input hidden class="create-compete-input no-retain" name="comptopicIDs" id="topicIDs" />
                 <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
             </fieldset>
             <fieldset>
                 <legend>Judges</legend>
                 <span id="selectedjudgesview">
                 </span>
-                <input hidden name="compjudgeIDs" id="judgeIDs" />
+                <input hidden class="create-compete-input no-retain" name="compjudgeIDs" id="judgeIDs" />
                 <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
             </fieldset>
             <br/><br/>
@@ -47,8 +50,8 @@
         </div>
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row w3-center">
-                <img class="pallete" src="/media/compete/default.png" width="100%" /><br/><br/>
-                <button class="active" type="button" data-icon="upload">Select image</button><br/><br/>
+                <img class="pallete preview-type-image" src="/media/compete/default.png" width="100%" id="competebanneroutput" /><br/><br/>
+                <button class="active" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select image</label></button><br/><br/>
             </div>
             <div class="w3-row">
                 <fieldset class="w3-col w3-third">
@@ -74,18 +77,28 @@
         </div>
     </form>
 </div>
-<center><button form="create-compete-form" type="submit" class="positive big-button" data-icon="done">Create Competition</button></center>
+<center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
+<button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button></center>
 <br/>
 {% endblock %}
 
 {% block scripts %}
 <script>
     getElements('create-compete-input').forEach(element => {
-        element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
-        element.oninput=(e)=>{
-            sessionStorage.setItem(`create-compete-input-${e.target.id}`,e.target.value)
+        if(!Array.from(element.classList).includes('no-retain')){
+            element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
+            element.oninput=(e)=>{
+                sessionStorage.setItem(`create-compete-input-${e.target.id}`,e.target.value)
+            }
         }
     });
+
+    getElement("compbannerfile").onchange=(e)=>{
+        handleCropImageUpload(e, "compbanner", "competebanneroutput", (_) => {
+            getElement("competebannerimagebutton").innerHTML = "Selected";
+        },5/2);
+    }
+
     getElement('addtopicbutton').onclick=_=>{
         alertify.alert(
             'Search topics',
@@ -199,9 +212,20 @@
                     getElement('compmodID').value = id;
                     getElement('selectedmodview').innerHTML =`<button type='button' class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">${Icon('close')}${data.mod.name}</button>`
                     hide(ebtn.target)
-                    
                 }
             }
+        }
+    }
+    getElement("create-compete-form-submit-button").onclick=(e)=>{
+        e.preventDefault();
+        if(getElements('create-compete-input').every(element => {
+            if(!element.value){
+                error("Some fields not filled.")
+                return false
+            }
+            return true
+        })){
+            getElement("create-compete-form").submit()
         }
     }
 </script>

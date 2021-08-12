@@ -526,3 +526,8 @@ label > input[type="checkbox"] {
 .report-button > i {
     font-size: 16px !important;
 }
+
+#preview-image-preview{
+    max-width: 500px;
+    object-fit: cover;
+}

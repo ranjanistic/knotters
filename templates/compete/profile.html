@@ -29,22 +29,19 @@
 {% block nav_text %}{{compete.title}}{% endblock %} 
 {% block nav_noauth_competes %}{% endblock %} 
 {% block content %}
-  {% if isJudge or isMod %}
+  {% if isJudge or isMod or isManager %}
     <strong>
       <div class="w3-row w3-center accent w3-padding">
-        {% if isJudge %}
-          You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for judgement view.
-        {% elif isMod %}
-          You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for moderation view.
-        {% elif isManager %}
-          You {% if compete.resultDeclared %}were{% else %}are{% endif %} the manager of this competition. <a target="_blank" href="{{compete.getJudgementLink}}" class="underline">Click here</a> for management view.
+        {% if isJudge %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent" target="_blank">Click here</a> for judgement view.
+        {% elif isMod %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent" target="_blank">Click here</a> for moderation view.
+        {% elif isManager %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the manager of this competition. <a href="{{compete.getManagementLink}}" class="underline text-accent" target="_blank">Click here</a> for management view.
         {% endif %}
       </div>
     </strong>
   {% endif %}
 <div class="w3-row tertiary">
   <div id="banner">
-  <img src="{{compete.getBanner }}" alt="{{compete.title}}" width="100%"/>
+  <img src="{{compete.getBanner}}" class="preview-type-image" alt="{{compete.title}}" width="100%"/>
   </div>
   {% if compete.isHistory %}
   <div class="w3-row w3-center secondary w3-padding">

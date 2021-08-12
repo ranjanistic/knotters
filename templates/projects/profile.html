@@ -35,7 +35,7 @@
     <div class="w3-col w3-quarter w3-padding">
         <div class="w3-row">
             <div class="pallete" style="padding:0" id="view-pallete">
-                <img src="{{project.getDP}}" alt="{{project.name}}" />
+                <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
                 <div class="w3-row w3-center">
                 <h5>{{project.name}}</h5>
                 <center>{{project.description}}</center>
@@ -164,9 +164,9 @@
                 <div class="pallete">
                     <center><h5>Description</h5><hr/></center>
                     <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a target="_blank" href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}} </button></a><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}} </button></a><br/><br/>
                     <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
-                    <strong>Moderated by</strong><a target="_blank" href="{{project.getModerator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.getModerator.getDP}}"  width="20"/>&nbsp;{{project.getModerator.getName}} </button></a><br/><br/>
+                    <strong>Moderated by</strong><a href="{{project.getModerator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.getModerator.getDP}}"  width="20"/>&nbsp;{{project.getModerator.getName}} </button></a><br/><br/>
                     <strong>License: <a href="{{URLS.PROJECTS}}{{project.license.getLink}}" target="_blank"> {{project.license.name}}</a></strong><br/>
                 </div>
             </div>
@@ -179,7 +179,8 @@
             </div>
         </div>
     </div>
-<br/>
+    <div></div>
+</div>
 {% endblock %}
 
 {% block scripts %}

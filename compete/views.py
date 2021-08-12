@@ -41,6 +41,7 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
         data = dict(compete=compete)
+        print(compete.creator == request.user.profile)
         if request.user.is_authenticated:
             data = dict(
                 **data,

@@ -1,5 +1,7 @@
 {% extends 'management/competition/index.html' %}
 
+{% block title %}Manage: {{compete.title}}{% endblock %}
+
 {% block nav_text %}Manage: {{compete.title}}{% endblock %}
 
 {% block nav_icon %}
@@ -11,7 +13,7 @@
 <br/>
 <div class="w3-row w3-padding">
     <div class="w3-col w3-third w3-center w3-padding">
-        <img src="{{compete.getBanner}}" class="w3-round" width="100%" />
+        <img src="{{compete.getBanner}}" class="pallete preview-type-image" width="100%" />
         <h4>{{compete.title}}</h4>
     </div>
 

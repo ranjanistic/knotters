@@ -2,14 +2,14 @@
 
 const Key = {
     appUpdated: "app-updated",
-    navigated: "navigated"
+    navigated: "navigated",
 };
 
 const code = {
     OK: "OK",
     NO: "NO",
     LEFT: "left",
-    RIGHT: "right"
+    RIGHT: "right",
 };
 
 const logOut = async (
@@ -63,7 +63,7 @@ const visibleElement = (id, show = true) => {
     getElement(id).style.display = show ? "block" : "none";
 };
 
-const visible = (element,show=true) => visibleElement(element.id, show);
+const visible = (element, show = true) => visibleElement(element.id, show);
 
 const miniWindow = (url, name = APPNAME) =>
     window.open(url, name, "height=650,width=450");
@@ -85,16 +85,18 @@ const success = (msg = "Success") => {
 
 const loaderHTML = (loaderID = "loader") =>
     `<div class="loader" id="${loaderID}"></div>`;
-const loadErrorHTML = (retryID='retryload') => `<div class="w3-center w3-padding-32">
+const loadErrorHTML = (
+    retryID = "retryload"
+) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
-const setHtmlContent = (element, content = "", afterset=()=>{}) => {
+const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
-    afterset()
+    afterset();
 };
 
 const setUrlParams = (path, ...params) => {
@@ -133,16 +135,26 @@ const loadGlobalEventListeners = () => {
     getElementsByTag("button").forEach((button) => {
         if (button.getAttribute("data-icon")) {
             if (!button.innerHTML.includes("material-icons")) {
-                button.innerHTML = `${Icon(button.getAttribute("data-icon"))}${button.innerHTML}`;
+                button.innerHTML = `${Icon(button.getAttribute("data-icon"))}${
+                    button.innerHTML
+                }`;
             }
         }
     });
     getElementsByTag("i").forEach((icon) => {
         icon.classList.add("material-icons");
     });
+
+    getElements("preview-type-image").forEach((image) => {
+        image.classList.add("pointer");
+        image.addEventListener("click", (e) => {
+            previewImageDialog(e.target.src);
+        });
+    });
 };
 
-const Icon = (name, classnames='') => `<i class="material-icons ${classnames}">${name}</i>`;
+const Icon = (name, classnames = "") =>
+    `<i class="material-icons ${classnames}">${name}</i>`;
 
 const loadCarousels = ({
     container = "swiper-container",
@@ -188,26 +200,26 @@ const initializeTabsView = ({
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
-    try{
-        tabview = getElement(viewID)
-    } catch{}        
+    try {
+        tabview = getElement(viewID);
+    } catch {}
 
     const showTabLoading = () => {
-        if(tabview){
+        if (tabview) {
             setHtmlContent(tabview, loaderHTML(spinnerID));
             openSpinner(spinnerID);
         }
     };
 
     const showTabError = (tab) => {
-        if(tabview){
+        if (tabview) {
             setHtmlContent(tabview, loadErrorHTML(`${uniqueID}retry`));
             getElement(`${uniqueID}retry`).onclick = (_) => tab.click();
         }
     };
 
     const showTabContent = (tab, content) => {
-        if(tabview){
+        if (tabview) {
             setHtmlContent(tabview, content);
         }
         onShowTab(tab);
@@ -222,16 +234,24 @@ const initializeTabsView = ({
                 onclicks[t1] = tab1.onclick;
                 tab1.onclick = (_) => {};
                 if (t1 === t) {
-                    activeTabClass.split(' ').forEach((active)=>tab1.classList.add(active))
-                    inactiveTabClass.split(' ').forEach((inactive)=>tab1.classList.remove(inactive))
+                    activeTabClass
+                        .split(" ")
+                        .forEach((active) => tab1.classList.add(active));
+                    inactiveTabClass
+                        .split(" ")
+                        .forEach((inactive) => tab1.classList.remove(inactive));
                 } else {
                     tab1.style.opacity = 0;
-                    activeTabClass.split(' ').forEach((active)=>tab1.classList.remove(active))
-                    inactiveTabClass.split(' ').forEach((inactive)=>tab1.classList.add(inactive))
+                    activeTabClass
+                        .split(" ")
+                        .forEach((active) => tab1.classList.remove(active));
+                    inactiveTabClass
+                        .split(" ")
+                        .forEach((inactive) => tab1.classList.add(inactive));
                 }
             });
             const response = await onEachTab(tab);
-            if(tabview) hideSpinner(spinnerID);
+            if (tabview) hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
                     tab1.style.opacity = 1;
@@ -253,43 +273,48 @@ const initializeTabsView = ({
 
 const initializeMultiSelector = ({
     candidateClass = "multi-select-candidate",
-    selectedClass = 'positive',
-    deselectedClass = 'primary',
+    selectedClass = "positive",
+    deselectedClass = "primary",
     onSelect = async (candidate) => true,
     onDeselect = async (candidate) => true,
     uniqueID = String(Math.random()),
 }) => {
     const candidates = getElements(candidateClass);
-    let selectedlist = [], deselectedList = candidates;
-    candidates.forEach((candidate)=>{
-        candidate.addEventListener('click',()=>{
-            if (deselectedList.includes(candidate)){
-                if(onSelect(candidate)){
-                    deselectedList = deselectedList.filter((cand)=>cand!=candidate)
-                    selectedlist.push(candidate)
-                    deselectedClass.split(' ').forEach((cl)=>{
-                        if(cl) candidate.classList.remove(cl)
-                    })
-                    selectedClass.split(' ').forEach((cl)=>{
-                        if(cl) candidate.classList.add(cl)
-                    })
+    let selectedlist = [],
+        deselectedList = candidates;
+    candidates.forEach((candidate) => {
+        candidate.addEventListener("click", () => {
+            if (deselectedList.includes(candidate)) {
+                if (onSelect(candidate)) {
+                    deselectedList = deselectedList.filter(
+                        (cand) => cand != candidate
+                    );
+                    selectedlist.push(candidate);
+                    deselectedClass.split(" ").forEach((cl) => {
+                        if (cl) candidate.classList.remove(cl);
+                    });
+                    selectedClass.split(" ").forEach((cl) => {
+                        if (cl) candidate.classList.add(cl);
+                    });
                 }
-            } else if(selectedlist.includes(candidate)){
-                if(onDeselect(candidate)){
-                    selectedlist = selectedlist.filter((cand)=>cand!=candidate)
-                    deselectedList.push(candidate)
-                    deselectedClass.split(' ').forEach((cl)=>{
-                        if(cl) candidate.classList.add(cl)
-                    })
-                    selectedClass.split(' ').forEach((cl)=>{
-                        if(cl) candidate.classList.remove(cl)
-                    })
+            } else if (selectedlist.includes(candidate)) {
+                if (onDeselect(candidate)) {
+                    selectedlist = selectedlist.filter(
+                        (cand) => cand != candidate
+                    );
+                    deselectedList.push(candidate);
+                    deselectedClass.split(" ").forEach((cl) => {
+                        if (cl) candidate.classList.add(cl);
+                    });
+                    selectedClass.split(" ").forEach((cl) => {
+                        if (cl) candidate.classList.remove(cl);
+                    });
                 }
             }
-        })
-    })
-    return candidates
-}
+        });
+    });
+    return candidates;
+};
 
 const postRequest = async (path, data = {}) => {
     const body = { ...data };
@@ -301,7 +326,7 @@ const postRequest = async (path, data = {}) => {
                 Accept: "application/json",
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfmiddlewaretoken,
-                "X-KNOT-REQ-SCRIPT": true
+                "X-KNOT-REQ-SCRIPT": true,
             },
             body: JSON.stringify(body),
         });
@@ -309,7 +334,7 @@ const postRequest = async (path, data = {}) => {
         subLoader(false);
         return data;
     } catch (e) {
-        error('An error occurred');
+        error("An error occurred");
         subLoader(false);
         return false;
     }
@@ -322,7 +347,7 @@ const getRequest = async (url) => {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
-                "X-KNOT-REQ-SCRIPT": true
+                "X-KNOT-REQ-SCRIPT": true,
             },
         });
         const data = await response.text();
@@ -373,14 +398,17 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
 
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (navigator.share) {
-        subLoader()
-        navigator.share({ title, text, url }).then(() => {
-            subLoader(false)
-            afterShared();
-        }).catch(()=>{
-            subLoader(false)
-            error("Failed to share")
-        });
+        subLoader();
+        navigator
+            .share({ title, text, url })
+            .then(() => {
+                subLoader(false);
+                afterShared();
+            })
+            .catch(() => {
+                subLoader(false);
+                error("Failed to share");
+            });
     } else {
         error("Sharing not available on your system.");
     }
@@ -422,9 +450,9 @@ const handleCropImageUpload = (
                 () => {}
             )
             .set("closable", false)
-            .set('labels',{
-                ok: 'Confirm',
-                cancel: 'Cancel'
+            .set("labels", {
+                ok: "Confirm",
+                cancel: "Cancel",
             });
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
             aspectRatio: ratio,
@@ -575,7 +603,7 @@ const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
 
 const secsToTime = (secs) => {
-    secs = Number(secs)
+    secs = Number(secs);
     let mins = secs / 60;
     let secrem = Math.floor(secs % 60);
     if (mins < 60) {
@@ -603,46 +631,62 @@ const secsToTime = (secs) => {
 
 const reportFeedback = async ({
     isReport = true,
-    email = '',
-    category = '',
-    summary = '',
-    detail = ''
+    email = "",
+    category = "",
+    summary = "",
+    detail = "",
 }) => {
-    const data = await postRequest('/'+URLS.MANAGEMENT+ (isReport?URLS.Management.CREATE_REPORT:URLS.Management.CREATE_FEEDBACK),{
-        email,
-        category,
-        summary,
-        detail
-    })
-    if(!data) return false
-    if(data.code===code.OK) {
-        success(`${isReport?'Report':'Feedback'} received and will be looked into.`)
-        return true
+    const data = await postRequest(
+        "/" +
+            URLS.MANAGEMENT +
+            (isReport
+                ? URLS.Management.CREATE_REPORT
+                : URLS.Management.CREATE_FEEDBACK),
+        {
+            email,
+            category,
+            summary,
+            detail,
+        }
+    );
+    if (!data) return false;
+    if (data.code === code.OK) {
+        success(
+            `${
+                isReport ? "Report" : "Feedback"
+            } received and will be looked into.`
+        );
+        return true;
     }
-    error(data.error)
-    return false
-}
+    error(data.error);
+    return false;
+};
 
 const reportFeedbackView = () => {
     let isReport = false;
     const dial = alertify;
-    dial.confirm().set({onshow: ()=>
-        initializeTabsView({
-            tabsClass: 'report-feed-tab',
-            onEachTab: (tab)=>{
-                isReport = tab.id === 'report'
-                getElements('report-feed-view').forEach((view)=>{
-                    visible(view,`${tab.id}-view`===view.id)
-                })
-            }
-        })
-    })
+    dial.confirm().set({
+        onshow: () =>
+            initializeTabsView({
+                tabsClass: "report-feed-tab",
+                onEachTab: (tab) => {
+                    isReport = tab.id === "report";
+                    getElements("report-feed-view").forEach((view) => {
+                        visible(view, `${tab.id}-view` === view.id);
+                    });
+                },
+            }),
+    });
     dial.confirm(
         `Report or Feedback`,
         `
         <div class="w3-row w3-center">
-            <button class="report-feed-tab" id="report">${Icon('flag')} Report</button>
-            <button class="report-feed-tab" id="feedback">${Icon('feedback')} Feedback</button>
+            <button class="report-feed-tab" id="report">${Icon(
+                "flag"
+            )} Report</button>
+            <button class="report-feed-tab" id="feedback">${Icon(
+                "feedback"
+            )} Feedback</button>
         </div>
         <br/>
         <div class="w3-row w3-center">
@@ -657,28 +701,73 @@ const reportFeedbackView = () => {
             </div>
         </div>
         `,
-        async ()=>{
-            let data = {}
-            if(isReport){
-                const summary = String(getElement('report-feed-summary').value).trim()
-                if(!summary) return error('Short description required')
-                data['summary'] = summary
-                data['detail'] = String(getElement('report-feed-detail').value).trim()
+        async () => {
+            let data = {};
+            if (isReport) {
+                const summary = String(
+                    getElement("report-feed-summary").value
+                ).trim();
+                if (!summary) return error("Short description required");
+                data["summary"] = summary;
+                data["detail"] = String(
+                    getElement("report-feed-detail").value
+                ).trim();
             } else {
-                const detail = String(getElement('report-feed-feed-detail').value).trim()
-                if(!detail) return error('Feedback description required')
-                data['detail'] = detail
+                const detail = String(
+                    getElement("report-feed-feed-detail").value
+                ).trim();
+                if (!detail) return error("Feedback description required");
+                data["detail"] = detail;
             }
-            loader()
-            data['isReport'] = isReport
-            data['email'] = String(getElement("report-feed-email").value).trim()
-            message(`Submitting ${isReport?'report':'feedback'}...`)
-            await reportFeedback(data)
-            loader(false)
+            loader();
+            data["isReport"] = isReport;
+            data["email"] = String(
+                getElement("report-feed-email").value
+            ).trim();
+            message(`Submitting ${isReport ? "report" : "feedback"}...`);
+            await reportFeedback(data);
+            loader(false);
         },
-        ()=>{}
-    ).set('labels', {
-        ok: 'Submit',
-        cancel: 'Discard'
-    }).set('closable',false).set('transition','flipx')
-}
+        () => {}
+    )
+        .set("labels", {
+            ok: "Submit",
+            cancel: "Discard",
+        })
+        .set("closable", false)
+        .set("transition", "flipx");
+};
+
+const previewImageDialog = (src) => {
+    if (!src) return;
+
+    // const popup = window.open(
+    //     src,
+    //     "preview-image",
+    //     "fullscreen"
+    // );
+    // if (popup.outerWidth < screen.availWidth || popup.outerHeight < screen.availHeight)
+    // {
+    //    popup.moveTo(0,0);
+    //    popup.resizeTo(screen.availWidth, screen.availHeight);
+    // }
+    // return
+    const dial = alertify
+        .confirm(
+            "",
+            `
+        <div class="w3-row w3-center">
+        <img src="${src}" id="preview-image-preview" />
+        </div>
+        `,
+
+            () => {},
+            () => {
+                dial.destroy();
+            }
+        )
+        .set("basic", true)
+        .set("closable", true)
+        .set("transition", "fade")
+        .maximize();
+};

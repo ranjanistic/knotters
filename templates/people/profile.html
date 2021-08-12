@@ -37,15 +37,15 @@
 
 {% block nav_auth_user %}
   {% if user.is_authenticated and user == person %}
-    <a href="{% url 'account_logout' %}?next=/"><button class="negative"><i class="material-icons">logout</i><span class="w3-hide-small">Logout</span></button></a>
+    <a href="{% url 'account_logout' %}?next=/"><button class="negative" data-icon="logout"><span class="w3-hide-small">Logout</span></button></a>
   {% elif user.is_authenticated %}
     <a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName}}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" />&nbsp;{{user.first_name}}</button></a>
   {% else %}
       {% block nav_auth_login %}
-      <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
+      <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent" data-icon="login"><span class="w3-hide-small">Login</span></button></a>
       {% endblock %}
       {% block nav_auth_signup %}
-      <a href="{% url 'account_signup' %}?next=/"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">Join</span></button></a>
+      <a href="{% url 'account_signup' %}?next=/"><button title="Signup" class="positive" data-icon="person_add"><span class="w3-hide-small">Join</span></button></a>
       {% endblock %}
   {% endif %}
 {% endblock %}
@@ -73,7 +73,7 @@
       <div class="w3-col w3-container m4 l3 w3-animate-left">
         <div class="pallete w3-center w3-animate-zoom {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
           
-          <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
+          <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
             <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.getName }}</h5>

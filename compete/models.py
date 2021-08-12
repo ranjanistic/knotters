@@ -5,7 +5,7 @@ from people.models import Profile
 from django.utils import timezone
 from people.models import Topic
 from moderation.models import Moderation
-from main.strings import url
+from main.strings import url, MANAGEMENT
 from main.settings import MEDIA_URL
 from main.methods import errorLog, getNumberSuffix
 from .apps import APPNAME
@@ -366,6 +366,9 @@ class Competition(models.Model):
 
     def allResultsDeclared(self) -> bool:
         return self.totalResults() == self.totalValidSubmissions()
+
+    def getManagementLink(self):
+        return f"{url.getRoot(MANAGEMENT)}{url.management.competition(compID=self.getID())}"
 
     def generateCertificatesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.generateCert(compID=self.getID())}"

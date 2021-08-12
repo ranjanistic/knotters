@@ -106,9 +106,7 @@ def searchTopic(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        print(query.capitalize())
         topic = Topic.objects.filter(name__istartswith=query.capitalize()).first()
-        print(topic)
         return respondJson(Code.OK, dict(topic=dict(
             id=topic.id,
             name=topic.name
@@ -174,10 +172,15 @@ def submitCompetition(request) -> HttpResponse:
                        ).strip().strip(',').split(',')
         judgeIDs = str(request.POST['compjudgeIDs']
                        ).strip().strip(',').split(',')
-        perks = [str(request.POST['compPerk1']).strip(),str(request.POST['compPerk2']).strip(),str(request.POST['compPerk3']).strip()]
+        perks = [str(request.POST['compperk1']).strip(),
+                 str(request.POST['compperk2']).strip(),
+                 str(request.POST['compperk3']).strip()]
         taskSummary = str(request.POST['comptaskSummary']).strip()
         taskDetail = str(request.POST['comptaskDetail']).strip()
         taskSample = str(request.POST['comptaskSample']).strip()
+
+        print(startAt)
+        print(endAt)
 
         if not (title and
                 tagline and
