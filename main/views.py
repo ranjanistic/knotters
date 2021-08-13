@@ -6,16 +6,16 @@ from django.views.decorators.http import require_GET
 from django.conf import settings
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
-from projects.models import LegalDoc, Project
+from projects.models import LegalDoc
 from .env import ADMINPATH
 from .methods import errorLog, renderData, renderView
 from .decorators import dev_only
 from .methods import renderView, getDeepFilePaths
-from .strings import Code, URL, setPathParams
+from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
 
 @require_GET
 def offline(request: WSGIRequest) -> HttpResponse:
-    return renderView(request, 'offline')
+    return renderView(request, Template.OFFLINE)
 
 
 @require_GET
@@ -26,9 +26,7 @@ def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=Code.APPROVED)[0:3]
-    data = dict(projects=projects)
-    return renderView(request, 'index', data)
+    return renderView(request, Template.INDEX)
 
 
 @require_GET
@@ -38,24 +36,24 @@ def redirector(request: WSGIRequest) -> HttpResponse:
     if next.startswith("/"):
         return redirect(next)
     else:
-        return renderView(request, 'forward', {'next': next})
+        return renderView(request, Template.FORWARD, dict(next=next))
 
 
 @require_GET
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
-    return renderView(request, "index", fromApp='docs', data=dict(docs=docs))
+    return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
 
 
 @require_GET
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         doc = LegalDoc.objects.get(pseudonym=type)
-        return renderView(request, 'doc', fromApp='docs', data=dict(doc=doc))
+        return renderView(request, Template.Docs.DOC, fromApp=DOCS, data=dict(doc=doc))
     except Exception as e:
         errorLog(e)
         try:
-            return renderView(request, type, fromApp='docs')
+            return renderView(request, type, fromApp=DOCS)
         except Exception as e:
             errorLog(e)
             raise Http404()
@@ -63,17 +61,25 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
 
 @require_GET
 def landing(request: WSGIRequest) -> HttpResponse:
-    return renderView(request, "landing")
+    return renderView(request, Template.LANDING)
 
 
 @require_GET
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
-    return renderView(request, "landing", fromApp=subapp)
+    if subapp == COMPETE:
+        template = Template.Compete.LANDING
+    elif subapp == PEOPLE:
+        template = Template.People.LANDING
+    elif subapp == PROJECTS:
+        template = Template.Projects.LANDING
+    else:
+        raise Http404()
+    return renderView(request, template, fromApp=subapp)
 
 
 class Robots(TemplateView):
     content_type = 'text/plain'
-    template_name = "robots.txt"
+    template_name = Template.ROBOTS_TXT
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -84,7 +90,7 @@ class Robots(TemplateView):
 
 class Manifest(TemplateView):
     content_type = 'application/json'
-    template_name = "manifest.json"
+    template_name = Template.MANIFEST_JSON
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,7 +123,7 @@ class Manifest(TemplateView):
 
 class ServiceWorker(TemplateView):
     content_type = 'application/javascript'
-    template_name = "service-worker.js"
+    template_name = Template.SW_JS
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -126,8 +132,7 @@ class ServiceWorker(TemplateView):
 
         def appendWhen(path: str):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
-        assets = getDeepFilePaths(
-            settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
+        assets = getDeepFilePaths(settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
 
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
@@ -173,7 +178,7 @@ class ServiceWorker(TemplateView):
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",
                 f"/{URL.REDIRECTOR}*",
-                f"/{URL.ACCOUNTS}*",
+                f"/{URL.AUTH}*",
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",
                 f"/{URL.LANDING}",
@@ -191,7 +196,7 @@ class ServiceWorker(TemplateView):
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
-                f"/{URL.ACCOUNTS}*",
+                f"/{URL.AUTH}*",
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),

@@ -4,7 +4,7 @@ from django.http.response import HttpResponse
 from main.methods import errorLog, renderView, renderString
 from main.strings import Compete
 from people.models import User
-from .models import Competition, ParticipantCertificate, SubmissionParticipant, Result, Submission
+from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
 
@@ -26,21 +26,21 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
                     startAt__lte=now, endAt__gt=now).order_by('-endAt')
             except:
                 actives = list()
-            data[f'{Compete.ACTIVE}s'] = actives
+            data[Compete.ACTIVE] = actives
         elif section == Compete.UPCOMING:
             try:
                 upcomings = Competition.objects.filter(
                     startAt__gt=now).order_by('-startAt')
             except:
                 upcomings = list()
-            data[f'{Compete.UPCOMING}s'] = upcomings
+            data[Compete.UPCOMING] = upcomings
         elif section == Compete.HISTORY:
             try:
                 history = Competition.objects.filter(
                     endAt__lte=now).order_by('-endAt')
             except:
                 history = list()
-            data[f'{Compete.HISTORY}'] = history
+            data[Compete.HISTORY] = history
         else:
             return False
         return rendererstr(request, f'index/{section}', data)

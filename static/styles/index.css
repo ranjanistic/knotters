@@ -1,5 +1,4 @@
 html {
-    background: black !important;
     transition: var(--delay);
     scroll-behavior: smooth;
 }

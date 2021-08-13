@@ -5,6 +5,9 @@ from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
 
+AUTH = 'auth'
+DOCS = 'docs'
+
 class Code():
     OK = "OK"
     NO = "NO"
@@ -59,9 +62,6 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRema
         path = re.sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
     return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
-
-
-setPathParams('asf')
 
 
 # ENVIRONMENTS = [Environment.DEVELOPMENT,
@@ -155,40 +155,50 @@ class URL():
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
     OFFLINE = 'off408'
-    ACCOUNTS = "auth/"
     ROOT = '/'
+    AUTH = f"{AUTH}/"
+    DOCS = f'{DOCS}/'
     PROJECTS = f'{PROJECTS}/'
     COMPETE = f'{COMPETE}/'
     PEOPLE = f'{PEOPLE}/'
     MODERATION = f'{MODERATION}/'
     MANAGEMENT = f'{MANAGEMENT}/'
     REDIRECTOR = 'redirector/'
-    DOCS = 'docs/'
+    def redirector(self,to='/'):
+        return f"{self.REDIRECTOR}?n={to}"
+
     DOCTYPE = 'docs/<str:type>'
     LANDINGS = 'landing/'
     LANDING = 'landing'
     APPLANDING = '<str:subapp>/landing'
 
-    def getRoot(self, fromApp: str = '') -> str:
+    def applanding(self, subapp):
+        return setPathParams(self.APPLANDING,subapp)
+
+    def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
         Returns root path of given sub application name.
 
         :fromApp: The app name, if nothing or invalid value is passed, returns root.
         """
+        if fromApp == AUTH:
+            return f"/{self.AUTH if withslash else self.AUTH.strip('/')}"
+        if fromApp == DOCS:
+            return f"/{self.DOCS if withslash else self.DOCS.strip('/')}"
         if fromApp == COMPETE:
-            return f"/{self.COMPETE}"
+            return f"/{self.COMPETE if withslash else self.COMPETE.strip('/')}"
         elif fromApp == PROJECTS:
-            return f"/{self.PROJECTS}"
+            return f"/{self.PROJECTS if withslash else self.PROJECTS.strip('/')}"
         elif fromApp == PEOPLE:
-            return f"/{self.PEOPLE}"
+            return f"/{self.PEOPLE if withslash else self.PEOPLE.strip('/')}"
         elif fromApp == MODERATION:
-            return f"/{self.MODERATION}"
+            return f"/{self.MODERATION if withslash else self.MODERATION.strip('/')}"
         elif fromApp == MANAGEMENT:
-            return f"/{self.MANAGEMENT}"
+            return f"/{self.MANAGEMENT if withslash else self.MANAGEMENT.strip('/')}"
         elif fromApp == 'docs':
-            return f"/{self.DOCS}"
+            return f"/{self.DOCS if withslash else self.DOCS.strip('/')}"
         else:
-            return self.ROOT
+            return self.ROOT if withslash else self.ROOT.strip('/')
 
     def getMessageQuery(self, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
         if error:
@@ -207,6 +217,34 @@ class URL():
     def githubProfile(self, ghID):
         return f"https://github.com/{ghID}"
 
+    class Auth():
+
+        SIGNUP = 'signup/'
+        LOGIN = 'login/'
+        LOGOUT = 'logout/'
+        INACTIVE = 'inactive/'
+        EMAIL = 'email/'
+        PASSWORD_CHANGE = 'password/change/'
+        PASSWORD_SET = 'password/set/'
+        CONFIRM_EMAIL = 'confirm-email/'
+        PASSWORD_RESET = 'password/reset/'
+        PASSWORD_RESET_DONE = 'password/reset/done/'
+        PASSWORD_RESET_KEY = 'password/reset/key/'
+        PASSWORD_RESET_KEY_DONE = 'password/reset/key/done/'
+        SOCIAL = 'social/'
+        GOOGLE = 'gitHub/'
+        GITHUB = 'google/'
+        DISCORD = 'discord/'
+
+    auth = Auth()
+                
+    class Docs():
+        TYPE = '<str:type>'
+        def type(self, type):
+            return setPathParams(self.TYPE, type)
+    
+    docs = Docs()
+    
     class Compete():
         COMPID = '<str:compID>'
 
@@ -551,6 +589,194 @@ class URL():
 
 url = URL()
 
+
+class Template():
+
+    ROBOTS_TXT = "robots.txt"
+    SW_JS = "service-worker.js"
+    MANIFEST_JSON = "manifest.json"
+
+    INDEX = 'index'
+
+    @property
+    def index(self):
+        return f'{self.INDEX}.html'
+
+    OFFLINE = 'offline'
+    @property
+    def offline(self):
+        return f'{self.OFFLINE}.html'
+
+    FORWARD = 'forward'
+    @property
+    def forward(self):
+        return f'{self.FORWARD}.html'
+
+    LANDING = 'landing'
+    @property
+    def landing(self):
+        return f'{self.LANDING}.html'
+
+    
+    class Auth():
+        DIRNAME = 'account'
+
+        ACCOUNT_INACTIVE = 'account_inactive'
+        @property
+        def account_inactive(self):
+            return f"{self.DIRNAME}/{self.ACCOUNT_INACTIVE}.html"
+        
+        EMAIL = 'email'
+        @property
+        def email(self):
+            return f"{self.DIRNAME}/{self.EMAIL}.html"
+        
+        EMAIL_CONFIRM = 'email_confirm'
+        @property
+        def email_confirm(self):
+            return f"{self.DIRNAME}/{self.EMAIL_CONFIRM}.html"
+        
+        LOGIN = 'login'
+        @property
+        def login(self):
+            return f"{self.DIRNAME}/{self.LOGIN}.html"
+        
+        LOGOUT = 'logout'
+        @property
+        def logout(self):
+            return f"{self.DIRNAME}/{self.LOGOUT}.html"
+        
+        PASSWORD_CHANGE = 'password_change'
+        @property
+        def password_change(self):
+            return f"{self.DIRNAME}/{self.PASSWORD_CHANGE}.html"
+        
+        PASSWORD_RESET = 'password_reset'
+        @property
+        def password_reset(self):
+            return f"{self.DIRNAME}/{self.PASSWORD_RESET}.html"
+        
+        PASSWORD_RESET_DONE = 'password_reset_done'
+        @property
+        def password_reset_done(self):
+            return f"{self.DIRNAME}/{self.PASSWORD_RESET_DONE}.html"
+        
+        PASSWORD_RESET_FROM_KEY = 'password_reset_from_key'
+        @property
+        def password_reset_from_key(self):
+            return f"{self.DIRNAME}/{self.PASSWORD_RESET_FROM_KEY}.html"
+        
+        PASSWORD_RESET_FROM_KEY_DONE = 'password_reset_from_key_done'
+        @property
+        def password_reset_from_key_done(self):
+            return f"{self.DIRNAME}/{self.PASSWORD_RESET_FROM_KEY_DONE}.html"
+        
+        PASSWORD_SET = 'password_set'
+        @property
+        def password_set(self):
+            return f"{self.DIRNAME}/{self.PASSWORD_SET}.html"
+        
+        SIGNUP = 'signup'
+        @property
+        def signup(self):
+            return f"{self.DIRNAME}/{self.SIGNUP}.html"
+        
+        SIGNUP_CLOSED = 'signup_closed'
+        @property
+        def signup_closed(self):
+            return f"{self.DIRNAME}/{self.SIGNUP_CLOSED}.html"
+        
+        VERIFICATION_SENT = 'verification_sent'
+        @property
+        def verification_sent(self):
+            return f"{self.DIRNAME}/{self.VERIFICATION_SENT}.html"
+        
+        VERIFIED_EMAIL_REQUIRED = 'verified_email_required'
+        @property
+        def verified_email_required(self):
+            return f"{self.DIRNAME}/{self.VERIFIED_EMAIL_REQUIRED}.html"
+
+    auth = Auth()
+
+    class Docs():
+        DIRNAME = DOCS
+        INDEX = 'index'
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+
+        DOC = 'doc'
+        @property
+        def doc(self):
+            return f'{self.DIRNAME}/{self.DOC}.html'
+
+    docs = Docs()
+        
+
+    class Compete():
+        DIRNAME = COMPETE
+        INDEX = "index"
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+
+        ACTIVE = "index/active"
+        @property
+        def active(self):
+            return f'{self.DIRNAME}/{self.ACTIVE}.html'
+
+        UPCOMING = "index/upcoming"
+        @property
+        def upcoming(self):
+            return f'{self.DIRNAME}/{self.UPCOMING}.html'
+
+        HISTORY = "index/history"
+        @property
+        def history(self):
+            return f'{self.DIRNAME}/{self.HISTORY}.html'
+
+        LANDING = 'landing'
+        @property
+        def landing(self):
+            return f'{self.DIRNAME}/{self.LANDING}.html'
+
+        PROFILE = 'profile'
+        @property
+        def profile(self):
+            return f'{self.DIRNAME}/{self.PROFILE}.html'
+
+        CERTIFICATE = 'certificate'
+        @property
+        def certificate(self):
+            return f'{self.DIRNAME}/{self.CERTIFICATE}.html'
+
+    compete = Compete()
+
+    class People():
+        DIRNAME = PEOPLE
+        LANDING = 'landing'
+        @property
+        def landing(self):
+            return f'{self.DIRNAME}/{self.LANDING}.html'
+
+    people = People()
+
+    class Projects():
+        DIRNAME = PROJECTS
+        LANDING = 'landing'
+        @property
+        def landing(self):
+            return f'{self.DIRNAME}/{self.LANDING}.html'
+
+    projects = Projects()
+
+    class Management():
+        DIRNAME = MANAGEMENT
+
+    management = Management()
+
+
+template = Template()
 
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]

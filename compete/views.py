@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.conf import settings
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
 from main.methods import errorLog, renderData, respondJson
-from main.strings import Action, Code, Message
+from main.strings import Action, Code, Message, Template
 from people.models import ProfileTopic, Profile
 from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
@@ -21,7 +21,7 @@ from .apps import APPNAME
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    return renderer(request, 'index')
+    return renderer(request, Template.Compete.INDEX)
 
 
 @require_GET
@@ -41,7 +41,6 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
         data = dict(compete=compete)
-        print(compete.creator == request.user.profile)
         if request.user.is_authenticated:
             data = dict(
                 **data,
@@ -49,7 +48,7 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 isMod=compete.isModerator(request.user.profile),
                 isManager=(compete.creator == request.user.profile),
             )
-        return renderer(request, 'profile', data)
+        return renderer(request, Template.Compete.PROFILE, data)
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -458,7 +457,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
             result__id=resID, profile=member).first()
 
         certpath = False if not partcert else partcert.getCertificate()
-        return renderer(request, 'certificate', dict(result=result, member=member, certpath=certpath, self=self))
+        return renderer(request, Template.Compete.CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self))
     except Exception as e:
         errorLog(e)
         raise Http404()

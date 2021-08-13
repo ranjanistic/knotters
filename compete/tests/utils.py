@@ -1,4 +1,5 @@
 from uuid import uuid4
+from main.strings import url, COMPETE as APPNAME
 
 TEST_COMP_TITLE = f'Test competition {uuid4().hex}'
 TEST_COMP_PERKS = f'perk {uuid4().hex};perk {uuid4().hex};perk {uuid4().hex}'
@@ -15,3 +16,6 @@ def getSubmissionRepos(count=1, start=0):
 
 TEST_KEY = f'testing-{uuid4().hex}'
 TEST_VALUE = f'testing-value-{uuid4().hex}'
+
+def root(path='/',appendslash=False):
+    return f"{url.getRoot(APPNAME, not appendslash)}{path}"

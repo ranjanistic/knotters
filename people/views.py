@@ -61,8 +61,8 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         raise Http404()
 
 
-@require_GET
 @normal_profile_required
+@require_GET
 def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         data = getSettingSectionHTML(request.user, section, request)
@@ -75,9 +75,8 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
         raise Http404()
 
 
-@require_POST
-@verified_email_required
 @normal_profile_required
+@require_POST
 def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         profile = Profile.objects.get(user=request.user)
@@ -119,8 +118,8 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
         return HttpResponseForbidden()
 
 
+@normal_profile_required
 @require_POST
-@verified_email_required
 def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
     try:
         if str(request.user.getID()) != str(userID):
@@ -169,8 +168,8 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
     ))
 
 
-@require_POST
 @normal_profile_required
+@require_POST
 def topicsUpdate(request: WSGIRequest) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
@@ -203,8 +202,8 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         raise Http404()
 
 
-@require_JSON_body
 @login_required
+@require_JSON_body
 def accountActivation(request: WSGIRequest) -> JsonResponse:
     """
     Activate or deactivate account.
@@ -235,8 +234,8 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@require_JSON_body
 @normal_profile_required
+@require_JSON_body
 def profileSuccessor(request: WSGIRequest):
     """
     To set/modify/unset profile successor. If default is chosen by the requestor, then sets the default successor and successor confirmed as true.
@@ -290,8 +289,8 @@ def profileSuccessor(request: WSGIRequest):
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@require_JSON_body
 @normal_profile_required
+@require_JSON_body
 def getSuccessor(request: WSGIRequest) -> JsonResponse:
     if request.user.profile.successor:
         return respondJson(Code.OK, dict(
@@ -301,8 +300,8 @@ def getSuccessor(request: WSGIRequest) -> JsonResponse:
     return respondJson(Code.NO)
 
 
-@require_GET
 @normal_profile_required
+@require_GET
 def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
     """
     Render profile successor invitation view.
@@ -317,8 +316,8 @@ def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
 @require_POST
-@verified_email_required
 def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
     """
     Sets the successor if accepted, or sets default successor.
@@ -362,8 +361,8 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         return HttpResponseForbidden()
 
 
-@require_JSON_body
 @normal_profile_required
+@require_JSON_body
 def accountDelete(request: WSGIRequest) -> JsonResponse:
     """
     Account for deletion, only if a successor is set.

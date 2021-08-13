@@ -1,6 +1,5 @@
 from main.strings import Code
-import os
-from django.test import TestCase, tag, Client
+from django.test import TestCase, tag
 from people.tests.utils import TEST_EMAIL, TEST_NAME, TEST_PASSWORD
 from people.models import Profile
 from compete.methods import *
