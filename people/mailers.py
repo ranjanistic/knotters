@@ -9,7 +9,7 @@ def welcomeAlert(user:User)->bool:
         username=user.getName(),
         greeting='Welcome',
         subject=f"Welcome to {PUBNAME} Community",
-        header="We're pleased let to your know that you're now a part of our booming community! This comes with lot of opportunities"\
+        header="We're pleased to let you know that you're now a part of our booming community! This comes with lot of opportunities"\
             "to create, learn and contribute towards the betterment of everyone.",
         actions=[dict(
             text='Get started',
