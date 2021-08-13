@@ -9,7 +9,7 @@ def getSubmissionRepos(count=1, start=0):
     repos = []
     for i in range(count):
         repos.append(
-            f"https://testing.knotters.org/submission{i+start}{uuid4().hex}")
+            f"https://testing.knotters.org/submission{uuid4().hex}{i+start}")
     return repos
 
 
