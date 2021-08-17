@@ -1,6 +1,12 @@
+from main.strings import url
 from people.models import User, Topic
+from people.apps import APPNAME
 from uuid import uuid4
 from django.contrib.auth.hashers import make_password
+
+
+def root(path='/',appendslash=False):
+    return f"{url.getRoot(APPNAME, not appendslash)}{path}"
 
 TEST_FNAME = uuid4().hex
 TEST_LNAME = uuid4().hex

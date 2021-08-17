@@ -4,12 +4,12 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
-from allauth.account.decorators import verified_email_required, login_required
+from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import require_JSON_body, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, renderData
 from main.env import MAILUSER
-from main.strings import Action, Code, Message
+from main.strings import Action, Code, Message, Template
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
@@ -21,7 +21,7 @@ def index(request: WSGIRequest) -> HttpResponse:
     people = Profile.objects.filter(~Q(Q(is_zombie=True) | Q(
         to_be_zombie=True)), is_active=True, suspended=False)
     data = dict(people=people)
-    return renderer(request, 'index', data)
+    return renderer(request, Template.People.INDEX, data)
 
 
 @require_GET
@@ -42,7 +42,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
                     person = profile.user
                 except:
                     raise Exception()
-        return renderer(request, 'profile', dict(person=person))
+        return renderer(request, Template.People.PROFILE, dict(person=person))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -411,4 +411,4 @@ def newbieProfiles(request: WSGIRequest) -> HttpResponse:
         excludeIDs.append(request.user.profile.getID())
     profiles = Profile.objects.exclude(id__in=excludeIDs).filter(
         suspended=False, is_zombie=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-    return rendererstr(request, 'browse/newbie', dict(profiles=profiles))
+    return rendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))

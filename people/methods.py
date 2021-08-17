@@ -115,6 +115,8 @@ def getSettingSectionData(section: str, user: User, requestuser: User) -> dict:
             data[Code.SETTING] = ProfileSetting.objects.get(profile=user.profile)
         except:
             pass
+    if section == profileString.Setting.SECURITY:
+        pass
     return data
 
 

@@ -1,17 +1,16 @@
-from django.http.response import Http404, HttpResponseGone, HttpResponsePermanentRedirect
 from django.test import TestCase, Client, tag
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
-from main.strings import Code, url, template, COMPETE, PEOPLE, PROJECTS, DOCS
+from main.strings import Code, url, template, COMPETE, PEOPLE, PROJECTS
 from projects.models import LegalDoc
 from people.tests.utils import TEST_EMAIL, TEST_NAME, TEST_PASSWORD
-from .utils import root, docroot, authroot
+from .utils import root, docroot, authroot, LEGAL_NAME,LEGAL_PSEUDONYM,LEGAL_CONTENT
 from compete.methods import *
 
 @tag(Code.Test.VIEW)
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.legaldoc = LegalDoc.objects.create(name='Legal',pseudonym='legal-legal',content='legallegallegallegallegallegallegalegalegalegalegalegalegalegalegalegalegalegal')
+        self.legaldoc = LegalDoc.objects.create(name=LEGAL_NAME,pseudonym=LEGAL_PSEUDONYM,content=LEGAL_CONTENT)
         self.client = Client()
         return super().setUpTestData()
 
@@ -102,7 +101,6 @@ class TestViewsAuth(TestCase):
         self.assertTemplateUsed(resp, template.auth.signup)
 
     def test_login(self):
-        print(template.auth.login)
         resp = self.client.get(authroot(url.auth.LOGIN))
         self.assertEqual(resp.status_code,HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)

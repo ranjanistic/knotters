@@ -147,6 +147,72 @@ action = Action()
 
 DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT]
 
+class Project():
+    PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
+    PROJECTSTATESCHOICES = (
+        [code.MODERATION, code.MODERATION.capitalize()],
+        [code.APPROVED, code.APPROVED.capitalize()],
+        [code.REJECTED, code.REJECTED.capitalize()]
+    )
+    PALLETE = 'pallete'
+
+
+project = Project()
+
+
+class Moderation():
+    MODSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
+    MODSTATESCHOICES = (
+        [code.MODERATION, code.MODERATION.capitalize()],
+        [code.APPROVED, code.APPROVED.capitalize()],
+        [code.REJECTED, code.REJECTED.capitalize()]
+    )
+
+    TYPES = [PROJECTS, PEOPLE, COMPETE]
+
+    TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
+    )], [COMPETE, COMPETE.capitalize()])
+
+
+moderation = Moderation()
+
+
+class Profile():
+    OVERVIEW = "overview"
+    PROJECTS = "projects"
+    ACHEIVEMENTS = "acheivements"
+    CONTRIBUTION = "contribution"
+    ACTIVITY = "activity"
+    MODERATION = "moderation"
+    class Setting():
+        ACCOUNT = "account"
+        PREFERENCE = "preference"
+        SECURITY = "security"
+
+    setting = Setting()
+
+
+class Compete():
+    ACTIVE = "active"
+    UPCOMING = "upcoming"
+    HISTORY = "history"
+    OVERVIEW = "overview"
+    TASK = "task"
+    GUIDELINES = "guidelines"
+    SUBMISSION = "submission"
+    RESULT = "result"
+
+    def __init__(self) -> None:
+        self.COMPETE_SECTIONS = [
+            self.OVERVIEW, self.TASK,
+            self.GUIDELINES,
+            self.SUBMISSION,
+            self.RESULT
+        ]
+
+
+profile = Profile()
+compete = Compete()
 
 class URL():
     INDEX = ''
@@ -759,6 +825,66 @@ class Template():
         def landing(self):
             return f'{self.DIRNAME}/{self.LANDING}.html'
 
+        INDEX = 'index'
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+
+        PROFILE = 'profile'
+        @property
+        def profile(self):
+            return f'{self.DIRNAME}/{self.PROFILE}.html'
+
+        BROWSE_NEWBIE = 'browse/newbie'
+        @property
+        def browse_newbie(self):
+            return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
+        
+        PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
+        @property
+        def profile_overview(self):
+            return f'{self.DIRNAME}/{self.PROFILE_OVERVIEW}.html'
+
+        PROFILE_PROJECTS = f"profile/{Profile.PROJECTS}"
+        @property
+        def profile_projects(self):
+            return f'{self.DIRNAME}/{self.PROFILE_PROJECTS}.html'
+
+        PROFILE_ACHEIVEMENTS = f"profile/{Profile.ACHEIVEMENTS}"
+        @property
+        def profile_acheivements(self):
+            return f'{self.DIRNAME}/{self.PROFILE_ACHEIVEMENTS}.html'
+
+        PROFILE_CONTRIBUTION = f"profile/{Profile.CONTRIBUTION}"
+        @property
+        def profile_contribution(self):
+            return f'{self.DIRNAME}/{self.PROFILE_CONTRIBUTION}.html'
+
+        PROFILE_ACTIVITY = f"profile/{Profile.ACTIVITY}"
+        @property
+        def profile_activity(self):
+            return f'{self.DIRNAME}/{self.PROFILE_ACTIVITY}.html'
+
+        PROFILE_MODERATION = f"profile/{Profile.MODERATION}"
+        @property
+        def profile_moderation(self):
+            return f'{self.DIRNAME}/{self.PROFILE_MODERATION}.html'
+
+
+        SETTING_ACCOUNT = f"setting/{Profile.Setting.ACCOUNT}"
+        @property
+        def setting_account(self):
+            return f'{self.DIRNAME}/{self.SETTING_ACCOUNT}.html'
+        SETTING_PREFERENCE = f"setting/{Profile.Setting.PREFERENCE}"
+        @property
+        def setting_preference(self):
+            return f'{self.DIRNAME}/{self.SETTING_PREFERENCE}.html'
+        SETTING_SECURITY = f"setting/{Profile.Setting.SECURITY}"
+        @property
+        def setting_security(self):
+            return f'{self.DIRNAME}/{self.SETTING_SECURITY}.html'
+
+
     people = People()
 
     class Projects():
@@ -777,72 +903,5 @@ class Template():
 
 
 template = Template()
-
-class Project():
-    PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
-    PROJECTSTATESCHOICES = (
-        [code.MODERATION, code.MODERATION.capitalize()],
-        [code.APPROVED, code.APPROVED.capitalize()],
-        [code.REJECTED, code.REJECTED.capitalize()]
-    )
-    PALLETE = 'pallete'
-
-
-project = Project()
-
-
-class Moderation():
-    MODSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
-    MODSTATESCHOICES = (
-        [code.MODERATION, code.MODERATION.capitalize()],
-        [code.APPROVED, code.APPROVED.capitalize()],
-        [code.REJECTED, code.REJECTED.capitalize()]
-    )
-
-    TYPES = [PROJECTS, PEOPLE, COMPETE]
-
-    TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
-    )], [COMPETE, COMPETE.capitalize()])
-
-
-moderation = Moderation()
-
-
-class Profile():
-    OVERVIEW = "overview"
-    PROJECTS = "projects"
-    ACHEIVEMENTS = "acheivements"
-    CONTRIBUTION = "contribution"
-    ACTIVITY = "activity"
-    MODERATION = "moderation"
-    class Setting():
-        ACCOUNT = "account"
-        PREFERENCE = "preference"
-        SECURITY = "security"
-
-    setting = Setting()
-
-
-class Compete():
-    ACTIVE = "active"
-    UPCOMING = "upcoming"
-    HISTORY = "history"
-    OVERVIEW = "overview"
-    TASK = "task"
-    GUIDELINES = "guidelines"
-    SUBMISSION = "submission"
-    RESULT = "result"
-
-    def __init__(self) -> None:
-        self.COMPETE_SECTIONS = [
-            self.OVERVIEW, self.TASK,
-            self.GUIDELINES,
-            self.SUBMISSION,
-            self.RESULT
-        ]
-
-
-profile = Profile()
-compete = Compete()
 
 from .methods import classAttrsToDict
