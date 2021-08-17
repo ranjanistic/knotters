@@ -40,7 +40,7 @@ class ProfileActivationMiddleware(object):
     def __call__(self, request:WSGIRequest):
         if request.user.is_authenticated:
             if not request.user.profile.is_active:
-                if request.method == 'GET' and not request.get_full_path().startswith(MEDIA_URL) and not request.get_full_path().__contains__(request.user.profile.getLink()) and not request.get_full_path().__contains__(URL.ACCOUNTS+'logout'):
+                if request.method == 'GET' and not request.get_full_path().startswith(MEDIA_URL) and not request.get_full_path().__contains__(request.user.profile.getLink()) and not request.get_full_path().__contains__(URL.AUTH+'logout'):
                     return redirect(request.user.profile.getLink())
         return self.get_response(request)
 
@@ -52,5 +52,5 @@ class TwoFactorMiddleware(object):
     def __call__(self, request:WSGIRequest):
         # request.user.profile.two_factor_auth
         # if request.user.is_authenticated and True and not request.user.two_factorized:
-        #     return redirect(URL.ACCOUNTS+'two_factor/setup')
+        #     return redirect(URL.AUTH+'two_factor/setup')
         return self.get_response(request)
