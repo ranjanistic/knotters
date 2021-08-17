@@ -893,6 +893,35 @@ class Template():
         @property
         def landing(self):
             return f'{self.DIRNAME}/{self.LANDING}.html'
+        INDEX = 'index'
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+
+        PROFILE = 'profile'
+        @property
+        def profile(self):
+            return f'{self.DIRNAME}/{self.PROFILE}.html'
+
+        CREATE = 'create'
+        @property
+        def create(self):
+            return f'{self.DIRNAME}/{self.CREATE}.html'
+
+        LICENSE_INDEX = 'license/index'
+        @property
+        def license_index(self):
+            return f'{self.DIRNAME}/{self.LICENSE_INDEX}.html'
+
+        LICENSE_LIC = 'license/license'
+        @property
+        def license_lic(self):
+            return f'{self.DIRNAME}/{self.LICENSE_LIC}.html'
+
+        BROWSE_NEWBIE = 'browse/newbie'
+        @property
+        def browse_newbie(self):
+            return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
 
     projects = Projects()
 

@@ -8,7 +8,7 @@ from django.http.response import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, respondRedirect
-from main.strings import Code, Event, Message, URL
+from main.strings import Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
@@ -21,7 +21,7 @@ from .apps import APPNAME
 @require_GET
 def allProjects(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(status=Code.APPROVED)
-    return renderer(request, 'index', dict(projects=projects))
+    return renderer(request, Template.Projects.INDEX, dict(projects=projects))
 
 
 @require_GET
@@ -33,7 +33,7 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
         if request.user.is_authenticated:
             custom = alllicenses.filter(
                 public=False, creator=request.user.profile)
-        return renderer(request, 'license/index', dict(licenses=public, custom=custom))
+        return renderer(request, Template.Projects.LICENSE_INDEX, dict(licenses=public, custom=custom))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -43,7 +43,7 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
-        return renderer(request, 'license/license', dict(license=license))
+        return renderer(request, Template.Projects.LICENSE_LIC, dict(license=license))
     except:
         raise Http404()
 
@@ -71,7 +71,7 @@ def create(request: WSGIRequest) -> HttpResponse:
 
     licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
 
-    return renderer(request, 'create', dict(tags=tags, categories=categories, licenses=licenses))
+    return renderer(request, Template.Projects.CREATE, dict(tags=tags, categories=categories, licenses=licenses))
 
 
 @normal_profile_required
@@ -417,4 +417,4 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
 def newbieProjects(request: WSGIRequest) -> HttpResponse:
     projects = Project.objects.filter(
         status=Code.APPROVED).order_by('-approvedOn')[0:10]
-    return rendererstr(request, 'browse/newbie', dict(projects=projects))
+    return rendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
