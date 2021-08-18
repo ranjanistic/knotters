@@ -156,7 +156,7 @@ class ProfileAttributeTest(TestCase):
 
     def test_profile_settings_methods(self):
         self.assertEqual(self.setting.__str__(), self.profile.getID())
-        self.assertTrue(self.setting.savePreferencesLink().endswith(
+        self.assertFalse(self.setting.savePreferencesLink().endswith(
             self.profile.getUserID()))
 
 

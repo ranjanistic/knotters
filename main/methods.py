@@ -71,10 +71,13 @@ def respondJson(code: str, data: dict = dict(), error: str = str(), message: str
     :data: The dict data to be sent along with code.
     """
 
+    if error:
+        data = dict(**data,error=error)
+    if message:
+        data = dict(**data,message=message)
+
     return JsonResponse({
         'code': code,
-        'error': error,
-        'message': message,
         **data
     }, encoder=JsonEncoder)
 

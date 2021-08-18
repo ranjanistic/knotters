@@ -294,15 +294,17 @@ def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profi
 
 
 def getProjectLiveData(project: Project) -> dict:
-    # if ISPRODUCTION:
-    ghOrgRepo = getGhOrgRepo('covidcare')
-    contribs = ghOrgRepo.get_contributors()
-    languages = ghOrgRepo.get_languages()
-    ghIDs = []
+    if ISPRODUCTION:
+        ghOrgRepo = getGhOrgRepo(project.reponame)
+        contribs = ghOrgRepo.get_contributors()
+        languages = ghOrgRepo.get_languages()
+        ghIDs = []
 
-    for cont in contribs:
-        ghIDs.append(str(cont.login))
-    contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
-    return dict(contributors=contributors, languages=languages)
+        for cont in contribs:
+            ghIDs.append(str(cont.login))
+        contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
+        return dict(contributors=contributors, languages=languages)
+    else:
+        return dict(contributors=[], languages=[])
 
 from .receivers import *

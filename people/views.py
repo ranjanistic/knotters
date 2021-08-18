@@ -8,7 +8,7 @@ from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import require_JSON_body, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, renderData
-from main.env import MAILUSER
+from main.env import BOTMAIL
 from main.strings import Action, Code, Message, Template
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
@@ -120,18 +120,13 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
-def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
+def accountprefs(request: WSGIRequest) -> HttpResponse:
     try:
-        if str(request.user.getID()) != str(userID):
-            raise Exception()
-        newsletter = True if str(request.POST.get(
-            'newsletter', 'off')) != 'off' else False
-        recommendations = True if str(request.POST.get(
-            'recommendations', 'off')) != 'off' else False
-        competitions = True if str(request.POST.get(
-            'competitions', 'off')) != 'off' else False
-        privatemail = True if str(request.POST.get(
-            'privatemail', 'off')) != 'off' else False
+        newsletter = str(request.POST.get('newsletter', 'off')) != 'off'
+        recommendations = str(request.POST.get(
+            'recommendations', 'off')) != 'off'
+        competitions = str(request.POST.get('competitions', 'off')) != 'off'
+        privatemail = str(request.POST.get('privatemail', 'off')) != 'off'
         ProfileSetting.objects.filter(profile=request.user.profile).update(
             newsletter=newsletter,
             recommendations=recommendations,
@@ -142,7 +137,6 @@ def accountprefs(request: WSGIRequest, userID: UUID) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
-
 
 @require_JSON_body
 def topicsSearch(request: WSGIRequest) -> JsonResponse:
@@ -174,7 +168,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
-        if not (addtopicIDs.strip() or removetopicIDs.strip()):
+        if not addtopicIDs or not removetopicIDs or not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(request.user.profile.getLink())
 
         if removetopicIDs:
@@ -220,6 +214,9 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
             is_active = False
         else:
             return respondJson(Code.NO)
+        if is_active and request.user.profile.suspended:
+            return respondJson(Code.NO)
+
         done = Profile.objects.filter(
             user=request.user).update(is_active=is_active)
         if not done:
@@ -260,16 +257,16 @@ def profileSuccessor(request: WSGIRequest):
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
                             successorInvite(request.user, successor)
-                        return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
-                    successor_confirmed = False
+                        return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)    
+                    successor_confirmed = userID == BOTMAIL
                 except:
                     return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-            elif usedefault == True or userID == MAILUSER:
+            elif usedefault or userID == BOTMAIL:
                 try:
-                    successor = User.objects.get(email=MAILUSER)
+                    successor = User.objects.get(email=BOTMAIL)
                     successor_confirmed = True
                 except Exception as e:
-                    print(e)
+                    errorLog(e)
                     return respondJson(Code.NO)
             else:
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -278,14 +275,13 @@ def profileSuccessor(request: WSGIRequest):
             successor_confirmed = False
         else:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-
         Profile.objects.filter(user=request.user).update(
             successor=successor, successor_confirmed=successor_confirmed)
         if successor and not successor_confirmed:
             successorInvite(successor=successor, predecessor=request.user)
         return respondJson(Code.OK)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
@@ -295,7 +291,7 @@ def getSuccessor(request: WSGIRequest) -> JsonResponse:
     if request.user.profile.successor:
         return respondJson(Code.OK, dict(
             successorID=(
-                request.user.profile.successor.email if request.user.profile.successor.email != MAILUSER else '')
+                request.user.profile.successor.email if request.user.profile.successor.email != BOTMAIL else '')
         ))
     return respondJson(Code.NO)
 
@@ -310,7 +306,7 @@ def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
         predecessor = User.objects.get(id=predID)
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
             raise Exception()
-        return render(request, "invitation.html", renderData(dict(predecessor=predecessor), APPNAME))
+        return render(request, Template().invitation, renderData(dict(predecessor=predecessor), APPNAME))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -327,7 +323,7 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
     accept = action == Action.ACCEPT
 
     try:
-        if True and (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
+        if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
             raise Exception()
 
         predecessor = User.objects.get(id=predID)
@@ -337,7 +333,7 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
 
         if not accept:
             if predecessor.profile.to_be_zombie:
-                successor = User.objects.get(email=MAILUSER)
+                successor = User.objects.get(email=BOTMAIL)
                 predecessor.profile.successor_confirmed = True
             else:
                 successor = None

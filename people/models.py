@@ -193,9 +193,9 @@ class Profile(models.Model):
             return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
         return f'{url.getRoot(APPNAME)}{url.people.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
 
-    def isNormal(self)->bool:
-        return self.is_active and not (self.suspended or self.to_be_zombie or self.is_zombie)
-        
+    def isNormal(self) -> bool:
+        return self.user and self.user.is_active and self.is_active and not (self.suspended or self.to_be_zombie or self.is_zombie)
+
     def isReporter(self, profile) -> bool:
         if profile in self.reporters.all():
             return True
@@ -295,7 +295,7 @@ class ProfileSetting(models.Model):
         return self.profile.getID()
 
     def savePreferencesLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.people.accountPreferences(userID=self.profile.getUserID())}"
+        return f"{url.getRoot(APPNAME)}{url.people.ACCOUNTPREFERENCES}"
 
 
 class ProfileReport(models.Model):

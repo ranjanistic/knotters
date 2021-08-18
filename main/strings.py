@@ -472,10 +472,7 @@ class URL():
         def settingTab(self, section):
             return setPathParams(self.SETTINGTAB, section)
 
-        ACCOUNTPREFERENCES = "account/preferences/<str:userID>"
-
-        def accountPreferences(self, userID):
-            return setPathParams(self.ACCOUNTPREFERENCES, userID)
+        ACCOUNTPREFERENCES = "account/preferences"
 
         TOPICSEARCH = "topics/search"
         TOPICSUPDATE = "topics/update"
@@ -683,6 +680,10 @@ class Template():
     def landing(self):
         return f'{self.LANDING}.html'
 
+    INVITATION = 'invitation'
+    @property
+    def invitation(self):
+        return f'{self.INVITATION}.html'
     
     class Auth():
         DIRNAME = 'account'

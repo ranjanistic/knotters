@@ -37,7 +37,10 @@ def require_JSON_body(function):
         try:
             request.POST = json.loads(request.body.decode("utf-8"))
             return function(request, *args, **kwargs)
-        except:
+        except Exception as e:
+            errorLog(e)
+            if request.method == 'POST':
+                return function(request, *args, **kwargs)
             return HttpResponseNotAllowed(permitted_methods=['POST'])
     return wrap
 
@@ -62,28 +65,22 @@ def normal_profile_required(function):
             raise Http404()
     return wrap
 
-@decDec(login_required)
+@decDec(normal_profile_required)
 def moderator_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         if request.user.profile.is_moderator:
-            if request.user.profile.isNormal():
-                return function(request, *args, **kwargs)
-            else:
-                raise Http404()
+            return function(request, *args, **kwargs)
         else:
             raise Http404()
     return wrap
 
-@decDec(login_required)
+@decDec(normal_profile_required)
 def manager_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         if request.user.profile.is_manager:
-            if request.user.profile.isNormal():
-                return function(request, *args, **kwargs)
-            else:
-                raise Http404()
+            return function(request, *args, **kwargs)
         else:
             raise Http404()
     return wrap
