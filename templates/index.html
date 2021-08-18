@@ -104,21 +104,12 @@
 
         <div style="min-height: 50vh;">
             {% block content %}
-            <br/>
             <div class="w3-row">
                 {% if alert %}
                 <div class="w3-row positive w3-center w3-padding">
                 <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
                 </div>
                 {% endif %}
-                <br/><br/>
-                <div class="w3-row w3-center w3-padding">
-                    <h1>Let's start.</h1>
-                    <h2>Shall we?</h2>
-                    <button class="display-button accent">Less Go!</button>
-                    <button class="display-button positive">Start where?</button>
-                </div>
-                <br/>
                 <div class="w3-row tertiary" id='newbie-projects-view'>
                     
                 </div>

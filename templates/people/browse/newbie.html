@@ -1,8 +1,8 @@
 {% load custom_tags %}
 <div class="w3-row">
     <br/>
-    <div class="w3-padding">
-    <h3>Newbie profiles</h3>
+    <div class="w3-padding-small">
+    <h3>&nbsp;&nbsp;&nbsp;&nbsp;Newbie profiles</h3>
     </div>
     <br/>
     <div class="swiper-container swiper-browser">
@@ -30,7 +30,7 @@
             </center>
             </div>
             {% endfor %}
-            {% if profile.0  %}
+            {% if profiles.0 %}
             <div class="w3-col swiper-slide w3-padding">
                 <a href="{{URLS.PEOPLE}}"><button class="primary display-button" data-icon="open_in_new">More</button></a>
             </div>

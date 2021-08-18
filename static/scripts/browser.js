@@ -10,9 +10,13 @@ const loadBrowserSwiper = (_) => {
                 slidesPerView: 3,
                 spaceBetween: 5,
             },
+            920: {
+                slidesPerView: 4,
+                spaceBetween: 12,
+            },
             640: {
-                slidesPerView: 2,
-                spaceBetween: 5,
+                slidesPerView: 4,
+                spaceBetween: 12,
             },
         },
     });
