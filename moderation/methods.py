@@ -151,12 +151,10 @@ def requestModerationForObject(
                 return False
             requestData = requestData if requestData else mod.request
             referURL = referURL if referURL else mod.referURL
-            print(requestData)
             if type == PROJECTS:
                 newmod = Moderation.objects.create(
                     type=type, project=object, moderator=newmoderator, request=requestData, referURL=referURL)
                 object.status = Code.MODERATION
-                print(object.status)
                 object.save()
             elif type == PEOPLE:
                 newmod = Moderation.objects.create(

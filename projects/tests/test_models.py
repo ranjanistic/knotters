@@ -3,27 +3,27 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DatabaseError
 from people.models import Topic, User, Profile
 from moderation.methods import requestModerationForObject
-from people.tests.utils import TEST_NAME, TEST_PASSWORD, TEST_EMAIL, getTestTopicsInst, getTestUsersInst
+from people.tests.utils import getTestName, getTestPassword, getTestEmail, getTestTopicsInst, getTestUsersInst
 from projects.models import *
-from .utils import TEST_CATEGORY, TEST_IMAGE, TEST_PROJ_NAME, TEST_PROJ_REPO, TEST_TAG, getTestTagsInst
+from .utils import getProjCategory, getProjImage, getProjName, getProjRepo, getTag, getTestTagsInst
 
 
 @tag(Code.Test.MODEL, APPNAME)
 class ProjectTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    def setUpTestData(self) -> None:
         user = User.objects.create_user(
-            first_name=TEST_NAME, password=TEST_PASSWORD, email=TEST_EMAIL)
-        cls.creator = Profile.objects.get(user=user)
+            first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
+        self.creator = Profile.objects.get(user=user)
 
     def test_project_create_invalid(self):
         with self.assertRaises(ObjectDoesNotExist):
-            Project.objects.create(name=TEST_PROJ_NAME)
+            Project.objects.create(name=getProjName())
 
     def test_project_create_valid(self):
         prevxp = self.creator.xp
         proj = Project.objects.create(
-            name=TEST_PROJ_NAME, creator=self.creator, reponame=TEST_PROJ_REPO)
+            name=getProjName(), creator=self.creator, reponame=getProjRepo())
         self.assertEqual(proj.status, Code.MODERATION)
         self.assertTrue(proj.creator.xp > prevxp)
 
@@ -31,18 +31,18 @@ class ProjectTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class ProjectAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    def setUpTestData(self) -> None:
         user = User.objects.create_user(
-            first_name=TEST_NAME, password=TEST_PASSWORD, email=TEST_EMAIL)
-        cls.creator = Profile.objects.get(user=user)
-        cls.project = Project.objects.create(
-            name=TEST_PROJ_NAME, creator=cls.creator, reponame=TEST_PROJ_REPO)
+            first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
+        self.creator = Profile.objects.get(user=user)
+        self.project = Project.objects.create(
+            name=getProjName(), creator=self.creator, reponame=getProjRepo())
 
     def test_project_default_methods(self):
         self.assertEqual(self.project.__str__(), self.project.name)
         self.assertEqual(self.project.getID(), self.project.id.hex)
         self.assertTrue(projectImagePath(
-            self.project, TEST_IMAGE).__contains__(self.project.getID()))
+            self.project, getProjImage()).__contains__(self.project.getID()))
         self.assertTrue(self.project.getDP().endswith(str(self.project.image)))
         self.assertTrue(self.project.underModeration())
         self.assertFalse(self.project.rejected())
@@ -57,7 +57,7 @@ class ProjectAttributeTest(TestCase):
         self.assertFalse(self.project.canRetryModeration())
 
     def test_project_modified_methods(self):
-        self.project.image = projectImagePath(self.project, TEST_IMAGE)
+        self.project.image = projectImagePath(self.project, getProjImage())
         self.project.save()
         self.project.image = defaultImagePath()
         self.project.save()
@@ -72,16 +72,16 @@ class ProjectAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class TagTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    def setUpTestData(self) -> None:
         user = User.objects.create_user(
-            first_name=TEST_NAME, password=TEST_PASSWORD, email=TEST_EMAIL)
-        cls.creator = Profile.objects.get(user=user)
-        cls.project = Project.objects.create(
-            name=TEST_PROJ_NAME, creator=cls.creator, reponame=TEST_PROJ_REPO)
+            first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
+        self.creator = Profile.objects.get(user=user)
+        self.project = Project.objects.create(
+            name=getProjName(), creator=self.creator, reponame=getProjRepo())
         return super().setUpTestData()
 
     def test_tag_create(self):
-        Tag.objects.create(name=TEST_TAG)
+        Tag.objects.create(name=getTag())
 
     def test_tag_assign_project(self):
         tags = Tag.objects.bulk_create(getTestTagsInst(4))
@@ -105,8 +105,8 @@ class TagTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class TagAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.tag = Tag.objects.create(name=TEST_TAG)
+    def setUpTestData(self) -> None:
+        self.tag = Tag.objects.create(name=getTag())
         return super().setUpTestData()
 
     def test_category_methods(self):
@@ -116,25 +116,25 @@ class TagAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class CategoryTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    def setUpTestData(self) -> None:
         user = User.objects.create_user(
-            first_name=TEST_NAME, password=TEST_PASSWORD, email=TEST_EMAIL)
-        cls.creator = Profile.objects.get(user=user)
+            first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
+        self.creator = Profile.objects.get(user=user)
         return super().setUpTestData()
 
     def test_create_category(self):
-        Category.objects.create(name=TEST_CATEGORY)
+        Category.objects.create(name=getProjCategory())
 
     def test_category_assign_project(self):
-        category = Category.objects.create(name=TEST_CATEGORY)
+        category = Category.objects.create(name=getProjCategory())
         proj = Project.objects.create(
-            name=TEST_PROJ_NAME, creator=self.creator, reponame=TEST_PROJ_REPO, category=category)
+            name=getProjName(), creator=self.creator, reponame=getProjRepo(), category=category)
         self.assertEqual(proj.category.getID(), category.getID())
 
     def test_category_assign_tags(self):
-        category = Category.objects.create(name=TEST_CATEGORY)
+        category = Category.objects.create(name=getProjCategory())
         proj = Project.objects.create(
-            name=TEST_PROJ_NAME, creator=self.creator, reponame=TEST_PROJ_REPO, category=category)
+            name=getProjName(), creator=self.creator, reponame=getProjRepo(), category=category)
         tags = Tag.objects.bulk_create(getTestTagsInst(4))
         for tag in tags:
             proj.category.tags.add(tag)
@@ -151,8 +151,8 @@ class CategoryTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class CategoryAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.category = Category.objects.create(name=TEST_CATEGORY)
+    def setUpTestData(self) -> None:
+        self.category = Category.objects.create(name=getProjCategory())
         return super().setUpTestData()
 
     def test_category_methods(self):
@@ -162,12 +162,12 @@ class CategoryAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class TopicTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    def setUpTestData(self) -> None:
         user = User.objects.create_user(
-            first_name=TEST_NAME, password=TEST_PASSWORD, email=TEST_EMAIL)
-        cls.creator = Profile.objects.get(user=user)
-        cls.project = Project.objects.create(
-            name=TEST_PROJ_NAME, creator=cls.creator, reponame=TEST_PROJ_REPO)
+            first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
+        self.creator = Profile.objects.get(user=user)
+        self.project = Project.objects.create(
+            name=getProjName(), creator=self.creator, reponame=getProjRepo())
         return super().setUpTestData()
 
     def test_topic_assign_project(self):

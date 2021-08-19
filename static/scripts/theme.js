@@ -32,12 +32,17 @@ const primarycolor = {
     [theme.dark]: "#000000",
     [theme.light]: "#ffffff",
 };
+const accentcolor = {
+    [theme.dark]: "#de9846",
+    [theme.light]: "#f5d702",
+};
 
 const setTheme = (themevalue = theme.light) => {
     localStorage.setItem(theme.key, themevalue);
     window.parent.document
         .getElementById("themecolor")
-        .setAttribute("content", primarycolor[themevalue]);
+        .setAttribute("content", [primarycolor[theme.dark],primarycolor[theme.light]].includes(window.parent.document
+            .getElementById("themecolor").getAttribute('content'))?primarycolor[themevalue]:accentcolor[themevalue]);
     document.documentElement.setAttribute("data-theme", themevalue);
     window.parent.document.documentElement.setAttribute(
         "data-theme",

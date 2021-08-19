@@ -1,54 +1,67 @@
 from main.strings import Code
 from django.test import TestCase, tag
+from main.tests.utils import getRandomStr
 from people.methods import *
-from .utils import TEST_BIO, TEST_EMAIL, TEST_FNAME, TEST_LNAME, TEST_NAME, TEST_PASSWORD
+from .utils import getTestBio, getTestEmail, getTestFName, getTestLName, getTestName, getTestPassword
 
 
-@tag(Code.Test.METHOD,APPNAME)
+@tag(Code.Test.METHOD, APPNAME)
 class PeopleMethodsTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.user = User.objects.create_user(
-                email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
-        cls.profile = Profile.objects.get(user=cls.user)
+    def setUpTestData(self) -> None:
+        self.user = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.profile = Profile.objects.get(user=self.user)
         return super().setUpTestData()
 
     def test_convertToFLname(self):
-        fname, lname = convertToFLname(TEST_FNAME)
-        self.assertEqual(lname,str())
-        self.assertEqual(fname,TEST_FNAME)
-        fname, lname = convertToFLname(f"{TEST_FNAME} {TEST_LNAME}")
-        self.assertEqual(lname,TEST_LNAME)
-        self.assertEqual(fname,TEST_FNAME)
-        fname, lname = convertToFLname(f"{TEST_FNAME} {TEST_LNAME} Test")
-        self.assertEqual(lname,f"{TEST_LNAME} Test")
-        self.assertEqual(fname,TEST_FNAME)
-        fname, lname = convertToFLname(f"{TEST_FNAME} {TEST_LNAME} {TEST_LNAME}")
+        firstname = getTestFName()
+        lastname = getTestLName()
+        fname, lname = convertToFLname(firstname)
+        self.assertEqual(lname, str())
+        self.assertEqual(fname, firstname)
+        fname, lname = convertToFLname(f"{firstname} {lastname}")
+        self.assertEqual(lname, lastname)
+        self.assertEqual(fname, firstname)
+        midname = getTestLName()
+        fname, lname = convertToFLname(f"{firstname} {midname} {lastname}")
+        self.assertTrue(f"{midname} {lastname}".__contains__(lname))
+        self.assertNotEqual(lname, f"{midname} {lastname}")
+        self.assertEqual(fname, firstname)
+        midname = getTestName()
+        fname, lname = convertToFLname(f"{firstname} {midname} {getTestLName()} {getTestLName()} {getTestLName()}")
         self.assertFalse(len(f"{fname} {lname}") > 70)
-        self.assertEqual(fname,TEST_FNAME)
-
+        self.assertEqual(fname, firstname)
 
     def test_filterBio(self):
-        self.assertIsInstance(filterBio(TEST_BIO+TEST_BIO),str)
-        self.assertFalse(len(filterBio(TEST_BIO+TEST_BIO))>120)
+        self.assertIsInstance(filterBio(getTestBio()+getTestBio()), str)
+        self.assertFalse(len(filterBio(getTestBio()+getTestBio())) > 120)
 
     def test_getProfileSectionData(self):
-        defdata = dict(self=True,person=self.user)
-        self.assertFalse(getProfileSectionData("abcd", self.profile,self.user))
-        self.assertDictEqual(getProfileSectionData(profileString.OVERVIEW, self.profile,self.user),defdata)
-        self.assertIsInstance(getProfileSectionData(profileString.PROJECTS, self.profile,self.user), dict)
-        self.assertDictEqual(getProfileSectionData(profileString.CONTRIBUTION, self.profile,self.user),defdata)
-        self.assertDictEqual(getProfileSectionData(profileString.ACTIVITY, self.profile,self.user),defdata)
-        self.assertDictEqual(getProfileSectionData(profileString.MODERATION, self.profile,self.user),defdata)
+        defdata = dict(self=True, person=self.user)
+        self.assertFalse(getProfileSectionData(
+            getRandomStr(), self.profile, self.user))
+        self.assertDictEqual(getProfileSectionData(
+            profileString.OVERVIEW, self.profile, self.user), defdata)
+        self.assertIsInstance(getProfileSectionData(
+            profileString.PROJECTS, self.profile, self.user), dict)
+        self.assertDictEqual(getProfileSectionData(
+            profileString.CONTRIBUTION, self.profile, self.user), defdata)
+        self.assertDictEqual(getProfileSectionData(
+            profileString.ACTIVITY, self.profile, self.user), defdata)
+        self.assertDictEqual(getProfileSectionData(
+            profileString.MODERATION, self.profile, self.user), defdata)
 
     def test_settingSectionData(self):
         defdata = dict()
-        self.assertDictEqual(getSettingSectionData(profileString.Setting.ACCOUNT, self.user,self.user),defdata)
-        self.assertDictEqual(getSettingSectionData(profileString.Setting.PREFERENCE, self.user,self.user),{**defdata, f"{Code.SETTING}":ProfileSetting.objects.get(profile=self.profile)})
+        self.assertDictEqual(getSettingSectionData(
+            profileString.Setting.ACCOUNT, self.user, self.user), defdata)
+        self.assertDictEqual(getSettingSectionData(profileString.Setting.PREFERENCE, self.user, self.user), {
+                             **defdata, f"{Code.SETTING}": ProfileSetting.objects.get(profile=self.profile)})
 
     def test_isPictureDeleteable(self):
         self.assertFalse(isPictureDeletable(self.profile.picture))
-    
+
     def test_isPictureSocialImage(self):
         self.assertFalse(isPictureSocialImage(self.profile.picture))
 
@@ -56,4 +69,4 @@ class PeopleMethodsTest(TestCase):
         self.assertIsNone(getUsernameFromGHSocial(None))
 
     def test_migrateUserAssets(self):
-        self.assertTrue(migrateUserAssets(self.user,self.user))
+        self.assertTrue(migrateUserAssets(self.user, self.user))

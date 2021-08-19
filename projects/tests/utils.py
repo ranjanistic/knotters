@@ -1,20 +1,35 @@
 from uuid import uuid4
 from projects.models import Tag
 
-TEST_PROJ_NAME = f'Test Project {uuid4().hex}'
-TEST_PROJ_REPO = f'test-project'
-TEST_IMAGE = f"testimage{uuid4().hex}.png"
-TEST_TAG = f'test_tag_{uuid4().hex}'
-TEST_DESC = f"{uuid4().hex} {uuid4().hex} {uuid4().hex}"
-TEST_CATEGORY = f'Test category {uuid4().hex}'
-TEST_LIC_NAME = uuid4().hex
-TEST_LIC_DESC = uuid4().hex
+def getProjName():
+    return f'Test {uuid4().hex}'
+
+def getProjRepo():
+    return f"test-{str(uuid4()).split('-')[0]}"
+
+def getProjImage():
+    return f"test_{uuid4().hex}.png"
+
+def getProjDesc():
+    return f"{uuid4().hex} {uuid4().hex} {uuid4().hex}"
+
+def getProjCategory():
+    return f'Test {uuid4().hex}'
+
+def getLicName():
+    return f"test_{uuid4().hex}"
+
+def getLicDesc():
+    return f"test_{uuid4().hex}"
+
+def getTag():
+    return f'test_{uuid4().hex}'
 
 def getTestTags(count=1,start=0):
-    topics = []
+    tags = []
     for i in range(count):
-        topics.append(f"test_tag_{i+start}{uuid4().hex}")
-    return topics
+        tags.append(f"test_{uuid4().hex}{i+start}")
+    return tags
 
 def getTestTagsInst(count=1,start=0):
     tags = []

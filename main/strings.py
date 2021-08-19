@@ -298,9 +298,20 @@ class URL():
         PASSWORD_RESET_KEY = 'password/reset/key/'
         PASSWORD_RESET_KEY_DONE = 'password/reset/key/done/'
         SOCIAL = 'social/'
-        GOOGLE = 'gitHub/'
-        GITHUB = 'google/'
+        GITHUB = 'github/'
+        GOOGLE = 'google/'
         DISCORD = 'discord/'
+
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Auth, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(AUTH)}{setPathParams(urls[key])}"
+            return URLS
 
     auth = Auth()
                 
@@ -308,6 +319,17 @@ class URL():
         TYPE = '<str:type>'
         def type(self, type):
             return setPathParams(self.TYPE, type)
+
+        def getURLSForClient(self):
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Docs, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(DOCS)}{setPathParams(urls[key])}"
+            return URLS    
     
     docs = Docs()
     

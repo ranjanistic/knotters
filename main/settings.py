@@ -190,6 +190,8 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 LOGIN_URL = f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
+APPEND_SLASH = False
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587

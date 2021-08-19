@@ -1,27 +1,27 @@
 from datetime import timedelta
 from django.test import TestCase, tag
 from django.utils import timezone
+from random import randint
 from main.strings import Code
 from people.models import User
 from moderation.methods import requestModerationForObject
 from people.tests.utils import getTestUsersInst, getTestTopicsInst
+from .utils import getCompTitle, getCompPerks, getCompBanner, getSubmissionRepos
 from compete.models import *
-from .utils import TEST_COMP_TITLE, TEST_COMP_PERKS, TEST_BANNER, getSubmissionRepos
-from random import randint
 
 
 @tag(Code.Test.MODEL, APPNAME)
 class CompetitionTest(TestCase):
     def test_comp_creation_pass(self):
-        comp = Competition.objects.create(title=TEST_COMP_TITLE)
+        comp = Competition.objects.create(title=getCompTitle())
         self.assertIsNotNone(comp.title)
 
 
 @tag(Code.Test.MODEL, APPNAME)
 class CompetitionM2MTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
         users = User.objects.bulk_create(getTestUsersInst(3))
         profiles = []
         for user in users:
@@ -29,8 +29,8 @@ class CompetitionM2MTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judges = Profile.objects.filter(user__in=users)
-        cls.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+        self.judges = Profile.objects.filter(user__in=users)
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
 
     def test_comp_assign_judges(self):
         for judge in self.judges:
@@ -58,17 +58,19 @@ class CompetitionM2MTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class CompetitionAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(
-            title=TEST_COMP_TITLE, endAt=timezone.now()+timedelta(days=3))
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3))
 
     def test_default_comp_methods(self):
-        self.assertTrue(competeBannerPath(self.comp, TEST_BANNER).__contains__(self.comp.getID()))
+        self.assertTrue(competeBannerPath(
+            self.comp, getCompBanner()).__contains__(self.comp.getID()))
         self.assertEqual(self.comp.__str__(), self.comp.title)
         self.assertEqual(self.comp.getID(), self.comp.id.hex)
         self.assertTrue(self.comp.getBanner().endswith(str(self.comp.banner)))
         self.assertTrue(self.comp.getLink().endswith(self.comp.getID()))
-        self.assertTrue(self.comp.participationLink().endswith(url.compete.participate(compID=self.comp.getID())))
+        self.assertTrue(self.comp.participationLink().endswith(
+            url.compete.participate(compID=self.comp.getID())))
         self.assertTrue(self.comp.isActive())
         self.assertFalse(self.comp.isUpcoming())
         self.assertFalse(self.comp.isHistory())
@@ -97,25 +99,25 @@ class CompetitionAttributeTest(TestCase):
         self.assertTrue(self.comp.declareResultsLink().endswith(
             url.compete.declareResults(compID=self.comp.getID())))
         self.assertFalse(self.comp.declareResults())
-        self.assertCountEqual(self.comp.getParticipants(),[])
-        self.assertEqual(self.comp.totalParticipants(),0)
-        self.assertCountEqual(self.comp.getAllParticipants(),[])
-        self.assertEqual(self.comp.totalAllParticipants(),0)
+        self.assertCountEqual(self.comp.getParticipants(), [])
+        self.assertEqual(self.comp.totalParticipants(), 0)
+        self.assertCountEqual(self.comp.getAllParticipants(), [])
+        self.assertEqual(self.comp.totalAllParticipants(), 0)
 
-
-    @tag("mod")
     def test_modified_comp_methods(self):
         self.comp.endAt = timezone.now()
-        self.comp.perks = TEST_COMP_PERKS
+        perks = getCompPerks()
+        self.comp.perks = perks
         self.judges = None
         self.comp.save()
         self.assertEqual(self.comp.secondsLeft(), 0)
-        self.assertCountEqual(self.comp.getPerks(), TEST_COMP_PERKS.split(';'))
+        self.assertCountEqual(self.comp.getPerks(), perks.split(';'))
         users = User.objects.bulk_create(getTestUsersInst(3))
-        Profile.objects.create(user=users[0],is_moderator=True)
-        requestModerationForObject(self.comp,APPNAME)
+        Profile.objects.create(user=users[0], is_moderator=True)
+        requestModerationForObject(self.comp, APPNAME)
         self.assertTrue(self.comp.isModerator(self.comp.getModerator()))
-        Moderation.objects.filter(type=APPNAME, competition=self.comp).update(resolved=True)
+        Moderation.objects.filter(
+            type=APPNAME, competition=self.comp).update(resolved=True)
         self.assertTrue(self.comp.moderated())
         judge = Profile.objects.create(user=users[1])
         self.assertFalse(self.comp.isJudge(profile=judge))
@@ -127,21 +129,23 @@ class CompetitionAttributeTest(TestCase):
         self.assertTrue(self.comp.isParticipant(profile=participant))
         topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
         self.comp.topics.add(topic)
-        SubmissionTopicPoint.objects.create(submission=subm,judge=judge,topic=topic)
+        SubmissionTopicPoint.objects.create(
+            submission=subm, judge=judge, topic=topic)
         self.assertTrue(self.comp.allSubmissionsMarkedByJudge(judge=judge))
-        self.assertEqual(self.comp.countJudgesWhoMarkedSubmissions(), 1)    
+        self.assertEqual(self.comp.countJudgesWhoMarkedSubmissions(), 1)
+
 
 @tag(Code.Test.MODEL, APPNAME)
 class CompetitionJudgeAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(
-            title=TEST_COMP_TITLE, endAt=timezone.now()+timedelta(days=3))
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3))
         users = User.objects.bulk_create(getTestUsersInst())
         judge = Profile.objects.create(user=users[0])
-        cls.comp.judges.add(judge)
-        cls.compjudge = CompetitionJudge.objects.get(
-            competition=cls.comp, judge=judge)
+        self.comp.judges.add(judge)
+        self.compjudge = CompetitionJudge.objects.get(
+            competition=self.comp, judge=judge)
 
     def test_comp_judge_methods(self):
         self.assertEqual(self.compjudge.__str__(), self.comp.title)
@@ -150,13 +154,13 @@ class CompetitionJudgeAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class CompetitionTopicAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(
-            title=TEST_COMP_TITLE, endAt=timezone.now()+timedelta(days=3))
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3))
         topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
-        cls.comp.topics.add(topic)
-        cls.comptopic = CompetitionTopic.objects.get(
-            competition=cls.comp, topic=topic)
+        self.comp.topics.add(topic)
+        self.comptopic = CompetitionTopic.objects.get(
+            competition=self.comp, topic=topic)
 
     def test_comp_topic_methods(self):
         self.assertEqual(self.comptopic.__str__(), self.comp.title)
@@ -165,9 +169,9 @@ class CompetitionTopicAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class SubmissionTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         users = User.objects.bulk_create(getTestUsersInst(54))
         profiles = []
         for user in users:
@@ -175,10 +179,10 @@ class SubmissionTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judges = Profile.objects.filter(user__in=users)[0:3]
-        for judge in cls.judges:
-            cls.comp.judges.add(judge)
-        cls.users = Profile.objects.filter(user__in=users)[3:54]
+        self.judges = Profile.objects.filter(user__in=users)[0:3]
+        for judge in self.judges:
+            self.comp.judges.add(judge)
+        self.users = Profile.objects.filter(user__in=users)[3:54]
 
     def test_submission_creation(self):
         submissions = []
@@ -236,11 +240,11 @@ class SubmissionTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class SubmissionM2MTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
-        for topic in cls.topics:
-            cls.comp.topics.add(topic)
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+        for topic in self.topics:
+            self.comp.topics.add(topic)
         users = User.objects.bulk_create(getTestUsersInst(54))
         profiles = []
         for user in users:
@@ -248,22 +252,22 @@ class SubmissionM2MTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judges = Profile.objects.filter(user__in=users)[0:3]
-        for judge in cls.judges:
-            cls.comp.judges.add(judge)
-        cls.users = Profile.objects.filter(user__in=users)[3:54]
+        self.judges = Profile.objects.filter(user__in=users)[0:3]
+        for judge in self.judges:
+            self.comp.judges.add(judge)
+        self.users = Profile.objects.filter(user__in=users)[3:54]
         submissions = []
         i = 0
-        for repo in getSubmissionRepos(len(cls.users)):
+        for repo in getSubmissionRepos(len(self.users)):
             submissions.append(Submission(
-                competition=cls.comp,
+                competition=self.comp,
                 repo=repo
             ))
             i += 1
-        cls.subs = Submission.objects.bulk_create(submissions)
+        self.subs = Submission.objects.bulk_create(submissions)
         s = 0
-        for sub in Submission.objects.filter(competition=cls.comp):
-            sub.members.add(cls.users[s])
+        for sub in Submission.objects.filter(competition=self.comp):
+            sub.members.add(self.users[s])
             s += 1
 
     def test_submission_members(self):
@@ -277,16 +281,16 @@ class SubmissionM2MTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class SubmissionAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         users = User.objects.bulk_create(getTestUsersInst(2))
-        cls.subm = Submission.objects.create(competition=cls.comp)
-        cls.firstmem = Profile.objects.create(user=users[0])
-        cls.subm.members.add(cls.firstmem)
+        self.subm = Submission.objects.create(competition=self.comp)
+        self.firstmem = Profile.objects.create(user=users[0])
+        self.subm.members.add(self.firstmem)
         SubmissionParticipant.objects.filter(
-            submission=cls.subm, profile=cls.firstmem).update(confirmed=True)
-        cls.invitee = Profile.objects.create(user=users[1])
+            submission=self.subm, profile=self.firstmem).update(confirmed=True)
+        self.invitee = Profile.objects.create(user=users[1])
 
     def test_new_subm_methods(self):
         self.assertEqual(self.subm.__str__(),
@@ -313,18 +317,17 @@ class SubmissionAttributeTest(TestCase):
         self.subm.members.add(self.invitee)
         self.assertFalse(self.subm.isMember(profile=self.invitee))
         self.assertTrue(self.subm.isInvitee(profile=self.invitee))
-        self.assertCountEqual(self.subm.getInvitees(),[self.invitee])
-        
+        self.assertCountEqual(self.subm.getInvitees(), [self.invitee])
 
 
 @tag(Code.Test.MODEL, APPNAME)
 class SubmissionTopicPointTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
-        for topic in cls.topics:
-            cls.comp.topics.add(topic)
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+        for topic in self.topics:
+            self.comp.topics.add(topic)
 
         users = User.objects.bulk_create(getTestUsersInst(54))
         profiles = []
@@ -333,19 +336,19 @@ class SubmissionTopicPointTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judges = Profile.objects.filter(user__in=users)[0:3]
-        for judge in cls.judges:
-            cls.comp.judges.add(judge)
-        cls.users = Profile.objects.filter(user__in=users)[3:54]
+        self.judges = Profile.objects.filter(user__in=users)[0:3]
+        for judge in self.judges:
+            self.comp.judges.add(judge)
+        self.users = Profile.objects.filter(user__in=users)[3:54]
         submissions = []
         i = 0
-        for repo in getSubmissionRepos(len(cls.users)):
+        for repo in getSubmissionRepos(len(self.users)):
             submissions.append(Submission(
-                competition=cls.comp,
+                competition=self.comp,
                 repo=repo
             ))
             i += 1
-        cls.subs = Submission.objects.bulk_create(submissions)
+        self.subs = Submission.objects.bulk_create(submissions)
 
     def test_assign_topic_point(self):
         topicpoints = []
@@ -368,10 +371,10 @@ class SubmissionTopicPointTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class SubmissionTopicPointAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
-        cls.comp.topics.add(cls.topic)
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
+        self.comp.topics.add(self.topic)
 
         users = User.objects.bulk_create(getTestUsersInst(2))
         profiles = []
@@ -380,13 +383,13 @@ class SubmissionTopicPointAttributeTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judge = Profile.objects.filter(user__in=users)[0:1][0]
-        cls.comp.judges.add(cls.judge)
-        cls.user = Profile.objects.filter(user__in=users)[1:2][0]
-        cls.subm = Submission.objects.create(competition=cls.comp, repo=getSubmissionRepos()[
+        self.judge = Profile.objects.filter(user__in=users)[0:1][0]
+        self.comp.judges.add(self.judge)
+        self.user = Profile.objects.filter(user__in=users)[1:2][0]
+        self.subm = Submission.objects.create(competition=self.comp, repo=getSubmissionRepos()[
                                              0], submitted=True, submitOn=timezone.now())
-        cls.submTopicPoint = SubmissionTopicPoint.objects.create(
-            submission=cls.subm, judge=cls.judge, topic=cls.topic, points=randint(0, cls.comp.eachTopicMaxPoint))
+        self.submTopicPoint = SubmissionTopicPoint.objects.create(
+            submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
 
     def test_default_submtoppoint_method(self):
         self.assertEqual(self.submTopicPoint.__str__(), self.subm.getID())
@@ -395,11 +398,11 @@ class SubmissionTopicPointAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class ResultTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
-        for topic in cls.topics:
-            cls.comp.topics.add(topic)
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+        for topic in self.topics:
+            self.comp.topics.add(topic)
 
         users = User.objects.bulk_create(getTestUsersInst(54))
         profiles = []
@@ -408,26 +411,26 @@ class ResultTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judges = Profile.objects.filter(user__in=users)[0:3]
-        for judge in cls.judges:
-            cls.comp.judges.add(judge)
-        cls.users = Profile.objects.filter(user__in=users)[3:54]
+        self.judges = Profile.objects.filter(user__in=users)[0:3]
+        for judge in self.judges:
+            self.comp.judges.add(judge)
+        self.users = Profile.objects.filter(user__in=users)[3:54]
 
-        for repo in getSubmissionRepos(len(cls.users)):
-            Submission.objects.create(competition=cls.comp,
+        for repo in getSubmissionRepos(len(self.users)):
+            Submission.objects.create(competition=self.comp,
                                       repo=repo,
                                       submitted=True,
                                       submitOn=timezone.now())
 
-        cls.subs = Submission.objects.filter(competition=cls.comp)
+        self.subs = Submission.objects.filter(competition=self.comp)
         s = 0
-        for sub in Submission.objects.filter(competition=cls.comp):
-            sub.members.add(cls.users[s])
+        for sub in Submission.objects.filter(competition=self.comp):
+            sub.members.add(self.users[s])
             s += 1
         topicpoints = []
-        for judge in cls.judges:
-            for topic in cls.topics:
-                for sub in cls.subs:
+        for judge in self.judges:
+            for topic in self.topics:
+                for sub in self.subs:
                     topicpoints.append(SubmissionTopicPoint(
                         submission=sub,
                         topic=topic,
@@ -457,10 +460,10 @@ class ResultTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class ResultAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.comp = Competition.objects.create(title=TEST_COMP_TITLE)
-        cls.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
-        cls.comp.topics.add(cls.topic)
+    def setUpTestData(self) -> None:
+        self.comp = Competition.objects.create(title=getCompTitle())
+        self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
+        self.comp.topics.add(self.topic)
         users = User.objects.bulk_create(getTestUsersInst(2))
         profiles = []
         for user in users:
@@ -468,25 +471,32 @@ class ResultAttributeTest(TestCase):
                 user=user
             ))
         Profile.objects.bulk_create(profiles)
-        cls.judge = Profile.objects.filter(user__in=users)[0:1][0]
-        cls.comp.judges.add(cls.judge)
-        cls.user = Profile.objects.filter(user__in=users)[1:2][0]
+        self.judge = Profile.objects.filter(user__in=users)[0:1][0]
+        self.comp.judges.add(self.judge)
+        self.user = Profile.objects.filter(user__in=users)[1:2][0]
         now = timezone.now()
-        cls.subm = Submission.objects.create(
-            competition=cls.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
-        cls.submTopicPoint = SubmissionTopicPoint.objects.create(
-            submission=cls.subm, judge=cls.judge, topic=cls.topic, points=randint(0, cls.comp.eachTopicMaxPoint))
-        cls.comp.declareResults()
-        cls.result = Result.objects.get(
-            competition=cls.comp, submission=cls.subm)
+        self.subm = Submission.objects.create(
+            competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
+        self.submTopicPoint = SubmissionTopicPoint.objects.create(
+            submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
+        self.comp.declareResults()
+        self.result = Result.objects.get(
+            competition=self.comp, submission=self.subm)
 
     def test_result_methods(self):
         self.assertEqual(self.result.__str__(
         ), f"{self.comp} - {self.result.rank}{self.result.rankSuptext()}")
-        self.assertEqual(self.result.submitOn(), self.result.submission.submitOn)
-        self.assertEqual(self.result.rankSuptext(),self.result.rankSuptext(rnk=1))
-        self.assertEqual(self.result.rankSuptext(rnk=2),self.result.rankSuptext(rnk=22))
-        self.assertEqual(self.result.rankSuptext(rnk=1),self.result.rankSuptext(rnk=21))
-        self.assertEqual(self.result.rankSuptext(rnk=3),self.result.rankSuptext(rnk=23))
-        self.assertEqual(self.result.rankSuptext(rnk=4),self.result.rankSuptext(rnk=24))
-        self.assertEqual(self.result.rankSuptext(rnk=5),self.result.rankSuptext(rnk=20))
+        self.assertEqual(self.result.submitOn(),
+                         self.result.submission.submitOn)
+        self.assertEqual(self.result.rankSuptext(),
+                         self.result.rankSuptext(rnk=1))
+        self.assertEqual(self.result.rankSuptext(rnk=2),
+                         self.result.rankSuptext(rnk=22))
+        self.assertEqual(self.result.rankSuptext(rnk=1),
+                         self.result.rankSuptext(rnk=21))
+        self.assertEqual(self.result.rankSuptext(rnk=3),
+                         self.result.rankSuptext(rnk=23))
+        self.assertEqual(self.result.rankSuptext(rnk=4),
+                         self.result.rankSuptext(rnk=24))
+        self.assertEqual(self.result.rankSuptext(rnk=5),
+                         self.result.rankSuptext(rnk=20))

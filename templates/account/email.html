@@ -35,14 +35,14 @@
         {% endif %}
       </label>
     {% if not emailaddress.verified %}
-      <button class="secondary" type="submit" name="action_send"><i class="material-icons">send</i>Re-send Verification</button>
+      <button class="secondary" type="submit" name="action_send" data-icon="send">Re-send Verification</button>
     {%endif%}
     </div>
     {% endfor %}
     <br/>
     <div class="w3-row w3-padding">
-      <button class="accent" type="submit" name="action_primary"><i class="material-icons">mark_email_unread</i>Make Primary</button>
-      <button class="negative" type="submit" name="action_remove"><i class="material-icons">remove_circle</i>Remove</button>
+      <button class="accent" type="submit" name="action_primary" data-icon="mark_email_unread">Make Primary</button>
+      <button class="negative" type="submit" name="action_remove" data-icon="remove_circle">Remove</button>
     </div>
   </div>
 </form>
@@ -56,24 +56,9 @@
   <br/>
   <form method="post" action="{% url 'account_email' %}" class="add_email">
       {% csrf_token %}
-      <input type="email" name="email" placeholder="E-mail address" required="" id="id_email"><br/><br/>
+      <input type="email" name="email" placeholder="New email address" required="" id="id_email"><br/><br/>
       <button class="accent" name="action_add" type="submit">Add email</button>
   </form>
-{% endif %}
-{% if form.errors %}
-<br/><br/>
-  {% for field in form %}
-      {% for error in field.errors %}
-          <div class="alert alert-error negative-text">
-              <strong>{{ error|escape }}</strong>
-          </div>
-      {% endfor %}
-  {% endfor %}
-  {% for error in form.non_field_errors %}
-      <div class="alert alert-error">
-          <strong>{{ error|escape }}</strong>
-      </div>
-  {% endfor %}
 {% endif %}
 </div>
 {% endblock %}

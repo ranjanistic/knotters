@@ -7,12 +7,12 @@ from .utils import B64
 @tag(Code.Test.METHOD)
 class MainMethodsTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    def setUpTestData(self) -> None:
         return super().setUpTestData()
 
     def test_respondJSON(self):
         response = respondJson(Code.OK)
-        self.assertJSONEqual(str(response.content, encoding=response.charset),dict(code=Code.OK,error='',message=''))
+        self.assertJSONEqual(str(response.content, encoding=response.charset),dict(code=Code.OK))
 
     def test_getDeepFilePaths(self):
         def appendWhen(path):

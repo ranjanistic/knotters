@@ -36,6 +36,11 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     elif fromApp == MANAGEMENT:
         URLS = dict(**URLS, **url.management.getURLSForClient(), Projects=url.projects.getURLSForClient(),
                     People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient())
+    elif fromApp == DOCS:
+        URLS = dict(**URLS, **url.docs.getURLSForClient(), Projects=url.projects.getURLSForClient(), Management=url.management.getURLSForClient(),
+                    People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient())
+                    
+    URLS = dict(**URLS,Docs=url.docs.getURLSForClient(),Auth=url.auth.getURLSForClient())
 
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 
@@ -204,4 +209,4 @@ def getNumberSuffix(value: int) -> str:
         else:
             return "th"
 
-from .strings import url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE
+from .strings import url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS

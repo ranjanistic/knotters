@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from allauth.account.models import EmailAddress
 from people.apps import APPNAME
 from people.models import *
-from .utils import TEST_DP, TEST_GHID, TEST_NAME, TEST_EMAIL, TEST_PASSWORD, getTestEmails, getTestNames, getTestPasswords, getTestTopics
+from .utils import getTestDP, getTestGHID, getTestName, getTestEmail, getTestPassword, getTestEmails, getTestNames, getTestPasswords, getTestTopics
 
 
 @tag(Code.Test.MODEL, APPNAME)
@@ -20,38 +20,38 @@ class UserTest(TestCase):
 
     def test_profile_creation_fail(self):
         with self.assertRaises(AttributeError):
-            Profile.objects.create(githubID=TEST_GHID)
+            Profile.objects.create(githubID=getTestGHID())
 
     def test_superuser_creation_fail(self):
         with self.assertRaises(TypeError):
-            User.objects.create_superuser(password=TEST_PASSWORD)
+            User.objects.create_superuser(password=getTestPassword())
         with self.assertRaises(TypeError):
             User.objects.create_superuser(
-                email=TEST_EMAIL, password=TEST_PASSWORD)
+                email=getTestEmail(), password=getTestPassword())
 
     def test_user_creation_fail(self):
         with self.assertRaises(ValueError):
             User.objects.create_user(
-                password=TEST_PASSWORD, email=None, first_name=TEST_NAME)
+                password=getTestPassword(), email=None, first_name=getTestName())
         with self.assertRaises(TypeError):
             User.objects.create_user(
-                email=TEST_EMAIL, password=TEST_PASSWORD)
+                email=getTestEmail(), password=getTestPassword())
 
     def test_user_creation_pass(self):
         user = User.objects.create_user(
-            email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         profile = Profile.objects.get(user=user)
         settings = ProfileSetting.objects.get(profile=profile)
 
     def test_superuser_creation_pass(self):
         user = User.objects.create_superuser(
-            email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         profile = Profile.objects.get(user=user)
         ProfileSetting.objects.get(profile=profile)
 
     def test_user_deletion(self):
         user = User.objects.create_user(
-            email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         user.delete()
         profile = Profile.objects.get(id=user.profile.id)
         self.assertIsNone(profile.user)
@@ -69,22 +69,23 @@ class UserTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class UserAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.user = User.objects.create_user(
-            email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
-        cls.profile = Profile.objects.get(user=cls.user)
-        cls.setting = ProfileSetting.objects.get(profile=cls.profile)
-        cls.emailaddress = EmailAddress.objects.create(
-            user=cls.user, email=cls.user.email)
+    def setUpTestData(self) -> None:
+        self.name = getTestName()
+        self.user = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=self.name)
+        self.profile = Profile.objects.get(user=self.user)
+        self.setting = ProfileSetting.objects.get(profile=self.profile)
+        self.emailaddress = EmailAddress.objects.create(
+            user=self.user, email=self.user.email)
 
     def test_user_methods(self):
         self.assertEqual(self.user.__str__(), self.user.email)
         self.assertEqual(self.user.getID(), self.user.id.hex)
         self.assertFalse(self.user.has_perm(perm=None))
         self.assertTrue(self.user.has_module_perms(app_label=APPNAME))
-        self.assertEqual(self.user.getName(), TEST_NAME)
+        self.assertEqual(self.user.getName(), self.name)
         self.assertEqual(self.user.getName(), self.user.first_name)
-        self.user.last_name = TEST_NAME
+        self.user.last_name = getTestName()
         self.user.save()
         self.assertEqual(self.user.getName(),
                          f"{self.user.first_name} {self.user.last_name}")
@@ -117,13 +118,13 @@ class UserAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class ProfileAttributeTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.user = User.objects.create_user(
-            email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
-        cls.profile = Profile.objects.get(user=cls.user)
-        cls.setting = ProfileSetting.objects.get(profile=cls.profile)
-        cls.emailaddress = EmailAddress.objects.create(
-            user=cls.user, email=cls.user.email, verified=True)
+    def setUpTestData(self) -> None:
+        self.user = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.profile = Profile.objects.get(user=self.user)
+        self.setting = ProfileSetting.objects.get(profile=self.profile)
+        self.emailaddress = EmailAddress.objects.create(
+            user=self.user, email=self.user.email, verified=True)
 
     def test_profile_methods(self):
         self.assertEqual(self.profile.getID(), self.profile.id.hex)
@@ -134,12 +135,12 @@ class ProfileAttributeTest(TestCase):
         self.assertEquals(self.profile.getFName(), self.user.first_name)
         self.assertEquals(self.profile.getEmail(), self.user.email)
         self.assertFalse(self.profile.isRemoteDp())
-        self.assertEqual(self.profile.getBio(), '')
-        self.assertEqual(self.profile.getSubtitle(), '')
-        self.assertEqual(self.profile.getGhUrl(), '')
+        self.assertEqual(self.profile.getBio(), str())
+        self.assertEqual(self.profile.getSubtitle(), str())
+        self.assertEqual(self.profile.getGhUrl(), str())
         self.assertTrue(self.profile.getLink().endswith(
             self.profile.getUserID()))
-        self.profile.githubID = TEST_GHID
+        self.profile.githubID = getTestGHID()
         self.profile.save()
         self.assertTrue(self.profile.getLink().endswith(self.profile.githubID))
         self.profile.is_zombie = True
@@ -148,8 +149,8 @@ class ProfileAttributeTest(TestCase):
         self.assertTrue(self.profile.getSuccessorInviteLink().endswith(
             self.profile.getUserID()))
         self.assertTrue(profileImagePath(
-            self.profile, TEST_DP).__contains__(self.profile.getID()))
-        self.profile.picture = profileImagePath(self.profile, TEST_DP)
+            self.profile, getTestDP()).__contains__(self.profile.getID()))
+        self.profile.picture = profileImagePath(self.profile, getTestDP())
         self.profile.save()
         self.profile.picture = defaultImagePath()
         self.profile.save()
@@ -163,13 +164,13 @@ class ProfileAttributeTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class ProfileM2MTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.user = User.objects.create_user(
-            email=TEST_EMAIL, password=TEST_PASSWORD, first_name=TEST_NAME)
-        cls.profile = Profile.objects.get(user=cls.user)
-        cls.setting = ProfileSetting.objects.get(profile=cls.profile)
-        cls.emailaddress = EmailAddress.objects.create(
-            user=cls.user, email=cls.user.email, verified=True)
+    def setUpTestData(self) -> None:
+        self.user = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.profile = Profile.objects.get(user=self.user)
+        self.setting = ProfileSetting.objects.get(profile=self.profile)
+        self.emailaddress = EmailAddress.objects.create(
+            user=self.user, email=self.user.email, verified=True)
 
     def test_profile_reporters(self):
         ruser = User.objects.create_user(
@@ -201,13 +202,13 @@ class ProfileM2MTest(TestCase):
 @tag(Code.Test.MODEL, APPNAME)
 class TopicTest(TestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
-        cls.topicnames = getTestTopics(3)
+    def setUpTestData(self) -> None:
+        self.topicnames = getTestTopics(3)
         topics = []
-        for name in cls.topicnames:
+        for name in self.topicnames:
             topics.append(Topic(name=name))
         Topic.objects.bulk_create(topics)
-        cls.topics = Topic.objects.filter()
+        self.topics = Topic.objects.filter()
 
     def test_topic_methods(self):
         self.assertEqual(self.topics.first().__str__(),

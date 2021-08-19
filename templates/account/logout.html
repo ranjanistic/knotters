@@ -20,9 +20,9 @@
 	<div class="w3-col w3-half">
     <form method="POST" action="{% url 'account_logout' %}">
       {% csrf_token %}
-      <input type="hidden" name="next" value="/redirector?n={{ redirect_field_value }}" />
-      <button class="negative" type="submit"><i class="material-icons">logout</i>Yes, logout</button>
-      <a href="/"><button class="positive" type="button"><i class="material-icons">home</i>No, return home</button></a>
+      <input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{ redirect_field_value }}" />
+      <button class="negative" type="submit" data-icon="logout">Yes, logout</button>
+      <a href="/"><button class="positive" type="button" data-icon="home">No, return home</button></a>
       </form>
     <br/>
   </div>

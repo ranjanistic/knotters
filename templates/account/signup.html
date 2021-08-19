@@ -1,6 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
+{% load custom_tags %}
 
 {% block title %}Signup{% endblock %}
 
@@ -24,21 +25,21 @@
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/><br/>
-				<a class="w3-row" href="/auth/google/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
 					<button class="primary w3-padding">
 						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
 						Continue via Google
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="/auth/github/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
 					<button class="secondary w3-padding">
 						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
 						Continue via Github
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="/auth/discord/login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
 					<button class="tertiary w3-padding">
 						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
 						Continue via Discord
@@ -47,9 +48,7 @@
 				<br/>
 				<h4>Already a member?</h4>
 				<a class="w3-row" href="{% url 'account_login' %}?next={{request.GET.next}}">
-					<button class="primary">
-					<i class="material-icons">login</i>Existing Login
-					</button>
+					<button class="primary" data-icon="login">Existing Login</button>
 				</a>
 			</div>
 			<div class="w3-col w3-half">
@@ -65,8 +64,8 @@
 						<br/>
 					{% endfor %}
 					<br/>
-					<button class="positive" type="submit"><i class="material-icons">person_add</i>Create account</button>
-					<input type="hidden" name="next" value="/redirector/?n={{request.GET.next}}" />
+					<button class="positive" type="submit" data-icon="person_add">Create account</button>
+					<input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>
 			</div>
@@ -75,7 +74,7 @@
 </div>
 <br/>
 <center class="w3-padding">
-<strong>By continuing via an identity on our platform, you agree to our <a href="/docs/termsofservice" target="_blank" >terms of service</a> and <a href="/docs/privacypolicy" target="_blank">privacy policy</a>.</strong>
+<strong>By continuing via an identity on our platform, you agree to our <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" target="_blank" >terms of service</a> and <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" target="_blank">privacy policy</a>.</strong>
 </center>
 <br/>
 {%endblock%}
