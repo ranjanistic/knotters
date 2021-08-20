@@ -46,8 +46,6 @@ def participantJoinedAlert(profile:Profile,submission:Submission) -> bool:
     return sendCCActionEmail(
         to=finalEmails,
         subject=f"Teammate Joined Submission",
-        username='participant!',
-
         header=f"This is to inform you that '{profile.getName()}' has joined your team in '{submission.competition.title}' competition.",
         actions=[{'text': "View competition",
                 'url': f'{submission.competition.getLink()}'}],

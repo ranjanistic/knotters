@@ -61,11 +61,10 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
         data = dict(timeleft=compete.secondsLeft())
         if request.user.is_authenticated:
             try:
-                subm = Submission.objects.get(
-                    competition=compete, members=request.user.profile)
+                submp = SubmissionParticipant.objects.get(submission__competition=compete, profile=request.user.profile,confirmed=True)
                 data = dict(**data,
                     participated=True,
-                    subID=subm.getID()
+                    subID=submp.submission.getID()
                 )
             except:
                 data = dict(**data,
@@ -108,6 +107,8 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         except:
             pass
+        if competition.isParticipant(request.user.profile):
+            return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         submission = Submission.objects.create(competition=competition)
         submission.members.add(request.user.profile)
         SubmissionParticipant.objects.filter(
@@ -115,36 +116,6 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         request.user.profile.increaseXP(by=5)
         participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink())
-    except Exception as e:
-        errorLog(e)
-        raise Http404()
-
-
-@normal_profile_required
-@require_POST
-def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
-    """
-    Remove member/Withdraw participation
-    """
-    try:
-        member = request.user.profile if request.user.getID(
-        ) == userID else Profile.objects.get(user__id=userID)
-        submission = Submission.objects.get(
-            id=subID, members=member, submitted=False, competition__resultDeclared=False)
-        SubmissionParticipant.objects.get(
-            submission=submission, profile=request.user.profile, confirmed=True)
-        if not submission.competition.isActive():
-            raise Exception()
-        try:
-            submission.members.remove(member)
-            if submission.totalActiveMembers() == 0:
-                submission.delete()
-            member.decreaseXP(by=5)
-            participationWithdrawnAlert(member, submission)
-            return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
-        except Exception as e:
-            errorLog(e)
-            raise Exception(e)
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -203,12 +174,13 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
         try:
             SubmissionParticipant.objects.get(
                 submission=submission, profile=request.user.profile, confirmed=False)
-            return render(request, "invitation.html", renderData({
+            return render(request, Template().invitation, renderData({
                 'submission': submission,
             }, APPNAME))
         except:
             return redirect(submission.competition.getLink())
-    except:
+    except Exception as e:
+        print(e)
         raise Http404()
 
 
@@ -228,7 +200,7 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
         if action == Action.DECLINE:
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).delete()
-            return render(request, "invitation.html", renderData(dict(
+            return render(request, Template().invitation, renderData(dict(
                 submission=submission,
                 declined=True
             ), APPNAME))
@@ -237,13 +209,44 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
                 submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
             request.user.profile.increaseXP(by=5)
             participantWelcomeAlert(request.user.profile, submission)
-            return render(request, "invitation.html", renderData(dict(
+            return render(request, Template().invitation, renderData(dict(
                 submission=submission,
                 accepted=True
             ), APPNAME))
         else:
             raise Exception()
-    except:
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
+
+
+@normal_profile_required
+@require_POST
+def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
+    """
+    Remove member/Withdraw participation
+    """
+    try:
+        member = request.user.profile if request.user.getID(
+        ) == userID else Profile.objects.get(user__id=userID)
+        submission = Submission.objects.get(
+            id=subID, members=member, submitted=False, competition__resultDeclared=False)
+        SubmissionParticipant.objects.get(
+            submission=submission, profile=request.user.profile, confirmed=True)
+        if not submission.competition.isActive():
+            raise Exception()
+        try:
+            submission.members.remove(member)
+            if submission.totalActiveMembers() == 0:
+                submission.delete()
+            member.decreaseXP(by=5)
+            participationWithdrawnAlert(member, submission)
+            return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
+        except Exception as e:
+            errorLog(e)
+            raise Exception(e)
+    except Exception as e:
+        errorLog(e)
         raise Http404()
 
 

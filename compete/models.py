@@ -105,6 +105,8 @@ class Competition(models.Model):
         """
         Total seconds left in this competition from the instantaneous time this method is invoked.
         """
+        if not self.endAt:
+            return 0
         time = timezone.now()
         if time >= self.endAt:
             return 0
@@ -551,7 +553,7 @@ class SubmissionParticipant(models.Model):
         unique_together = ("profile", "submission")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='participant_submission')
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     confirmed = models.BooleanField(default=False)

@@ -1,6 +1,6 @@
 from datetime import timedelta
-from django.test import TestCase, tag
 from django.utils import timezone
+from django.test import TestCase, tag
 from random import randint
 from main.strings import Code
 from people.models import User

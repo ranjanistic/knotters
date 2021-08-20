@@ -815,17 +815,17 @@ class Template():
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
-        ACTIVE = "index/active"
+        ACTIVE = f"index/{Compete.ACTIVE}"
         @property
         def active(self):
             return f'{self.DIRNAME}/{self.ACTIVE}.html'
 
-        UPCOMING = "index/upcoming"
+        UPCOMING = f"index/{Compete.UPCOMING}"
         @property
         def upcoming(self):
             return f'{self.DIRNAME}/{self.UPCOMING}.html'
 
-        HISTORY = "index/history"
+        HISTORY = f"index/{Compete.HISTORY}"
         @property
         def history(self):
             return f'{self.DIRNAME}/{self.HISTORY}.html'
@@ -844,6 +844,31 @@ class Template():
         @property
         def certificate(self):
             return f'{self.DIRNAME}/{self.CERTIFICATE}.html'
+
+        PROFILE_OVERVIEW = f"profile/{Compete.OVERVIEW}"
+        @property
+        def profile_overview(self):
+            return f'{self.DIRNAME}/{self.PROFILE_OVERVIEW}.html'
+
+        PROFILE_TASK = f"profile/{Compete.TASK}"
+        @property
+        def profile_task(self):
+            return f'{self.DIRNAME}/{self.PROFILE_TASK}.html'
+
+        PROFILE_GUIDELINES = f"profile/{Compete.GUIDELINES}"
+        @property
+        def profile_guidelines(self):
+            return f'{self.DIRNAME}/{self.PROFILE_GUIDELINES}.html'
+
+        PROFILE_SUBMISSION = f"profile/{Compete.SUBMISSION}"
+        @property
+        def profile_submission(self):
+            return f'{self.DIRNAME}/{self.PROFILE_SUBMISSION}.html'
+
+        PROFILE_RESULT = f"profile/{Compete.RESULT}"
+        @property
+        def profile_result(self):
+            return f'{self.DIRNAME}/{self.PROFILE_RESULT}.html'
 
     compete = Compete()
 
