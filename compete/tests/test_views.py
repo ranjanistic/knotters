@@ -1,20 +1,24 @@
+from compete.models import SubmissionTopicPoint
 from django.http.response import HttpResponseNotFound
+from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta
 from django.utils import timezone
 import json
+from random import randint
 from django.test import TestCase, Client, tag
 from django.http import HttpResponse
 from main.strings import Code, url, template, Message, Action
 from main.tests.utils import getRandomStr
-from people.tests.utils import getTestEmail, getTestName, getTestPassword
-from people.models import Profile
+from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestPasswords, getTestTopicsInst, getTestUsersInst, getTestEmails, getTestNames
+from people.models import Profile, Topic
+from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
-from .utils import getCompTitle, root
+from .utils import getCompTitle, root, getTestUrl
 from compete.methods import *
 
 
-@tag(Code.Test.VIEW, APPNAME)
+@tag(Code.Test.VIEW, APPNAME, 'aa')
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
@@ -38,10 +42,13 @@ class TestViews(TestCase):
         self.mgprofile = Profile.objects.get(user=self.mguser)
         self.mgprofile.is_manager = True
         self.mgprofile.save()
-        self.comp = Competition.objects.create(title=getCompTitle(),creator=self.mgprofile,endAt=timezone.now()+timedelta(days=3))
+        self.comp = Competition.objects.create(title=getCompTitle(),creator=self.mgprofile,endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
         requestModerationForObject(self.comp,APPNAME)
         self.comp.judges.add(self.judgeprofile)
         self.client = Client()
+        self.topics = Topic.objects.bulk_create(getTestTopicsInst(5))
+        for top in self.topics:
+            self.comp.topics.add(top)
         return super().setUpTestData()
 
     def test_index(self):
@@ -210,7 +217,6 @@ class TestViews(TestCase):
         Submission.objects.filter(competition=self.comp).delete()
         self.client.logout()
         
-    
     def test_invite(self):
         self.client.login(email=self.email,password=self.password)
         resp = self.client.post(root(url.compete.participate(self.comp.getID())),follow=True)
@@ -224,9 +230,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.NO,error=Message.INVALID_ID))
 
-        E2 = getTestEmail()
-        P2 = getTestPassword()
-        user = User.objects.create_user(email=E2, password=P2, first_name=getTestName())
+        user = User.objects.create_user(email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         resp = self.client.post(root(url.compete.invite(subID)),{
             'userID':user.email,
         },follow=True)
@@ -234,7 +238,41 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK))
         self.assertIsInstance(SubmissionParticipant.objects.get(submission=subID,profile=user.profile,confirmed=False),SubmissionParticipant)
         self.assertEqual(SubmissionParticipant.objects.filter(submission__id=subID).count(),2)
+
+        P2 = getTestPassword()
+        user2 = User.objects.create_user(email=getTestEmail(), password=P2, first_name=getTestName())
+        client2 = Client()
+        client2.login(email=user2.email,password=P2)
+        resp = client2.post(root(url.compete.participate(self.comp.getID())),follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        resp = client2.post(root(url.compete.data(self.comp.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        subID2 = json.loads(resp.content.decode('utf-8'))['subID']
+
+        resp = client2.post(root(url.compete.invite(subID2)),{
+            'userID':user.email,
+        },follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.NO,error=Message.USER_PARTICIPANT_OR_INVITED))
+
+        comp2 = Competition.objects.create(title=getCompTitle(),creator=self.mgprofile,endAt=timezone.now()+timedelta(days=2))
+        resp = client2.post(root(url.compete.participate(comp2.getID())),follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        resp = client2.post(root(url.compete.data(comp2.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        subID21 = json.loads(resp.content.decode('utf-8'))['subID']
+        resp = client2.post(root(url.compete.invite(subID21)),{
+            'userID':user.email,
+        },follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK))
+        self.assertIsInstance(SubmissionParticipant.objects.get(submission=subID21,profile=user.profile,confirmed=False),SubmissionParticipant)
+        self.assertEqual(SubmissionParticipant.objects.filter(submission__id=subID21).count(),2)
+
         Submission.objects.filter(competition=self.comp).delete()
+
 
     def test_invitation(self):
         self.client.login(email=self.email,password=self.password)
@@ -245,16 +283,15 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json.loads(resp.content.decode('utf-8'))['subID']
 
-        E2 = getTestEmail()
         P2 = getTestPassword()
-        user = User.objects.create_user(email=E2, password=P2, first_name=getTestName())
+        user = User.objects.create_user(email=getTestEmail(), password=P2, first_name=getTestName())
         resp = self.client.post(root(url.compete.invite(subID)),{
             'userID':user.email,
         },follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
         client = Client()
-        self.assertTrue(client.login(email=E2,password=P2))
+        self.assertTrue(client.login(email=user.email,password=P2))
         resp = client.get(root(url.compete.invitation(getRandomStr(),self.user.getID())),follow=True)
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
         resp = client.get(root(url.compete.invitation(subID,user.getID())),follow=True)
@@ -272,16 +309,15 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json.loads(resp.content.decode('utf-8'))['subID']
 
-        E2 = getTestEmail()
         P2 = getTestPassword()
-        user = User.objects.create_user(email=E2, password=P2, first_name=getTestName())
+        user = User.objects.create_user(email=getTestEmail(), password=P2, first_name=getTestName())
         resp = self.client.post(root(url.compete.invite(subID)),{
             'userID':user.email,
         },follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
         client = Client()
-        self.assertTrue(client.login(email=E2,password=P2))
+        self.assertTrue(client.login(email=user.email,password=P2))
         resp = client.get(root(url.compete.invitation(subID,user.getID())),follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
@@ -319,9 +355,8 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json.loads(resp.content.decode('utf-8'))['subID']
 
-        E2 = getTestEmail()
         P2 = getTestPassword()
-        user = User.objects.create_user(email=E2, password=P2, first_name=getTestName())
+        user = User.objects.create_user(email=getTestEmail(), password=P2, first_name=getTestName())
         resp = self.client.post(root(url.compete.invite(subID)),{
             'userID':user.email,
         },follow=True)
@@ -341,7 +376,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
         client = Client()
-        self.assertTrue(client.login(email=E2,password=P2))
+        self.assertTrue(client.login(email=user.email,password=P2))
         resp = client.get(root(url.compete.invitation(subID,user.getID())),follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
@@ -389,4 +424,154 @@ class TestViews(TestCase):
 
         Submission.objects.filter(competition=self.comp).delete()
 
-    
+    def test_save(self):
+        self.client.login(email=self.email,password=self.password)
+        resp = self.client.post(root(url.compete.participate(self.comp.getID())),follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        resp = self.client.post(root(url.compete.data(self.comp.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        subID = json.loads(resp.content.decode('utf-8'))['subID']
+
+        resp = self.client.post(root(url.compete.save(self.comp.getID(),subID)), {
+            'submissionurl': getTestUrl()
+        }, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.compete.profile)
+
+        Submission.objects.filter(competition=self.comp).delete()
+
+    def test_finalSubmit(self):
+        self.client.login(email=self.email,password=self.password)
+        resp = self.client.post(root(url.compete.participate(self.comp.getID())),follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        resp = self.client.post(root(url.compete.data(self.comp.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        subID = json.loads(resp.content.decode('utf-8'))['subID']
+
+        resp = self.client.post(root(url.compete.submit(self.comp.getID(),subID)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK,message=Message.SUBMITTED_SUCCESS))
+
+        comp = Competition.objects.create(title=getCompTitle(),creator=self.mgprofile,endAt=timezone.now()+timedelta(seconds=3))
+        resp = self.client.post(root(url.compete.participate(comp.getID())),follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        resp = self.client.post(root(url.compete.data(comp.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        subID = json.loads(resp.content.decode('utf-8'))['subID']
+
+        comp.endAt = timezone.now()
+        comp.save()
+
+        resp = self.client.post(root(url.compete.submit(comp.getID(),subID)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK,message=Message.SUBMITTED_LATE))
+
+        Submission.objects.filter(competition=self.comp).delete()
+
+
+    def test_submitPoints(self):
+        self.comp.judges.remove(self.judgeprofile)
+        Submission.objects.filter(competition=self.comp).delete()
+        Moderation.objects.filter(competition=self.comp).delete()
+        Profile.objects.exclude(user=self.mguser).delete()
+        User.objects.exclude(email=self.mgemail).delete()
+
+        totalusers = 10
+        useremails = getTestEmails(totalusers)
+        userpasswords = getTestPasswords(totalusers)
+        usernames = getTestNames(totalusers)
+        users = []
+        for i in range(totalusers):
+            users.append(
+                User(
+                    email=useremails[i], 
+                    first_name=usernames[i],
+                    password=make_password(userpasswords[i], None, 'md5'), is_active=True
+                )
+            )
+        users = User.objects.bulk_create(users)
+        profiles = []
+        for u in users:
+            profiles.append(Profile(user=u))
+        profiles = Profile.objects.bulk_create(profiles)
+        i = -1
+        for _ in profiles:
+            i+=1
+            client = Client()
+            self.assertTrue(client.login(email=useremails[i],password=userpasswords[i]))
+            resp = client.post(root(url.compete.participate(self.comp.getID())),follow=True)
+            self.assertEqual(resp.status_code, HttpResponse.status_code)
+            resp = client.post(root(url.compete.data(self.comp.getID())))
+            self.assertEqual(resp.status_code, HttpResponse.status_code)
+            subID = json.loads(resp.content.decode('utf-8'))['subID']
+            resp = client.post(root(url.compete.save(self.comp.getID(),subID)), {
+                'submissionurl': getTestUrl()
+            }, follow=True)
+            self.assertEqual(resp.status_code, HttpResponse.status_code)
+            resp = client.post(root(url.compete.submit(self.comp.getID(),subID)))
+            self.assertEqual(resp.status_code, HttpResponse.status_code)
+            self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK,message=Message.SUBMITTED_SUCCESS))
+        
+        modemail = getTestEmail()
+        modpassword = getTestPassword()
+        moduser = User.objects.create_user(email=modemail, password=modpassword, first_name=getTestName())
+        modprofile = Profile.objects.filter(user=self.moduser).update(is_moderator=True)
+        requestModerationForObject(self.comp,APPNAME)
+        Moderation.objects.filter(type=APPNAME,competition=self.comp,moderator=modprofile).update(resolved=True)
+        totaljudges = 5
+        judgeemails = getTestEmails(totaljudges)
+        judgepasswords = getTestPasswords(totaljudges)
+        judgenames = getTestNames(totaljudges)
+        judges = []
+        for j in range(totaljudges):
+            judges.append(
+                User(
+                    email=judgeemails[j], 
+                    first_name=judgenames[j],
+                    password=make_password(judgepasswords[j], None, 'md5'), is_active=True
+                )
+            )
+        judges = User.objects.bulk_create(judges)
+        judgeprofiles = []
+        for ju in judges:
+            judgeprofiles.append(Profile(user=ju))
+        judgeprofiles = Profile.objects.bulk_create(judgeprofiles)
+
+        for judge in judgeprofiles:
+            self.comp.judges.add(judge)
+        
+        self.comp.endAt = timezone.now()
+        self.comp.save()
+
+        j = -1
+        for judge in judgeprofiles:
+            j+=1
+            client = Client()
+            self.assertTrue(client.login(email=judgeemails[j],password=judgepasswords[j]))
+            resp = client.post(root(url.compete.submitPoints(self.comp.getID())))
+            self.assertEqual(resp.status_code, HttpResponse.status_code)
+            self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.NO,error=Message.SUBMISSION_MARKING_INVALID))
+            submissions = []
+            
+            for subm in self.comp.getValidSubmissions():
+                topics = []
+                for top in self.comp.getTopics():
+                    point = randint(0, self.comp.eachTopicMaxPoint)
+                    topics.append({
+                        'topicID': top.getID(),
+                        'points': point
+                    })
+                submissions.append({
+                    'subID': subm.getID(),
+                    'topics': topics
+                })
+            resp = client.post(root(url.compete.submitPoints(self.comp.getID())),{"submissions":submissions}, content_type='application/json')
+            self.assertEqual(resp.status_code, HttpResponse.status_code)
+            self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK))
+        self.assertEqual(SubmissionTopicPoint.objects.filter(submission__competition=self.comp).count(), self.comp.totalValidSubmissions()*self.comp.totalJudges()*self.comp.totalTopics())
+        for judge in judgeprofiles:
+            self.assertTrue(self.comp.allSubmissionsMarkedByJudge(judge))
+        self.assertTrue(self.comp.allSubmissionsMarked())

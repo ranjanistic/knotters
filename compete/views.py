@@ -180,7 +180,7 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
         except:
             return redirect(submission.competition.getLink())
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
 
 

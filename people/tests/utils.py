@@ -80,7 +80,7 @@ def getTestTopic():
 def getTestTopics(count=1):
     topics = []
     for _ in range(count):
-        topics.append(uuid4().hex)
+        topics.append(getTestTopic())
     return topics
 
 

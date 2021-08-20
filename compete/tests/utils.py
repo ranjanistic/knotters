@@ -4,6 +4,9 @@ from main.strings import url, COMPETE as APPNAME
 def getCompTitle():
     return f'Test competition {uuid4().hex}'
 
+def getTestUrl():
+    return f'https://knotters.org/{uuid4().hex}'
+
 def getCompPerks():
     return f'perk {uuid4().hex};perk {uuid4().hex};perk {uuid4().hex}'
 
