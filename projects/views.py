@@ -56,10 +56,9 @@ def create(request: WSGIRequest) -> HttpResponse:
         if topic.tags.count():
             tags.append(topic.tags.all()[0])
 
-    if len(tags) < 1:
-        tags = list(Tag.objects.all()[0:5])
     if len(tags) < 5:
-        tags.append(Tag.objects.all()[0:5-len(tags)])
+        for tag in Tag.objects.all()[0:5-len(tags)]:
+            tags.append(tag)
 
     categories = Category.objects.all()
 
@@ -81,7 +80,7 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
         data = request.POST[field]
         if field == 'reponame':
             if not uniqueRepoName(data):
-                return respondJson(Code.NO, error=f"{data} already taken, try another.")
+                return respondJson(Code.NO, error=Message.Custom.already_exists(data))
             else:
                 return respondJson(Code.OK)
         else:
@@ -108,10 +107,10 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
     public = request.POST.get('public', False)
 
     if not (name and description and content):
-        return respondJson(Code.NO, error='Invalid license data')
+        return respondJson(Code.NO, error=Message.INVALID_LIC_DATA)
 
     if License.objects.filter(name__iexact=str(name).strip()).count() > 0:
-        return respondJson(Code.NO, error=f'{name} already exists')
+        return respondJson(Code.NO, error=Message.Custom.already_exists(name))
     try:
         lic = License.objects.create(
             name=str(name).strip(),
@@ -197,7 +196,7 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
             iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else project.getModerator(
             ) == request.user.profile
-            return renderer(request, 'profile', dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
+            return renderer(request, Template.Projects.PROFILE, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
@@ -215,7 +214,7 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = Project.objects.get(
-            id=projectID, creator=request.user.profile)
+            id=projectID, creator=request.user.profile,status=Code.APPROVED)
         if section == 'pallete':
             changed = False
             try:
@@ -240,6 +239,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                 return redirect(project.getLink(), permanent=True)
             except:
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
+        return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
     except Exception as e:
         errorLog(e)
         return HttpResponseForbidden()
@@ -248,28 +248,33 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 @normal_profile_required
 @require_JSON_body
 def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
-    query = request.POST.get('query', None)
-    if not query or not query.strip():
-        return respondJson(Code.NO)
+    try:
+        query = request.POST.get('query', None)
+        if not query or not query.strip():
+            return respondJson(Code.NO)
 
-    project = Project.objects.filter(id=projID, status=Code.APPROVED).first()
-    excluding = []
-    if project:
-        for topic in project.getTopics():
-            excluding.append(topic.id)
+        project = Project.objects.filter(id=projID, status=Code.APPROVED).first()
+        excluding = []
+        if project:
+            for topic in project.getTopics():
+                excluding.append(topic.id)
 
-    topics = Topic.objects.exclude(id__in=excluding).filter(
-        Q(name__startswith=query.capitalize()) | Q(name__iexact=query))[0:5]
-    topicslist = []
-    for topic in topics:
-        topicslist.append(dict(
-            id=topic.getID(),
-            name=topic.name
+        topics = Topic.objects.exclude(id__in=excluding).filter(
+            Q(name__startswith=query.capitalize()) | Q(name__iexact=query))[0:5]
+        topicslist = []
+        for topic in topics:
+            topicslist.append(dict(
+                id=topic.getID(),
+                name=topic.name
+            ))
+
+        return respondJson(Code.OK, dict(
+            topics=topicslist
         ))
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
-    return respondJson(Code.OK, dict(
-        topics=topicslist
-    ))
 
 
 @normal_profile_required
@@ -279,7 +284,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        if not (addtopicIDs.strip() or removetopicIDs.strip()):
+        if not addtopicIDs or not removetopicIDs or not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(project.getLink())
 
         if removetopicIDs:
@@ -299,6 +304,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
         return redirect(project.getLink())
     except Exception as e:
+        print(e)
         errorLog(e)
         raise Http404()
 
@@ -341,7 +347,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtagIDs = request.POST.get('addtagIDs', None)
         removetagIDs = request.POST.get('removetagIDs', None)
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        if not (addtagIDs.strip() or removetagIDs.strip()):
+        if not addtagIDs or not removetagIDs or not (addtagIDs.strip() or removetagIDs.strip()):
             return redirect(project.getLink())
 
         if removetagIDs:
@@ -369,7 +375,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        return rendererstr(request, 'profile/contributors', data=getProjectLiveData(project))
+        return rendererstr(request, Template.Projects.PROFILE_CONTRIBS, data=getProjectLiveData(project))
     except:
         raise Http404()
 

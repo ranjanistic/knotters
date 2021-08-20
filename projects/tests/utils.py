@@ -1,5 +1,13 @@
+
 from uuid import uuid4
+from django.contrib.auth.hashers import make_password
+from main.strings import url
+from projects.apps import APPNAME
 from projects.models import Tag
+
+def root(path='/', appendslash=False):
+    return f"{url.getRoot(APPNAME, not appendslash)}{path}"
+
 
 def getProjName():
     return f'Test {uuid4().hex}'

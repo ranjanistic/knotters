@@ -1,5 +1,4 @@
 import json
-from uuid import uuid4
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, Client, tag
 from django.db.models import QuerySet
@@ -13,7 +12,7 @@ from people.models import Profile, User
 from .utils import getTestDP, getTestEmail, getTestGHID, getTestName, getTestPassword, root
 
 
-@tag(Code.Test.VIEW, APPNAME, 'af')
+@tag(Code.Test.VIEW, APPNAME)
 class TestViews(TestCase):
     def setUpTestData(self) -> None:
         self.client = Client()
@@ -28,7 +27,7 @@ class TestViews(TestCase):
             self.botuser = User.objects.create_user(
                 email=BOTMAIL, password=getTestPassword(), first_name=getTestName())
             self.botprofile = Profile.objects.filter(
-                user=self.botuser).update(githubID=uuid4().hex)
+                user=self.botuser).update(githubID=getRandomStr())
         except:
             self.botuser = User.objects.get(email=BOTMAIL)
             self.botprofile = Profile.objects.get(user=self.botuser)
@@ -37,7 +36,7 @@ class TestViews(TestCase):
         except:
             self.user = User.objects.create_user(email=self.email,password=self.password,first_name=getTestName())
 
-        Profile.objects.filter(user=self.user).update(githubID=uuid4().hex)
+        Profile.objects.filter(user=self.user).update(githubID=getRandomStr())
         self.profile = self.user.profile
         return super().setUpTestData()
 
@@ -103,8 +102,6 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ), follow=True)
-        client.logout()
-        self.assertTrue(client.login(email=E2, password=P2))
         client.logout()
         resp = client.get(root(url.people.settingTab(
             profileString.Setting.ACCOUNT)), follow=True)

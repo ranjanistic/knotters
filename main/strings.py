@@ -92,6 +92,7 @@ class Message():
     PROJECT_DELETED = "Project deleted"
     TERMS_UNACCEPTED = "You have not accepted the terms"
     LICENSE_UNSELECTED = "You have to choose a license"
+    INVALID_LIC_DATA = 'Invalid license data'
 
     UNDER_MODERATION = "Currently under moderation"
     ALREADY_RESOLVED = "Already resolved"
@@ -133,6 +134,11 @@ class Message():
         for key in attrs:
             validMessages.append(attrs[key])
         return validMessages.__contains__(message)
+
+    class Custom():
+
+        def already_exists(something):
+            return f"{something} already exists"
 
 
 message = Message()
@@ -946,7 +952,37 @@ class Template():
         def browse_newbie(self):
             return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
 
+        PROFILE_CONTRIBS = 'profile/contributors'
+        @property
+        def profile_contribs(self):
+            return f'{self.DIRNAME}/{self.PROFILE_CONTRIBS}.html'
+
     projects = Projects()
+
+    class Moderation():
+        DIRNAME = MODERATION
+
+        INDEX = 'index'
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+
+        PROJECTS = 'projects'
+        @property
+        def projects(self):
+            return f'{self.DIRNAME}/{self.PROJECTS}.html'
+
+        PEOPLE = 'people'
+        @property
+        def people(self):
+            return f'{self.DIRNAME}/{self.PEOPLE}.html'
+
+        COMPETE = 'compete'
+        @property
+        def compete(self):
+            return f'{self.DIRNAME}/{self.COMPETE}.html'
+
+    moderation = Moderation()
 
     class Management():
         DIRNAME = MANAGEMENT

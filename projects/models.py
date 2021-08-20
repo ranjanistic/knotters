@@ -143,6 +143,11 @@ class Project(models.Model):
     def getRepoLink(self) -> str:
         return f"https://github.com/{PUBNAME}/{self.reponame}"
 
+    @property
+    def moderator(self):
+        mod = Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.APPROVED,Code.MODERATION]).order_by('-requestOn').first()
+        return None if not mod else mod.moderator
+
     def getModerator(self)->models.Model:
         if not self.isApproved():
             return None

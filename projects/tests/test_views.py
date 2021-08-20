@@ -1,0 +1,349 @@
+import json
+from django.http.response import HttpResponseNotFound, HttpResponseRedirect
+from django.test import TestCase, Client, tag
+from django.db.models import QuerySet
+from django.http import HttpResponse
+from main.strings import Code, url, template, Message, Action
+from main.tests.utils import getRandomStr
+from people.models import Profile, User
+from people.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword
+from projects.models import Project, License, Category, defaultImagePath
+from moderation.models import Moderation
+from projects.apps import APPNAME
+from .utils import getProjDesc, getProjRepo, getTestTags, root, getLicName, getLicDesc, getProjName, getProjCategory
+
+
+@tag(Code.Test.VIEW, APPNAME)
+class TestViews(TestCase):
+    @classmethod
+    def setUpTestData(self) -> None:
+        self.client = Client()
+        self.license = License.objects.create(
+            name=getLicName(), description=getLicDesc())
+        self.email = getTestEmail()
+        self.ghID = getTestGHID()
+        self.password = getTestPassword()
+        self.user = User.objects.create_user(
+            email=self.email, password=self.password, first_name=getTestName())
+        self.profile = Profile.objects.get(user=self.user)
+        self.moduser = User.objects.create_user(
+            email=getTestEmail(), password=self.password, first_name=getTestName())
+        self.modprofile = Profile.objects.get(user=self.moduser)
+        self.modprofile.is_moderator = True
+        self.modprofile.save()
+        return super().setUpTestData()
+
+    def setUp(self) -> None:
+        self.client = Client()
+
+    def test_allProjects(self):
+        resp = self.client.get(root(''))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(resp.context['projects'], QuerySet)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.projects.index)
+
+    def test_allLicenses(self):
+        resp = self.client.get(root(url.projects.ALLLICENSES))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(resp.context['licenses'], QuerySet)
+        self.assertNotIsInstance(resp.context['custom'], QuerySet)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.projects.index)
+        self.assertTemplateUsed(resp, template.projects.license_index)
+
+    def test_license(self):
+        resp = self.client.get(root(url.projects.license(getRandomStr())))
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        resp = self.client.get(
+            root(url.projects.license(self.license.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(resp.context['license'], License)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.projects.index)
+        self.assertTemplateUsed(resp, template.projects.license_index)
+        self.assertTemplateUsed(resp, template.projects.license_lic)
+
+    def test_create(self):
+        resp = self.client.get(root(url.projects.CREATE))
+        self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
+        resp = self.client.get(root(url.projects.CREATE), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.get(root(url.projects.CREATE))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(resp.context['tags'], list)
+        self.assertIsInstance(resp.context['categories'], QuerySet)
+        self.assertIsInstance(resp.context['licenses'], QuerySet)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.projects.index)
+        self.assertTemplateUsed(resp, template.projects.create)
+
+    def test_validateField(self):
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(
+            root(url.projects.createValidField(getRandomStr())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode(
+            'utf-8')), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
+        reponame = getRandomStr()
+        resp = self.client.post(root(url.projects.createValidField('reponame')), {
+            'reponame': reponame
+        })
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode(
+            'utf-8')), dict(code=Code.NO, error=Message.Custom.already_exists(reponame)))
+
+        resp = self.client.post(root(url.projects.createValidField('reponame')), {
+            'reponame': getProjRepo()
+        })
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(
+            resp.content.decode('utf-8')), dict(code=Code.OK))
+
+    def test_licenses(self):
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(root(url.projects.LICENSES))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(json.loads(
+            resp.content.decode('utf-8'))['code'], Code.OK)
+
+    def test_addLicense(self):
+        resp = self.client.post(root(url.projects.ADDLICENSE))
+        self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(root(url.projects.ADDLICENSE))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(resp.content.decode(
+            'utf-8')), dict(code=Code.NO, error=Message.INVALID_LIC_DATA))
+
+        licname = getLicName()
+        resp = self.client.post(root(url.projects.ADDLICENSE), {
+            "name": licname,
+            "description": getLicDesc(),
+            "content": getRandomStr(),
+        })
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        license = License.objects.get(name=licname, creator=self.profile)
+        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK,
+                             license=dict(id=license.getID(), name=license.name, description=license.description)))
+
+    def test_submitProject(self):
+        resp = self.client.post(root(url.projects.SUBMIT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(root(url.projects.SUBMIT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.projects.create)
+        reponame = getProjRepo()
+        categoryname = getProjCategory()
+        data = {
+            "projectname": getProjName(),
+            "projectabout": getRandomStr(),
+            "projectcategory": categoryname,
+            "reponame": reponame,
+            "description": getProjDesc(),
+            "license": self.license.getID(),
+            "tags": ",".join(getTestTags()),
+        }
+        resp = self.client.post(root(url.projects.SUBMIT), data, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.projects.create)
+
+        data["acceptterms"] = True
+        resp = self.client.post(root(url.projects.SUBMIT), data, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.moderation.index)
+        self.assertTemplateUsed(resp, template.moderation.projects)
+        project = Project.objects.get(
+            reponame=reponame, status=Code.MODERATION)
+        category = Category.objects.get(name=categoryname)
+        self.assertTrue(project.acceptedTerms)
+        self.assertEqual(project.creator, self.profile)
+        self.assertEqual(project.moderator, self.modprofile)
+        self.assertEqual(project.category, category)
+        self.assertEqual(str(project.image), defaultImagePath())
+        self.assertIsNone(project.approvedOn)
+
+    def test_trashProject(self):
+        project = Project.objects.create(
+            name=getProjName(), creator=self.profile, reponame=getProjRepo())
+        resp = self.client.post(
+            root(url.projects.trash(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(
+            root(url.projects.trash(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        project.status = Code.REJECTED
+        project.save()
+        resp = self.client.post(
+            root(url.projects.trash(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(Project.objects.get(
+            id=project.id, trashed=True), Project)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.people.index)
+        self.assertTemplateUsed(resp, template.people.profile)
+
+    def test_profile(self):
+        self.client.login(email=self.email, password=self.password)
+        reponame = getProjRepo()
+        resp = self.client.post(root(url.projects.SUBMIT), {
+            "projectname": getProjName(),
+            "projectabout": getRandomStr(),
+            "reponame": reponame,
+            "projectcategory": getProjCategory(),
+            "description": getProjDesc(),
+            "license": self.license.getID(),
+            "tags": ",".join(getTestTags()),
+            "acceptterms": True
+        }, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.moderation.projects)
+
+        resp = self.client.get(root(url.projects.profile(getRandomStr())))
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+
+        project = Project.objects.get(reponame=reponame)
+
+        self.client.logout()
+        resp = self.client.get(
+            root(url.projects.profile(project.reponame)), follow=True)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.get(
+            root(url.projects.profile(project.reponame)), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.moderation.index)
+        self.assertTemplateUsed(resp, template.moderation.projects)
+
+        mod = Moderation.objects.get(
+            type=APPNAME, project=project, resolved=False)
+        self.assertTrue(mod.approve())
+        resp = self.client.get(
+            root(url.projects.profile(project.reponame)), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.projects.index)
+        self.assertTemplateUsed(resp, template.projects.profile)
+        self.assertTrue(resp.context['iscreator'])
+        self.assertFalse(resp.context['ismoderator'])
+        self.assertEqual(resp.context['project'], project)
+
+    def test_editProfile(self):
+        project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
+        resp = self.client.post(root(url.projects.profileEdit(
+            project.getID(), 'pallete')), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(root(url.projects.profileEdit(project.getID(), 'pallete')), {
+            'projectname': getProjName(),
+            'projectabout': getRandomStr()
+        }, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        newproj = Project.objects.get(id=project.id)
+        self.assertNotEqual(project.name, newproj.name)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.projects.index)
+        self.assertTemplateUsed(resp, template.projects.profile)
+
+    def test_topicsSearch(self):
+        project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
+
+        resp = self.client.post(
+            root(url.projects.topicsSearch(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(
+            root(url.projects.topicsSearch(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(
+            resp.content.decode('utf-8')), dict(code=Code.NO))
+
+        resp = self.client.post(root(url.projects.topicsSearch(project.getID())), {
+                                'query': getRandomStr()}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(json.loads(
+            resp.content.decode('utf-8'))['code'], Code.OK)
+
+    def test_topicsUpdate(self):
+        project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
+        resp = self.client.post(root(url.projects.topicsUpdate(project.getID())), {
+                                'addtopicIDs': str()}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(root(url.projects.topicsUpdate(project.getID())), {
+                                'addtopicIDs': str()}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.projects.profile)
+
+    def test_tagsSearch(self):
+        project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
+
+        resp = self.client.post(
+            root(url.projects.tagsSearch(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(
+            root(url.projects.tagsSearch(project.getID())), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json.loads(
+            resp.content.decode('utf-8')), dict(code=Code.NO))
+
+        resp = self.client.post(root(url.projects.tagsSearch(project.getID())), {
+                                'query': getRandomStr()}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(json.loads(
+            resp.content.decode('utf-8'))['code'], Code.OK)
+
+    def test_tagsUpdate(self):
+        project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
+        resp = self.client.post(root(url.projects.tagsUpdate(project.getID())), {
+                                'addtagIDs': str()}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(root(url.projects.tagsUpdate(project.getID())), {
+                                'addtagIDs': str()}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.projects.profile)
+
+    def test_liveData(self):
+        project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
+        resp = self.client.get(root(url.projects.liveData(project.getID())))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(resp.context['contributors'], list)
+        self.assertIsInstance(resp.context['languages'], list)
+        self.assertTemplateUsed(resp, template.projects.profile_contribs)
+
+    def test_newbieProjects(self):
+        resp = self.client.get(root(url.projects.NEWBIES))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertIsInstance(resp.context['projects'], QuerySet)
+        self.assertTemplateUsed(resp, template.projects.browse_newbie)

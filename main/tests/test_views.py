@@ -198,7 +198,7 @@ class TestViewsAuth(TestCase):
         resp = self.client.post(authroot(url.auth.LOGOUT))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
 
-        self.assertTrue(self.client.login(email=email, password=password))
+        self.client.login(email=email, password=password)
         self.assertIsNotNone(self.client.session._SessionBase__session_key)
         resp = self.client.post(authroot(url.auth.LOGOUT))
         self.assertIsNone(self.client.session._SessionBase__session_key)
