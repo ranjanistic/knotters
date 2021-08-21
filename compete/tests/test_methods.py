@@ -16,7 +16,7 @@ class CompeteMethodsTest(TestCase):
         self.mgprofile = Profile.objects.filter(
             user=self.mguser).update(is_manager=True)
         self.comp = Competition.objects.create(
-            title=getCompTitle(), creator=self.mgprofile)
+            title=getCompTitle(), creator=self.mguser.profile)
         self.user = User.objects.create_user(email=getTestEmail(
         ), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
