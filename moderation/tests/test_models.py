@@ -27,7 +27,7 @@ class ModerationTest(TestCase):
         self.mgprofile = Profile.objects.filter(
             user=self.mguser).update(is_manager=True)
         self.competition = Competition.objects.create(
-            title=getCompTitle(), creator=self.mgprofile)
+            title=getCompTitle(), creator=self.mguser.profile)
         self.project = Project.objects.create(
             name=getProjName(), creator=self.profile, reponame=getProjRepo())
 
@@ -73,7 +73,7 @@ class ModerationAttributeTest(TestCase):
         self.mgprofile = Profile.objects.filter(
             user=self.mguser).update(is_manager=True)
         self.competition = Competition.objects.create(
-            title=getCompTitle(), creator=self.mgprofile)
+            title=getCompTitle(), creator=self.mguser.profile)
         self.mod = Moderation.objects.create(
             moderator=self.moderator, type=PROJECTS, project=self.project)
 
