@@ -269,11 +269,11 @@ class Profile(models.Model):
     def totalTrashedTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True).count()
 
-    @deprecated(reason="Typo",action="Use the proper spelled one")
+    @deprecated(reason="Typo", action="Use the proper spelled one")
     def getTrahedTopicsData(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True)
 
-    @deprecated(reason="Typo",action="Use the proper spelled one")
+    @deprecated(reason="Typo", action="Use the proper spelled one")
     def totalTrahedTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True).count()
 
