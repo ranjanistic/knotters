@@ -51,15 +51,17 @@ class CategoryTag(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
+
 class License(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
-    keyword = models.CharField(max_length=80, null=True,blank=True, help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
+    keyword = models.CharField(max_length=80, null=True, blank=True,
+                               help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
     description = models.CharField(max_length=1000)
     content = models.CharField(max_length=300000, null=True, blank=True)
     public = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
-    creator = models.ForeignKey(f"{PEOPLE}.Profile",on_delete=models.PROTECT)
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name
@@ -145,13 +147,15 @@ class Project(models.Model):
 
     @property
     def moderator(self):
-        mod = Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.APPROVED,Code.MODERATION]).order_by('-requestOn').first()
+        mod = Moderation.objects.filter(project=self, type=APPNAME, status__in=[
+                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn').first()
         return None if not mod else mod.moderator
 
-    def getModerator(self)->models.Model:
+    def getModerator(self) -> models.Model:
         if not self.isApproved():
             return None
-        mod = Moderation.objects.filter(project=self, type=APPNAME, status=Code.APPROVED,resolved=True).order_by('-respondOn').first()
+        mod = Moderation.objects.filter(
+            project=self, type=APPNAME, status=Code.APPROVED, resolved=True).order_by('-respondOn').first()
         return None if not mod else mod.moderator
 
     def getModLink(self) -> str:
@@ -168,7 +172,7 @@ class Project(models.Model):
     def canRetryModeration(self) -> bool:
         return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed
 
-    def getTrashLink(self)->str:
+    def getTrashLink(self) -> str:
         return url.projects.trash(self.getID())
 
     def moveToTrash(self) -> bool:
@@ -179,9 +183,9 @@ class Project(models.Model):
             return self.trashed
         return self.trashed
 
-    def getTopics(self)->list:
+    def getTopics(self) -> list:
         return self.topics.all()
-        
+
     def getTopicsData(self):
         return ProjectTopic.objects.filter(project=self)
 
@@ -193,6 +197,7 @@ class Project(models.Model):
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+
 
 class ProjectTag(models.Model):
     class Meta:
@@ -223,18 +228,17 @@ class LegalDoc(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
     pseudonym = models.CharField(max_length=1000, unique=True)
-    about = models.CharField(max_length=100, null=True,blank=True)
+    about = models.CharField(max_length=100, null=True, blank=True)
     content = models.CharField(max_length=100000)
-    icon = models.CharField(max_length=20,default='policy')
-    contactmail = models.CharField(max_length=30,default=MAILUSER)
-    lastUpdate = models.DateTimeField(auto_now=False, default=timezone.now,editable=False)
+    icon = models.CharField(max_length=20, default='policy')
+    contactmail = models.CharField(max_length=30, default=MAILUSER)
+    lastUpdate = models.DateTimeField(
+        auto_now=False, default=timezone.now, editable=False)
     effectiveDate = models.DateTimeField(auto_now=False, default=timezone.now)
 
-
-    def save(self,*args, **kwargs):
+    def save(self, *args, **kwargs):
         self.lastUpdate = timezone.now()
         super(LegalDoc, self).save(*args, **kwargs)
-        
 
     def getLink(self):
         return f"{url.getRoot('docs')}{self.pseudonym}"
