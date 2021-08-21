@@ -41,7 +41,12 @@ class TestViews(TestCase):
         return super().setUpTestData()
 
     def setUp(self) -> None:
-        self.client.login(email=self.email, password=self.password)
+        resp = self.client.post(authroot(url.auth.LOGIN), dict(
+            login=self.email,
+            password=self.password,
+        ), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTrue(resp.context['user'].is_authenticated)
 
     def test_index(self):
         resp = self.client.get(root(url.INDEX))
@@ -142,7 +147,6 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             'utf-8')), dict(code=Code.OK, topics=[]))
 
-    @tag('fa')
     def test_topicsUpdate(self):
         topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         addTopicIDs = ''
@@ -167,7 +171,7 @@ class TestViews(TestCase):
         self.assertEqual(self.profile.totalTopics(),2)
         self.assertEqual(self.profile.totalTrashedTopics(),2)
 
-
+    @tag('af')
     def test_accountActivation(self):
         resp = self.client.post(
             root(url.people.ACCOUNTACTIVATION), {'deactivate': True})
@@ -263,6 +267,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             'utf-8')), dict(code=Code.OK, successorID=str()))
 
+    @tag('af')
     def test_successorInvitation(self):
         client = Client()
         E2 = getTestEmail()
@@ -273,7 +278,7 @@ class TestViews(TestCase):
             password1=P2
         ))
         client.logout()
-        self.assertTrue(client.login(email=E2, password=P2))
+        client.login(email=E2, password=P2)
         resp = client.post(root(url.people.INVITESUCCESSOR), {
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -291,6 +296,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
+    @tag('af')
     def test_successorInviteAction(self):
         client = Client()
         E2 = getTestEmail()
@@ -300,7 +306,7 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        self.assertTrue(client.login(email=E2, password=P2))
+        client.login(email=E2, password=P2)
         resp = client.post(root(url.people.INVITESUCCESSOR), {
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -350,7 +356,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.index)
         self.assertTemplateUsed(resp, template.people.profile)
 
-        resp = self.client.post(
+        resp = client.post(
             root(url.people.INVITESUCCESSOR), {'unset': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
@@ -368,6 +374,7 @@ class TestViews(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
 
+    @tag('af')
     def test_accountDelete(self):
         client = Client()
         E2 = getTestEmail()
@@ -376,12 +383,12 @@ class TestViews(TestCase):
             email=E2,
             first_name=getTestName(),
             password1=P2
-        ))
-        client.login(email=E2, password=P2)
-        resp = client.post(root(url.people.ACCOUNTDELETE))
+        ),follow=True)
+        resp = client.post(authroot(url.auth.LOGIN), dict(login=E2,password=P2), follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.post(root(url.people.ACCOUNTDELETE),follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.NO))
+        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.NO))
 
         resp = client.post(root(url.people.ACCOUNTDELETE), {'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)

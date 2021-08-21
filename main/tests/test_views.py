@@ -31,9 +31,11 @@ class TestViews(TestCase):
         resp = self.client.get(root(url.redirector(to=root(url.OFFLINE))))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
         self.assertRedirects(resp, root(url.OFFLINE))
-        resp = self.client.get(root(url.redirector(to='https://github.com')))
+        uri = 'https://github.com'
+        resp = self.client.get(root(url.redirector(to=uri)))
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.forward)
+        self.assertEqual(resp.context['next'], uri)
 
     def test_docIndex(self):
         resp = self.client.get(root(url.DOCS))
@@ -114,13 +116,14 @@ class TestViewsAuth(TestCase):
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
 
     def test_signup_post(self):
-        self.client.logout()
-        resp = self.client.post(authroot(url.auth.SIGNUP))
+        client = Client()
+        resp = client.post(authroot(url.auth.SIGNUP))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.signup)
+        self.assertFalse(resp.context['user'].is_authenticated)
 
-        resp = self.client.post(authroot(url.auth.SIGNUP), dict(
+        resp = client.post(authroot(url.auth.SIGNUP), dict(
             username=str(),
             email=str(),
             password=str(),
@@ -128,77 +131,98 @@ class TestViewsAuth(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.signup)
+        self.assertFalse(resp.context['user'].is_authenticated)
 
-        resp = self.client.post(authroot(url.auth.SIGNUP), dict(
+        resp = client.post(authroot(url.auth.SIGNUP), dict(
             email=getTestEmail(),
             first_name=getTestName(),
             password1=getTestPassword()
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
-        self.assertIsNotNone(self.client.session._SessionBase__session_key)
+        self.assertTrue(resp.context['user'].is_authenticated)
 
     def test_login_post(self):
+        client = Client()
         email = getTestEmail()
         password = getTestPassword()
-        resp = self.client.post(authroot(url.auth.SIGNUP), dict(
+        resp = client.post(authroot(url.auth.SIGNUP), dict(
             email=email,
             first_name=getTestName(),
             password1=password
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateNotUsed(resp, template.auth.login)
+        self.assertTemplateNotUsed(resp, template.auth.signup)
+        self.assertTrue(resp.context['user'].is_authenticated)
         self.assertTemplateUsed(resp, template.index)
-        resp = self.client.post(authroot(url.auth.LOGOUT))
-
-        resp = self.client.get(authroot(url.auth.LOGIN), follow=True)
+        resp = client.post(authroot(url.auth.LOGOUT), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(authroot(url.auth.LOGIN), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
-        resp = self.client.post(authroot(url.auth.LOGOUT))
+        resp = client.post(authroot(url.auth.LOGOUT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
 
-        resp = self.client.post(authroot(url.auth.LOGIN), dict(
+        resp = client.post(authroot(url.auth.LOGIN), dict(
             login=str(),
             password=str(),
-        ))
+        ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
-        resp = self.client.post(authroot(url.auth.LOGOUT))
-        resp = self.client.post(authroot(url.auth.LOGIN), dict(
+        resp = client.post(authroot(url.auth.LOGOUT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+        resp = client.post(authroot(url.auth.LOGIN), dict(
             login=email,
             password=getRandomStr(),
-        ))
+        ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
 
-        resp = self.client.post(authroot(url.auth.LOGIN), dict(
+        resp = client.post(authroot(url.auth.LOGIN), dict(
             login=email,
             password=password,
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
-        self.assertIsNotNone(self.client.session._SessionBase__session_key)
-        self.client.logout()
-        self.assertTrue(self.client.login(email=email, password=password))
-        self.assertIsNotNone(self.client.session._SessionBase__session_key)
+        self.assertTrue(resp.context['user'].is_authenticated)
 
     def test_logout_post(self):
+        client = Client()
         email = getTestEmail()
         password = getTestPassword()
-        resp = self.client.post(authroot(url.auth.SIGNUP), dict(
+        resp = client.post(authroot(url.auth.SIGNUP), dict(
             email=email,
             first_name=getTestName(),
             password1=password
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateNotUsed(resp, template.auth.login)
+        self.assertTemplateNotUsed(resp, template.auth.signup)
         self.assertTemplateUsed(resp, template.index)
-        self.assertIsNotNone(self.client.session._SessionBase__session_key)
+        self.assertTrue(resp.context['user'].is_authenticated)
 
-        resp = self.client.post(authroot(url.auth.LOGOUT))
-        self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
+        resp = client.post(authroot(url.auth.LOGOUT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertFalse(resp.context['user'].is_authenticated)
 
-        self.client.login(email=email, password=password)
-        self.assertIsNotNone(self.client.session._SessionBase__session_key)
-        resp = self.client.post(authroot(url.auth.LOGOUT))
-        self.assertIsNone(self.client.session._SessionBase__session_key)
+        resp = client.post(authroot(url.auth.LOGIN), dict(
+            login=email,
+            password=password,
+        ), follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.post(authroot(url.auth.LOGOUT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertFalse(resp.context['user'].is_authenticated)
