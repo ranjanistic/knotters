@@ -4,10 +4,6 @@ const theme = {
     dark: "dark",
 };
 
-getElements("themeswitch").forEach((elem) => {
-    elem.onclick = (_) => toggleTheme();
-});
-
 const toggleTheme = () => {
     isLight() ? setDark() : setLight();
 };
@@ -60,3 +56,13 @@ if (!localStorage.getItem(theme.key)) {
 }
 
 setTheme(localStorage.getItem(theme.key));
+
+getElements("themeswitch").forEach((elem) => {
+    elem.addEventListener('click', toggleTheme)
+});
+
+addEventListener('keydown',(e)=>{
+    if((e.key==='F10'||e.code==='F10'||e.keyCode===121) && e.ctrlKey){
+        toggleTheme();
+    }
+})

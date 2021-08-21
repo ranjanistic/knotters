@@ -25,6 +25,7 @@ class Code():
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
 
     HOOK = 'hook'
+    SHA256 = 'sha256'
 
     TOPIC = 'topic'
     CATEGORY = 'category'

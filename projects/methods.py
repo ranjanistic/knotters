@@ -245,9 +245,9 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             config=dict(
                 url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.getID())}",
                 content_type='form',
-                secret=settings.SECRET_KEY,
+                secret=settings.GH_HOOK_SECRET,
                 insecure_ssl=0,
-                digest='sha256'
+                digest=Code.SHA256
             )
         )
         ghOrgRepo.create_hook(
@@ -256,9 +256,9 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             config=dict(
                 url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PR,projID=project.getID())}",
                 content_type='form',
-                secret=settings.SECRET_KEY,
+                secret=settings.GH_HOOK_SECRET,
                 insecure_ssl=0,
-                digest='sha256'
+                digest=Code.SHA256
             )
         )
         return True
