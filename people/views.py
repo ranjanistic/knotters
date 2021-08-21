@@ -168,7 +168,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
-        if not addtopicIDs or not removetopicIDs or not (addtopicIDs.strip() or removetopicIDs.strip()):
+        if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(request.user.profile.getLink())
 
         if removetopicIDs:
