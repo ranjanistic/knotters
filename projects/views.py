@@ -284,7 +284,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        if not addtopicIDs or not removetopicIDs or not (addtopicIDs.strip() or removetopicIDs.strip()):
+        if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(project.getLink())
 
         if removetopicIDs:
@@ -347,7 +347,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtagIDs = request.POST.get('addtagIDs', None)
         removetagIDs = request.POST.get('removetagIDs', None)
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        if not addtagIDs or not removetagIDs or not (addtagIDs.strip() or removetagIDs.strip()):
+        if not addtagIDs and not removetagIDs and not (addtagIDs.strip() or removetagIDs.strip()):
             return redirect(project.getLink())
 
         if removetagIDs:

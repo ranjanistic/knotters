@@ -74,6 +74,14 @@ jobs:
         python-version: [3.8]
 
     steps:
+    - name: Create backup
+      run: |
+        sudo mongodump --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
+        sudo tar czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
+        sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
+        sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
+        sudo rm -f -r _backup_/${{ secrets.DBNAME }}
+        sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
     - name: Merge changes
       run: |
         sudo git pull --depth=10

@@ -1,4 +1,5 @@
 import uuid
+from deprecated import deprecated
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -256,17 +257,25 @@ class Profile(models.Model):
         return ProfileTopic.objects.filter(profile=self, trashed=False).count()
 
     def getTrahedTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self, trahsed=True)
+        proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
         return topics
 
-    def getTrahedTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self, trahsed=True)
+    def totalTrashedTopics(self):
+        return ProfileTopic.objects.filter(profile=self, trashed=True)
 
+    def totalTrashedTopics(self):
+        return ProfileTopic.objects.filter(profile=self, trashed=True).count()
+
+    @deprecated(reason="Typo",action="Use the proper spelled one")
+    def getTrahedTopicsData(self):
+        return ProfileTopic.objects.filter(profile=self, trashed=True)
+
+    @deprecated(reason="Typo",action="Use the proper spelled one")
     def totalTrahedTopics(self):
-        return ProfileTopic.objects.filter(profile=self, trahsed=True).count()
+        return ProfileTopic.objects.filter(profile=self, trashed=True).count()
 
     def getAllTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self)

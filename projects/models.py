@@ -188,6 +188,9 @@ class Project(models.Model):
     def totalTopics(self):
         return self.topics.count()
 
+    def totalTags(self):
+        return self.tags.count()
+
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
 

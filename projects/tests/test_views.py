@@ -5,12 +5,12 @@ from django.db.models import QuerySet
 from django.http import HttpResponse
 from main.strings import Code, url, template, Message, Action
 from main.tests.utils import getRandomStr
-from people.models import Profile, User
-from people.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword
-from projects.models import Project, License, Category, defaultImagePath
+from people.models import Profile, Topic, User
+from people.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword, getTestTopicsInst
+from projects.models import Project, License, Category, Tag, defaultImagePath
 from moderation.models import Moderation
 from projects.apps import APPNAME
-from .utils import getProjDesc, getProjRepo, getTestTags, root, getLicName, getLicDesc, getProjName, getProjCategory
+from .utils import getProjDesc, getProjRepo, getTestTags, getTestTagsInst, root, getLicName, getLicDesc, getProjName, getProjCategory
 
 
 @tag(Code.Test.VIEW, APPNAME)
@@ -283,6 +283,7 @@ class TestViews(TestCase):
         self.assertEqual(json.loads(
             resp.content.decode('utf-8'))['code'], Code.OK)
 
+    @tag('fa')
     def test_topicsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
@@ -292,10 +293,15 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
+        topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+        addTopicIDs = ''
+        for top in topics:
+            addTopicIDs = f"{addTopicIDs},{top.getID()}"
         resp = self.client.post(root(url.projects.topicsUpdate(project.getID())), {
-                                'addtopicIDs': str()}, follow=True)
+                                'addtopicIDs': addTopicIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
+        self.assertEqual(project.totalTopics(),4)
 
     def test_tagsSearch(self):
         project = Project.objects.create(name=getProjName(
@@ -319,6 +325,7 @@ class TestViews(TestCase):
         self.assertEqual(json.loads(
             resp.content.decode('utf-8'))['code'], Code.OK)
 
+    @tag('fa')
     def test_tagsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
@@ -326,12 +333,16 @@ class TestViews(TestCase):
                                 'addtagIDs': str()}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
-
+        tags = Tag.objects.bulk_create(getTestTagsInst(4))
+        addTagIDs = ''
+        for tag in tags:
+            addTagIDs = f"{addTagIDs},{tag.getID()}"
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(root(url.projects.tagsUpdate(project.getID())), {
-                                'addtagIDs': str()}, follow=True)
+                                'addtagIDs': addTagIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
+        self.assertEqual(project.totalTags(),4)
 
     def test_liveData(self):
         project = Project.objects.create(name=getProjName(

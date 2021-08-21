@@ -8,8 +8,8 @@ from main.tests.utils import authroot, getRandomStr
 from main.env import BOTMAIL
 from people.apps import APPNAME
 from people.methods import profileString
-from people.models import Profile, User
-from .utils import getTestDP, getTestEmail, getTestGHID, getTestName, getTestPassword, root
+from people.models import Profile, Topic, User
+from .utils import getTestDP, getTestEmail, getTestGHID, getTestName, getTestPassword, getTestTopicsInst, root
 
 
 @tag(Code.Test.VIEW, APPNAME)
@@ -142,10 +142,31 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             'utf-8')), dict(code=Code.OK, topics=[]))
 
+    @tag('fa')
     def test_topicsUpdate(self):
+        topics = Topic.objects.bulk_create(getTestTopicsInst(4))
+        addTopicIDs = ''
+        for top in topics:
+            addTopicIDs = f"{addTopicIDs},{top.getID()}"
         resp = self.client.post(root(url.people.TOPICSUPDATE), {
-                                'addtopicIDs': str()}, follow=True)
+                                'addtopicIDs': addTopicIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(self.profile.totalAllTopics(),4)
+
+        removeTopicIDs = ''
+        i = 0
+        for top in topics:
+            removeTopicIDs = f"{removeTopicIDs},{top.getID()}"
+            i+=1
+            if i > 1:
+                break
+        resp = self.client.post(root(url.people.TOPICSUPDATE), {
+                                'removetopicIDs': removeTopicIDs}, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(self.profile.totalAllTopics(),4)
+        self.assertEqual(self.profile.totalTopics(),2)
+        self.assertEqual(self.profile.totalTrashedTopics(),2)
+
 
     def test_accountActivation(self):
         resp = self.client.post(
