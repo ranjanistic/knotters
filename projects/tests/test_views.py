@@ -283,7 +283,6 @@ class TestViews(TestCase):
         self.assertEqual(json.loads(
             resp.content.decode('utf-8'))['code'], Code.OK)
 
-    @tag('fa')
     def test_topicsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
@@ -301,7 +300,7 @@ class TestViews(TestCase):
                                 'addtopicIDs': addTopicIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
-        self.assertEqual(project.totalTopics(),4)
+        self.assertEqual(project.totalTopics(), 4)
 
     def test_tagsSearch(self):
         project = Project.objects.create(name=getProjName(
@@ -325,7 +324,6 @@ class TestViews(TestCase):
         self.assertEqual(json.loads(
             resp.content.decode('utf-8'))['code'], Code.OK)
 
-    @tag('fa')
     def test_tagsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
@@ -342,7 +340,7 @@ class TestViews(TestCase):
                                 'addtagIDs': addTagIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
-        self.assertEqual(project.totalTags(),4)
+        self.assertEqual(project.totalTags(), 4)
 
     def test_liveData(self):
         project = Project.objects.create(name=getProjName(

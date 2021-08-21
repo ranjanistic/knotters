@@ -34,7 +34,8 @@ class TestViews(TestCase):
         try:
             self.user = User.objects.get(email=self.email)
         except:
-            self.user = User.objects.create_user(email=self.email,password=self.password,first_name=getTestName())
+            self.user = User.objects.create_user(
+                email=self.email, password=self.password, first_name=getTestName())
 
         Profile.objects.filter(user=self.user).update(githubID=getRandomStr())
         self.profile = self.user.profile
@@ -155,23 +156,23 @@ class TestViews(TestCase):
         resp = self.client.post(root(url.people.TOPICSUPDATE), {
                                 'addtopicIDs': addTopicIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertEqual(self.profile.totalAllTopics(),4)
+        self.assertEqual(self.profile.totalAllTopics(), 4)
 
         removeTopicIDs = ''
         i = 0
         for top in topics:
             removeTopicIDs = f"{removeTopicIDs},{top.getID()}"
-            i+=1
+            i += 1
             if i > 1:
                 break
         resp = self.client.post(root(url.people.TOPICSUPDATE), {
                                 'removetopicIDs': removeTopicIDs}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertEqual(self.profile.totalAllTopics(),4)
-        self.assertEqual(self.profile.totalTopics(),2)
-        self.assertEqual(self.profile.totalTrashedTopics(),2)
+        self.assertEqual(self.profile.totalAllTopics(), 4)
+        self.assertEqual(self.profile.totalTopics(), 2)
+        self.assertEqual(self.profile.totalTrashedTopics(), 2)
 
-    @tag('af')
+    
     def test_accountActivation(self):
         resp = self.client.post(
             root(url.people.ACCOUNTACTIVATION), {'deactivate': True})
@@ -210,7 +211,8 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
             resp.content.decode('utf-8')), dict(code=Code.OK))
-        self.assertIsInstance(Profile.objects.get(user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
+        self.assertIsInstance(Profile.objects.get(
+            user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
 
         resp = self.client.post(
             root(url.people.INVITESUCCESSOR), {'unset': True})
@@ -254,7 +256,8 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
             resp.content.decode('utf-8')), dict(code=Code.OK))
-        self.assertIsInstance(Profile.objects.get(user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
+        self.assertIsInstance(Profile.objects.get(
+            user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
 
     def test_getSuccessor(self):
         resp = self.client.post(root(url.people.INVITESUCCESSOR), {
@@ -267,7 +270,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             'utf-8')), dict(code=Code.OK, successorID=str()))
 
-    @tag('af')
+    
     def test_successorInvitation(self):
         client = Client()
         E2 = getTestEmail()
@@ -296,7 +299,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
-    @tag('af')
+    
     def test_successorInviteAction(self):
         client = Client()
         E2 = getTestEmail()
@@ -374,7 +377,7 @@ class TestViews(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
 
-    @tag('af')
+    
     def test_accountDelete(self):
         client = Client()
         E2 = getTestEmail()
@@ -383,12 +386,14 @@ class TestViews(TestCase):
             email=E2,
             first_name=getTestName(),
             password1=P2
-        ),follow=True)
-        resp = client.post(authroot(url.auth.LOGIN), dict(login=E2,password=P2), follow=True)
+        ), follow=True)
+        resp = client.post(authroot(url.auth.LOGIN), dict(
+            login=E2, password=P2), follow=True)
         self.assertTrue(resp.context['user'].is_authenticated)
-        resp = client.post(root(url.people.ACCOUNTDELETE),follow=True)
+        resp = client.post(root(url.people.ACCOUNTDELETE), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.NO))
+        self.assertDictEqual(json.loads(
+            resp.content.decode('utf-8')), dict(code=Code.NO))
 
         resp = client.post(root(url.people.ACCOUNTDELETE), {'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -401,10 +406,10 @@ class TestViews(TestCase):
 
         resp = client.post(root(url.people.ACCOUNTDELETE), {'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
+        self.assertDictEqual(json.loads(resp.content.decode(
+            'utf-8')), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
-
 
     def test_newbieProfiles(self):
         resp = self.client.get(root(url.people.NEWBIES))

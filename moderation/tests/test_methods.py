@@ -1,4 +1,4 @@
-from people.tests.utils import getTestUsersInst
+from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
 from people.models import User
 from django.test import TestCase, tag
 from main.tests.utils import getRandomStr
@@ -23,7 +23,9 @@ class ModerationMethodTest(TestCase):
             c += 1
         self.profiles = Profile.objects.bulk_create(profiles)
         self.profile = self.profiles[0]
-        self.competition = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(user=self.mguser).update(is_manager=True)
+        self.competition = Competition.objects.create(title=getCompTitle(),creator=self.mgprofile)
         self.competition.judges.add(self.profiles[1])
         self.competition.judges.add(self.profiles[2])
         self.project = Project.objects.create(

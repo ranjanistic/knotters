@@ -29,7 +29,8 @@ class PeopleMethodsTest(TestCase):
         self.assertNotEqual(lname, f"{midname} {lastname}")
         self.assertEqual(fname, firstname)
         midname = getTestName()
-        fname, lname = convertToFLname(f"{firstname} {midname} {getTestLName()} {getTestLName()} {getTestLName()}")
+        fname, lname = convertToFLname(
+            f"{firstname} {midname} {getTestLName()} {getTestLName()} {getTestLName()}")
         self.assertFalse(len(f"{fname} {lname}") > 70)
         self.assertEqual(fname, firstname)
 

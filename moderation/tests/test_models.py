@@ -7,7 +7,7 @@ from compete.models import Competition
 from projects.tests.utils import getProjName, getProjRepo
 from projects.models import Project
 from compete.tests.utils import getCompTitle
-from people.tests.utils import getTestUsersInst
+from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
 from moderation.apps import APPNAME
 from .utils import getLocalKey, getLocalValue
 from moderation.models import *
@@ -22,7 +22,12 @@ class ModerationTest(TestCase):
             user=users[0], is_moderator=True)
 
         self.profile = Profile.objects.create(user=users[1])
-        self.competition = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.competition = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.project = Project.objects.create(
             name=getProjName(), creator=self.profile, reponame=getProjRepo())
 
@@ -63,7 +68,12 @@ class ModerationAttributeTest(TestCase):
         self.reporter = Profile.objects.create(user=users[2])
         self.project = Project.objects.create(
             name=getProjName(), creator=self.profile, reponame=getProjRepo())
-        self.competition = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.competition = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.mod = Moderation.objects.create(
             moderator=self.moderator, type=PROJECTS, project=self.project)
 

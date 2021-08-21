@@ -11,7 +11,12 @@ from compete.methods import *
 class CompeteMethodsTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.user = User.objects.create_user(email=getTestEmail(
         ), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)

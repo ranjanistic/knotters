@@ -5,7 +5,7 @@ from random import randint
 from main.strings import Code
 from people.models import User
 from moderation.methods import requestModerationForObject
-from people.tests.utils import getTestUsersInst, getTestTopicsInst
+from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst, getTestTopicsInst
 from .utils import getCompTitle, getCompPerks, getCompBanner, getSubmissionRepos
 from compete.models import *
 
@@ -13,7 +13,12 @@ from compete.models import *
 @tag(Code.Test.MODEL, APPNAME)
 class CompetitionTest(TestCase):
     def test_comp_creation_pass(self):
-        comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.assertIsNotNone(comp.title)
 
 
@@ -21,7 +26,12 @@ class CompetitionTest(TestCase):
 class CompetitionM2MTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         users = User.objects.bulk_create(getTestUsersInst(3))
         profiles = []
         for user in users:
@@ -59,8 +69,12 @@ class CompetitionM2MTest(TestCase):
 class CompetitionAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
         self.comp = Competition.objects.create(
-            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3))
+            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mgprofile)
 
     def test_default_comp_methods(self):
         self.assertTrue(competeBannerPath(
@@ -139,8 +153,12 @@ class CompetitionAttributeTest(TestCase):
 class CompetitionJudgeAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
         self.comp = Competition.objects.create(
-            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3))
+            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mgprofile)
         users = User.objects.bulk_create(getTestUsersInst())
         judge = Profile.objects.create(user=users[0])
         self.comp.judges.add(judge)
@@ -155,8 +173,12 @@ class CompetitionJudgeAttributeTest(TestCase):
 class CompetitionTopicAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
         self.comp = Competition.objects.create(
-            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3))
+            title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mgprofile)
         topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
         self.comp.topics.add(topic)
         self.comptopic = CompetitionTopic.objects.get(
@@ -170,7 +192,12 @@ class CompetitionTopicAttributeTest(TestCase):
 class SubmissionTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         users = User.objects.bulk_create(getTestUsersInst(54))
         profiles = []
@@ -241,7 +268,12 @@ class SubmissionTest(TestCase):
 class SubmissionM2MTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         for topic in self.topics:
             self.comp.topics.add(topic)
@@ -282,7 +314,12 @@ class SubmissionM2MTest(TestCase):
 class SubmissionAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         users = User.objects.bulk_create(getTestUsersInst(2))
         self.subm = Submission.objects.create(competition=self.comp)
@@ -324,7 +361,12 @@ class SubmissionAttributeTest(TestCase):
 class SubmissionTopicPointTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         for topic in self.topics:
             self.comp.topics.add(topic)
@@ -372,7 +414,12 @@ class SubmissionTopicPointTest(TestCase):
 class SubmissionTopicPointAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
         self.comp.topics.add(self.topic)
 
@@ -387,7 +434,7 @@ class SubmissionTopicPointAttributeTest(TestCase):
         self.comp.judges.add(self.judge)
         self.user = Profile.objects.filter(user__in=users)[1:2][0]
         self.subm = Submission.objects.create(competition=self.comp, repo=getSubmissionRepos()[
-                                             0], submitted=True, submitOn=timezone.now())
+            0], submitted=True, submitOn=timezone.now())
         self.submTopicPoint = SubmissionTopicPoint.objects.create(
             submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
 
@@ -399,7 +446,12 @@ class SubmissionTopicPointAttributeTest(TestCase):
 class ResultTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         for topic in self.topics:
             self.comp.topics.add(topic)
@@ -461,7 +513,12 @@ class ResultTest(TestCase):
 class ResultAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.comp = Competition.objects.create(title=getCompTitle())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mgprofile = Profile.objects.filter(
+            user=self.mguser).update(is_manager=True)
+        self.comp = Competition.objects.create(
+            title=getCompTitle(), creator=self.mgprofile)
         self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
         self.comp.topics.add(self.topic)
         users = User.objects.bulk_create(getTestUsersInst(2))
