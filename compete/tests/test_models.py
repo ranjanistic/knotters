@@ -99,7 +99,7 @@ class CompetitionAttributeTest(TestCase):
         self.assertFalse(self.comp.isJudge(profile=None))
         self.assertCountEqual(self.comp.getJudges(), [])
         self.assertEqual(self.comp.totalJudges(), 0)
-        self.assertEqual(self.comp.getJudgementLink(), '')
+        self.assertEqual(self.comp.getJudgementLink(), self.comp.getLink())
         self.assertFalse(self.comp.isParticipant(profile=None))
         self.assertEqual(self.comp.getMaxScore(), 0)
         self.assertCountEqual(self.comp.getSubmissions(), [])
