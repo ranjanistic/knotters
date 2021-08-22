@@ -2,7 +2,7 @@ from uuid import UUID
 import os
 from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import Http404, HttpResponse, JsonResponse
+from django.http.response import Http404, HttpResponse, HttpResponseForbidden, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
@@ -11,10 +11,10 @@ from django.conf import settings
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
 from main.methods import errorLog, renderData, respondJson
 from main.strings import Action, Code, Message, Template
-from people.models import ProfileTopic, Profile
+from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
-from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer
+from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer, generateCertificate
 from .mailers import participantInviteAlert, resultsDeclaredAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert
 from .apps import APPNAME
 
@@ -61,15 +61,16 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
         data = dict(timeleft=compete.secondsLeft())
         if request.user.is_authenticated:
             try:
-                submp = SubmissionParticipant.objects.get(submission__competition=compete, profile=request.user.profile,confirmed=True)
+                submp = SubmissionParticipant.objects.get(
+                    submission__competition=compete, profile=request.user.profile, confirmed=True)
                 data = dict(**data,
-                    participated=True,
-                    subID=submp.submission.getID()
-                )
+                            participated=True,
+                            subID=submp.submission.getID()
+                            )
             except:
                 data = dict(**data,
-                    participated=False,
-                )
+                            participated=False,
+                            )
         return respondJson(Code.OK, data)
     except Exception as e:
         errorLog(e)
@@ -296,6 +297,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         errorLog(e)
         raise respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
+
 @normal_profile_required
 @judge_only
 @require_JSON_body
@@ -353,7 +355,8 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                         points=point
                     ))
 
-        subtopicpoints = SubmissionTopicPoint.objects.bulk_create(topicpointsList)
+        subtopicpoints = SubmissionTopicPoint.objects.bulk_create(
+            topicpointsList)
         request.user.profile.increaseXP(by=len(submissions))
         return respondJson(Code.OK)
     except Exception as e:
@@ -369,17 +372,17 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     try:
         comp = Competition.objects.get(
-            id=compID, endAt__lt=timezone.now(), resultDeclared=False,creator=request.user.profile)
+            id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile)
 
         if not (comp.moderated() and comp.allSubmissionsMarked()):
-            return redirect(comp.getJudgementLink(error=Message.INVALID_REQUEST))
+            return redirect(comp.getManagementLink(error=Message.INVALID_REQUEST))
 
         declared = comp.declareResults()
         if not declared:
-            return redirect(comp.getJudgementLink(error=Message.ERROR_OCCURRED))
+            return redirect(comp.getManagementLink(error=Message.ERROR_OCCURRED))
 
         resultsDeclaredAlert(competition=declared)
-        return redirect(comp.getJudgementLink(alert=Message.RESULT_DECLARED))
+        return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARED))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -398,52 +401,30 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         result.xpclaimers.add(profile)
         topicpoints = SubmissionTopicPoint.objects.filter(
             submission=result.submission).values('topic').annotate(points=Sum('points'))
-        proftops = ProfileTopic.objects.filter(profile=request.user.profile)
+        topicpointsIDs = []
         for topicpoint in topicpoints:
-            for proftop in proftops:
-                if proftop.topic.id == topicpoint['topic']:
-                    try:
-                        finaltop = ProfileTopic.objects.get(
-                            profile=request.user.profile, topic=proftop.topic)
-                        finaltop.increasePoints(by=topicpoint['points'])
-                    except Exception as e:
-                        ProfileTopic.objects.create(
-                            profile=request.user.profile, topic=proftop.topic, trashed=True, points=topicpoint['points'])
-                        errorLog(e)
-                        pass
+            topicpointsIDs.append(topicpoint['topic'])
+        topics = Topic.objects.filter(id__in=topicpointsIDs)
+        for topic in topics:
+            profiletopic, _ = ProfileTopic.objects.get_or_create(
+                profile=request.user.profile,
+                topic=topic,
+                defaults=dict(
+                    profile=request.user.profile,
+                    topic=topic,
+                    trashed=True
+                )
+            )
+            for topicpoint in topicpoints:
+                if topicpoint['topic'] == topic.id:
+                    profiletopic.increasePoints(by=topicpoint['points'])
+                    break
 
         return redirect(result.submission.competition.getLink(alert=Message.XP_ADDED))
     except Exception as e:
         errorLog(e)
         raise Http404()
 
-
-@manager_only
-@require_POST
-def generateCertificates(request:WSGIRequest, compID:UUID) -> HttpResponse:
-    try:
-        competition = Competition.objects.get(id=compID,creator=request.user.profile)
-        if not (competition.resultDeclared and competition.allResultsDeclared()):
-            raise Exception('Results not declared')
-        if competition.certificatesGenerated():
-            raise Exception("Certs already generated")
-        participantCerts = []
-        for result in competition.getResults():
-            for member in result.submission.getMembers():
-                raise Exception('gen_certificate: Not yet supported')
-                # TODO: Generate certificates in media
-                # participantCerts.append(
-                #     ParticipantCertificate(
-                #         result=result,
-                #         profile=member,
-                #         certificate=''
-                #     )
-                # )
-        certs = ParticipantCertificate.objects.bulk_create(participantCerts,batch_size=100)
-        return len(certs) == competition.totalParticipants()
-    except Exception as e:
-        errorLog(e)
-        raise Http404()
 
 @require_GET
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
@@ -453,7 +434,8 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
             member = request.user.profile
         else:
             self = False
-            member = Profile.objects.get(user__id=userID,suspended=False,is_active=True,is_zombie=False,to_be_zombie=False)
+            member = Profile.objects.get(
+                user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
         result = Result.objects.get(id=resID, submission__members=member)
 
         partcert = ParticipantCertificate.objects.filter(
@@ -466,6 +448,45 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         raise Http404()
 
 
+@manager_only
+@require_POST
+def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
+    try:
+        competition = Competition.objects.get(
+            id=compID, creator=request.user.profile, resultDeclared=True)
+        if not (competition.resultDeclared and competition.allResultsDeclared()):
+            return HttpResponseForbidden('Results not declared')
+        if competition.certificatesGenerated():
+            return HttpResponseForbidden("Certs already generated")
+        participantCerts = []
+        existingcerts = ParticipantCertificate.objects.filter(result__competition=competition)
+        doneresultIDs = []
+        for ex in existingcerts:
+            if not doneresultIDs.__contains__(ex.result.getID()):
+                doneresultIDs.append(ex.result.getID())
+        remainingresults = Result.objects.exclude(id__in=doneresultIDs)
+        for result in remainingresults:
+            for member in result.getMembers():
+                certificate = generateCertificate(member,result)
+                if not certificate:
+                    print(f"Couldn't generate certificate of {member.getName()} for {result.competition.title}")
+                    raise Exception(f"Couldn't generate certificate of {member.getName()} for {result.competition.title}")
+                participantCerts.append(
+                    ParticipantCertificate(
+                        result=result,
+                        profile=member,
+                        certificate=certificate
+                    )
+                )
+        certs = ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
+        if len(certs) != competition.totalValidSubmissionParticipants():
+            raise Exception(f"Participant & certificates mismatched: certs {len(certs)}, parts {competition.totalValidSubmissionParticipants()}")
+        return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATED))
+    except Exception as e:
+        errorLog(e)
+        return HttpResponseServerError(e)
+
+
 @require_GET
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
@@ -476,7 +497,8 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
         partcert = ParticipantCertificate.objects.get(
             result__id=resID, profile=member)
 
-        file_path = os.path.join(settings.MEDIA_ROOT, str(partcert.certificate))
+        file_path = os.path.join(
+            settings.MEDIA_ROOT, str(partcert.certificate))
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
                 response = HttpResponse(fh.read(), content_type="image/jpg")

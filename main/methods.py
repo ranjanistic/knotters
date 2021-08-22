@@ -8,6 +8,7 @@ from django.db.models.fields.files import ImageFieldFile
 from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
+from django.conf import settings
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
@@ -95,17 +96,15 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
 
 
 def getDeepFilePaths(dir_name, appendWhen):
-    from .settings import BASE_DIR
-
     """
     Returns list of mapping of file paths only inside the given directory.
 
     :appendWhen: a function, with argument as traversed path in loop, should return bool whether given arg path is to be included or not.
     """
-    allassets = mapDeepPaths(os.path.join(BASE_DIR, f'{dir_name}/'))
+    allassets = mapDeepPaths(os.path.join(settings.BASE_DIR, f'{dir_name}/'))
     assets = list()
     for asset in allassets:
-        path = str(asset).replace(str(BASE_DIR), str())
+        path = str(asset).replace(str(settings.BASE_DIR), str())
         if path.startswith('\\'):
             path = str(path).strip("\\")
         if path.startswith(dir_name):

@@ -85,7 +85,9 @@ def manager_only(function):
         if request.user.profile.is_manager:
             return function(request, *args, **kwargs)
         else:
-            raise Http404()
+            if request.method == 'GET':
+                raise Http404()
+            return HttpResponseForbidden('Unauthorized access')
     return wrap
 
 @decDec(csrf_exempt)

@@ -1,4 +1,5 @@
 import re
+from deprecated import deprecated
 from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
@@ -118,6 +119,7 @@ class Message():
 
     INVALID_MODERATOR = 'Invalid moderator'
     COMP_TITLE_EXISTS = 'Competition with similar title exists'
+    CERTS_GENERATED = 'Certificates generated successfully.'
 
     def isValid(self, message: str) -> bool:
         """
@@ -415,18 +417,24 @@ class URL():
         def generateCert(self,compID):
             return setPathParams(self.GENERATE_CERTS, compID)
 
-        def certficate(self, resID, userID):
-            return setPathParams(self.CERTIFICATE, resID, userID)
 
         CERTIFICATE = 'certificate/<str:resID>/<str:userID>'
 
-        def certficate(self, resID, userID):
+        def certificate(self, resID, userID):
             return setPathParams(self.CERTIFICATE, resID, userID)
+
+        @deprecated
+        def certficate(self, resID, userID):
+            return self.certificate(resID,userID)
 
         CERTDOWNLOAD = 'certificate/download/<str:resID>/<str:userID>'
 
-        def certficateDownload(self, resID, userID):
+        def certificateDownload(self, resID, userID):
             return setPathParams(self.CERTDOWNLOAD, resID, userID)
+
+        @deprecated
+        def certficateDownload(self, resID, userID):
+            return self.certificateDownload(resID,userID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1012,6 +1020,26 @@ class Template():
 
     class Management():
         DIRNAME = MANAGEMENT
+
+        INDEX = 'index'
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+
+        COMP_INDEX = 'competition/index'
+        @property
+        def comp_index(self):
+            return f'{self.DIRNAME}/{self.COMP_INDEX}.html'
+
+        COMP_CREATE = 'competition/create'
+        @property
+        def comp_create(self):
+            return f'{self.DIRNAME}/{self.COMP_CREATE}.html'
+
+        COMP_COMPETE = 'competition/compete'
+        @property
+        def comp_compete(self):
+            return f'{self.DIRNAME}/{self.COMP_COMPETE}.html'
 
     management = Management()
 

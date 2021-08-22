@@ -1,9 +1,13 @@
 from django.core.handlers.wsgi import WSGIRequest
+import os
+from PIL import Image, ImageFont, ImageDraw
 from django.utils import timezone
 from django.http.response import HttpResponse
-from main.methods import errorLog, renderView, renderString
+from main.methods import base64ToImageFile, errorLog, renderView, renderString
 from main.strings import Compete
-from people.models import User
+from main.env import ISTESTING
+from people.models import User, Profile
+from django.conf import settings
 from .models import Competition, SubmissionParticipant, Result, Submission
 from .apps import APPNAME
 
@@ -110,5 +114,28 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             data = getCompetitionSectionData(sec, competition, request.user)
             break
     return rendererstr(request, f'profile/{section}', data)
+
+def generateCertificate(profile:Profile,result:Result):
+    """
+    Returns certificate images for profile's result.
+    """
+    try:
+        certimage = Image.open(os.path.join(settings.BASE_DIR, 'templates/certificate.jpg'))
+        head_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, 'templates/poppins-500.ttf'), 100)
+        body_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, 'templates/questrial-400.ttf'), 50)
+        image_editable = ImageDraw.Draw(certimage)
+        image_editable.text((15,15), profile.getName(), (237, 230, 211), font=head_font)
+        image_editable.text((55,85), result.competition.title, (237, 230, 211), font=head_font)
+        image_editable.text((55,85), result.getRank(), (237, 230, 211), font=head_font)
+        image_editable.text((55,85), str(result.competition.startAt), (237, 230, 211), font=body_font)
+        image_editable.text((55,85), str(result.competition.endAt), (237, 230, 211), font=body_font)
+        certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
+        if not ISTESTING:
+            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"))
+        return certpath
+    except Exception as e:
+        print(e)
+        errorLog(e)
+        return False
 
 from .receivers import *

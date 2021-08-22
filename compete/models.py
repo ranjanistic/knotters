@@ -2,11 +2,11 @@ import uuid
 from django.db import models
 from django.db.models import Sum
 from people.models import Profile
+from django.conf import settings
 from django.utils import timezone
 from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url, MANAGEMENT
-from main.settings import MEDIA_URL
 from main.methods import errorLog, getNumberSuffix
 from .apps import APPNAME
 
@@ -69,7 +69,7 @@ class Competition(models.Model):
         return self.id.hex
 
     def getBanner(self) -> str:
-        return f"{MEDIA_URL}{str(self.banner)}"
+        return f"{settings.MEDIA_URL}{str(self.banner)}"
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         """
@@ -155,12 +155,8 @@ class Competition(models.Model):
         Whether this competition has been moderated by moderator or not.
         Being moderated indicates that the valid submissions in this competition are ready to be marked.
         """
-        try:
-            Moderation.objects.get(
-                type=APPNAME, competition=self, resolved=True)
-            return True
-        except:
-            return False
+        return True if Moderation.objects.filter(
+            type=APPNAME, competition=self, resolved=True).order_by('-requestOn').first() else False
 
     def isJudge(self, profile: Profile) -> bool:
         """
@@ -188,7 +184,7 @@ class Competition(models.Model):
                 type=APPNAME, competition=self).order_by("-requestOn").first()).getLink(error=error, alert=alert)
         except Exception as e:
             errorLog(e)
-            return ''
+            return self.getLink()
 
     def isParticipant(self, profile: Profile) -> bool:
         """
@@ -218,7 +214,7 @@ class Competition(models.Model):
         """
         parts = SubmissionParticipant.objects.filter(
             submission__competition=self, confirmed=True).only('profile')
-        profiles = list()
+        profiles = []
         for part in parts:
             profiles.append(part.profile)
         return profiles
@@ -228,6 +224,23 @@ class Competition(models.Model):
         Total confirmed participants
         """
         return SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True).count()
+
+    def getValidSubmissionParticipants(self):
+        """
+        All confirmed participants with valid submissions
+        """
+        parts = SubmissionParticipant.objects.filter(
+            submission__competition=self, confirmed=True, submission__valid=True).only('profile')
+        profiles = []
+        for part in parts:
+            profiles.append(part.profile)
+        return profiles
+
+    def totalValidSubmissionParticipants(self):
+        """
+        Total confirmed participants with valid submissions
+        """
+        return SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True, submission__valid=True).count()
 
     def getAllParticipants(self) -> list:
         """
@@ -348,7 +361,8 @@ class Competition(models.Model):
                     )
                     rank = rank + 1
                 else:
-                    raise Exception(f"Results declaration: Submission not found (valid) but submission points found! subID: {submissionpoint['submission']}")
+                    raise Exception(
+                        f"Results declaration: Submission not found (valid) but submission points found! subID: {submissionpoint['submission']}")
             Result.objects.bulk_create(resultsList)
             self.resultDeclared = True
             self.save()
@@ -369,8 +383,8 @@ class Competition(models.Model):
     def allResultsDeclared(self) -> bool:
         return self.totalResults() == self.totalValidSubmissions()
 
-    def getManagementLink(self):
-        return f"{url.getRoot(MANAGEMENT)}{url.management.competition(compID=self.getID())}"
+    def getManagementLink(self, error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(MANAGEMENT)}{url.management.competition(compID=self.getID())}{url.getMessageQuery(error=error, alert=alert)}"
 
     def generateCertificatesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.generateCert(compID=self.getID())}"
@@ -379,7 +393,7 @@ class Competition(models.Model):
         return ParticipantCertificate.objects.filter(result__submission__competition=self).count()
 
     def certificatesGenerated(self) -> bool:
-        return self.totalParticipants() == self.totalCertificates()
+        return self.totalValidSubmissionParticipants() == self.totalCertificates()
 
 
 class CompetitionJudge(models.Model):
@@ -553,7 +567,8 @@ class SubmissionParticipant(models.Model):
         unique_together = ("profile", "submission")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='participant_submission')
+    submission = models.ForeignKey(
+        Submission, on_delete=models.CASCADE, related_name='participant_submission')
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     confirmed = models.BooleanField(default=False)
@@ -617,10 +632,13 @@ class Result(models.Model):
         return self.submission.totalMembers() == self.xpclaimers.count
 
     def getCertLink(self):
-        return f"{url.getRoot(APPNAME)}{url.compete.certficate(resID=self.getID(),userID='*')}"
+        return f"{url.getRoot(APPNAME)}{url.compete.certificate(resID=self.getID(),userID='*')}"
 
     def getCertDownloadLink(self):
-        return f"{url.getRoot(APPNAME)}{url.compete.certficateDownload(resID=self.getID(),userID='*')}"
+        return f"{url.getRoot(APPNAME)}{url.compete.certificateDownload(resID=self.getID(),userID='*')}"
+
+    def getMembers(self):
+        return self.submission.getMembers()
 
 
 class ResultXPClaimer(models.Model):
@@ -634,11 +652,6 @@ class ResultXPClaimer(models.Model):
         Profile, on_delete=models.PROTECT, related_name='xpclaimer_profile')
 
 
-def resultCertificatePath(instance, filename):
-    fileparts = filename.split('.')
-    return f"{APPNAME}/certificates/{instance.result.getID()}/{instance.profile.getUserID()}.{fileparts[len(fileparts)-1]}"
-
-
 class ParticipantCertificate(models.Model):
     class Meta:
         unique_together = ("result", "profile")
@@ -648,8 +661,7 @@ class ParticipantCertificate(models.Model):
         Result, on_delete=models.PROTECT, related_name='participant_certificate_result')
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_certificate_profile')
-    certificate = models.ImageField(
-        default='', upload_to=resultCertificatePath)
+    certificate = models.CharField(default='', null=True, blank=True,max_length=1000)
 
     def getCertificate(self):
-        return f"{MEDIA_URL}{str(self.certificate)}"
+        return f"{settings.MEDIA_URL}{str(self.certificate)}"
