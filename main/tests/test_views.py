@@ -207,8 +207,6 @@ class TestViewsAuth(TestCase):
             password1=password
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTemplateNotUsed(resp, template.auth.login)
-        self.assertTemplateNotUsed(resp, template.auth.signup)
         self.assertTemplateUsed(resp, template.index)
         self.assertTrue(resp.context['user'].is_authenticated)
 
