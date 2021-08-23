@@ -448,4 +448,4 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
-        return Http404()
+        raise Http404()

@@ -309,9 +309,10 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        client.login(email=E2, password=P2)
+        resp = client.post(authroot(url.auth.LOGIN), dict(login=E2, password=P2), follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
         resp = client.post(root(url.people.INVITESUCCESSOR), {
-                           'set': True, 'userID': self.user.email})
+                           'set': True, 'userID': self.user.email}, follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
             resp.content.decode('utf-8')), dict(code=Code.OK))

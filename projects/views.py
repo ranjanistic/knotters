@@ -416,7 +416,7 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
-        return Http404()
+        raise Http404()
 
 
 @require_GET

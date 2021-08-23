@@ -124,14 +124,14 @@ def github_only(function):
             try:
                 request.POST = dict(**request.POST, **json.loads(
                     unquote(request.body.decode("utf-8")).split('payload=')[1]))
+                ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
+                if ghevent == Event.PING:
+                    return HttpResponse(Code.OK)
+                request.POST = dict(**request.POST,ghevent=ghevent)
                 return function(request, *args, **kwargs)
             except Exception as e:
                 errorLog(e)
                 return HttpResponseBadRequest('Couldn\'t load request body properly.')
         else:
-            ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
-            if ghevent == Event.PING:
-                return HttpResponse(Code.OK)
-            request.POST = dict(**request.POST,ghevent=ghevent)
             return function(request, *args, **kwargs)
     return wrap
