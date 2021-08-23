@@ -50,6 +50,11 @@ class Event():
     PING = 'ping'
     PUSH = 'push'
     PR = 'pull_request'
+    MEMBER_ADDED = 'member_added'
+    MEMBER_REMOVED = 'member_removed'
+    ORG = 'organization'
+    TEAMS = 'team'
+    CREATED = 'created'
 
 def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """
@@ -539,6 +544,8 @@ class URL():
             return setPathParams(self.ZOMBIE, profileID)
 
         NEWBIES = 'newbies'
+
+        GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
 
         def getURLSForClient(self):
             URLS = dict()

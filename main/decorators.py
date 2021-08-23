@@ -2,12 +2,13 @@ from urllib.parse import unquote
 import hmac
 from hashlib import sha256
 from django.views.decorators.csrf import csrf_exempt
-from django.http.response import Http404, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseServerError
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseServerError
 from django.utils.encoding import force_bytes
 from allauth.account.decorators import login_required
 from functools import wraps
 from ipaddress import ip_address, ip_network
 from .methods import errorLog
+from .strings import Code, Event
 import json
 import requests
 from django.conf import settings
@@ -121,13 +122,16 @@ def github_only(function):
                 return HttpResponseForbidden('Permission denied 4')
 
             try:
-                request.POST = json.loads(
-                    unquote(request.body.decode("utf-8")).split('payload=')[1])
+                request.POST = dict(**request.POST, **json.loads(
+                    unquote(request.body.decode("utf-8")).split('payload=')[1]))
                 return function(request, *args, **kwargs)
             except Exception as e:
                 errorLog(e)
                 return HttpResponseBadRequest('Couldn\'t load request body properly.')
         else:
-            print("Github hook accessed")
+            ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
+            if ghevent == Event.PING:
+                return HttpResponse(Code.OK)
+            request.POST = dict(**request.POST,ghevent=ghevent)
             return function(request, *args, **kwargs)
     return wrap

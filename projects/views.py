@@ -4,7 +4,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
-from django.http.response import Http404, HttpResponse, HttpResponseForbidden
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import redirect
 from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, respondRedirect
@@ -384,14 +384,11 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @github_only
 def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
-        ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
         if type != Code.HOOK:
-            return HttpResponseForbidden('Invaild event type')
-        if ghevent == Event.PING:
-            return HttpResponse(Code.OK)
-
+            return HttpResponseBadRequest('Invaild event type')
+        ghevent = request.POST['ghevent']
         if ghevent != event:
-            return HttpResponseForbidden('Event mismatch')
+            return HttpResponseBadRequest('Event mismatch')
         try:
             project = Project.objects.get(id=projID)
         except Exception as e:
@@ -399,20 +396,23 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
             return HttpResponse(Code.NO)
 
         if event == Event.PUSH:
-            sender = request.POST.get('sender', None)
-            if sender:
-                pusher = request.POST.get('pusher', {'email': ''})
-                committer = Profile.objects.filter(Q(Q(githubID=sender['login']) | Q(
-                    user__email=pusher['email']) | Q(user__email=sender['login']))).first()
-                if committer:
-                    committer.increaseXP(by=2)
-                    project.creator.increaseXP(by=2)
-                    project.moderator.increaseXP(by=2)
+            pusher = request.POST.get('pusher', {'email': ''})
+            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email']))).first()
+            if committer:
+                committer.increaseXP(by=2)
+                project.creator.increaseXP(by=2)
+                project.moderator.increaseXP(by=2)
         elif event == Event.PR:
-            action = request.POST.get('action', '')
-            if action == 'merged':
+            pr = request.POST.get('pull_request', None)
+            action = request.POST.get('action', None)
+            if pr and action == 'closed' and pr['merged']:
+                creator = Profile.objects.filter(githubID=pr['user']['login']).first()
+                if creator:
+                    creator.increaseXP(by=10)
                 project.creator.increaseXP(by=5)
                 project.moderator.increaseXP(by=5)
+        else:
+            return HttpResponseBadRequest(event)
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")

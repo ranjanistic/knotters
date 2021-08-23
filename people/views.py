@@ -1,15 +1,16 @@
 from uuid import UUID
-from django.http.response import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
-from main.decorators import require_JSON_body, normal_profile_required
+from main.decorators import github_only, require_JSON_body, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, renderData
 from main.env import BOTMAIL
-from main.strings import Action, Code, Message, Template
+from main.strings import Action, Code, Event, Message, Template
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
@@ -138,6 +139,7 @@ def accountprefs(request: WSGIRequest) -> HttpResponse:
         errorLog(e)
         return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
 
+
 @require_JSON_body
 def topicsSearch(request: WSGIRequest) -> JsonResponse:
     query = request.POST.get('query', None)
@@ -257,7 +259,7 @@ def profileSuccessor(request: WSGIRequest):
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
                             successorInvite(request.user, successor)
-                        return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)    
+                        return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
                     successor_confirmed = userID == BOTMAIL
                 except:
                     return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
@@ -408,3 +410,42 @@ def newbieProfiles(request: WSGIRequest) -> HttpResponse:
     profiles = Profile.objects.exclude(id__in=excludeIDs).filter(
         suspended=False, is_zombie=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
     return rendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
+
+
+@csrf_exempt
+@github_only
+def githubEventsListener(request, type: str, event: str) -> HttpResponse:
+    try:
+        if type != Code.HOOK:
+            return HttpResponseBadRequest('Invaild event type')
+        ghevent = request.POST['ghevent']
+        if event != ghevent:
+            return HttpResponseBadRequest(f'event mismatch')
+
+        action = request.POST.get('action', None)
+        if ghevent == Event.ORG:
+            if action == Event.MEMBER_ADDED:
+                membership = request.POST.get('membership', None)
+                if membership:
+                    member = Profile.objects.filter(
+                        githubID=membership['user']['login']).first()
+                    if member:
+                        member.increaseXP(by=10)
+            elif action == Event.MEMBER_REMOVED:
+                membership = request.POST.get('membership', None)
+                if membership:
+                    member = Profile.objects.filter(
+                        githubID=membership['user']['login']).first()
+                    if member:
+                        member.decreaseXP(by=10)
+        elif ghevent == Event.TEAMS:
+            if action == Event.CREATED:
+                team = request.POST.get('team', None)
+                if team:
+                    team['name']
+        else:
+            return HttpResponseBadRequest(ghevent)
+        return HttpResponse(Code.OK)
+    except Exception as e:
+        errorLog(f"GH-EVENT: {e}")
+        return Http404()
