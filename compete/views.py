@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 import os
 from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
@@ -467,12 +467,14 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         remainingresults = Result.objects.exclude(id__in=doneresultIDs)
         for result in remainingresults:
             for member in result.getMembers():
-                certificate = generateCertificate(member,result)
+                id = uuid4()
+                certificate = generateCertificate(member,result,id.hex)
                 if not certificate:
                     print(f"Couldn't generate certificate of {member.getName()} for {result.competition.title}")
                     raise Exception(f"Couldn't generate certificate of {member.getName()} for {result.competition.title}")
                 participantCerts.append(
                     ParticipantCertificate(
+                        id=id,
                         result=result,
                         profile=member,
                         certificate=certificate

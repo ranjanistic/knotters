@@ -1,9 +1,10 @@
 from django.core.handlers.wsgi import WSGIRequest
+from uuid import UUID
 import os
 from PIL import Image, ImageFont, ImageDraw
 from django.utils import timezone
 from django.http.response import HttpResponse
-from main.methods import base64ToImageFile, errorLog, renderView, renderString
+from main.methods import errorLog, renderView, renderString
 from main.strings import Compete
 from main.env import ISTESTING
 from people.models import User, Profile
@@ -115,20 +116,32 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             break
     return rendererstr(request, f'profile/{section}', data)
 
-def generateCertificate(profile:Profile,result:Result):
+def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
     """
-    Returns certificate images for profile's result.
+    Generates certificate image for profile's result, and returns generated path.
     """
     try:
-        certimage = Image.open(os.path.join(settings.BASE_DIR, 'templates/certificate.jpg'))
-        head_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, 'templates/poppins-500.ttf'), 100)
-        body_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, 'templates/questrial-400.ttf'), 50)
+        imagex = 1632
+        imagey = 1056
+        font_dir = 'templates/poppins-500.ttf'
+        cert_dir = 'templates/certificate.jpg'
+        name_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 72)
+        comp_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 56)
+        about_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 28)
+        id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 16)
+        certimage = Image.open(os.path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
-        image_editable.text((15,15), profile.getName(), (237, 230, 211), font=head_font)
-        image_editable.text((55,85), result.competition.title, (237, 230, 211), font=head_font)
-        image_editable.text((55,85), result.getRank(), (237, 230, 211), font=head_font)
-        image_editable.text((55,85), str(result.competition.startAt), (237, 230, 211), font=body_font)
-        image_editable.text((55,85), str(result.competition.endAt), (237, 230, 211), font=body_font)
+        name = profile.getName()
+        comp = result.competition.title
+        about = f"from {str(result.competition.startAt)} to {str(result.competition.endAt)}"
+        namexy = (imagex-name_font.getsize(name)[0]-77, 220)
+        compxy = (imagex-comp_font.getsize(comp)[0]-77, 411)
+        aboutxy = (imagex-about_font.getsize(about)[0]-77, 515)
+        idxy = (22,1020)
+        image_editable.text(xy=namexy, text=name, fill=(0, 0, 0), font=name_font, align='right')
+        image_editable.text(xy=compxy, text=comp, fill=(0, 0, 0), font=comp_font, align='right')
+        image_editable.text(xy=aboutxy, text=about, fill=(0, 0, 0), font=about_font,align='right')
+        image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
         certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
         if not ISTESTING:
             certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"))
