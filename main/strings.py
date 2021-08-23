@@ -28,6 +28,10 @@ class Code():
     HOOK = 'hook'
     SHA256 = 'sha256'
 
+    APPLICATION_JSON = 'application/json'
+    TEXT_PLAIN = 'text/plain'
+    APPLICATION_JS = 'application/javascript'
+
     TOPIC = 'topic'
     CATEGORY = 'category'
 

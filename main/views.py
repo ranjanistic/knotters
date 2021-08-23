@@ -78,18 +78,17 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
 
 
 class Robots(TemplateView):
-    content_type = 'text/plain'
+    content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = dict(**context, admin=ADMINPATH,
-                       static=settings.STATIC_URL, media=settings.MEDIA_URL)
+        context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
         return context
 
 
 class Manifest(TemplateView):
-    content_type = 'application/json'
+    content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
 
     def get_context_data(self, **kwargs):
@@ -122,7 +121,7 @@ class Manifest(TemplateView):
 
 
 class ServiceWorker(TemplateView):
-    content_type = 'application/javascript'
+    content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
 
     def get_context_data(self, **kwargs):
