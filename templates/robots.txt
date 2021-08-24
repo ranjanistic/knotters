@@ -1,3 +1,8 @@
+# NOTICE: Collection of data on Knotters via automated means is
+# prohibited unless an express written permission from Knotters is granted,
+# and should only be conducted for the limited purpose contained in said
+# permission.
+
 User-agent: *
 Disallow: {{media}}
 Disallow: {{static}}
