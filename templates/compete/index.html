@@ -2,10 +2,25 @@
 {% load static %}
 {% load custom_tags %}
 
+{% block meta_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
+{% block og_url %}{{URLS.COMPETE}}{% endblock %}
+{% block og_title %}Competitions{% endblock %}
+{% block og_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
+{% block og_site_name %}Competitions{% endblock %}
+
+{% block tw_url %}{{URLS.COMPETE}}{% endblock %}
+{% block tw_title %}Competitions{% endblock %}
+{% block tw_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
+{% block tw_site_name %}Competitions{% endblock %}
+
 {% block title %}Competitions{% endblock %} 
 
 {% block nav_noauth_competes %}{% endblock %} 
-{% block nav_href %}/{% endblock %}
+{% block nav_href %}{{URLS.ROOT}}{% endblock %}
+
+{% block nav_extra_links %}
+<a href="{{URLS.CERT_INDEX}}"><button title="Certification" class="tertiary" data-icon="badge"><span class="w3-hide-small">Certification</span></button></a>
+{% endblock %}
 
 {% block content %}
 <br/>

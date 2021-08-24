@@ -8,6 +8,7 @@
 {% load socialaccount %}
 {% load custom_tags %}
 
+{% block meta_description %}{{ person.profile.getBio }}{% endblock %}
 {% block og_url %}{{person.profile.getLink}}{% endblock %}
 {% block og_title %}{{person.getName}}{% endblock %}
 {% block og_description %}{{ person.profile.getBio }}{% endblock %}

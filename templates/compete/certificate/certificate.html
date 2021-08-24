@@ -1,0 +1,44 @@
+{% extends 'compete/certificate/index.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block meta_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
+{% block og_url %}{{result.getCertLink|params:member.getUserID}}{% endblock %}
+{% block og_title %}{{member.getFName}}'s Certificate{% endblock %}
+{% block og_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
+{% block og_site_name %}{{member.getFName}}'s Certificate{% endblock %}
+{% block og_image_url %}{{result.competition.getBanner}}{% endblock %}
+
+{% block ld_image_url %}{{result.competition.getBanner}}{% endblock %}
+
+{% block tw_image_url %}{{result.competition.getBanner}}{% endblock %}
+{% block tw_url %}{{result.getCertLink|params:member.getUserID}}{% endblock %}
+{% block tw_title %}{{member.getFName}}'s Certificate{% endblock %}
+{% block tw_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
+
+{% block nav_icon %}
+    <button class="primary previous-navigation-button" data-icon="arrow_back"></button>
+{% endblock %}
+{% block nav_href %}{{URLS.CERT_INDEX}}{% endblock %}
+
+{% block content %}
+<div style="background:url('{{result.competition.getBanner}}'); background-size:cover; height:100%; background-repeat:no-repeat;">
+<div class="w3-row w3-center w3-padding">
+    <h3 class="pallete-slab"><a href="{{member.getLink}}" target="_blank">{{member.getName}}</a> participated in <a href="{{result.competition.getLink}}" target="_blank">{{result.competition.title}}</a> &amp; secured <span class="secondary accent-text">{{result.rank|numsuffix}}</span> rank{% if result.submission.totalMembers > 1 %}, along with {{result.submission.totalMembers|add:'-1'}} {% if result.submission.totalMembers == 2 %}other{% else %}others{% endif %}{% endif%}.</h3>
+    <br/>
+    {% if certpath %}
+    <img class="pallete" src="{{certpath}}" width="800" style="border-radius:0"/>
+    {% else %}
+    <h4 class="pallete dead-text">
+    <i class="w3-jumbo">hourglass_top</i><br/>
+    The certificate is not yet available.<br/>It'll be available here soon.</h4>
+    {% endif %}
+    <br/><br/>
+    {% if self and certpath %}
+    <a href="{{result.getCertDownloadLink|params:member.getUserID}}" download><button class="primary" data-icon="download">Download certificate</button></a>
+    {% endif %}
+    <button class="primary" onclick="shareLinkAction(`{{member.getFName}}'s Certificate`,`{{member.getName }}'s certificate of participation in '{{result.competition.title}}'.`,`{{result.getCertLink|params:member.getUserID}}`)" data-icon="share">Share</button>
+</div>
+<br/><br/>
+</div>
+{% endblock %}

@@ -7,8 +7,8 @@
         <img class="w3-round w3-right" width="60" src="{{result.submission.competition.getBanner}}" />
         <h6>{{result.submission.competition.title}}</h6>
         <strong>{{result.getRank}} position</strong><br/>
-        <a target="_blank" href="{{result.submission.competition.getLink}}" class="w3-right"><button class="active small" data-icon="open_in_new">Competition</button></a>
-        <a target="_blank" href="{{result.getCertLink|params:person.getID}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
+        <a href="{{result.submission.competition.getLink}}" class="w3-right"><button class="active small" data-icon="open_in_new">Competition</button></a>
+        <a href="{{result.getCertLink|params:person.getID}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
         </div>
     </div>
     {% empty %}

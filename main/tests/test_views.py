@@ -1,3 +1,4 @@
+from django.http.response import HttpResponseBadRequest
 from django.test import TestCase, Client, tag
 import json
 from main.env import PUBNAME, BOTMAIL, SITE, VERSION
@@ -182,7 +183,6 @@ class TestViewsAuth(TestCase):
             password1=password
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        # self.assertTrue(resp.context['user'].is_authenticated)
 
         resp = client.post(authroot(url.auth.LOGOUT), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -191,8 +191,6 @@ class TestViewsAuth(TestCase):
         resp = client.post(authroot(url.auth.LOGIN), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertFalse(resp.context['user'].is_authenticated)
-        self.assertTemplateUsed(resp, template.index)
-        self.assertTemplateUsed(resp, template.auth.login)
         resp = client.post(authroot(url.auth.LOGOUT), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertFalse(resp.context['user'].is_authenticated)
@@ -232,7 +230,6 @@ class TestViewsAuth(TestCase):
             password1=password
         ), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTrue(resp.context['user'].is_authenticated)
 
         resp = client.post(authroot(url.auth.LOGOUT), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -246,3 +243,8 @@ class TestViewsAuth(TestCase):
         resp = client.post(authroot(url.auth.LOGOUT), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertFalse(resp.context['user'].is_authenticated)
+
+    def test_browser(self):
+        resp = self.client.get(root(url.browser(getRandomStr())),follow=True)
+        self.assertEqual(resp.status_code, HttpResponseBadRequest.status_code)
+

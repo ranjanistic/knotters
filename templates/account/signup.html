@@ -3,7 +3,14 @@
 {% load socialaccount %}
 {% load custom_tags %}
 
-{% block title %}Signup{% endblock %}
+{% block og_url %}{{URLS.Auth.SIGNUP}}{% endblock %}
+{% block og_title %}Join community{% endblock %}
+{% block og_site_name %}Join community{% endblock %}
+
+{% block tw_url %}{{URLS.Auth.SIGNUP}}{% endblock %}
+{% block tw_title %}Join community{% endblock %}
+{% block tw_site_name %}Join community{% endblock %}
+{% block title %}Join community{% endblock %}
 
 {% block nav_icon %}
 	<button class="primary previous-navigation-button" data-icon="arrow_back"></button>
@@ -25,21 +32,21 @@
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/><br/>
-				<a class="w3-row" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&next={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="primary w3-padding">
 						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
 						Continue via Google
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&next={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="secondary w3-padding">
 						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
 						Continue via Github
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&next=/redirector?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&next={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="tertiary w3-padding">
 						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
 						Continue via Discord

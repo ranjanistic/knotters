@@ -78,12 +78,14 @@
             {% endblock %}
             {% block nav_right %}
             <span class="w3-right w3-row w3-padding w3-animate-right">
+                <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
-                    <button aria-label="Theme switch" class="secondary themeswitch"><i class="material-icons">brightness_medium</i></button>
                     {% block nav_noauth %}
-                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active"><i class="material-icons">psychology</i><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
-                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive"><i class="material-icons">widgets</i><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
+                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
+                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">People</span></button></a>{% endblock %}
                     {% endblock %}
+                    {% block nav_extra_links %}{% endblock %}
                     {% block nav_auth %}
                         {% if user.is_authenticated %}
                             {% block nav_auth_links %}{% endblock %}
@@ -108,14 +110,12 @@
             <div class="w3-row">
                 {% if alert %}
                 <div class="w3-row positive w3-center w3-padding">
-                <span class="text-positive head-font">{{alert.message}} <a href="{{alert.url}}">Click here</a></span>
+                <span class="head-font">{{alert.message}} <a class="text-positive" href="{{alert.url}}">Click here</a></span>
                 </div>
                 {% endif %}
-                <div class="w3-row tertiary" id='newbie-projects-view'>
-                    
+                <div class="w3-row tertiary browser-view" data-type="new-projects" id='newbie-projects-view'>
                 </div>
-                <div class="w3-row accent" id='newbie-profiles-view'>
-                    
+                <div class="w3-row accent browser-view" data-type="new-profiles" id='newbie-profiles-view'>
                 </div>
             </div>
             {% endblock %}
@@ -129,6 +129,9 @@
                 <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">Docs &amp; statements</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">Terms of service</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">Privacy Policy</a><br/>
+                {% if request.user.is_authenticated and request.user.profile.is_manager %}
+                <a href="{{URLS.MANAGEMENT}}" class="text-secondary w3-animate-left">Management</a><br/>
+                {% endif %}
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>
@@ -188,17 +191,14 @@
             } else if("{{request.GET.a}}") {
                 message("{{request.GET.a}}");
             }
+            if("{{request.GET.report}}"==="1"){
+                reportFeedbackView()   
+            }
             const URLS = Object.freeze({{URLS|safe}})
         </script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'scripts/autostart.js' %}"></script>
-        {% block scripts %}
-        <script src="{% static 'scripts/browser.js' %}"></script>
-        <script>
-            loadNewbieProjects()
-            loadNewbieProfiles()
-        </script>
-        {% endblock %}
+        {% block scripts %}{% endblock %}
         {% block errors %}
         <script>
         {% if form.errors %}

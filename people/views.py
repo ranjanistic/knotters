@@ -401,17 +401,6 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404()
 
-
-@require_GET
-def newbieProfiles(request: WSGIRequest) -> HttpResponse:
-    excludeIDs = []
-    if request.user.is_authenticated:
-        excludeIDs.append(request.user.profile.getID())
-    profiles = Profile.objects.exclude(id__in=excludeIDs).filter(
-        suspended=False, is_zombie=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-    return rendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
-
-
 @csrf_exempt
 @github_only
 def githubEventsListener(request, type: str, event: str) -> HttpResponse:

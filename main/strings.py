@@ -129,6 +129,7 @@ class Message():
     INVALID_MODERATOR = 'Invalid moderator'
     COMP_TITLE_EXISTS = 'Competition with similar title exists'
     CERTS_GENERATED = 'Certificates generated successfully.'
+    CERT_NOT_FOUND = 'Certificate not found'
 
     def isValid(self, message: str) -> bool:
         """
@@ -256,6 +257,10 @@ class URL():
     LANDING = 'landing'
     APPLANDING = '<str:subapp>/landing'
 
+    BROWSER = 'browser/<str:type>'
+    def browser(self,type):
+        return setPathParams(self.BROWSER,type)
+        
     def applanding(self, subapp):
         return setPathParams(self.APPLANDING,subapp)
 
@@ -426,6 +431,14 @@ class URL():
         def generateCert(self,compID):
             return setPathParams(self.GENERATE_CERTS, compID)
 
+
+        CERT_INDEX = 'certificate/'
+        def certIndex(self):
+            return setPathParams(self.CERT_INDEX)
+
+        CERT_VERIFY = 'certificate/verify'
+        def certIndex(self):
+            return setPathParams(self.CERT_VERIFY)
 
         CERTIFICATE = 'certificate/<str:resID>/<str:userID>'
 
@@ -860,10 +873,22 @@ class Template():
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
 
-        CERTIFICATE = 'certificate'
+        CERT_INDEX = 'certificate/index'
         @property
+        def cert_index(self):
+            return f'{self.DIRNAME}/{self.CERT_INDEX}.html'
+            
+        CERT_CERTIFICATE = 'certificate/certificate'
+        @property
+        def cert_certificate(self):
+            return f'{self.DIRNAME}/{self.CERT_CERTIFICATE}.html'
+
+        CERTIFICATE = 'certificate'
+
+        @property
+        @deprecated
         def certificate(self):
-            return f'{self.DIRNAME}/{self.CERTIFICATE}.html'
+            return f'{self.DIRNAME}/{self.CERT_CERTIFICATE}.html'
 
         PROFILE_OVERVIEW = f"profile/{Compete.OVERVIEW}"
         @property

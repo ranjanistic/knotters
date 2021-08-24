@@ -417,10 +417,3 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
-
-
-@require_GET
-def newbieProjects(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(
-        status=Code.APPROVED).order_by('-approvedOn')[0:10]
-    return rendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))

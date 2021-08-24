@@ -100,7 +100,14 @@ self.addEventListener("fetch", async (event) => {
                             }
                         }
                     } else if (FetchRes.status > 300) {
-                        return FetchRes;
+                        if (
+                            event.request.headers.get("X-KNOT-REQ-SCRIPT") !==
+                            "true"
+                        ) {
+                            return FetchRes;
+                        } else {
+                            throw Error();
+                        }
                     } else {
                         return caches
                             .match(event.request)

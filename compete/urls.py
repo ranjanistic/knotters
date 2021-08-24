@@ -19,6 +19,8 @@ urlpatterns = [
     path(URL.Compete.DECLARERESULTS, declareResults),
     path(URL.Compete.CLAIMXP, claimXP),
     path(URL.Compete.GENERATE_CERTS, generateCertificates),
+    path(URL.Compete.CERT_INDEX, certificateIndex),
+    path(URL.Compete.CERT_VERIFY, certificateVerify),
     path(URL.Compete.CERTIFICATE, certificate),
     path(URL.Compete.CERTDOWNLOAD, downloadCertificate),
 ]

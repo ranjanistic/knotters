@@ -9,8 +9,8 @@ from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
-from main.methods import errorLog, renderData, respondJson
-from main.strings import Action, Code, Message, Template
+from main.methods import errorLog, renderData, respondJson, respondRedirect
+from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
@@ -108,6 +108,8 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         except:
             pass
+        if competition.isNotAllowedToParticipate(request.user.profile):
+            return HttpResponseForbidden()
         if competition.isParticipant(request.user.profile):
             return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         submission = Submission.objects.create(competition=competition)
@@ -118,6 +120,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink())
     except Exception as e:
+        print(e)
         errorLog(e)
         raise Http404()
 
@@ -427,6 +430,27 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 
 
 @require_GET
+def certificateIndex(request: WSGIRequest) -> HttpResponse:
+    return renderer(request, Template.Compete.CERT_INDEX)
+    
+
+@require_POST
+def certificateVerify(request: WSGIRequest) -> HttpResponse:
+    certID = request.POST.get('certID',None)
+    try:
+        if not certID:
+            return respondRedirect(APPNAME,URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
+        partcert = ParticipantCertificate.objects.filter(id=UUID(str(certID).strip())).first()
+        if not partcert:
+            return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
+        if not partcert.certificate:
+            return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
+        return respondRedirect(APPNAME,URL.compete.certficate(partcert.result.getID(),partcert.profile.getUserID()))
+    except Exception as e:
+        errorLog(e)
+        return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND,)
+
+@require_GET
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
@@ -441,8 +465,8 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         partcert = ParticipantCertificate.objects.filter(
             result__id=resID, profile=member).first()
 
-        certpath = False if not partcert else partcert.getCertificate()
-        return renderer(request, Template.Compete.CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self))
+        certpath = False if not partcert else partcert.getCertificate() if partcert.certificate else False
+        return renderer(request, Template.Compete.CERT_CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -489,13 +513,14 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         return HttpResponseServerError(e)
 
 
+@normal_profile_required
 @require_GET
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
-        if request.user.is_authenticated and request.user.getID() == userID:
+        if request.user.getID() == userID:
             member = request.user.profile
         else:
-            member = Profile.objects.get(user__id=userID)
+            raise Exception()
         partcert = ParticipantCertificate.objects.get(
             result__id=resID, profile=member)
 

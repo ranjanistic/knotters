@@ -5,6 +5,7 @@
 {% load tz %}
 {% load custom_tags %}
 
+{% block meta_description %}{{ project.description }}{% endblock %}
 {% block og_url %}{{project.getLink}}{% endblock %}
 {% block og_title %}{{project.name}}{% endblock %}
 {% block og_description %}{{ project.description }}{% endblock %}
@@ -27,6 +28,7 @@
 {% block nav_icon %}
     <button class="primary previous-navigation-button" data-icon="arrow_back"></button>
 {% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_text %}{{project.name}}{% endblock %}
 
 {% block content %}

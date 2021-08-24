@@ -19,6 +19,4 @@ urlpatterns = [
     path(URL.People.ACCOUNTDELETE, accountDelete),
     path(URL.People.ZOMBIE, zombieProfile),
     path(URL.People.GITHUB_EVENTS, githubEventsListener),
-
-    path(URL.People.NEWBIES, newbieProfiles)
 ]

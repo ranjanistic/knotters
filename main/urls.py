@@ -25,6 +25,7 @@ urlpatterns = [
     path(URL.REDIRECTOR, redirector),
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
+    path(URL.BROWSER, browser),
     path('email/<str:template>', mailtemplate)
 ]
 

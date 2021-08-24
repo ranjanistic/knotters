@@ -6,7 +6,19 @@
 {% load custom_tags %}
 
 {% block themecolor %}#f5d702{% endblock %}
+
+{% block og_url %}{{URLS.CREATE}}{% endblock %}
+{% block og_title %}Create Project{% endblock %}
+{% block og_site_name %}Create Project{% endblock %}
+
+{% block tw_url %}{{URLS.CREATE}}{% endblock %}
+{% block tw_title %}Create Project{% endblock %}
+{% block tw_site_name %}Create Project{% endblock %}
 {% block title%}Create project{%endblock%}
+
+{% block nav_extra_links %}
+<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
+{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/project/create.css' %}" />

@@ -175,6 +175,9 @@ class Profile(models.Model):
     def getFName(self) -> str:
         return Code.ZOMBIE if self.is_zombie else self.user.first_name
 
+    def getLName(self) -> str:
+        return Code.ZOMBIE if self.is_zombie else self.user.last_name or ''
+
     def getEmail(self) -> str:
         return Code.ZOMBIEMAIL if self.is_zombie else self.user.email
 

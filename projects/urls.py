@@ -20,7 +20,4 @@ urlpatterns = [
     path(URL.Projects.TAGSUPDATE, tagsUpdate),
     path(URL.Projects.LIVEDATA, liveData),
     path(URL.Projects.GITHUB_EVENTS, githubEventsListener),
-
-    path(URL.Projects.NEWBIES, newbieProjects),
-    
 ]

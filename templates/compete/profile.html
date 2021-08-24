@@ -2,9 +2,10 @@
 {% load static %}
 {% load custom_tags %}
 
+{% block meta_description %}{{ compete.shortdescription }}{% endblock %}
 {% block og_url %}{{compete.getLink}}{% endblock %}
 {% block og_title %}{{ compete.title }}{% endblock %}
-{% block og_description %}{{ compete.tagline }}{% endblock %}
+{% block og_description %}{{ compete.shortdescription }}{% endblock %}
 {% block og_site_name %}{{compete.title}}{% endblock %}
 {% block og_image_url %}{{compete.getBanner}}{% endblock %}
 
@@ -66,7 +67,7 @@
         {% if compete.isActive %}
         <div class="pallete pointer" id="reload-time">
           <h6>Remaining</h6>
-          <h1 class="w3-jumbo" id="remainingTime"><div class="loader"></div></h1>
+          <h1 class="" id="remainingTime"><div class="loader"></div></h1>
           <h6>To submit</h6>
         </div>
         {% elif compete.isHistory %}
@@ -100,7 +101,7 @@
           <button class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
           <button class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
           <button class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button>
-          {% if not isJudge and not isMod %}
+          {% if not isJudge and not isMod and not isManager %}
           <button class="w3-bar-item side-nav-tab" id="submission" data-icon="send">Submission</button>
           {% endif %}
           {% if compete.resultDeclared %}
@@ -111,7 +112,7 @@
           <button class="side-nav-tab" id="overview" data-icon="toc"></button>
           <button class="side-nav-tab" id="task" data-icon="code"></button>
           <button class="side-nav-tab" id="guidelines" data-icon="rule"></button>
-          {% if not isJudge and not isMod %}
+          {% if not isJudge and not isMod and not isManager %}
           <button class="side-nav-tab" id="submission" data-icon="send"></button>
           {% endif %}
           {% if compete.resultDeclared %}

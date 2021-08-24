@@ -411,9 +411,3 @@ class TestViews(TestCase):
             'utf-8')), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
-
-    def test_newbieProfiles(self):
-        resp = self.client.get(root(url.people.NEWBIES))
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertIsInstance(resp.context['profiles'], QuerySet)
-        self.assertTemplateUsed(resp, template.people.browse_newbie)

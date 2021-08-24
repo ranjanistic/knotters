@@ -72,6 +72,9 @@ def getCompetitionSectionData(section: str, competition: Competition, user: User
     elif section == Compete.SUBMISSION:
         try:
             profile = user.profile
+            if competition.isNotAllowedToParticipate(profile):
+                return None
+                
             relation = SubmissionParticipant.objects.get(
                 submission__competition=competition, profile=profile)
             data['submission'] = relation.submission
@@ -124,16 +127,37 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         imagex = 1632
         imagey = 1056
         font_dir = 'templates/poppins-500.ttf'
+        body_font_dir = 'templates/questrial-400.ttf'
         cert_dir = 'templates/certificate.jpg'
         name_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 72)
         comp_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 56)
         about_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 28)
-        id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 16)
+        id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, body_font_dir), 16)
         certimage = Image.open(os.path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
         name = profile.getName()
+        if len(name) > 30:
+            name = profile.getFName().capitalize()
+            lastnames = profile.getLName().split(" ")
+            i = 1
+            for last in lastnames:
+                if str(last).strip():
+                    if i == len(lastnames):
+                        if len(f"{name} {last}") < 31:
+                            name = f"{name} {last.capitalize()}"
+                        else:
+                            name = f"{name} {str(last[0]).upper()}. "
+                    else:
+                        name = f"{name} {str(last[0]).upper()}. "
+                i+=1
+        if len(name) > 30:
+            name = name[:(30-len(name))]
+        
         comp = result.competition.title
-        about = f"from {str(result.competition.startAt)} to {str(result.competition.endAt)}"
+        if len(comp) > 39:
+            comp = comp[:(39-len(comp))]
+
+        about = f"from {result.competition.startAt.strftime('%B')} {result.competition.startAt.day}, {result.competition.startAt.year} to {result.competition.endAt.strftime('%B')} {result.competition.endAt.day}, {result.competition.endAt.year}"
         namexy = (imagex-name_font.getsize(name)[0]-77, 220)
         compxy = (imagex-comp_font.getsize(comp)[0]-77, 411)
         aboutxy = (imagex-about_font.getsize(about)[0]-77, 515)
@@ -147,7 +171,6 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
             certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"))
         return certpath
     except Exception as e:
-        print(e)
         errorLog(e)
         return False
 

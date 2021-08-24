@@ -132,6 +132,12 @@ class Competition(models.Model):
         """
         return self.topics.count()
 
+    @property
+    def moderator(self):
+        mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn').first()
+        return None if not mod else mod.moderator
+            
+
     def isModerator(self, profile: Profile) -> bool:
         """
         Whether the given profile is assigned as moderator of this competition or not.
@@ -186,6 +192,12 @@ class Competition(models.Model):
             errorLog(e)
             return self.getLink()
 
+    def isAllowedToParticipate(self, profile:Profile) -> bool:
+        return self.creator != profile and self.moderator != profile and not self.isJudge(profile)
+
+    def isNotAllowedToParticipate(self, profile:Profile) -> bool:
+        return not self.isAllowedToParticipate(profile)
+        
     def isParticipant(self, profile: Profile) -> bool:
         """
         Checks whether the given profile is a participant (confirmed or unconfirmed) in this competition or not.
@@ -198,9 +210,9 @@ class Competition(models.Model):
 
     def getMaxScore(self) -> int:
         """
-        Calculated maximum points allowed in this competition for each submission, which depends on topics, eachTopicMaxPoint, and judges.
+        Calculated maximum points allowed in this competition for each submission, which depends on topics, eachTopicMaxPoint, topics, and judges.
         """
-        return self.topics.count() * self.eachTopicMaxPoint * self.totalJudges()
+        return self.eachTopicMaxPoint * self.totalTopics() * self.totalJudges()
 
     def getSubmissions(self) -> list:
         """

@@ -1,12 +1,17 @@
 import json
+from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
-from django.http.response import Http404, HttpResponse
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
 from django.conf import settings
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
-from projects.models import LegalDoc
+from projects.models import LegalDoc, Project
+from compete.models import Competition
+from people.models import Profile
+from people.methods import rendererstr as peopleRendererstr
+from projects.methods import rendererstr as projectsRendererstr
 from .env import ADMINPATH
 from .methods import errorLog, renderData, renderView
 from .decorators import dev_only
@@ -26,7 +31,16 @@ def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    return renderView(request, Template.INDEX)
+    comp = Competition.objects.filter(startAt__lt=timezone.now(),endAt__gte=timezone.now()).first()
+    data = dict()
+    if comp:
+        data = dict(
+            alert=dict(
+                message=f"'{comp.title}' competition is happening!",
+                url=comp.getLink(),
+            )
+        )
+    return renderView(request, Template.INDEX,data)
 
 
 @require_GET
@@ -202,7 +216,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
             netFirstList=json.dumps([
-                settings.MEDIA_URL,
+                f"{settings.MEDIA_URL}*",
+                setPathParams(f"/{URL.BROWSER}"),
                 f"/{URL.PROJECTS}{URL.Projects.NEWBIES}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
                 f"/{URL.PEOPLE}{URL.People.NEWBIES}",
@@ -210,3 +225,23 @@ class ServiceWorker(TemplateView):
             ])
         )))
         return context
+
+
+@require_GET
+def browser(request:WSGIRequest, type:str):
+    try:
+        if type == "new-profiles":
+            excludeIDs = []
+            if request.user.is_authenticated:
+                excludeIDs.append(request.user.profile.getID())
+            profiles = Profile.objects.exclude(id__in=excludeIDs).filter(
+                suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
+        elif type == "new-projects":
+            projects = Project.objects.filter(
+                status=Code.APPROVED).order_by('-approvedOn')[0:10]
+            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
+        else:
+            raise HttpResponseBadRequest()
+    except:
+        raise Http404()

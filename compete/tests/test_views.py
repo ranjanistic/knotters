@@ -939,6 +939,7 @@ class TestViews(TestCase):
                 self.assertTrue(ProfileTopic.objects.filter(
                     profile=profile, topic__id=top['topic'], points=top['points']).exists())
 
+    @tag('cert')
     def test_certificates(self):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
@@ -970,8 +971,7 @@ class TestViews(TestCase):
             client = Client()
             self.assertTrue(client.login(
                 email=useremails[i], password=userpasswords[i]))
-            resp = client.post(
-                root(url.compete.participate(self.comp.getID())), follow=True)
+            resp = client.post(root(url.compete.participate(self.comp.getID())), follow=True)
             self.assertEqual(resp.status_code, HttpResponse.status_code)
             resp = client.post(root(url.compete.data(self.comp.getID())))
             self.assertEqual(resp.status_code, HttpResponse.status_code)

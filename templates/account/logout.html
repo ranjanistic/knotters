@@ -4,6 +4,14 @@
 
 {% block title %}Logout{% endblock %}
 
+{% block og_url %}{{URLS.Auth.LOGOUT}}{% endblock %}
+{% block og_title %}Logout{% endblock %}
+{% block og_site_name %}Logout{% endblock %}
+
+{% block tw_url %}{{URLS.Auth.LOGOUT}}{% endblock %}
+{% block tw_title %}Logout{% endblock %}
+{% block tw_site_name %}Logout{% endblock %}
+
 {% block nav_href %}{{request.user.profile.getLink}}{% endblock %}
 {% block nav_icon %}
   <button class="primary previous-navigation-button" data-icon="arrow_back"></button>

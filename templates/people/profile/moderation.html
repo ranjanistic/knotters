@@ -24,7 +24,7 @@
                             <h6>{{mod.competition.title}}</h6>
                             <span>{{mod.competition.tagline}}</span>
                             {% endif %}
-                            <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                            <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                         </div>
                         {% empty %}
                         <br/>
@@ -52,7 +52,7 @@
                         <h6>{{mod.project.name}}</h6>
                         <span>{{mod.project.reponame}}</span>
                         {% endif %}
-                        <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
+                        <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
                         </div>
                         {% empty %}
                         <br/>
@@ -86,7 +86,7 @@
                             <h6>{{mod.competition.title}}</h6>
                             <span>{{mod.competition.tagline}}</span>
                             {% endif %}
-                            <a target="_blank" href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                            <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                         </div>
                         {% empty %}
                         <br/>
@@ -109,14 +109,14 @@
                     <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
                     <h6>{{mod.project.name}}</h6>
                     <span>{{mod.project.reponame}}</span>
-                    <a target="_blank" href="{{mod.project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                    <a href="{{mod.project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                 </div>
                 {% elif mod.type == SUBAPPS.compete and mod.competition.resultDeclared %}
                 <div class="pallete-slab">
                     <img class="w3-round w3-right" width="30" src="{{mod.competition.getBanner}}" />
                     <h6>{{mod.competition.title}}</h6>
                     <span>{{mod.competition.tagline}}</span>
-                    <a target="_blank" href="{{mod.competition.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                    <a href="{{mod.competition.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                 </div>
                 {% endif %}
             </div>

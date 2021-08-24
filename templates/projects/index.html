@@ -1,18 +1,28 @@
 {% extends 'index.html' %} 
 {% load static %}
 {% load custom_tags %}
+
+
+{% block meta_description %}Community projects, open for everyone, to everyone. Contribute to existing ideas, or submit your own to make it real together with everyone.{% endblock %}
+{% block og_url %}{{URLS.PROJECTS}}{% endblock %}
+{% block og_title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block og_description %}Community projects, open for everyone, to everyone. Contribute to existing ideas, or submit your own to make it real together with everyone.{% endblock %}
+{% block og_site_name %}{{SUBAPPNAME|capfirst}}{% endblock %}
+
+{% block tw_url %}{{URLS.PROJECTS}}{% endblock %}
+{% block tw_title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block tw_description %}Community projects, open for everyone, to everyone. Contribute to existing ideas, or submit your own to make it real together with everyone.{% endblock %}
+{% block tw_site_name %}{{SUBAPPNAME|capfirst}}{% endblock %}
+
+
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 
 {% block nav_href %}/{% endblock %}
 
-{% block nav_auth_links %}
-<a href="{{URLS.CREATE}}"
-  ><button title="New project" class="positive">
-    <i class="material-icons">add</i
-    ><span class="w3-hide-small">New project</span>
-  </button>
-</a>
-{% endblock %} 
+{% block nav_extra_links %}
+<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
+<a href="{{URLS.CREATE}}"><button title="New project" class="positive" data-icon="add"><span class="w3-hide-small">New project</span></button></a>
+{% endblock %}
 
 {% block nav_noauth_projects %}{% endblock %} 
 
@@ -29,7 +39,7 @@
   <div class="w3-row w3-padding">
   <h4>
     Community projects, open for everyone, to everyone.<br/>
-    Contribute to existing ideas, or submit your own to make it real together with us.
+    Contribute to existing ideas, or submit your own to make it real together with everyone.
   </h4>
   </div>
   <div class="w3-row w3-padding">
@@ -46,38 +56,7 @@
 </div>
 
 <div class="w3-row tertiary" id="mainframe">
-  	<div class="w3-row w3-padding" id="searchbar" hidden>
-      <br/>
-      <input type="text" name="query" class="primary" placeholder="Search people" required /><a href="{{ROOT}}#mainframe"><button type="button" class="negative"><i class="material-icons">clear</i></button></a>
-      <br/>
-  	</div>
-	  <br/>
-    <div class="w3-row w3-padding active">
-      <div class="w3-row w3-padding">
-        <h3 class="text-active">Popular this week</h3>
-      </div>
-      <div class="w3-row w3-center">
-      {% for project in weekprojects %}
-          <div class="w3-col w3-quarter w3-padding-small">
-            <div class="pallete limit-height w3-center {% if project.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
-              <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
-              <div class="w3-row w3-padding">
-                <h5>{{ project.name }}</h5>
-                {{project.description}}
-              </div>
-              <div class="w3-row w3-padding-small">
-              <a href="{{project.profile.getLink}}"><i title="View {{project.name}}" class="material-icons w3-right pointer positive-text">visibility</i></a>
-              <i title="Share {{project.name}}" class="w3-left material-icons pointer" onclick="shareLinkAction('{{project.name}}', '{{project.description}}', '{{site}}{{project.getLink}}')">share</i>
-              </div>
-            </div>
-          </div>
-        {% empty %} 
-          <h3 class="text-active">We'll bring you projects as soon as they're available.</h3>
-          <h4 class="text-accent">There is still some work left here for us to do.</h4>
-        {% endfor %}
-      </div>
-      <br/>
-    </div>
+  <div class="w3-row active browser-view" data-type="new-projects" id='newbie-projects-view'>
   </div>
 </div>
 {% endblock %}

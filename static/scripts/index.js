@@ -14,10 +14,10 @@ const code = {
 
 const logOut = async (
     afterLogout = (_) => {
-        window.location.replace("/");
+        window.location.replace(URLS.ROOT);
     }
 ) => {
-    const done = await postRequest("/auth/logout/");
+    const done = await postRequest(URLS.Auth.LOGOUT);
     if (!done.location) return error("Failed to logout");
     message("Logged out successfully");
     afterLogout();
@@ -84,12 +84,52 @@ const success = (msg = "Success") => {
 };
 
 const loaderHTML = (loaderID = "loader") =>
-    `<div class="loader" id="${loaderID}"></div>`;
+    `<span class="w3-padding-small"><div class="loader" id="${loaderID}"></div></span>`;
 const loadErrorHTML = (
     retryID = "retryload"
 ) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
+
+const loadBrowserSwiper = (_) => {
+    loadCarousels({
+        container: "swiper-browser",
+        breakpoints: {
+            1024: {
+                slidesPerView: 4,
+                spaceBetween: 5,
+            },
+            768: {
+                slidesPerView: 3,
+                spaceBetween: 5,
+            },
+            920: {
+                slidesPerView: 4,
+                spaceBetween: 12,
+            },
+            640: {
+                slidesPerView: 4,
+                spaceBetween: 12,
+            },
+        },
+    });
+};
+
+const loadBrowsers = () => {
+    getElements("browser-view").forEach((view)=>{
+        const method = async ()=>{
+            setHtmlContent(view, loaderHTML(`${view.id}-loader`));
+            const data = await getRequest(setUrlParams(URLS.BROWSER, view.getAttribute('data-type')));
+            if (!data) {
+                setHtmlContent(view, loadErrorHTML(`${view.id}-load-retry`));
+                getElement(`${view.id}-load-retry`).onclick = (_) => method()
+                return;
+            }
+            setHtmlContent(view, data, loadBrowserSwiper);
+        }
+        method()
+    })
+}
 
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;
