@@ -242,6 +242,6 @@ def browser(request:WSGIRequest, type:str):
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
         else:
-            raise HttpResponseBadRequest()
+            return HttpResponseBadRequest()
     except:
         raise Http404()
