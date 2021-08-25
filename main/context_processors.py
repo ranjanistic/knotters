@@ -23,3 +23,4 @@ def Global(request):
         data['SUBAPPSLIST'].append(div)
 
     return renderData(data)
+
