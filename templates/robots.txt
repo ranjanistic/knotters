@@ -4,7 +4,4 @@
 # permission.
 
 User-agent: *
-Disallow: {{media}}
-Disallow: {{static}}
-Disallow: {{SERVICE_WORKER}}
-Disallow: {{MANIFESTURL}}
+
