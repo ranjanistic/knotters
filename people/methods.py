@@ -187,6 +187,10 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
                                status=Code.MODERATION).delete()
         Project.objects.filter(creator=predecessor.profile, status__in=[
                                Code.APPROVED, Code.REJECTED]).update(migrated=True, creator=successor.profile)
+        if predecessor.profile.hasPredecessors:
+            for pred in predecessor.profile.predecessors:
+                pred.successor = successor
+                pred.save()
         return True
     except Exception as e:
         errorLog(e)

@@ -25,6 +25,7 @@ def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.People.INDEX, data)
 
 
+@normal_profile_required
 @require_GET
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
@@ -34,7 +35,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             try:
                 person = User.objects.get(
                     id=userID, profile__to_be_zombie=False, profile__suspended=False)
-                if person.profile.githubID:
+                if person.profile.ghID:
                     return redirect(person.profile.getLink())
             except:
                 try:
@@ -43,6 +44,9 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
                     person = profile.user
                 except:
                     raise Exception()
+        if request.user.is_authenticated:
+            if person.profile.isBlocked(request.user):
+                raise Exception()
         return renderer(request, Template.People.PROFILE, dict(person=person))
     except Exception as e:
         errorLog(e)
@@ -56,6 +60,9 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
             profile = request.user.profile
         else:
             profile = Profile.objects.get(user__id=userID)
+        if request.user.is_authenticated:
+            if profile.isBlocked(request.user):
+                raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
         errorLog(e)
@@ -254,7 +261,9 @@ def profileSuccessor(request: WSGIRequest):
             if userID and request.user.email != userID:
                 try:
                     successor = User.objects.get(email=userID)
-                    if not successor.profile.githubID:
+                    if successor.profile.isBlocked(request.user):
+                        return respondJson(Code.NO)
+                    if not successor.profile.ghID:
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:

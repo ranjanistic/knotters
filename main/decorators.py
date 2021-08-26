@@ -62,7 +62,7 @@ def dev_only(function):
 def normal_profile_required(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        if request.user.profile.isNormal():
+        if request.user.profile.is_normal:
             return function(request, *args, **kwargs)
         raise Http404()
     return wrap

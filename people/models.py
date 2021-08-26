@@ -139,9 +139,9 @@ class Profile(models.Model):
     suspended = models.BooleanField(
         default=False, help_text='Illegal activities make this true.')
 
-    reporters = models.ManyToManyField(
-        'Profile', through='ProfileReport', related_name='profile_reporters', default=[])
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
+
+    blocklist = models.ManyToManyField('User', through='BlockedUser', default=[], related_name='blocked_users')
 
     xp = models.IntegerField(default=10, help_text='Experience count')
 
@@ -200,13 +200,27 @@ class Profile(models.Model):
         except:
             return None
 
+    @property
+    def has_ghID(self) -> bool:
+        """
+        Github linked or not.
+        """
+        return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
+
+
+    @property
+    def get_ghLink(self) -> str:
+        return url.githubProfile(ghID=self.ghID) if self.ghID else ''
+
+    @deprecated('Use the property method for the same')
     def getGhUrl(self) -> str:
         return url.githubProfile(ghID=self.ghID) if self.ghID else ''
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
-            if self.githubID:
-                return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.githubID)}{url.getMessageQuery(alert,error,success)}"
+            ghID = self.ghID
+            if ghID:
+                return f"{url.getRoot(APPNAME)}{url.people.profile(userID=ghID)}{url.getMessageQuery(alert,error,success)}"
             return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
         return f'{url.getRoot(APPNAME)}{url.people.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
 
@@ -219,11 +233,13 @@ class Profile(models.Model):
     def isNormal(self) -> bool:
         return self.is_normal
 
+    @property
+    def hasPredecessors(self) -> bool:
+        return Profile.objects.filter(successor=self.user).exists()
 
-    def isReporter(self, profile) -> bool:
-        if profile in self.reporters.all():
-            return True
-        return False
+    @property
+    def predecessors(self) -> models.QuerySet:
+        return Profile.objects.filter(successor=self.user)
 
     def getSuccessorInviteLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
@@ -246,8 +262,8 @@ class Profile(models.Model):
         diff = self.xp - by
         if diff < 0:
             diff = 0
-            if self.xp == diff:
-                return self.xp
+        if self.xp == diff:
+            return self.xp
         self.xp = int(diff)
         self.save()
         return self.xp
@@ -279,18 +295,26 @@ class Profile(models.Model):
     def totalTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=False).count()
 
-    def getTrahedTopics(self):
+    def getTrashedTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
         return topics
 
-    def totalTrashedTopics(self):
+    def getTrashedTopicsData(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True)
 
     def totalTrashedTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True).count()
+
+    @deprecated(reason="Typo", action="Use the proper spelled one")
+    def getTrahedTopics(self):
+        proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
+        topics = []
+        for proftop in proftops:
+            topics.append(proftop.topic)
+        return topics
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def getTrahedTopicsData(self):
@@ -313,6 +337,9 @@ class Profile(models.Model):
     def totalAllTopics(self):
         return ProfileTopic.objects.filter(profile=self).count()
 
+    def isBlocked(self, user:User) -> bool:
+        return BlockedUser.objects.filter(profile=self,blockeduser=user).exists() or BlockedUser.objects.filter(profile=user.profile,blockeduser=self.user).exists()
+
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -329,18 +356,6 @@ class ProfileSetting(models.Model):
     def savePreferencesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.ACCOUNTPREFERENCES}"
 
-
-class ProfileReport(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(
-        Profile, related_name='reported_profile', on_delete=models.CASCADE)
-    reporter = models.ForeignKey(
-        Profile, related_name='profile_reporter', on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('profile', 'reporter')
-
-
 class ProfileTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
@@ -352,6 +367,11 @@ class ProfileTopic(models.Model):
 
     class Meta:
         unique_together = ('profile', 'topic')
+
+    @property
+    def hidden(self) -> bool:
+        return self.trashed
+
 
     def increasePoints(self, by: int = 0) -> int:
         points = 0
@@ -373,5 +393,13 @@ class ProfileTopic(models.Model):
         self.points = points
         self.save()
         return self.points
+
+class BlockedUser(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='blocker_profile')
+    blockeduser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_user')
+
+    class Meta:
+        unique_together = ('profile', 'blockeduser')
 
 from .methods import isPictureDeletable, getUsernameFromGHSocial
