@@ -3,10 +3,11 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from deprecated import deprecated
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
-from main.settings import MEDIA_URL
+from django.conf import settings
 from main.strings import Code, PROJECTS, url
 from .apps import APPNAME
 
@@ -168,8 +169,10 @@ class Profile(models.Model):
         return str(self.picture).startswith("http")
 
     def getDP(self) -> str:
+        if self.is_zombie:
+            return settings.MEDIA_URL + defaultImagePath()
         dp = str(self.picture)
-        return dp if self.isRemoteDp() else MEDIA_URL+dp if not dp.startswith('/') else MEDIA_URL + dp.removeprefix('/')
+        return dp if self.isRemoteDp() else settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
 
     def getName(self) -> str:
         return Code.ZOMBIE if self.is_zombie else self.user.getName()
@@ -194,6 +197,8 @@ class Profile(models.Model):
         """
         Github ID of profile, if linked.
         """
+        if self.is_zombie:
+            return None
         try:
             data = SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)
             return getUsernameFromGHSocial(data)
@@ -205,7 +210,7 @@ class Profile(models.Model):
         """
         Github linked or not.
         """
-        return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
+        return not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
 
 
     @property
@@ -248,6 +253,7 @@ class Profile(models.Model):
         return f"{self.xp} XP"
 
     def increaseXP(self, by: int = 0) -> int:
+        if not self.is_active: return self.xp
         if self.xp == None:
             self.xp = 0
         self.xp = self.xp + by
@@ -255,6 +261,7 @@ class Profile(models.Model):
         return self.xp
 
     def decreaseXP(self, by: int = 0) -> int:
+        if not self.is_active: return self.xp
         if self.xp == None:
             self.xp = 0
             self.save()
@@ -339,6 +346,26 @@ class Profile(models.Model):
 
     def isBlocked(self, user:User) -> bool:
         return BlockedUser.objects.filter(profile=self,blockeduser=user).exists() or BlockedUser.objects.filter(profile=user.profile,blockeduser=self.user).exists()
+
+    @property
+    def blockedIDs(self) -> list:
+        ids = []
+        for block in BlockedUser.objects.filter(Q(profile=self)|Q(blockeduser=self.user)):
+            if block.blockeduser == self.user:
+                ids.append(block.profile.getUserID())
+            else:
+                ids.append(block.blockeduser.getID())
+        return ids
+
+    @property
+    def blockedProfiles(self) -> list:
+        profiles = []
+        for block in BlockedUser.objects.filter(Q(profile=self)|Q(blockeduser=self.user)):
+            if block.blockeduser == self.user:
+                profiles.append(block.profile)
+            else:
+                profiles.append(block.blockeduser.profile)
+        return profiles
 
 
 class ProfileSetting(models.Model):

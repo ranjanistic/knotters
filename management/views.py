@@ -122,8 +122,10 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user=request.user,user__email=BOTMAIL).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        if profile.isBlocked(request.user):
+            raise Exception()
         return respondJson(Code.OK, dict(judge=dict(
             id=profile.user.id,
             name=profile.getName()
@@ -139,8 +141,10 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user=request.user,user__email=BOTMAIL).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        if profile.isBlocked(request.user):
+            raise Exception()
         return respondJson(Code.OK, dict(mod=dict(
             id=profile.user.id,
             name=profile.getName()
@@ -178,9 +182,6 @@ def submitCompetition(request) -> HttpResponse:
         taskSummary = str(request.POST['comptaskSummary']).strip()
         taskDetail = str(request.POST['comptaskDetail']).strip()
         taskSample = str(request.POST['comptaskSample']).strip()
-
-        print(startAt)
-        print(endAt)
 
         if not (title and
                 tagline and

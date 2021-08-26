@@ -396,8 +396,8 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
             return HttpResponse(Code.NO)
 
         if event == Event.PUSH:
-            pusher = request.POST.get('pusher', {'email': ''})
-            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email']))).first()
+            pusher = request.POST.get('pusher', {'email': '', 'name': ''})
+            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email'])),is_active=True).first()
             if committer:
                 committer.increaseXP(by=2)
                 project.creator.increaseXP(by=2)
@@ -406,7 +406,7 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
             pr = request.POST.get('pull_request', None)
             action = request.POST.get('action', None)
             if pr and action == 'closed' and pr['merged']:
-                creator = Profile.objects.filter(githubID=pr['user']['login']).first()
+                creator = Profile.objects.filter(githubID=pr['user']['login'], is_active=True).first()
                 if creator:
                     creator.increaseXP(by=10)
                 project.creator.increaseXP(by=5)

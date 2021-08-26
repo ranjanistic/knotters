@@ -25,7 +25,6 @@ def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.People.INDEX, data)
 
 
-@normal_profile_required
 @require_GET
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
@@ -262,7 +261,7 @@ def profileSuccessor(request: WSGIRequest):
                 try:
                     successor = User.objects.get(email=userID)
                     if successor.profile.isBlocked(request.user):
-                        return respondJson(Code.NO)
+                        return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
                     if not successor.profile.ghID:
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
@@ -426,7 +425,7 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
                 membership = request.POST.get('membership', None)
                 if membership:
                     member = Profile.objects.filter(
-                        githubID=membership['user']['login']).first()
+                        githubID=membership['user']['login'], is_active=True).first()
                     if member:
                         member.increaseXP(by=10)
             elif action == Event.MEMBER_REMOVED:
@@ -434,8 +433,8 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
                 if membership:
                     member = Profile.objects.filter(
                         githubID=membership['user']['login']).first()
-                    if member:
-                        member.decreaseXP(by=10)
+                    # if member:
+                    #     member.decreaseXP(by=10)
         elif ghevent == Event.TEAMS:
             if action == Event.CREATED:
                 team = request.POST.get('team', None)

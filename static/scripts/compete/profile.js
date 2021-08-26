@@ -12,6 +12,7 @@ const loadData = async () => {
             if (timeleft === 0) return;
             getElement("remainingTime").innerHTML = secsToTime(timeleft);
             intv = setInterval(() => {
+                timeleft -= 1;
                 const disptime = secsToTime(timeleft);
                 getElement("remainingTime").innerHTML = disptime;
                 try {
@@ -23,7 +24,6 @@ const loadData = async () => {
                     loader();
                     window.location.replace(window.location.pathname);
                 }
-                timeleft -= 1;
             }, 1000);
         }
     }

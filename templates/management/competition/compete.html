@@ -1,4 +1,5 @@
 {% extends 'management/competition/index.html' %}
+{% load custom_tags %}
 
 {% block title %}Manage: {{compete.title}}{% endblock %}
 
@@ -35,26 +36,35 @@
         <strong>Task summary: {{compete.taskSummary}}</strong><br/>
         <strong>Task detail: {{compete.taskDetail}}</strong><br/>
         <strong>Task sample: {{compete.taskSample}}</strong><br/>
+        <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
+        <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
 
-        {% if compete.allSubmissionsMarked %}
-            {% if compete.resultDeclared %}
-                <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
-                <strong>Certificates Generated: {{compete.certificatesGenerated|yesno}}</strong><br/>
-                {% if not compete.certificatesGenerated and iscreator %}
-                    <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
-                        {% csrf_token %}
-                        <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
-                    </form>
+        {% if compete.isHistory %}
+            {% if compete.allSubmissionsMarked %}
+                {% if compete.resultDeclared %}
+                    <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
+                    <strong>Certificates Generated: {{compete.certificatesGenerated|yesno}}</strong><br/>
+                    {% if not compete.certificatesGenerated and iscreator %}
+                        <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
+                            {% csrf_token %}
+                            <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    {% if iscreator %}
+                        <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
+                            {% csrf_token %}
+                            <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
+                        </form>
+                    {% endif %}
                 {% endif %}
-            {% else %}
-                {% if iscreator %}
-                    <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
-                        {% csrf_token %}
-                        <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
-                    </form>
-                {% endif %}
+            {% elif not compete.allSubmissionsMarked %}
+                <strong>{{compete.countJudgesWhoMarkedSubmissions}}/{{compete.totalJudges}} judges have marked submissions.</strong>
+                <br/>
+                {% for judge in compete.getJudges %}
+                    <strong>{{judge.getName}} has marked ? {{compete.allSubmissionsMarkedByJudge|params:judge|yesno}}</strong>
+                {% endfor %}
             {% endif %}
-        {% elif not compete.allSubmissionsMarked %}
         {% endif %}
     </div>
 </div>

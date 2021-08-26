@@ -133,17 +133,19 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     """
     try:
         userID = str(request.POST.get('userID', '')).strip().lower()
-        if not userID:
+        if not userID or userID == 'None':
             return respondJson(Code.NO, error=Message.INVALID_ID)
         submission = Submission.objects.get(
             id=subID, members=request.user.profile, submitted=False)
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
-        if request.user.email == userID or request.user.profile.githubID == userID:
+        if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID:
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID), Q(
-            is_active=True, suspended=False, to_be_zombie=False, is_zombie=False)).first()
+            is_active=True, suspended=False, to_be_zombie=False)).first()
         if not person:
+            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+        if person.isBlocked(request.user):
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         try:
             SubmissionParticipant.objects.get(

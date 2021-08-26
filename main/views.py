@@ -238,8 +238,9 @@ def browser(request:WSGIRequest, type:str):
         if type == "new-profiles":
             excludeIDs = []
             if request.user.is_authenticated:
-                excludeIDs.append(request.user.profile.getID())
-            profiles = Profile.objects.exclude(id__in=excludeIDs).filter(
+                excludeIDs.append(request.user.profile.getUserID())
+                excludeIDs += request.user.profile.blockedIDs
+            profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
                 suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
         elif type == "new-projects":
@@ -248,5 +249,6 @@ def browser(request:WSGIRequest, type:str):
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
         else:
             return HttpResponseBadRequest()
-    except:
+    except Exception as e:
+        print(e)
         raise Http404()

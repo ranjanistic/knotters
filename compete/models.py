@@ -298,12 +298,9 @@ class Competition(models.Model):
         """
         try:
             subslist = self.getValidSubmissions()
-            if len(subslist) < 1:
-                raise Exception(
-                    f"No valid submissions available for {self.title} to judge.")
             judgeTopicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__in=subslist, judge=judge).count()
-            return judgeTopicPointsCount == len(subslist)*self.totalTopics()
+            return len(subslist) > 0 and judgeTopicPointsCount == len(subslist)*self.totalTopics()
         except Exception as e:
             errorLog(e)
             return False
@@ -314,14 +311,12 @@ class Competition(models.Model):
         """
         try:
             subslist = self.getValidSubmissions()
-            if len(subslist) < 1:
-                raise Exception(
-                    f"No valid submissions available for {self.title} to judge.")
             topicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__competition=self,
                 submission__in=subslist).count()
-            return topicPointsCount == len(subslist)*self.totalTopics()*self.totalJudges()
-        except:
+            return len(subslist) > 0 and topicPointsCount == len(subslist)*self.totalTopics()*self.totalJudges()
+        except Exception as e:
+            errorLog(e)
             return False
 
     def countJudgesWhoMarkedSubmissions(self) -> int:
@@ -333,6 +328,7 @@ class Competition(models.Model):
         for judge in judges:
             if self.allSubmissionsMarkedByJudge(judge):
                 count = count+1
+        print(count)
         return count
 
     def declareResultsLink(self) -> str:

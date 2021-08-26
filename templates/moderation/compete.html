@@ -47,12 +47,12 @@
             {% if ismoderator %}
                 <br/>
                 <center><h4 class="dead-text">Judges are waiting for submissions to be approved by you.</h4></center>
+                {% if moderation.competition.totalValidSubmissions > 0 %}
                 <div class="w3-row w3-center">
                     <button class="positive big-button" data-icon="upload" id="finalsend">Send for judgement</button>
                     <button class="negative big-button"  data-icon="delete" id="discardall">Discard all changes</button>
                 </div>
                 <br/>
-                {% if moderation.competition.totalValidSubmissions > 0 %}
                 <div class="w3-row">
                     <h6 class="w3-col w3-half">Submissions <span class="dead-text">(Ordered by earliest submissions)</span></h6>
                     <div class="w3-col w3-half">
@@ -122,7 +122,7 @@
                     <i class="w3-jumbo w3-spin">hourglass_full</i>
                     <h1>Judges on duty</h1>
                     <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
-                    <h3>{{moderation.competition.countJudgesWhoMarkedSumissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
+                    <h3>{{moderation.competition.countJudgesWhoMarkedSubmissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
                     <h6 class="positive-text">We'll notify you once when all results are ready to be declared.</h6>
                     </center>
                 {% else %}
@@ -385,6 +385,7 @@ if(allsubsMarked){
     let allsubmissionchecks = getElements("selectsubmission");
     let selectedAll = false;
 
+    if(Number("{{moderation.competition.totalValidSubmissions}}") > 0){
     let finalData = [];
     getElement("selectall").onclick=_=>{
         allsubmissionchecks.forEach((checkbox)=>{
@@ -514,6 +515,7 @@ if(allsubsMarked){
         },
         ()=>{}
         ).set('labels',{ok:'Yes, discard', cancel:'No, wait!'})
+    }
     }
 }
 </script>
