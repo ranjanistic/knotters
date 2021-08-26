@@ -198,9 +198,9 @@
                 <label id="confirm-check-box">
                     <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
                     I've read the {{appname}} 
-                        <a onclick="miniWindow('/docs/moderationguidelines')">moderation guidelines</a>, 
-                        <a onclick="miniWindow('/docs/privacypolicy')">privacy policy</a> & 
-                        <a onclick="miniWindow('/docs/termsofservice')">terms of service</a>.
+                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">moderation guidelines</a>, 
+                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
+                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
                 </label>
             </div>
             <br/>

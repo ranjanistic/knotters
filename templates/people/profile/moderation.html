@@ -17,14 +17,16 @@
                             <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
                             <h6>{{mod.project.name}}</h6>
                             <span>{{mod.respondOn}}</span>
+                            <a href="{{mod.project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                             {% elif mod.type == SUBAPPS.people %}
                             <h6>{{mod.profile.getName}}</h6>
                             <span>{{mod.profile.getBio}}</span>
+                            <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                             {% elif mod.type == SUBAPPS.compete %}
                             <h6>{{mod.competition.title}}</h6>
                             <span>{{mod.competition.tagline}}</span>
-                            {% endif %}
                             <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                            {% endif %}
                         </div>
                         {% empty %}
                         <br/>
@@ -51,6 +53,10 @@
                         <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />
                         <h6>{{mod.project.name}}</h6>
                         <span>{{mod.project.reponame}}</span>
+                        {% elif mod.type == SUBAPPS.compete %}
+                        <img class="w3-round w3-right" width="80" src="{{mod.competition.getBanner}}" />
+                        <h6>{{mod.competition.title}}</h6>
+                        <span>{{mod.competition.tagline}}</span>
                         {% endif %}
                         <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">Review</button></a>
                         </div>

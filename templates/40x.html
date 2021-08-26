@@ -1,18 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
     <head>
-        <link
-            rel="preload"
-            as="font"
-            href="/static/fonts/Poppins/Latin.woff2"
-        />
-        <link
-            rel="preload"
-            as="font"
-            href="/static/fonts/Questrial/Latin.woff2"
-        />
-        <link rel="preload" as="font" href="/static/icons/material.woff2" />
-
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -85,12 +73,13 @@
         <link rel="stylesheet" href="/static/cropper/cropper.min.css" />
         <link rel="stylesheet" href="/static/alertify/alertify.min.css" />
         <link rel="stylesheet" href="/static/alertify/themes/default.min.css" />
-
+        <link rel="stylesheet" href="/static/swiper/swiper-bundle.min.css" />
         <link rel="stylesheet" href="/static/styles/theme.css" />
         <link rel="stylesheet" href="/static/styles/loader.css" />
         <link rel="stylesheet" href="/static/styles/scrollbar.css" />
         <link rel="stylesheet" href="/static/styles/index.css" />
         <link rel="stylesheet" href="/static/styles/overrides.css" />
+        <link rel="stylesheet" href="/static/styles/browser.css" />
 
         <link rel="manifest" href="/manifest.json" />
 
@@ -99,11 +88,17 @@
 
     <body>
         <nav class="w3-row primary w3-animate-top">
-            <a href="/" class="w3-left w3-padding w3-animate-left">
+            <a
+                href="/"
+                class="w3-left w3-padding w3-animate-left previous-navigation-button"
+            >
                 <span hidden>Knotters</span>
                 <img
                     alt="Knotters"
                     src="/static/graphics/self/icon.svg"
+                    class="darkimg"
+                    data-ext="svg"
+                    data-name="self/icon"
                     width="40"
                     height="40"
                 />
@@ -111,17 +106,40 @@
             <span class="w3-left"><h3 class="text-primary">404</h3></span>
 
             <span class="w3-right w3-row w3-padding w3-animate-right">
-                <button aria-label="Theme switch" class="secondary themeswitch">
-                    <i class="material-icons">brightness_medium</i>
-                </button>
+                <button
+                    aria-label="Theme switch"
+                    class="secondary themeswitch"
+                    data-icon="brightness_medium"
+                ></button>
 
-                <a href="/"
+                <a href="/compete/"
                     ><button
-                        aria-label="Knotters Homepage"
-                        title="Knotters Homepage"
-                        class="secondary"
-                        data-icon="home"
-                    ><span class="w3-hide-small">Home</span>
+                        aria-label="Competitions"
+                        title="Competitions"
+                        class="active"
+                        data-icon="psychology"
+                    >
+                        <span class="w3-hide-small">Competitions</span>
+                    </button></a
+                >
+                <a href="/projects/"
+                    ><button
+                        aria-label="Projects"
+                        title="Projects"
+                        class="positive"
+                        data-icon="widgets"
+                    >
+                        <span class="w3-hide-small">Projects</span>
+                    </button></a
+                >
+                <a href="/people/"
+                    ><button
+                        aria-label="People"
+                        title="People"
+                        class="accent"
+                        data-icon="groups"
+                    >
+                        <span class="w3-hide-small">People</span>
                     </button></a
                 >
             </span>
@@ -158,15 +176,27 @@
         <footer class="w3-row secondary w3-padding w3-animate-bottom">
             <br /><br />
             <div class="w3-col w3-half primary-text w3-padding">
-                <a href="/press" class="text-secondary" hidden>For the press</a
+                <a href="/press" class="text-secondary w3-animate-left" hidden
+                    >For the press</a
                 ><br />
-                <a href="/report" class="text-secondary" hidden
-                    >Report a problem</a
+                <a href="/?report=1" class="text-secondary w3-animate-left"
+                    >Report &amp; Feedback</a
                 ><br />
-                <a href="/docs" class="text-secondary">Docs &amp; statements</a
+                <a href="/docs/" class="text-secondary w3-animate-left"
+                    >Docs &amp; statements</a
+                ><br />
+                <a
+                    href="/docs/termsofservice"
+                    class="text-secondary w3-animate-left"
+                    >Terms of service</a
+                ><br />
+                <a
+                    href="/docs/privacypolicy"
+                    class="text-secondary w3-animate-left"
+                    >Privacy Policy</a
                 ><br />
             </div>
-            <div class="w3-col w3-half w3-padding-small">
+            <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br /><br />
                 <a href="/">
                     <div class="w3-row">
@@ -177,8 +207,10 @@
                     <div class="w3-row">
                         <img
                             alt="Knotters"
-                            class="w3-right"
+                            class="w3-right darkimg"
                             src="/static/graphics/self/icon.svg"
+                            data-ext="svg"
+                            data-name="self/icon"
                             width="120"
                             height="120"
                         />
@@ -194,10 +226,7 @@
                             <i class="material-icons">mail</i>
                         </button></a
                     >
-                    <a
-                        target="_blank"
-                        rel="noreferrer"
-                        href="https://github.com/Knotters"
+                    <a target="_blank" href="https://github.com/Knotters"
                         ><span hidden>Github</span
                         ><button
                             aria-label="Github"
@@ -213,10 +242,7 @@
                                 height="22"
                             /></button
                     ></a>
-                    <a
-                        target="_blank"
-                        rel="noreferrer"
-                        href="https://twitter.com/knottersdotorg"
+                    <a target="_blank" href="https://twitter.com/knottersdotorg"
                         ><span hidden>Twitter</span
                         ><button
                             aria-label="Twitter"
@@ -231,7 +257,6 @@
                     ></a>
                     <a
                         target="_blank"
-                        rel="noreferrer"
                         href="https://instagram.com/knottersdotorg"
                         ><span hidden>Instagram</span
                         ><button
@@ -250,7 +275,6 @@
                     ></a>
                     <a
                         target="_blank"
-                        rel="noreferrer"
                         href="https://facebook.com/knottersdotorg"
                         ><span hidden>Facebook</span
                         ><button
@@ -264,10 +288,7 @@
                                 height="20"
                             /></button
                     ></a>
-                    <a
-                        target="_blank"
-                        rel="noreferrer"
-                        href="https://discord.gg/qZ3TdVHsma"
+                    <a target="_blank" href="https://discord.gg/qZ3TdVHsma"
                         ><span hidden>Discord</span
                         ><button
                             aria-label="Discord"
@@ -282,7 +303,6 @@
                     ></a>
                     <a
                         target="_blank"
-                        rel="noreferrer"
                         href="https://linkedin.com/company/knottersdotorg"
                         ><span hidden>Linkedin</span
                         ><button
@@ -298,7 +318,9 @@
                     ></a>
 
                     <br /><br />
-                    <a href="/docs/copyright">Copyright 2021</a>
+                    <a href="/docs/copyright" class="text-secondary"
+                        >Copyright 2021</a
+                    >
                 </center>
             </div>
         </footer>
@@ -317,8 +339,165 @@
         <script src="/static/scripts/index.js"></script>
         <script src="/static/scripts/theme.js"></script>
         <script>
-            const SERVICE_WORKER = "/service-worker.js";
+            const csrfmiddlewaretoken =
+                    "L5nF56tgrsSvhTk0F2O4KN3LCYHhemgPJKvbVD76DEHQQpX3PImpdaGOvpMNoHM5",
+                authenticated = "False" == "True";
+            const ROOT = "/";
+            const APPNAME = "Knotters";
+            const VERSION = "v--16";
+            const SUBAPPSLIST = [
+                "projects",
+                "people",
+                "compete",
+                "moderation",
+                "management",
+            ];
+            const SUBAPPNAME = "";
+            const dialog = alertify;
+            const ICON = "/static/graphics/self/icon.svg";
+            if ("") {
+                error("");
+            } else if ("") {
+                message("");
+            }
+            if ("" === "1") {
+                reportFeedbackView();
+            }
+            const URLS = Object.freeze({
+                INDEX: "/",
+                FAVICON: "/favicon.ico",
+                ROBOTS_TXT: "/robots.txt",
+                MANIFEST: "/manifest.json",
+                SERVICE_WORKER: "/service-worker.js",
+                OFFLINE: "/off408",
+                ROOT: "/",
+                AUTH: "/auth/",
+                DOCS: "/docs/",
+                PROJECTS: "/projects/",
+                COMPETE: "/compete/",
+                PEOPLE: "/people/",
+                MODERATION: "/moderation/",
+                MANAGEMENT: "/management/",
+                REDIRECTOR: "/redirector/",
+                DOCTYPE: "/docs/*",
+                LANDINGS: "/landing/",
+                LANDING: "/landing",
+                APPLANDING: "/*/landing",
+                BROWSER: "/browser/*",
+                Projects: {
+                    ALLLICENSES: "/projects/licenses",
+                    LICENSE: "/projects/licenses/*",
+                    LICENSES: "/projects/alllicenses",
+                    ADDLICENSE: "/projects/addlicense",
+                    CREATEVALIDATEFIELD: "/projects/create/validate/*",
+                    CREATE: "/projects/create",
+                    SUBMIT: "/projects/submit",
+                    TRASH: "/projects/trash/*",
+                    PROFILE: "/projects/profile/*",
+                    PROFILEEDIT: "/projects/profile/edit/*/*",
+                    TOPICSEARCH: "/projects/topics/search/*",
+                    TOPICSUPDATE: "/projects/topics/update/*",
+                    TAGSEARCH: "/projects/tags/search/*",
+                    TAGSUPDATE: "/projects/tags/update/*",
+                    LIVEDATA: "/projects/livedata/*",
+                    GITHUB_EVENTS: "/projects/github-events/*/*/*",
+                    NEWBIES: "/projects/newbies",
+                },
+                People: {
+                    PROFILE: "/people/profile/*",
+                    PROFILEEDIT: "/people/profile/edit/*",
+                    PROFILETAB: "/people/profiletab/*/*",
+                    SETTINGTAB: "/people/settingtab/*",
+                    ACCOUNTPREFERENCES: "/people/account/preferences",
+                    TOPICSEARCH: "/people/topics/search",
+                    TOPICSUPDATE: "/people/topics/update",
+                    ACCOUNTACTIVATION: "/people/account/activation",
+                    GETSUCCESSOR: "/people/account/successor",
+                    INVITESUCCESSOR: "/people/account/successor/invite",
+                    ACCOUNTDELETE: "/people/account/delete",
+                    SUCCESSORINVITE: "/people/invitation/successor/*",
+                    SUCCESSORINVITEACTION:
+                        "/people/invitation/successor/action/*",
+                    ZOMBIE: "/people/zombie/*",
+                    NEWBIES: "/people/newbies",
+                    GITHUB_EVENTS: "/people/github-events/*/*",
+                },
+                Compete: {
+                    COMPID: "/compete/*",
+                    INDEXTAB: "/compete/indexTab/*",
+                    COMPETETABSECTION: "/compete/competeTab/*/*",
+                    DATA: "/compete/data/*",
+                    PARTICIPATE: "/compete/participate/*",
+                    REMOVEMEMBER: "/compete/remove/*/*",
+                    INVITE: "/compete/invite/*",
+                    INVITATION: "/compete/invitation/*/*",
+                    INVITEACTION: "/compete/invitation/*/*/*",
+                    SAVE: "/compete/save/*/*",
+                    SUBMIT: "/compete/submit/*/*",
+                    SUBMITPOINTS: "/compete/submissionpoints/*",
+                    DECLARERESULTS: "/compete/declareresults/*",
+                    CLAIMXP: "/compete/claimxp/*/*",
+                    GENERATE_CERTS: "/compete/generatecertificate/*",
+                    CERT_INDEX: "/compete/certificate/",
+                    CERT_VERIFY: "/compete/certificate/verify",
+                    CERTIFICATE: "/compete/certificate/*/*",
+                    CERTDOWNLOAD: "/compete/certificate/download/*/*",
+                },
+                Moderation: {
+                    MODID: "/moderation/*",
+                    MESSAGE: "/moderation/message/*",
+                    ACTION: "/moderation/action/*",
+                    REAPPLY: "/moderation/reapply/*",
+                    APPROVECOMPETE: "/moderation/compete/*",
+                },
+                Management: {
+                    COMPETITIONS: "/management/competitions",
+                    CREATE_COMP: "/management/competitions/create",
+                    SUBMIT_COMP: "/management/competitions/submit",
+                    COMPETITION: "/management/competitions/*",
+                    TOPICSEARCH: "/management/topicsearch",
+                    JUDGESEARCH: "/management/judgesearch",
+                    MODSEARCH: "/management/moderatorsearch",
+                    REPORT_FEED: "/management/report-feedback",
+                    REPORTS: "/management/report-feedback/reports",
+                    CREATE_REPORT: "/management/report-feedback/reports/create",
+                    REPORT: "/management/report-feedback/reports/*",
+                    FEEDBACKS: "/management/report-feedback/feedbacks",
+                    CREATE_FEED: "/management/report-feedback/feedbacks/create",
+                    FEEDBACK: "/management/report-feedback/feedbacks/*",
+                    COMMUNITY: "/management/community",
+                    MODERATORS: "/management/community/moderators",
+                    LABELS: "/management/community/labels",
+                    LABEL: "/management/community/labels/*/*",
+                    LABEL_TOPICS: "/management/community/labels/topics",
+                    LABEL_CATEGORYS: "/management/community/labels/categories",
+                },
+                Docs: { TYPE: "/docs/*" },
+                Auth: {
+                    SIGNUP: "/auth/signup/",
+                    LOGIN: "/auth/login/",
+                    LOGOUT: "/auth/logout/",
+                    INACTIVE: "/auth/inactive/",
+                    EMAIL: "/auth/email/",
+                    PASSWORD_CHANGE: "/auth/password/change/",
+                    PASSWORD_SET: "/auth/password/set/",
+                    CONFIRM_EMAIL: "/auth/confirm-email/",
+                    PASSWORD_RESET: "/auth/password/reset/",
+                    PASSWORD_RESET_DONE: "/auth/password/reset/done/",
+                    PASSWORD_RESET_KEY: "/auth/password/reset/key/",
+                    PASSWORD_RESET_KEY_DONE: "/auth/password/reset/key/done/",
+                    SOCIAL: "/auth/social/",
+                    GITHUB: "/auth/github/",
+                    GOOGLE: "/auth/google/",
+                    DISCORD: "/auth/discord/",
+                },
+            });
         </script>
+        <script src="/static/scripts/sw.js"></script>
         <script src="/static/scripts/autostart.js"></script>
+
+        <script></script>
+
+        <script async src="/static/html2canvas.min.js"></script>
     </body>
 </html>

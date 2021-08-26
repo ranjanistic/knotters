@@ -25,9 +25,8 @@
 <div style="background:url('{{result.competition.getBanner}}'); background-size:cover; height:100%; background-repeat:no-repeat;">
 <div class="w3-row w3-center w3-padding">
     <h3 class="pallete-slab"><a href="{{member.getLink}}" target="_blank">{{member.getName}}</a> participated in <a href="{{result.competition.getLink}}" target="_blank">{{result.competition.title}}</a> &amp; secured <span class="secondary accent-text">{{result.rank|numsuffix}}</span> rank{% if result.submission.totalMembers > 1 %}, along with {{result.submission.totalMembers|add:'-1'}} {% if result.submission.totalMembers == 2 %}other{% else %}others{% endif %}{% endif%}.</h3>
-    <br/>
     {% if certpath %}
-    <img class="pallete" src="{{certpath}}" width="800" style="border-radius:0"/>
+    <img src="{{certpath}}" width="800" class="preview-type-image" />
     {% else %}
     <h4 class="pallete dead-text">
     <i class="w3-jumbo">hourglass_top</i><br/>
@@ -38,6 +37,9 @@
     <a href="{{result.getCertDownloadLink|params:member.getUserID}}" download><button class="primary" data-icon="download">Download certificate</button></a>
     {% endif %}
     <button class="primary" onclick="shareLinkAction(`{{member.getFName}}'s Certificate`,`{{member.getName }}'s certificate of participation in '{{result.competition.title}}'.`,`{{result.getCertLink|params:member.getUserID}}`)" data-icon="share">Share</button>
+    {% if certID %}
+    <strong class="pallete-slab click-to-copy" data-copy="{{certID|upper}}">Certificate ID: {{certID|upper}}</strong>
+    {% endif %}
 </div>
 <br/><br/>
 </div>

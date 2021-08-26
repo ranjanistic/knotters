@@ -191,6 +191,16 @@ const loadGlobalEventListeners = () => {
             previewImageDialog(e.target.src);
         });
     });
+
+    getElements('click-to-copy').forEach((elem)=>{
+        elem.classList.add('pointer')
+        elem.addEventListener('click', (e)=>{
+            if(navigator.clipboard){
+                navigator.clipboard.writeText(e.target.getAttribute('data-copy')||e.target.innerHTML)
+                message("Copied to clipboard")
+            }
+        })
+    })
 };
 
 const Icon = (name, classnames = "") =>
@@ -623,18 +633,7 @@ const loadReporters = () => {
     getElements("report-button").forEach((report) => {
         report.type = "button";
         report.onclick = (_) => {
-            alertify
-                .confirm(
-                    "Report or Feedback",
-                    `<h4>What's going on?</h4>`,
-                    () => {
-                        subLoader(true);
-                        message("Reporting...");
-                        localStorage.setItem(Key.appUpdated, 1);
-                    },
-                    () => {}
-                )
-                .set("labels", { ok: "Submit", cancel: "Cancel" });
+            reportFeedbackView()
         };
     });
 };

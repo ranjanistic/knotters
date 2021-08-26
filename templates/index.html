@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load l10n %}
+{% load tz %}
 {% load socialaccount %}
 {% load account %}
 {% load custom_tags %}
@@ -84,6 +85,7 @@
                         {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
                         {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
                         {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">People</span></button></a>{% endblock %}
+                        {% block nav_noauth_extra_links %}{% endblock %}
                     {% endblock %}
                     {% block nav_extra_links %}{% endblock %}
                     {% block nav_auth %}
@@ -98,6 +100,7 @@
                             <a href="{% url 'account_signup' %}?next=/"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">Join</span></button></a>
                             {% endblock %}
                         {% endif %}
+                        {% block nav_auth_extra_links %}{% endblock %}
                     {% endblock %}
                 {% endblock %}
             </span>

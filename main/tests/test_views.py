@@ -101,8 +101,6 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'],Code.TEXT_PLAIN)
         self.assertTemplateUsed(resp, template.ROBOTS_TXT)
-        self.assertEqual(resp.context['static'],settings.STATIC_URL)
-        self.assertEqual(resp.context['media'],settings.MEDIA_URL)
 
     
     def test_manifest(self):

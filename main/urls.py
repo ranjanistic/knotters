@@ -26,7 +26,8 @@ urlpatterns = [
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
     path(URL.BROWSER, browser),
-    path('email/<str:template>', mailtemplate)
+    path('email/<str:template>', mailtemplate),
+    path('template/<str:template>', template)
 ]
 
 if not ISPRODUCTION:

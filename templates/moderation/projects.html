@@ -22,7 +22,7 @@
         <img class="w3-right w3-circle" width="150" src="{{moderation.project.getDP}}">
         <h5 class="dead-text">Status: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">Category: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
-        <h5 class="dead-text">License: <a href="{{URLS.PROJECTS}}{{moderation.project.license.getLink}}" target="_blank">{{moderation.project.license.name}}</a></h5>
+        <h5 class="dead-text">License: <a onclick="miniWindow('{{URLS.PROJECTS}}{{moderation.project.license.getLink}}')" target="_blank">{{moderation.project.license.name}}</a></h5>
         <h2>{{moderation.project.name}}</h2>
         {% if moderation.project.isLive %}
         <a target="_blank" href="{{moderation.project.getRepoLink}}"><h4 class="positive-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4></a>
@@ -36,7 +36,7 @@
         <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
         {% csrf_token %}
         <strong>Requestor message</strong>
-        {% if ismoderator %}<button class="w3-right report-button" data-icon="warning">Report</button><br/>{% endif %}
+        {% if ismoderator %}<button class="w3-right report-button" data-icon="warning" onclick="reportFeedbackView()">Report</button><br/>{% endif %}
 
         <textarea required name="requestdata" class="wide" rows="4" maxlength="6000" placeholder="This is visible to the moderator."
         {% if ismoderator or moderation.resolved %}disabled{% endif %}
@@ -50,7 +50,7 @@
         {% if not ismoderator or moderation.resolved %}disabled placeholder="No response"{% endif %}
         {% if ismoderator and not moderation.resolved %}placeholder="This is visible to the requestor."{% endif %}
         >{% if moderation.response %}{{moderation.response}}{% endif %}</textarea>
-        {% if not ismoderator %}<button class="w3-right report-button"><i class="material-icons">warning</i>Report</button><br/>{% endif %}
+        {% if not ismoderator %}<button class="w3-right report-button" onclick="reportFeedbackView()"><i class="material-icons">warning</i>Report</button><br/>{% endif %}
         {% if ismoderator and not moderation.resolved %}
         <button type="submit" class="positive small w3-right" data-icon="send">Save</button>
         {% endif %}
@@ -104,9 +104,9 @@
         </div>
         <br/>
         <div class="w3-row w3-padding">
-        <h5>Do respect and follow <a onclick="miniWindow('/docs/communityguidelines')">community guidelines</a> in any kind of conversation.</h5>
-        <h5>You can go through the <a onclick="miniWindow('/docs/moderationguidelines')">moderation guidelines</a> for any doubt or help regarding this.</h5>
-        <h5>For <a onclick="miniWindow('/docs/privacypolicy')">privacy reasons</a>, we keep the identity of requestor and moderator anonymous to each other.</h5>
+        <h5>Do respect and follow <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a> in any kind of conversation.</h5>
+        <h5>You can go through the <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">moderation guidelines</a> for any doubt or help regarding this.</h5>
+        <h5>For <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy reasons</a>, we keep the identity of requestor and moderator anonymous to each other.</h5>
         </div>
     </div>
 </div>

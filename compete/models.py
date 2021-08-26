@@ -675,5 +675,9 @@ class ParticipantCertificate(models.Model):
         Profile, on_delete=models.PROTECT, related_name='participant_certificate_profile')
     certificate = models.CharField(default='', null=True, blank=True,max_length=1000)
 
+    @property
+    def get_id(self):
+        return self.id.hex
+
     def getCertificate(self):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"

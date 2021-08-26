@@ -28,6 +28,11 @@ def offline(request: WSGIRequest) -> HttpResponse:
 def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
     return renderView(request, f'account/email/{template}')
 
+@require_GET
+@dev_only
+def template(request: WSGIRequest, template: str) -> HttpResponse:
+    return renderView(request, template)
+
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
@@ -97,7 +102,7 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
+        # context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
         return context
 
 

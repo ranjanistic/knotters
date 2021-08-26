@@ -19,8 +19,9 @@
 
 {% block nav_href %}/{% endblock %}
 
+
 {% block nav_extra_links %}
-<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
+{% block nav_noauth_licenses %}<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>{% endblock %}
 <a href="{{URLS.CREATE}}"><button title="New project" class="positive" data-icon="add"><span class="w3-hide-small">New project</span></button></a>
 {% endblock %}
 
