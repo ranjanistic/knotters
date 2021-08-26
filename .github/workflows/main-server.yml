@@ -15,6 +15,9 @@ on:
       - 'templates/**'
       - '.gitignore'
       - ".github/**"
+      - "setup.py"
+      - "genenv.py"
+      - "genversion.py"
 
 jobs:
   testing:

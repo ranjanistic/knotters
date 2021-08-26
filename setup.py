@@ -1,5 +1,4 @@
 import os
-from main.strings import Environment
 from manage import ENVPATH, ENVSAMPLEPATH
 from testmanage import ENVTESTPATH
 
@@ -26,10 +25,11 @@ if str(input('This will override previously done setup, if any. Continue? (y/n) 
 
     print(f'Creating {ENVTESTPATH}')
     tenvf = open(ENVTESTPATH, 'w')
-    envcontent = envcontent.replace(Environment.DEVELOPMENT,Environment.TESTING)
+    envcontent = envcontent.replace('development','testing').replace('HOSTS=127.0.0.1','HOSTS=127.0.0.1,testserver')
     tenvf.write(envcontent)
     tenvf.close()
     print(f'Created {ENVTESTPATH}')
 
     print('Setup complete.')
-    print(f'NOTE: Values at {ENVPATH} and {ENVTESTPATH} might still require manual edit.')
+    print(f'NOTE: Values at {ENVPATH} and {ENVTESTPATH} might still require manual edit.\n')
+    print('You may now proceed with the next steps.')
