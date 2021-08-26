@@ -37,14 +37,15 @@ class TestViews(TestCase):
         self.client = Client()
 
     def test_allProjects(self):
-        resp = self.client.get(root(''))
+        resp = self.client.get(follow=True, path=root(''))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(resp.context['projects'], QuerySet)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.projects.index)
 
     def test_allLicenses(self):
-        resp = self.client.get(root(url.projects.ALLLICENSES))
+        resp = self.client.get(
+            follow=True, path=root(url.projects.ALLLICENSES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(resp.context['licenses'], QuerySet)
         self.assertNotIsInstance(resp.context['custom'], QuerySet)
@@ -53,10 +54,11 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.projects.license_index)
 
     def test_license(self):
-        resp = self.client.get(root(url.projects.license(getRandomStr())))
+        resp = self.client.get(follow=True, path=root(
+            url.projects.license(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-        resp = self.client.get(
-            root(url.projects.license(self.license.getID())))
+        resp = self.client.get(follow=True, path=root(
+            url.projects.license(self.license.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(resp.context['license'], License)
         self.assertTemplateUsed(resp, template.index)
@@ -65,14 +67,14 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.projects.license_lic)
 
     def test_create(self):
-        resp = self.client.get(root(url.projects.CREATE))
+        resp = self.client.get(path=root(url.projects.CREATE))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
-        resp = self.client.get(root(url.projects.CREATE), follow=True)
+        resp = self.client.get(follow=True, path=root(url.projects.CREATE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.get(root(url.projects.CREATE))
+        resp = self.client.get(follow=True, path=root(url.projects.CREATE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(resp.context['tags'], list)
         self.assertIsInstance(resp.context['categories'], QuerySet)
@@ -83,61 +85,62 @@ class TestViews(TestCase):
 
     def test_validateField(self):
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(
-            root(url.projects.createValidField(getRandomStr())))
+        resp = self.client.post(follow=True, path=root(
+            url.projects.createValidField(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
         reponame = getRandomStr()
-        resp = self.client.post(root(url.projects.createValidField('reponame')), {
+        resp = self.client.post(follow=True, path=root(url.projects.createValidField('reponame')), data={
             'reponame': reponame
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.NO, error=Message.Custom.already_exists(reponame)))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.Custom.already_exists(reponame)))
 
-        resp = self.client.post(root(url.projects.createValidField('reponame')), {
+        resp = self.client.post(follow=True, path=root(url.projects.createValidField('reponame')), data={
             'reponame': getProjRepo()
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
 
     def test_licenses(self):
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(root(url.projects.LICENSES))
+        resp = self.client.post(follow=True, path=root(url.projects.LICENSES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(json.loads(
-            resp.content.decode('utf-8'))['code'], Code.OK)
+            resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
     def test_addLicense(self):
-        resp = self.client.post(root(url.projects.ADDLICENSE))
+        resp = self.client.post(path=root(url.projects.ADDLICENSE))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(root(url.projects.ADDLICENSE))
+        resp = self.client.post(
+            follow=True, path=root(url.projects.ADDLICENSE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.NO, error=Message.INVALID_LIC_DATA))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_LIC_DATA))
 
         licname = getLicName()
-        resp = self.client.post(root(url.projects.ADDLICENSE), {
+        resp = self.client.post(follow=True, path=root(url.projects.ADDLICENSE), data={
             "name": licname,
             "description": getLicDesc(),
             "content": getRandomStr(),
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         license = License.objects.get(name=licname, creator=self.profile)
-        self.assertDictEqual(json.loads(resp.content.decode('utf-8')), dict(code=Code.OK,
+        self.assertDictEqual(json.loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK,
                              license=dict(id=license.getID(), name=license.name, description=license.description)))
 
     def test_submitProject(self):
-        resp = self.client.post(root(url.projects.SUBMIT), follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.SUBMIT))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(root(url.projects.SUBMIT), follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.SUBMIT))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.create)
         reponame = getProjRepo()
@@ -151,12 +154,14 @@ class TestViews(TestCase):
             "license": self.license.getID(),
             "tags": ",".join(getTestTags()),
         }
-        resp = self.client.post(root(url.projects.SUBMIT), data, follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.SUBMIT), data=data)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.create)
 
         data["acceptterms"] = True
-        resp = self.client.post(root(url.projects.SUBMIT), data, follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.SUBMIT), data=data)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.moderation.index)
@@ -174,19 +179,19 @@ class TestViews(TestCase):
     def test_trashProject(self):
         project = Project.objects.create(
             name=getProjName(), creator=self.profile, reponame=getProjRepo())
-        resp = self.client.post(
-            root(url.projects.trash(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.trash(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(
-            root(url.projects.trash(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.trash(project.getID())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
         project.status = Code.REJECTED
         project.save()
-        resp = self.client.post(
-            root(url.projects.trash(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.trash(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(Project.objects.get(
             id=project.id, trashed=True), Project)
@@ -197,7 +202,7 @@ class TestViews(TestCase):
     def test_profile(self):
         self.client.login(email=self.email, password=self.password)
         reponame = getProjRepo()
-        resp = self.client.post(root(url.projects.SUBMIT), {
+        resp = self.client.post(follow=True, path=root(url.projects.SUBMIT), data={
             "projectname": getProjName(),
             "projectabout": getRandomStr(),
             "reponame": reponame,
@@ -206,23 +211,24 @@ class TestViews(TestCase):
             "license": self.license.getID(),
             "tags": ",".join(getTestTags()),
             "acceptterms": True
-        }, follow=True)
+        })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.moderation.projects)
 
-        resp = self.client.get(root(url.projects.profile(getRandomStr())))
+        resp = self.client.get(follow=True, path=root(
+            url.projects.profile(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
         project = Project.objects.get(reponame=reponame)
 
         self.client.logout()
-        resp = self.client.get(
-            root(url.projects.profile(project.reponame)), follow=True)
+        resp = self.client.get(follow=True, path=root(
+            url.projects.profile(project.reponame)))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.get(
-            root(url.projects.profile(project.reponame)), follow=True)
+        resp = self.client.get(follow=True, path=root(
+            url.projects.profile(project.reponame)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.moderation.index)
@@ -231,8 +237,8 @@ class TestViews(TestCase):
         mod = Moderation.objects.get(
             type=APPNAME, project=project, resolved=False)
         self.assertTrue(mod.approve())
-        resp = self.client.get(
-            root(url.projects.profile(project.reponame)), follow=True)
+        resp = self.client.get(follow=True, path=root(
+            url.projects.profile(project.reponame)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.projects.index)
@@ -244,16 +250,16 @@ class TestViews(TestCase):
     def test_editProfile(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
-        resp = self.client.post(root(url.projects.profileEdit(
-            project.getID(), 'pallete')), follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.profileEdit(
+            project.getID(), 'pallete')))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(root(url.projects.profileEdit(project.getID(), 'pallete')), {
+        resp = self.client.post(follow=True, path=root(url.projects.profileEdit(project.getID(), 'pallete')), data={
             'projectname': getProjName(),
             'projectabout': getRandomStr()
-        }, follow=True)
+        })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         newproj = Project.objects.get(id=project.id)
         self.assertNotEqual(project.name, newproj.name)
@@ -265,29 +271,29 @@ class TestViews(TestCase):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
 
-        resp = self.client.post(
-            root(url.projects.topicsSearch(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.topicsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(
-            root(url.projects.topicsSearch(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.topicsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
-        resp = self.client.post(root(url.projects.topicsSearch(project.getID())), {
-                                'query': getRandomStr()}, follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.topicsSearch(project.getID())), data={
+                                'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(json.loads(
-            resp.content.decode('utf-8'))['code'], Code.OK)
+            resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
     def test_topicsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
-        resp = self.client.post(root(url.projects.topicsUpdate(project.getID())), {
-                                'addtopicIDs': str()}, follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.topicsUpdate(project.getID())), data={
+                                'addtopicIDs': str()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
@@ -296,8 +302,8 @@ class TestViews(TestCase):
         addTopicIDs = ''
         for top in topics:
             addTopicIDs = f"{addTopicIDs},{top.getID()}"
-        resp = self.client.post(root(url.projects.topicsUpdate(project.getID())), {
-                                'addtopicIDs': addTopicIDs}, follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.topicsUpdate(project.getID())), data={
+                                'addtopicIDs': addTopicIDs})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
         self.assertEqual(project.totalTopics(), 4)
@@ -306,29 +312,29 @@ class TestViews(TestCase):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
 
-        resp = self.client.post(
-            root(url.projects.tagsSearch(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.tagsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
 
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(
-            root(url.projects.tagsSearch(project.getID())), follow=True)
+        resp = self.client.post(follow=True, path=root(
+            url.projects.tagsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
-        resp = self.client.post(root(url.projects.tagsSearch(project.getID())), {
-                                'query': getRandomStr()}, follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.tagsSearch(project.getID())), data={
+                                'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(json.loads(
-            resp.content.decode('utf-8'))['code'], Code.OK)
+            resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
     def test_tagsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
-        resp = self.client.post(root(url.projects.tagsUpdate(project.getID())), {
-                                'addtagIDs': str()}, follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.tagsUpdate(project.getID())), data={
+                                'addtagIDs': str()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
         tags = Tag.objects.bulk_create(getTestTagsInst(4))
@@ -336,8 +342,8 @@ class TestViews(TestCase):
         for tag in tags:
             addTagIDs = f"{addTagIDs},{tag.getID()}"
         self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(root(url.projects.tagsUpdate(project.getID())), {
-                                'addtagIDs': addTagIDs}, follow=True)
+        resp = self.client.post(follow=True, path=root(url.projects.tagsUpdate(project.getID())), data={
+                                'addtagIDs': addTagIDs})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
         self.assertEqual(project.totalTags(), 4)
@@ -345,14 +351,9 @@ class TestViews(TestCase):
     def test_liveData(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
-        resp = self.client.get(root(url.projects.liveData(project.getID())))
+        resp = self.client.get(follow=True, path=root(
+            url.projects.liveData(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(resp.context['contributors'], list)
         self.assertIsInstance(resp.context['languages'], list)
         self.assertTemplateUsed(resp, template.projects.profile_contribs)
-
-    def test_newbieProjects(self):
-        resp = self.client.get(root(url.projects.NEWBIES))
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertIsInstance(resp.context['projects'], QuerySet)
-        self.assertTemplateUsed(resp, template.projects.browse_newbie)

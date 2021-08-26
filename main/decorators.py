@@ -37,7 +37,7 @@ def require_JSON_body(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = json.loads(request.body.decode("utf-8"))
+            request.POST = json.loads(request.body.decode(Code.UTF_8))
             return function(request, *args, **kwargs)
         except Exception as e:
             errorLog(e)
@@ -113,8 +113,8 @@ def github_only(function):
                 return HttpResponseForbidden('Permission denied 2')
 
             sha_name, signature = header_signature.split('=')
-            if sha_name != 'sha256':
-                return HttpResponseServerError('Permission denied 3', status=501)
+            if sha_name != Code.SHA256:
+                return HttpResponseForbidden('Permission denied 3')
 
             mac = hmac.new(force_bytes(settings.GH_HOOK_SECRET),
                         msg=force_bytes(request.body), digestmod=sha256)
@@ -123,7 +123,7 @@ def github_only(function):
 
             try:
                 request.POST = dict(**request.POST, **json.loads(
-                    unquote(request.body.decode("utf-8")).split('payload=')[1]))
+                    unquote(request.body.decode(Code.UTF_8)).split('payload=')[1]))
                 ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
                 if ghevent == Event.PING:
                     return HttpResponse(Code.OK)

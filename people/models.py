@@ -1,4 +1,6 @@
 import uuid
+from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.providers.github.provider import GitHubProvider
 from deprecated import deprecated
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
@@ -187,8 +189,19 @@ class Profile(models.Model):
     def getSubtitle(self) -> str:
         return self.bio if self.bio else self.githubID if self.githubID else ''
 
+    @property
+    def ghID(self) -> str:
+        """
+        Github ID of profile, if linked.
+        """
+        try:
+            data = SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)
+            return getUsernameFromGHSocial(data)
+        except:
+            return None
+
     def getGhUrl(self) -> str:
-        return url.githubProfile(ghID=self.githubID) if self.githubID else ''
+        return url.githubProfile(ghID=self.ghID) if self.ghID else ''
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
@@ -197,8 +210,15 @@ class Profile(models.Model):
             return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
         return f'{url.getRoot(APPNAME)}{url.people.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
 
-    def isNormal(self) -> bool:
+    @property
+    def is_normal(self) -> bool:
         return self.user and self.user.is_active and self.is_active and not (self.suspended or self.to_be_zombie or self.is_zombie)
+
+    
+    @deprecated('Use the property method for the same')
+    def isNormal(self) -> bool:
+        return self.is_normal
+
 
     def isReporter(self, profile) -> bool:
         if profile in self.reporters.all():
@@ -354,4 +374,4 @@ class ProfileTopic(models.Model):
         self.save()
         return self.points
 
-from .methods import isPictureDeletable
+from .methods import isPictureDeletable, getUsernameFromGHSocial

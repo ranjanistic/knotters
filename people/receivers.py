@@ -134,16 +134,22 @@ def social_removed(request, socialaccount, **kwargs):
 @receiver(social_account_added)
 def social_added(request, sociallogin, **kwargs):
     try:
+        changed = False
         profile = Profile.objects.get(user=sociallogin.user)
         if sociallogin.account.provider == GitHubProvider.id:
-            data = SocialAccount.objects.get(
-                user=sociallogin.user, provider=GitHubProvider.id)
-            if data:
-                profile.githubID = getUsernameFromGHSocial(data)
+            try:
+                data = SocialAccount.objects.get(
+                    user=sociallogin.user, provider=GitHubProvider.id)
+                if data:
+                    profile.githubID = getUsernameFromGHSocial(data)
+                    changed = True
+            except: pass
         if str(profile.picture) == defaultImagePath():
             profile.picture = getProfileImageBySocialAccount(
                 sociallogin.account)
-        profile.save()
+            changed = True
+        if changed:
+            profile.save()
     except:
         pass
 

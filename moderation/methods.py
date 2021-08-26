@@ -170,30 +170,19 @@ def requestModerationForObject(
         newmoderator = getModeratorToAssignModeration(type, object)
         if not newmoderator:
             return False
-        if type == PROJECTS:
-            newmod = Moderation.objects.create(
-                project=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
-        elif type == PEOPLE:
-            newmod = Moderation.objects.create(
-                profile=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
-        elif type == COMPETE:
-            newmod = Moderation.objects.create(
-                competition=object, type=type, moderator=newmoderator, request=requestData, referURL=referURL)
-        else:
-            return False
-        return newmod
+        return assignModeratorToObject(type,object,newmoderator,requestData)
     return False
 
-def assignModeratorToObject(type,object,moderator:Profile, requestData):
+def assignModeratorToObject(type,object,moderator:Profile, requestData, referURL=''):
     try:
-        if not (moderator.is_moderator and moderator.is_active and not moderator.is_zombie and not moderator.to_be_zombie and not moderator.suspended):
+        if not (moderator.is_moderator and moderator.is_normal):
             raise Exception('Invalid moderator')
         if type == PROJECTS:
             newmod = Moderation.objects.create(
-                project=object, type=type, moderator=moderator, request=requestData)
+                project=object, type=type, moderator=moderator, request=requestData, referURL=referURL)
         elif type == PEOPLE:
             newmod = Moderation.objects.create(
-                profile=object, type=type, moderator=moderator, request=requestData)
+                profile=object, type=type, moderator=moderator, request=requestData, referURL=referURL)
         elif type == COMPETE:
             newmod = Moderation.objects.create(
                 competition=object, type=type, moderator=moderator, request=requestData, referURL=object.getLink())

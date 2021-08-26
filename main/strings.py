@@ -27,6 +27,7 @@ class Code():
 
     HOOK = 'hook'
     SHA256 = 'sha256'
+    UTF_8 = 'utf-8'
 
     APPLICATION_JSON = 'application/json'
     TEXT_PLAIN = 'text/plain'
@@ -1076,6 +1077,69 @@ class Template():
         @property
         def comp_compete(self):
             return f'{self.DIRNAME}/{self.COMP_COMPETE}.html'
+
+        REPORTFEED_INDEX = 'reportFeed/index'
+        @property
+        def reportfeed_index(self):
+            return f'{self.DIRNAME}/{self.REPORTFEED_INDEX}.html'
+
+        REPORTFEED_FEEDBACKS = 'reportFeed/feedbacks'
+        @property
+        def reportfeed_feedbacks(self):
+            return f'{self.DIRNAME}/{self.REPORTFEED_FEEDBACKS}.html'
+
+        REPORTFEED_FEEDBACK = 'reportFeed/feedback'
+        @property
+        def reportfeed_feedback(self):
+            return f'{self.DIRNAME}/{self.REPORTFEED_FEEDBACK}.html'
+
+        REPORTFEED_REPORTS = 'reportFeed/reports'
+        @property
+        def reportfeed_reports(self):
+            return f'{self.DIRNAME}/{self.REPORTFEED_REPORTS}.html'
+
+        REPORTFEED_REPORT = 'reportFeed/report'
+        @property
+        def reportfeed_reports(self):
+            return f'{self.DIRNAME}/{self.REPORTFEED_REPORT}.html'
+
+        COMMUNITY_INDEX = 'community/index'
+        @property
+        def community_index(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_INDEX}.html'
+
+        COMMUNITY_LABELS = 'community/labels'
+        @property
+        def community_labels(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_LABELS}.html'
+
+        COMMUNITY_LABELS_CATEGORIES = 'community/labels/categories'
+        @property
+        def community_labels_categories(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_LABELS_CATEGORIES}.html'
+
+        COMMUNITY_CATEGORY = 'community/category'
+        @property
+        def community_category(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_CATEGORY}.html'
+
+        COMMUNITY_LABELS_TOPICS = 'community/labels/topics'
+        @property
+        def community_labels(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_LABELS}.html'
+
+        COMMUNITY_TOPIC = 'community/topic'
+        @property
+        def community_topic(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_TOPIC}.html'
+
+        COMMUNITY_MODERATORS = 'community/moderators'
+        @property
+        def community_moderators(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_MODERATORS}.html'
+
+
+        
 
     management = Management()
 

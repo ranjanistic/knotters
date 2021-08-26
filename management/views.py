@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
-from main.strings import COMPETE, URL, Message, Code
+from main.strings import COMPETE, URL, Message, Code, Template
 from moderation.methods import assignModeratorToObject
 from compete.models import Competition
 from projects.models import Category
@@ -19,19 +19,19 @@ from .apps import APPNAME
 @manager_only
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    return renderer(request, 'index')
+    return renderer(request, Template.Management.INDEX)
 
 
 @manager_only
 @require_GET
 def community(request: WSGIRequest):
-    return renderer(request, 'community/index')
+    return renderer(request, Template.Management.COMMUNITY_INDEX)
 
 
 @manager_only
 @require_GET
 def moderators(request: WSGIRequest):
-    return renderer(request, 'community/moderators')
+    return renderer(request, Template.Management.COMMUNITY_MODERATORS)
 
 
 @manager_only
@@ -39,7 +39,7 @@ def moderators(request: WSGIRequest):
 def labels(request: WSGIRequest):
     categories = Category.objects.filter()
     topics = Topic.objects.filter()
-    return renderer(request, 'community/labels', dict(
+    return renderer(request, Template.Management.COMMUNITY_LABELS, dict(
         categories=categories,
         topics=topics
     ))
@@ -51,10 +51,10 @@ def label(request: WSGIRequest, type: str, labelID: UUID):
     try:
         if type == Code.TOPIC:
             topic = Topic.objects.get(id=labelID)
-            return renderer(request, 'community/topic', dict(topic=topic))
+            return renderer(request, Template.Management.COMMUNITY_TOPIC, dict(topic=topic))
         if type == Code.CATEGORY:
             category = Category.objects.get(id=labelID)
-            return renderer(request, 'community/category', dict(category=category))
+            return renderer(request, Template.Management.COMMUNITY_CATEGORY, dict(category=category))
         else:
             raise Exception('Invalid label')
     except:
@@ -65,14 +65,14 @@ def label(request: WSGIRequest, type: str, labelID: UUID):
 @require_GET
 def topics(request: WSGIRequest):
     topics = Topic.objects.filter()
-    return rendererstr(request, 'community/labels/topics', dict(topic=topics))
+    return rendererstr(request, Template.Management.COMMUNITY_LABELS_TOPICS, dict(topic=topics))
 
 
 @manager_only
 @require_GET
 def categories(request: WSGIRequest):
     categories = Category.objects.filter()
-    return rendererstr(request, 'community/labels/categories', dict(categories=categories),)
+    return rendererstr(request, Template.Management.COMMUNITY_LABELS_CATEGORIES, dict(categories=categories),)
 
 
 @manager_only
@@ -80,7 +80,7 @@ def categories(request: WSGIRequest):
 def competitions(request: WSGIRequest) -> HttpResponse:
     try:
         competes = Competition.objects.filter()
-        return renderer(request, 'competition/index', dict(competes=competes))
+        return renderer(request, Template.Management.COMP_INDEX, dict(competes=competes))
     except:
         raise Http404()
 
@@ -90,7 +90,7 @@ def competitions(request: WSGIRequest) -> HttpResponse:
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
-        return renderer(request, 'competition/compete', dict(
+        return renderer(request, Template.Management.COMP_COMPETE, dict(
             compete=compete,
             iscreator=(compete.creator == request.user.profile)
         ))
@@ -153,7 +153,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 @manager_only
 @require_GET
 def createCompete(request: WSGIRequest) -> HttpResponse:
-    return renderer(request, 'competition/create')
+    return renderer(request, Template.Management.COMP_CREATE)
 
 
 @manager_only
@@ -228,8 +228,7 @@ def submitCompetition(request) -> HttpResponse:
         except:
             pass
 
-        mod = Profile.objects.get(user__id=modID, is_moderator=True, is_active=True,
-                                  to_be_zombie=False, is_zombie=False, suspended=False)
+        mod = Profile.objects.get(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
         assigned = assignModeratorToObject(
             COMPETE, compete, mod, "Competition")
         if not assigned:
@@ -245,7 +244,7 @@ def submitCompetition(request) -> HttpResponse:
 def reportFeedbacks(request: WSGIRequest):
     reports = Report.objects.filter()
     feedbacks = Feedback.objects.filter()
-    return renderer(request, 'reportFeed/index', dict(
+    return renderer(request, Template.Management.REPORTFEED_INDEX, dict(
         reports=reports,
         feedbacks=feedbacks,
     ))
@@ -255,7 +254,7 @@ def reportFeedbacks(request: WSGIRequest):
 @require_GET
 def reports(request: WSGIRequest):
     reports = Report.objects.filter()
-    return rendererstr(request, 'reportFeed/reports', dict(
+    return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(
         reports=reports
     ))
 
@@ -283,7 +282,7 @@ def createReport(request: WSGIRequest) -> JsonResponse:
 def report(request: WSGIRequest, reportID: UUID):
     try:
         report = Report.objects.get(id=reportID)
-        return renderer(request, 'reportFeed/report', dict(report=report))
+        return renderer(request, Template.Management.REPORTFEED_REPORT, dict(report=report))
     except:
         raise Http404()
 
@@ -292,7 +291,7 @@ def report(request: WSGIRequest, reportID: UUID):
 @require_GET
 def feedbacks(request: WSGIRequest):
     feedbacks = Feedback.objects.filter()
-    return rendererstr(request, 'reportFeed/feedbacks', dict(
+    return rendererstr(request, Template.Management.REPORTFEED_FEEDBACKS, dict(
         feedbacks=feedbacks
     ))
 
@@ -318,6 +317,6 @@ def createFeedback(request: WSGIRequest):
 def feedback(request: WSGIRequest, feedID: UUID):
     try:
         feedback = Feedback.objects.get(id=feedID)
-        return renderer(request, 'reportFeed/feedback', dict(feedback=feedback))
+        return renderer(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
     except:
         raise Http404()

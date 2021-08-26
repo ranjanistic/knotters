@@ -1,7 +1,6 @@
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, Client, tag
-from django.db.models import QuerySet
 from django.http import HttpResponse, HttpResponseForbidden
 from main.strings import Code, url, template, Message, Action
 from main.tests.utils import authroot, getRandomStr
@@ -18,7 +17,7 @@ class TestViews(TestCase):
         self.client = Client()
         self.email = getTestEmail()
         self.password = getTestPassword()
-        self.client.post(authroot(url.auth.SIGNUP), dict(
+        self.client.post(follow=True,path=authroot(url.auth.SIGNUP), data=dict(
             email=self.email,
             first_name=getTestName(),
             password1=self.password
@@ -42,60 +41,60 @@ class TestViews(TestCase):
         return super().setUpTestData()
 
     def setUp(self) -> None:
-        resp = self.client.post(authroot(url.auth.LOGIN), dict(
+        resp = self.client.post(follow=True,path=authroot(url.auth.LOGIN), data=dict(
             login=self.email,
             password=self.password,
-        ), follow=True)
+        ))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTrue(resp.context['user'].is_authenticated)
 
     def test_index(self):
-        resp = self.client.get(root(url.INDEX))
+        resp = self.client.get(follow=True,path=root(url.INDEX))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.index)
 
     def test_profile(self):
         profile = Profile.objects.filter().first()
-        resp = self.client.get(root(url.people.profile(
-            userID=profile.getUserID())), follow=True)
+        resp = self.client.get(follow=True,path=root(url.people.profile(
+            userID=profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.profile)
 
     def test_profileTab(self):
         profile = Profile.objects.filter().first()
-        resp = self.client.get(root(url.people.profileTab(
+        resp = self.client.get(follow=True,path=root(url.people.profileTab(
             profile.getUserID(), section=profileString.OVERVIEW)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_overview)
-        resp = self.client.get(root(url.people.profileTab(
+        resp = self.client.get(follow=True,path=root(url.people.profileTab(
             profile.getUserID(), section=profileString.PROJECTS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_projects)
-        resp = self.client.get(root(url.people.profileTab(
+        resp = self.client.get(follow=True,path=root(url.people.profileTab(
             profile.getUserID(), section=profileString.CONTRIBUTION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_contribution)
-        resp = self.client.get(root(url.people.profileTab(
+        resp = self.client.get(follow=True,path=root(url.people.profileTab(
             profile.getUserID(), section=profileString.ACTIVITY)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_activity)
-        resp = self.client.get(root(url.people.profileTab(
+        resp = self.client.get(follow=True,path=root(url.people.profileTab(
             profile.getUserID(), section=profileString.MODERATION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_moderation)
 
     def test_settingTab(self):
-        resp = self.client.get(
+        resp = self.client.get(follow=True,path=
             root(url.people.settingTab(profileString.Setting.ACCOUNT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.setting_account)
-        resp = self.client.get(
+        resp = self.client.get(follow=True,path=
             root(url.people.settingTab(profileString.Setting.PREFERENCE)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.setting_preference)
-        resp = self.client.get(
+        resp = self.client.get(follow=True,path=
             root(url.people.settingTab(profileString.Setting.SECURITY)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.setting_security)
@@ -103,58 +102,58 @@ class TestViews(TestCase):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
-        client.post(authroot(url.auth.SIGNUP), dict(
+        client.post(follow=True,path=authroot(url.auth.SIGNUP), data=dict(
             email=E2,
             first_name=getTestName(),
             password1=P2
-        ), follow=True)
+        ))
         client.logout()
-        resp = client.get(root(url.people.settingTab(
-            profileString.Setting.ACCOUNT)), follow=True)
+        resp = client.get(follow=True,path=root(url.people.settingTab(
+            profileString.Setting.ACCOUNT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
-        resp = client.get(root(url.people.settingTab(
-            profileString.Setting.PREFERENCE)), follow=True)
+        resp = client.get(follow=True,path=root(url.people.settingTab(
+            profileString.Setting.PREFERENCE)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
-        resp = client.get(root(url.people.settingTab(
-            profileString.Setting.SECURITY)), follow=True)
+        resp = client.get(follow=True,path=root(url.people.settingTab(
+            profileString.Setting.SECURITY)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
 
     def test_editProfile(self):
-        resp = self.client.post(root(url.people.profileEdit(getRandomStr())))
+        resp = self.client.post(follow=True,path=root(url.people.profileEdit(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)
-        resp = self.client.post(
-            root(url.people.profileEdit('pallete')), follow=True)
+        resp = self.client.post(follow=True,path=
+            root(url.people.profileEdit('pallete')))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        resp = self.client.post(root(url.people.profileEdit('pallete')), {
+        resp = self.client.post(follow=True,path=root(url.people.profileEdit('pallete')), data={
             'profilepic': getTestDP()
-        }, follow=True)
+        })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
     def test_accountprefs(self):
-        resp = self.client.post(
-            root(url.people.ACCOUNTPREFERENCES), follow=True)
+        resp = self.client.post(follow=True,path=
+            root(url.people.ACCOUNTPREFERENCES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
     def test_topicsSearch(self):
-        resp = self.client.post(root(url.people.TOPICSEARCH), {
+        resp = self.client.post(follow=True,path=root(url.people.TOPICSEARCH), data={
                                 'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.OK, topics=[]))
+            Code.UTF_8)), dict(code=Code.OK, topics=[]))
 
     def test_topicsUpdate(self):
         topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         addTopicIDs = ''
         for top in topics:
             addTopicIDs = f"{addTopicIDs},{top.getID()}"
-        resp = self.client.post(root(url.people.TOPICSUPDATE), {
-                                'addtopicIDs': addTopicIDs}, follow=True)
+        resp = self.client.post(follow=True,path=root(url.people.TOPICSUPDATE), data={
+                                'addtopicIDs': addTopicIDs})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(self.profile.totalAllTopics(), 4)
 
@@ -165,8 +164,8 @@ class TestViews(TestCase):
             i += 1
             if i > 1:
                 break
-        resp = self.client.post(root(url.people.TOPICSUPDATE), {
-                                'removetopicIDs': removeTopicIDs}, follow=True)
+        resp = self.client.post(follow=True,path=root(url.people.TOPICSUPDATE), data={
+                                'removetopicIDs': removeTopicIDs})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(self.profile.totalAllTopics(), 4)
         self.assertEqual(self.profile.totalTopics(), 2)
@@ -174,51 +173,51 @@ class TestViews(TestCase):
 
     
     def test_accountActivation(self):
-        resp = self.client.post(
-            root(url.people.ACCOUNTACTIVATION), {'deactivate': True})
+        resp = self.client.post(follow=True,path=
+            root(url.people.ACCOUNTACTIVATION), data={'deactivate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, is_active=False), Profile)
 
-        resp = self.client.post(
-            root(url.people.ACCOUNTACTIVATION), {'activate': True})
+        resp = self.client.post(follow=True,path=
+            root(url.people.ACCOUNTACTIVATION), data={'activate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, is_active=True), Profile)
         user = User.objects.get(email=self.email)
         Profile.objects.filter(user=user).update(
             is_active=False, suspended=True)
-        resp = self.client.post(
-            root(url.people.ACCOUNTACTIVATION), {'activate': True})
+        resp = self.client.post(follow=True,path=
+            root(url.people.ACCOUNTACTIVATION), data={'activate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
         Profile.objects.filter(user=user).update(
             is_active=True, suspended=False)
 
     def test_profileSuccessor(self):
-        resp = self.client.post(root(url.people.INVITESUCCESSOR))
+        resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
-        resp = self.client.post(root(url.people.INVITESUCCESSOR), {
+        resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                                 'useDefault': True, 'set': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
 
-        resp = self.client.post(
-            root(url.people.INVITESUCCESSOR), {'unset': True})
+        resp = self.client.post(follow=True,path=
+            root(url.people.INVITESUCCESSOR), data={'unset': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=False, successor=None), Profile)
 
@@ -227,72 +226,68 @@ class TestViews(TestCase):
         user = User.objects.create_user(
             email=E2, password=P2, first_name=getTestName())
 
-        resp = self.client.post(root(url.people.INVITESUCCESSOR), {
+        resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                                 'set': True, 'userID': E2})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.NO, error=Message.SUCCESSOR_GH_UNLINKED))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.SUCCESSOR_GH_UNLINKED))
 
         Profile.objects.filter(user=user).update(githubID=getTestGHID())
 
-        resp = self.client.post(root(url.people.INVITESUCCESSOR), {
+        resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                                 'set': True, 'userID': E2})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=False, successor=user), Profile)
 
-        resp = self.client.post(
-            root(url.people.INVITESUCCESSOR), {'unset': True})
+        resp = self.client.post(follow=True,path=
+            root(url.people.INVITESUCCESSOR), data={'unset': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=False, successor=None), Profile)
 
-        resp = self.client.post(root(url.people.INVITESUCCESSOR), {
+        resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                                 'set': True, 'userID': BOTMAIL})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
 
     def test_getSuccessor(self):
-        resp = self.client.post(root(url.people.INVITESUCCESSOR), {
+        resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                                 'set': True, 'userID': BOTMAIL})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
-        resp = self.client.post(root(url.people.GETSUCCESSOR))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        resp = self.client.post(follow=True,path=root(url.people.GETSUCCESSOR))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.OK, successorID=str()))
+            Code.UTF_8)), dict(code=Code.OK, successorID=str()))
 
-    
+    @tag('af')
     def test_successorInvitation(self):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
-        client.post(authroot(url.auth.SIGNUP), dict(
+        client.post(follow=True,path=authroot(url.auth.SIGNUP), data=dict(
             email=E2,
             first_name=getTestName(),
             password1=P2
         ))
-        client.logout()
         client.login(email=E2, password=P2)
-        resp = client.post(root(url.people.INVITESUCCESSOR), {
-                           'set': True, 'userID': self.user.email})
+        resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
-        profile = Profile.objects.get(
-            user__email=E2, successor_confirmed=False, successor=self.user)
+        print(resp.content)
+        self.assertDictEqual(json.loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        profile = Profile.objects.get(user__email=E2, successor_confirmed=False, successor=self.user)
         self.assertIsInstance(profile, Profile)
 
-        resp = self.client.get(
-            root(url.people.successorInvite(profile.getUserID())))
+        resp = self.client.get(follow=True,path=root(url.people.successorInvite(profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.invitation)
@@ -304,23 +299,23 @@ class TestViews(TestCase):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
-        client.post(authroot(url.auth.SIGNUP), dict(
+        client.post(follow=True,path=authroot(url.auth.SIGNUP), data=dict(
             email=E2,
             first_name=getTestName(),
             password1=P2
         ))
-        resp = client.post(authroot(url.auth.LOGIN), dict(login=E2, password=P2), follow=True)
+        resp = client.post(follow=True,path=authroot(url.auth.LOGIN),data=dict(login=E2, password=P2))
         self.assertTrue(resp.context['user'].is_authenticated)
-        resp = client.post(root(url.people.INVITESUCCESSOR), {
-                           'set': True, 'userID': self.user.email}, follow=True)
+        resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
+                           'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.OK))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         profile = Profile.objects.get(
             user__email=E2, successor_confirmed=False, successor=self.user)
         self.assertIsInstance(profile, Profile)
 
-        resp = self.client.get(
+        resp = self.client.get(follow=True,path=
             root(url.people.successorInvite(profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
@@ -328,17 +323,17 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
-        resp = self.client.post(
+        resp = self.client.post(follow=True,path=
             root(url.people.successorInviteAction(Action.DECLINE)))
         self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)
-        resp = self.client.post(root(url.people.successorInviteAction(Action.DECLINE)), {
+        resp = self.client.post(follow=True,path=root(url.people.successorInviteAction(Action.DECLINE)), data={
             'predID': self.botuser.getID()
         })
         self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)
 
-        resp = self.client.post(root(url.people.successorInviteAction(Action.DECLINE)), {
+        resp = self.client.post(follow=True,path=root(url.people.successorInviteAction(Action.DECLINE)), data={
             'predID': profile.getUserID()
-        }, follow=True)
+        })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(Profile.objects.get(
             user__email=E2, successor_confirmed=False, successor=None), Profile)
@@ -346,13 +341,13 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.index)
         self.assertTemplateUsed(resp, template.people.profile)
 
-        resp = client.post(root(url.people.INVITESUCCESSOR), {
+        resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(root(url.people.successorInviteAction(Action.ACCEPT)), {
+        resp = self.client.post(follow=True,path=root(url.people.successorInviteAction(Action.ACCEPT)), data={
             'predID': profile.getUserID()
-        }, follow=True)
+        })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(Profile.objects.get(
             user__email=E2, successor_confirmed=True, successor=self.user), Profile)
@@ -360,20 +355,20 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.index)
         self.assertTemplateUsed(resp, template.people.profile)
 
-        resp = client.post(
-            root(url.people.INVITESUCCESSOR), {'unset': True})
+        resp = client.post(follow=True,path=
+            root(url.people.INVITESUCCESSOR), data={'unset': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = client.post(root(url.people.INVITESUCCESSOR), {
+        resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
         profile.to_be_zombie = True
         profile.save()
 
-        resp = self.client.post(root(url.people.successorInviteAction(Action.ACCEPT)), {
+        resp = self.client.post(follow=True,path=root(url.people.successorInviteAction(Action.ACCEPT)), data={
             'predID': profile.getUserID()
-        }, follow=True)
+        })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
@@ -383,31 +378,31 @@ class TestViews(TestCase):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
-        client.post(authroot(url.auth.SIGNUP), dict(
+        client.post(follow=True,path=authroot(url.auth.SIGNUP), data=dict(
             email=E2,
             first_name=getTestName(),
             password1=P2
-        ), follow=True)
-        resp = client.post(authroot(url.auth.LOGIN), dict(
-            login=E2, password=P2), follow=True)
+        ))
+        resp = client.post(follow=True,path=authroot(url.auth.LOGIN), data=dict(
+            login=E2, password=P2))
         self.assertTrue(resp.context['user'].is_authenticated)
-        resp = client.post(root(url.people.ACCOUNTDELETE), follow=True)
+        resp = client.post(follow=True,path=root(url.people.ACCOUNTDELETE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode('utf-8')), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
-        resp = client.post(root(url.people.ACCOUNTDELETE), {'confirmed': True})
+        resp = client.post(follow=True,path=root(url.people.ACCOUNTDELETE), data={'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.NO, error=Message.SUCCESSOR_UNSET))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.SUCCESSOR_UNSET))
 
-        resp = client.post(root(url.people.INVITESUCCESSOR),
-                           {'useDefault': True, 'set': True})
+        resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR),
+                           data={'useDefault': True, 'set': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = client.post(root(url.people.ACCOUNTDELETE), {'confirmed': True})
+        resp = client.post(follow=True,path=root(url.people.ACCOUNTDELETE), data={'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
-            'utf-8')), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
+            Code.UTF_8)), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
