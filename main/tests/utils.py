@@ -6,7 +6,9 @@ B64 = "data:image/png;base64,PGh0bWwgbGFuZz0iZGUiPjxoZWFkPjxtZXRhIGh0dHAtZXF1aXY
 
 def getLegalName():
     return uuid4().hex
-
+    
+def getTestUrl():
+    return f'https://knotters.org/{uuid4().hex}'
 
 def getLegalPseudonym():
     return uuid4().hex

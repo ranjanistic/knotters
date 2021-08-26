@@ -43,6 +43,7 @@ class Code():
         VIEW = 'view'
         METHOD = 'method'
         STATIC = 'static'
+        MAIL = 'mail'
 
 
 code = Code()

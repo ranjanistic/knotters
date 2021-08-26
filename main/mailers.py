@@ -21,8 +21,7 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
             print(to)
             print(subject)
             print(body)
-        else:
-            return True
+        return True
 
 
 def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
@@ -40,12 +39,10 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
             print(to)
             print(subject)
             print(body)
-        else:
-            return True
         return True
 
 
-def getEmailHtmlBody(greeting: str, header: str, footer: str, username:str='',actions: list = [], conclusion: str = '',action=False) -> str and str:
+def getEmailHtmlBody(greeting: str, header: str, footer: str, username: str = '', actions: list = [], conclusion: str = '', action=False) -> str and str:
     """
     Creates html and body content using parameters via the application's standard email template.
 
@@ -99,26 +96,27 @@ def getEmailHtmlBody(greeting: str, header: str, footer: str, username:str='',ac
         body = f"{body}\n{footer}\n{conclusion}"
 
     try:
-        html = render_to_string(f"account/email/{'action' if action else 'alert'}.html", data)
+        html = render_to_string(
+            f"account/email/{'action' if action else 'alert'}.html", data)
         return html, body
     except Exception as e:
         errorLog(e)
         return '', body
 
 
-def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str, greeting: str = '') -> bool:
+def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = '') -> bool:
     html, body = getEmailHtmlBody(
         greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
-def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusion: str, greeting: str = 'Hello') -> bool:
+def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = 'Hello') -> bool:
     html, body = getEmailHtmlBody(
         greeting=greeting, header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
-def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], username: str='', greeting: str = '') -> bool:
+def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], username: str = '', greeting: str = '') -> bool:
     """
 
     :actions: List of { text:str, url: str }
@@ -146,7 +144,7 @@ def downtimeAlert() -> list:
     tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")
                    ).strip() + " (IST Asia/Kolkata)"
     print(tillTime)
-    profiles = Profile.objects.filter(is_zombie=False, to_be_zombie=False)
+    profiles = Profile.objects.filter(is_zombie=False)
     mails = []
     print('Looping...')
     for prof in profiles:
