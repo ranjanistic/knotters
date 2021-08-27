@@ -123,7 +123,7 @@
                     <h1>Judges on duty</h1>
                     <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
                     <h3>{{moderation.competition.countJudgesWhoMarkedSubmissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
-                    <h6 class="positive-text">We'll notify you once when all results are ready to be declared.</h6>
+                    <h6 class="positive-text">We'll notify you about the results, once declared.</h6>
                     </center>
                 {% else %}
                     {% if allSubmissionsMarkedByJudge %}
@@ -340,8 +340,7 @@ if(allsubsMarked){
         }
         
         alertify.confirm(`Send for ranking?`,
-        `<h4>Are you sure you want to send all marked submissions
-            to moderator for final ranking?
+        `<h4>Are you sure you want to send all marked submissions for final ranking?
             <br/>
             This action is <span class="negative-text">irreversible</span>.
         </h4>

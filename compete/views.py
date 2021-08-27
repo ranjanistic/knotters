@@ -511,7 +511,7 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         for ex in existingcerts:
             if not doneresultIDs.__contains__(ex.result.getID()):
                 doneresultIDs.append(ex.result.getID())
-        remainingresults = Result.objects.exclude(id__in=doneresultIDs)
+        remainingresults = Result.objects.exclude(id__in=doneresultIDs).filter(competition=competition)
         for result in remainingresults:
             for member in result.getMembers():
                 id = uuid4()

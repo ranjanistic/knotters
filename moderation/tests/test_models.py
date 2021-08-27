@@ -65,7 +65,6 @@ class ModerationAttributeTest(TestCase):
             user=users[0], is_moderator=True)
 
         self.profile = Profile.objects.create(user=users[1])
-        self.reporter = Profile.objects.create(user=users[2])
         self.project = Project.objects.create(
             name=getProjName(), creator=self.profile, reponame=getProjRepo())
         self.mguser = User.objects.create_user(
@@ -93,15 +92,6 @@ class ModerationAttributeTest(TestCase):
         self.mod.status = Code.MODERATION
         self.mod.save()
         self.assertTrue(self.mod.reject())
-
-        self.mod.status = Code.MODERATION
-        self.mod.type = PEOPLE
-        self.mod.profile = self.profile
-        self.mod.save()
-        self.profile.reporters.add(self.reporter)
-        self.assertTrue(self.mod.isRequestor(self.reporter))
-        self.assertEqual(self.mod.__str__(), self.profile.getName())
-        self.assertEqual(self.mod.getModerateeFieldByType(), self.profile)
 
         self.mod.status = Code.MODERATION
         self.mod.type = COMPETE

@@ -36,7 +36,7 @@
     <h3>By other managers</h3>
     {% for compete in competes %}
         {% if compete.creator != request.user.profile %}
-        <div class="w3-col w3-third">
+        <div class="w3-col w3-third w3-padding-small">
             <div class="w3-row pallete-slab">
             <img class="w3-round w3-right" width="60" src="{{compete.getBanner}}" />
             <h6>{{compete.title}}</h6>

@@ -22,7 +22,7 @@
         <img class="w3-right w3-circle" width="150" src="{{moderation.project.getDP}}">
         <h5 class="dead-text">Status: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">Category: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
-        <h5 class="dead-text">License: <a onclick="miniWindow('{{URLS.PROJECTS}}{{moderation.project.license.getLink}}')" target="_blank">{{moderation.project.license.name}}</a></h5>
+        <h5 class="dead-text">License: <a onclick="miniWindow('{{moderation.project.license.getLink}}')" target="_blank">{{moderation.project.license.name}}</a></h5>
         <h2>{{moderation.project.name}}</h2>
         {% if moderation.project.isLive %}
         <a target="_blank" href="{{moderation.project.getRepoLink}}"><h4 class="positive-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4></a>

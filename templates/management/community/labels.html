@@ -43,9 +43,7 @@ initializeTabsView({
             ()=>{}
             ).set('closable', false).set('labels', {ok:'Create', cancel:'Discard'})
         }
-        console.log(tab.id)
         if(tab.id==='tag'){
-        console.log(tab.id)
             getElements('delete-tag').forEach((tag)=>{
                 tag.onclick=(e)=>{
                     const name = e.target.getAttribute('data-tagname')

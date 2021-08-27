@@ -8,7 +8,7 @@
         <h4>Existing moderators</h4>
         <span id="new-moderators-view"></span>
         {% for mod in moderators %}
-        <div class="w3-row pallete-slab" id="pallete-remove-{{mod.getUserID}}">
+        <div class="w3-row pallete-slab" id="pallete-demote-{{mod.getUserID}}">
             <div class="w3-col s1">
                 <img src="{{mod.getDP}}" class="w3-circle primary" width="50" />
             </div>
@@ -25,7 +25,7 @@
                     <a href="{{mod.getLink}}" target="_blank"><button class="small primary">View</button></a>
                 </div>
                 <div class="w3-row w3-right">
-                    <button class="small negative remove-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Remove</button>
+                    <button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
                 </div>
             </div>
         </div>
@@ -38,7 +38,7 @@
     <span id="profile-search-results"></span>
     <h5>Suggested</h5>
     {% for mod in profiles %}
-        <div class="w3-row pallete-slab" id="pallete-add-{{mod.getUserID}}">
+        <div class="w3-row pallete-slab" id="pallete-promote-{{mod.getUserID}}">
             <div class="w3-col s1">
                 <img src="{{mod.getDP}}" class="w3-circle primary" width="50" />
             </div>
@@ -55,7 +55,7 @@
                     <a href="{{mod.getLink}}" target="_blank"><button class="small primary">View</button></a>
                 </div>
                 <div class="w3-row w3-right">
-                    <button class="small positive add-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Promote</button>
+                    <button class="small positive promote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Promote</button>
                 </div>
             </div>
         </div>
@@ -66,10 +66,10 @@
 
 {% block scripts %}
 <script>
-const loadRemoveMods = () => {
-getElements('remove-moderator').forEach((remove)=>{
-    remove.onclick=(e)=>{
-        alertify.confirm('Remove as moderator?', `<h5>Are you sure that you want to ${NegativeText('remove')} 
+const loadDemoteMods = () => {
+getElements('demote-moderator').forEach((demote)=>{
+    demote.onclick=(e)=>{
+        alertify.confirm('Demote as moderator?', `<h5>Are you sure that you want to ${NegativeText('demote')} 
             <span class="positive-text" onclick="miniWindow('${e.target.getAttribute('data-profileurl')}')">${e.target.getAttribute('data-name')}</span>
              as a moderator on ${APPNAME}? Their pending moderations will be transferred to a new moderator. (You are not deleting their account)</h5>`,
              async ()=>{
@@ -78,13 +78,13 @@ getElements('remove-moderator').forEach((remove)=>{
                 const data = await postRequest('{{URLS.REMOVE_MODERATOR}}', {modID})
                 if (!data) return
                 if (data.code == code.OK){
-                    message(`Removed ${modname} as moderator`)
-                    return hideElement(`pallete-remove-${modID}`)
+                    message(`Demoted ${modname} as moderator`)
+                    return hideElement(`pallete-demote-${modID}`)
                 }
                 error(data.error)
              },
              ()=>{}
-        ).set('labels', {ok:'Yes, remove', cancel: 'No, wait'}).set('closable', false)
+        ).set('labels', {ok:'Yes, demote', cancel: 'No, wait'}).set('closable', false)
     }
 })
 }
@@ -98,7 +98,7 @@ getElement('search-profile-input').oninput=async(e)=>{
     if(!data) return
     if (data.code!==code.OK) return
     const mod = data.mod;
-    setHtmlContent(resview,`<div class="w3-row pallete-slab" id="pallete-add-${data.mod.userID}">
+    setHtmlContent(resview,`<div class="w3-row pallete-slab" id="pallete-promote-${data.mod.userID}">
             <div class="w3-col s1">
                 <img src="${mod.dp}" class="w3-circle primary" width="50" />
             </div>
@@ -115,7 +115,7 @@ getElement('search-profile-input').oninput=async(e)=>{
                     <a href="${mod.url}" target="_blank"><button class="small primary">View</button></a>
                 </div>
                 <div class="w3-row w3-right">
-                    <button class="small positive add-moderator" data-profileurl="${mod.url}" data-name="${mod.name}" data-userID="${mod.userID}">Promote</button>
+                    <button class="small positive promote-moderator" data-profileurl="${mod.url}" data-name="${mod.name}" data-userID="${mod.userID}">Promote</button>
                 </div>
             </div>
         </div>`, loadAddMods);
@@ -123,8 +123,8 @@ getElement('search-profile-input').oninput=async(e)=>{
 }
 
 const loadAddMods = () => {
-    getElements('add-moderator').forEach((add)=>{
-        add.onclick=(e)=>{
+    getElements('promote-moderator').forEach((promote)=>{
+        promote.onclick=(e)=>{
             alertify.confirm('Promote as moderator?', `<h5>Are you sure that you want to promote 
                 <span class="positive-text" onclick="miniWindow('${e.target.getAttribute('data-profileurl')}')">${e.target.getAttribute('data-name')}</span>
                 as a moderator on ${APPNAME}?</h5>`,
@@ -135,10 +135,10 @@ const loadAddMods = () => {
                     if (!data) return
                     if (data.code == code.OK){
                         message(`Promoted ${username} as moderator`)
-                        hideElement(`pallete-add-${userID}`)
-                        let newmod = getElement(`pallete-add-${userID}`).innerHTML.replaceAll('add-', 'remove-').replaceAll('positive', 'negative').replaceAll('Promote', 'Remove')
-                        getElement('new-moderators-view').innerHTML += `<div class="w3-row pallete-slab" id="pallete-remove-${userID}">${newmod}</div>`
-                        loadRemoveMods()
+                        hideElement(`pallete-promote-${userID}`)
+                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', 'demote-').replaceAll('positive', 'negative').replaceAll('Promote', 'Demote')
+                        getElement('new-moderators-view').innerHTML += `<div class="w3-row pallete-slab" id="pallete-demote-${userID}">${newmod}</div>`
+                        loadDemoteMods()
                         return
                     }
                     error(data.error)
@@ -148,7 +148,7 @@ const loadAddMods = () => {
         }
     })
 }
-loadRemoveMods()
+loadDemoteMods()
 loadAddMods()
 </script>
 {% endblock %}

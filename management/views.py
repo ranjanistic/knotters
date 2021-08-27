@@ -353,7 +353,7 @@ def submitCompetition(request) -> HttpResponse:
             if bannerfile:
                 compete.banner = bannerfile
             compete.save()
-        except:
+        except Exception as e:
             pass
 
         mod = Profile.objects.get(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)

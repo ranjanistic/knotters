@@ -202,6 +202,11 @@ const loadGlobalEventListeners = () => {
             }
         })
     })
+    getElements('previous-action-button').forEach((elem)=>{
+        elem.addEventListener('click',()=>{
+            window.close()
+        })
+    })
 };
 
 const Icon = (name, classnames = "") =>

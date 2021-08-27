@@ -10,8 +10,25 @@
 
 {% block content %}
 
-<a href="{{URLS.MODERATORS}}">Moderators</a>
-
-<a href="{{URLS.LABELS}}">labels</a>
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-third w3-padding">
+        <a href="{{URLS.MODERATORS}}">
+            <div class="w3-row pallete active">
+                <h4>Manage Moderators</h4>
+                <stong>Demote existing, or promote new mods.</stong>
+                <i class="w3-right">arrow_forward</i>
+            </div>
+        </a>
+    </div>
+    <div class="w3-col w3-third w3-padding">
+        <a href="{{URLS.LABELS}}">
+            <div class="w3-row pallete active">
+                <h4>Manage labels</h4>
+                <stong>Manage topics, categories, tags.</stong>
+                <i class="w3-right">arrow_forward</i>
+            </div>
+        </a>
+    </div>
+</div>
 
 {% endblock %}

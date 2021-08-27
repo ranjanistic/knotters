@@ -8,10 +8,34 @@
 
 {% block content %}
 
-<a href="{{URLS.COMPETITIONS}}">Competitions</a>
-
-<a href="{{URLS.REPORTS}}" >Reports</a>
-
-<a href="{{URLS.COMMUNITY}}" >Community</a>
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-third w3-padding">
+        <a href="{{URLS.COMPETITIONS}}">
+            <div class="w3-row pallete accent">
+                <h4>Manage Competitions</h4>
+                <stong>Result declaration, certificate allotment, blah blah.</stong>
+                <i class="w3-right">arrow_forward</i>
+            </div>
+        </a>
+    </div>
+    <div class="w3-col w3-third w3-padding">
+        <a href="{{URLS.REPORTS}}">
+            <div class="w3-row pallete accent">
+                <h4>Reports & Feedbacks</h4>
+                <stong>Reports, guideline violations & stuff</stong>
+                <i class="w3-right">arrow_forward</i>
+            </div>
+        </a>
+    </div>
+    <div class="w3-col w3-third w3-padding">
+        <a href="{{URLS.COMMUNITY}}">
+            <div class="w3-row pallete accent">
+                <h4>Manage People</h4>
+                <stong>Labels, moderators, & whatnot.</stong>
+                <i class="w3-right">arrow_forward</i>
+            </div>
+        </a>
+    </div>
+</div>
 
 {% endblock %}

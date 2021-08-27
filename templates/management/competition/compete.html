@@ -31,15 +31,17 @@
         <strong>Is Upcoming? {{compete.isUpcoming|yesno}}</strong><br/>
         <strong>Is Active? {{compete.isActive|yesno}}</strong><br/>
         <strong>Is History? {{compete.isHistory|yesno}}</strong><br/>
-        <strong>Topics: {%for topic in compete.getTopics %}[{{topic.name}}] {% endfor %}</strong><br/>
+        <strong>Topics: {%for topic in compete.getTopics %}[<a href="{{topic.getLink}}">{{topic.name}}</a>] {% endfor %}</strong><br/>
         <strong>Perks: {%for perk in compete.getPerks %}[{{perk}}] {% endfor %}</strong><br/>
         <strong>Task summary: {{compete.taskSummary}}</strong><br/>
         <strong>Task detail: {{compete.taskDetail}}</strong><br/>
         <strong>Task sample: {{compete.taskSample}}</strong><br/>
         <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
         <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
+        <strong>Moderated? {{compete.moderated|yesno}}</strong><br/>
 
         {% if compete.isHistory %}
+            <strong>All submissions marked? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
             {% if compete.allSubmissionsMarked %}
                 {% if compete.resultDeclared %}
                     <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
@@ -51,6 +53,7 @@
                         </form>
                     {% endif %}
                 {% else %}
+                    <strong>Results ready to be declared? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
                     {% if iscreator %}
                         <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
                             {% csrf_token %}
@@ -62,7 +65,7 @@
                 <strong>{{compete.countJudgesWhoMarkedSubmissions}}/{{compete.totalJudges}} judges have marked submissions.</strong>
                 <br/>
                 {% for judge in compete.getJudges %}
-                    <strong>{{judge.getName}} has marked ? {{compete.allSubmissionsMarkedByJudge|params:judge|yesno}}</strong>
+                    <strong>{{judge.getName}} has marked ? {{compete.allSubmissionsMarkedByJudge|params:judge|yesno}}</strong><br/>
                 {% endfor %}
             {% endif %}
         {% endif %}
