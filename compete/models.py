@@ -8,6 +8,7 @@ from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url, MANAGEMENT
 from main.methods import errorLog, getNumberSuffix
+from main.env import BOTMAIL
 from .apps import APPNAME
 
 
@@ -193,7 +194,7 @@ class Competition(models.Model):
             return self.getLink()
 
     def isAllowedToParticipate(self, profile:Profile) -> bool:
-        return self.creator != profile and self.moderator != profile and not self.isJudge(profile)
+        return self.creator != profile and self.moderator != profile and not self.isJudge(profile) and profile.getEmail() != BOTMAIL
 
     def isNotAllowedToParticipate(self, profile:Profile) -> bool:
         return not self.isAllowedToParticipate(profile)

@@ -260,7 +260,7 @@ class TestViews(TestCase):
 
     def test_getSuccessor(self):
         resp = self.client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
-                                'set': True, 'userID': BOTMAIL})
+                                'set': True, 'useDefault': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
@@ -281,7 +281,7 @@ class TestViews(TestCase):
         client.login(email=E2, password=P2)
         resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        print(resp.content)
+        
         self.assertDictEqual(json.loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         profile = Profile.objects.get(user__email=E2, successor_confirmed=False, successor=self.user)
         self.assertIsInstance(profile, Profile)
@@ -382,9 +382,8 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        resp = client.post(follow=True,path=authroot(url.auth.LOGIN), data=dict(
-            login=E2, password=P2))
-        # self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.post(follow=True,path=authroot(url.auth.LOGIN), data=dict(login=E2, password=P2))
+        self.assertTrue(resp.context['user'].is_authenticated)
         resp = client.post(follow=True,path=root(url.people.ACCOUNTDELETE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(

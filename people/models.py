@@ -8,7 +8,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 from django.conf import settings
-from main.strings import Code, PROJECTS, url
+from main.strings import Code, PROJECTS, url, MANAGEMENT
 from .apps import APPNAME
 
 
@@ -62,8 +62,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return self.email
 
-    def getID(self) -> str:
+    @property
+    def get_id(self) -> str:
         return self.id.hex
+
+    def getID(self) -> str:
+        return self.get_id
+
 
     def has_perm(self, perm, obj=None):
         return self.is_admin
@@ -90,8 +95,63 @@ class Topic(models.Model):
     def __str__(self) -> str:
         return self.name
 
-    def getID(self) -> str:
+    @property
+    def get_id(self) -> str:
         return self.id.hex
+
+    @property
+    def label_type(self) -> str:
+        return Code.TOPIC
+
+    @deprecated
+    def getID(self) -> str:
+        return self.get_id
+
+    @property
+    def getLink(self) -> str:
+        return f"{url.getRoot(MANAGEMENT)}{url.management.label(self.label_type,self.get_id)}"
+
+    @property
+    def totalProfiles(self):
+        return Profile.objects.filter(topics=self).count()
+
+    @property
+    def getProfiles(self):
+        return Profile.objects.filter(topics=self)
+
+    @property
+    def getProfilesLimited(self):
+        return Profile.objects.filter(topics=self)[0:50]
+
+    @property
+    def totalTags(self):
+        return self.tags.count()
+
+    @property
+    def getTags(self):
+        return self.tags.all()
+
+    @property
+    def totalProjects(self):
+        from projects.models import Project
+        return Project.objects.filter(topics=self).count()
+
+    @property
+    def getProjects(self):
+        from projects.models import Project
+        return Project.objects.filter(topics=self)
+
+    @property
+    def totalXP(self):
+        return (ProfileTopic.objects.filter(topic=self).aggregate(models.Sum('points')))['points__sum']
+
+    @property
+    def isDeletable(self) -> bool:
+        if self.totalProjects > 0:
+            return False
+        if self.totalProfiles > 0:
+            return False
+        return True
 
 
 class TopicTag(models.Model):
@@ -249,8 +309,12 @@ class Profile(models.Model):
     def getSuccessorInviteLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
 
+    @property
+    def get_xp(self) -> str:
+        return f"{self.xp if self.xp else 0} XP"
+
     def getXP(self) -> str:
-        return f"{self.xp} XP"
+        return self.get_xp
 
     def increaseXP(self, by: int = 0) -> int:
         if not self.is_active: return self.xp

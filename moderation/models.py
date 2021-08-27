@@ -47,6 +47,16 @@ class Moderation(models.Model):
     def getID(self) -> str:
         return self.id.hex
 
+    @property
+    def object(self) -> models.Model:
+        if self.type == PROJECTS:
+            return self.project
+        elif self.type == PEOPLE:
+            return self.profile
+        elif self.type == COMPETE:
+            return self.competition
+        else: return None
+
     def getLink(self, alert: str = '', error: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error)}"
 

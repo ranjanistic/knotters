@@ -22,8 +22,13 @@ urlpatterns = [
     path(URL.Management.FEEDBACK, feedback),
     path(URL.Management.COMMUNITY, community),
     path(URL.Management.MODERATORS, moderators),
+    path(URL.Management.ELGIBLE_MODSEARCH, searchEligibleModerator),
+    path(URL.Management.ADD_MODERATOR, addModerator),
+    path(URL.Management.REMOVE_MODERATOR, removeModerator),
+    path(URL.Management.LABEL_CREATE, labelCreate),
+    path(URL.Management.LABEL_UPDATE, labelUpdate),
+    path(URL.Management.LABEL_DELETE, labelDelete),
     path(URL.Management.LABELS, labels),
+    path(URL.Management.LABEL_TYPE, labelType),
     path(URL.Management.LABEL, label),
-    path(URL.Management.LABEL_TOPICS, topics),
-    path(URL.Management.LABEL_CATEGORYS, categories)
 ]

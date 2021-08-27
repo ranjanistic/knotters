@@ -9,7 +9,7 @@ from main.strings import Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
 from compete.models import Result
-from .models import ProfileSetting, User, Profile
+from .models import ProfileSetting, Topic, User, Profile
 from .apps import APPNAME
 
 
@@ -53,6 +53,20 @@ def filterBio(string: str) -> str:
         return filterBio(bio)
     return bio
 
+
+def addTopicToDatabase(topic: str) -> Topic:
+    topic = str(topic).strip().replace('\n', str())
+    if not topic:
+        return False
+    topicObj = None
+    try:
+        topicObj = Topic.objects.filter(name__iexact=topic).first()
+        if not topicObj:
+            topicObj = Topic.objects.create(name=topic)
+    except:
+        if not topicObj:
+            topicObj = Topic.objects.create(name=topic)
+    return topicObj
 
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
                     profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS]

@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 
-{% block nav_text %}{{SUBAPPNAME}}{% endblock %}
+{% block title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+
+{% block nav_text %}{{SUBAPPNAME|capfirst}}{% endblock %}
 
 {% block nav_href %}{{URLS.ROOT}}{% endblock %}
 

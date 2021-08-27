@@ -6,10 +6,13 @@ from django.views.decorators.http import require_GET, require_POST
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, URL, Message, Code, Template
-from moderation.methods import assignModeratorToObject
+from moderation.methods import assignModeratorToObject, getModeratorToAssignModeration
 from compete.models import Competition
-from projects.models import Category
+from projects.models import Category, Tag
 from people.models import Topic, Profile
+from moderation.models import Moderation
+from projects.methods import addTagToDatabase, addCategoryToDatabase
+from people.methods import addTopicToDatabase
 from main.env import BOTMAIL
 from .methods import renderer, createCompetition, rendererstr
 from .models import Report, Feedback
@@ -31,7 +34,68 @@ def community(request: WSGIRequest):
 @manager_only
 @require_GET
 def moderators(request: WSGIRequest):
-    return renderer(request, Template.Management.COMMUNITY_MODERATORS)
+    moderators = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(is_moderator=True,to_be_zombie=False)
+    profiles = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(is_moderator=False,to_be_zombie=False, is_active=True).order_by('-xp')[0:10]
+    return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators,profiles=profiles))
+
+
+@manager_only
+@require_JSON_body
+def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
+    try:
+        query = request.POST.get('query', None)
+        if not query or not str(query).strip():
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=False), Q(
+            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        if profile.isBlocked(request.user):
+            raise Exception()
+        return respondJson(Code.OK, dict(mod=dict(
+            id=profile.user.id,
+            userID=profile.getUserID(),
+            name=profile.getName(),
+            email=profile.getEmail(),
+            url=profile.getLink(),
+            dp=profile.getDP(),
+        )))
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
+
+@manager_only
+@require_JSON_body
+def removeModerator(request: WSGIRequest):
+    try:
+        modID = request.POST.get('modID',None)
+        if not modID or modID == request.user.get_id:
+            return respondJson(Code.NO)
+        moderator = Profile.objects.filter(user__id=modID, is_moderator=True).update(is_moderator=False)
+        if moderator == 0:
+            return respondJson(Code.NO)
+        for mod in Moderation.objects.filter(moderator__user__id=modID, resolved=False):
+            moderator = getModeratorToAssignModeration(mod.type,mod.object, ignoreModProfiles=[mod.moderator])
+            if moderator:
+                mod.moderator = moderator
+                mod.save()
+        return respondJson(Code.OK)
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO, error=e)
+
+@manager_only
+@require_JSON_body
+def addModerator(request: WSGIRequest):
+    try:
+        userID = request.POST.get('userID',None)
+        if not userID or userID == request.user.get_id:
+            return respondJson(Code.NO)
+
+        user = Profile.objects.filter(user__id=userID, is_moderator=False, suspended=False, to_be_zombie=False).update(is_moderator=True)
+        if user == 0:
+            return respondJson(Code.NO)
+        return respondJson(Code.OK)
+    except Exception as e:
+        return respondJson(Code.NO, error=e)
 
 
 @manager_only
@@ -47,6 +111,24 @@ def labels(request: WSGIRequest):
 
 @manager_only
 @require_GET
+def labelType(request: WSGIRequest, type: str):
+    try:
+        if type == Code.TOPIC:
+            topics = Topic.objects.filter()
+            return rendererstr(request, Template.Management.COMMUNITY_LABELS_TOPICS, dict(topics=topics))
+        if type == Code.CATEGORY:
+            categories = Category.objects.filter()
+            return rendererstr(request, Template.Management.COMMUNITY_LABELS_CATEGORIES, dict(categories=categories))
+        if type == Code.TAG:
+            tags = Tag.objects.filter()
+            return rendererstr(request, Template.Management.COMMUNITY_LABELS_TAGS, dict(tags=tags))
+        raise Exception('Invalid label')
+    except:
+        raise Http404()
+
+
+@manager_only
+@require_GET
 def label(request: WSGIRequest, type: str, labelID: UUID):
     try:
         if type == Code.TOPIC:
@@ -55,25 +137,66 @@ def label(request: WSGIRequest, type: str, labelID: UUID):
         if type == Code.CATEGORY:
             category = Category.objects.get(id=labelID)
             return renderer(request, Template.Management.COMMUNITY_CATEGORY, dict(category=category))
-        else:
-            raise Exception('Invalid label')
+        raise Exception('Invalid label')
     except:
         raise Http404()
 
+@manager_only
+@require_JSON_body
+def labelCreate(request: WSGIRequest, type: str):
+    try:
+        name = request.POST['name']
+        if type == Code.TOPIC:
+            label = addTopicToDatabase(name)
+        elif type == Code.CATEGORY:
+            label = addCategoryToDatabase(name)
+        elif type == Code.TAG:
+            label = addTagToDatabase(name)
+        else:
+            return respondJson(Code.NO)
+        return respondJson(Code.OK, dict(label=dict(id=label.get_id,name=label.name)))
+    except:
+        return respondJson(Code.NO)
+    
+@manager_only
+@require_JSON_body
+def labelUpdate(request: WSGIRequest, type: str, labelID:UUID):
+    try:
+        if type == Code.TAG:
+            name = request.POST['name']
+            tag = Tag.objects.filter(id=labelID).update(name=name)
+        elif type == Code.TOPIC:
+            topic = Topic.objects.filter(id=labelID).update()
+        elif type == Code.CATEGORY:
+            category = Category.objects.filter(id=labelID).update()
+        else:
+            return respondJson(Code.NO)
+        return respondJson(Code.OK)
+    except:
+        return respondJson(Code.NO)
+    
+    
 
 @manager_only
-@require_GET
-def topics(request: WSGIRequest):
-    topics = Topic.objects.filter()
-    return rendererstr(request, Template.Management.COMMUNITY_LABELS_TOPICS, dict(topic=topics))
-
-
-@manager_only
-@require_GET
-def categories(request: WSGIRequest):
-    categories = Category.objects.filter()
-    return rendererstr(request, Template.Management.COMMUNITY_LABELS_CATEGORIES, dict(categories=categories),)
-
+@require_JSON_body
+def labelDelete(request: WSGIRequest, type: str, labelID:UUID):
+    try:
+        if type == Code.TOPIC:
+            topic = Topic.objects.get(id=labelID)
+            if topic.isDeletable:
+                topic.delete()
+        elif type == Code.CATEGORY:
+            category = Category.objects.get(id=labelID)
+            if category.isDeletable:
+                category.delete()
+        elif type == Code.TAG:
+            tags = Tag.objects.filter(id=labelID).delete()
+        else:
+            return respondJson(Code.NO)
+        return respondJson(Code.OK)
+    except:
+        return respondJson(Code.NO)
+    
 
 @manager_only
 @require_GET
@@ -147,7 +270,11 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
             raise Exception()
         return respondJson(Code.OK, dict(mod=dict(
             id=profile.user.id,
-            name=profile.getName()
+            userID=profile.getUserID(),
+            name=profile.getName(),
+            email=profile.getEmail(),
+            url=profile.getLink(),
+            dp=profile.getDP(),
         )))
     except Exception as e:
         return respondJson(Code.NO)

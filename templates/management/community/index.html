@@ -2,10 +2,16 @@
 
 {% block nav_text %}Community{% endblock %}
 
+{% block nav_icon %}
+<button class="primary previous-navigation-button" data-icon="arrow_back" onclick="window.close()"></button>
+{% endblock %}
+
+{% block nav_href %}{{ROOT}}{% endblock %}
+
 {% block content %}
 
-Moderators
+<a href="{{URLS.MODERATORS}}">Moderators</a>
 
-labels - (topics, tags, categories)
+<a href="{{URLS.LABELS}}">labels</a>
 
 {% endblock %}

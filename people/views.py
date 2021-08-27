@@ -257,12 +257,19 @@ def profileSuccessor(request: WSGIRequest):
             return respondJson(Code.NO)
         successor = None
         if set:
-            if userID and request.user.email != userID:
+            if usedefault or userID == BOTMAIL:
+                try:
+                    successor = User.objects.get(email=BOTMAIL)
+                    successor_confirmed = True
+                except Exception as e:
+                    errorLog(e)
+                    return respondJson(Code.NO)
+            elif userID and request.user.email != userID:
                 try:
                     successor = User.objects.get(email=userID)
                     if successor.profile.isBlocked(request.user):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-                    if not successor.profile.ghID:
+                    if not successor.profile.ghID and not successor.profile.githubID:
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
@@ -271,13 +278,6 @@ def profileSuccessor(request: WSGIRequest):
                     successor_confirmed = userID == BOTMAIL
                 except:
                     return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-            elif usedefault or userID == BOTMAIL:
-                try:
-                    successor = User.objects.get(email=BOTMAIL)
-                    successor_confirmed = True
-                except Exception as e:
-                    errorLog(e)
-                    return respondJson(Code.NO)
             else:
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         elif unset and request.user.profile.successor:

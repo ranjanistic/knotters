@@ -69,19 +69,19 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         raise IllegalModeration()
 
     defaultQuery = Q(~Q(id__in=ignoreModProfileIDs), is_moderator=True,
-                     suspended=False, to_be_zombie=False, is_zombie=False, is_active=True)
-    query = defaultQuery
+                     suspended=False, to_be_zombie=False, is_active=True)
+    
 
     preferred = False
     if len(onlyModProfiles) > 0:
-        onlyModProfileIDs = list()
+        onlyModProfileIDs = []
         for onlyModProfile in onlyModProfiles:
             if not ignoreModProfileIDs.__contains__(onlyModProfile.id):
                 onlyModProfileIDs.append(onlyModProfile.id)
         query = Q(query, id__in=onlyModProfileIDs)
     elif len(preferModProfiles) > 0:
         preferred = True
-        preferModProfileIDs = list()
+        preferModProfileIDs = []
         for preferModProfile in preferModProfiles:
             if not ignoreModProfileIDs.__contains__(preferModProfile.id):
                 preferModProfileIDs.append(preferModProfile.id)
@@ -109,7 +109,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         temp += 1
     current.value = temp
     current.save()
-
+    print(availableModProfiles)
     return availableModProfiles[temp-1]
 
 

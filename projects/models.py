@@ -1,10 +1,12 @@
 import uuid
+from deprecated import deprecated
 from django.db import models
 from django.utils import timezone
 from main.env import BOTMAIL, MAILUSER, PUBNAME
 from main.settings import MEDIA_URL
+# from people.models import Profile
 from main.methods import maxLengthInList
-from main.strings import Code, url, PEOPLE, project
+from main.strings import Code, url, PEOPLE, project, MANAGEMENT
 from moderation.models import Moderation
 from .apps import APPNAME
 
@@ -26,8 +28,38 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
-    def getID(self):
+    @property
+    def get_id(self):
         return self.id.hex
+
+    def getID(self):
+        return self.get_id
+
+    @property
+    def totalTopics(self):
+        from people.models import Topic
+        return Topic.objects.filter(tags=self).count()
+
+    @property
+    def getTopics(self):
+        from people.models import Topic
+        return Topic.objects.filter(tags=self)
+
+    @property
+    def totalProjects(self):
+        return Project.objects.filter(tags=self).count()
+
+    @property
+    def getProjects(self):
+        return Project.objects.filter(tags=self)
+
+    @property
+    def totalCategories(self):
+        return Category.objects.filter(tags=self).count()
+
+    @property
+    def getCategories(self):
+        return Category.objects.filter(tags=self)
 
 
 class Category(models.Model):
@@ -39,8 +71,45 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    def getID(self) -> str:
+    @property
+    def label_type(self):
+        return Code.CATEGORY
+
+    @property
+    def get_id(self) -> str:
         return self.id.hex
+
+    @deprecated
+    def getID(self) -> str:
+        return self.get_id
+
+    @property
+    def getLink(self):
+        return f"{url.getRoot(MANAGEMENT)}{url.management.label(self.label_type, self.get_id)}"
+
+    @property
+    def totalTags(self):
+        return self.tags.count()
+
+    @property
+    def getTags(self):
+        return self.tags.all()
+
+    @property
+    def totalProjects(self):
+        return Project.objects.filter(category=self).count()
+
+    @property
+    def getProjects(self):
+        return Project.objects.filter(category=self)
+
+    @property
+    def getProjectsLimited(self):
+        return Project.objects.filter(category=self)[0:50]
+
+    @property
+    def isDeletable(self):
+        return self.totalProjects == 0
 
 
 class CategoryTag(models.Model):
@@ -70,7 +139,7 @@ class License(models.Model):
         return self.id.hex
 
     def getLink(self):
-        return f'{url.projects.license(id=self.getID())}'
+        return f'{url.getRoot(APPNAME)}{url.projects.license(id=self.getID())}'
 
     def isCustom(self):
         return self.creator.getEmail() != BOTMAIL

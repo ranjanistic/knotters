@@ -25,5 +25,8 @@ window.addEventListener("load", () => {
     subLoader(false);
     window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
     serviceWorkerRegistration();
-    
+    if(localStorage.getItem(Key.futureMessage)){
+        message(localStorage.getItem(Key.futureMessage))
+        localStorage.removeItem(Key.futureMessage)
+    }
 });

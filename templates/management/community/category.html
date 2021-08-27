@@ -1,0 +1,54 @@
+{% extends 'management/community/index.html' %}
+{% load custom_tags %}
+
+{% block nav_href %}{{URLS.LABELS}}{% endblock %}
+{% block nav_text %}{{category}}{% endblock %}
+{% block content %}
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-half w3-padding-small">
+    <div class=" pallete-slab">
+        <h6>{{category.totalProjects}} projects are in this category</h6>
+        {% for project in category.getProjectsLimited %}
+        <a href="{{project.getLink}}" title="{{project.name}}" target="_blank"><img alt="{{project.getName}}" src="{{project.getDP}}" class="w3-circle primary" width="40" /></a>
+        {% endfor %}
+        and maybe others.
+    </div>
+    </div>
+    <div class="w3-col w3-half w3-padding-small">
+        <div class=" pallete-slab">
+            
+        </div>
+    </div>
+</div>
+<div class="w3-row w3-padding w3-center">
+{% if category.isDeletable %}
+<button class="negative" data-icon="delete" id="delete-category-{{category.get_id}}">Delete</button>
+{% else %}
+<button class="dead-text primary">Not deletable</button>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if category.isDeletable %}
+const name = "{{category.name}}", categoryID = "{{category.get_id}}";
+getElement('delete-category-{{category.get_id}}').onclick=_=>{
+    alertify.confirm(`Delete category ${name}?`, `
+        <h4>Delete category '${name}' from ${APPNAME}, are you sure? (This category will be removed from all linked assets)</h4>
+        `,
+        async ()=>{
+            const data = await postRequest(setUrlParams(URLS.LABEL_DELETE, "{{category.label_type}}", categoryID))
+            if(!data) return
+            if(data.code===code.OK){
+                futuremessage(`Category '${name}' was deleted.`)
+                return window.location.replace('{{URLS.LABELS}}')
+            }
+            error(data.error)
+        },
+        ()=>{}
+    ).set('closable', false).set('labels', {ok:'Delete', cancel:'Cancel'})
+}
+{% endif %}
+</script>
+{% endblock %}

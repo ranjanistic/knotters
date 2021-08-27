@@ -1,0 +1,19 @@
+<div class="w3-row w3-padding">
+    <button class="w3-right accent" data-icon="add" id="create-category">Create</button>
+    <br/>
+    {% for cat in categories %}
+    <div class="w3-row pallete-slab">
+        <div class="w3-col s3">
+        {{cat.name}}
+        </div>
+        <div class="w3-col s3">
+        {{cat.totalProjects}} projects
+        </div>
+        <div class="w3-col s3">
+        {{cat.totalTags}} tags
+        </div>
+        <a href="{{cat.getLink}}"><button class=" w3-right small primary">View</button></a>
+    </div>
+    {% endfor %}
+
+</div>

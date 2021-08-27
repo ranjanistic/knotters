@@ -1,0 +1,23 @@
+{% load custom_tags %}
+<div class="w3-row w3-padding">
+    <button class="w3-right accent" data-icon="add" id="create-topic">Create</button>
+    <br/>
+    {% for topic in topics %}
+    <div class="w3-row pallete-slab">
+        <div class="w3-col s2">
+        <strong>{{topic.name}}</strong>
+        </div>
+        <div class="w3-col s2">
+        {{topic.totalProjects}} projects
+        </div>
+        <div class="w3-col s2">
+        {{topic.totalProfiles}} profiles
+        </div>
+        <div class="w3-col s2">
+        {{topic.totalTags}} tags
+        </div>
+        <a href="{{topic.getLink}}"><button class="small primary w3-right">View</button></a>
+    </div>
+    {% endfor %}
+
+</div>

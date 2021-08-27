@@ -3,6 +3,7 @@
 const Key = {
     appUpdated: "app-updated",
     navigated: "navigated",
+    futureMessage: "future-message"
 };
 
 const code = {
@@ -488,6 +489,9 @@ const handleCropImageUpload = (
                         const croppedB64 = cropImage
                             .getCroppedCanvas()
                             .toDataURL("image/png");
+                        if((String(croppedB64).length/1024/1024)>=10){
+                            return error('Image too large. Preferred size < 10 MB')
+                        }
                         getElement(dataOutElemID).value = croppedB64;
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
@@ -808,3 +812,7 @@ const previewImageDialog = (src) => {
         .set("transition", "fade")
         .maximize();
 };
+
+const futuremessage = (message='') => {
+    localStorage.setItem(Key.futureMessage, message)
+}

@@ -35,6 +35,7 @@ class Code():
 
     TOPIC = 'topic'
     CATEGORY = 'category'
+    TAG = 'tag'
 
     RESULTS = "results"
 
@@ -109,6 +110,7 @@ class Message():
 
     UNDER_MODERATION = "Currently under moderation"
     ALREADY_RESOLVED = "Already resolved"
+    ALREADY_EXISTS = "Already exists"
     REQ_MESSAGE_SAVED = "Request message saved"
     RES_MESSAGE_SAVED = "Response message saved"
     MODERATION_REAPPLIED = "Re-applied for moderation to another moderator."
@@ -664,9 +666,12 @@ class URL():
         CREATE_COMP = 'competitions/create'
         SUBMIT_COMP = 'competitions/submit'
         COMPETITION = 'competitions/<str:compID>'
+        def competition(self, compID):
+            return setPathParams(self.COMPETITION,compID)
         TOPICSEARCH = 'topicsearch'
         JUDGESEARCH = 'judgesearch'
         MODSEARCH = 'moderatorsearch'
+        ELGIBLE_MODSEARCH = 'moderatorsearch/eligible'
 
         REPORT_FEED = 'report-feedback'
         REPORTS = 'report-feedback/reports'
@@ -679,13 +684,33 @@ class URL():
 
         COMMUNITY = 'community'
         MODERATORS = 'community/moderators'
+        REMOVE_MODERATOR = 'community/moderators/remove'
+        ADD_MODERATOR = 'community/moderators/add'
         LABELS = 'community/labels'
+        LABEL_TYPE = 'community/labels/<str:type>'
+        def labelType(self, type) -> str:
+            return setPathParams(self.LABEL_TYPE, type)
+
         LABEL = 'community/labels/<str:type>/<str:labelID>'
+        def label(self, type, labelID):
+            return setPathParams(self.LABEL, type, labelID)
+            
+
+        LABEL_CREATE = 'community/labels/<str:type>/create'
+        def labelCreate(self, type):
+            return setPathParams(self.LABEL_CREATE, type)
+
+        LABEL_UPDATE = 'community/labels/<str:type>/<str:labelID>/update'
+        def labelUpdate(self, type, labelID):
+            return setPathParams(self.LABEL_UPDATE, type, labelID)
+
+        LABEL_DELETE = 'community/labels/<str:type>/<str:labelID>/delete'
+        def labelDelete(self, type, labelID):
+            return setPathParams(self.LABEL_DELETE, type, labelID)
+
         LABEL_TOPICS = 'community/labels/topics'
         LABEL_CATEGORYS = 'community/labels/categories'
 
-        def competition(self, compID):
-            return setPathParams(self.COMPETITION,compID)
 
         def getURLSForClient(self) -> dict:
             URLS = dict()
@@ -1118,6 +1143,11 @@ class Template():
         @property
         def community_labels_categories(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_LABELS_CATEGORIES}.html'
+
+        COMMUNITY_LABELS_TAGS = 'community/labels/tags'
+        @property
+        def community_labels_tags(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_LABELS_TAGS}.html'
 
         COMMUNITY_CATEGORY = 'community/category'
         @property

@@ -1,0 +1,21 @@
+<div class="w3-row w3-padding">
+    <button class="w3-right accent" data-icon="add" id="create-tag">Create</button>
+    <br/>
+    {% for tag in tags %}
+    <div class="w3-row pallete-slab" id="tag-view-{{tag.get_id}}">
+        <div class="w3-col s2">
+        <strong>#{{tag.name}}</strong>
+        </div>
+        <div class="w3-col s2">
+        {{tag.totalProjects}} projects
+        </div>
+        <div class="w3-col s2">
+        {{tag.totalCategories}} categories
+        </div>
+        <div class="w3-col s2">
+        {{tag.totalTopics}} topics
+        </div>
+        <button class="w3-right small negative delete-tag" data-icon="delete" data-tagname="{{tag.name}}" data-tagID="{{tag.get_id}}">Delete</button>
+    </div>
+    {% endfor %}
+</div>

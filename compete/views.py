@@ -147,6 +147,9 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         if person.isBlocked(request.user):
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+        if not submission.competition.isAllowedToParticipate(person):
+            return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
+
         try:
             SubmissionParticipant.objects.get(
                 submission__competition=submission.competition, profile=person)
@@ -177,6 +180,8 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive() or not submission.canInvite():
             raise Exception()
+        if not submission.competition.isAllowedToParticipate(request.user.profile):
+            raise Exception()
         try:
             SubmissionParticipant.objects.get(
                 submission=submission, profile=request.user.profile, confirmed=False)
@@ -202,6 +207,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
         submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
+            raise Exception()
+        if not submission.competition.isAllowedToParticipate(request.user.profile):
             raise Exception()
         if action == Action.DECLINE:
             SubmissionParticipant.objects.filter(
@@ -264,6 +271,8 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         subm = Submission.objects.get(id=subID, competition__id=compID, competition__startAt__lt=now,
                                       competition__endAt__gte=now, competition__resultDeclared=False, members=request.user.profile
                                       )
+        if not subm.competition.isAllowedToParticipate(request.user.profile):
+            raise Exception()
         subm.repo = str(request.POST.get('submissionurl', '')).strip()
         subm.modifiedOn = now
         subm.save()
@@ -284,11 +293,13 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission = Submission.objects.get(
             id=subID, competition__id=compID, competition__resultDeclared=False, members=request.user.profile, submitted=False)
         message = Message.SUBMITTED_SUCCESS
+        if submission.isInvitee(request.user.profile):
+            raise Exception()
+        if not submission.competition.isAllowedToParticipate(request.user.profile):
+            raise Exception()
         if submission.competition.endAt < now:
             submission.late = True
             message = Message.SUBMITTED_LATE
-        if submission.isInvitee(request.user.profile):
-            raise Exception()
         SubmissionParticipant.objects.filter(
             submission=submission, confirmed=False).delete()
         submission.submitOn = now
@@ -300,7 +311,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         return respondJson(Code.OK, message=message)
     except Exception as e:
         errorLog(e)
-        raise respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
@@ -321,6 +332,8 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         competition = submissions.first().competition
 
         if competition.allSubmissionsMarkedByJudge(judge=request.user.profile):
+            raise Exception()
+        if competition.isAllowedToParticipate(request.user.profile):
             raise Exception()
 
         topics = competition.getTopics()
@@ -378,6 +391,9 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         comp = Competition.objects.get(
             id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile)
+
+        if comp.isAllowedToParticipate(request.user.profile):
+            raise Exception()
 
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getManagementLink(error=Message.INVALID_REQUEST))
@@ -462,6 +478,10 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
             self = False
             member = Profile.objects.get(
                 user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
+
+        if request.user.is_authenticated and member.isBlocked(request.user):
+            raise Exception()
+
         result = Result.objects.get(id=resID, submission__members=member)
 
         partcert = ParticipantCertificate.objects.filter(
