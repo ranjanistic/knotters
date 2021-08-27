@@ -71,6 +71,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     defaultQuery = Q(~Q(id__in=ignoreModProfileIDs), is_moderator=True,
                      suspended=False, to_be_zombie=False, is_active=True)
     
+    query = defaultQuery
 
     preferred = False
     if len(onlyModProfiles) > 0:
