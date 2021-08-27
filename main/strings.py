@@ -37,6 +37,9 @@ class Code():
     CATEGORY = 'category'
     TAG = 'tag'
 
+    REPORTS = 'reports'
+    FEEDBACKS = 'feedbacks'
+
     RESULTS = "results"
 
     class Test():
@@ -673,13 +676,17 @@ class URL():
         MODSEARCH = 'moderatorsearch'
         ELGIBLE_MODSEARCH = 'moderatorsearch/eligible'
 
-        REPORT_FEED = 'report-feedback'
-        REPORTS = 'report-feedback/reports'
         CREATE_REPORT = 'report-feedback/reports/create'
-        REPORT = 'report-feedback/reports/<str:reportID>'
-        FEEDBACKS = 'report-feedback/feedbacks'
         CREATE_FEED = 'report-feedback/feedbacks/create'
-        FEEDBACK = 'report-feedback/feedbacks/<str:feedID>'
+        REPORT_FEED = 'report-feedback'
+        REPORT_FEED_TYPE = 'report-feedback/<str:type>'
+        def reportfeedType(self, type):
+            return setPathParams(self.REPORT_FEED_TYPE,type)
+            
+        REPORT_FEED_TYPEID = 'report-feedback/<str:type>/<str:ID>'
+        def reportfeedTypeID(self, type, ID):
+            return setPathParams(self.REPORT_FEED_TYPEID,type,ID)
+        
 
 
         COMMUNITY = 'community'

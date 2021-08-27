@@ -1,0 +1,10 @@
+<div class="w3-row w3-padding">
+
+{% for feed in feedbacks %}
+<div class="w3-row pallete-slab">
+<a href="{{feed.getLink}}">{{feed}}</a>
+</div>
+
+{% endfor %}
+
+</div>

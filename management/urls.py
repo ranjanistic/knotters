@@ -13,13 +13,12 @@ urlpatterns = [
     path(URL.Management.JUDGESEARCH, searchJudge),
     path(URL.Management.MODSEARCH, searchModerator),
 
-    path(URL.Management.REPORT_FEED, reportFeedbacks),
-    path(URL.Management.REPORTS, reports),
     path(URL.Management.CREATE_REPORT, createReport),
-    path(URL.Management.REPORT, report),
-    path(URL.Management.FEEDBACKS, feedbacks),
     path(URL.Management.CREATE_FEED, createFeedback),
-    path(URL.Management.FEEDBACK, feedback),
+    path(URL.Management.REPORT_FEED, reportFeedbacks),
+    path(URL.Management.REPORT_FEED_TYPE, reportfeedType),
+    path(URL.Management.REPORT_FEED_TYPEID, reportfeedTypeID),
+
     path(URL.Management.COMMUNITY, community),
     path(URL.Management.MODERATORS, moderators),
     path(URL.Management.ELGIBLE_MODSEARCH, searchEligibleModerator),

@@ -59,7 +59,6 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
             dp=profile.getDP(),
         )))
     except Exception as e:
-        print(e)
         return respondJson(Code.NO)
 
 @manager_only
@@ -79,7 +78,7 @@ def removeModerator(request: WSGIRequest):
                 mod.save()
         return respondJson(Code.OK)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO, error=e)
 
 @manager_only
@@ -218,7 +217,6 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
             iscreator=(compete.creator == request.user.profile)
         ))
     except Exception as e:
-        print(e)
         raise Http404()
 
 
@@ -370,21 +368,7 @@ def submitCompetition(request) -> HttpResponse:
 @manager_only
 @require_GET
 def reportFeedbacks(request: WSGIRequest):
-    reports = Report.objects.filter()
-    feedbacks = Feedback.objects.filter()
-    return renderer(request, Template.Management.REPORTFEED_INDEX, dict(
-        reports=reports,
-        feedbacks=feedbacks,
-    ))
-
-
-@manager_only
-@require_GET
-def reports(request: WSGIRequest):
-    reports = Report.objects.filter()
-    return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(
-        reports=reports
-    ))
+    return renderer(request, Template.Management.REPORTFEED_INDEX)
 
 
 @require_JSON_body
@@ -405,25 +389,6 @@ def createReport(request: WSGIRequest) -> JsonResponse:
     return respondJson(Code.OK if report else Code.NO, error=Message.ERROR_OCCURRED if not report else '')
 
 
-@manager_only
-@require_GET
-def report(request: WSGIRequest, reportID: UUID):
-    try:
-        report = Report.objects.get(id=reportID)
-        return renderer(request, Template.Management.REPORTFEED_REPORT, dict(report=report))
-    except:
-        raise Http404()
-
-
-@manager_only
-@require_GET
-def feedbacks(request: WSGIRequest):
-    feedbacks = Feedback.objects.filter()
-    return rendererstr(request, Template.Management.REPORTFEED_FEEDBACKS, dict(
-        feedbacks=feedbacks
-    ))
-
-
 @require_JSON_body
 def createFeedback(request: WSGIRequest):
     email = request.POST.get('email', None)
@@ -442,9 +407,29 @@ def createFeedback(request: WSGIRequest):
 
 @manager_only
 @require_GET
-def feedback(request: WSGIRequest, feedID: UUID):
+def reportfeedType(request:WSGIRequest, type:str):
     try:
-        feedback = Feedback.objects.get(id=feedID)
-        return renderer(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
-    except:
+        if type == Code.REPORTS:
+            reports = Report.objects.filter()
+            return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(reports=reports))
+        elif type == Code.FEEDBACKS:
+            feedbacks = Feedback.objects.filter()
+            return rendererstr(request, Template.Management.REPORTFEED_FEEDBACKS, dict(feedbacks=feedbacks))
+        else: raise Exception(type)
+    except Exception as e:
+        raise Http404()
+
+@manager_only
+@require_GET
+def reportfeedTypeID(request:WSGIRequest, type:str, ID:UUID):
+    try:
+        if type == Code.REPORTS:
+            report = Report.objects.get(id=ID)
+            return rendererstr(request, Template.Management.REPORTFEED_REPORT, dict(report=report))
+        elif type == Code.FEEDBACKS:
+            feedback = Feedback.objects.get(id=ID)
+            return rendererstr(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
+        else: raise Exception(type)
+    except Exception as e:
+        print(e)
         raise Http404()

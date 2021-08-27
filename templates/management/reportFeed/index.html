@@ -1,15 +1,30 @@
 {% extends 'management/index.html' %}
 
+
 {% block nav_icon %}
 <button class="primary previous-navigation-button" data-icon="arrow_back" onclick="window.close()"></button>
 {% endblock %}
-
-{% block nav_text %}Reports {% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
+{% block nav_text %}Reports & Feedbacks{% endblock %}
 
 {% block content %}
+<div class="w3-row">
+    <div class="w3-row w3-padding-small w3-center">
+        <button id="reports" class="nav-tab">Reports</button>
+        <button id="feedbacks" class="nav-tab">Feedbacks</button>
+    </div>
+    <div id="tabview"></div>
+</div>
+{% endblock %}
 
-{% for report in reports %}
-    {{report}}
-{% endfor %}
-
+{% block scripts %}
+<script>
+initializeTabsView({
+    onEachTab: async (tab) => {
+        return await getRequest(setUrlParams(URLS.REPORT_FEED_TYPE, tab.id));
+    },
+    uniqueID: "reportfeedtab",
+    onShowTab: (tab) => {}
+})
+</script>
 {% endblock %}
