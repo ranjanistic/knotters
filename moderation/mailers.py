@@ -9,7 +9,7 @@ def moderationAssignedAlert(moderation: Moderation) -> bool:
         to=moderation.moderator.getEmail(),
         username=moderation.moderator.getName(),
         subject="New Moderation Assigned",
-        header=f"A new moderation of type {moderation.type} has been assigned to you to review. The following link button will take you directly to the moderation view.",
+        header=f"A new moderation of type '{moderation.type}' has been assigned to you to review. The following link button will take you directly to the moderation view.",
         actions=[{
             'text': 'View moderation',
             'url': moderation.getLink()

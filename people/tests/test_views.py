@@ -303,8 +303,7 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        resp = client.post(follow=True,path=authroot(url.auth.LOGIN),data=dict(login=E2, password=P2))
-        self.assertTrue(resp.context['user'].is_authenticated)
+        client.login(email=E2, password=P2)
         resp = client.post(follow=True,path=root(url.people.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -382,8 +381,7 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        resp = client.post(follow=True,path=authroot(url.auth.LOGIN), data=dict(login=E2, password=P2))
-        self.assertTrue(resp.context['user'].is_authenticated)
+        client.login(email=E2, password=P2)
         resp = client.post(follow=True,path=root(url.people.ACCOUNTDELETE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(

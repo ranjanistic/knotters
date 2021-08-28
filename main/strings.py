@@ -139,6 +139,8 @@ class Message():
     CERTS_GENERATED = 'Certificates generated successfully.'
     CERT_NOT_FOUND = 'Certificate not found'
 
+    MODERATION_SKIPPED = "That moderation was passed on to another moderator."
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that

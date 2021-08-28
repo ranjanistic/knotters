@@ -8,11 +8,13 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from projects.methods import setupApprovedProject
 from projects.mailers import projectRejectedNotification
-from main.methods import errorLog, respondJson
-from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE
+from main.methods import errorLog, respondJson, respondRedirect
+from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE, URL
 from main.decorators import require_JSON_body, moderator_only, normal_profile_required
+from .apps import APPNAME
+from .mailers import moderationAssignedAlert
 from .models import Moderation
-from .methods import renderer, requestModerationForObject
+from .methods import getModeratorToAssignModeration, renderer, requestModerationForObject
 
 
 @normal_profile_required
@@ -85,24 +87,32 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     Moderator action on moderation. (Project, primarily)
     """
     try:
-        approve = request.POST.get('approve', None)
-        if approve == None:
-            return respondJson(Code.NO)
         mod = Moderation.objects.get(id=modID, moderator=request.user.profile, resolved=False)
-        if not approve:
-            done = mod.reject()
-            if done and mod.type == PROJECTS:
-                projectRejectedNotification(mod.project)
-            return respondJson(Code.OK if done else Code.NO)
-        elif approve:
-            done = mod.approve()
-            if done and mod.type == PROJECTS:
-                done = setupApprovedProject(mod.project, mod.moderator)
-                if not done:
-                    mod.revertApproval()
-            return respondJson(Code.OK if done else Code.NO, error=Message.ERROR_OCCURRED if not done else str())
+        skip = request.POST.get('skip', None)
+        if skip:
+            newmod = getModeratorToAssignModeration(mod.type,mod.object,[mod.moderator])
+            mod.moderator = newmod
+            mod.save()
+            moderationAssignedAlert(mod)
+            return respondRedirect(PEOPLE,'',alert=Message.MODERATION_SKIPPED)
         else:
-            return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
+            approve = request.POST.get('approve', None)
+            if approve == None:
+                return respondJson(Code.NO)
+            if not approve:
+                done = mod.reject()
+                if done and mod.type == PROJECTS:
+                    projectRejectedNotification(mod.project)
+                return respondJson(Code.OK if done else Code.NO)
+            elif approve:
+                done = mod.approve()
+                if done and mod.type == PROJECTS:
+                    done = setupApprovedProject(mod.project, mod.moderator)
+                    if not done:
+                        mod.revertApproval()
+                return respondJson(Code.OK if done else Code.NO, error=Message.ERROR_OCCURRED if not done else str())
+            else:
+                return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

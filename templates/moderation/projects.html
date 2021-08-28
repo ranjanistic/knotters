@@ -70,6 +70,11 @@
         of access to this project and related services, everywhere. Therefore, decide thoughtfully before proceeding.</h6>
         <button class="big-button positive modaction" id="approve" data-icon="done">Approve</button>
         <button class="big-button negative modaction" id="reject" data-icon="close">Reject</button>
+        <form method="POST" action="{{URLS.ACTION|params:moderation.getID}}">
+            {% csrf_token %}
+            <input type="text" hidden value="true" name="skip" />
+            <button class="big-button primary" type="submit" id="skip" data-icon="skip_next">Skip</button>
+        </form>
         {% else %}
             <i class="w3-jumbo material-icons">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
             <h3 class="text-accent">Action taken</h3>
@@ -115,13 +120,14 @@
 
 {% block scripts %}
 <script>
+const modID = "{{moderation.getID}}";
 {% if ismoderator %}
 getElements("modaction").forEach((action)=>{
     const approve = action.id === 'approve';
     const modaction = async() => {
         loader(true);
         message('Resolving moderation, please wait.')
-        const data = await postRequest(`{{URLS.ACTION|params:moderation.getID}}`, {approve})
+        const data = await postRequest(setUrlParams(URLS.ACTION, modID), {approve})
         if (!data) return loader(false);;
         if(data.code === code.OK){
             success('Resolved.')
