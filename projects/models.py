@@ -175,8 +175,12 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
-    def getID(self) -> str:
+    @property
+    def get_id(self) -> str:
         return self.id.hex
+
+    def getID(self) -> str:
+        return self.get_id
 
     def save(self, *args, **kwargs):
         try:

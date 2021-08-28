@@ -9,10 +9,10 @@
         <span id="new-moderators-view"></span>
         {% for mod in moderators %}
         <div class="w3-row pallete-slab" id="pallete-demote-{{mod.getUserID}}">
-            <div class="w3-col s1">
+            <div class="w3-col s2 m1">
                 <img src="{{mod.getDP}}" class="w3-circle primary" width="50" />
             </div>
-            <div class="w3-col s8 w3-padding-small">
+            <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
                     {{mod.getName}} {{mod.get_xp}}
                 </div>
@@ -20,7 +20,7 @@
                     {{mod.getEmail}}
                 </div>
             </div>
-            <div class="w3-col s3 w3-padding-small">
+            <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
                     <a href="{{mod.getLink}}" target="_blank"><button class="small primary">View</button></a>
                 </div>
@@ -39,10 +39,10 @@
     <h5>Suggested</h5>
     {% for mod in profiles %}
         <div class="w3-row pallete-slab" id="pallete-promote-{{mod.getUserID}}">
-            <div class="w3-col s1">
+            <div class="w3-col s2 m1">
                 <img src="{{mod.getDP}}" class="w3-circle primary" width="50" />
             </div>
-            <div class="w3-col s8 w3-padding-small">
+            <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
                     {{mod.getName}} {{mod.get_xp}}
                 </div>
@@ -50,7 +50,7 @@
                     {{mod.getEmail}}
                 </div>
             </div>
-            <div class="w3-col s3 w3-padding-small">
+            <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
                     <a href="{{mod.getLink}}" target="_blank"><button class="small primary">View</button></a>
                 </div>
@@ -99,10 +99,10 @@ getElement('search-profile-input').oninput=async(e)=>{
     if (data.code!==code.OK) return
     const mod = data.mod;
     setHtmlContent(resview,`<div class="w3-row pallete-slab" id="pallete-promote-${data.mod.userID}">
-            <div class="w3-col s1">
+            <div class="w3-col s2 m1">
                 <img src="${mod.dp}" class="w3-circle primary" width="50" />
             </div>
-            <div class="w3-col s8 w3-padding-small">
+            <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
                     ${mod.name}
                 </div>
@@ -110,7 +110,7 @@ getElement('search-profile-input').oninput=async(e)=>{
                     ${mod.email}
                 </div>
             </div>
-            <div class="w3-col s3 w3-padding-small">
+            <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
                     <a href="${mod.url}" target="_blank"><button class="small primary">View</button></a>
                 </div>

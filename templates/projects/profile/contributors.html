@@ -1,7 +1,21 @@
+{% load static %}
 <div class="w3-row">
 {% for contributor in contributors %}
-<div class="pallete-slab w3-padding-small">
-    <a href="{{contributor.getLink}}" target="_blank"><button class="primary"><img class="w3-circle primary" src="{{contributor.getDP}}" width="20"/> {{ contributor.getName }}</button></a>
+<div class="w3-row pallete-slab">
+    <div class="w3-col s2 m1 ">
+        <a href="{{contributor.getLink}}"><img src="{{contributor.getDP}}" class="w3-circle primary" width="40" /></a>
+    </div>
+    <div class="w3-col s10 m9" style="padding-left:12px">
+        <div class="w3-row">
+            <strong>{{contributor.getName}}</strong>
+        </div>
+        <div class="w3-row">
+            {{contributor.ghID}}
+        </div>
+    </div>
+    <div class="w3-col s4 m2 w3-right"> 
+        <a class="w3-right" href="{{contributor.get_ghLink}}" target="_blank" rel="noreferrer"><button class="small secondary"><img class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" /></button></a>
+    </div>
 </div>
 {% endfor %}
 </div>

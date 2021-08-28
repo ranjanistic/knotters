@@ -376,7 +376,8 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
         return rendererstr(request, Template.Projects.PROFILE_CONTRIBS, data=getProjectLiveData(project))
-    except:
+    except Exception as e:
+        print(e)
         raise Http404()
 
 
@@ -404,13 +405,49 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
                 project.moderator.increaseXP(by=2)
         elif event == Event.PR:
             pr = request.POST.get('pull_request', None)
+            if pr:
+                action = request.POST.get('action', None)
+                creator_ghID = pr['user']['login']
+                if action == 'opened':
+                    creator = Profile.objects.filter(githubID=creator_ghID, is_active=True).first()
+                    if creator:
+                        creator.increaseXP(by=5)
+                elif action == 'closed':
+                    creator = Profile.objects.filter(githubID=creator_ghID, is_active=True).first()
+                    if pr['merged']:
+                        if creator:
+                            creator.increaseXP(by=10)
+                        project.creator.increaseXP(by=5)
+                        project.moderator.increaseXP(by=5)
+                    else:
+                        if creator:
+                            creator.decreaseXP(by=2)
+                elif action == 'reopened':
+                    creator = Profile.objects.filter(githubID=creator_ghID, is_active=True).first()
+                    if creator:
+                        creator.increaseXP(by=2)
+                elif action == 'review_requested':
+                    reviewer = Profile.objects.filter(githubID=pr['requested_reviewer']['login'], is_active=True).first()
+                    if reviewer:
+                        reviewer.increaseXP(by=5)
+                elif action == 'review_request_removed':
+                    reviewer = Profile.objects.filter(githubID=pr['requested_reviewer']['login'], is_active=True).first()
+                    if reviewer:
+                        reviewer.decreaseXP(by=5)
+                else:
+                    return HttpResponseBadRequest(event)
+            else:
+                return HttpResponseBadRequest(event)
+        elif event == Event.STAR:
             action = request.POST.get('action', None)
-            if pr and action == 'closed' and pr['merged']:
-                creator = Profile.objects.filter(githubID=pr['user']['login'], is_active=True).first()
-                if creator:
-                    creator.increaseXP(by=10)
-                project.creator.increaseXP(by=5)
-                project.moderator.increaseXP(by=5)
+            if action == 'created':
+                project.creator.increaseXP(by=2)
+                project.moderator.increaseXP(by=2)
+            elif action == 'deleted':
+                project.creator.decreaseXP(by=2)
+                project.moderator.decreaseXP(by=2)
+            else:
+                return HttpResponseBadRequest(event)
         else:
             return HttpResponseBadRequest(event)
         return HttpResponse(Code.OK)

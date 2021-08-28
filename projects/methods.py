@@ -243,7 +243,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             name='web',
             events=[Event.PUSH],
             config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.getID())}",
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.get_id)}",
                 content_type='form',
                 secret=settings.GH_HOOK_SECRET,
                 insecure_ssl=0,
@@ -254,7 +254,18 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             name='web',
             events=[Event.PR],
             config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PR,projID=project.getID())}",
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PR,projID=project.get_id)}",
+                content_type='form',
+                secret=settings.GH_HOOK_SECRET,
+                insecure_ssl=0,
+                digest=Code.SHA256
+            )
+        )
+        ghOrgRepo.create_hook(
+            name='web',
+            events=[Event.STAR],
+            config=dict(
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.STAR,projID=project.get_id)}",
                 content_type='form',
                 secret=settings.GH_HOOK_SECRET,
                 insecure_ssl=0,

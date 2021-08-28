@@ -56,6 +56,7 @@ class Event():
     PING = 'ping'
     PUSH = 'push'
     PR = 'pull_request'
+    STAR = 'star'
     MEMBER_ADDED = 'member_added'
     MEMBER_REMOVED = 'member_removed'
     ORG = 'organization'

@@ -166,10 +166,10 @@
                 <div class="pallete">
                     <center><h5>Description</h5><hr/></center>
                     <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}} </button></a><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
                     <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
-                    <strong>Moderated by</strong><a href="{{project.getModerator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.getModerator.getDP}}"  width="20"/>&nbsp;{{project.getModerator.getName}} </button></a><br/><br/>
-                    <strong>License: <a onclick="miniWindow('{{URLS.PROJECTS}}{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/>
+                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
                 </div>
             </div>
             <br/>
