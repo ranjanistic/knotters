@@ -28,8 +28,10 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
+        self = False
         if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.githubID == userID):
             person = request.user
+            self = True
         else:
             try:
                 person = User.objects.get(
@@ -46,7 +48,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         if request.user.is_authenticated:
             if person.profile.isBlocked(request.user):
                 raise Exception()
-        return renderer(request, Template.People.PROFILE, dict(person=person))
+        return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -408,6 +410,29 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         raise Http404()
+
+@normal_profile_required
+@require_JSON_body
+def blockUser(request: WSGIRequest):
+    try:
+        userID = request.POST['userID']
+        user = User.objects.get(id=userID)
+        request.user.profile.blockUser(user)
+        return respondJson(Code.OK)
+    except Exception as e:
+        return respondJson(Code.NO)
+
+@normal_profile_required
+@require_JSON_body
+def unblockUser(request: WSGIRequest):
+    try:
+        userID = request.POST['userID']
+        user = User.objects.get(id=userID)
+        request.user.profile.unblockUser(user)
+        return respondJson(Code.OK)
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
 
 @csrf_exempt
 @github_only

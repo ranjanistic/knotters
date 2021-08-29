@@ -116,16 +116,16 @@
         {% if person.profile.ghID %}
           <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.ghID}}</button></a>
         {% elif user.is_authenticated and user == person %}
-        <a href="{{URLS.Auth.GITHUB}}login/?process=connect&next={{URLS.REDIRECTOR}}?n={{user.profile.getLink}}">
-        <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
-          &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
-        </button>
-        </a>
+          <a href="{{URLS.Auth.GITHUB}}login/?process=connect&next={{URLS.REDIRECTOR}}?n={{user.profile.getLink}}">
+          <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
+            &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
+          </button>
+          </a>
         {% endif %}
         </div>
         <br />
 
-        {% if user.is_authenticated and user == person %}
+        {% if self %}
         <div class="w3-row pallete">
           <p><b>Email ID</b> <span>{{ person.email }}</span></p>
           <p><b>Date joined</b> <span>{{ person.date_joined }}</span></p>
@@ -134,6 +134,11 @@
         <br />
         {% endif %}
 
+		{% if not self and user.is_authenticated %}
+        <div class="w3-row">
+        <button class="small negative-text" data-icon="block" id='block-account'>Block</button>
+        </div>
+		{% endif %}
       </div>
       <div class="w3-col w3-container m8 l9 ">
         <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
@@ -186,7 +191,7 @@
       subLoader()
       loader()
       message("Reactivating your account...")
-      const data = await postRequest('{{URLS.ACCOUNTACTIVATION}}', {
+      const data = await postRequest(URLS.ACCOUNTACTIVATION, {
         activate: true
       });
       if(data.code===code.OK){
@@ -198,6 +203,31 @@
       error(data.error)
     }
   }catch{}
+
+  if (!selfProfile){
+	getElement('block-account').onclick=_=>{
+		alertify.confirm(
+			`<h3>Block {{person.profile.getName}}?</h3>`,
+			`<h6>Are you sure you want to ${NegativeText('block {{person.profile.getName}}')}? You both will be invisible to each other on ${APPNAME}, including all associated activities.
+			<br/>You can unblock them anytime from your profile's privacy settings.
+			</h6>`,
+			()=>{},
+			async()=>{
+				loader()
+				const data = await postRequest(URLS.BLOCK_USER,{
+					userID: '{{person.get_id}}'
+				})
+				if(!data) return loader(false)
+				if(data.code===code.OK){
+					futuremessage('Blocked {{person.profile.getName}}.')
+					return window.location.replace(ROOT)
+				}
+				loader(false)
+				error(data.error)
+			}
+		).set('labels', {cancel:`${Icon('block')} Block {{person.profile.getFName}}`, ok:'No, go back'}).set('closable', false)
+	}
+  }
 </script>
 <script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %} 

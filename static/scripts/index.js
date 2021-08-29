@@ -650,6 +650,9 @@ const loadReporters = () => {
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
 
+const PositiveText = (text = "") =>
+    `<span class="positive-text">${text}</span>`;
+
 const secsToTime = (secs) => {
     secs = Number(secs);
     let mins = secs / 60;

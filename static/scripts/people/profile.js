@@ -411,6 +411,32 @@ const loadTabScript = (tab) => {
                 getElement("deleteaccount").onclick = (_) => {
                     accountDeletionDialog();
                 };
+
+                getElements('unblock-button').forEach((unblock)=>{
+                    const username = unblock.getAttribute('data-username')
+                    const userID = unblock.getAttribute('data-userID')
+                    unblock.onclick=_=>{
+                        alertify.confirm(
+                            `<h3>Un-block ${username}?</h3>`,
+                            `<h6>Are you sure you want to ${PositiveText(`unblock ${username}`)}? You both will be visible to each other on ${APPNAME}, including all associated activities.
+                            <br/>You can block them anytime from their profile.
+                            </h6>`,
+                            async()=>{
+                                loader()
+                                const data = await postRequest(URLS.UNBLOCK_USER,{userID})
+                                if(!data) return loader(false)
+                                if(data.code===code.OK){
+                                    futuremessage(`Unblocked ${username}.`)
+                                    return window.location.reload()
+                                }
+                                loader(false)
+                                error(data.error)
+                            },
+                            ()=>{},
+                        ).set('labels', {ok:`${Icon('remove_circle_outline')} Unblock ${username}`, cancel:'No, go back'})
+                    }
+                })
+
             }
             break;
         default:

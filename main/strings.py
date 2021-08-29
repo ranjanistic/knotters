@@ -566,6 +566,9 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
+        BLOCK_USER = 'blockuser'
+        UNBLOCK_USER = 'unblockuser'
+
         NEWBIES = 'newbies'
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
