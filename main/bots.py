@@ -22,6 +22,7 @@ class Sender():
             "lastname": last_name,
             "groups": ["dL8pBD"],
         }
+        if not ISPRODUCTION: return True
         try:
             response = requests.request(
                 'POST', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
@@ -35,6 +36,7 @@ class Sender():
 
         :fullData: If True, returns only the id of user from mailing server. Default: False
         """
+        if not ISPRODUCTION: return True
         try:
             if not email:
                 return None
@@ -49,6 +51,7 @@ class Sender():
         """
         Removes user from mailing server.
         """
+        if not ISPRODUCTION: return True
         try:
             subscriber = Sender.getUserFromMailingServer(email, True)
             if not subscriber:
@@ -68,6 +71,7 @@ class Sender():
         """
         Adds user to a mailing group (assuming the user to be an existing server subscriber).
         """
+        if not ISPRODUCTION: return True
         try:
             subID = Sender.getUserFromMailingServer(email)
             if not subID:
@@ -87,6 +91,7 @@ class Sender():
         """
         Removes user from a mailing group.
         """
+        if not ISPRODUCTION: return True
         try:
             subID = Sender.getUserFromMailingServer(email=email)
             if not subID:
