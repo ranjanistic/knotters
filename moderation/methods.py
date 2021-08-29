@@ -110,7 +110,6 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         temp += 1
     current.value = temp
     current.save()
-    print(availableModProfiles)
     return availableModProfiles[temp-1]
 
 

@@ -25,9 +25,9 @@
 <link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" />
 {% endblock %}
 
-{% block nav_icon %}
-    <button class="primary previous-navigation-button" data-icon="arrow_back"></button>
-{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
 {% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_text %}{{project.name}}{% endblock %}
 

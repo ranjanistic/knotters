@@ -71,9 +71,14 @@
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
             {% block nav_title %}
-            <a href="{% block nav_href %}{{ROOT}}{% endblock %}" class="w3-left w3-padding w3-animate-left previous-navigation-button">
+            <a href="{% block nav_href %}{{ROOT}}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" class="w3-left w3-padding w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
-                {% block nav_icon %}<img alt="{{APPNAME}}" src="{{ICON}}" class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />{% endblock %}
+                {% block nav_icon_hide %}
+                    <img alt="{{APPNAME}}" src="{{ICON}}" {% if request.GET.miniwin %}onclick="window.close()"{% endif %} class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />
+                {% endblock %}
+                <button 
+                    {% block nav_back_show %}hidden{% endblock %}
+                    class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" {% if request.GET.miniwin %}onclick="window.close()"{% endif %}></button>
             </a>
             <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}

@@ -377,32 +377,31 @@ class TestViews(TestCase):
             User.objects.get(email=E2)
 
     def test_accountDelete(self):
-        client = Client()
+        client2 = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
-        client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+        client2.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
             email=E2,
             first_name=getTestName(),
             password1=P2
         ))
-        client.login(email=E2, password=P2)
-        client.login(email=E2, password=P2)
-        resp = client.post(follow=True, path=root(url.people.ACCOUNTDELETE))
+        client2.login(email=E2, password=P2)
+        resp = client2.post(follow=True, path=root(url.people.ACCOUNTDELETE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
-        resp = client.post(follow=True, path=root(
+        resp = client2.post(follow=True, path=root(
             url.people.ACCOUNTDELETE), data={'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.SUCCESSOR_UNSET))
 
-        resp = client.post(follow=True, path=root(url.people.INVITESUCCESSOR),
+        resp = client2.post(follow=True, path=root(url.people.INVITESUCCESSOR),
                            data={'useDefault': True, 'set': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = client.post(follow=True, path=root(
+        resp = client2.post(follow=True, path=root(
             url.people.ACCOUNTDELETE), data={'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(resp.content.decode(

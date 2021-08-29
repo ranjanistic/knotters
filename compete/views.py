@@ -120,7 +120,6 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink())
     except Exception as e:
-        print(e)
         errorLog(e)
         raise Http404()
 
