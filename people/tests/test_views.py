@@ -291,7 +291,7 @@ class TestViews(TestCase):
             user__email=E2, successor_confirmed=False, successor=self.user)
         self.assertIsInstance(profile, Profile)
 
-        resp = client2.get(follow=True, path=root(
+        resp = self.client.get(follow=True, path=root(
             url.people.successorInvite(profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
