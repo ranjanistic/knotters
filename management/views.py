@@ -23,14 +23,14 @@ from .apps import APPNAME
 
 @manager_only
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Management.INDEX)
 
 
 @manager_only
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def community(request: WSGIRequest):
     return renderer(request, Template.Management.COMMUNITY_INDEX)
 
@@ -103,7 +103,7 @@ def addModerator(request: WSGIRequest):
 
 @manager_only
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def labels(request: WSGIRequest):
     return renderer(request, Template.Management.COMMUNITY_LABELS)
 
@@ -281,7 +281,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 
 @manager_only
 @require_GET
-@cache_page(settings.CACHE_SHORT)
+# @cache_page(settings.CACHE_SHORT)
 def createCompete(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Management.COMP_CREATE)
 
@@ -368,7 +368,7 @@ def submitCompetition(request) -> HttpResponse:
 
 @manager_only
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def reportFeedbacks(request: WSGIRequest):
     return renderer(request, Template.Management.REPORTFEED_INDEX)
 

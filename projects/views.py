@@ -375,7 +375,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 
 @require_GET
-@cache_page(settings.CACHE_SHORT)
+# @cache_page(settings.CACHE_SHORT)
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
