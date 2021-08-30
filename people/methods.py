@@ -76,7 +76,7 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
 
 
 def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
-    if profile.isBlocked(requestUser):
+    if requestUser.is_authenticated and profile.isBlocked(requestUser):
         return None
     data = dict(
             self=requestUser == profile.user,
