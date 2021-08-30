@@ -5,6 +5,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
+from django.conf import settings
+from django.views.decorators.cache import cache_page
 from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import github_only, require_JSON_body, normal_profile_required
@@ -18,11 +20,9 @@ from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
-    people = Profile.objects.filter(~Q(Q(is_zombie=True) | Q(
-        to_be_zombie=True)), is_active=True, suspended=False)
-    data = dict(people=people)
-    return renderer(request, Template.People.INDEX, data)
+    return renderer(request, Template.People.INDEX)
 
 
 @require_GET

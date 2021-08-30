@@ -3,7 +3,7 @@ from main.strings import URL
 from .views import *
 
 urlpatterns = [
-    path(URL.INDEX, allProjects),
+    path(URL.INDEX, index),
     path(URL.Projects.ALLLICENSES, allLicences),
     path(URL.Projects.LICENSE, licence),
     path(URL.Projects.LICENSES, licences),

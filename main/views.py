@@ -4,7 +4,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
+from django.utils.decorators import method_decorator
 from django.conf import settings
+from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
@@ -19,6 +21,7 @@ from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
 
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
 
@@ -35,6 +38,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 
 @require_GET
+@cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
     comp = Competition.objects.filter(startAt__lt=timezone.now(),endAt__gte=timezone.now()).first()
     data = dict()
@@ -59,12 +63,14 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
     return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
 
 
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         doc = LegalDoc.objects.get(pseudonym=type)
@@ -79,11 +85,13 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
 
 
 @require_GET
+@cache_page(settings.CACHE_SHORT)
 def landing(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.LANDING)
 
 
 @require_GET
+@cache_page(settings.CACHE_SHORT)
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     if subapp == COMPETE:
         template = Template.Compete.LANDING
@@ -95,7 +103,7 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
         raise Http404()
     return renderView(request, template, fromApp=subapp)
 
-
+@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
@@ -105,7 +113,7 @@ class Robots(TemplateView):
         # context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
         return context
 
-
+@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
@@ -138,7 +146,7 @@ class Manifest(TemplateView):
         context = dict(**context, icons=icons)
         return context
 
-
+@method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS

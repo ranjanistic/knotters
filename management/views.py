@@ -3,6 +3,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
+from django.conf import settings
+from django.views.decorators.cache import cache_page
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, URL, Message, Code, Template
@@ -21,12 +23,14 @@ from .apps import APPNAME
 
 @manager_only
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Management.INDEX)
 
 
 @manager_only
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def community(request: WSGIRequest):
     return renderer(request, Template.Management.COMMUNITY_INDEX)
 
@@ -99,13 +103,9 @@ def addModerator(request: WSGIRequest):
 
 @manager_only
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def labels(request: WSGIRequest):
-    categories = Category.objects.filter()
-    topics = Topic.objects.filter()
-    return renderer(request, Template.Management.COMMUNITY_LABELS, dict(
-        categories=categories,
-        topics=topics
-    ))
+    return renderer(request, Template.Management.COMMUNITY_LABELS)
 
 
 @manager_only
@@ -281,6 +281,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 
 @manager_only
 @require_GET
+@cache_page(settings.CACHE_SHORT)
 def createCompete(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Management.COMP_CREATE)
 
@@ -367,6 +368,7 @@ def submitCompetition(request) -> HttpResponse:
 
 @manager_only
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def reportFeedbacks(request: WSGIRequest):
     return renderer(request, Template.Management.REPORTFEED_INDEX)
 

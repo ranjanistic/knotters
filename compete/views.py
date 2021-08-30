@@ -8,6 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
+from django.views.decorators.cache import cache_page
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
 from main.methods import errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
@@ -20,6 +21,7 @@ from .apps import APPNAME
 
 
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.INDEX)
 
@@ -447,6 +449,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 
 
 @require_GET
+@cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
     

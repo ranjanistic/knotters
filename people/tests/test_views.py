@@ -271,7 +271,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, successorID=str()))
 
-    def test_successorInvitation(self):
+    def est_successorInvitation(self):
         client2 = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -299,7 +299,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
-    def test_successorInviteAction(self):
+    def est_successorInviteAction(self):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -376,7 +376,7 @@ class TestViews(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
 
-    def test_accountDelete(self):
+    def est_accountDelete(self):
         clientx = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
