@@ -3,7 +3,7 @@ from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.test import TestCase, Client, tag
 from django.db.models import QuerySet
 from django.http import HttpResponse
-from main.strings import Code, url, template, Message, Action
+from main.strings import Code, url, template, Message
 from main.tests.utils import getRandomStr
 from people.models import Profile, Topic, User
 from people.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword, getTestTopicsInst
@@ -36,10 +36,9 @@ class TestViews(TestCase):
     def setUp(self) -> None:
         self.client = Client()
 
-    def test_allProjects(self):
+    def test_index(self):
         resp = self.client.get(follow=True, path=root(''))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertIsInstance(resp.context['projects'], QuerySet)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.projects.index)
 

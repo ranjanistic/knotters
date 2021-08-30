@@ -21,7 +21,7 @@ from .apps import APPNAME
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.INDEX)
 
@@ -449,7 +449,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
     

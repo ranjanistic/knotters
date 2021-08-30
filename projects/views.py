@@ -21,7 +21,7 @@ from .apps import APPNAME
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Projects.INDEX)
 
@@ -42,7 +42,7 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)

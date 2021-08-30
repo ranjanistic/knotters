@@ -139,8 +139,6 @@ else:
         }
     }
 
-
-
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.dummy.DummyCache"
@@ -158,6 +156,8 @@ CACHES = {
 CACHE_LONG = 60 * 30
 CACHE_SHORT = 60 * 15
 CACHE_MINI = 60 * 5
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

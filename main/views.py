@@ -40,7 +40,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 
 @require_GET
-@cache_page(settings.CACHE_SHORT)
+# @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
     comp = Competition.objects.filter(
         startAt__lt=timezone.now(), endAt__gte=timezone.now()).first()
@@ -66,14 +66,14 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
     return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         doc = LegalDoc.objects.get(pseudonym=type)
@@ -88,13 +88,13 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
 
 
 @require_GET
-@cache_page(settings.CACHE_SHORT)
+# @cache_page(settings.CACHE_SHORT)
 def landing(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.LANDING)
 
 
 @require_GET
-@cache_page(settings.CACHE_SHORT)
+# @cache_page(settings.CACHE_SHORT)
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     if subapp == COMPETE:
         template = Template.Compete.LANDING

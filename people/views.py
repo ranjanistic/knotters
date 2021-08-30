@@ -20,7 +20,7 @@ from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
+# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.People.INDEX)
 

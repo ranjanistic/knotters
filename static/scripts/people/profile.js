@@ -422,14 +422,12 @@ const loadTabScript = (tab) => {
                             <br/>You can block them anytime from their profile.
                             </h6>`,
                             async()=>{
-                                loader()
                                 const data = await postRequest(URLS.UNBLOCK_USER,{userID})
-                                if(!data) return loader(false)
+                                if(!data) return
                                 if(data.code===code.OK){
-                                    futuremessage(`Unblocked ${username}.`)
-                                    return window.location.reload()
+                                    message(`Unblocked ${username}.`)
+                                    return tab.click()
                                 }
-                                loader(false)
                                 error(data.error)
                             },
                             ()=>{},
