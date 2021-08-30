@@ -20,6 +20,7 @@ from .decorators import dev_only
 from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
 
+
 @require_GET
 @cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
@@ -31,6 +32,7 @@ def offline(request: WSGIRequest) -> HttpResponse:
 def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
     return renderView(request, f'account/email/{template}')
 
+
 @require_GET
 @dev_only
 def template(request: WSGIRequest, template: str) -> HttpResponse:
@@ -40,7 +42,8 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 @require_GET
 @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-    comp = Competition.objects.filter(startAt__lt=timezone.now(),endAt__gte=timezone.now()).first()
+    comp = Competition.objects.filter(
+        startAt__lt=timezone.now(), endAt__gte=timezone.now()).first()
     data = dict()
     if comp:
         data = dict(
@@ -49,7 +52,7 @@ def index(request: WSGIRequest) -> HttpResponse:
                 url=comp.getLink(),
             )
         )
-    return renderView(request, Template.INDEX,data)
+    return renderView(request, Template.INDEX, data)
 
 
 @require_GET
@@ -103,6 +106,7 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
         raise Http404()
     return renderView(request, template, fromApp=subapp)
 
+
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
@@ -112,6 +116,7 @@ class Robots(TemplateView):
         context = super().get_context_data(**kwargs)
         # context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
         return context
+
 
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
@@ -146,6 +151,7 @@ class Manifest(TemplateView):
         context = dict(**context, icons=icons)
         return context
 
+
 @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
@@ -158,7 +164,8 @@ class ServiceWorker(TemplateView):
 
         def appendWhen(path: str):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
-        assets = getDeepFilePaths(settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
+        assets = getDeepFilePaths(
+            settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
 
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
@@ -241,7 +248,7 @@ class ServiceWorker(TemplateView):
 
 
 @require_GET
-def browser(request:WSGIRequest, type:str):
+def browser(request: WSGIRequest, type: str):
     try:
         if type == "new-profiles":
             excludeIDs = []

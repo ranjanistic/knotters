@@ -139,7 +139,13 @@ else:
         }
     }
 
+
+
 CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache"
+    }
+} if env.ISTESTING else {
     'default': {} if not env.REDIS_LOCATION else {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': env.REDIS_LOCATION,
@@ -151,6 +157,7 @@ CACHES = {
 
 CACHE_LONG = 60 * 30
 CACHE_SHORT = 60 * 15
+CACHE_MINI = 60 * 5
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
