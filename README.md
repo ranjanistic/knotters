@@ -70,7 +70,7 @@ py testmanage.py test <appname>
 py testmanage.py test --tag=<tagname>
 ```
 
-See [main.strings.Code.Test](main/strings.py) for available `tagname(s)`.
+See [main.strings.Code.Test](https://github.com/knottersbot/knotters/blob/7a6632741ba93fc7a62d140b9f953d8bc8084286/main/strings.py#L45) for available `tagname(s)`.
 
 ```bash
 coverage run --source='.' testmanage.py test
