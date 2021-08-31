@@ -1,19 +1,35 @@
+{% load custom_tags %}
 <div class="w3-row w3-padding-small">
     <center>
         <h3>Topics of this competition</h3>
         {% for topic in compete.getTopics %}
         <button class=" positive">{{topic.name}}</button>
         {% endfor %}
+        <br/>
+        <br/>
+        <h6>A chance to level up your profile by <span class="accent">+{{compete.getMaxScore}} XP</span>!<a href="#notice">*</a></h6>
     </center>
+    <div class="w3-row">
+    <center><h4>Rank perks<a href="#notice">*</a></h4></center>
+    {% for perk in compete.getPerks %}
+    <div class="w3-col w3-third w3-padding-small w3-center">
+        <div class="pallete accent">
+            <i class="w3-jumbo ">
+            {% if forloop.counter == 1%}emoji_events{% elif forloop.counter == 2%}military_tech{% elif forloop.counter == 3%}celebration{% else %}card_giftcard{% endif %}
+            </i>
+            <h1>{{forloop.counter|numsuffix}}</h1>
+            <h6 class="pallete">{{perk}}</h6>
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+    <br/>
+    <center>
+    <h6>All participants will receive <span class="accent">e-certificates</span><a href="#notice">*</a>.</h6>
+    <strong>The points obtained from this competition can be claimed as XP for your profile.</strong>
+    </center>
+    <div class="w3-row">
     <h4>Description</h4>
-    <p>{{compete.description}}</p>
-    <h4>Perks</h4>
-    <h6>Chance to level up profile XP by +{{compete.getMaxScore}}!</h6>
-    <p>
-        {% for perk in compete.getPerks %}
-        <h6>Rank {{forloop.counter}} : {{perk}}</<h6>
-        {% endfor %}
-        <h6>All participants will receive e-certificates.</h6>
-        <strong>The points obtained from this competition will be allowed to increment in each participants' personal profiles.</strong>
-    </p>
-</div>
+    <strong>{{compete.description}}</strong>
+    </div>
+</>

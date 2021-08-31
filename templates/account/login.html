@@ -77,7 +77,7 @@
 					</div>
 					<br/>
 					<button class="positive" type="submit"><i>login</i>Sign In</button>
-					<button type="button" class="primary" onclick="w = window.open('{% url 'account_reset_password' %}', 'Password reset', 'height=650,width=450')" data-icon="help">Forgot?</button>
+					<button type="button" class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="help">Forgot?</button>
 					<input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>

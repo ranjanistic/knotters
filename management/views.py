@@ -243,13 +243,18 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
+        excludeIDs = request.POST.get('excludeIDs', [])
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
         return respondJson(Code.OK, dict(judge=dict(
             id=profile.user.id,
-            name=profile.getName()
+            userID=profile.getUserID(),
+            name=profile.getName(),
+            email=profile.getEmail(),
+            url=profile.getLink(),
+            dp=profile.getDP(),
         )))
     except Exception as e:
         return respondJson(Code.NO)
@@ -262,7 +267,8 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
+        excludeIDs = request.POST.get('excludeIDs', [])
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
@@ -283,7 +289,11 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 @require_GET
 # @cache_page(settings.CACHE_SHORT)
 def createCompete(request: WSGIRequest) -> HttpResponse:
-    return renderer(request, Template.Management.COMP_CREATE)
+    data = dict()
+    lastcomp = Competition.objects.filter(creator=request.user.profile).order_by("-modifiedOn").first()
+    if lastcomp:
+        data = dict(associate=lastcomp.get_associate)
+    return renderer(request, Template.Management.COMP_CREATE, data)
 
 
 @manager_only
@@ -346,14 +356,34 @@ def submitCompetition(request) -> HttpResponse:
         )
         if not compete:
             raise Exception("Competition not created")
+        banner = False
         try:
             bannerdata = request.POST['compbanner']
             bannerfile = base64ToImageFile(bannerdata)
             if bannerfile:
                 compete.banner = bannerfile
-            compete.save()
+                banner = True
         except Exception as e:
             pass
+
+        associate = False
+        try:
+            associatedata = request.POST['compassociate']
+            associatefile = base64ToImageFile(associatedata)
+            if associatefile:
+                compete.associate = associatefile
+                associate = True
+        except Exception as e:
+            pass
+
+        if not associate:
+            lastcomp = Competition.objects.filter(creator=request.user.profile).order_by("-modifiedOn").first()
+            if lastcomp:
+                compete.associate = lastcomp.associate
+                associate = True
+
+        if associate or banner:
+            compete.save()
 
         mod = Profile.objects.get(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
         assigned = assignModeratorToObject(

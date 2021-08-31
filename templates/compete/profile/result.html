@@ -60,13 +60,13 @@
     target="_blank" 
     href="{{ selfresult.submission.repo }}"
     {% else %}
-    href="{% url 'account_login' %}?next=/compete/{{competition.id}}"
+    href="{% url 'account_login' %}?next={{competition.getLink}}"
     {% endif %}
     ><button class="w3-right small primary" data-icon="open_in_new">View</button>
     </a>
     {% if request.user.is_authenticated and request.user.profile in selfresult.submission.getMembers %}
         <a href="{{selfresult.getCertLink|params:request.user.getID}}" target="_blank">
-            <button class="w3-right small positive" data-icon="badge">Certificate</button>
+            <button class="w3-right small positive" data-icon="card_giftcard">Certificate</button>
         </a>
         {% if request.user.profile not in selfresult.xpclaimers.all %}
         <form method="POST" action="{{URLS.CLAIMXP|params:selfresult.submission.competition.getID|params:selfresult.submission.getID}}">
@@ -123,7 +123,7 @@
     </a>
     {% if request.user.is_authenticated and request.user.profile in result.submission.getMembers %}
         <a href="{{result.getCertLink|params:request.user.getID}}" target="_blank">
-            <button class="w3-right small positive" data-icon="badge">Certificate</button>
+            <button class="w3-right small positive" data-icon="card_giftcard">Certificate</button>
         </a>
         {% if request.user.profile not in result.xpclaimers.all %}
         <form method="POST" action="{{URLS.CLAIMXP|params:result.submission.competition.getID|params:result.submission.getID}}">
@@ -142,6 +142,11 @@
     <center>
     <div class="w3-jumbo material-icons">lock</div>
     <h1>No results disclosed.</h1>
+    <h4 class="dead-text">Results will be declared soon, here only.</h4>
+    <input type="checkbox" id="notify-results" hidden />
+    <label for="notify-results" hidden>
+        <span>Notify me when declared.</span>
+    </label>
     </center>
 {% endfor %}
 </div>

@@ -16,6 +16,10 @@ def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/banners/{instance.getID()}.{fileparts[len(fileparts)-1]}"
 
+def competeAssociatePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/associates/{instance.getID()}.{fileparts[len(fileparts)-1]}"
+
 
 def defaultBannerPath():
     return f"{APPNAME}/default.png"
@@ -63,8 +67,19 @@ class Competition(models.Model):
     creator = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='competition_creator')
 
+    associate = models.ImageField(upload_to=competeAssociatePath,null=True,blank=True)
+
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
     def __str__(self) -> str:
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.createdOn = timezone.now()
+        self.modifiedOn = timezone.now()
+        return super(Competition, self).save(*args, **kwargs)
 
     def getID(self) -> str:
         return self.id.hex
@@ -132,6 +147,10 @@ class Competition(models.Model):
         Count total topics of this competition
         """
         return self.topics.count()
+
+    @property
+    def get_associate(self):
+        return None if not self.associate else f"{settings.MEDIA_URL}{str(self.associate)}"
 
     @property
     def moderator(self):
