@@ -48,7 +48,7 @@
     {% for member in selfresult.submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
     <button class="small primary">
-        <img src="{{member.getDP}}" class="w3-circle" width="18" />
+        <img src="{{member.getDP}}" class="w3-circle primary" width="18" />
         <span class="w3-hide-small">{{ member.getFName }}</span>
     </button>
     </a>
@@ -60,7 +60,7 @@
     target="_blank" 
     href="{{ selfresult.submission.repo }}"
     {% else %}
-    href="{% url 'account_login' %}?next={{competition.getLink}}"
+    href="{% url 'account_login' %}?next={{compete.getLink}}"
     {% endif %}
     ><button class="w3-right small primary" data-icon="open_in_new">View</button>
     </a>
@@ -69,7 +69,7 @@
             <button class="w3-right small positive" data-icon="card_giftcard">Certificate</button>
         </a>
         {% if request.user.profile not in selfresult.xpclaimers.all %}
-        <form method="POST" action="{{URLS.CLAIMXP|params:selfresult.submission.competition.getID|params:selfresult.submission.getID}}">
+        <form method="POST" action="{{URLS.CLAIMXP|params:compete.getID|params:selfresult.submission.getID}}">
             {% csrf_token %}
             <button type="submit" class="w3-right small positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
         </form>
@@ -104,7 +104,7 @@
     {% for member in result.submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
     <button class="small {% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}primary{% endif %}">
-        <img src="{{member.getDP}}" class="w3-circle" width="18" />
+        <img src="{{member.getDP}}" class="w3-circle primary" width="18" />
         <span class="w3-hide-small">{{ member.getFName }}</span>
     </button>
     </a>
@@ -113,10 +113,9 @@
     <div class="w3-col m3">
     <a 
     {% if request.user.is_authenticated %}
-    target="_blank" 
-    href="{{ result.submission.repo }}"
+    onclick="miniWindow('{{ result.submission.repo }}')"
     {% else %}
-    href="{% url 'account_login' %}?next=/compete/{{competition.id}}"
+    href="{% url 'account_login' %}?next={{compete.getLink}}"
     {% endif %}
     >
     <button class="w3-right small primary" data-icon="open_in_new">View</button>
@@ -126,7 +125,7 @@
             <button class="w3-right small positive" data-icon="card_giftcard">Certificate</button>
         </a>
         {% if request.user.profile not in result.xpclaimers.all %}
-        <form method="POST" action="{{URLS.CLAIMXP|params:result.submission.competition.getID|params:result.submission.getID}}">
+        <form method="POST" action="{{URLS.CLAIMXP|params:compete.getID|params:result.submission.getID}}">
             {% csrf_token %}
             <button type="submit" class="w3-right small positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
         </form>
