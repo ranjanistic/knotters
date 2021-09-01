@@ -519,8 +519,8 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 id = uuid4()
                 certificate = generateCertificate(member,result,id.hex)
                 if not certificate:
-                    print(f"Couldn't generate certificate of {member.getName()} for {result.competition.title}")
-                    raise Exception(f"Couldn't generate certificate of {member.getName()} for {result.competition.title}")
+                    print(f"Couldn't generate certificate of {member.getName()} for {competition.title}")
+                    raise Exception(f"Couldn't generate certificate of {member.getName()} for {competition.title}")
                 participantCerts.append(
                     ParticipantCertificate(
                         id=id,
