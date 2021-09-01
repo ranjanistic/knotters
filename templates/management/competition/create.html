@@ -61,8 +61,15 @@
                 {% else %}
                 src="/media/compete/default.png"
                 {% endif %} width="40%" id="competeassociateoutput" /><br/><br/>
-                <button class="active" type="button" data-icon="upload"><label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label></button><br/><br/>
+                <button class="active" type="button" data-icon="upload">
+                    <label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label>
+                </button><br/>
+                <input name="useAssociate" type='checkbox' id="useAssociate" {% if associate %}checked{% endif %} />
+                <label for="useAssociate" >
+                    Use association
+                </label>
             </div>
+            <br/><br/>
             <div class="w3-row">
                 <fieldset class="w3-col w3-third">
                     <legend>Starts at</legend>
@@ -104,15 +111,26 @@
             }
         }
     });
-
+    getElement("useAssociate").onchange=(e)=>{
+        if(!e.target.checked){
+            getElement('compassociate').value = ''
+        } else {
+            if(getElement('competeassociateoutput').src.endsWith('default.png')) {
+                e.target.checked = false
+                return error('Select the association image')
+            }
+            getElement('compassociate').value = getElement('competeassociateoutput').src;
+        }
+    }
     getElement("compbannerfile").onchange=(e)=>{
         handleCropImageUpload(e, "compbanner", "competebanneroutput", (_) => {
-            getElement("competebannerimagebutton").innerHTML = "Selected";
+            getElement("competebannerimagebutton").innerHTML = "Selected banner";
         },8/2);
     }
     getElement("compassociatefile").onchange=(e)=>{
         handleCropImageUpload(e, "compassociate", "competeassociateoutput", (_) => {
             getElement("competeassociateimagebutton").innerHTML = "Selected associate";
+            getElement("useAssociate").checked = true
         },5/2);
     }
 

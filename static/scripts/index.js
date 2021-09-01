@@ -73,6 +73,10 @@ const miniWindow = (url, name = APPNAME) =>
         "height=650,width=450"
     );
 
+const newTab = (url) => {
+    window.open(setUrlQueries(url, { miniwin: 1 }))
+}
+
 const message = (msg = "") => {
     alertify.set("notifier", "position", "top-left");
     alertify.message(msg);
@@ -273,7 +277,7 @@ const initializeTabsView = ({
     const tabs = getElements(tabsClass);
     let tabview = null;
     try {
-        tabview = getElement(viewID);
+        if(viewID) {tabview = getElement(viewID);}
     } catch {}
 
     const showTabLoading = () => {
@@ -706,7 +710,7 @@ const reportFeedback = async ({
     detail = "",
 }) => {
     const data = await postRequest(
-        isReport ? URLS.Management.CREATE_REPORT : URLS.Management.CREATE_FEED,
+        isReport ? (URLS.CREATE_REPORT||URLS.Management.CREATE_REPORT) : (URLS.CREATE_FEED||URLS.Management.CREATE_FEED),
         {
             email,
             category,
@@ -734,6 +738,8 @@ const reportFeedbackView = () => {
         onshow: () =>
             initializeTabsView({
                 tabsClass: "report-feed-tab",
+                uniqueID: 'reportFeed',
+                viewID: false,
                 onEachTab: (tab) => {
                     isReport = tab.id === "report";
                     getElements("report-feed-view").forEach((view) => {
@@ -772,7 +778,10 @@ const reportFeedbackView = () => {
                 const summary = String(
                     getElement("report-feed-summary").value
                 ).trim();
-                if (!summary) return error("Short description required");
+                if (!summary) {
+                    error("Short description required"); 
+                    return false
+                }
                 data["summary"] = summary;
                 data["detail"] = String(
                     getElement("report-feed-detail").value
@@ -781,7 +790,10 @@ const reportFeedbackView = () => {
                 const detail = String(
                     getElement("report-feed-feed-detail").value
                 ).trim();
-                if (!detail) return error("Feedback description required");
+                if (!detail) {
+                    error("Feedback description required");
+                    return false
+                }
                 data["detail"] = detail;
             }
             loader();

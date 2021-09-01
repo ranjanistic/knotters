@@ -1,10 +1,13 @@
+{% load custom_tags%}
 <div class="w3-row w3-padding">
 
 {% for feed in feedbacks %}
 <div class="w3-row pallete-slab">
-<a href="{{feed.getLink}}">{{feed}}</a>
+    {{feed.detail|truncatechars:50}}<br/>
+    By: {{ feed.author }}, {{ feed.createdOn|or:'Before epoch'}}<br/>
+    Last update: {{feed.lastupdate|or:'Before epoch'}}
+    <a href="{{feed.getLink}}"><button class="w3-right small positive">View</button></a>
 </div>
-
 {% endfor %}
 
 </div>

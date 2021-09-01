@@ -3,8 +3,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
-from django.conf import settings
-from django.views.decorators.cache import cache_page
+# from django.conf import settings
+# from django.views.decorators.cache import cache_page
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, URL, Message, Code, Template
@@ -290,7 +290,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 # @cache_page(settings.CACHE_SHORT)
 def createCompete(request: WSGIRequest) -> HttpResponse:
     data = dict()
-    lastcomp = Competition.objects.filter(creator=request.user.profile).order_by("-modifiedOn").first()
+    lastcomp = Competition.objects.filter(creator=request.user.profile).exclude(associate__isnull=True).exclude(associate__exact='').order_by("-modifiedOn").first()
     if lastcomp:
         data = dict(associate=lastcomp.get_associate)
     return renderer(request, Template.Management.COMP_CREATE, data)
@@ -305,6 +305,7 @@ def submitCompetition(request) -> HttpResponse:
         shortdesc = str(request.POST["compshortdesc"]).strip()
         desc = str(request.POST["compdesc"]).strip()
         modID = str(request.POST['compmodID']).strip()
+        useAssociate = request.POST.get('useAssociate', False)
         startAt = request.POST['compstartAt']
         endAt = request.POST['compendAt']
         eachTopicMaxPoint = int(request.POST['compeachTopicMaxPoint'])
@@ -376,10 +377,10 @@ def submitCompetition(request) -> HttpResponse:
         except Exception as e:
             pass
 
-        if not associate:
-            lastcomp = Competition.objects.filter(creator=request.user.profile).order_by("-modifiedOn").first()
+        if not associate and useAssociate:
+            lastcomp = Competition.objects.exclude(id=compete.id).filter(creator=request.user.profile).order_by("-modifiedOn").first()
             if lastcomp:
-                compete.associate = lastcomp.associate
+                compete.associate = str(lastcomp.associate)
                 associate = True
 
         if associate or banner:
@@ -442,7 +443,7 @@ def createFeedback(request: WSGIRequest):
 def reportfeedType(request:WSGIRequest, type:str):
     try:
         if type == Code.REPORTS:
-            reports = Report.objects.filter()
+            reports = Report.objects.filter().order_by('resolved')
             return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(reports=reports))
         elif type == Code.FEEDBACKS:
             feedbacks = Feedback.objects.filter()
@@ -463,5 +464,5 @@ def reportfeedTypeID(request:WSGIRequest, type:str, ID:UUID):
             return rendererstr(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
         else: raise Exception(type)
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
