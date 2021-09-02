@@ -270,6 +270,16 @@ h6.text-negative {
     border-radius: 12px;
 }
 
+@media (max-width: 640px){
+    .pallete{
+        width: 300px;
+        margin: 0 auto;
+    }
+    .swiper-wrap {
+        padding-left: 0px !important;
+    }
+}
+
 .scroll-x {
     overflow-x: scroll;
 }
