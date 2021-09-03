@@ -939,6 +939,7 @@ class TestViews(TestCase):
                 self.assertTrue(ProfileTopic.objects.filter(
                     profile=profile, topic__id=top['topic'], points=top['points']).exists())
 
+    @tag('cert')
     def test_certificates(self):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()

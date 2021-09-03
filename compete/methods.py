@@ -171,9 +171,9 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
             assimage = Image.open(os.path.join(settings.BASE_DIR, str(result.competition.associate)))
             certimage.paste(assimage, assxy)
 
-        certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
+        certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.pdf"
         if not ISTESTING:
-            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"))
+            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"), save_all=True)
         return certpath
     except Exception as e:
         errorLog(e)
