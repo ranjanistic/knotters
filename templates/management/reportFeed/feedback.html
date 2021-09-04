@@ -1,14 +1,22 @@
 {% extends 'management/reportFeed/index.html' %}
 
-{% block nav_icon %}
-<button class="primary previous-navigation-button" data-icon="arrow_back" onclick="window.close()"></button>
-{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
 {% block nav_href %}{{URLS.REPORT_FEED}}{% endblock %}
 
 {% block nav_text %}Feedback{% endblock %}
 
 {% block content %}
 
-{{feedback}}
+<div class="w3-row w3-padding">
+<h6>By: {{feedback.author}}{% if not feedback.is_anonymous %}<a onclick="miniWindow('{{feedback.feedbacker.getLink}}')"><button class="small primary">View</button></a>{% endif %}</h6>
+<h6>Created On: {{feedback.createdOn}}</h6>
+<h6>Last update: {{feedback.updatedOn}}</h6>
+<h6>Resolved ? {{feedback.resoved|yesno}}</h6>
+<h6>Detail</h6>
+<strong>{{feedback.detail}}</strong>
+</div>
+<br/>
 
 {% endblock %}

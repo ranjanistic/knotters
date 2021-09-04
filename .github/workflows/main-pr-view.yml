@@ -45,6 +45,8 @@ jobs:
         echo "STATIC_URL=${{ secrets.STATIC_URL }}" >> ${{ secrets.ENVPATH }}
         echo "SERVER_EMAIL=${{ secrets.SERVER_EMAIL }}" >> ${{ secrets.ENVPATH }}
         echo "GH_HOOK_SECRET=${{ secrets.GH_HOOK_SECRET }}" >> ${{ secrets.ENVPATH }}
+        echo "REDIS_LOCATION=${{ secrets.REDIS_LOCATION }}" >> ${{ secrets.ENVPATH }}
+        echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
         python manage.py makemigrations --noinput

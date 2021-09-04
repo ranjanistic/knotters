@@ -1,25 +1,29 @@
 {% extends 'management/competition/index.html' %}
 {% load custom_tags %}
 
-{% block title %}Manage: {{compete.title}}{% endblock %}
+{% block title %}Manage - {{compete.title}}{% endblock %}
 
-{% block nav_text %}Manage: {{compete.title}}{% endblock %}
+{% block nav_text %}{{compete.title}}{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
 
-{% block nav_icon %}
-<button class="primary previous-action-button" data-icon="arrow_back"></button>
-{% endblock %}
 {% block nav_href %}{{URLS.COMPETITIONS}}{% endblock %}
 
 {% block content %}
 <br/>
 <div class="w3-row w3-padding">
     <div class="w3-col w3-third w3-center w3-padding">
+        <h3>Competition</h3>
         <img src="{{compete.getBanner}}" class="pallete preview-type-image" width="100%" />
-        <h4>{{compete.title}}</h4>
+        <h3>{{compete.title}}</h3>
+        {% if compete.associate %}
+        <h6>In association with</h6>
+        <img src="{{compete.get_associate}}" class="pallete preview-type-image" width="80%" />
+        {% endif %}
     </div>
 
     <div class="w3-col w3-twothird w3-padding">
-        <a href="{{compete.getLink}}" target="_blank"><button class="primary small w3-right" data-icon="open_in_new">View homepage</button></a>
+        <a href="{{compete.getLink}}"><button class="primary small w3-right" data-icon="open_in_new">View homepage</button></a>
         <h5>Title: {{compete.title}}</h5>
         <h6>Creator: {% if iscreator %}You{% else %}<a href="{{compete.creator.getLink}}" target="_blank">{{compete.creator.getName}}</a>{% endif %}</h6>
         <h6>Moderator: <a href="{{compete.getModerator.getLink}}" target="_blank">{{compete.getModerator.getName}}</a></h6>

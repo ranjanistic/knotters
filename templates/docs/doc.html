@@ -15,9 +15,9 @@
 {% block title %}{{doc.name}}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
 
-{% block nav_icon %}
-<button class="primary previous-navigation-button" data-icon="arrow_back" onclick="window.close()"></button>
-{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
 {% block content %}
 <br/>
 <div class="w3-row w3-padding">

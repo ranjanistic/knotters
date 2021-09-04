@@ -3,6 +3,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
+# from django.conf import settings
+# from django.views.decorators.cache import cache_page
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, URL, Message, Code, Template
@@ -21,12 +23,14 @@ from .apps import APPNAME
 
 @manager_only
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Management.INDEX)
 
 
 @manager_only
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def community(request: WSGIRequest):
     return renderer(request, Template.Management.COMMUNITY_INDEX)
 
@@ -99,13 +103,9 @@ def addModerator(request: WSGIRequest):
 
 @manager_only
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def labels(request: WSGIRequest):
-    categories = Category.objects.filter()
-    topics = Topic.objects.filter()
-    return renderer(request, Template.Management.COMMUNITY_LABELS, dict(
-        categories=categories,
-        topics=topics
-    ))
+    return renderer(request, Template.Management.COMMUNITY_LABELS)
 
 
 @manager_only
@@ -243,13 +243,18 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
+        excludeIDs = request.POST.get('excludeIDs', [])
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
         return respondJson(Code.OK, dict(judge=dict(
             id=profile.user.id,
-            name=profile.getName()
+            userID=profile.getUserID(),
+            name=profile.getName(),
+            email=profile.getEmail(),
+            url=profile.getLink(),
+            dp=profile.getDP(),
         )))
     except Exception as e:
         return respondJson(Code.NO)
@@ -262,7 +267,8 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
+        excludeIDs = request.POST.get('excludeIDs', [])
+        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
@@ -281,8 +287,13 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 
 @manager_only
 @require_GET
+# @cache_page(settings.CACHE_SHORT)
 def createCompete(request: WSGIRequest) -> HttpResponse:
-    return renderer(request, Template.Management.COMP_CREATE)
+    data = dict()
+    lastcomp = Competition.objects.filter(creator=request.user.profile).exclude(associate__isnull=True).exclude(associate__exact='').order_by("-modifiedOn").first()
+    if lastcomp:
+        data = dict(associate=lastcomp.get_associate)
+    return renderer(request, Template.Management.COMP_CREATE, data)
 
 
 @manager_only
@@ -294,6 +305,7 @@ def submitCompetition(request) -> HttpResponse:
         shortdesc = str(request.POST["compshortdesc"]).strip()
         desc = str(request.POST["compdesc"]).strip()
         modID = str(request.POST['compmodID']).strip()
+        useAssociate = request.POST.get('useAssociate', False)
         startAt = request.POST['compstartAt']
         endAt = request.POST['compendAt']
         eachTopicMaxPoint = int(request.POST['compeachTopicMaxPoint'])
@@ -345,14 +357,34 @@ def submitCompetition(request) -> HttpResponse:
         )
         if not compete:
             raise Exception("Competition not created")
+        banner = False
         try:
             bannerdata = request.POST['compbanner']
             bannerfile = base64ToImageFile(bannerdata)
             if bannerfile:
                 compete.banner = bannerfile
-            compete.save()
+                banner = True
         except Exception as e:
             pass
+
+        associate = False
+        try:
+            associatedata = request.POST['compassociate']
+            associatefile = base64ToImageFile(associatedata)
+            if associatefile:
+                compete.associate = associatefile
+                associate = True
+        except Exception as e:
+            pass
+
+        if not associate and useAssociate:
+            lastcomp = Competition.objects.exclude(id=compete.id).filter(creator=request.user.profile).order_by("-modifiedOn").first()
+            if lastcomp:
+                compete.associate = str(lastcomp.associate)
+                associate = True
+
+        if associate or banner:
+            compete.save()
 
         mod = Profile.objects.get(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
         assigned = assignModeratorToObject(
@@ -367,6 +399,7 @@ def submitCompetition(request) -> HttpResponse:
 
 @manager_only
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def reportFeedbacks(request: WSGIRequest):
     return renderer(request, Template.Management.REPORTFEED_INDEX)
 
@@ -410,7 +443,7 @@ def createFeedback(request: WSGIRequest):
 def reportfeedType(request:WSGIRequest, type:str):
     try:
         if type == Code.REPORTS:
-            reports = Report.objects.filter()
+            reports = Report.objects.filter().order_by('resolved')
             return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(reports=reports))
         elif type == Code.FEEDBACKS:
             feedbacks = Feedback.objects.filter()
@@ -431,5 +464,5 @@ def reportfeedTypeID(request:WSGIRequest, type:str, ID:UUID):
             return rendererstr(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
         else: raise Exception(type)
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()

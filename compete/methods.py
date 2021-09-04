@@ -166,9 +166,14 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         image_editable.text(xy=compxy, text=comp, fill=(0, 0, 0), font=comp_font, align='right')
         image_editable.text(xy=aboutxy, text=about, fill=(0, 0, 0), font=about_font,align='right')
         image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
-        certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
+        if result.competition.associate:
+            assxy = (200,900)
+            assimage = Image.open(os.path.join(settings.BASE_DIR, str(result.competition.associate)))
+            certimage.paste(assimage, assxy)
+
+        certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.pdf"
         if not ISTESTING:
-            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"))
+            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"), save_all=True)
         return certpath
     except Exception as e:
         errorLog(e)

@@ -3,7 +3,7 @@
 const Key = {
     appUpdated: "app-updated",
     navigated: "navigated",
-    futureMessage: "future-message"
+    futureMessage: "future-message",
 };
 
 const code = {
@@ -67,7 +67,15 @@ const visibleElement = (id, show = true) => {
 const visible = (element, show = true) => visibleElement(element.id, show);
 
 const miniWindow = (url, name = APPNAME) =>
-    window.open(url, name, "height=650,width=450");
+    window.open(
+        setUrlQueries(url, { miniwin: 1 }),
+        name,
+        "height=650,width=450"
+    );
+
+const newTab = (url) => {
+    window.open(setUrlQueries(url, { miniwin: 1 }))
+}
 
 const message = (msg = "") => {
     alertify.set("notifier", "position", "top-left");
@@ -117,20 +125,22 @@ const loadBrowserSwiper = (_) => {
 };
 
 const loadBrowsers = () => {
-    getElements("browser-view").forEach((view)=>{
-        const method = async ()=>{
+    getElements("browser-view").forEach((view) => {
+        const method = async () => {
             setHtmlContent(view, loaderHTML(`${view.id}-loader`));
-            const data = await getRequest(setUrlParams(URLS.BROWSER, view.getAttribute('data-type')));
+            const data = await getRequest(
+                setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
+            );
             if (!data) {
                 setHtmlContent(view, loadErrorHTML(`${view.id}-load-retry`));
-                getElement(`${view.id}-load-retry`).onclick = (_) => method()
+                getElement(`${view.id}-load-retry`).onclick = (_) => method();
                 return;
             }
             setHtmlContent(view, data, loadBrowserSwiper);
-        }
-        method()
-    })
-}
+        };
+        method();
+    });
+};
 
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;
@@ -143,6 +153,14 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
 const setUrlParams = (path, ...params) => {
     params.forEach((param) => {
         path = String(path).replace("*", param);
+    });
+    return path;
+};
+
+const setUrlQueries = (path, query = {}) => {
+    path = String(path);
+    Object.keys(query).forEach((key) => {
+        path = `${path}${path.includes("?") ? "&" : "?"}${key}=${query[key]}`;
     });
     return path;
 };
@@ -193,20 +211,22 @@ const loadGlobalEventListeners = () => {
         });
     });
 
-    getElements('click-to-copy').forEach((elem)=>{
-        elem.classList.add('pointer')
-        elem.addEventListener('click', (e)=>{
-            if(navigator.clipboard){
-                navigator.clipboard.writeText(e.target.getAttribute('data-copy')||e.target.innerHTML)
-                message("Copied to clipboard")
+    getElements("click-to-copy").forEach((elem) => {
+        elem.classList.add("pointer");
+        elem.addEventListener("click", (e) => {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(
+                    e.target.getAttribute("data-copy") || e.target.innerHTML
+                );
+                message("Copied to clipboard");
             }
-        })
-    })
-    getElements('previous-action-button').forEach((elem)=>{
-        elem.addEventListener('click',()=>{
-            window.close()
-        })
-    })
+        });
+    });
+    getElements("previous-action-button").forEach((elem) => {
+        elem.addEventListener("click", () => {
+            window.close();
+        });
+    });
 };
 
 const Icon = (name, classnames = "") =>
@@ -257,7 +277,7 @@ const initializeTabsView = ({
     const tabs = getElements(tabsClass);
     let tabview = null;
     try {
-        tabview = getElement(viewID);
+        if(viewID) {tabview = getElement(viewID);}
     } catch {}
 
     const showTabLoading = () => {
@@ -494,8 +514,10 @@ const handleCropImageUpload = (
                         const croppedB64 = cropImage
                             .getCroppedCanvas()
                             .toDataURL("image/png");
-                        if((String(croppedB64).length/1024/1024)>=10){
-                            return error('Image too large. Preferred size < 10 MB')
+                        if (String(croppedB64).length / 1024 / 1024 >= 10) {
+                            return error(
+                                "Image too large. Preferred size < 10 MB"
+                            );
                         }
                         getElement(dataOutElemID).value = croppedB64;
                         getElement(previewImgID).src = croppedB64;
@@ -642,13 +664,16 @@ const loadReporters = () => {
     getElements("report-button").forEach((report) => {
         report.type = "button";
         report.onclick = (_) => {
-            reportFeedbackView()
+            reportFeedbackView();
         };
     });
 };
 
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
+
+const PositiveText = (text = "") =>
+    `<span class="positive-text">${text}</span>`;
 
 const secsToTime = (secs) => {
     secs = Number(secs);
@@ -685,9 +710,7 @@ const reportFeedback = async ({
     detail = "",
 }) => {
     const data = await postRequest(
-        isReport
-            ? URLS.Management.CREATE_REPORT
-            : URLS.Management.CREATE_FEED,
+        isReport ? (URLS.CREATE_REPORT||URLS.Management.CREATE_REPORT) : (URLS.CREATE_FEED||URLS.Management.CREATE_FEED),
         {
             email,
             category,
@@ -715,6 +738,8 @@ const reportFeedbackView = () => {
         onshow: () =>
             initializeTabsView({
                 tabsClass: "report-feed-tab",
+                uniqueID: 'reportFeed',
+                viewID: false,
                 onEachTab: (tab) => {
                     isReport = tab.id === "report";
                     getElements("report-feed-view").forEach((view) => {
@@ -753,7 +778,10 @@ const reportFeedbackView = () => {
                 const summary = String(
                     getElement("report-feed-summary").value
                 ).trim();
-                if (!summary) return error("Short description required");
+                if (!summary) {
+                    error("Short description required"); 
+                    return false
+                }
                 data["summary"] = summary;
                 data["detail"] = String(
                     getElement("report-feed-detail").value
@@ -762,7 +790,10 @@ const reportFeedbackView = () => {
                 const detail = String(
                     getElement("report-feed-feed-detail").value
                 ).trim();
-                if (!detail) return error("Feedback description required");
+                if (!detail) {
+                    error("Feedback description required");
+                    return false
+                }
                 data["detail"] = detail;
             }
             loader();
@@ -818,6 +849,6 @@ const previewImageDialog = (src) => {
         .maximize();
 };
 
-const futuremessage = (message='') => {
-    localStorage.setItem(Key.futureMessage, message)
-}
+const futuremessage = (message = "") => {
+    localStorage.setItem(Key.futureMessage, message);
+};

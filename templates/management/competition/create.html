@@ -6,18 +6,21 @@
 
 {% block nav_href %}{{URLS.COMPETITIONS}}{% endblock %}
 
-{% block nav_icon %}
-<button class="primary previous-action-button" data-icon="arrow_back"></button>
-{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
 
 {% block content %}
 <br/>
 <div class="w3-row w3-padding">
     <input type="file" accept="image/png,image/jpg" id="compbannerfile" hidden />
+    <input type="file" accept="image/png,image/jpg" id="compassociatefile" hidden />
     <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
         {% csrf_token %}
         <div class="w3-col w3-half">
-            <input type="text" id="compbanner" name="compbanner" hidden /><br/>
+            <input type="text" id="compbanner" name="compbanner" hidden />
+            <input type="text" id="compassociate" name="compassociate" hidden />
+            <br/>
             <input required class="create-compete-input" placeholder="Title" type="text" name="comptitle" id="comptitle">
             <input required class="create-compete-input" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
 
@@ -51,8 +54,22 @@
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row w3-center">
                 <img class="pallete preview-type-image" src="/media/compete/default.png" width="100%" id="competebanneroutput" /><br/><br/>
-                <button class="active" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select image</label></button><br/><br/>
+                <button class="active" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select banner</label></button><br/><br/>
+                <img class="pallete preview-type-image" 
+                {% if associate %}
+                src="{{associate}}"
+                {% else %}
+                src="/media/compete/default.png"
+                {% endif %} width="40%" id="competeassociateoutput" /><br/><br/>
+                <button class="active" type="button" data-icon="upload">
+                    <label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label>
+                </button><br/>
+                <input name="useAssociate" type='checkbox' id="useAssociate" {% if associate %}checked{% endif %} />
+                <label for="useAssociate" >
+                    Use association
+                </label>
             </div>
+            <br/><br/>
             <div class="w3-row">
                 <fieldset class="w3-col w3-third">
                     <legend>Starts at</legend>
@@ -84,6 +101,8 @@
 
 {% block scripts %}
 <script>
+    let excludemods = [];
+    let excludejudges = [];
     getElements('create-compete-input').forEach(element => {
         if(!Array.from(element.classList).includes('no-retain')){
             element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
@@ -92,10 +111,26 @@
             }
         }
     });
-
+    getElement("useAssociate").onchange=(e)=>{
+        if(!e.target.checked){
+            getElement('compassociate').value = ''
+        } else {
+            if(getElement('competeassociateoutput').src.endsWith('default.png')) {
+                e.target.checked = false
+                return error('Select the association image')
+            }
+            getElement('compassociate').value = getElement('competeassociateoutput').src;
+        }
+    }
     getElement("compbannerfile").onchange=(e)=>{
         handleCropImageUpload(e, "compbanner", "competebanneroutput", (_) => {
-            getElement("competebannerimagebutton").innerHTML = "Selected";
+            getElement("competebannerimagebutton").innerHTML = "Selected banner";
+        },8/2);
+    }
+    getElement("compassociatefile").onchange=(e)=>{
+        handleCropImageUpload(e, "compassociate", "competeassociateoutput", (_) => {
+            getElement("competeassociateimagebutton").innerHTML = "Selected associate";
+            getElement("useAssociate").checked = true
         },5/2);
     }
 
@@ -121,7 +156,7 @@
             }
         )
         getElement('topicquery').oninput=async(e)=>{
-            const data = await postRequest("{{URLS.TOPICSEARCH}}", {
+            const data = await postRequest(URLS.TOPICSEARCH, {
                 query: e.target.value
             })
             if(!data) return
@@ -153,6 +188,7 @@
                     btn.onclick=(e)=>{
                         const id = btn.getAttribute('data-judgeID')
                         if(getElement('judgeIDs').value.includes(id)){
+                            excludemods = excludemods.filter(id=>id!==id)
                             getElement('judgeIDs').value = getElement('judgeIDs').value.replaceAll(`,${id}`,'')
                             e.target.hidden = true
                             e.target.remove()
@@ -162,20 +198,26 @@
             }
         )
         getElement('judgequery').oninput=async(e)=>{
-            const data = await postRequest("{{URLS.JUDGESEARCH}}", {
-                query: e.target.value
+            const data = await postRequest(URLS.JUDGESEARCH, {
+                query: e.target.value,
+                excludeIDs: excludejudges
             })
             if(!data) return
             if(data.code===code.OK && data.judge){
-                getElement('judgequeryresult').innerHTML=`<button class="primary" type='button' id="${data.judge.id}">${data.judge.name}</button>`
+                getElement('judgequeryresult').innerHTML=`
+                <button class="primary" type='button' id="${data.judge.id}">
+                    <img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>`
                 getElement(data.judge.id).onclick=(e)=>{
                     const id = e.target.id.replaceAll('-','')
                     let existing = String(getElement('judgeIDs').value).trim();
                     if(existing.includes(id)){
                         return error('Already selected');
                     }
+                    excludemods.push(id)
                     getElement('judgeIDs').value = existing + ',' + id;
-                    getElement('selectedjudgesview').innerHTML+=`<button type='button' class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">${Icon('close')}${data.judge.name}</button>`
+                    getElement('selectedjudgesview').innerHTML+=`
+                    <button type='button' class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">
+                    ${Icon('close')}<img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>`
                     
                 }
             }
@@ -193,6 +235,7 @@
                 getElements('selected-compete-mod').forEach((btn)=>{
                     btn.onclick=(e)=>{
                         getElement('compmodID').value = ""
+                        excludejudges = []
                         e.target.hidden = true
                         e.target.remove()
                         show(ebtn.target)
@@ -201,16 +244,24 @@
             }
         )
         getElement('modquery').oninput=async(e)=>{
-            const data = await postRequest("{{URLS.MODSEARCH}}", {
-                query: e.target.value
+            const data = await postRequest(URLS.MODSEARCH, {
+                query: e.target.value,
+                excludeIDs: excludemods
             })
             if(!data) return
             if(data.code===code.OK && data.mod){
-                getElement('modqueryresult').innerHTML=`<button class="primary" type='button' id="${data.mod.id}">${data.mod.name}</button>`
+                getElement('modqueryresult').innerHTML=`
+                <button class="primary" type='button' id="${data.mod.id}">
+                    <img src="${data.mod.dp}" width="20" class="w3-circle" /> ${data.mod.name}
+                </button>`
                 getElement(data.mod.id).onclick=(e)=>{
                     const id = e.target.id.replaceAll('-','')
                     getElement('compmodID').value = id;
-                    getElement('selectedmodview').innerHTML =`<button type='button' class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">${Icon('close')}${data.mod.name}</button>`
+                    excludejudges.push(id)
+                    getElement('selectedmodview').innerHTML =`
+                    <button type='button' class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">
+                        ${Icon('close')}<img src="${data.mod.dp}" width="20" class="w3-circle primary" /> ${data.mod.name}
+                    </button>`
                     hide(ebtn.target)
                 }
             }

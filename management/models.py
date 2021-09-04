@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 import uuid
 from main.strings import url, Code
@@ -11,6 +12,14 @@ class Report(models.Model):
     detail = models.CharField(max_length=100000)
     response = models.CharField(max_length=1000000,null=True,blank=True)
     resolved = models.BooleanField(default=False)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.createdOn = timezone.now()
+        self.modifiedOn = timezone.now()
+        return super(Report, self).save(*args, **kwargs)
 
     @property
     def get_id(self):
@@ -19,6 +28,10 @@ class Report(models.Model):
     @property
     def is_anonymous(self):
         return True if not self.reporter else False
+
+    @property
+    def author(self):
+        return self.reporter.getName() if not self.is_anonymous else 'Anonymous'
 
     @property
     def reportfeed_type(self):
@@ -33,6 +46,14 @@ class Feedback(models.Model):
     feedbacker = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='feedbacker_profile', null=True, blank=True)
     detail = models.CharField(max_length=100000)
     response = models.CharField(max_length=1000000,null=True,blank=True)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.createdOn = timezone.now()
+        self.modifiedOn = timezone.now()
+        return super(Feedback, self).save(*args, **kwargs)
 
     @property
     def get_id(self):
@@ -45,6 +66,10 @@ class Feedback(models.Model):
     @property
     def is_anonymous(self):
         return True if not self.feedbacker else False
+
+    @property
+    def author(self):
+        return self.feedbacker.getName() if not self.is_anonymous else 'Anonymous'
 
     @property
     def getLink(self):

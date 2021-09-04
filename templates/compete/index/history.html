@@ -1,13 +1,19 @@
 <br/>
 <div class="w3-row w3-padding">
 {% for comp in history %}
-<div class="w3-row pallete">
-    <div class="w3-col w3-half">
+<div class="w3-row pallete-slab" style="background:url('{{comp.getBanner}}');">
+    <div class="w3-col w3-half pallete-slab tertiary">
+        <div class="w3-col w3-half">
         <h4 class="positive-text">{{comp.title}}</h4>
-        <h6>{{comp.tagline}}</h6>
+        <h6 class="text-tertiary">{{comp.tagline}}</h6>
+        </div>
+        <div class="w3-col w3-half w3-padding">
+        <strong class="w3-right dead-text">Beginned at {{comp.startAt}}</strong>
+        <strong class="w3-right dead-text">Ended at {{comp.endAt}}</strong>
+        </div>
     </div>
     <div class="w3-col w3-half w3-padding">
-        <a class="w3-right" href="{{comp.getLink}}"><button class="secondary"><i class="material-icons">visibility</i>View</button></a>
+        <a class="w3-right" href="{{comp.getLink}}"><button class="active"><i class="material-icons">visibility</i>View</button></a>
     </div>
 </div>
 <br/>
