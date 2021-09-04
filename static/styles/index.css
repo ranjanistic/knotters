@@ -271,11 +271,11 @@ h6.text-negative {
 }
 
 @media (max-width: 640px){
-    .pallete{
+    .pallete_i{
         width: 300px;
         margin: 0 auto;
     }
-    .swiper-wrap {
+    .swiper-wrap_i {
         padding-left: 0px !important;
     }
 }

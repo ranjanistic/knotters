@@ -1,41 +1,52 @@
 {% load custom_tags %}
 <div class="w3-row">
-    <br/>
-    <div class="w3-padding-small">
+  <br />
+  <div class="w3-padding-small">
     <h3>&nbsp;&nbsp;&nbsp;&nbsp;Newbie profiles</h3>
+  </div>
+  <br />
+  <div class="swiper-container swiper-browser">
+    <div class="swiper-wrapper swiper-wrap">
+      {% for profile in profiles %}
+      <div class="swiper-slide">
+        <a href="{{profile.getLink}}">
+          <div class="pallete pallete_i w3-center" style="padding: 0">
+            <img
+              class="primary"
+              src="{{ profile.getDP }}"
+              alt="{{ profile.name }}"
+            />
+            <div class="w3-row w3-padding">
+              <h5>{{ profile.getName }}</h5>
+              <span>{{ profile.getBio|or:profile.getXP }}</span>
+            </div>
+            <div class="w3-row w3-padding-small">
+              <i
+                class="w3-left material-icons pointer"
+                onclick="shareLinkAction('{{ profile.getName }}', '{{ profile.getBio }}', '{{SITE}}{{profile.getLink}}')"
+                >share</i
+              >
+            </div>
+          </div>
+        </a>
+      </div>
+      {% empty %}
+      <div class="w3-padding w3-col">
+        <center class="w3-padding">
+          <i class="w3-jumbo">hourglass_top</i>
+          <h3>No profiles yet. You're the first one!</h3>
+        </center>
+      </div>
+      {% endfor %} {% if profiles.0 %}
+      <div class="w3-col swiper-slide w3-padding">
+        <a href="{{URLS.PEOPLE}}"
+          ><button class="primary display-button" data-icon="open_in_new">
+            More
+          </button></a
+        >
+      </div>
+      {% endif %}
     </div>
-    <br/>
-    <div class="swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap">
-            {% for profile in profiles %}
-            <div class="swiper-slide">
-                <a href="{{profile.getLink}}">
-                <div class="pallete w3-center" style="padding:0">
-                    <img class="primary" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
-                    <div class="w3-row w3-padding">
-                        <h5>{{ profile.getName }}</h5>
-                        <span>{{ profile.getBio|or:profile.getXP }}</span>
-                    </div>
-                    <div class="w3-row w3-padding-small">
-                        <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{ profile.getName }}', '{{ profile.getBio }}', '{{SITE}}{{profile.getLink}}')">share</i>
-                    </div>
-                </div>
-                </a>
-            </div>
-            {% empty %}
-            <div class="w3-padding w3-col">
-            <center class="w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>No profiles yet. You're the first one!</h3>
-            </center>
-            </div>
-            {% endfor %}
-            {% if profiles.0 %}
-            <div class="w3-col swiper-slide w3-padding">
-                <a href="{{URLS.PEOPLE}}"><button class="primary display-button" data-icon="open_in_new">More</button></a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
+  </div>
 </div>
-<br/>
+<br />
