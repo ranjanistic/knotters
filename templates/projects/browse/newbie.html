@@ -6,11 +6,11 @@
     </div>
     <br/>
     <div class="swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap">
+        <div class="swiper-wrapper swiper-wrap swiper-wrap_i">
             {% for project in projects %}
             <div class="w3-col swiper-slide">
                 <a href="{{project.getLink}}">
-                <div class="pallete w3-center" style="padding:0">
+                <div class="pallete pallete_i w3-center" style="padding:0">
                     <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                     <div class="w3-row w3-padding">
                         <h5>{{ project.name }}</h5>
