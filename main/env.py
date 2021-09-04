@@ -31,6 +31,11 @@ STATIC_URL = env('STATIC_URL').strip()
 MEDIA_URL = env('MEDIA_URL').strip()
 SERVER_EMAIL = env('SERVER_EMAIL').strip()
 GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
+REDIS_LOCATION = env('REDIS_LOCATION').strip()
+REDIS_PASSWORD = env('REDIS_PASSWORD').strip()
+
+REDIS_LOCATION = None if REDIS_LOCATION == 'none' else REDIS_LOCATION
+REDIS_PASSWORD = None if REDIS_PASSWORD == 'none' else REDIS_PASSWORD
 
 ISPRODUCTION = ENV == Environment.PRODUCTION
 
@@ -38,7 +43,7 @@ ISDEVELOPMENT = ENV == Environment.DEVELOPMENT
 
 ISTESTING = ENV == Environment.TESTING
 
-VERSION = 'v--161'
+VERSION = 'v--16'
 
 if ISPRODUCTION:
     from .__version__ import VERSION as V

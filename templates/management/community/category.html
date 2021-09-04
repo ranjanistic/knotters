@@ -9,7 +9,7 @@
     <div class=" pallete-slab">
         <h6>{{category.totalProjects}} projects are in this category</h6>
         {% for project in category.getProjectsLimited %}
-        <a href="{{project.getLink}}" title="{{project.name}}" target="_blank"><img alt="{{project.getName}}" src="{{project.getDP}}" class="w3-circle primary" width="40" /></a>
+        <a onclick="newTab('{{project.getLink}}')" title="{{project.name}}" target="_blank"><img alt="{{project.getName}}" src="{{project.getDP}}" class="w3-circle primary" width="40" /></a>
         {% endfor %}
         and maybe others.
     </div>

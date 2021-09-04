@@ -21,21 +21,19 @@
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/compete/profile.css' %}" />
 {% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
 
-{% block nav_icon %}
-<button class="primary previous-navigation-button" data-icon="arrow_back"></button>
-{% endblock %} 
-
-{% block nav_href %}{{ROOT}}{% endblock %} 
+{% block nav_href %}{{ROOT}}#mainframe{% endblock %} 
 {% block nav_text %}{{compete.title}}{% endblock %} 
 {% block nav_noauth_competes %}{% endblock %} 
 {% block content %}
   {% if isJudge or isMod or isManager %}
     <strong>
       <div class="w3-row w3-center accent w3-padding">
-        {% if isJudge %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent" target="_blank">Click here</a> for judgement view.
-        {% elif isMod %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent" target="_blank">Click here</a> for moderation view.
-        {% elif isManager %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the manager of this competition. <a href="{{compete.getManagementLink}}" class="underline text-accent" target="_blank">Click here</a> for management view.
+        {% if isJudge %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent">Click here</a> for judgement view.
+        {% elif isMod %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent">Click here</a> for moderation view.
+        {% elif isManager %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the manager of this competition. <a href="{{compete.getManagementLink}}" class="underline text-accent">Click here</a> for management view.
         {% endif %}
       </div>
     </strong>
@@ -57,17 +55,24 @@
     <br/>
     <div class="w3-row">
       <div class="w3-col w3-twothird w3-left w3-padding">
+        <div class="w3-col {% if compete.associate %}w3-half{% endif %}">
         <h2>{{compete.title}}</h2>
         <h4>{{compete.tagline}}</h4>
-        <strong>{{compete.shortdescription}}</strong>
-        <br />
+        <strong>{{compete.shortdescription}} </strong><br/>
+        </div>
+        {% if compete.associate %}
+        <div class="w3-col w3-half w3-center dead-text w3-padding">
+          <h4>In association with </h4>
+          <img class="pallete preview-type-image" src="{{compete.get_associate}}" width="80%" />
+        </div>
+        {% endif %}
       </div>
-      <div class="w3-col w3-third w3-center">
+      <div class="w3-col w3-third w3-center w3-padding">
       <br/>
         {% if compete.isActive %}
         <div class="pallete pointer" id="reload-time">
           <h6>Remaining</h6>
-          <h1 class="" id="remainingTime"><div class="loader"></div></h1>
+          <h1 id="remainingTime"><div class="loader"></div></h1>
           <h6>To submit</h6>
         </div>
         {% elif compete.isHistory %}
@@ -104,8 +109,8 @@
           {% if not isJudge and not isMod and not isManager %}
           <button class="w3-bar-item side-nav-tab" id="submission" data-icon="send">Submission</button>
           {% endif %}
-          {% if compete.resultDeclared %}
-          <button class="w3-bar-item side-nav-tab" id="result" data-icon="leaderboard">Results</button>
+          {% if compete.isHistory %}
+            <button class="w3-bar-item side-nav-tab" id="result" data-icon="leaderboard">Results</button>
           {% endif %}
         </div>
         <div class="w3-center w3-hide-large w3-hide-medium">
@@ -129,6 +134,28 @@
       {% endif %}
     <br/>
   </div>
+  {% if not compete.isUpcoming %}
+  <div class="w3-row w3-padding" id="notice">
+    <strong>
+    <center>*NOTICE</center><br/>
+    - All mentioned prizes & perks for rank holders are the sole resposibility of <a href="{{compete.creator.getLink}}" target="_blank">the manager</a>. 
+    Under no circumstances {{APPNAME}} and its administrators must be held accountable for any discrepancies. {{APPNAME}} support team however, may try to help you in such cases, but only if you want their help.<br/>
+    - If participating in a group, the rank perk/prize will be awarded to the group as a unit. No distribution of prize among the members of submission will be felicitated by {{APPNAME}}.<br/>
+    - The chance to level up profile by the mentioned XP amount is totally conditional. Actual XP amount most certnainly will vary for every participant, depending upon the points they earn.<br/>
+    - The submissions made to this competition should follow our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>, and the guidelines mentioned above. In case of guideline conflict, the former shall prevail.<br/>
+    - The decision of the jury will be considered final, and the jury, {{APPNAME}} and its administrators shall not be accountable for challenge by any participant under any circumstances regarding the declared results.<br/>
+    - Results for this competition will only be declared & available here. Declaration of results could take time, after the competition ends. Participants are advised to not fall for any fake result announcements, and should check the result status on this page only.<br/>
+    - Participants, judges, & moderator will be notified via our official channels (email, discord announcement) only, once the results are declared.
+    - After the declaration of results, the certificate URL will be available alongside the rank of a participant. That URL should be considered of equal weightage as of the e-certificate.<br/>
+    - Issuing of e-certificate by {{APPNAME}} for every participant could take time, after the results declaration. However, the certificate URL will remain valid & available all the time.<br/>
+    - E-certificate issued by {{APPNAME}}, which will be available on the certificate URL, should only be considered valid. Any certificate issued to participant apart from that via any other source should be considered fraud, and must be reported to us.<br/>
+    - The XP will be available to claim for every participant. Each participant can claim only their own XP from a competition.<br/>
+    - After claiming XP, the topic(s) of this competition and their individual earned points will not get mentioned on participant's profile automatically. Participants can add topics to their own profiles by themselves, if they want to.<br/>
+    - For other doubts or concerns, you may refer our <a href="{{URLS.DOCS}}" target="_blank">legal & moral section</a>.
+    </strong>
+  </div>
+  {% endif %}
+    <br/>
 </div>
 
 {% endblock %}

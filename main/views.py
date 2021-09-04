@@ -4,7 +4,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
+from django.utils.decorators import method_decorator
 from django.conf import settings
+from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
@@ -18,7 +20,9 @@ from .decorators import dev_only
 from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
 
+
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
 
@@ -28,6 +32,7 @@ def offline(request: WSGIRequest) -> HttpResponse:
 def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
     return renderView(request, f'account/email/{template}')
 
+
 @require_GET
 @dev_only
 def template(request: WSGIRequest, template: str) -> HttpResponse:
@@ -35,8 +40,10 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 
 @require_GET
+# @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-    comp = Competition.objects.filter(startAt__lt=timezone.now(),endAt__gte=timezone.now()).first()
+    comp = Competition.objects.filter(
+        startAt__lt=timezone.now(), endAt__gte=timezone.now()).first()
     data = dict()
     if comp:
         data = dict(
@@ -45,7 +52,7 @@ def index(request: WSGIRequest) -> HttpResponse:
                 url=comp.getLink(),
             )
         )
-    return renderView(request, Template.INDEX,data)
+    return renderView(request, Template.INDEX, data)
 
 
 @require_GET
@@ -59,12 +66,14 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
     return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
 
 
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         doc = LegalDoc.objects.get(pseudonym=type)
@@ -79,11 +88,13 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
 
 
 @require_GET
+# @cache_page(settings.CACHE_SHORT)
 def landing(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.LANDING)
 
 
 @require_GET
+# @cache_page(settings.CACHE_SHORT)
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     if subapp == COMPETE:
         template = Template.Compete.LANDING
@@ -96,6 +107,7 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, template, fromApp=subapp)
 
 
+# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
@@ -106,6 +118,7 @@ class Robots(TemplateView):
         return context
 
 
+# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
@@ -139,6 +152,7 @@ class Manifest(TemplateView):
         return context
 
 
+# @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
@@ -150,7 +164,8 @@ class ServiceWorker(TemplateView):
 
         def appendWhen(path: str):
             return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
-        assets = getDeepFilePaths(settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
+        assets = getDeepFilePaths(
+            settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
 
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
@@ -233,7 +248,7 @@ class ServiceWorker(TemplateView):
 
 
 @require_GET
-def browser(request:WSGIRequest, type:str):
+def browser(request: WSGIRequest, type: str):
     try:
         if type == "new-profiles":
             excludeIDs = []

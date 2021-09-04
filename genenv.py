@@ -1,12 +1,14 @@
 import os
 from manage import ENVPATH, ENVSAMPLEPATH
+from testmanage import ENVTESTPATH
 
 filepath = ENVPATH
+testfilepath = ENVTESTPATH
 readpath = ENVSAMPLEPATH
 
 print(f"Sample from: {readpath}")
 
-if str(input(f'This will create/overwrite {filepath}. Continue? (y/N) ')) == 'y':
+if str(input(f'This will create/overwrite {filepath} & {testfilepath}. Continue? (y/N) ')) == 'y':
     print('NOTE: Some keys could have default values, empty press Enter to accept them if you\'re ok with them.\n')
     fd = open(readpath, "r")
     contents = fd.read()
@@ -37,8 +39,10 @@ if str(input(f'This will create/overwrite {filepath}. Continue? (y/N) ')) == 'y'
     f.write(content)
     f.close()
     print(f'Created {filepath}.')
-    if str(input(f'GPG encrypt {filepath}? (y/N) ')) == 'y':
-        email = str(input(f'email: '))
-        os.system(f'gpg -e -r {email} {filepath}')
-        os.remove(f'{filepath}')
+    content = content.replace('development','testing').replace('HOSTS=','HOSTS=testserver,')
+    f = open(testfilepath, "w")
+    f.write(content)
+    f.close()
+    print(f'Created {testfilepath}.')
+
     

@@ -9,7 +9,7 @@
     <div class=" pallete-slab">
         <h6>{{topic.totalProfiles}} people have this topic</h6>
         {% for profile in topic.getProfilesLimited %}
-        <a href="{{profile.getLink}}" title="{{profile.getName}}" target="_blank"><img src="{{profile.getDP}}" class="w3-circle primary" width="40" /></a>
+        <a onclick="newTab('{{profile.getLink}}')" title="{{profile.getName}}" target="_blank"><img src="{{profile.getDP}}" class="w3-circle primary" width="40" /></a>
         {% endfor %}
         and maybe others.
     </div>

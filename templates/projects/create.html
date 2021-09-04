@@ -24,9 +24,12 @@
 <link rel="stylesheet" href="{% static 'styles/project/create.css' %}" />
 {% endblock %}
 
-{% block nav_icon %}
-<button title="Abort" class="primary" data-icon="close"></button>
-{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block nav_back_icon %}close{% endblock %}
+
+{% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_style %}accent{% endblock %}
 {% block nav_text_style %}text-accent{% endblock %}
 {% block nav_text %}Create project{% endblock %}

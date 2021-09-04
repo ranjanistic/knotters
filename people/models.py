@@ -411,6 +411,13 @@ class Profile(models.Model):
     def isBlocked(self, user:User) -> bool:
         return BlockedUser.objects.filter(profile=self,blockeduser=user).exists() or BlockedUser.objects.filter(profile=user.profile,blockeduser=self.user).exists()
 
+    def blockUser(self,user:User):
+        return self.blocklist.add(user)
+
+    def unblockUser(self,user:User):
+        return self.blocklist.remove(user)
+        
+
     @property
     def blockedIDs(self) -> list:
         ids = []

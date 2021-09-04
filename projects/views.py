@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import redirect
+from django.conf import settings
+from django.views.decorators.cache import cache_page
 from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import base64ToImageFile, errorLog, respondJson, respondRedirect
 from main.strings import Code, Event, Message, URL, Template
@@ -19,9 +21,9 @@ from .apps import APPNAME
 
 
 @require_GET
-def allProjects(request: WSGIRequest) -> HttpResponse:
-    projects = Project.objects.filter(status=Code.APPROVED)
-    return renderer(request, Template.Projects.INDEX, dict(projects=projects))
+# @cache_page(settings.CACHE_LONG)
+def index(request: WSGIRequest) -> HttpResponse:
+    return renderer(request, Template.Projects.INDEX)
 
 
 @require_GET
@@ -40,6 +42,7 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
+# @cache_page(settings.CACHE_LONG)
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
@@ -372,6 +375,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 
 @require_GET
+# @cache_page(settings.CACHE_SHORT)
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)

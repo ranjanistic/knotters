@@ -18,5 +18,7 @@ urlpatterns = [
     path(URL.People.SUCCESSORINVITEACTION, successorInviteAction),
     path(URL.People.ACCOUNTDELETE, accountDelete),
     path(URL.People.ZOMBIE, zombieProfile),
+    path(URL.People.BLOCK_USER, blockUser),
+    path(URL.People.UNBLOCK_USER, unblockUser),
     path(URL.People.GITHUB_EVENTS, githubEventsListener),
 ]

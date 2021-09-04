@@ -10,7 +10,7 @@
         {% for mod in moderators %}
         <div class="w3-row pallete-slab" id="pallete-demote-{{mod.getUserID}}">
             <div class="w3-col s2 m1">
-                <img src="{{mod.getDP}}" class="w3-circle primary" width="50" />
+                <a onclick="miniWindow('{{mod.getLink}}')" ><img src="{{mod.getDP}}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
@@ -21,9 +21,6 @@
                 </div>
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
-                <div class="w3-row w3-right">
-                    <a href="{{mod.getLink}}" target="_blank"><button class="small primary">View</button></a>
-                </div>
                 <div class="w3-row w3-right">
                     <button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
                 </div>
@@ -40,7 +37,7 @@
     {% for mod in profiles %}
         <div class="w3-row pallete-slab" id="pallete-promote-{{mod.getUserID}}">
             <div class="w3-col s2 m1">
-                <img src="{{mod.getDP}}" class="w3-circle primary" width="50" />
+                <a onclick="miniWindow('{{mod.getLink}}')" ><img src="{{mod.getDP}}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
@@ -51,9 +48,6 @@
                 </div>
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
-                <div class="w3-row w3-right">
-                    <a href="{{mod.getLink}}" target="_blank"><button class="small primary">View</button></a>
-                </div>
                 <div class="w3-row w3-right">
                     <button class="small positive promote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Promote</button>
                 </div>
