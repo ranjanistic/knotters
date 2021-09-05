@@ -266,13 +266,14 @@ class URL():
     LANDINGS = 'landing/'
     LANDING = 'landing'
     APPLANDING = '<str:subapp>/landing'
+    def applanding(self, subapp):
+        return setPathParams(self.APPLANDING,subapp)
 
     BROWSER = 'browser/<str:type>'
     def browser(self,type):
         return setPathParams(self.BROWSER,type)
         
-    def applanding(self, subapp):
-        return setPathParams(self.APPLANDING,subapp)
+    VERIFY_CAPTCHA = 'captcha/verify'
 
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """

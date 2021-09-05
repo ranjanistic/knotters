@@ -153,11 +153,12 @@ else:
 #     },
 # }
 
+# SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+
 CACHE_LONG = 60 * 30
 CACHE_SHORT = 60 * 15
 CACHE_MINI = 60 * 5
 
-# SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -211,8 +212,10 @@ LOGIN_URL = f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
 APPEND_SLASH = not False
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -221,17 +224,6 @@ EMAIL_HOST_USER = env.MAILUSER
 EMAIL_HOST_PASSWORD = env.MAILPASS
 EMAIL_SUBJECT_PREFIX = env.PUBNAME
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-SENDER_API_HEADERS = {
-    "Authorization": f"Bearer {env.SENDERTOKEN}",
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-}
-SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
-SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
-
-GITHUB_API_URL = "https://api.github.com"
-GH_HOOK_SECRET = env.GH_HOOK_SECRET
 
 if not DEBUG:
     os.environ["HTTPS"] = "on"
@@ -254,3 +246,18 @@ USE_L10N = True
 USE_TZ = True
 
 SITE_ID = 1
+
+SENDER_API_HEADERS = {
+    "Authorization": f"Bearer {env.SENDERTOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+}
+SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
+SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
+
+GITHUB_API_URL = "https://api.github.com"
+GH_HOOK_SECRET = env.GH_HOOK_SECRET
+
+
+GOOGLE_RECAPTCHA_SECRET_KEY = env.RECAPTCHA_SECRET
+GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"

@@ -74,8 +74,8 @@ const miniWindow = (url, name = APPNAME) =>
     );
 
 const newTab = (url) => {
-    window.open(setUrlQueries(url, { miniwin: 1 }))
-}
+    window.open(setUrlQueries(url, { miniwin: 1 }));
+};
 
 const message = (msg = "") => {
     alertify.set("notifier", "position", "top-left");
@@ -227,6 +227,67 @@ const loadGlobalEventListeners = () => {
             window.close();
         });
     });
+    getElements("recaptcha-protected-form-action").forEach((action) => {
+        action.onclick = (e) => {
+            e.preventDefault();
+            if (
+                !getElements("required-field").every((field) => {
+                    if (!String(field.value).trim()) {
+                        error(field.placeholder + " required");
+                        return false;
+                    }
+                    return true;
+                })
+            )
+                return;
+            subLoader(true);
+            _processReCaptcha((stopLoaders) => {
+                e.target.form.submit();
+                return;
+            });
+        };
+    });
+};
+
+const _processReCaptcha = (
+    onSuccess = (stopLoaders) => {},
+    onFailure = (e) => {
+        error("An error occurred");
+    }
+) => {
+    grecaptcha.ready(function () {
+        try {
+            grecaptcha
+                .execute(RECAPTCHA_KEY, { action: "submit" })
+                .then(async (token) => {
+                    loader(true);
+                    const data = await postRequest(URLS.VERIFY_CAPTCHA, {
+                        "g-recaptcha-response": token,
+                    });
+                    if (!data) {
+                        subLoader(false);
+                        loader(false);
+                        return;
+                    }
+                    if (data.code === code.OK) {
+                        onSuccess(()=>{loader(false);subLoader(false);})
+                    } else {
+                        onFailure(data);
+                        subLoader(false);
+                        loader(false);
+                    }
+                })
+                .catch((e) => {
+                    onFailure(e);
+                    subLoader(false);
+                    loader(false);
+                });
+        } catch (e) {
+            onFailure(e);
+            subLoader(false);
+            loader(false);
+        }
+    });
 };
 
 const Icon = (name, classnames = "") =>
@@ -277,7 +338,9 @@ const initializeTabsView = ({
     const tabs = getElements(tabsClass);
     let tabview = null;
     try {
-        if(viewID) {tabview = getElement(viewID);}
+        if (viewID) {
+            tabview = getElement(viewID);
+        }
     } catch {}
 
     const showTabLoading = () => {
@@ -710,7 +773,9 @@ const reportFeedback = async ({
     detail = "",
 }) => {
     const data = await postRequest(
-        isReport ? (URLS.CREATE_REPORT||URLS.Management.CREATE_REPORT) : (URLS.CREATE_FEED||URLS.Management.CREATE_FEED),
+        isReport
+            ? URLS.CREATE_REPORT || URLS.Management.CREATE_REPORT
+            : URLS.CREATE_FEED || URLS.Management.CREATE_FEED,
         {
             email,
             category,
@@ -738,7 +803,7 @@ const reportFeedbackView = () => {
         onshow: () =>
             initializeTabsView({
                 tabsClass: "report-feed-tab",
-                uniqueID: 'reportFeed',
+                uniqueID: "reportFeed",
                 viewID: false,
                 onEachTab: (tab) => {
                     isReport = tab.id === "report";
@@ -779,8 +844,8 @@ const reportFeedbackView = () => {
                     getElement("report-feed-summary").value
                 ).trim();
                 if (!summary) {
-                    error("Short description required"); 
-                    return false
+                    error("Short description required");
+                    return false;
                 }
                 data["summary"] = summary;
                 data["detail"] = String(
@@ -792,7 +857,7 @@ const reportFeedbackView = () => {
                 ).trim();
                 if (!detail) {
                     error("Feedback description required");
-                    return false
+                    return false;
                 }
                 data["detail"] = detail;
             }

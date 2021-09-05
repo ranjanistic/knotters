@@ -26,6 +26,7 @@ urlpatterns = [
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
     path(URL.BROWSER, browser),
+    path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template)
 ]

@@ -30,7 +30,7 @@
 <br/>
 <div class="w3-row w3-padding w3-center">
 	<div class="w3-col w3-quarter w3-padding"></div>
-	<div class="w3-col w3-half  accent pallete">
+	<div class="w3-col w3-half accent pallete">
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/>
@@ -71,12 +71,12 @@
 					<h3 class="text-accent">or use your <br/>Knotters account</h3>
 					<br/>
 					<div class="w3-row">
-					<input type="text" name="login" placeholder="Email address" autocomplete="email" autofocus="autofocus" maxlength="150" required id="id_login" />
+					<input type="text" class="required-field" name="login" placeholder="Email address" autocomplete="email" autofocus="autofocus" maxlength="150" required id="id_login" />
 					<br/><br/>
-					<input type="password" name="password" autocomplete="current-password" placeholder="Password" required id="id_password" />
+					<input type="password" class="required-field" name="password" autocomplete="current-password" placeholder="Password" required id="id_password" />
 					</div>
 					<br/>
-					<button class="positive" type="submit"><i>login</i>Sign In</button>
+					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' id="sign-in-action" data-icon="login">Sign In</button>
 					<button type="button" class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="help">Forgot?</button>
 					<input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
@@ -91,4 +91,8 @@
 <strong>By continuing via an identity on our platform, you agree to our <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" target="_blank">terms of service</a> and <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" target="_blank">privacy policy</a>.</strong>
 </center>
 <br/>
+{% endblock %}
+
+{% block scripts %}
+<script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
 {% endblock %}

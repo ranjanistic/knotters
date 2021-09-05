@@ -3,10 +3,10 @@ from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_GET
-from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_GET, require_POST
+# from django.utils.decorators import method_decorator
 from django.conf import settings
-from django.views.decorators.cache import cache_page
+# from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
@@ -15,8 +15,8 @@ from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from .env import ADMINPATH
-from .methods import errorLog, renderData, renderView
-from .decorators import dev_only
+from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
+from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
 
@@ -267,3 +267,16 @@ def browser(request: WSGIRequest, type: str):
     except Exception as e:
         print(e)
         raise Http404()
+
+@require_JSON_body
+def verifyCaptcha(request: WSGIRequest):
+    try:
+        capt_response = request.POST.get('g-recaptcha-response',False)
+        if not capt_response:
+            return respondJson(Code.NO)
+        if verify_captcha(capt_response):
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO)

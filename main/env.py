@@ -33,9 +33,33 @@ SERVER_EMAIL = env('SERVER_EMAIL').strip()
 GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
 REDIS_LOCATION = env('REDIS_LOCATION').strip()
 REDIS_PASSWORD = env('REDIS_PASSWORD').strip()
+RECAPTCHA_KEY=env('RECAPTCHA_KEY').strip()
+RECAPTCHA_SECRET=env('RECAPTCHA_SECRET').strip()
 
+PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
+PUBNAME = None if PUBNAME == 'none' else PUBNAME
+ENV = None if ENV == 'none' else ENV
+HOSTS = None if HOSTS == 'none' else HOSTS
+DBNAME = None if DBNAME == 'none' else DBNAME
+DBLINK = None if DBLINK == 'none' else DBLINK
+DBUSER = None if DBUSER == 'none' else DBUSER
+DBPASS = None if DBPASS == 'none' else DBPASS
+MAILUSER = None if MAILUSER == 'none' else MAILUSER
+MAILPASS = None if MAILPASS == 'none' else MAILPASS
+BOTMAIL = None if BOTMAIL == 'none' else BOTMAIL
+ADMINPATH = None if ADMINPATH == 'none' else ADMINPATH
+GITHUBBOTTOKEN = None if GITHUBBOTTOKEN == 'none' else GITHUBBOTTOKEN
+DISCORDBOTTOKEN = None if DISCORDBOTTOKEN == 'none' else DISCORDBOTTOKEN
+SITE = None if SITE == 'none' else SITE
+SENDERTOKEN = None if SENDERTOKEN == 'none' else SENDERTOKEN
+MEDIA_URL = None if MEDIA_URL == 'none' else MEDIA_URL
+STATIC_URL = None if STATIC_URL == 'none' else STATIC_URL
+SERVER_EMAIL = None if SERVER_EMAIL == 'none' else SERVER_EMAIL
+GH_HOOK_SECRET = None if GH_HOOK_SECRET == 'none' else GH_HOOK_SECRET
 REDIS_LOCATION = None if REDIS_LOCATION == 'none' else REDIS_LOCATION
 REDIS_PASSWORD = None if REDIS_PASSWORD == 'none' else REDIS_PASSWORD
+RECAPTCHA_KEY = None if RECAPTCHA_KEY == 'none' else RECAPTCHA_KEY
+RECAPTCHA_SECRET = None if RECAPTCHA_SECRET == 'none' else RECAPTCHA_SECRET
 
 ISPRODUCTION = ENV == Environment.PRODUCTION
 
@@ -43,8 +67,7 @@ ISDEVELOPMENT = ENV == Environment.DEVELOPMENT
 
 ISTESTING = ENV == Environment.TESTING
 
-VERSION = 'v--16'
-
-if ISPRODUCTION:
-    from .__version__ import VERSION as V
-    VERSION = V
+try:
+    from .__version__ import VERSION
+except:
+    VERSION = 'vXXX'
