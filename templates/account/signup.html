@@ -64,14 +64,11 @@
 					<br/>
 					<h3>or create a<br/>Knotters account</h3>
 					<br/>
-					{{ form.media }}
 					{% for field in form %}
 						{{ field }}
-						<br/>
-						<br/>
+						<br/><br/>
 					{% endfor %}
-					<br/>
-					<button class="positive" type="submit" data-icon="person_add">Create account</button>
+					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' data-icon="person_add" id="sign-up-action">Create account</button>
 					<input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>
@@ -81,7 +78,11 @@
 </div>
 <br/>
 <center class="w3-padding">
-<strong>By continuing via an identity on our platform, you agree to our <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" target="_blank" >terms of service</a> and <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" target="_blank">privacy policy</a>.</strong>
+<strong>By continuing via an identity on our platform, you agree to our <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" target="_blank">terms of service</a> and <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" target="_blank">privacy policy</a>.</strong>
 </center>
 <br/>
 {%endblock%}
+
+{% block scripts %}
+<script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
+{% endblock %}
