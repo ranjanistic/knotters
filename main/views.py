@@ -4,9 +4,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET, require_POST
-# from django.utils.decorators import method_decorator
+from django.utils.decorators import method_decorator
 from django.conf import settings
-# from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
@@ -22,7 +22,7 @@ from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, 
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
+@cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
 
@@ -107,7 +107,7 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, template, fromApp=subapp)
 
 
-# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
+@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
@@ -118,7 +118,7 @@ class Robots(TemplateView):
         return context
 
 
-# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
+@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
@@ -152,7 +152,7 @@ class Manifest(TemplateView):
         return context
 
 
-# @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
+@method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS

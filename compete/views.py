@@ -471,6 +471,7 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
         return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND,)
 
 @require_GET
+# @cache_page(settings.CACHE_MINI)
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.getID() == userID:

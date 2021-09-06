@@ -52,6 +52,7 @@ class Code():
 
 code = Code()
 
+
 class Event():
     PING = 'ping'
     PUSH = 'push'
@@ -62,6 +63,7 @@ class Event():
     ORG = 'organization'
     TEAMS = 'team'
     CREATED = 'created'
+
 
 def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """
@@ -176,6 +178,7 @@ action = Action()
 
 DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT]
 
+
 class Project():
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
     PROJECTSTATESCHOICES = (
@@ -213,6 +216,7 @@ class Profile():
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
     MODERATION = "moderation"
+
     class Setting():
         ACCOUNT = "account"
         PREFERENCE = "preference"
@@ -243,12 +247,14 @@ class Compete():
 profile = Profile()
 compete = Compete()
 
+
 class URL():
     INDEX = ''
     FAVICON = 'favicon.ico'
     ROBOTS_TXT = 'robots.txt'
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
+    SWITCH_LANG = 'i18n/'
     OFFLINE = 'off408'
     ROOT = '/'
     AUTH = f"{AUTH}/"
@@ -259,20 +265,23 @@ class URL():
     MODERATION = f'{MODERATION}/'
     MANAGEMENT = f'{MANAGEMENT}/'
     REDIRECTOR = 'redirector/'
-    def redirector(self,to='/'):
+
+    def redirector(self, to='/'):
         return f"{self.REDIRECTOR}?n={to}"
 
     DOCTYPE = 'docs/<str:type>'
     LANDINGS = 'landing/'
     LANDING = 'landing'
     APPLANDING = '<str:subapp>/landing'
+
     def applanding(self, subapp):
-        return setPathParams(self.APPLANDING,subapp)
+        return setPathParams(self.APPLANDING, subapp)
 
     BROWSER = 'browser/<str:type>'
-    def browser(self,type):
-        return setPathParams(self.BROWSER,type)
-        
+
+    def browser(self, type):
+        return setPathParams(self.BROWSER, type)
+
     VERIFY_CAPTCHA = 'captcha/verify'
 
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
@@ -348,9 +357,10 @@ class URL():
             return URLS
 
     auth = Auth()
-                
+
     class Docs():
         TYPE = '<str:type>'
+
         def type(self, type):
             return setPathParams(self.TYPE, type)
 
@@ -363,10 +373,10 @@ class URL():
 
             for key in urls:
                 URLS[key] = f"{url.getRoot(DOCS)}{setPathParams(urls[key])}"
-            return URLS    
-    
+            return URLS
+
     docs = Docs()
-    
+
     class Compete():
         COMPID = '<str:compID>'
 
@@ -439,15 +449,17 @@ class URL():
             return setPathParams(self.CLAIMXP, compID, subID)
 
         GENERATE_CERTS = 'generatecertificate/<str:compID>'
-        def generateCert(self,compID):
+
+        def generateCert(self, compID):
             return setPathParams(self.GENERATE_CERTS, compID)
 
-
         CERT_INDEX = 'certificate/'
+
         def certIndex(self):
             return setPathParams(self.CERT_INDEX)
 
         CERT_VERIFY = 'certificate/verify'
+
         def certIndex(self):
             return setPathParams(self.CERT_VERIFY)
 
@@ -458,7 +470,7 @@ class URL():
 
         @deprecated
         def certficate(self, resID, userID):
-            return self.certificate(resID,userID)
+            return self.certificate(resID, userID)
 
         CERTDOWNLOAD = 'certificate/download/<str:resID>/<str:userID>'
 
@@ -467,7 +479,7 @@ class URL():
 
         @deprecated
         def certficateDownload(self, resID, userID):
-            return self.certificateDownload(resID,userID)
+            return self.certificateDownload(resID, userID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -676,8 +688,9 @@ class URL():
         CREATE_COMP = 'competitions/create'
         SUBMIT_COMP = 'competitions/submit'
         COMPETITION = 'competitions/<str:compID>'
+
         def competition(self, compID):
-            return setPathParams(self.COMPETITION,compID)
+            return setPathParams(self.COMPETITION, compID)
         TOPICSEARCH = 'topicsearch'
         JUDGESEARCH = 'judgesearch'
         MODSEARCH = 'moderatorsearch'
@@ -687,14 +700,14 @@ class URL():
         CREATE_FEED = 'report-feedback/feedbacks/create'
         REPORT_FEED = 'report-feedback'
         REPORT_FEED_TYPE = 'report-feedback/<str:type>'
-        def reportfeedType(self, type):
-            return setPathParams(self.REPORT_FEED_TYPE,type)
-            
-        REPORT_FEED_TYPEID = 'report-feedback/<str:type>/<str:ID>'
-        def reportfeedTypeID(self, type, ID):
-            return setPathParams(self.REPORT_FEED_TYPEID,type,ID)
-        
 
+        def reportfeedType(self, type):
+            return setPathParams(self.REPORT_FEED_TYPE, type)
+
+        REPORT_FEED_TYPEID = 'report-feedback/<str:type>/<str:ID>'
+
+        def reportfeedTypeID(self, type, ID):
+            return setPathParams(self.REPORT_FEED_TYPEID, type, ID)
 
         COMMUNITY = 'community'
         MODERATORS = 'community/moderators'
@@ -702,29 +715,32 @@ class URL():
         ADD_MODERATOR = 'community/moderators/add'
         LABELS = 'community/labels'
         LABEL_TYPE = 'community/labels/<str:type>'
+
         def labelType(self, type) -> str:
             return setPathParams(self.LABEL_TYPE, type)
 
         LABEL = 'community/labels/<str:type>/<str:labelID>'
+
         def label(self, type, labelID):
             return setPathParams(self.LABEL, type, labelID)
-            
 
         LABEL_CREATE = 'community/labels/<str:type>/create'
+
         def labelCreate(self, type):
             return setPathParams(self.LABEL_CREATE, type)
 
         LABEL_UPDATE = 'community/labels/<str:type>/<str:labelID>/update'
+
         def labelUpdate(self, type, labelID):
             return setPathParams(self.LABEL_UPDATE, type, labelID)
 
         LABEL_DELETE = 'community/labels/<str:type>/<str:labelID>/delete'
+
         def labelDelete(self, type, labelID):
             return setPathParams(self.LABEL_DELETE, type, labelID)
 
         LABEL_TOPICS = 'community/labels/topics'
         LABEL_CATEGORYS = 'community/labels/categories'
-
 
         def getURLSForClient(self) -> dict:
             URLS = dict()
@@ -736,7 +752,7 @@ class URL():
             for key in urls:
                 URLS[key] = f"{url.getRoot(MANAGEMENT)}{setPathParams(urls[key])}"
             return URLS
-    
+
     managemnt = Management()
     management = Management()
 
@@ -768,99 +784,118 @@ class Template():
         return f'{self.INDEX}.html'
 
     OFFLINE = 'offline'
+
     @property
     def offline(self):
         return f'{self.OFFLINE}.html'
 
     FORWARD = 'forward'
+
     @property
     def forward(self):
         return f'{self.FORWARD}.html'
 
     LANDING = 'landing'
+
     @property
     def landing(self):
         return f'{self.LANDING}.html'
 
     INVITATION = 'invitation'
+
     @property
     def invitation(self):
         return f'{self.INVITATION}.html'
-    
+
     class Auth():
         DIRNAME = 'account'
 
         ACCOUNT_INACTIVE = 'account_inactive'
+
         @property
         def account_inactive(self):
             return f"{self.DIRNAME}/{self.ACCOUNT_INACTIVE}.html"
-        
+
         EMAIL = 'email'
+
         @property
         def email(self):
             return f"{self.DIRNAME}/{self.EMAIL}.html"
-        
+
         EMAIL_CONFIRM = 'email_confirm'
+
         @property
         def email_confirm(self):
             return f"{self.DIRNAME}/{self.EMAIL_CONFIRM}.html"
-        
+
         LOGIN = 'login'
+
         @property
         def login(self):
             return f"{self.DIRNAME}/{self.LOGIN}.html"
-        
+
         LOGOUT = 'logout'
+
         @property
         def logout(self):
             return f"{self.DIRNAME}/{self.LOGOUT}.html"
-        
+
         PASSWORD_CHANGE = 'password_change'
+
         @property
         def password_change(self):
             return f"{self.DIRNAME}/{self.PASSWORD_CHANGE}.html"
-        
+
         PASSWORD_RESET = 'password_reset'
+
         @property
         def password_reset(self):
             return f"{self.DIRNAME}/{self.PASSWORD_RESET}.html"
-        
+
         PASSWORD_RESET_DONE = 'password_reset_done'
+
         @property
         def password_reset_done(self):
             return f"{self.DIRNAME}/{self.PASSWORD_RESET_DONE}.html"
-        
+
         PASSWORD_RESET_FROM_KEY = 'password_reset_from_key'
+
         @property
         def password_reset_from_key(self):
             return f"{self.DIRNAME}/{self.PASSWORD_RESET_FROM_KEY}.html"
-        
+
         PASSWORD_RESET_FROM_KEY_DONE = 'password_reset_from_key_done'
+
         @property
         def password_reset_from_key_done(self):
             return f"{self.DIRNAME}/{self.PASSWORD_RESET_FROM_KEY_DONE}.html"
-        
+
         PASSWORD_SET = 'password_set'
+
         @property
         def password_set(self):
             return f"{self.DIRNAME}/{self.PASSWORD_SET}.html"
-        
+
         SIGNUP = 'signup'
+
         @property
         def signup(self):
             return f"{self.DIRNAME}/{self.SIGNUP}.html"
-        
+
         SIGNUP_CLOSED = 'signup_closed'
+
         @property
         def signup_closed(self):
             return f"{self.DIRNAME}/{self.SIGNUP_CLOSED}.html"
-        
+
         VERIFICATION_SENT = 'verification_sent'
+
         @property
         def verification_sent(self):
             return f"{self.DIRNAME}/{self.VERIFICATION_SENT}.html"
-        
+
         VERIFIED_EMAIL_REQUIRED = 'verified_email_required'
+
         @property
         def verified_email_required(self):
             return f"{self.DIRNAME}/{self.VERIFIED_EMAIL_REQUIRED}.html"
@@ -870,56 +905,65 @@ class Template():
     class Docs():
         DIRNAME = DOCS
         INDEX = 'index'
+
         @property
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
         DOC = 'doc'
+
         @property
         def doc(self):
             return f'{self.DIRNAME}/{self.DOC}.html'
 
     docs = Docs()
-        
 
     class Compete():
         DIRNAME = COMPETE
         INDEX = "index"
+
         @property
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
         ACTIVE = f"index/{Compete.ACTIVE}"
+
         @property
         def active(self):
             return f'{self.DIRNAME}/{self.ACTIVE}.html'
 
         UPCOMING = f"index/{Compete.UPCOMING}"
+
         @property
         def upcoming(self):
             return f'{self.DIRNAME}/{self.UPCOMING}.html'
 
         HISTORY = f"index/{Compete.HISTORY}"
+
         @property
         def history(self):
             return f'{self.DIRNAME}/{self.HISTORY}.html'
 
         LANDING = 'landing'
+
         @property
         def landing(self):
             return f'{self.DIRNAME}/{self.LANDING}.html'
 
         PROFILE = 'profile'
+
         @property
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
 
         CERT_INDEX = 'certificate/index'
+
         @property
         def cert_index(self):
             return f'{self.DIRNAME}/{self.CERT_INDEX}.html'
-            
+
         CERT_CERTIFICATE = 'certificate/certificate'
+
         @property
         def cert_certificate(self):
             return f'{self.DIRNAME}/{self.CERT_CERTIFICATE}.html'
@@ -932,26 +976,31 @@ class Template():
             return f'{self.DIRNAME}/{self.CERT_CERTIFICATE}.html'
 
         PROFILE_OVERVIEW = f"profile/{Compete.OVERVIEW}"
+
         @property
         def profile_overview(self):
             return f'{self.DIRNAME}/{self.PROFILE_OVERVIEW}.html'
 
         PROFILE_TASK = f"profile/{Compete.TASK}"
+
         @property
         def profile_task(self):
             return f'{self.DIRNAME}/{self.PROFILE_TASK}.html'
 
         PROFILE_GUIDELINES = f"profile/{Compete.GUIDELINES}"
+
         @property
         def profile_guidelines(self):
             return f'{self.DIRNAME}/{self.PROFILE_GUIDELINES}.html'
 
         PROFILE_SUBMISSION = f"profile/{Compete.SUBMISSION}"
+
         @property
         def profile_submission(self):
             return f'{self.DIRNAME}/{self.PROFILE_SUBMISSION}.html'
 
         PROFILE_RESULT = f"profile/{Compete.RESULT}"
+
         @property
         def profile_result(self):
             return f'{self.DIRNAME}/{self.PROFILE_RESULT}.html'
@@ -961,109 +1010,128 @@ class Template():
     class People():
         DIRNAME = PEOPLE
         LANDING = 'landing'
+
         @property
         def landing(self):
             return f'{self.DIRNAME}/{self.LANDING}.html'
 
         INDEX = 'index'
+
         @property
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
         PROFILE = 'profile'
+
         @property
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
 
         BROWSE_NEWBIE = 'browse/newbie'
+
         @property
         def browse_newbie(self):
             return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
-        
+
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
+
         @property
         def profile_overview(self):
             return f'{self.DIRNAME}/{self.PROFILE_OVERVIEW}.html'
 
         PROFILE_PROJECTS = f"profile/{Profile.PROJECTS}"
+
         @property
         def profile_projects(self):
             return f'{self.DIRNAME}/{self.PROFILE_PROJECTS}.html'
 
         PROFILE_ACHEIVEMENTS = f"profile/{Profile.ACHEIVEMENTS}"
+
         @property
         def profile_acheivements(self):
             return f'{self.DIRNAME}/{self.PROFILE_ACHEIVEMENTS}.html'
 
         PROFILE_CONTRIBUTION = f"profile/{Profile.CONTRIBUTION}"
+
         @property
         def profile_contribution(self):
             return f'{self.DIRNAME}/{self.PROFILE_CONTRIBUTION}.html'
 
         PROFILE_ACTIVITY = f"profile/{Profile.ACTIVITY}"
+
         @property
         def profile_activity(self):
             return f'{self.DIRNAME}/{self.PROFILE_ACTIVITY}.html'
 
         PROFILE_MODERATION = f"profile/{Profile.MODERATION}"
+
         @property
         def profile_moderation(self):
             return f'{self.DIRNAME}/{self.PROFILE_MODERATION}.html'
 
-
         SETTING_ACCOUNT = f"setting/{Profile.Setting.ACCOUNT}"
+
         @property
         def setting_account(self):
             return f'{self.DIRNAME}/{self.SETTING_ACCOUNT}.html'
         SETTING_PREFERENCE = f"setting/{Profile.Setting.PREFERENCE}"
+
         @property
         def setting_preference(self):
             return f'{self.DIRNAME}/{self.SETTING_PREFERENCE}.html'
         SETTING_SECURITY = f"setting/{Profile.Setting.SECURITY}"
+
         @property
         def setting_security(self):
             return f'{self.DIRNAME}/{self.SETTING_SECURITY}.html'
-
 
     people = People()
 
     class Projects():
         DIRNAME = PROJECTS
         LANDING = 'landing'
+
         @property
         def landing(self):
             return f'{self.DIRNAME}/{self.LANDING}.html'
         INDEX = 'index'
+
         @property
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
         PROFILE = 'profile'
+
         @property
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
 
         CREATE = 'create'
+
         @property
         def create(self):
             return f'{self.DIRNAME}/{self.CREATE}.html'
 
         LICENSE_INDEX = 'license/index'
+
         @property
         def license_index(self):
             return f'{self.DIRNAME}/{self.LICENSE_INDEX}.html'
 
         LICENSE_LIC = 'license/license'
+
         @property
         def license_lic(self):
             return f'{self.DIRNAME}/{self.LICENSE_LIC}.html'
 
         BROWSE_NEWBIE = 'browse/newbie'
+
         @property
         def browse_newbie(self):
             return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
 
         PROFILE_CONTRIBS = 'profile/contributors'
+
         @property
         def profile_contribs(self):
             return f'{self.DIRNAME}/{self.PROFILE_CONTRIBS}.html'
@@ -1074,21 +1142,25 @@ class Template():
         DIRNAME = MODERATION
 
         INDEX = 'index'
+
         @property
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
         PROJECTS = 'projects'
+
         @property
         def projects(self):
             return f'{self.DIRNAME}/{self.PROJECTS}.html'
 
         PEOPLE = 'people'
+
         @property
         def people(self):
             return f'{self.DIRNAME}/{self.PEOPLE}.html'
 
         COMPETE = 'compete'
+
         @property
         def compete(self):
             return f'{self.DIRNAME}/{self.COMPETE}.html'
@@ -1099,92 +1171,106 @@ class Template():
         DIRNAME = MANAGEMENT
 
         INDEX = 'index'
+
         @property
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
         COMP_INDEX = 'competition/index'
+
         @property
         def comp_index(self):
             return f'{self.DIRNAME}/{self.COMP_INDEX}.html'
 
         COMP_CREATE = 'competition/create'
+
         @property
         def comp_create(self):
             return f'{self.DIRNAME}/{self.COMP_CREATE}.html'
 
         COMP_COMPETE = 'competition/compete'
+
         @property
         def comp_compete(self):
             return f'{self.DIRNAME}/{self.COMP_COMPETE}.html'
 
         REPORTFEED_INDEX = 'reportFeed/index'
+
         @property
         def reportfeed_index(self):
             return f'{self.DIRNAME}/{self.REPORTFEED_INDEX}.html'
 
         REPORTFEED_FEEDBACKS = 'reportFeed/feedbacks'
+
         @property
         def reportfeed_feedbacks(self):
             return f'{self.DIRNAME}/{self.REPORTFEED_FEEDBACKS}.html'
 
         REPORTFEED_FEEDBACK = 'reportFeed/feedback'
+
         @property
         def reportfeed_feedback(self):
             return f'{self.DIRNAME}/{self.REPORTFEED_FEEDBACK}.html'
 
         REPORTFEED_REPORTS = 'reportFeed/reports'
+
         @property
         def reportfeed_reports(self):
             return f'{self.DIRNAME}/{self.REPORTFEED_REPORTS}.html'
 
         REPORTFEED_REPORT = 'reportFeed/report'
+
         @property
         def reportfeed_reports(self):
             return f'{self.DIRNAME}/{self.REPORTFEED_REPORT}.html'
 
         COMMUNITY_INDEX = 'community/index'
+
         @property
         def community_index(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_INDEX}.html'
 
         COMMUNITY_LABELS = 'community/labels'
+
         @property
         def community_labels(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_LABELS}.html'
 
         COMMUNITY_LABELS_CATEGORIES = 'community/labels/categories'
+
         @property
         def community_labels_categories(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_LABELS_CATEGORIES}.html'
 
         COMMUNITY_LABELS_TAGS = 'community/labels/tags'
+
         @property
         def community_labels_tags(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_LABELS_TAGS}.html'
 
         COMMUNITY_CATEGORY = 'community/category'
+
         @property
         def community_category(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_CATEGORY}.html'
 
         COMMUNITY_LABELS_TOPICS = 'community/labels/topics'
+
         @property
         def community_labels(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_LABELS}.html'
 
         COMMUNITY_TOPIC = 'community/topic'
+
         @property
         def community_topic(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_TOPIC}.html'
 
         COMMUNITY_MODERATORS = 'community/moderators'
+
         @property
         def community_moderators(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_MODERATORS}.html'
-
-
-        
 
     management = Management()
 

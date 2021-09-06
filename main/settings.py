@@ -4,7 +4,7 @@ from .strings import url, DIVISIONS, PEOPLE, AUTH
 from . import env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+APPS_DIR = os.path.join(BASE_DIR, "apps")
 SECRET_KEY = env.PROJECTKEY
 
 VERSION = env.VERSION
@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
     'allauth_2fa',
+    "translation_manager",
 ] + DIVISIONS
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
@@ -49,17 +50,18 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 MIDDLEWARE = [
-    "main.middleware.MessageFilterMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "main.middleware.TwoFactorMiddleware",
     'django_otp.middleware.OTPMiddleware',
     'allauth_2fa.middleware.AllauthTwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "main.middleware.MessageFilterMiddleware",
     "main.middleware.ProfileActivationMiddleware",
 ]
 
@@ -78,6 +80,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
             ],
         },
     },
@@ -139,21 +142,21 @@ else:
         }
     }
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django.core.cache.backends.dummy.DummyCache"
-#     }
-# } if env.ISTESTING else {
-#     'default': {} if not env.REDIS_LOCATION else {
-#         'BACKEND': 'redis_cache.RedisCache',
-#         'LOCATION': env.REDIS_LOCATION,
-#         'OPTIONS': {} if not env.REDIS_PASSWORD else {
-#             'PASSWORD': env.REDIS_PASSWORD,
-#         }
-#     },
-# }
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache"
+    }
+} if env.ISTESTING else {
+    'default': {} if not env.REDIS_LOCATION else {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': env.REDIS_LOCATION,
+        'OPTIONS': {} if not env.REDIS_PASSWORD else {
+            'PASSWORD': env.REDIS_PASSWORD,
+        }
+    },
+}
 
-# SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 CACHE_LONG = 60 * 30
 CACHE_SHORT = 60 * 15
@@ -219,7 +222,7 @@ else:
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = f"Knotters <{env.MAILUSER}>"
+DEFAULT_FROM_EMAIL = f"{env.PUBNAME} <{env.MAILUSER}>"
 EMAIL_HOST_USER = env.MAILUSER
 EMAIL_HOST_PASSWORD = env.MAILPASS
 EMAIL_SUBJECT_PREFIX = env.PUBNAME
@@ -239,11 +242,23 @@ if not DEBUG:
 
 FIRST_DAY_OF_WEEK = 1
 DEFAULT_CHARSET = 'utf-8'
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
+LANGUAGE_COOKIE_NAME = "client_language"
+LANGUAGE_COOKIE_SECURE = True
+# LANGUAGES = (
+#     ('af', 'Afrikaans')('ar', 'Arabic')('ast', 'Asturian')('az', 'Azerbaijani')('bg', 'Bulgarian')('be', 'Belarusian')('bn', 'Bengali')('br', 'Breton')('bs', 'Bosnian')('ca', 'Catalan')('cs', 'Czech')('cy', 'Welsh')('da', 'Danish')('de', 'German')('dsb', 'Lower Sorbian')('el', 'Greek')('en', 'English')('en-au', 'Australian English')('en-gb', 'British English')('eo', 'Esperanto')('es', 'Spanish')('es-ar', 'Argentinian Spanish')('es-co', 'Colombian Spanish')('es-mx', 'Mexican Spanish')('es-ni', 'Nicaraguan Spanish')('es-ve', 'Venezuelan Spanish')('et', 'Estonian')('eu', 'Basque')('fa', 'Persian')('fi', 'Finnish')('fr', 'French')('fy', 'Frisian')('ga', 'Irish')('gd', 'Scottish Gaelic')('gl', 'Galician')('he', 'Hebrew')('hi', 'Hindi')('hr', 'Croatian')('hsb', 'Upper Sorbian')('hu', 'Hungarian')('hy', 'Armenian')('ia', 'Interlingua')('id', 'Indonesian')('io', 'Ido')
+#     ('is','Icelandic')('it', 'Italian')('ja', 'Japanese')('ka', 'Georgian')('kab', 'Kabyle')('kk', 'Kazakh')('km', 'Khmer')('kn', 'Kannada')('ko', 'Korean')('lb', 'Luxembourgish')('lt', 'Lithuanian')('lv', 'Latvian')('mk', 'Macedonian')('ml', 'Malayalam')('mn', 'Mongolian')('mr', 'Marathi')('my', 'Burmese')('nb', 'Norwegian Bokmål')('ne', 'Nepali')('nl', 'Dutch')('nn', 'Norwegian Nynorsk')('os', 'Ossetic')('pa', 'Punjabi')('pl', 'Polish')('pt', 'Portuguese')('pt-br', 'Brazilian Portuguese')('ro', 'Romanian')('ru', 'Russian')('sk', 'Slovak')('sl', 'Slovenian')('sq', 'Albanian')('sr', 'Serbian')('sr-latn', 'Serbian Latin')('sv', 'Swedish')('sw', 'Swahili')('ta', 'Tamil')('te', 'Telugu')('th', 'Thai')('tr', 'Turkish')('tt', 'Tatar')('udm', 'Udmurt')('uk', 'Ukrainian')('ur', 'Urdu')('uz', 'Uzbek')('vi', 'Vietnamese')('zh-hans', 'Simplified Chinese')('zh-hant', 'Traditional Chinese')
+# )
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+TRANSLATIONS_PROJECT_BASE_DIR = os.path.join(APPS_DIR, 'locale')
+
+LOCALE_PATHS = (TRANSLATIONS_PROJECT_BASE_DIR,)
+
+TRANSLATIONS_ADMIN_EXCLUDE_FIELDS = ['get_hint', 'locale_parent_dir', 'domain']
 
 SITE_ID = 1
 
@@ -252,6 +267,7 @@ SENDER_API_HEADERS = {
     "Content-Type": "application/json",
     "Accept": "application/json",
 }
+
 SENDER_API_URL_SUBS = "https://api.sender.net/v2/subscribers"
 SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
 
