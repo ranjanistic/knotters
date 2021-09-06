@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+
 {% load l10n %}
 {% load tz %}
 {% load socialaccount %}
@@ -144,6 +145,14 @@
                 <a href="{{URLS.MANAGEMENT}}" class="text-secondary w3-animate-left">Management</a><br/>
                 {% endif %}
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">Contact us</a><br/>
+                <form action="{% url "set_language" %}" method="POST">
+                    {% csrf_token %}
+                    <select name="language" id="language" onchange="this.form.submit()">
+                    {% for language in LANGUAGES %}
+                        <option value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
+                    {% endfor %}
+                    </select>
+                </form>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>
@@ -152,8 +161,9 @@
                     <h2 class="text-secondary w3-right">Knotters Community</h2>
                 </div>
                 <div class="w3-row">
-                    <img alt={{APPNAME}} class="w3-right darkimg" src="{{ICON}}" data-ext="svg" data-name="self/icon" width="120" height="120" />
+                    <img alt="{{APPNAME}}" class="w3-right darkimg" src="{{ICON}}" data-ext="svg" data-name="self/icon" width="120" height="120" />
                 </div>
+                
                 </a>
             </div>
             <div class="w3-row">
@@ -194,7 +204,7 @@
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";
-            const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
+            const SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}};
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
             const ICON = "{{ICON}}"
@@ -207,7 +217,7 @@
             if("{{request.GET.report}}"==="1"){
                 reportFeedbackView()   
             }
-            const URLS = Object.freeze({{URLS|safe}})
+            const URLS = Object.freeze({{URLS|or:'{}'|safe}})
         </script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'scripts/autostart.js' %}"></script>

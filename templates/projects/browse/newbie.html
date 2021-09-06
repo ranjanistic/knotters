@@ -2,7 +2,7 @@
 <div class="w3-row">
     <br/>
     <div class="w3-padding-small">
-    <h3>&nbsp;&nbsp;&nbsp;&nbsp;Newbie projects</h3>
+    <h3>&nbsp;&nbsp;&nbsp;Newbie projects</h3>
     </div>
     <br/>
     <div class="swiper-container swiper-browser">
@@ -14,7 +14,7 @@
                     <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                     <div class="w3-row w3-padding">
                         <h5>{{ project.name }}</h5>
-                        <span>{{ project.description }}</span>
+                        <span>{{ project.description|truncatechars:75 }}</span>
                     </div>
                     <div class="w3-row w3-padding-small">
                         <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{ project.name }}', '{{ project.description }}', '{{SITE}}{{project.getLink}}')">share</i>
