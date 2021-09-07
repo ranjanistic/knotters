@@ -8,7 +8,7 @@ from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url, MANAGEMENT
 from main.methods import errorLog, getNumberSuffix
-from main.env import BOTMAIL
+from main.env import BOTMAIL, SITE
 from .apps import APPNAME
 
 
@@ -63,6 +63,8 @@ class Competition(models.Model):
 
     resultDeclared = models.BooleanField(
         default=False, help_text='Whether the results have been declared or not. Strictly restricted to be edited via server.')
+    
+    resultDeclaredOn = models.DateTimeField(auto_now=False,null=True,blank=True)
 
     creator = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='competition_creator')
@@ -81,8 +83,12 @@ class Competition(models.Model):
         self.modifiedOn = timezone.now()
         return super(Competition, self).save(*args, **kwargs)
 
-    def getID(self) -> str:
+    @property
+    def get_id(self) -> str:
         return self.id.hex
+
+    def getID(self) -> str:
+        return self.get_id
 
     def getBanner(self) -> str:
         return f"{settings.MEDIA_URL}{str(self.banner)}"
@@ -393,6 +399,7 @@ class Competition(models.Model):
                         f"Results declaration: Submission not found (valid) but submission points found! subID: {submissionpoint['submission']}")
             Result.objects.bulk_create(resultsList)
             self.resultDeclared = True
+            self.resultDeclaredOn = timezone.now()
             self.save()
             if not self.allResultsDeclared():
                 raise Exception(
@@ -475,8 +482,12 @@ class Submission(models.Model):
     def __str__(self) -> str:
         return f"{self.competition.title} - {self.getID()}"
 
-    def getID(self) -> str:
+    @property
+    def get_id(self) -> str:
         return self.id.hex
+
+    def getID(self) -> str:
+        return self.get_id
 
     def getCompID(self) -> str:
         return self.competition.getID()
@@ -655,6 +666,9 @@ class Result(models.Model):
 
     def hasClaimedXP(self, profile: Profile) -> bool:
         return profile in self.xpclaimers.all()
+    
+    def getClaimXPLink(self) -> str:
+        return f"{url.getRoot(APPNAME)}{url.compete.claimXP(self.competition.get_id,self.submission.get_id)}"
 
     def allXPClaimed(self) -> bool:
         return self.submission.totalMembers() == self.xpclaimers.count
@@ -694,6 +708,10 @@ class ParticipantCertificate(models.Model):
     @property
     def get_id(self):
         return self.id.hex
+
+    @property
+    def getCertImage(self):
+        return f"{settings.MEDIA_URL}{str(self.certificate).replace('.pdf','.jpg')}"
 
     def getCertificate(self):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"

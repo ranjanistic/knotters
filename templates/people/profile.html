@@ -132,7 +132,8 @@
 
 		{% if not self and user.is_authenticated %}
         <div class="w3-row">
-        <button class="small negative-text" data-icon="block" id='block-account'>Block</button>
+        <button class="small tertiary negative-text" data-icon="block" id='block-account'>Block</button>
+        <button class="small tertiary negative-text" data-icon="report" id='report-account'>Report</button>
         </div>
         <br />
 		{% endif %}
@@ -172,12 +173,11 @@
         </div>
         {% endif %}
         <br/>
+        <br/>
       </div>
     </div>
-
   {% endif %}
 </div>
-<br/>
 {% endblock %}
 
 {% block scripts %}

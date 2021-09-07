@@ -89,14 +89,10 @@ def getCompetitionSectionData(section: str, competition: Competition, user: User
                 competition=competition).order_by('rank')
             if user.is_authenticated:
                 profile = user.profile
-                memberfound = False
-                for res in results:
-                    if res.submission.isMember(profile):
-                        memberfound = True
-                        if res.rank > 10:
-                            data['selfresult'] = res
-                        break
-                if not memberfound:
+                res = results.filter(submission__members=profile).first()
+                if res:
+                    data['selfresult'] = res
+                else:
                     try:
                         subm = Submission.objects.get(
                             competition=competition, members=profile, valid=False)
@@ -172,8 +168,10 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
             certimage.paste(assimage, assxy)
 
         certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.pdf"
+        certpathimg = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
         if not ISTESTING:
             certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"), save_all=True)
+            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpathimg}"))
         return certpath
     except Exception as e:
         errorLog(e)

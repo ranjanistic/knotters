@@ -304,18 +304,17 @@ def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profi
     return True
 
 
-def getProjectLiveData(project: Project) -> dict:
+def getProjectLiveData(project: Project):
     if ISPRODUCTION:
         ghOrgRepo = getGhOrgRepo(project.reponame)
         contribs = ghOrgRepo.get_contributors()
         languages = ghOrgRepo.get_languages()
         ghIDs = []
-
         for cont in contribs:
             ghIDs.append(str(cont.login))
         contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
-        return dict(contributors=contributors, languages=languages)
+        return contributors, languages
     else:
-        return dict(contributors=[], languages=[])
+        return [], []
 
 from .receivers import *

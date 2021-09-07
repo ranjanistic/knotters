@@ -178,7 +178,8 @@ const loadGlobalEventListeners = () => {
         if (
             a.getAttribute("href") &&
             !a.getAttribute("href").startsWith("#") &&
-            !a.getAttribute("target")
+            !a.getAttribute("target") &&
+            a.getAttribute("download") === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);
@@ -270,7 +271,10 @@ const _processReCaptcha = (
                         return;
                     }
                     if (data.code === code.OK) {
-                        onSuccess(()=>{loader(false);subLoader(false);})
+                        onSuccess(() => {
+                            loader(false);
+                            subLoader(false);
+                        });
                     } else {
                         onFailure(data);
                         subLoader(false);
@@ -916,4 +920,41 @@ const previewImageDialog = (src) => {
 
 const futuremessage = (message = "") => {
     localStorage.setItem(Key.futureMessage, message);
+};
+
+const radarChartView = (chartCanvas,labels = [], labelsData = [], colorhex = "f5d702") => {
+    return new Chart(chartCanvas.getContext("2d"), {
+        type: "radar",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    data: labelsData,
+                    borderColor: `#${colorhex}`,
+                    backgroundColor: `#${colorhex}55`,
+                },
+            ],
+        },
+        options: {
+            maintainAspectRatio: !false,
+            scale: {
+                ticks: {
+                    display: false,
+                    maxTicksLimit: 2,
+                },
+            },
+            responsive: true,
+            gridLines: {
+                display: false,
+            },
+            plugins: {
+                legend: false,
+                tooltip: false,
+                title: {
+                    display: false,
+                    text: "",
+                },
+            },
+        },
+    });
 };

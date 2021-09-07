@@ -490,7 +490,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         partcert = ParticipantCertificate.objects.filter(
             result__id=resID, profile=member).first()
 
-        certpath = False if not partcert else partcert.getCertificate() if partcert.certificate else False
+        certpath = False if not partcert else partcert.getCertImage if partcert.certificate else False
         certID = False if not partcert else partcert.get_id
         return renderer(request, Template.Compete.CERT_CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self, certID=certID))
     except Exception as e:

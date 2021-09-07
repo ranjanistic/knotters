@@ -1,8 +1,10 @@
 {% extends 'projects/index.html' %}
+{% debug %}
 {% load static %}
 {% load i18n %}
 {% load l10n %}
 {% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block meta_description %}{{ project.description }}{% endblock %}
@@ -64,7 +66,7 @@
                 <input type="text" hidden id="projectimageData" name="projectimage" value="" />
                 <div class="w3-row w3-padding">
                     <input type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
-                    <textarea placeholder="About project" name="projectabout">{{project.description}}</textarea><br/>
+                    <textarea placeholder="About project" name="projectabout" cols="10">{{project.description}}</textarea><br/>
                 </div>
                 <button id="save-edit-pallete" data-icon="done">Save</button>
                 <button id="discard-edit-pallete" data-icon="close">Discard</button>
@@ -84,16 +86,39 @@
             <strong><a target="_blank" rel="noreferrer" href="{{project.url}}">{{project.url}}</a></strong>
             {% endif %}
         </div>
+        <br/>
+        <div class="w3-row w3-padding pallete">
+            <center><h5>Assets</h5><hr/></center>
+            <div class="w3-row">
+                {% for asset in project.assets %}
+
+                {% empty %}
+                    {% if iscreator %}
+                    <center >
+                    <div class="w3-jumbo material-icons">add_circle</div>
+                    <h5>Add assets</h5>
+                    <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
+                    </center>
+                    {% else %}
+                    <center class="dead-text">
+                    <div class="w3-jumbo material-icons">cloud_off</div>
+                    <h5>No assets</h5>
+                    </center>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
     </div>
     <div class="w3-col w3-threequarter">
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
+                    <h3>{{project.category.name|capfirst}}</h3>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <div class="w3-row pallete-slab w3-padding">
-                            <h5 class=" w3-left topic-name">{{topicdata.topic}}</h5>
+                            <h6 class=" w3-left topic-name">{{topicdata.topic}}</h6>
                         </div>
                     {% empty %}
                         {% if iscreator %}
@@ -160,16 +185,23 @@
                 </div>
                 {% endif %}
             </div>
+            <div class="w3-row w3-padding pallete">
+                <center><h5>Language distribution</h5><hr/></center>
+                <div class="w3-row" id="project-languages-view">
+                </div>
+            </div>
         </div>
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row">
                 <div class="pallete">
+                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
                     <center><h5>Description</h5><hr/></center>
                     <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
                     <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
                     <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
                     <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/>
                     <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    {% endcache %}
                 </div>
             </div>
             <br/>
@@ -181,9 +213,9 @@
             </div>
         </div>
     </div>
-    <div></div>
+    <div class="w3-row"></div>
+    <br/>
 </div>
-<br/>
 {% endblock %}
 
 {% block scripts %}

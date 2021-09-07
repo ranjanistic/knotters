@@ -1,5 +1,7 @@
 {% extends 'projects/index.html' %}
 {% load static %}
+{% load i18n %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block og_url %}{{URLS.ALLLICENSES}}{% endblock %}
@@ -23,9 +25,9 @@
 <div class="w3-row w3-padding">
     {% if custom.0 %}
     <center><h4>Your private custom licenses</h4></center>
-
     <br/>
     <div class="w3-row">
+    {% cache CACHE_MICRO private_licenses request.user.id %}
     {% for license in custom %}
         <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
@@ -35,12 +37,14 @@
         </div>
         </div>
     {% endfor%}
+    {% endcache %}
     </div>
     {% endif %}
     <br/>
     <center><h4>Public licenses</h4></center>
     <br/>
     <div class="w3-row">
+    {% cache CACHE_SHORT public_licenses %}
     {% for license in licenses %}
         <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
@@ -50,6 +54,7 @@
         </div>
         </div>
     {% endfor%}
+    {% endcache %}
     </div>
 </div>
 <br/>

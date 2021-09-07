@@ -152,7 +152,7 @@ class Manifest(TemplateView):
         return context
 
 
-@method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
+# @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
@@ -170,8 +170,10 @@ class ServiceWorker(TemplateView):
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
 
-        try:
-            swassets = LocalStorage.objects.get(key=Code.SWASSETS)
+        swassets,created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
+            value=json.dumps(assets)
+        ))
+        if not created:
             oldassets = json.loads(swassets.value)
             different = False
             if len(oldassets) != len(assets):
@@ -191,9 +193,8 @@ class ServiceWorker(TemplateView):
             if different:
                 swassets.value = json.dumps(assets)
                 swassets.save()
-        except:
-            LocalStorage.objects.update_or_create(
-                key=Code.SWASSETS, value=json.dumps(assets))
+            else:
+                assets = oldassets
 
         context = dict(**context, **renderData(dict(
             OFFLINE=f"/{URL.OFFLINE}",

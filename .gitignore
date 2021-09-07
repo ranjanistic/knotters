@@ -28,3 +28,4 @@ _logs_/
 .coverage
 htmlcov/
 .history/
+*.rdb

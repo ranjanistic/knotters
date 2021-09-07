@@ -1,37 +1,52 @@
+{% load cache %}
 {% load custom_tags %}
 
 <div class="w3-row w3-padding">
 {% if results.count %}
-
     {% if selfInvaildSubmission %}
         <center class="negative-text">
-
         <i title="Private to you">lock</i><br/>
         <strong>
-        You submission was marked invalid.</strong>
+        You submission was marked invalid in this competition. <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}">Learn more</a></strong>
         </center>
+    {% else %}
+        <div class="w3-row w3-center">
+        {% if request.user.is_authenticated and selfresult %}
+            <a onclick="newTab('{{selfresult.getCertLink|params:request.user.getID}}')">
+                <button class="positive" data-icon="open_in_new">Your certificate</button>
+            </a>
+            {% if request.user.profile not in selfresult.xpclaimers.all %}
+            <form method="POST" action="{{selfresult.getClaimXPLink}}">
+                {% csrf_token %}
+                <button type="submit" class="positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
+            </form>
+            {% else %}
+            <button class="accent" onclick="message('You have claimed {{selfresult.points}} XP of your result!')" title="You have already claimed {{selfresult.points}} XP of your result" data-icon="add">{{selfresult.points}} XP earned</button>
+            {% endif %}
+        {% endif %}
+        </div>
     {% endif %}
-<div class="w3-row w3-padding w3-hide-small">
-    <div class="w3-col w3-quarter">
-        <div class="w3-col w3-half">
-        <h5>Rank</h5>
+    <div class="w3-row w3-padding w3-hide-small">
+        <div class="w3-col w3-quarter">
+            <div class="w3-col w3-half">
+            <h5>Rank</h5>
+            </div>
+            <div class="w3-col w3-half">
+            <h5>Score</h5>
+            </div>
         </div>
-        <div class="w3-col w3-half">
-        <h5>Score</h5>
-        </div>
-    </div>
-    <div class="w3-col w3-threequarter">
         <div class="w3-col w3-threequarter">
-        <h5>Members</h5>
-        </div>
-        <div class="w3-col w3-quarter w3-center">
-        <h5>Submission</h5>
+            <div class="w3-col w3-threequarter">
+            <h5>Members</h5>
+            </div>
+            <div class="w3-col w3-quarter w3-center">
+            <h5>Submission</h5>
+            </div>
         </div>
     </div>
-</div>
 {% endif %}
 
-{% if selfresult %}
+{% if selfresult.rank > 10 %}
 <div class="w3-row pallete-slab w3-padding-small">
     <div class="w3-col m3">
         <div class="w3-col w3-half">
@@ -46,7 +61,7 @@
     <div class="w3-col m9">
     <div class="w3-col m9 w3-padding-small">
     {% for member in selfresult.submission.getMembers %}
-    <a target="_blank" href="{{member.getLink}}">
+    <a onclick="miniWindow('{{member.getLink}}')">
     <button class="small primary">
         <img src="{{member.getDP}}" class="w3-circle primary" width="18" />
         <span class="w3-hide-small">{{ member.getFName }}</span>
@@ -64,24 +79,13 @@
     {% endif %}
     ><button class="w3-right small primary" data-icon="open_in_new">View</button>
     </a>
-    {% if request.user.is_authenticated and request.user.profile in selfresult.submission.getMembers %}
-        <a href="{{selfresult.getCertLink|params:request.user.getID}}" target="_blank">
-            <button class="w3-right small positive" data-icon="card_giftcard">Certificate</button>
-        </a>
-        {% if request.user.profile not in selfresult.xpclaimers.all %}
-        <form method="POST" action="{{URLS.CLAIMXP|params:compete.getID|params:selfresult.submission.getID}}">
-            {% csrf_token %}
-            <button type="submit" class="w3-right small positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
-        </form>
-        {% else %}
-        <button class="w3-right small secondary" title="You have already claimed {{selfresult.points}} XP of your result">XP Claimed</button>
-        {% endif %}
-    {% endif %}
     </div>
     </div>
 </div>
 {% endif %}
 
+{% if results.count %}
+{% cache CACHE_ETERNAL competition_results compete.get_id %}
 {% for result in results %}
 <div class="w3-row pallete-slab w3-padding-small">
     <div class="w3-col m3">
@@ -102,7 +106,7 @@
     <div class="w3-col m9 w3-padding-small">
     
     {% for member in result.submission.getMembers %}
-    <a target="_blank" href="{{member.getLink}}">
+    <a onclick="miniWindow('{{member.getLink}}')">
     <button class="small {% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}primary{% endif %}">
         <img src="{{member.getDP}}" class="w3-circle primary" width="18" />
         <span class="w3-hide-small">{{ member.getFName }}</span>
@@ -120,23 +124,12 @@
     >
     <button class="w3-right small primary" data-icon="open_in_new">View</button>
     </a>
-    {% if request.user.is_authenticated and request.user.profile in result.submission.getMembers %}
-        <a href="{{result.getCertLink|params:request.user.getID}}" target="_blank">
-            <button class="w3-right small positive" data-icon="card_giftcard">Certificate</button>
-        </a>
-        {% if request.user.profile not in result.xpclaimers.all %}
-        <form method="POST" action="{{URLS.CLAIMXP|params:compete.getID|params:result.submission.getID}}">
-            {% csrf_token %}
-            <button type="submit" class="w3-right small positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
-        </form>
-        {% else %}
-        <button class="w3-right small secondary" title="You have already claimed {{result.points}} XP of your result">XP Claimed</button>
-        {% endif %}
-    {% endif %}
     </div>
     </div>
 </div>
-{% empty %}
+{% endfor %}
+{% endcache %}
+{% else %}
     <br/><br/>
     <center>
     <div class="w3-jumbo material-icons">lock</div>
@@ -147,5 +140,5 @@
         <span>Notify me when declared.</span>
     </label>
     </center>
-{% endfor %}
+{% endif %}
 </div>

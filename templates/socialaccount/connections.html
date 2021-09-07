@@ -18,7 +18,7 @@
     {% if form.accounts %}
     <h4>You can also sign in to your Knotters account using any of your following linked accounts.</h4>
     <br/>
-    <form method="post" action="{% url 'socialaccount_connections' %}">
+    <form method="post" action="{% url 'socialaccount_connections' %}?miniwin={{request.GET.miniwin}}">
         {% csrf_token %}
         
         <h5>Choose one to unlink</h5>
@@ -53,7 +53,7 @@
         {% get_providers as socialaccount_providers %}
         {% for provider in socialaccount_providers %}
             <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
-                href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}&miniwin={{request.GET.miniwin}}">
                 <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
                     <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
                     Link {{provider.name}} account

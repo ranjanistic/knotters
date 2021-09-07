@@ -1,8 +1,8 @@
 {% load static %}
 {% load i18n %}
-
 {% load l10n %}
 {% load tz %}
+{% load cache %}
 {% load socialaccount %}
 {% load account %}
 {% load custom_tags %}
@@ -10,7 +10,7 @@
 <html lang="en" class="">
     {% block head %}
     <head>
-
+    
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,7 +46,7 @@
         <meta name="msapplication-TileImage" content="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
-        <link rel="icon" href="{% block icon %}{% static 'graphics/self/32/icon.png' %}{% endblock %}">
+        <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.png' %}{% endblock %}" class="darkimg">
 
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
@@ -171,7 +171,7 @@
                 <center>
                 {% block footer_social %}
                     <a href="mailto:{{CONTACTMAIL}}" target="_blank"><span hidden>{{CONTACTMAIL}}</span><button aria-label="Contact us" class="primary"><i class="material-icons">mail</i></button></a>
-                    <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" height="22"/></button></a>
+                    <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github.png' %}" width="20" height="22"/></button></a>
                     <a href="https://twitter.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Twitter</span><button aria-label="Twitter"  class="primary w3-animate-zoom"><img alt="Twitter" src="{% static 'graphics/thirdparty/twitter.png' %}" width="22"  height="24"/></button></a>
                     <a href="https://instagram.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Instagram</span><button aria-label="Instagram"  class="primary w3-animate-zoom"><img alt="Instagram" class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" height="20" /></button></a>
                     <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="20" /></button></a>
