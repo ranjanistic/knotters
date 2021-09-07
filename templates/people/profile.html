@@ -180,7 +180,7 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block in_scripts %}
 <script>
   const userID = "{{ person.getID }}";
   const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && "{{user.profile.is_active}}" === 'True':false
@@ -228,5 +228,7 @@
 	}
   }
 </script>
-<script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %} 
+{% block scripts %}
+<script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
+{% endblock %}

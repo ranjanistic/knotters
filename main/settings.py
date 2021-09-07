@@ -32,8 +32,9 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
-    'allauth_2fa',
+    # 'allauth_2fa',
     "translation_manager",
+    # "compressor",
 ] + DIVISIONS
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
@@ -48,6 +49,12 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_QUERY_EMAIL = True
 
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # 'compressor.finders.CompressorFinder',
+]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -282,3 +289,8 @@ GH_HOOK_SECRET = env.GH_HOOK_SECRET
 
 GOOGLE_RECAPTCHA_SECRET_KEY = env.RECAPTCHA_SECRET
 GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
+
+# COMPRESS_ENABLED = True
+# COMPRESS_OFFLINE = False
+# COMPRESS_OUTPUT_DIR = "__static__"
+# COMPRESS_ROOT = BASE_DIR

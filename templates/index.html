@@ -6,6 +6,7 @@
 {% load socialaccount %}
 {% load account %}
 {% load custom_tags %}
+{% comment %} {% load compress %} {% endcomment %}
 <!DOCTYPE html>
 <html lang="en" class="">
     {% block head %}
@@ -47,7 +48,7 @@
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.png' %}{% endblock %}" class="darkimg">
-
+        {% comment %} {% compress css %} {% endcomment %}
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -62,9 +63,9 @@
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
         <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
-        {% block stylesheets %}
+        {% block stylesheets %}{% endblock %}
+        {% comment %} {% endcompress %} {% endcomment %}
         <link rel="manifest" href="{{MANIFESTURL}}" />
-        {% endblock %}
         <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
@@ -192,13 +193,16 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
-        {% endblock %} 
+        {% endblock %}
+        {% comment %} {% compress js %} {% endcomment %}
+        <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
+        {% comment %} {% endcompress %} {% endcomment %}
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
@@ -219,9 +223,15 @@
             }
             const URLS = Object.freeze({{URLS|or:'{}'|safe}})
         </script>
-        <script src="{% static 'scripts/sw.js' %}"></script>
+        {% block in_scripts %}{% endblock %}
+        {% block ext_scripts %}{% endblock %}
+
+        {% comment %} {% compress js %} {% endcomment %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
+        <script async src="{% static 'html2canvas.min.js' %}"></script>
+        {% comment %} {% endcompress %} {% endcomment %}
+
         {% block errors %}
         <script>
         {% if form.errors %}
@@ -236,6 +246,5 @@
         {% endif %}
         </script>
         {% endblock %}
-        <script async src="{% static 'html2canvas.min.js' %}"></script>
     </body>
 </html>

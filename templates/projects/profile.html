@@ -218,11 +218,12 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block in_scripts %}
 <script>
 const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
 </script>
+{% endblock %}
+{% block scripts %}
 <script src="{% static 'scripts/project/profile.js' %}" ></script>
-
 {% endblock %}
