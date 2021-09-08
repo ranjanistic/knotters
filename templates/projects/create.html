@@ -247,7 +247,7 @@
 {% endif %}
 {% endblock %}
 
-{% block scripts %}
+{% block in_scripts %}
 <script>
 let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");
 </script>
@@ -266,7 +266,8 @@ alertify.alert("Github ID",`<div class="w3-row w3-padding">
     window.location.replace('{{ROOT}}')
 }).set('closable',false).set('label','Cancel')
 </script>
-{% else %}
-<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endblock %}

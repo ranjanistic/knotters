@@ -45,9 +45,10 @@ const setTheme = (themevalue = theme.light) => {
         themevalue
     );
     Array.from(document.getElementsByClassName("darkimg")).forEach((img) => {
-        img.src = `/static/graphics/${img.getAttribute("data-name")}${
-            themevalue === theme.light ? "" : "-dark"
-        }.${img.getAttribute("data-ext")}`;
+        const parts = img.tagName.toLowerCase()==='link'?img.href.split('.'):img.src.split('.')
+        img.tagName.toLowerCase()==='link'
+            ?img.href = String(img.href).replace(window.location.origin,'').replace(`${themevalue === theme.dark ? "" : "-dark"}.${parts[parts.length-1]}`,`${themevalue === theme.light ? "" : "-dark"}.${parts[parts.length-1]}`)
+            :img.src = String(img.src).replace(window.location.origin,'').replace(`${themevalue === theme.dark ? "" : "-dark"}.${parts[parts.length-1]}`,`${themevalue === theme.light ? "" : "-dark"}.${parts[parts.length-1]}`)
     });
 };
 

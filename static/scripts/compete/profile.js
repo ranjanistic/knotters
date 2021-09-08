@@ -13,17 +13,18 @@ const loadData = async () => {
             getElement("remainingTime").innerHTML = secsToTime(timeleft);
             intv = setInterval(() => {
                 timeleft -= 1;
+                if (timeleft<0) {
+                    clearInterval(intv);
+                    subLoader();
+                    loader();
+                    window.location.replace(window.location.pathname);
+                    return
+                }
                 const disptime = secsToTime(timeleft);
                 getElement("remainingTime").innerHTML = disptime;
                 try {
                     getElement("finalTimeLeft").innerHTML = disptime;
                 } catch {}
-                if (!timeleft) {
-                    clearInterval(intv);
-                    subLoader();
-                    loader();
-                    window.location.replace(window.location.pathname);
-                }
             }, 1000);
         }
     }

@@ -2,14 +2,16 @@
 {% load i18n %}
 {% load l10n %}
 {% load tz %}
+{% load cache %}
 {% load socialaccount %}
 {% load account %}
 {% load custom_tags %}
+{% comment %} {% load compress %} {% endcomment %}
 <!DOCTYPE html>
 <html lang="en" class="">
     {% block head %}
     <head>
-
+    
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,8 +47,8 @@
         <meta name="msapplication-TileImage" content="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
-        <link rel="icon" href="{% block icon %}{% static 'graphics/self/32/icon.png' %}{% endblock %}">
-
+        <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.png' %}{% endblock %}" class="darkimg">
+        {% comment %} {% compress css %} {% endcomment %}
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -61,9 +63,9 @@
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
         <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
-        {% block stylesheets %}
+        {% block stylesheets %}{% endblock %}
+        {% comment %} {% endcompress %} {% endcomment %}
         <link rel="manifest" href="{{MANIFESTURL}}" />
-        {% endblock %}
         <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
@@ -71,14 +73,17 @@
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
             {% block nav_title %}
-            <a href="{% block nav_href %}{{ROOT}}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" class="w3-left w3-padding w3-animate-left previous-navigation-button">
+            <a
+                {% if request.GET.previous %}href="{{request.GET.previous}}{% else %}href="{% block nav_href %}{{ROOT}}{% endblock %}{% endif %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
+                class="w3-left w3-padding w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
                 {% block nav_icon_hide %}
                     <img alt="{{APPNAME}}" src="{{ICON}}" {% if request.GET.miniwin %}onclick="window.close()"{% endif %} class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />
                 {% endblock %}
+                
                 <button 
                     {% block nav_back_show %}hidden{% endblock %}
-                    class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" {% if request.GET.miniwin %}onclick="window.close()"{% endif %}></button>
+                    class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" {% if not request.GET.previous and request.GET.miniwin %}onclick="window.close()"{% endif %}></button>
             </a>
             <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
@@ -141,6 +146,14 @@
                 <a href="{{URLS.MANAGEMENT}}" class="text-secondary w3-animate-left">Management</a><br/>
                 {% endif %}
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">Contact us</a><br/>
+                <form action="{% url "set_language" %}" method="POST">
+                    {% csrf_token %}
+                    <select name="language" id="language" onchange="this.form.submit()">
+                    {% for language in LANGUAGES %}
+                        <option value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
+                    {% endfor %}
+                    </select>
+                </form>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>
@@ -149,8 +162,9 @@
                     <h2 class="text-secondary w3-right">Knotters Community</h2>
                 </div>
                 <div class="w3-row">
-                    <img alt={{APPNAME}} class="w3-right darkimg" src="{{ICON}}" data-ext="svg" data-name="self/icon" width="120" height="120" />
+                    <img alt="{{APPNAME}}" class="w3-right darkimg" src="{{ICON}}" data-ext="svg" data-name="self/icon" width="120" height="120" />
                 </div>
+                
                 </a>
             </div>
             <div class="w3-row">
@@ -158,7 +172,7 @@
                 <center>
                 {% block footer_social %}
                     <a href="mailto:{{CONTACTMAIL}}" target="_blank"><span hidden>{{CONTACTMAIL}}</span><button aria-label="Contact us" class="primary"><i class="material-icons">mail</i></button></a>
-                    <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" height="22"/></button></a>
+                    <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github.png' %}" width="20" height="22"/></button></a>
                     <a href="https://twitter.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Twitter</span><button aria-label="Twitter"  class="primary w3-animate-zoom"><img alt="Twitter" src="{% static 'graphics/thirdparty/twitter.png' %}" width="22"  height="24"/></button></a>
                     <a href="https://instagram.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Instagram</span><button aria-label="Instagram"  class="primary w3-animate-zoom"><img alt="Instagram" class="darkimg" data-ext="png" data-name="thirdparty/instagram" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" height="20" /></button></a>
                     <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="20" /></button></a>
@@ -179,22 +193,26 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
-        {% endblock %} 
+        {% endblock %}
+        {% comment %} {% compress js %} {% endcomment %}
+        <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
+        {% comment %} {% endcompress %} {% endcomment %}
         <script>
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";
-            const SUBAPPSLIST = {{SUBAPPSLIST|safe}};
+            const SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}};
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
             const ICON = "{{ICON}}"
+            const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}"
             if("{{request.GET.e}}") {
                 error("{{request.GET.e}}");
             } else if("{{request.GET.a}}") {
@@ -203,11 +221,17 @@
             if("{{request.GET.report}}"==="1"){
                 reportFeedbackView()   
             }
-            const URLS = Object.freeze({{URLS|safe}})
+            const URLS = Object.freeze({{URLS|or:'{}'|safe}})
         </script>
-        <script src="{% static 'scripts/sw.js' %}"></script>
+        {% block in_scripts %}{% endblock %}
+        {% block ext_scripts %}{% endblock %}
+
+        {% comment %} {% compress js %} {% endcomment %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
+        <script async src="{% static 'html2canvas.min.js' %}"></script>
+        {% comment %} {% endcompress %} {% endcomment %}
+
         {% block errors %}
         <script>
         {% if form.errors %}
@@ -222,6 +246,5 @@
         {% endif %}
         </script>
         {% endblock %}
-        <script async src="{% static 'html2canvas.min.js' %}"></script>
     </body>
 </html>

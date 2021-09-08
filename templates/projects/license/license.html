@@ -1,5 +1,7 @@
 {% extends 'projects/license/index.html' %}
 {% load static %}
+{% load cache %}
+{% load i18n %}
 {% load custom_tags %}
 
 {% block og_url %}{{license.getLink}}{% endblock %}
@@ -22,22 +24,40 @@
 {% block content %}
 <br/>
 <div class="w3-row w3-padding">
-<div class="w3-row w3-padding">
-    <h1>{{license.name}}</h1>
-    <strong>{{license.description}}</strong>
-    <br/><br/>
-    <h3>CONTENT</h3>
-    <br/>
-    <div class="w3-col" style="white-space: pre-wrap; word-wrap: break-word;">
-        <code>{{license.content|safechars}}</code>
+    <div class="w3-row w3-padding">
+        {% if not license.isCustom %}
+        {% cache CACHE_LONG license_heading license.id %}
+        <h1>{{license.name}}</h1>
+        <strong>{{license.description}}</strong>
+        {% endcache %}
+        {% else %}
+        <h1>{{license.name}}</h1>
+        <strong>{{license.description}}</strong>
+        {% endif %}
+        <br/><br/>
+        <h3>CONTENT</h3>
+        <div class="w3-col" style="white-space: pre-wrap; word-wrap: break-word;">
+        {% if not license.isCustom %}
+        {% cache CACHE_LONG license_content license.id %}
+            <code>{{license.content|safechars}}</code>
+        {% endcache %}
+        {% else %}
+        {% cache CACHE_SHORT license_content license.id %}
+            <code>{{license.content|safechars}}</code>
+        {% endcache %}
+        {% endif %}
+        </div>
     </div>
-</div>
 <br/>
-{% if not license.isCustom %}
-<center><strong><span class="dead-text">Source:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> </strong></center>
-{% else %}
-<center><strong><span class="dead-text">This license is not provided by {{APPNAME}}, and may require modification/permission from the <a target="_blank" href="{{license.creator.getLink}}">creator</a> to use.</strong></center>
-{% endif %}
+    {% if not license.isCustom %}
+    {% cache CACHE_MAX license_source %}
+    <center><strong><span class="dead-text">Source:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> </strong></center>
+    {% endcache %}
+    {% else %}
+    {% cache CACHE_MICRO license_source license.id %}
+    <center><strong><span class="dead-text">{% blocktrans %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from {% endblocktrans %}<a target="_blank" href="{{license.creator.getLink}}">creator</a>.</strong></center>
+    {% endcache %}
+    {% endif %}
 </div>
 <br/>
 {% endblock %}

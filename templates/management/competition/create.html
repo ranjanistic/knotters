@@ -99,7 +99,10 @@
 <br/>
 {% endblock %}
 
-{% block scripts %}
+{% block ext_scripts %}
+<script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
+{% endblock %}
+{% block in_scripts %}
 <script>
     let excludemods = [];
     let excludejudges = [];
@@ -131,7 +134,7 @@
         handleCropImageUpload(e, "compassociate", "competeassociateoutput", (_) => {
             getElement("competeassociateimagebutton").innerHTML = "Selected associate";
             getElement("useAssociate").checked = true
-        },5/2);
+        },3.29485038);
     }
 
     getElement('addtopicbutton').onclick=_=>{
@@ -269,15 +272,16 @@
     }
     getElement("create-compete-form-submit-button").onclick=(e)=>{
         e.preventDefault();
-        if(getElements('create-compete-input').every(element => {
+        if(!getElements('create-compete-input').every(element => {
             if(!element.value){
                 error("Some fields not filled.")
                 return false
             }
             return true
-        })){
+        })) return
+        _processReCaptcha(()=>{
             getElement("create-compete-form").submit()
-        }
+        })
     }
 </script>
 {% endblock %}

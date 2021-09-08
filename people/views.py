@@ -64,7 +64,9 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
                 raise Exception()
-        return getProfileSectionHTML(profile, section, request)
+        data = getProfileSectionHTML(profile, section, request)
+        print(data)
+        return data
     except Exception as e:
         errorLog(e)
         raise Http404()

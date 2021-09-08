@@ -261,7 +261,12 @@ class Profile(models.Model):
             return None
         try:
             data = SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)
-            return getUsernameFromGHSocial(data)
+            ghID = getUsernameFromGHSocial(data)
+            if ghID:
+                if ghID != self.githubID:
+                    self.githubID = ghID
+                    self.save()
+            return ghID
         except:
             return None
 

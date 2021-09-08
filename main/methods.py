@@ -1,4 +1,5 @@
 import os
+import requests
 import base64
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
@@ -67,6 +68,7 @@ def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: 
     :fromApp: The subapplication division name under which the given view named template file resides
     """
     return render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
+    
 
 
 def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str()) -> JsonResponse:
@@ -207,5 +209,17 @@ def getNumberSuffix(value: int) -> str:
             return getNumberSuffix(value=int(valuestr[len(valuestr) - 1]))
         else:
             return "th"
+
+def verify_captcha(recaptcha_response:str) -> bool:
+    try:
+        resp = requests.post(settings.GOOGLE_RECAPTCHA_VERIFY_SITE, dict(
+            secret=settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+            response=recaptcha_response
+        ))
+        result = resp.json()
+        return result['success']
+    except Exception as e:
+        errorLog(e)
+        return False
 
 from .strings import url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS

@@ -471,6 +471,7 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
         return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND,)
 
 @require_GET
+# @cache_page(settings.CACHE_MINI)
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
@@ -489,7 +490,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         partcert = ParticipantCertificate.objects.filter(
             result__id=resID, profile=member).first()
 
-        certpath = False if not partcert else partcert.getCertificate() if partcert.certificate else False
+        certpath = False if not partcert else partcert.getCertImage if partcert.certificate else False
         certID = False if not partcert else partcert.get_id
         return renderer(request, Template.Compete.CERT_CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self, certID=certID))
     except Exception as e:

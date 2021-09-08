@@ -1,4 +1,5 @@
 from uuid import UUID
+from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
@@ -9,7 +10,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from main.decorators import require_JSON_body, github_only, normal_profile_required
-from main.methods import base64ToImageFile, errorLog, respondJson, respondRedirect
+from main.methods import base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
 from main.strings import Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
@@ -374,12 +375,20 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@require_GET
-# @cache_page(settings.CACHE_SHORT)
+@require_JSON_body
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        return rendererstr(request, Template.Projects.PROFILE_CONTRIBS, data=getProjectLiveData(project))
+        data = cache.get(f"json_livedata_{projID}")
+        if not data:
+            contributors,languages = getProjectLiveData(project)
+            contributorsHTML=renderString(request, Template.Projects.PROFILE_CONTRIBS, dict(contributors=contributors),APPNAME)
+            data = dict(
+                languages=languages,
+                contributorsHTML=str(contributorsHTML),
+            )
+            cache.set(f"project_livedata_json_{projID}", data, settings.CACHE_SHORT)
+        return respondJson(Code.OK, data)
     except Exception as e:
         print(e)
         raise Http404()

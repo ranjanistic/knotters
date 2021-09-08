@@ -70,4 +70,12 @@ class SubmissionParticipantAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
-admin.site.register(ParticipantCertificate)
+@admin.register(ParticipantCertificate)
+class ParticipantCertificateAdmin(admin.ModelAdmin):
+    list_display = ["profile", "result"]
+    list_filter = ["result__competition"]
+
+    class Meta:
+        ordering = ("")
+
+# admin.site.register(ParticipantCertificate)

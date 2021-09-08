@@ -283,13 +283,19 @@ if (selfProject) {
 }
 const loadLiveData = async () => {
     const contribview = getElement('project-contibutors-view');
+    const languageview = getElement('project-languages-view');
     setHtmlContent(contribview, loaderHTML());
-    const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID))
-    if(!data){
-        setHtmlContent(contribview, loadErrorHTML(`livedataretry`));
-        getElement(`livedataretry`).onclick = (_) => loadLiveData();
+    setHtmlContent(languageview, loaderHTML());
+    const data = await postRequest(setUrlParams(URLS.LIVEDATA, projectID))
+    if(!data||data.code!==code.OK){
+        setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
+        setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
+        getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
+        getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
         return
     }
-    setHtmlContent(contribview, data);
+    setHtmlContent(contribview, data.contributorsHTML);
+    setHtmlContent(languageview, `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`);
+    radarChartView(getElement('project-languages-distribution-chart'),Object.keys(data.languages),Object.keys(data.languages).map((key)=>data.languages[key]),'12e49d')
 }
 loadLiveData()

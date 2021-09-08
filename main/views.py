@@ -15,14 +15,14 @@ from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from .env import ADMINPATH
-from .methods import errorLog, renderData, renderView
-from .decorators import dev_only
+from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
+from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
+@cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
 
@@ -107,7 +107,7 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, template, fromApp=subapp)
 
 
-# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
+@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
@@ -118,7 +118,7 @@ class Robots(TemplateView):
         return context
 
 
-# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
+@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
@@ -163,15 +163,17 @@ class ServiceWorker(TemplateView):
         assets = []
 
         def appendWhen(path: str):
-            return path.endswith(('.js', '.json', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
+            return path.endswith(('.js', '.css', '.map', '.jpg', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
         assets = getDeepFilePaths(
             settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
 
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
 
-        try:
-            swassets = LocalStorage.objects.get(key=Code.SWASSETS)
+        swassets,created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
+            value=json.dumps(assets)
+        ))
+        if not created:
             oldassets = json.loads(swassets.value)
             different = False
             if len(oldassets) != len(assets):
@@ -191,9 +193,8 @@ class ServiceWorker(TemplateView):
             if different:
                 swassets.value = json.dumps(assets)
                 swassets.save()
-        except:
-            LocalStorage.objects.update_or_create(
-                key=Code.SWASSETS, value=json.dumps(assets))
+            else:
+                assets = oldassets
 
         context = dict(**context, **renderData(dict(
             OFFLINE=f"/{URL.OFFLINE}",
@@ -267,3 +268,17 @@ def browser(request: WSGIRequest, type: str):
     except Exception as e:
         print(e)
         raise Http404()
+
+
+@require_JSON_body
+def verifyCaptcha(request: WSGIRequest):
+    try:
+        capt_response = request.POST.get('g-recaptcha-response', False)
+        if not capt_response:
+            return respondJson(Code.NO)
+        if verify_captcha(capt_response):
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO)

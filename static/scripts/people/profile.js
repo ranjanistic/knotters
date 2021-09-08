@@ -3,40 +3,17 @@ const loadTabScript = (tab) => {
         case "overview":
             {
                 getElements("chart-view").forEach(async (chart) => {
-                    const myChart = new Chart(chart.getContext("2d"), {
-                        type: chart.getAttribute("data-type"),
-                        data: {
-                            labels: getElements('topic-name').map((top)=>top.innerHTML),
-                            datasets: [
-                                {
-                                    data: getElements('topic-points').map((top)=>Number(top.innerHTML)).every((p)=>p===0)?[]:getElements('topic-points').map((top)=>Number(top.innerHTML)),
-                                    borderColor: "#f5d702",
-                                    backgroundColor: "#f5d70255",
-                                },
-                            ],
-                        },
-                        options: {
-                            maintainAspectRatio: !false,
-                            scale: {
-                               ticks: {
-                                  display: false,
-                                  maxTicksLimit: 2
-                               }
-                            },
-                            responsive: true,
-                            gridLines: {
-                                display: false
-                            },
-                            plugins: {
-                                legend: false,
-                                tooltip: false,
-                                title: {
-                                    display: false,
-                                    text: "",
-                                },
-                            },
-                        }
-                    });
+                    radarChartView(
+                        chart,
+                        getElements("topic-name").map((top) => top.innerHTML),
+                        getElements("topic-points")
+                            .map((top) => Number(top.innerHTML))
+                            .every((p) => p === 0)
+                            ? []
+                            : getElements("topic-points").map((top) =>
+                                  Number(top.innerHTML)
+                              )
+                    );
                 });
                 if (selfProfile) {
                     const loadExistingTopics = () => {
@@ -412,29 +389,40 @@ const loadTabScript = (tab) => {
                     accountDeletionDialog();
                 };
 
-                getElements('unblock-button').forEach((unblock)=>{
-                    const username = unblock.getAttribute('data-username')
-                    const userID = unblock.getAttribute('data-userID')
-                    unblock.onclick=_=>{
-                        alertify.confirm(
-                            `<h3>Un-block ${username}?</h3>`,
-                            `<h6>Are you sure you want to ${PositiveText(`unblock ${username}`)}? You both will be visible to each other on ${APPNAME}, including all associated activities.
+                getElements("unblock-button").forEach((unblock) => {
+                    const username = unblock.getAttribute("data-username");
+                    const userID = unblock.getAttribute("data-userID");
+                    unblock.onclick = (_) => {
+                        alertify
+                            .confirm(
+                                `<h3>Un-block ${username}?</h3>`,
+                                `<h6>Are you sure you want to ${PositiveText(
+                                    `unblock ${username}`
+                                )}? You both will be visible to each other on ${APPNAME}, including all associated activities.
                             <br/>You can block them anytime from their profile.
                             </h6>`,
-                            async()=>{
-                                const data = await postRequest(URLS.UNBLOCK_USER,{userID})
-                                if(!data) return
-                                if(data.code===code.OK){
-                                    message(`Unblocked ${username}.`)
-                                    return tab.click()
-                                }
-                                error(data.error)
-                            },
-                            ()=>{},
-                        ).set('labels', {ok:`${Icon('remove_circle_outline')} Unblock ${username}`, cancel:'No, go back'})
-                    }
-                })
-
+                                async () => {
+                                    const data = await postRequest(
+                                        URLS.UNBLOCK_USER,
+                                        { userID }
+                                    );
+                                    if (!data) return;
+                                    if (data.code === code.OK) {
+                                        message(`Unblocked ${username}.`);
+                                        return tab.click();
+                                    }
+                                    error(data.error);
+                                },
+                                () => {}
+                            )
+                            .set("labels", {
+                                ok: `${Icon(
+                                    "remove_circle_outline"
+                                )} Unblock ${username}`,
+                                cancel: "No, go back",
+                            });
+                    };
+                });
             }
             break;
         default:

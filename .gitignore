@@ -28,3 +28,6 @@ _logs_/
 .coverage
 htmlcov/
 .history/
+*.rdb
+__static__
+templates/certificate.jpg

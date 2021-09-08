@@ -47,6 +47,8 @@ jobs:
         echo "GH_HOOK_SECRET=${{ secrets.GH_HOOK_SECRET }}" >> ${{ secrets.ENVPATH }}
         echo "REDIS_LOCATION=${{ secrets.REDIS_LOCATION }}" >> ${{ secrets.ENVPATH }}
         echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ${{ secrets.ENVPATH }}
+        echo "RECAPTCHA_KEY=${{ secrets.RECAPTCHA_KEY }}" >> ${{ secrets.ENVPATH }}
+        echo "RECAPTCHA_SECRET=${{ secrets.RECAPTCHA_SECRET }}" >> ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
         python manage.py makemigrations --noinput
@@ -80,8 +82,8 @@ jobs:
         sudo git pull --depth=10
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
+        sudo pip install --upgrade pip
+        sudo pip install -r requirements.txt
     - name: Setup environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}

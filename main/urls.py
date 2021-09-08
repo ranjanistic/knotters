@@ -10,6 +10,7 @@ urlpatterns = [
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),
     path(URL.MANIFEST, Manifest.as_view(), name=URL.MANIFEST),
     path(URL.SERVICE_WORKER, ServiceWorker.as_view(), name=URL.SERVICE_WORKER),
+    path(URL.SWITCH_LANG, include('django.conf.urls.i18n')),
     path(ADMINPATH, admin.site.urls),
     path(URL.INDEX, index),
     path(URL.APPLANDING, applanding),
@@ -26,6 +27,7 @@ urlpatterns = [
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
     path(URL.BROWSER, browser),
+    path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template)
 ]

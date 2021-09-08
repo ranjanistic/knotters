@@ -3,7 +3,7 @@ from django import forms
 from .methods import convertToFLname
 
 class CustomSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=50, label='Your Name',help_text="Your Name",widget=forms.TextInput(attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type':'text'}))
+    first_name = forms.CharField(max_length=50, label='Your Name',help_text="Your Name",widget=forms.TextInput(attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type':'text', 'class':'required-field'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

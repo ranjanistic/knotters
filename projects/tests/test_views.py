@@ -347,12 +347,14 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.projects.profile)
         self.assertEqual(project.totalTags(), 4)
 
+    @tag('afa')
     def test_liveData(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), status=Code.APPROVED)
-        resp = self.client.get(follow=True, path=root(
+        resp = self.client.post(follow=True, path=root(
             url.projects.liveData(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertIsInstance(resp.context['contributors'], list)
-        self.assertIsInstance(resp.context['languages'], list)
-        self.assertTemplateUsed(resp, template.projects.profile_contribs)
+        data = json.loads(resp.content.decode(Code.UTF_8))
+        self.assertIsInstance(data['languages'],list)
+        self.assertIsInstance(data['contributorsHTML'],str)
+
