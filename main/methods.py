@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
 
+
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
     Adds default meta data to the dictionary 'data' which is assumed to be sent with a rendering template.
@@ -218,6 +219,16 @@ def verify_captcha(recaptcha_response:str) -> bool:
         ))
         result = resp.json()
         return result['success']
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def addMethodToAsyncQueue(methodpath,*params):
+    try:
+        from django_q.tasks import async_task
+        async_task(methodpath,*params)
+        print(f"{methodpath} async task started")
+        return True
     except Exception as e:
         errorLog(e)
         return False

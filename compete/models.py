@@ -431,7 +431,6 @@ class Competition(models.Model):
     def certificatesGenerated(self) -> bool:
         return self.totalValidSubmissionParticipants() == self.totalCertificates()
 
-
 class CompetitionJudge(models.Model):
     """
     Judge of a competition

@@ -9,8 +9,9 @@ from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
-from main.methods import errorLog, renderData, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
@@ -398,12 +399,15 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
 
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getManagementLink(error=Message.INVALID_REQUEST))
-
+        task = cache.get(f"results_declaration_task_{compID}")
+        if task == Message.RESULT_DECLARING:
+            return redirect(comp.getManagementLink(error=Message.RESULT_DECLARING))
+        cache.set(f"results_declaration_task_{compID}", Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
         declared = comp.declareResults()
         if not declared:
             return redirect(comp.getManagementLink(error=Message.ERROR_OCCURRED))
-
-        resultsDeclaredAlert(competition=declared)
+        cache.set(f"results_declaration_task_{compID}", Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.resultsDeclaredAlert", declared)
         return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARED))
     except Exception as e:
         errorLog(e)

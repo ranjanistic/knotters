@@ -95,6 +95,7 @@ class Message():
     SAVED = "Saved"
 
     RESULT_DECLARED = "Results declared!"
+    RESULT_DECLARING = "Results declaration in progress"
     ALREADY_PARTICIPATING = "You're already participating."
     PARTICIPATION_WITHDRAWN = 'Participation withdrawn.'
     MEMBER_REMOVED = 'Member removed'

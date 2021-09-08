@@ -17,7 +17,6 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
     return renderView(request, file, data, fromApp=APPNAME)
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    print('h2')
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 def convertToFLname(string: str) -> str and str:
@@ -107,7 +106,6 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
             data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
     else: return False
-    print(data)
     return data
 
 
@@ -119,7 +117,6 @@ def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) 
         if sec == section:
             data = getProfileSectionData(sec, profile, request.user)
             break
-    print('her')
     return rendererstr(request,f"profile/{section}", data)
 
 

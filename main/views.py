@@ -19,6 +19,7 @@ from .methods import errorLog, renderData, renderView, respondJson, verify_captc
 from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
+from django_q.tasks import async_task
 
 
 @require_GET
