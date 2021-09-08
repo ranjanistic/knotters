@@ -128,7 +128,7 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         name_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 72)
         comp_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 56)
         about_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 28)
-        id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, body_font_dir), 16)
+        id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, body_font_dir), 18)
         certimage = Image.open(os.path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
         name = profile.getName()
@@ -163,15 +163,16 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         image_editable.text(xy=aboutxy, text=about, fill=(0, 0, 0), font=about_font,align='right')
         image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
         if result.competition.associate:
-            assxy = (779,904)
-            assimage = Image.open(os.path.join(settings.BASE_DIR, str(result.competition.associate)))
+            assxy = (787,904)
+            assimage = Image.open(os.path.join(settings.MEDIA_ROOT, result.competition.associate))
+            assimage = assimage.resize((467,136),Image.ANTIALIAS)
             certimage.paste(assimage, assxy)
 
         certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.pdf"
         certpathimg = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
         if not ISTESTING:
-            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpath}"), save_all=True)
-            certimage.save(os.path.join(settings.BASE_DIR, f"{settings.MEDIA_URL.strip('/')}/{certpathimg}"))
+            certimage.save(os.path.join(settings.MEDIA_ROOT, certpath), save_all=True)
+            certimage.save(os.path.join(settings.MEDIA_ROOT, certpathimg))
         return certpath
     except Exception as e:
         errorLog(e)

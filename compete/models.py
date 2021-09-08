@@ -1,4 +1,5 @@
 import uuid
+import os
 from django.db import models
 from django.db.models import Sum
 from people.models import Profile
@@ -706,6 +707,10 @@ class ParticipantCertificate(models.Model):
     certificate = models.CharField(default='', null=True, blank=True,max_length=1000)
 
     @property
+    def certficateImage(self):
+        return f"{str(self.certificate).replace('.pdf','.jpg')}" if self.certificate else None
+
+    @property
     def get_id(self):
         return self.id.hex
 
@@ -715,3 +720,9 @@ class ParticipantCertificate(models.Model):
 
     def getCertificate(self):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"
+    
+    def delete(self, *args,**kwargs):
+        if self.certificate:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.certificate))
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.certficateImage))
+        return super().delete(*args, **kwargs)

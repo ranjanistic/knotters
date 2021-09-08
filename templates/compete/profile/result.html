@@ -12,7 +12,7 @@
     {% else %}
         <div class="w3-row w3-center">
         {% if request.user.is_authenticated and selfresult %}
-            <a onclick="newTab('{{selfresult.getCertLink|params:request.user.getID}}')">
+            <a href="{{selfresult.getCertLink|params:request.user.getID}}">
                 <button class="positive" data-icon="open_in_new">Your certificate</button>
             </a>
             {% if request.user.profile not in selfresult.xpclaimers.all %}

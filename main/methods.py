@@ -68,6 +68,7 @@ def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: 
     :fromApp: The subapplication division name under which the given view named template file resides
     """
     return render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
+    
 
 
 def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str()) -> JsonResponse:
