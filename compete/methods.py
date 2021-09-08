@@ -163,7 +163,7 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         image_editable.text(xy=aboutxy, text=about, fill=(0, 0, 0), font=about_font,align='right')
         image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
         if result.competition.associate:
-            assxy = (200,900)
+            assxy = (779,904)
             assimage = Image.open(os.path.join(settings.BASE_DIR, str(result.competition.associate)))
             certimage.paste(assimage, assxy)
 
