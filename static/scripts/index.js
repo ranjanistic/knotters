@@ -886,36 +886,13 @@ const reportFeedbackView = () => {
 
 const previewImageDialog = (src) => {
     if (!src) return;
-
-    // const popup = window.open(
-    //     src,
-    //     "preview-image",
-    //     "fullscreen"
-    // );
-    // if (popup.outerWidth < screen.availWidth || popup.outerHeight < screen.availHeight)
-    // {
-    //    popup.moveTo(0,0);
-    //    popup.resizeTo(screen.availWidth, screen.availHeight);
-    // }
-    // return
-    const dial = alertify
-        .confirm(
-            "",
-            `
-        <div class="w3-row w3-center">
-        <img src="${src}" id="preview-image-preview" />
-        </div>
-        `,
-
-            () => {},
-            () => {
-                dial.destroy();
-            }
-        )
-        .set("basic", true)
-        .set("closable", true)
-        .set("transition", "fade")
-        .maximize();
+    getElement("image-previewer").style.display = 'flex';
+    getElement("image-previewer").addEventListener('click',(e)=>{
+        if(e.target.id!=="preivew-image-src"){
+            e.target.style.display = 'none';
+        }
+    })
+    getElement('preivew-image-src').src = src;
 };
 
 const futuremessage = (message = "") => {
