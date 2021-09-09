@@ -204,6 +204,7 @@
         <script src="{% static 'scripts/theme.js' %}"></script>
         {% comment %} {% endcompress %} {% endcomment %}
         <script>
+            const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
@@ -232,6 +233,15 @@
         <script async src="{% static 'html2canvas.min.js' %}"></script>
         {% comment %} {% endcompress %} {% endcomment %}
 
+        {% block messages %}
+        <script>
+        {% if messages %}
+            {% for message in messages %}
+                message('{{message}}')
+            {% endfor %}
+        {% endif %}
+        </script>
+        {% endblock %}
         {% block errors %}
         <script>
         {% if form.errors %}

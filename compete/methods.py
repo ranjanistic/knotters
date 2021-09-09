@@ -1,15 +1,17 @@
 from django.core.handlers.wsgi import WSGIRequest
-from uuid import UUID
+from uuid import UUID, uuid4
 import os
+from django.core.cache import cache
 from PIL import Image, ImageFont, ImageDraw
 from django.utils import timezone
 from django.http.response import HttpResponse
-from main.methods import errorLog, renderView, renderString
-from main.strings import Compete
+from main.methods import addMethodToAsyncQueue, errorLog, renderView, renderString
+from main.strings import Compete, Message
 from main.env import ISTESTING
 from people.models import User, Profile
 from django.conf import settings
-from .models import Competition, SubmissionParticipant, Result, Submission
+from .models import Competition, ParticipantCertificate, SubmissionParticipant, Result, Submission
+from .mailers import resultsDeclaredAlert, certsAllotedAlert
 from .apps import APPNAME
 
 
@@ -79,8 +81,8 @@ def getCompetitionSectionData(section: str, competition: Competition, user: User
                 submission__competition=competition, profile=profile)
             data['submission'] = relation.submission
             data['confirmed'] = relation.confirmed
-        except:
-            data['submission'] = None
+        except Exception as e:
+            data['submission'] = None        
     elif section == Compete.RESULT:
         if not competition.resultDeclared:
             data['results'] = None
@@ -164,7 +166,7 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
         if result.competition.associate:
             assxy = (787,904)
-            assimage = Image.open(os.path.join(settings.MEDIA_ROOT, result.competition.associate))
+            assimage = Image.open(os.path.join(settings.MEDIA_ROOT, str(result.competition.associate)))
             assimage = assimage.resize((467,136),Image.ANTIALIAS)
             certimage.paste(assimage, assxy)
 
@@ -177,5 +179,47 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
     except Exception as e:
         errorLog(e)
         return False
+
+def DeclareResults(competition:Competition):
+    cache.set(f"results_declaration_task_{competition.get_id}", Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
+    declared = competition.declareResults()
+    if not declared:
+        cache.delete(f"results_declaration_task_{competition.get_id}")
+        raise Exception(f'Result declaration failed: {competition.id}')
+    cache.set(f"results_declaration_task_{competition.get_id}", Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
+    addMethodToAsyncQueue(f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
+
+
+def AllotParticipantCertificates(results:list,competition:Competition):
+    """
+    @async
+    """
+    try:
+        cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
+        participantCerts = []
+        for result in results:
+            for member in result.getMembers():
+                id = uuid4()
+                certificate = generateCertificate(member,result,id.hex)
+                if not certificate:
+                    cache.delete(f"certificates_allotment_task_{competition.get_id}")
+                    raise Exception(f"Couldn't generate certificate of {member.getName()} for {competition.title}")
+                participantCerts.append(
+                    ParticipantCertificate(
+                        id=id,
+                        result=result,
+                        profile=member,
+                        certificate=certificate
+                    )
+                )
+        certs = ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
+        if len(certs) != competition.totalValidSubmissionParticipants():
+            raise Exception(f"Participant & certificates mismatched: certs {len(certs)}, parts {competition.totalValidSubmissionParticipants()}")
+        cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
+    except Exception as e:
+        errorLog(e)
+        cache.delete(f"certificates_allotment_task_{competition.get_id}")
+
 
 from .receivers import *

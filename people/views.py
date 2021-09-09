@@ -10,7 +10,7 @@ from django.views.decorators.cache import cache_page
 from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import github_only, require_JSON_body, normal_profile_required
-from main.methods import base64ToImageFile, errorLog, respondJson, renderData
+from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
 from main.env import BOTMAIL
 from main.strings import Action, Code, Event, Message, Template
 from .apps import APPNAME
@@ -232,9 +232,9 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
         if not done:
             return respondJson(Code.NO)
         if is_active:
-            accountReactiveAlert(request.user.profile)
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{accountReactiveAlert.__name__}",request.user.profile)
         else:
-            accountInactiveAlert(request.user.profile)
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{accountInactiveAlert.__name__}", request.user.profile)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
@@ -275,7 +275,7 @@ def profileSuccessor(request: WSGIRequest):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
-                            successorInvite(request.user, successor)
+                            addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorInvite.__name__}", request.user, successor)
                         return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
                     successor_confirmed = userID == BOTMAIL
                 except:
@@ -290,7 +290,7 @@ def profileSuccessor(request: WSGIRequest):
         Profile.objects.filter(user=request.user).update(
             successor=successor, successor_confirmed=successor_confirmed)
         if successor and not successor_confirmed:
-            successorInvite(successor=successor, predecessor=request.user)
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorInvite.__name__}",successor,request.user)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)

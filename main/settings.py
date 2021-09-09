@@ -296,16 +296,19 @@ GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
 # COMPRESS_OUTPUT_DIR = "__static__"
 # COMPRESS_ROOT = BASE_DIR
 
-if env.REDIS_LOCATION and env.REDIS_PASSWORD:
+if env.ASYNC_CLUSTER:
     Q_CLUSTER = {
         'name': env.PUBNAME,
         'workers': 8,
         'recycle': 500,
         'timeout': 60,
+        'retry': 70,
+        'sync': env.ISTESTING,
         'compress': True,
         'save_limit': 250,
         'queue_limit': 500,
         'cpu_affinity': 1,
+        'max_attempts': 10,
         'label': f"{env.PUBNAME} Django Q",
         'redis':  {
             'host': env.REDIS_HOST,

@@ -2,10 +2,12 @@ from django.db.models.signals import post_save, pre_save
 from django.db.models import Q
 from django.dispatch import receiver
 from main.exceptions import IllegalModeration, IllegalModerator, IllegalModerationType, IllegalModerationState, DuplicateKeyError
+from main.methods import addMethodToAsyncQueue
 from main.strings import moderation
 from .models import LocalStorage, Moderation
 from .mailers import moderationAssignedAlert
 from .methods import getModelByType
+from .apps import APPNAME
 
 
 @receiver(pre_save, sender=LocalStorage)
@@ -29,4 +31,4 @@ def before_moderation_update(sender, instance:Moderation, raw, **kwargs):
 @receiver(post_save, sender=Moderation)
 def on_moderation_update(sender, instance, created, **kwargs):
     if created:
-        moderationAssignedAlert(instance)
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}",instance)

@@ -26,6 +26,19 @@ const loadData = async () => {
                     getElement("finalTimeLeft").innerHTML = disptime;
                 } catch {}
             }, 1000);
+        } else {
+            if(data.startTimeLeft>0){
+                let timeleft = data.startTimeLeft;
+                setInterval(() => {
+                    timeleft -= 1;
+                    if (timeleft<0) {
+                        clearInterval(intv);
+                        subLoader();
+                        window.location.replace(window.location.pathname);
+                        return
+                    }
+                }, 1000);
+            }
         }
     }
 };
@@ -77,10 +90,16 @@ const loadTabScript = (tab) => {
                                 <span class="negative-text w3-right" id="dialoginviteerr"></span>
                                 <br/>
                                 <button class="active" id="dialoginvite">Invite</button>
+                                <button class="positive" id="sharecompetition">${Icon('share')}Share competition</button>
                             </div>`
                                 )
                                 .set({ label: "Cancel" });
                             getElement("dialoginviteerr").innerHTML = "";
+                            getElement('sharecompetition').onclick=_=>{
+                                shareLinkAction(`Competition at ${APPNAME}`, `Checkout this competition at ${APPNAME}, let's participate together. Hurry up! Time is not our friend.\n`, setUrlParams(URLS.COMPID, compID),()=>{
+                                    message(`Invite them from here after they finish signing up on ${APPNAME}.`)
+                                })
+                            }
                             getElement("dialoginvite").onclick = async () => {
                                 const userID = String(
                                     getElement("dialoginviteeID").value

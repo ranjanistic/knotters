@@ -8,7 +8,8 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from projects.methods import setupApprovedProject
 from projects.mailers import projectRejectedNotification
-from main.methods import errorLog, respondJson, respondRedirect
+from compete.mailers import submissionsModeratedAlert
+from main.methods import errorLog, respondJson, respondRedirect, addMethodToAsyncQueue
 from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE, URL
 from main.decorators import require_JSON_body, moderator_only, normal_profile_required
 from .apps import APPNAME
@@ -93,7 +94,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             newmod = getModeratorToAssignModeration(mod.type,mod.object,[mod.moderator])
             mod.moderator = newmod
             mod.save()
-            moderationAssignedAlert(mod)
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}",mod)
             return respondRedirect(PEOPLE,'',alert=Message.MODERATION_SKIPPED)
         else:
             approve = request.POST.get('approve', None)
@@ -102,7 +103,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             if not approve:
                 done = mod.reject()
                 if done and mod.type == PROJECTS:
-                    projectRejectedNotification(mod.project)
+                    addMethodToAsyncQueue(f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}",mod.project)
                 return respondJson(Code.OK if done else Code.NO)
             elif approve:
                 done = mod.approve()
@@ -153,14 +154,17 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
     To finalize valid submissions for judgement of a competition under moderation.
     """
     try:
+        mod = Moderation.objects.get(id=modID, type=COMPETE, status=Code.MODERATION, resolved=False, moderator=request.user.profile)
         submissions = request.POST['submissions']
         invalidSubIDs = []
         for sub in submissions:
             if not sub['valid']:
                 invalidSubIDs.append(sub['subID'])
         Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
-        Moderation.objects.filter(id=modID, type=COMPETE, status=Code.MODERATION, resolved=False).update(
-            status=Code.APPROVED, resolved=True)
+        mod.status=Code.APPROVED
+        mod.resolved=True
+        mod.save()
+        addMethodToAsyncQueue(f"{COMPETE}.mailers.{submissionsModeratedAlert.__name__}", mod.competition)
         return respondJson(Code.OK)
     except:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

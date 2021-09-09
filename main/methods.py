@@ -10,7 +10,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
-
+from .env import ASYNC_CLUSTER
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
@@ -225,9 +225,13 @@ def verify_captcha(recaptcha_response:str) -> bool:
 
 def addMethodToAsyncQueue(methodpath,*params):
     try:
-        from django_q.tasks import async_task
-        async_task(methodpath,*params)
-        print(f"{methodpath} async task started")
+        if ASYNC_CLUSTER:
+            from django_q.tasks import async_task
+            async_task(methodpath,*params)
+            print(f"{methodpath} async task started")
+        else:
+            import main, people, projects, management, moderation, compete
+            x = eval(f"{methodpath}{params}",dict(main=main, people=people, projects=projects, management=management, moderation=moderation, compete=compete))
         return True
     except Exception as e:
         errorLog(e)

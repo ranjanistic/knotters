@@ -44,7 +44,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 # @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
     comp = Competition.objects.filter(
-        startAt__lt=timezone.now(), endAt__gte=timezone.now()).first()
+        startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
     data = dict()
     if comp:
         data = dict(

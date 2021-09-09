@@ -12,6 +12,7 @@ makemigrations
 __pycache__
 createsuperuser
 migrations
+qcluster
 media/
 static/admin
 py

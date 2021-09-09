@@ -215,12 +215,7 @@ const loadGlobalEventListeners = () => {
     getElements("click-to-copy").forEach((elem) => {
         elem.classList.add("pointer");
         elem.addEventListener("click", (e) => {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(
-                    e.target.getAttribute("data-copy") || e.target.innerHTML
-                );
-                message("Copied to clipboard");
-            }
+            copyToClipboard(e.target.getAttribute("data-copy") || e.target.innerHTML)
         });
     });
     getElements("previous-action-button").forEach((elem) => {
@@ -249,6 +244,15 @@ const loadGlobalEventListeners = () => {
         };
     });
 };
+
+const copyToClipboard = (text) => {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        success("Copied to clipboard");
+    } else {
+        error('Unable to copy!')
+    }
+}
 
 const _processReCaptcha = (
     onSuccess = (stopLoaders) => {},
@@ -540,6 +544,19 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
 };
 
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
+    if (!url.startsWith(SITE)) {
+        if(url.startsWith('/')){
+            url=SITE+url
+        } else {
+            url=SITE+'/'+url
+        }
+    }
+    if(!title.endsWith('\n')){
+        title=title+'\n'
+    }
+    if(!text.endsWith('\n')){
+        text=text+'\n'
+    }
     if (navigator.share) {
         subLoader();
         navigator
@@ -554,6 +571,7 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
             });
     } else {
         error("Sharing not available on your system.");
+        copyToClipboard(url)
     }
 };
 

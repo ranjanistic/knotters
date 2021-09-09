@@ -1,7 +1,8 @@
+from django.core.mail.message import EmailMessage
 from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mass_mail
 from people.models import Profile
-from .methods import errorLog
+from .methods import errorLog, addMethodToAsyncQueue
 from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE
 from .strings import URL
 
@@ -41,6 +42,9 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
             print(body)
         return True
 
+def sendBulkEmails(emails:list,subject,html,body):
+    for email in emails:
+        sendEmail(email,subject,html,body)
 
 def getEmailHtmlBody(greeting: str, header: str, footer: str, username: str = '', actions: list = [], conclusion: str = '', action=False) -> str and str:
     """
@@ -136,29 +140,22 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
     return sendCCEmail(to=to, subject=subject, html=html, body=body)
 
 
-def downtimeAlert() -> list:
+def downtimeAlert():
     """
     To alert all users about any downtime, meant for manual invokation via shell only.
     """
 
-    tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")
-                   ).strip() + " (IST Asia/Kolkata)"
+    tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")).strip()
     print(tillTime)
-    profiles = Profile.objects.filter(is_zombie=False)
-    mails = []
-    print('Looping...')
-    for prof in profiles:
-        sendAlertEmail(
-            to=prof.getEmail(),
-            username=prof.getFName(),
-            subject="Scheduled Downtime Alert",
-            header=f"This is to inform you that our online platform will experience a downtime till {tillTime}, due to unavoidable changes for the good.",
-            footer="Any inconvenience is deeply regretted. Thank you for your understanding.",
-            conclusion="You received this alert because you are a member of our community. If this is an error, the please report to us."
-        )
-        mails.append({
-            'to': prof.getEmail(),
-            'username': prof.getFName()
-        })
-    print("Downtime alerted")
-    return mails
+    emails = Profile.objects.filter(is_zombie=False).values_list('user__email',flat=True)
+    if(input(f"{emails.count()} people will be alerted, ok? (y/n) ")!='y'):
+        return print("aborted.")
+    print('Alert task started.')
+    
+    html, body = getEmailHtmlBody(
+        greeting='', 
+        header=f"This is to inform you that our online platform will experience a downtime till {tillTime}, due to unavoidable reasons.", 
+        footer="Any inconvenience is deeply regretted. Thank you for your understanding.", 
+        conclusion="You received this alert because you are a member of our community. If this is an error, then please report to us."
+    )
+    addMethodToAsyncQueue(f'main.mailers.{sendBulkEmails.__name__}', emails,"Scheduled Downtime Alert",html,body)

@@ -95,8 +95,10 @@ class Message():
     SAVED = "Saved"
 
     RESULT_DECLARED = "Results declared!"
+    RESULT_NOT_DECLARED = "Results not declared."
     RESULT_DECLARING = "Results declaration in progress"
     ALREADY_PARTICIPATING = "You're already participating."
+    PARTICIPATION_CONFIRMED = 'Participation confirmed!'
     PARTICIPATION_WITHDRAWN = 'Participation withdrawn.'
     MEMBER_REMOVED = 'Member removed'
     INVALID_ID = 'Invalid ID'
@@ -140,6 +142,7 @@ class Message():
     INVALID_MODERATOR = 'Invalid moderator'
     COMP_TITLE_EXISTS = 'Competition with similar title exists'
     CERTS_GENERATED = 'Certificates generated successfully.'
+    CERTS_GENERATING = 'Certificates are being generated.'
     CERT_NOT_FOUND = 'Certificate not found'
 
     MODERATION_SKIPPED = "That moderation was passed on to another moderator."

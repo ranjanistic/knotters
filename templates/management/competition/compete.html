@@ -51,18 +51,26 @@
                     <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
                     <strong>Certificates Generated: {{compete.certificatesGenerated|yesno}}</strong><br/>
                     {% if not compete.certificatesGenerated and iscreator %}
+                        {% if not generating %}
                         <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
                             {% csrf_token %}
                             <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
                         </form>
+                        {% else %}
+                        Certificates generation in progress
+                        {% endif %}
                     {% endif %}
                 {% else %}
                     <strong>Results ready to be declared? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
                     {% if iscreator %}
+                        {% if not declaring %}
                         <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
                             {% csrf_token %}
                             <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
                         </form>
+                        {% else  %}
+                        Results declaration in progress
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             {% elif not compete.allSubmissionsMarked %}

@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 # from django.conf import settings
 # from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, URL, Message, Code, Template
@@ -212,11 +213,16 @@ def competitions(request: WSGIRequest) -> HttpResponse:
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
+        resstatus = cache.get(f"results_declaration_task_{compete.get_id}")
+        certstatus = cache.get(f"certificates_allotment_task_{compete.get_id}")
         return renderer(request, Template.Management.COMP_COMPETE, dict(
             compete=compete,
-            iscreator=(compete.creator == request.user.profile)
+            iscreator=(compete.creator == request.user.profile),
+            declaring=(resstatus==Message.RESULT_DECLARING),
+            generating=(certstatus==Message.CERTS_GENERATING)
         ))
     except Exception as e:
+        print(e)
         raise Http404()
 
 
