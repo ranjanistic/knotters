@@ -439,7 +439,7 @@ class Competition(models.Model):
         return ParticipantCertificate.objects.filter(result__submission__competition=self).count()
 
     def certificatesGenerated(self) -> bool:
-        return self.totalValidSubmissionParticipants() == self.totalCertificates()
+        return self.totalValidSubmissionParticipants() <= self.totalCertificates()
 
 class CompetitionJudge(models.Model):
     """

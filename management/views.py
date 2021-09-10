@@ -39,9 +39,11 @@ def community(request: WSGIRequest):
 @manager_only
 @require_GET
 def moderators(request: WSGIRequest):
-    moderators = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(is_moderator=True,to_be_zombie=False)
-    profiles = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(is_moderator=False,to_be_zombie=False, is_active=True).order_by('-xp')[0:10]
-    return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators,profiles=profiles))
+    moderators = Profile.objects.exclude(user__email__in=[
+                                         request.user.email, BOTMAIL]).filter(is_moderator=True, to_be_zombie=False)
+    profiles = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
+        is_moderator=False, to_be_zombie=False, is_active=True).order_by('-xp')[0:10]
+    return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
 
 
 @manager_only
@@ -51,7 +53,7 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=False), Q(
+        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=False), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
@@ -66,18 +68,21 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
     except Exception as e:
         return respondJson(Code.NO)
 
+
 @manager_only
 @require_JSON_body
 def removeModerator(request: WSGIRequest):
     try:
-        modID = request.POST.get('modID',None)
+        modID = request.POST.get('modID', None)
         if not modID or modID == request.user.get_id:
             return respondJson(Code.NO)
-        moderator = Profile.objects.filter(user__id=modID, is_moderator=True).update(is_moderator=False)
+        moderator = Profile.objects.filter(
+            user__id=modID, is_moderator=True).update(is_moderator=False)
         if moderator == 0:
             return respondJson(Code.NO)
         for mod in Moderation.objects.filter(moderator__user__id=modID, resolved=False):
-            moderator = getModeratorToAssignModeration(mod.type,mod.object, ignoreModProfiles=[mod.moderator])
+            moderator = getModeratorToAssignModeration(
+                mod.type, mod.object, ignoreModProfiles=[mod.moderator])
             if moderator:
                 mod.moderator = moderator
                 mod.save()
@@ -86,15 +91,17 @@ def removeModerator(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO, error=e)
 
+
 @manager_only
 @require_JSON_body
 def addModerator(request: WSGIRequest):
     try:
-        userID = request.POST.get('userID',None)
+        userID = request.POST.get('userID', None)
         if not userID or userID == request.user.get_id:
             return respondJson(Code.NO)
 
-        user = Profile.objects.filter(user__id=userID, is_moderator=False, suspended=False, to_be_zombie=False).update(is_moderator=True)
+        user = Profile.objects.filter(user__id=userID, is_moderator=False,
+                                      suspended=False, to_be_zombie=False).update(is_moderator=True)
         if user == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -141,6 +148,7 @@ def label(request: WSGIRequest, type: str, labelID: UUID):
     except:
         raise Http404()
 
+
 @manager_only
 @require_JSON_body
 def labelCreate(request: WSGIRequest, type: str):
@@ -154,13 +162,14 @@ def labelCreate(request: WSGIRequest, type: str):
             label = addTagToDatabase(name)
         else:
             return respondJson(Code.NO)
-        return respondJson(Code.OK, dict(label=dict(id=label.get_id,name=label.name)))
+        return respondJson(Code.OK, dict(label=dict(id=label.get_id, name=label.name)))
     except:
         return respondJson(Code.NO)
-    
+
+
 @manager_only
 @require_JSON_body
-def labelUpdate(request: WSGIRequest, type: str, labelID:UUID):
+def labelUpdate(request: WSGIRequest, type: str, labelID: UUID):
     try:
         if type == Code.TAG:
             name = request.POST['name']
@@ -174,12 +183,11 @@ def labelUpdate(request: WSGIRequest, type: str, labelID:UUID):
         return respondJson(Code.OK)
     except:
         return respondJson(Code.NO)
-    
-    
+
 
 @manager_only
 @require_JSON_body
-def labelDelete(request: WSGIRequest, type: str, labelID:UUID):
+def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
     try:
         if type == Code.TOPIC:
             topic = Topic.objects.get(id=labelID)
@@ -196,7 +204,7 @@ def labelDelete(request: WSGIRequest, type: str, labelID:UUID):
         return respondJson(Code.OK)
     except:
         return respondJson(Code.NO)
-    
+
 
 @manager_only
 @require_GET
@@ -218,11 +226,11 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
         return renderer(request, Template.Management.COMP_COMPETE, dict(
             compete=compete,
             iscreator=(compete.creator == request.user.profile),
-            declaring=(resstatus==Message.RESULT_DECLARING),
-            generating=(certstatus==Message.CERTS_GENERATING)
+            declaring=(resstatus == Message.RESULT_DECLARING),
+            generating=(certstatus == Message.CERTS_GENERATING)
         ))
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
 
 
@@ -233,7 +241,8 @@ def searchTopic(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        topic = Topic.objects.filter(name__istartswith=query.capitalize()).first()
+        topic = Topic.objects.filter(
+            name__istartswith=query.capitalize()).first()
         return respondJson(Code.OK, dict(topic=dict(
             id=topic.id,
             name=topic.name
@@ -250,7 +259,7 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
+        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
@@ -274,7 +283,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        profile = Profile.objects.exclude(user__email__in=[request.user.email,BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
+        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
             user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
         if profile.isBlocked(request.user):
             raise Exception()
@@ -288,7 +297,6 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         )))
     except Exception as e:
         return respondJson(Code.NO)
-    
 
 
 @manager_only
@@ -296,7 +304,8 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
 # @cache_page(settings.CACHE_SHORT)
 def createCompete(request: WSGIRequest) -> HttpResponse:
     data = dict()
-    lastcomp = Competition.objects.filter(creator=request.user.profile).exclude(associate__isnull=True).exclude(associate__exact='').order_by("-modifiedOn").first()
+    lastcomp = Competition.objects.filter(creator=request.user.profile).exclude(
+        associate__isnull=True).exclude(associate__exact='').order_by("-modifiedOn").first()
     if lastcomp:
         data = dict(associate=lastcomp.get_associate)
     return renderer(request, Template.Management.COMP_CREATE, data)
@@ -384,7 +393,8 @@ def submitCompetition(request) -> HttpResponse:
             pass
 
         if not associate and useAssociate:
-            lastcomp = Competition.objects.exclude(id=compete.id).filter(creator=request.user.profile).order_by("-modifiedOn").first()
+            lastcomp = Competition.objects.exclude(id=compete.id).filter(
+                creator=request.user.profile).order_by("-modifiedOn").first()
             if lastcomp:
                 compete.associate = str(lastcomp.associate)
                 associate = True
@@ -392,7 +402,8 @@ def submitCompetition(request) -> HttpResponse:
         if associate or banner:
             compete.save()
 
-        mod = Profile.objects.get(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
+        mod = Profile.objects.get(
+            user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
         assigned = assignModeratorToObject(
             COMPETE, compete, mod, "Competition")
         if not assigned:
@@ -446,7 +457,7 @@ def createFeedback(request: WSGIRequest):
 
 @manager_only
 @require_GET
-def reportfeedType(request:WSGIRequest, type:str):
+def reportfeedType(request: WSGIRequest, type: str):
     try:
         if type == Code.REPORTS:
             reports = Report.objects.filter().order_by('resolved')
@@ -454,13 +465,15 @@ def reportfeedType(request:WSGIRequest, type:str):
         elif type == Code.FEEDBACKS:
             feedbacks = Feedback.objects.filter()
             return rendererstr(request, Template.Management.REPORTFEED_FEEDBACKS, dict(feedbacks=feedbacks))
-        else: raise Exception(type)
+        else:
+            raise Exception(type)
     except Exception as e:
         raise Http404()
 
+
 @manager_only
 @require_GET
-def reportfeedTypeID(request:WSGIRequest, type:str, ID:UUID):
+def reportfeedTypeID(request: WSGIRequest, type: str, ID: UUID):
     try:
         if type == Code.REPORTS:
             report = Report.objects.get(id=ID)
@@ -468,7 +481,8 @@ def reportfeedTypeID(request:WSGIRequest, type:str, ID:UUID):
         elif type == Code.FEEDBACKS:
             feedback = Feedback.objects.get(id=ID)
             return rendererstr(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
-        else: raise Exception(type)
+        else:
+            raise Exception(type)
     except Exception as e:
         errorLog(e)
         raise Http404()

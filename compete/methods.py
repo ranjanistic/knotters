@@ -213,13 +213,15 @@ def AllotParticipantCertificates(results:list,competition:Competition):
                     )
                 )
         certs = ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
-        if len(certs) != competition.totalValidSubmissionParticipants():
-            raise Exception(f"Participant & certificates mismatched: certs {len(certs)}, parts {competition.totalValidSubmissionParticipants()}")
+        # if len(certs) != competition.totalValidSubmissionParticipants():
+        #     raise Exception(f"Participant & certificates mismatched: certs {len(certs)}, parts {competition.totalValidSubmissionParticipants()}")
         cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
+        return True
     except Exception as e:
         errorLog(e)
         cache.delete(f"certificates_allotment_task_{competition.get_id}")
+        return False
 
 
 from .receivers import *
