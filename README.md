@@ -55,7 +55,7 @@ py manage.py runserver
 ### Optionally
 
 ```bash
-py manage.py genversion.py
+py genversion.py
 ```
 
 Use this if you want to have control over client side service worker updates. The above cmd will update a version tag on every exec, which is linked directly with the service worker, forcing it to emit an update.
