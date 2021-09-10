@@ -5,7 +5,7 @@ from people.models import Profile
 from github import NamedUser, Repository
 from main.bots import Github, GithubKnotters
 from main.strings import Code, Event, url
-from main.methods import errorLog, renderString, renderView
+from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
 from .models import Category, License, Project, Tag
@@ -133,7 +133,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         if not created and ISPRODUCTION:
             return False
 
-        sendProjectApprovedNotification(project)
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
 
         # created = setupProjectDiscordChannel(
         #     project.reponame, project.creator.profile, moderator)

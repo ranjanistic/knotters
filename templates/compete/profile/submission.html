@@ -1,5 +1,6 @@
+{% load custom_tags %}
 <div class="w3-row">
-    {% if request.user and submission and confirmed %}
+    {% if request.user.is_authenticated and submission and confirmed %}
     <div class="w3-col w3-half w3-padding-small">
         <h4>
         {% if not submission.submitted %}
@@ -25,7 +26,7 @@
             <input disabled class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
             {% endif %}
         </div>
-        {% if not submission.submitted and not compete.resultDeclared %}
+        {% if not submission.submitted and not compete.moderated %}
         <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
         {% if submission.submittingLate %}
             Late Submit
@@ -90,14 +91,18 @@
             <i class="w3-jumbo">group_work</i>
             
             <h1>Competition is a thrill way to learn.</h1>
-            {% if request.user.is_authenticated%}
-            <form action="{{compete.participationLink}}" 
-                method="POST">
+            {% if request.user.is_authenticated %}
+            <form action="{{compete.participationLink}}" method="POST">
                 {% csrf_token %}
                 <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">Participate Independently</button></a>
                 <br/><br/><br/>
                 <strong>If you have been invited, then the above button will cancel your pending invitations.</strong>
+                <br/><br/>
             </form>
+                {% if submission and not confirmed %}
+                    <h5>You have a pending invitation for participation in this competition</h5>
+                    <a href="{{URLS.INVITATION|params:submission.get_id|params:request.user.get_id}}"><button class="positive">View invitation</button></a>
+                {% endif %}
             {% else %}
                 <a href="{% url 'account_login' %}?next={{compete.getLink}}#mainframe"><button class="display-button positive" data-icon="login">Login to Participate</button></a>
             {% endif %}

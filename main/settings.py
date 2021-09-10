@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     # 'allauth_2fa',
     "translation_manager",
+    "django_q"
     # "compressor",
 ] + DIVISIONS
 
@@ -294,3 +295,25 @@ GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
 # COMPRESS_OFFLINE = False
 # COMPRESS_OUTPUT_DIR = "__static__"
 # COMPRESS_ROOT = BASE_DIR
+
+if env.ASYNC_CLUSTER:
+    Q_CLUSTER = {
+        'name': env.PUBNAME,
+        'workers': 8,
+        'recycle': 500,
+        'timeout': 60,
+        'retry': 70,
+        'sync': env.ISTESTING,
+        'compress': True,
+        'save_limit': 250,
+        'queue_limit': 500,
+        'cpu_affinity': 1,
+        'max_attempts': 10,
+        'label': f"{env.PUBNAME} Django Q",
+        'redis':  {
+            'host': env.REDIS_HOST,
+            'port': env.REDIS_PORT,
+            'password': env.REDIS_PASSWORD,
+            'db': 2,
+        }
+    }

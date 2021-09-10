@@ -19,6 +19,7 @@ from .methods import errorLog, renderData, renderView, respondJson, verify_captc
 from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
+from django_q.tasks import async_task
 
 
 @require_GET
@@ -43,7 +44,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 # @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
     comp = Competition.objects.filter(
-        startAt__lt=timezone.now(), endAt__gte=timezone.now()).first()
+        startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
     data = dict()
     if comp:
         data = dict(

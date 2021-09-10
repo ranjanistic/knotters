@@ -9,7 +9,7 @@ from people.models import Topic
 from moderation.models import Moderation
 from main.strings import url, MANAGEMENT
 from main.methods import errorLog, getNumberSuffix
-from main.env import BOTMAIL, SITE
+from main.env import BOTMAIL
 from .apps import APPNAME
 
 
@@ -123,6 +123,16 @@ class Competition(models.Model):
         Whether the competition is history or not, depending on endAt.
         """
         return self.endAt and self.endAt <= timezone.now()
+
+    def startSecondsLeft(self) -> int:
+        """
+        Total seconds left in this competition from the instantaneous time this method is invoked.
+        """
+        time = timezone.now()
+        if time >= self.startAt:
+            return 0
+        diff = self.startAt - time
+        return diff.total_seconds()
 
     def secondsLeft(self) -> int:
         """
@@ -355,7 +365,6 @@ class Competition(models.Model):
         for judge in judges:
             if self.allSubmissionsMarkedByJudge(judge):
                 count = count+1
-        print(count)
         return count
 
     def declareResultsLink(self) -> str:
@@ -368,11 +377,12 @@ class Competition(models.Model):
         Invoking this method should be considered as final step of a competition cycle.
         """
         try:
+            if self.resultDeclared:
+                raise Exception(f"Cannot declare results of {self.title}, already declared")
             if not self.allSubmissionsMarked():
                 raise Exception(
                     f"Cannot declare results of {self.title} unless all valid submissions have been marked.")
             subs = self.getValidSubmissions()
-
             submissionPoints = SubmissionTopicPoint.objects.filter(submission__in=subs).values('submission', 'submission__submitOn').annotate(
                 totalPoints=Sum('points')).order_by('-totalPoints', 'submission__submitOn')
 
@@ -429,8 +439,7 @@ class Competition(models.Model):
         return ParticipantCertificate.objects.filter(result__submission__competition=self).count()
 
     def certificatesGenerated(self) -> bool:
-        return self.totalValidSubmissionParticipants() == self.totalCertificates()
-
+        return self.totalValidSubmissionParticipants() <= self.totalCertificates()
 
 class CompetitionJudge(models.Model):
     """
@@ -652,8 +661,12 @@ class Result(models.Model):
     def __str__(self) -> str:
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
 
-    def getID(self):
+    @property
+    def get_id(self):
         return self.id.hex
+
+    def getID(self):
+        return self.get_id
 
     def submitOn(self):
         return self.submission.submitOn
@@ -675,10 +688,10 @@ class Result(models.Model):
         return self.submission.totalMembers() == self.xpclaimers.count
 
     def getCertLink(self):
-        return f"{url.getRoot(APPNAME)}{url.compete.certificate(resID=self.getID(),userID='*')}"
+        return f"{url.getRoot(APPNAME)}{url.compete.certificate(resID=self.get_id,userID='*')}"
 
     def getCertDownloadLink(self):
-        return f"{url.getRoot(APPNAME)}{url.compete.certificateDownload(resID=self.getID(),userID='*')}"
+        return f"{url.getRoot(APPNAME)}{url.compete.certificateDownload(resID=self.get_id,userID='*')}"
 
     def getMembers(self):
         return self.submission.getMembers()
@@ -715,14 +728,20 @@ class ParticipantCertificate(models.Model):
         return self.id.hex
 
     @property
+    def get_link(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.certificate(resID=self.result.getID(),userID=self.profile.getUserID())}"
+
+    @property
     def getCertImage(self):
         return f"{settings.MEDIA_URL}{str(self.certificate).replace('.pdf','.jpg')}"
+
+    @property
+    def getCert(self):
+        return f"{settings.MEDIA_URL}{str(self.certificate)}"
 
     def getCertificate(self):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"
     
     def delete(self, *args,**kwargs):
-        if self.certificate:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.certificate))
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.certficateImage))
         return super().delete(*args, **kwargs)
+

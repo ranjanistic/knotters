@@ -49,10 +49,16 @@ py manage.py migrate
 ### Server
 
 ```bash
-py manage.py runserver 8000
+py manage.py runserver
 ```
 
-_Port `8000` must be available._
+### Optionally
+
+```bash
+py genversion.py
+```
+
+Use this if you want to have control over client side service worker updates. The above cmd will update a version tag on every exec, which is linked directly with the service worker, forcing it to emit an update.
 
 ## Testing
 

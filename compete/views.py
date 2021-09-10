@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 import os
 from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
@@ -8,15 +8,15 @@ from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
-from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
-from main.methods import errorLog, renderData, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
-from .methods import getCompetitionSectionHTML, getIndexSectionHTML, renderer, generateCertificate
-from .mailers import participantInviteAlert, resultsDeclaredAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert
+from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotParticipantCertificates
+from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
 from .apps import APPNAME
 
 
@@ -60,7 +60,8 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
 def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
         compete = Competition.objects.get(id=compID)
-        data = dict(timeleft=compete.secondsLeft())
+        data = dict(timeleft=compete.secondsLeft(),
+                    startTimeLeft=compete.startSecondsLeft())
         if request.user.is_authenticated:
             try:
                 submp = SubmissionParticipant.objects.get(
@@ -104,11 +105,11 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         competition = Competition.objects.get(
             id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False)
         try:
-            done = SubmissionParticipant.objects.filter(
-                submission__competition=competition, profile=request.user.profile, confirmed=False).delete()
-            if not done:
-                return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
-        except:
+            # filter.delete doesn't work !?
+            subpart = SubmissionParticipant.objects.get(
+                submission__competition=competition, profile=request.user.profile, confirmed=False)
+            subpart.delete()
+        except Exception as e:
             pass
         if competition.isNotAllowedToParticipate(request.user.profile):
             return HttpResponseForbidden()
@@ -119,8 +120,9 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         SubmissionParticipant.objects.filter(
             submission=submission, profile=request.user.profile).update(confirmed=True)
         request.user.profile.increaseXP(by=5)
-        participantWelcomeAlert(request.user.profile, submission)
-        return redirect(competition.getLink())
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
+        return redirect(competition.getLink(alert=Message.PARTICIPATION_CONFIRMED))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -161,7 +163,8 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             if submission.competition.isJudge(person) or submission.competition.isModerator(person):
                 return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
             submission.members.add(person)
-            participantInviteAlert(person, request.user.profile, submission)
+            addMethodToAsyncQueue(
+                f'{APPNAME}.mailers.{participantInviteAlert.__name__}', person, request.user.profile, submission)
             return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
@@ -222,7 +225,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
             request.user.profile.increaseXP(by=5)
-            participantWelcomeAlert(request.user.profile, submission)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
             return render(request, Template().invitation, renderData(dict(
                 submission=submission,
                 accepted=True
@@ -254,7 +258,8 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             if submission.totalActiveMembers() == 0:
                 submission.delete()
             member.decreaseXP(by=5)
-            participationWithdrawnAlert(member, submission)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
             return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
         except Exception as e:
             errorLog(e)
@@ -298,6 +303,8 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
             raise Exception()
         if not submission.competition.isAllowedToParticipate(request.user.profile):
             raise Exception()
+        if submission.competition.moderated():
+            return respondJson(Code.OK, error=Message.SUBMISSION_TOO_LATE)
         if submission.competition.endAt < now:
             submission.late = True
             message = Message.SUBMITTED_LATE
@@ -308,7 +315,8 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission.save()
         for member in submission.getMembers():
             member.increaseXP(by=2)
-        submissionConfirmedAlert(submission)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{submissionConfirmedAlert.__name__}", submission)
         return respondJson(Code.OK, message=message)
     except Exception as e:
         errorLog(e)
@@ -377,6 +385,8 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         subtopicpoints = SubmissionTopicPoint.objects.bulk_create(
             topicpointsList)
         request.user.profile.increaseXP(by=len(submissions))
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{submissionsJudgedAlert.__name__}", competition, request.user.profile)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
@@ -398,13 +408,14 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
 
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getManagementLink(error=Message.INVALID_REQUEST))
-
-        declared = comp.declareResults()
-        if not declared:
-            return redirect(comp.getManagementLink(error=Message.ERROR_OCCURRED))
-
-        resultsDeclaredAlert(competition=declared)
-        return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARED))
+        task = cache.get(f"results_declaration_task_{compID}")
+        if task == Message.RESULT_DECLARING:
+            return redirect(comp.getManagementLink(error=Message.RESULT_DECLARING))
+        cache.set(f"results_declaration_task_{competition.get_id}",
+                  Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.methods.{DeclareResults.__name__}", comp)
+        return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARING))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -452,23 +463,25 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 # @cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
-    
+
 
 @require_POST
 def certificateVerify(request: WSGIRequest) -> HttpResponse:
-    certID = request.POST.get('certID',None)
+    certID = request.POST.get('certID', None)
     try:
         if not certID:
-            return respondRedirect(APPNAME,URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
-        partcert = ParticipantCertificate.objects.filter(id=UUID(str(certID).strip())).first()
+            return respondRedirect(APPNAME, URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
+        partcert = ParticipantCertificate.objects.filter(
+            id=UUID(str(certID).strip())).first()
         if not partcert:
-            return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
+            return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
         if not partcert.certificate:
-            return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
-        return respondRedirect(APPNAME,URL.compete.certficate(partcert.result.getID(),partcert.profile.getUserID()))
+            return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
+        return respondRedirect(APPNAME, URL.compete.certficate(partcert.result.getID(), partcert.profile.getUserID()))
     except Exception as e:
         errorLog(e)
-        return respondRedirect(APPNAME,f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND,)
+        return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND,)
+
 
 @require_GET
 # @cache_page(settings.CACHE_MINI)
@@ -505,35 +518,24 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         competition = Competition.objects.get(
             id=compID, creator=request.user.profile, resultDeclared=True)
         if not (competition.resultDeclared and competition.allResultsDeclared()):
-            return HttpResponseForbidden('Results not declared')
+            return redirect(competition.getManagementLink(alert=Message.RESULT_NOT_DECLARED))
         if competition.certificatesGenerated():
-            return HttpResponseForbidden("Certs already generated")
-        participantCerts = []
-        existingcerts = ParticipantCertificate.objects.filter(result__competition=competition)
-        doneresultIDs = []
-        for ex in existingcerts:
-            if not doneresultIDs.__contains__(ex.result.getID()):
-                doneresultIDs.append(ex.result.getID())
-        remainingresults = Result.objects.exclude(id__in=doneresultIDs).filter(competition=competition)
-        for result in remainingresults:
-            for member in result.getMembers():
-                id = uuid4()
-                certificate = generateCertificate(member,result,id.hex)
-                if not certificate:
-                    print(f"Couldn't generate certificate of {member.getName()} for {competition.title}")
-                    raise Exception(f"Couldn't generate certificate of {member.getName()} for {competition.title}")
-                participantCerts.append(
-                    ParticipantCertificate(
-                        id=id,
-                        result=result,
-                        profile=member,
-                        certificate=certificate
-                    )
-                )
-        certs = ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
-        if len(certs) != competition.totalValidSubmissionParticipants():
-            raise Exception(f"Participant & certificates mismatched: certs {len(certs)}, parts {competition.totalValidSubmissionParticipants()}")
-        return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATED))
+            return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATED))
+        if cache.get(f"certificates_allotment_task_{competition.get_id}") == Message.CERTS_GENERATING:
+            return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
+        doneresultIDs = ParticipantCertificate.objects.filter(
+            result__competition=competition).values_list("result__id", flat=True)
+        if(len(doneresultIDs) > 0):
+            remainingresults = Result.objects.filter(
+                ~Q(id__in=doneresultIDs), competition=competition)
+        else:
+            remainingresults = Result.objects.filter(competition=competition)
+        print(remainingresults)
+        cache.set(f"certificates_allotment_task_{competition.get_id}",
+                  Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.methods.{AllotParticipantCertificates.__name__}", remainingresults, competition)
+        return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
     except Exception as e:
         errorLog(e)
         return HttpResponseServerError(e)

@@ -10,6 +10,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
+from .env import ASYNC_CLUSTER
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
@@ -97,7 +98,7 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
     return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
 
 
-def getDeepFilePaths(dir_name, appendWhen):
+def getDeepFilePaths(dir_name:str, appendWhen=None):
     """
     Returns list of mapping of file paths only inside the given directory.
 
@@ -111,8 +112,12 @@ def getDeepFilePaths(dir_name, appendWhen):
             path = str(path).strip("\\")
         if path.startswith(dir_name):
             path = f"/{path}"
-        if appendWhen(path) and not assets.__contains__(path):
-            assets.append(path)
+        if not assets.__contains__(path):
+            if appendWhen:
+                if appendWhen(path):
+                    assets.append(path)
+            else:
+                assets.append(path)
     return assets
 
 
@@ -218,6 +223,20 @@ def verify_captcha(recaptcha_response:str) -> bool:
         ))
         result = resp.json()
         return result['success']
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def addMethodToAsyncQueue(methodpath,*params):
+    try:
+        if ASYNC_CLUSTER:
+            from django_q.tasks import async_task
+            async_task(methodpath,*params)
+            print(f"{methodpath} async task started")
+        else:
+            import main, people, projects, management, moderation, compete
+            x = eval(f"{methodpath}{params}",dict(main=main, people=people, projects=projects, management=management, moderation=moderation, compete=compete))
+        return True
     except Exception as e:
         errorLog(e)
         return False

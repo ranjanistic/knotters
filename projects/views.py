@@ -8,16 +8,16 @@ from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.conf import settings
-from django.views.decorators.cache import cache_page
+# from django.views.decorators.cache import cache_page
 from main.decorators import require_JSON_body, github_only, normal_profile_required
-from main.methods import base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
 from main.strings import Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
 from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category
 from .mailers import sendProjectSubmissionNotification
-from .methods import renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .methods import renderer, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -170,7 +170,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         if not mod:
             projectobj.delete()
             return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
-        sendProjectSubmissionNotification(projectobj)
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}",projectobj)
         return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
     except Exception as e:
         errorLog(e)

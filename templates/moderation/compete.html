@@ -15,7 +15,7 @@
                     <h5 class="text-secondary">{{moderation.competition.title}}</h5>
                     <h6 class="text-secondary">{{moderation.competition.tagline}}</h6>
                     <div class="text-secondary"><strong>{{moderation.competition.shortdescription}}</strong></div>
-                    <a target="_blank" href="{{moderation.competition.getLink}}#mainframe"><button class="accent small w3-right" data-icon="open_in_new">More details</button></a>
+                    <a href="{{moderation.competition.getLink}}#mainframe"><button class="accent small w3-right" data-icon="open_in_new">More details</button></a>
                 </div>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-center">
@@ -33,9 +33,9 @@
                 </div>
             </div>
             <div class="w3-col w3-half w3-padding-small">
-                <div class="pallete negative">
-                    <h1 class="w3-jumbo text-negative">{{moderation.competition.totalValidSubmissions }}</h1>
-                    <h3 class="text-negative">Submissions valid</h3>
+                <div class="pallete primary ">
+                    <h1 class="w3-jumbo positive-text">{{moderation.competition.totalValidSubmissions }}</h1>
+                    <h3 class="positive-text">Submissions valid</h3>
                 </div>
             </div>
         </div>
@@ -110,7 +110,7 @@
                     <center>
                     <i class="w3-jumbo active-text">verified</i>
                     <h3>All submissions have been marked & results are waiting to be declared.</h3>
-                    <h4>Results will be declared by managers, soon.</h4>
+                    <h4>Results will be declared by the manager, soon.</h4>
                     <h6>We'll notify you about the results, once declared.</h6>
                     {% comment %} <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button> {% endcomment %}
                     </center>
@@ -121,7 +121,7 @@
                     <center>
                     <i class="w3-jumbo w3-spin">hourglass_full</i>
                     <h1>Judges on duty</h1>
-                    <h4>Please wait while the judges mark valid submissions for final ranking.</h4><br/>
+                    <h4>Judges are now marking valid submissions for final ranking. Thank you for your contribution.</h4><br/>
                     <h3>{{moderation.competition.countJudgesWhoMarkedSubmissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
                     <h6 class="positive-text">We'll notify you about the results, once declared.</h6>
                     </center>
@@ -130,11 +130,11 @@
                         <center>
                         <i class="w3-jumbo positive-text">verified</i>
                         <h3>All submissions have been marked by you.<br/>Results will be declared soon.</h3>
-                        <h4>We're so grateful to have you as judge in this competition.</h4>
+                        <h4>We're grateful to have you as judge in this competition. Thank you for your contribution.</h4>
                         <h6>We'll notify you about the results, once declared.</h6>
                         </center>
                     {% else %}
-                        <center><h4 class="dead-text">Moderator is waiting for submissions to be marked by you.</h4></center>
+                        <center><h4 class="dead-text">Manager is waiting for submissions to be marked by you.</h4></center>
                         <div class="w3-row w3-center">
                             <button class="positive big-button" data-icon="upload" id="finalsend">Send for ranking</button>
                             <button class="negative big-button"  data-icon="delete" id="discardall">Discard all changes</button>

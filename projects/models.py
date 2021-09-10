@@ -5,8 +5,8 @@ from django.utils import timezone
 from main.env import BOTMAIL, MAILUSER, PUBNAME
 from main.settings import MEDIA_URL
 # from people.models import Profile
-from main.methods import maxLengthInList
-from main.strings import Code, url, PEOPLE, project, MANAGEMENT
+from main.methods import addMethodToAsyncQueue, maxLengthInList
+from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from .apps import APPNAME
 
@@ -304,14 +304,18 @@ class LegalDoc(models.Model):
     about = models.CharField(max_length=100, null=True, blank=True)
     content = models.CharField(max_length=100000)
     icon = models.CharField(max_length=20, default='policy')
-    contactmail = models.CharField(max_length=30, default=MAILUSER)
+    contactmail = models.CharField(max_length=30, default=BOTMAIL)
     lastUpdate = models.DateTimeField(
         auto_now=False, default=timezone.now, editable=False)
     effectiveDate = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def save(self, *args, **kwargs):
-        self.lastUpdate = timezone.now()
+        if self.id:
+            if LegalDoc.objects.filter(id=self.id).exists():
+                if self.content != (LegalDoc.objects.get(id=self.id)).content:
+                    self.lastUpdate = timezone.now()
+                    addMethodToAsyncQueue(f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.getLink())
         super(LegalDoc, self).save(*args, **kwargs)
 
     def getLink(self):
-        return f"{url.getRoot('docs')}{self.pseudonym}"
+        return f"{url.getRoot(DOCS)}{url.docs.type(self.pseudonym)}"
