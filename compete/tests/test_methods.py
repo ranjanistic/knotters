@@ -5,6 +5,7 @@ from main.strings import Code
 from django.test import TestCase, tag
 from people.models import Profile, Topic
 from people.tests.utils import getTestEmail, getTestName, getTestPassword
+from main.methods import getDeepFilePaths
 from main.tests.utils import getRandomStr
 from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst, getTestTopicsInst
 from .utils import getCompTitle, getCompPerks, getCompBanner, getSubmissionRepos
@@ -20,7 +21,8 @@ class CompeteMethodsTest(TestCase):
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
             user=self.mguser).update(is_manager=True)
-        self.comp = Competition.objects.create(title=getCompTitle(), creator=self.mguser.profile, startAt=timezone.now(), endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
+        self.comp = Competition.objects.create(title=getCompTitle(), creator=self.mguser.profile, startAt=timezone.now(
+        ), endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
         self.user = User.objects.create_user(email=getTestEmail(
         ), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
@@ -46,18 +48,18 @@ class CompeteMethodsTest(TestCase):
         self.subm.members.add(self.user)
         self.subm2 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
-        self.subm2.members.add(self.user)
+        self.subm2.members.add(self.user2)
         self.subm3 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
-        self.subm3.members.add(self.user)
+        self.subm3.members.add(self.user3)
         self.subm4 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
-        self.subm4.members.add(self.user)
+        self.subm4.members.add(self.user4)
         self.subm5 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
-        self.subm5.members.add(self.user)
+        self.subm5.members.add(self.user5)
         SubmissionParticipant.objects.filter(submission__in=[
-                                             self.subm2, self.subm3, self.subm4, self.subm4, self.subm5]).update(confirmed=True)
+                                             self.subm, self.subm2, self.subm3, self.subm4, self.subm4, self.subm5]).update(confirmed=True)
         self.submTopicPoint = SubmissionTopicPoint.objects.create(
             submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
         self.submTopicPoint2 = SubmissionTopicPoint.objects.create(
@@ -88,5 +90,17 @@ class CompeteMethodsTest(TestCase):
         self.comp.declareResults()
         results = Result.objects.filter(competition=self.comp)
         AllotParticipantCertificates(results, self.comp)
-        self.assertEqual(ParticipantCertificate.objects.filter(
-            result__competition=self.comp).count(), self.comp.totalValidSubmissionParticipants())
+        total = self.comp.totalValidSubmissionParticipants()
+        self.assertEqual(ParticipantCertificate.objects.filter(result__competition=self.comp).count(), total)
+        
+        # def appendwhen(path):
+        #     if path.__contains__('certificate'):
+        #         found = False
+        #         for x in resids:
+        #             if path.__contains__(str(x)):
+        #                 found = True
+        #                 break
+        #         return found
+        #     return False
+        # print(getDeepFilePaths('media', appendwhen))
+        ParticipantCertificate.objects.filter().delete()

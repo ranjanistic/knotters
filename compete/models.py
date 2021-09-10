@@ -743,7 +743,5 @@ class ParticipantCertificate(models.Model):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"
     
     def delete(self, *args,**kwargs):
-        if self.certificate:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.certificate))
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.certficateImage))
         return super().delete(*args, **kwargs)
+

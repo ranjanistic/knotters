@@ -159,15 +159,15 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         namexy = (imagex-name_font.getsize(name)[0]-77, 220)
         compxy = (imagex-comp_font.getsize(comp)[0]-77, 411)
         aboutxy = (imagex-about_font.getsize(about)[0]-77, 515)
-        idxy = (22,1020)
+        idxy = (14,1020)
         image_editable.text(xy=namexy, text=name, fill=(0, 0, 0), font=name_font, align='right')
         image_editable.text(xy=compxy, text=comp, fill=(0, 0, 0), font=comp_font, align='right')
         image_editable.text(xy=aboutxy, text=about, fill=(0, 0, 0), font=about_font,align='right')
         image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
         if result.competition.associate:
-            assxy = (787,904)
+            assxy = (776,904)
             assimage = Image.open(os.path.join(settings.MEDIA_ROOT, str(result.competition.associate)))
-            assimage = assimage.resize((467,136),Image.ANTIALIAS)
+            assimage = assimage.resize((474,144),Image.ANTIALIAS)
             certimage.paste(assimage, assxy)
 
         certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.pdf"

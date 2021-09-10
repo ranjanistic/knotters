@@ -98,7 +98,7 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
     return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
 
 
-def getDeepFilePaths(dir_name, appendWhen):
+def getDeepFilePaths(dir_name:str, appendWhen=None):
     """
     Returns list of mapping of file paths only inside the given directory.
 
@@ -112,8 +112,12 @@ def getDeepFilePaths(dir_name, appendWhen):
             path = str(path).strip("\\")
         if path.startswith(dir_name):
             path = f"/{path}"
-        if appendWhen(path) and not assets.__contains__(path):
-            assets.append(path)
+        if not assets.__contains__(path):
+            if appendWhen:
+                if appendWhen(path):
+                    assets.append(path)
+            else:
+                assets.append(path)
     return assets
 
 
