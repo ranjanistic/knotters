@@ -2,8 +2,9 @@
 {% load custom_tags %}
 <div class="w3-row">
     <br/>
-    <div class="w3-padding-small">
-    <h3>&nbsp;&nbsp;&nbsp;Newbie projects</h3>
+    <div class="w3-row w3-padding-small">
+    <a class="w3-right w3-padding" href="{{URLS.PROJECTS}}"><button class="primary small" data-icon="open_in_new">More</button></a>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Newbie projects</h4>
     </div>
     <br/>
     <div class="swiper-container swiper-browser">
@@ -11,15 +12,13 @@
             {% for project in projects %}
             <div class="w3-col swiper-slide">
                 <a href="{{project.getLink}}">
-                <div class="pallete pallete_i w3-center" style="padding:0">
+                <div class="pallete pallete_i w3-center" style="padding:0;min-height:60vh;">
                     <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                     <div class="w3-row w3-padding">
                         <h5>{{ project.name }}</h5>
-                        <span>{{ project.description|truncatechars:75 }}</span>
+                        <span>{{ project.description|truncatechars:32 }}</span>
                     </div>
-                    <div class="w3-row w3-padding-small">
-                        <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{ project.name }}', '{{ project.description }}', '{{SITE}}{{project.getLink}}')">share</i>
-                    </div>
+                    <br/>
                 </div>
                 </a>
             </div>
@@ -31,11 +30,6 @@
             </center>
             </div>
             {% endfor %}
-            {% if projects.0 %}
-            <div class="w3-col swiper-slide w3-padding">
-                <a href="{{URLS.PROJECTS}}"><button class="primary display-button" data-icon="open_in_new">More</button></a>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>

@@ -1009,6 +1009,11 @@ class Template():
         def profile_result(self):
             return f'{self.DIRNAME}/{self.PROFILE_RESULT}.html'
 
+        BROWSE_RECENT_WINNERS = "browse/recent-winners"
+        @property
+        def browse_recent_winners(self):
+            return f'{self.DIRNAME}/{self.BROWSE_RECENT_WINNERS}.html'
+
     compete = Compete()
 
     class People():

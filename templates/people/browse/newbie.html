@@ -1,8 +1,10 @@
 {% load custom_tags %}
+{% load cache %}
 <div class="w3-row">
     <br/>
-    <div class="w3-padding-small">
-    <h3>&nbsp;&nbsp;&nbsp;Newbie profiles</h3>
+    <div class="w3-row w3-padding-small">
+    <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Newbie profiles</h4>
     </div>
     <br/>
     <div class="swiper-container swiper-browser">
@@ -16,9 +18,7 @@
                         <h5>{{ profile.getName }}</h5>
                         <span>{{ profile.getBio|or:profile.getXP|truncatechars:75 }}</span>
                     </div>
-                    <div class="w3-row w3-padding-small">
-                        <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{ profile.getName }}', '{{ profile.getBio }}', '{{SITE}}{{profile.getLink}}')">share</i>
-                    </div>
+                    <br/>
                 </div>
                 </a>
             </div>
@@ -30,15 +30,6 @@
             </center>
             </div>
 			{% endfor %} 
-			{% if profiles.0 %}
-			<div class="w3-col swiper-slide w3-padding">
-				<a href="{{URLS.PEOPLE}}"
-				><button class="primary display-button" data-icon="open_in_new">
-					More
-				</button></a
-				>
-			</div>
-			{% endif %}
         </div>
     </div>
 </div>

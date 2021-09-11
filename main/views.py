@@ -2,6 +2,7 @@ import json
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
+from datetime import timedelta
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
@@ -11,10 +12,11 @@ from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
-from compete.models import Competition
+from compete.models import Competition, Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
+from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH
 from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
 from .decorators import dev_only, require_JSON_body
@@ -261,6 +263,9 @@ def browser(request: WSGIRequest, type: str):
             projects = Project.objects.filter(
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
+        elif type == "recent-winners":
+            results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6)))[0:10]
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:
