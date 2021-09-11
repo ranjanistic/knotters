@@ -264,7 +264,7 @@ def browser(request: WSGIRequest, type: str):
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
         elif type == "recent-winners":
-            results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6)))[0:10]
+            results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results)))
         else:
             return HttpResponseBadRequest()
