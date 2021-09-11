@@ -117,15 +117,19 @@
             {% endblock %}
         </nav>
         {% endblock %}
-
+        {% block globalalerts %}
+        <div class="w3-row">
+        {% for alert in alerts %}
+        <div class="w3-row positive w3-center w3-padding" id="view-{{alert.id}}">
+            <span class="w3-padding">{{alert.message}}{% if alert.url %} <a class="text-positive" href="{{alert.url}}">Click here</a>{% endif %}</span>
+            <button class="small primary w3-right close-global-alert" data-icon="close" id="{{alert.id}}"></button>
+        </div>
+        {% endfor %}
+        </div>
+        {% endblock %}
         <div style="min-height: 50vh;">
             {% block content %}
-            <div class="w3-row">
-                {% if alert %}
-                <div class="w3-row positive w3-center w3-padding">
-                    <span class="head-font">{{alert.message}} <a class="text-positive" href="{{alert.url}}">Click here</a></span>
-                </div>
-                {% endif %}
+            <div class="w3-row">    
                 <div class="w3-row tertiary browser-view" data-type="new-projects" id='newbie-projects-view'>
                 </div>
                 <div class="w3-row accent browser-view" data-type="new-profiles" id='newbie-profiles-view'>
@@ -192,6 +196,9 @@
         </div>
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
+        </div>
+        <div class="preview-image-modal" id="image-previewer">
+            <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
         {% comment %} {% compress js %} {% endcomment %}

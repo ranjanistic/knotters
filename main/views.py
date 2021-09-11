@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
+from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
@@ -43,17 +44,13 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 @require_GET
 # @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-    comp = Competition.objects.filter(
-        startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
-    data = dict()
-    if comp:
-        data = dict(
-            alert=dict(
-                message=f"'{comp.title}' competition is happening!",
-                url=comp.getLink(),
-            )
-        )
-    return renderView(request, Template.INDEX, data)
+    
+    # comp = Competition.objects.filter(
+    #     startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
+    # data = dict(
+    #     alerts=alerts
+    # )
+    return renderView(request, Template.INDEX)
 
 
 @require_GET
