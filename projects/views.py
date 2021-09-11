@@ -257,7 +257,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not query or not query.strip():
             return respondJson(Code.NO)
 
-        project = Project.objects.filter(id=projID, status=Code.APPROVED).first()
+        project = Project.objects.filter(id=projID, creator=request.user.profile, status=Code.APPROVED).first()
         excluding = []
         if project:
             for topic in project.getTopics():
@@ -287,7 +287,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
-        project = Project.objects.get(id=projID, status=Code.APPROVED)
+        project = Project.objects.get(id=projID, status=Code.APPROVED, creator=request.user.profile)
         if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(project.getLink())
 
@@ -321,7 +321,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not query or not query.strip():
             return respondJson(Code.NO)
         project = Project.objects.filter(
-            id=projID, status=Code.APPROVED).first()
+            id=projID,creator=request.user.profile, status=Code.APPROVED).first()
         excludeIDs = []
         if project:
             for tag in project.tags.all():
@@ -350,7 +350,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
         removetagIDs = request.POST.get('removetagIDs', None)
-        project = Project.objects.get(id=projID, status=Code.APPROVED)
+        project = Project.objects.get(id=projID, creator=request.user.profile,status=Code.APPROVED)
         if not addtagIDs and not removetagIDs and not (addtagIDs.strip() or removetagIDs.strip()):
             return redirect(project.getLink())
 
