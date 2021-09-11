@@ -663,6 +663,64 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     return blob;
 };
 
+const fileToBase64 = async (file) => {
+    try{
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    } catch(e) {
+        error('Failed to process file')
+        return null
+    }
+}
+
+const handleFileUpload = (fileoutputs=[], title='Upload') => {
+    let fileinputs = '';
+    let inputIDs = []
+    fileoutputs.forEach((f)=>{
+        let id = `handle-file-input-${f.id}`
+        fileinputs+=`<input hidden id="${id}" type="file" />`
+        inputIDs.push(id)
+    })
+    alertify.confirm(title,
+        `
+        ${fileinputs}
+        <div class="w3-row">
+            <div class="w3-row" id="handle-file-upload-view">
+                
+            </div>
+            <div class="w3-row w3-center">
+                <button class="primary" id="handle-file-upload-action">${Icon('add')}Add file</button>
+            </div>
+        </div>
+        `,
+        ()=>{},
+        ()=>{}
+    ).set('closable', false).set('labels',{ok:'Done', cancel:'Discard'})
+    
+    getElement('handle-file-upload-action').onclick=_=>{
+        inputIDs.some((inp)=>{
+            if(!getElement(inp).files[0]){
+                getElement(inp).onchange=async(e)=>{
+                    let b64 = await fileToBase64(Array.from(e.target.files)[0])
+                    if(!b64) return
+                    getElement('handle-file-upload-view').innerHTML+=`<input type='text' `
+                    fileoutputs.some((out)=>{if(`handle-file-input-${out.id}`===inp){
+                        out.value = b64
+                        return true
+                    }})
+                }
+                getElement(inp).click()
+                return true
+            }
+            return false
+        })
+    }
+}
+
 const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown = getElement(dropdownID);
     const selectedOptionDiv = document.createElement("div");

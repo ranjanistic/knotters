@@ -14,6 +14,7 @@ urlpatterns = [
     path(URL.Projects.TRASH, trashProject),
     path(URL.Projects.PROFILE, profile),
     path(URL.Projects.PROFILEEDIT, editProfile),
+    path(URL.Projects.MANAGE_ASSETS, manageAssets),
     path(URL.Projects.TOPICSEARCH, topicsSearch),
     path(URL.Projects.TOPICSUPDATE, topicsUpdate),
     path(URL.Projects.TAGSEARCH, tagsSearch),

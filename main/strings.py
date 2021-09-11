@@ -176,6 +176,9 @@ message = Message()
 class Action():
     ACCEPT = "accept"
     DECLINE = "decline"
+    ADD = "add"
+    UPDATE = "update"
+    REMOVE = "remove"
 
 
 action = Action()
@@ -642,6 +645,11 @@ class URL():
 
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
+
+        MANAGE_ASSETS = 'assets/<str:projectID>/<str:action>'
+
+        def manageAssets(self, projectID, action):
+            return setPathParams(self.MANAGE_ASSETS, projectID, action)
 
         TOPICSEARCH = "topics/search/<str:projID>"
 

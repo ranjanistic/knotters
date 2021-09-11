@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
-from .models import Project, defaultImagePath
+from .models import Asset, Project, defaultImagePath
 
 
 @receiver(post_save, sender=Project)
@@ -20,5 +20,15 @@ def on_project_delete(sender, instance, **kwargs):
     try:
         if instance.image != defaultImagePath():
             instance.image.delete(save=False)
+    except Exception as e:
+        pass
+
+@receiver(post_delete, sender=Asset)
+def on_asset_delete(sender, instance, **kwargs):
+    """
+    Project cleanup.
+    """
+    try:
+        instance.file.delete(save=False)
     except Exception as e:
         pass

@@ -10,12 +10,12 @@ from django.shortcuts import redirect
 from django.conf import settings
 # from django.views.decorators.cache import cache_page
 from main.decorators import require_JSON_body, github_only, normal_profile_required
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
-from main.strings import Code, Event, Message, URL, Template
+from main.methods import addMethodToAsyncQueue, base64ToImageFile,  base64ToFile, errorLog, renderString, respondJson, respondRedirect
+from main.strings import Code, Event, Message, URL, Template, Action
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
-from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category
+from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category, Asset
 from .mailers import sendProjectSubmissionNotification
 from .methods import renderer, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
@@ -247,6 +247,37 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
     except Exception as e:
         errorLog(e)
         return HttpResponseForbidden()
+
+
+@normal_profile_required
+@require_JSON_body
+def manageAssets(request: WSGIRequest, projID: UUID, action:str) -> JsonResponse:
+    try:
+        project = Project.objects.get(id=projID,creator=request.user.profile)
+        if action == Action.ADD:
+            name = str(request.POST['filename']).strip()
+            file = base64ToFile(request.POST['filedata'])
+            public = request.POST.get('public',False)
+            asset = Asset.objects.create(project=project,name=name,file=file,public=public)
+            return respondJson(Code.OK,dict(asset=dict(
+                id=asset.id,
+                name=asset.name
+            )))
+        elif action == Action.UPDATE:
+            assetID = request.POST['assetID']
+            name = str(request.POST['filename']).strip()
+            public = request.POST['public']
+            Asset.objects.filter(id=assetID,project=project).update(name=name,public=public)
+            return respondJson(Code.OK)
+        elif action == Action.REMOVE:
+            assetID = request.POST['assetID']
+            Asset.objects.filter(id=assetID,project=project).delete()
+            return respondJson(Code.OK)
+        else:
+            return respondJson(Code.NO)
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
 
 
 @normal_profile_required

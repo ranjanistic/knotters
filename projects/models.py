@@ -11,15 +11,6 @@ from moderation.models import Moderation
 from .apps import APPNAME
 
 
-def projectImagePath(instance, filename):
-    fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
-
-
-def defaultImagePath():
-    return f"{APPNAME}/default.png"
-
-
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
@@ -143,6 +134,13 @@ class License(models.Model):
 
     def isCustom(self):
         return self.creator.getEmail() != BOTMAIL
+
+def projectImagePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
+
+def defaultImagePath():
+    return f"{APPNAME}/default.png"
 
 
 class Project(models.Model):
@@ -270,6 +268,39 @@ class Project(models.Model):
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+    
+    @property
+    def assets(self):
+        return Asset.objects.filter(project=self)
+
+    @property
+    def total_assets(self):
+        return Asset.objects.filter(project=self).count()
+
+    @property
+    def public_assets(self):
+        return Asset.objects.filter(project=self,public=True)
+
+    @property
+    def total_public_assets(self):
+        return Asset.objects.filter(project=self,public=True).count()
+
+
+
+def assetFilePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}.{fileparts[len(fileparts)-1]}"
+
+class Asset(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(Project,on_delete=models.CASCADE)
+    name = models.CharField(max_length=250, null=False, blank=False)
+    file = models.FileField(upload_to=assetFilePath,max_length=500)
+    public = models.BooleanField(default=False)
+
+    @property
+    def get_id(self):
+        return self.id.hex
 
 
 class ProjectTag(models.Model):
@@ -292,6 +323,7 @@ class ProjectTopic(models.Model):
         Project, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
                               null=True, blank=True, related_name='project_topic')
+
 
 
 class LegalDoc(models.Model):
