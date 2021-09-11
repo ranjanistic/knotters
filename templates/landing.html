@@ -1,8 +1,191 @@
 {% extends 'index.html' %}
-
-{% block title %}Landing{% endblock %}
-
+{% load static %}
+{% block title %}Landing{%endblock%}
 {% block nav_style %}transparent{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'styles/landing.css' %}">
+{% endblock %}
+{% block content %}
+<div class="w3-row">
+    <div class="w3-row w3-center" style="height:110vh">
+        <div class="w3-row w3-center">
+            <img class="w3-animate-zoom" src="{% static 'graphics/self/icon.svg' %}" width="30%" />
+        </div>
+        <div class="w3-row w3-center w3-animate-bottom">
+            <h1 class="w3-jumbo"><b>Knotters Community</b></h1>
+        </div>
+    </div>
+    <div class="landing_features">
+        <h2 class="land_f">Features</h2>
+        <p class="f_detail">Record or rewind any change to your code to keep you and your team in sync. Host it all for
+            free with unlimited public and private repositories.</p>
+        <div class="land_feature_cards center">
+            <div class="land_feature_card">
+                <h2>Moderators</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card1">
+                <h2>Level Up</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card2">
+                <h2>Competitions</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card">
+                <h2>Winner Perks</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card1">
+                <h2>Skills Gain</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card2">
+                <h2>Managers</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+        </div>
+    </div>
+    <div class="contributor center">
+        <div class="c_left">
+            <h2>Contribute</h2>
+            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
+                imagine.Any contribution to a code base, including those that you make to the project that you may be working on right now, aims to improve the code base, be it based on new exciting features or hands-on refactoring to lower technical debt.</h6>
+        </div>
+        <div class="c_right center">
+            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}" alt="Img" />
+        </div>
+    </div>
+    <h2 class="moderator">Moderator</h2>
+    <div class="landing_moderators center">
+        <div class="l_moderator">
+            <div class="lm_img"></div>
+            <div class="lm_details">
+                <h3>Name</h3>
+                <p class="lm_text">If you are looking at blank cassettes on the web, you may be very confused at the
+                    difference in price.</p>
+            </div>
+        </div>
+        <div class="l_moderator">
+            <div class="lm_img"></div>
+            <div class="lm_details">
+                <h3>Name</h3>
+                <p class="lm_text">If you are looking at blank cassettes on the web, you may be very confused at the
+                    difference in price.</p>
+            </div>
+        </div>
+        <div class="l_moderator">
+            <div class="lm_img"></div>
+            <div class="lm_details">
+                <h3>Name</h3>
+                <p class="lm_text">If you are looking at blank cassettes on the web, you may be very confused at the
+                    difference in price.</p>
+            </div>
+        </div>
+    </div>
 
-{% block content %}{% endblock %}
+    <div class="wall_fame">
+        <h1 class="wf_text">Wall Of Fame</h1>
+        <div class="wrapper center">
+            <div class="picture">
+              <div class="hook"></div>
+              <div class="frame">
+                <div class="inside"></div>
+              </div>
+            </div>
+            <div class="picture">
+              <div class="hook"></div>
+              <div class="frame">
+                <div class="inside"></div>
+              </div>
+            </div>
+            <div class="picture">
+                <div class="hook"></div>
+                <div class="frame">
+                  <div class="inside"></div>
+                </div>
+              </div>
+          </div>
+    </div>
 
+    <div class="w3-row accent w3-padding">
+        <h1>Your projects => carousel</h1>
+    </div>
+    <div class="w3-row active w3-padding">
+        <h1>Our moderators => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Your contribution => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Level up by earning XP => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Top contributors every month</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>The licenses</h1>
+    </div>
+
+    <div class="w3-row accent w3-padding">
+        <h1>Our competitions => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Our managers => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Your acheivements</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Winner perks => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Your skills => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Competition to Project</h1>
+    </div>
+
+    <div class="w3-row accent w3-padding">
+        <h1>The community</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Your profile</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Wall of fame => done</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Become moderator</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Shareable ID</h1>
+    </div>
+
+    <div class="w3-row accent w3-padding">
+        <h1>Everything counts</h1>
+        <span>Every minute step you take counts towards your own visible growth on our
+            platform, which is showcasable!</span>
+    </div>
+
+    <div class="w3-row accent w3-padding">
+        <h1>Contribution guide</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Moderation guide</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Competition guide</h1>
+    </div>
+
+    <div class="w3-row accent w3-padding">
+        <h1>Why open source?</h1>
+    </div>
+</div>
+{% endblock %}

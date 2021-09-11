@@ -6,11 +6,11 @@
     </div>
     <br/>
     <div class="swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap">
+        <div class="swiper-wrapper swiper-wrap swiper-wrap_i">
             {% for profile in profiles %}
             <div class="swiper-slide">
                 <a href="{{profile.getLink}}">
-                <div class="pallete w3-center" style="padding:0">
+                <div class="pallete pallete_i w3-center" style="padding:0">
                     <img class="primary" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     <div class="w3-row w3-padding">
                         <h5>{{ profile.getName }}</h5>
@@ -29,13 +29,17 @@
                 <h3>No profiles yet. You're the first one!</h3>
             </center>
             </div>
-            {% endfor %}
-            {% if profiles.0 %}
-            <div class="w3-col swiper-slide w3-padding">
-                <a href="{{URLS.PEOPLE}}"><button class="primary display-button" data-icon="open_in_new">More</button></a>
-            </div>
-            {% endif %}
+			{% endfor %} 
+			{% if profiles.0 %}
+			<div class="w3-col swiper-slide w3-padding">
+				<a href="{{URLS.PEOPLE}}"
+				><button class="primary display-button" data-icon="open_in_new">
+					More
+				</button></a
+				>
+			</div>
+			{% endif %}
         </div>
     </div>
 </div>
-<br/>
+<br />
