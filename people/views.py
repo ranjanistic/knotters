@@ -35,13 +35,13 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         else:
             try:
                 person = User.objects.get(
-                    id=userID, profile__to_be_zombie=False, profile__suspended=False)
+                    id=userID, profile__to_be_zombie=False, profile__suspended=False, profile__is_active=True)
                 if person.profile.ghID:
                     return redirect(person.profile.getLink())
             except:
                 try:
                     profile = Profile.objects.get(
-                        githubID=userID, to_be_zombie=False, suspended=False)
+                        githubID=userID, to_be_zombie=False, suspended=False, is_active=True)
                     person = profile.user
                 except:
                     raise Exception()
