@@ -256,15 +256,24 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 excludeIDs.append(request.user.profile.getUserID())
                 excludeIDs += request.user.profile.blockedIDs
-            profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                    suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+            else:
+                profiles = cache.get(f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
+                if not profiles:
+                    profiles = Profile.objects.filter(
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                    cache.set(f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
         elif type == "new-projects":
             projects = Project.objects.filter(
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
         elif type == "recent-winners":
-            results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
+            results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
+            if not results:
+                results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
+                cache.set(f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results)))
         else:
             return HttpResponseBadRequest()
