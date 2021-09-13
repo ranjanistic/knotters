@@ -260,7 +260,6 @@ def testPathRegex(pathreg,path):
 
 def allowBypassDeactivated(path):
     path = path.split('?')[0]
-    print(BYPASS_DEACTIVATION_PATHS)
     for pathreg in BYPASS_DEACTIVATION_PATHS:
         if (testPathRegex(pathreg,path)):
             return True

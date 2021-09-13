@@ -79,11 +79,9 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
         doc = LegalDoc.objects.get(pseudonym=type)
         return renderView(request, Template.Docs.DOC, fromApp=DOCS, data=dict(doc=doc))
     except Exception as e:
-        errorLog(e)
         try:
             return renderView(request, type, fromApp=DOCS)
         except Exception as e:
-            errorLog(e)
             raise Http404()
 
 

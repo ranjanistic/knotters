@@ -46,8 +46,6 @@ class ProfileActivationMiddleware(object):
         super().__init__()
 
     def __call__(self, request: WSGIRequest):
-        print(request.get_full_path())
-        print(allowBypassDeactivated(request.get_full_path()))
         if request.user.is_authenticated and not request.user.profile.is_active:
             if request.method == 'POST' or request.headers.get('X-KNOT-REQ-SCRIPT', False)=='true':
                 if not allowBypassDeactivated(request.get_full_path()):
