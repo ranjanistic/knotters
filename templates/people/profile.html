@@ -183,8 +183,7 @@
 {% block in_scripts %}
 <script>
   const userID = "{{ person.getID }}";
-  const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && "{{user.profile.is_active}}" === 'True':false
-  
+  const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && activeuser:false
   try{
     getElement("reactivateaccount").onclick=async()=>{
       subLoader()
@@ -203,7 +202,7 @@
     }
   }catch{}
 
-  if (!selfProfile){
+  if (!selfProfile && activeuser){
 	getElement('block-account').onclick=_=>{
 		alertify.confirm(
 			`<h3>Block {{person.profile.getName}}?</h3>`,

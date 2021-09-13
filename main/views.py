@@ -223,7 +223,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),
-                setPathParams(f"/{URL.DOCTYPE}"),
+                setPathParams(f"/{URL.DOCS}{URL.Docs.TYPE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
