@@ -150,19 +150,16 @@ else:
         }
     }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache"
+if not env.ISTESTING and env.ASYNC_CLUSTER:
+    CACHES = {
+        'default': {} if not env.REDIS_LOCATION else {
+            'BACKEND': 'redis_cache.RedisCache',
+            'LOCATION': env.REDIS_LOCATION,
+            'OPTIONS': {} if not env.REDIS_PASSWORD else {
+                'PASSWORD': env.REDIS_PASSWORD,
+            }
+        },
     }
-} if env.ISTESTING else {
-    'default': {} if not env.REDIS_LOCATION else {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': env.REDIS_LOCATION,
-        'OPTIONS': {} if not env.REDIS_PASSWORD else {
-            'PASSWORD': env.REDIS_PASSWORD,
-        }
-    },
-}
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
@@ -295,8 +292,6 @@ GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
 # COMPRESS_OFFLINE = False
 # COMPRESS_OUTPUT_DIR = "__static__"
 # COMPRESS_ROOT = BASE_DIR
-
-print(env.ASYNC_CLUSTER)
 
 if env.ASYNC_CLUSTER:
     Q_CLUSTER = {
