@@ -29,7 +29,7 @@ def participantWelcomeAlert(profile: Profile, submission: Submission) -> bool:
         actions=[{'text': "View competition",
                   'url': f'{submission.competition.getLink()}'}],
         footer=f"If you have other people with you, actively coordinate with them, and if you don't have a team, invite someone. However, if you are a lone wolf, then the community is always there for you.",
-        conclusion=f"You recieved this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
+        conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
     )
     return participantJoinedAlert(profile,submission)
 
@@ -50,7 +50,7 @@ def participantJoinedAlert(profile:Profile,submission:Submission) -> bool:
         actions=[{'text': "View competition",
                 'url': f'{submission.competition.getLink()}'}],
         footer=f"Someone from your team, or you had invited {profile.getFName()} to join your submission, and they have accepted the invite.",
-        conclusion=f"You recieved this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
+        conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
     )
 
 def participationWithdrawnAlert(profile: Profile, submission: Submission) -> bool:
@@ -60,7 +60,7 @@ def participationWithdrawnAlert(profile: Profile, submission: Submission) -> boo
         actions=[{'text': "View competition",
                   'url': f'{submission.competition.getLink()}'}],
         footer=f"If you acknowledge this action, then this email can be ignored. You can participate independently again, as long as the competition is active.",
-        conclusion=f"You recieved this email because your participation was cancelled in a competition at {PUBNAME}. If this is unexpected, please report to us."
+        conclusion=f"You received this email because your participation was cancelled in a competition at {PUBNAME}. If this is unexpected, please report to us."
     )
 
 
@@ -73,8 +73,8 @@ def submissionConfirmedAlert(submission: Submission):
         sendAlertEmail(
             to=profile.getEmail(), username=profile.getFName(), subject=f"Submission Submitted Successfully",
             header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn} (IST, Asia/Kolkata).{' Your submission was late.' if submission.late else ''}. Submission ID: {submission.getID()}",
-            footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have recieved, altogether, soon. Till then, chill out! NOTE: We're lenient.",
-            conclusion=f"You recieved this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
+            footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have received, altogether, soon. Till then, chill out! NOTE: We're lenient.",
+            conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
         )
 
 def submissionsModeratedAlert(competition:Competition):
@@ -92,7 +92,7 @@ def submissionsModeratedAlert(competition:Competition):
                 'url': competition.getJudgementLink(),
             }],
             footer=f"Your assigned points will be the decisive factor for final rankings of submissions, therefore please judge carefully.",
-            conclusion=f"You recieved this email because you are a judge for the mentioned competition. If this is an error, then please report to us."
+            conclusion=f"You received this email because you are a judge for the mentioned competition. If this is an error, then please report to us."
         )
     return sendActionEmail(
         to=competition.creator.getEmail(),
@@ -104,7 +104,7 @@ def submissionsModeratedAlert(competition:Competition):
             'url': competition.getManagementLink(),
         }],
         footer=f"The judges should assign points to every submission in this competition, so that you can declare results after that.",
-        conclusion=f"You recieved this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
+        conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
 
 def submissionsJudgedAlert(competition:Competition,judge:Profile):
@@ -120,7 +120,7 @@ def submissionsJudgedAlert(competition:Competition,judge:Profile):
             'url': competition.getManagementLink(),
         }],
         footer=f"You will be able to declare the results, once all judges submit their judgement on all submissions.",
-        conclusion=f"You recieved this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
+        conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
 
 def resultsDeclaredAlert(competition: Competition):
@@ -133,13 +133,13 @@ def resultsDeclaredAlert(competition: Competition):
         to=competition.creator.getEmail(),
         subject=f"Results Declared: {competition.title}",
         username=competition.creator.getName(),
-        header=f"This is to inform you that the results of '{competition.title}' competition have been decalred. You can generate the certificates of all participants at one click only, by visiting the following link.",
+        header=f"This is to inform you that the results of '{competition.title}' competition have been declared. You can generate the certificates of all participants at one click only, by visiting the following link.",
         actions=[{
             'text': 'View competition',
             'url': competition.getManagementLink(),
         }],
         footer=f"Do generate the certificates as soon as possible, as every participant is waiting for their certificate.",
-        conclusion=f"You recieved this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
+        conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
     resultsDeclaredModeratorAlert(competition)
     resultsDeclaredJudgeAlert(competition)
@@ -154,7 +154,7 @@ def certsAllotedAlert(competition: Competition):
     partcerts = ParticipantCertificate.objects.filter(result__competition=competition)
     sendActionEmail(
         to=competition.creator.getEmail(),
-        subject=f"Results Declared: {competition.title}",
+        subject=f"Certificates Alloted: {competition.title}",
         username=competition.creator.getName(),
         header=f"This is to inform you that the certificates of participants for the '{competition.title}' competition have been alloted successfully.",
         actions=[{
@@ -162,7 +162,7 @@ def certsAllotedAlert(competition: Competition):
             'url': competition.getManagementLink(),
         }],
         footer=f"This marks the successfull end of this competition. Thank you for managing this competition, and thus contributing towards betterment of the {PUBNAME} platform.",
-        conclusion=f"You recieved this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
+        conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
     for partcert in partcerts:
         sendActionEmail(
@@ -174,7 +174,7 @@ def certsAllotedAlert(competition: Competition):
                 'url': partcert.get_link
             }],
             footer=f"Your can download your certificate, or just share it from the page itself. Any delay in allotment is deeply regretted. Keep participating!",
-            conclusion=f"You recieved this email because you participated the mentioned competition. If this is an error, then please report to us."
+            conclusion=f"You received this email because you participated the mentioned competition. If this is an error, then please report to us."
         )
 
 
@@ -187,13 +187,13 @@ def resultsDeclaredParticipantAlert(competition: Competition):
         done.append(sendCCActionEmail(
             to=sub.getMembersEmail(),
             subject=f"Results Declared: {competition.title}",
-            header=f"This is to inform you that the results of '{competition.title}' competition have been decalred. You may check your submission rankings now.",
+            header=f"This is to inform you that the results of '{competition.title}' competition have been declared. You may check your submission rankings now.",
             actions=[{
                 'text': 'View results',
                 'url': competition.getLink()
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel. This marks the successfull end of this competition. Thank you for participating, see you again in upcoming competitions!",
-            conclusion=f"You recieved this email because you participated the mentioned competition. If this is an error, then please report to us."
+            conclusion=f"You received this email because you participated the mentioned competition. If this is an error, then please report to us."
         ))
     return False not in done
 
@@ -209,13 +209,13 @@ def resultsDeclaredJudgeAlert(competition: Competition):
             subject=f"Results Declared: {competition.title}",
             greeting=f"Respected judge",
             username=judge.getName(),
-            header=f"This is to inform you that the results of '{competition.title}' competition have been decalred. This marks the successfull end of this competition. The following link button will lead you to competition results page.",
+            header=f"This is to inform you that the results of '{competition.title}' competition have been declared. This marks the successfull end of this competition. The following link button will lead you to competition results page.",
             actions=[{
                 'text': 'View results',
                 'url': competition.getLink()
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel, including you. It was an honour to have you as judge for this competition.",
-            conclusion=f"You recieved this email because you judged the mentioned competition. If this is an error, then please report to us."
+            conclusion=f"You received this email because you judged the mentioned competition. If this is an error, then please report to us."
         ))
     return False not in done
 
@@ -228,11 +228,11 @@ def resultsDeclaredModeratorAlert(competition: Competition):
         to=mod.user.email,
         username=mod.user.first_name,
         subject=f"Results Declared: {competition.title}",
-        header=f"This is to inform you that the results of '{competition.title}' competition have been decalred. This marks the successfull end of the competition.",
+        header=f"This is to inform you that the results of '{competition.title}' competition have been declared. This marks the successfull end of the competition.",
         actions=[{
             'text': 'View results',
             'url': competition.getLink()
         }],
         footer=f"The results were based on aggregated markings by independent judgement panel. All participants will be informed shortly. Thank you for ensuring successfull conduction of this competition.",
-        conclusion=f"You recieved this email because you moderated the mentioned competition. If this is an error, then please report to us."
+        conclusion=f"You received this email because you moderated the mentioned competition. If this is an error, then please report to us."
     )

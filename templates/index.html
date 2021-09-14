@@ -74,21 +74,22 @@
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
             {% block nav_title %}
             <a
+                style="padding:8px"
                 {% if request.GET.previous %}href="{{request.GET.previous}}{% else %}href="{% block nav_href %}{{ROOT}}{% endblock %}{% endif %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
-                class="w3-left w3-padding w3-animate-left previous-navigation-button">
+                class="w3-left w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
                 {% block nav_icon_hide %}
                     <img alt="{{APPNAME}}" src="{{ICON}}" {% if request.GET.miniwin %}onclick="window.close()"{% endif %} class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />
                 {% endblock %}
                 
-                <button 
+                <button
                     {% block nav_back_show %}hidden{% endblock %}
                     class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" {% if not request.GET.previous and request.GET.miniwin %}onclick="window.close()"{% endif %}></button>
             </a>
-            <span class="w3-left"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
+            <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
-            <span class="w3-right w3-row w3-padding w3-animate-right">
+            <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px">
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
                     {% block nav_noauth %}
@@ -117,18 +118,24 @@
             {% endblock %}
         </nav>
         {% endblock %}
-
+        {% block globalalerts %}
+        <div class="w3-row">
+        {% for alert in alerts %}
+        <div class="w3-row positive w3-center w3-padding" id="view-{{alert.id}}">
+            <span class="w3-padding">{{alert.message}}{% if alert.url %} <a class="text-positive" href="{{alert.url}}">Click here</a>{% endif %}</span>
+            <button class="small primary w3-right close-global-alert" data-icon="close" id="{{alert.id}}"></button>
+        </div>
+        {% endfor %}
+        </div>
+        {% endblock %}
         <div style="min-height: 50vh;">
             {% block content %}
-            <div class="w3-row">
-                {% if alert %}
-                <div class="w3-row positive w3-center w3-padding">
-                    <span class="head-font">{{alert.message}} <a class="text-positive" href="{{alert.url}}">Click here</a></span>
-                </div>
-                {% endif %}
+            <div class="w3-row">    
                 <div class="w3-row tertiary browser-view" data-type="new-projects" id='newbie-projects-view'>
                 </div>
                 <div class="w3-row accent browser-view" data-type="new-profiles" id='newbie-profiles-view'>
+                </div>
+                <div class="w3-row active browser-view" data-type="recent-winners" id='recent-winners-view'>
                 </div>
             </div>
             {% endblock %}
@@ -167,9 +174,10 @@
                 
                 </a>
             </div>
-            <div class="w3-row">
-                <br/>
+            <div class="w3-row w3-center">
+                <a href="https://www.digitalocean.com/?refcode=ebf3fb45c9e2&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge" target="_blank" /></a>
                 <center>
+                <br/>
                 {% block footer_social %}
                     <a href="mailto:{{CONTACTMAIL}}" target="_blank"><span hidden>{{CONTACTMAIL}}</span><button aria-label="Contact us" class="primary"><i class="material-icons">mail</i></button></a>
                     <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" data-ext="png" data-name="thirdparty/github" src="{% static 'graphics/thirdparty/github.png' %}" width="20" height="22"/></button></a>
@@ -209,6 +217,7 @@
         <script>
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
+            const activeuser = authenticated && "{{user.profile.is_active}}" == 'True'
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";

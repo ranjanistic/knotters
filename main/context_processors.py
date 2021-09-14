@@ -1,3 +1,5 @@
+from uuid import uuid4
+from django.core.cache import cache
 from main.methods import renderData
 from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
 from .strings import DIVISIONS, URL
@@ -5,6 +7,9 @@ from django.conf import settings
 
 
 def Global(request):
+    # id = uuid4()
+    # cache.set(f"global_alerts_{id}",{'message':'haha this the alert', 'url':'/compete/shit', 'id':id}, settings.CACHE_MICRO)
+    # alerts = cache.get(f"global_alerts_{id}") or []
     data = dict(
         APPNAME=PUBNAME,
         CONTACTMAIL=BOTMAIL,
@@ -23,7 +28,8 @@ def Global(request):
         CACHE_LONG=settings.CACHE_LONG,
         CACHE_LONGER=settings.CACHE_LONGER,
         CACHE_MAX=settings.CACHE_MAX,
-        CACHE_ETERNAL=settings.CACHE_ETERNAL
+        CACHE_ETERNAL=settings.CACHE_ETERNAL,
+        alerts=[]
     )
 
     for div in DIVISIONS:

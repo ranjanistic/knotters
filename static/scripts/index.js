@@ -244,6 +244,16 @@ const loadGlobalEventListeners = () => {
             });
         };
     });
+    getElements('close-global-alert').forEach((closer)=>{
+        console.log(localStorage.getItem(`hidden-alert-${closer.id}`))
+        if(localStorage.getItem(`hidden-alert-${closer.id}`)){
+            hide(getElement(`view-${closer.id}`))
+        }
+        closer.addEventListener('click',(e)=>{
+            hide(getElement(`view-${closer.id}`))
+            localStorage.setItem(`hidden-alert-${closer.id}`,closer.id)
+        })
+    })
 };
 
 const copyToClipboard = (text) => {

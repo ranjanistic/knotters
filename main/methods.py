@@ -1,6 +1,7 @@
 import os
 import requests
 import base64
+import re
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,6 +12,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
 from .env import ASYNC_CLUSTER
+from .strings import Code, classAttrsToDict, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
@@ -176,13 +178,13 @@ class JsonEncoder(DjangoJSONEncoder):
         return super(JsonEncoder, self).default(obj)
 
 
-def classAttrsToDict(className, appendCondition) -> dict:
-    data = dict()
-    for key in className.__dict__:
-        if not (str(key).startswith('__') and str(key).endswith('__')):
-            if appendCondition(key, className.__dict__.get(key)):
-                data[key] = className.__dict__.get(key)
-    return data
+# def classAttrsToDict(className, appendCondition) -> dict:
+#     data = dict()
+#     for key in className.__dict__:
+#         if not (str(key).startswith('__') and str(key).endswith('__')):
+#             if appendCondition(key, className.__dict__.get(key)):
+#                 data[key] = className.__dict__.get(key)
+#     return data
 
 
 def errorLog(error):
@@ -235,10 +237,30 @@ def addMethodToAsyncQueue(methodpath,*params):
             print(f"{methodpath} async task started")
         else:
             import main, people, projects, management, moderation, compete
-            x = eval(f"{methodpath}{params}",dict(main=main, people=people, projects=projects, management=management, moderation=moderation, compete=compete))
+            eval(f"{methodpath}{params}",dict(main=main, people=people, projects=projects, management=management, moderation=moderation, compete=compete))
         return True
     except Exception as e:
         errorLog(e)
         return False
 
-from .strings import url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS
+def testPathRegex(pathreg,path):
+    localParamRegex = "[a-zA-Z0-9\. \\-\_\%]"
+    regpath = re.sub(Code.URLPARAM, f"+{localParamRegex}+", pathreg)
+    if regpath == path:
+        return True
+    parts = regpath.split("+")
+    parts.pop()
+    def eachpart(part:str):
+        return localParamRegex if part == localParamRegex else f"({part})"
+    finalreg = "+".join(map(eachpart,parts))
+    match = re.compile(finalreg).match(path)
+    if match:
+        return len(match.groups())>0
+    return False
+
+def allowBypassDeactivated(path):
+    path = path.split('?')[0]
+    for pathreg in BYPASS_DEACTIVATION_PATHS:
+        if (testPathRegex(pathreg,path)):
+            return True
+    return False

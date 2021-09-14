@@ -2,18 +2,21 @@ import json
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
+from datetime import timedelta
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
+from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
-from compete.models import Competition
+from compete.models import Competition, Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
+from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH
 from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
 from .decorators import dev_only, require_JSON_body
@@ -43,17 +46,13 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 @require_GET
 # @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-    comp = Competition.objects.filter(
-        startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
-    data = dict()
-    if comp:
-        data = dict(
-            alert=dict(
-                message=f"'{comp.title}' competition is happening!",
-                url=comp.getLink(),
-            )
-        )
-    return renderView(request, Template.INDEX, data)
+    
+    # comp = Competition.objects.filter(
+    #     startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
+    # data = dict(
+    #     alerts=alerts
+    # )
+    return renderView(request, Template.INDEX)
 
 
 @require_GET
@@ -80,11 +79,9 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
         doc = LegalDoc.objects.get(pseudonym=type)
         return renderView(request, Template.Docs.DOC, fromApp=DOCS, data=dict(doc=doc))
     except Exception as e:
-        errorLog(e)
         try:
             return renderView(request, type, fromApp=DOCS)
         except Exception as e:
-            errorLog(e)
             raise Http404()
 
 
@@ -224,7 +221,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),
-                setPathParams(f"/{URL.DOCTYPE}"),
+                setPathParams(f"/{URL.DOCS}{URL.Docs.TYPE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
@@ -257,13 +254,25 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 excludeIDs.append(request.user.profile.getUserID())
                 excludeIDs += request.user.profile.blockedIDs
-            profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                    suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+            else:
+                profiles = cache.get(f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
+                if not profiles:
+                    profiles = Profile.objects.filter(
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                    cache.set(f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
         elif type == "new-projects":
             projects = Project.objects.filter(
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
+        elif type == "recent-winners":
+            results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
+            if not results:
+                results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
+                cache.set(f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:

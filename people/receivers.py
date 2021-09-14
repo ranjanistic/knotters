@@ -103,7 +103,8 @@ def user_password_reset(request, user, **kwargs):
 
 @receiver(email_changed)
 def user_email_changed(request, user, from_email_address, to_email_address, **kwargs):
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{emailUpdateAlert.__name__}",user, from_email_address, to_email_address)
+    if from_email_address != to_email_address:
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{emailUpdateAlert.__name__}",user, from_email_address, to_email_address)
 
 
 @receiver(email_added)
