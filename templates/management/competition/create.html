@@ -91,17 +91,17 @@
       <div class="w3-row pallete" id="mainframe">
         <div class="w3-col w3-quarter tertiary  w3-round">
           <div class="w3-bar-block w3-hide-small w3-padding" id="sidebar">
-            <button class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
+            <button type="button" class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
             <br/>
-            <button class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
+            <button type="button" class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
             <br/>
-            <button class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button> 
-            <br/><br/><br/><br/><br/>  <br/><br/><br/><br/><br/>           
+            <button type="button" class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button> 
+            <br/><br/><br/><br/><br/>  <br/><br/><br/><br/><br/>
           </div>
           <div class="w3-center w3-hide-large w3-hide-medium">
-            <button class="side-nav-tab" id="overview" data-icon="toc"></button>
-            <button class="side-nav-tab" id="task" data-icon="code"></button>
-            <button class="side-nav-tab" id="guidelines" data-icon="rule"></button>
+            <button type="button" class="side-nav-tab" id="overview" data-icon="toc"></button>
+            <button type="button" class="side-nav-tab" id="task" data-icon="code"></button>
+            <button type="button" class="side-nav-tab" id="guidelines" data-icon="rule"></button>
           </div>
         </div>
   
@@ -218,7 +218,6 @@
 
      initializeTabsView({
         onEachTab: async (tab) => {
-            console.log("tabId",tab.id);
             if(tab.id==='overview'){
                 getElement('overview-block').style.display='block';
                 getElement('task-block').style.display='none';
@@ -238,7 +237,6 @@
         activeTabClass: "active",
         setDefaultViews:false,
         onShowTab: (tab)=>{
-            console.log("tabId show",tab.id);
         },
     });
 
@@ -357,7 +355,7 @@
                     excludemods.push(id)
                     getElement('judgeIDs').value = existing + ',' + id;
                     getElement('selectedjudgesview').innerHTML+=`
-                    <button type='button' class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">
+                    <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">
                     ${Icon('close')}<img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>`
                     
                 }
@@ -377,9 +375,9 @@
                     btn.onclick=(e)=>{
                         getElement('compmodID').value = ""
                         excludejudges = []
-                        e.target.hidden = true
-                        e.target.remove()
-                        show(ebtn.target)
+                        btn.hidden = true
+                        btn.remove()
+                        show(getElement('selectmodbutton'))
                     }
                 })
             }
@@ -400,10 +398,10 @@
                     getElement('compmodID').value = id;
                     excludejudges.push(id)
                     getElement('selectedmodview').innerHTML =`
-                    <button type='button' class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">
+                    <button type='button' title="Moderator" class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">
                         ${Icon('close')}<img src="${data.mod.dp}" width="20" class="w3-circle primary" /> ${data.mod.name}
                     </button>`
-                    hide(ebtn.target)
+                    hide(getElement('selectmodbutton'))
                 }
             }
         }
