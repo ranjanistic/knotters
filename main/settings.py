@@ -296,6 +296,8 @@ GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
 # COMPRESS_OUTPUT_DIR = "__static__"
 # COMPRESS_ROOT = BASE_DIR
 
+print(env.ASYNC_CLUSTER)
+
 if env.ASYNC_CLUSTER:
     Q_CLUSTER = {
         'name': env.PUBNAME,
