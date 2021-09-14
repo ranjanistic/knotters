@@ -167,6 +167,8 @@
 const compID = "{{compete.getID}}"
 const isActive = "{{compete.isActive}}" == 'True';
 const resultDeclared = "{{compete.resultDeclared}}" == 'True';
+const tabindex = Number("{{request.GET.tab}}") || false;
+if(tabindex){window.location.href="#mainframe"}
 </script>
 {% endblock %} 
 {% block scripts %}

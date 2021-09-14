@@ -220,4 +220,5 @@ initializeTabsView({
     tabsClass: "side-nav-tab",
     activeTabClass: "active",
     onShowTab: loadTabScript,
+    tabindex
 });

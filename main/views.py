@@ -46,7 +46,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 @require_GET
 # @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-    
+
     # comp = Competition.objects.filter(
     #     startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
     # data = dict(
@@ -66,14 +66,12 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
     return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         doc = LegalDoc.objects.get(pseudonym=type)
@@ -86,13 +84,11 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
 
 
 @require_GET
-# @cache_page(settings.CACHE_SHORT)
 def landing(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.LANDING)
 
 
 @require_GET
-# @cache_page(settings.CACHE_SHORT)
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     if subapp == COMPETE:
         template = Template.Compete.LANDING
@@ -112,7 +108,7 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
+        context = dict(**context, media=settings.MEDIA_URL)
         return context
 
 
@@ -150,7 +146,6 @@ class Manifest(TemplateView):
         return context
 
 
-# @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
@@ -168,7 +163,7 @@ class ServiceWorker(TemplateView):
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
 
-        swassets,created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
+        swassets, created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
             value=json.dumps(assets)
         ))
         if not created:
@@ -257,11 +252,13 @@ def browser(request: WSGIRequest, type: str):
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
             else:
-                profiles = cache.get(f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
+                profiles = cache.get(
+                    f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
                 if not profiles:
                     profiles = Profile.objects.filter(
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-                    cache.set(f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
+                    cache.set(
+                        f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
         elif type == "new-projects":
             projects = Project.objects.filter(
@@ -270,8 +267,10 @@ def browser(request: WSGIRequest, type: str):
         elif type == "recent-winners":
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
             if not results:
-                results = Result.objects.filter(competition__resultDeclared=True,competition__startAt__gte=(timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
-                cache.set(f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
+                results = Result.objects.filter(competition__resultDeclared=True, competition__startAt__gte=(
+                    timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
+                cache.set(
+                    f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results)))
         else:
             return HttpResponseBadRequest()

@@ -90,6 +90,7 @@
             {% endblock %}
             {% block nav_right %}
             <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px">
+                <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
                     {% block nav_noauth %}

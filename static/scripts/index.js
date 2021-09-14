@@ -4,6 +4,7 @@ const Key = {
     appUpdated: "app-updated",
     navigated: "navigated",
     futureMessage: "future-message",
+    deferupdate: "deferupdate"
 };
 
 const code = {
@@ -46,13 +47,13 @@ const hideSpinner = (id = "loader") => hideElement(id);
 const csrfHiddenInput = (token) =>
     `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`;
 
-const hide = (element) => {
+const hide = (element, display=true) => {
     element.hidden = true;
-    element.style.display = "none";
+    if(display) element.style.display = "none";
 };
-const show = (element) => {
+const show = (element, display=true) => {
     element.hidden = false;
-    element.style.display = "block";
+    if(display) element.style.display = "block";
 };
 
 const hideElement = (id) => visibleElement(id, false);
@@ -352,6 +353,7 @@ const initializeTabsView = ({
     viewID = "tabview",
     spinnerID = "loader",
     selected = 0,
+    tabindex = false,
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
@@ -419,10 +421,14 @@ const initializeTabsView = ({
         };
     });
     if (tabs.length) {
-        try {
-            tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
-        } catch (e) {
-            tabs[selected].click();
+        if(tabindex!==false && tabindex < tabs.length){
+            tabs[tabindex].click();
+        } else{
+            try {
+                tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+            } catch (e) {
+                tabs[selected].click();
+            }
         }
     }
     return tabs;
