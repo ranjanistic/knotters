@@ -150,19 +150,19 @@ else:
         }
     }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache"
-    }
-} if env.ISTESTING else {
-    'default': {} if not env.REDIS_LOCATION else {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': env.REDIS_LOCATION,
-        'OPTIONS': {} if not env.REDIS_PASSWORD else {
-            'PASSWORD': env.REDIS_PASSWORD,
-        }
-    },
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.dummy.DummyCache"
+#     }
+# } if env.ISTESTING else {
+#     'default': {} if not env.REDIS_LOCATION else {
+#         'BACKEND': 'redis_cache.RedisCache',
+#         'LOCATION': env.REDIS_LOCATION,
+#         'OPTIONS': {} if not env.REDIS_PASSWORD else {
+#             'PASSWORD': env.REDIS_PASSWORD,
+#         }
+#     },
+# }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 

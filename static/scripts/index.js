@@ -103,6 +103,7 @@ const loadErrorHTML = (
 const loadBrowserSwiper = (_) => {
     loadCarousels({
         container: "swiper-browser",
+        freeMode: true,
         breakpoints: {
             1024: {
                 slidesPerView: 4,
@@ -114,11 +115,11 @@ const loadBrowserSwiper = (_) => {
             },
             920: {
                 slidesPerView: 4,
-                spaceBetween: 12,
+                spaceBetween: 4,
             },
             640: {
                 slidesPerView: 4,
-                spaceBetween: 12,
+                spaceBetween: 2,
             },
         },
     });
@@ -327,6 +328,7 @@ const loadCarousels = ({
             grabCursor,
             spaceBetween,
             breakpoints,
+            freeMode:true,
         });
     }
     return null;
