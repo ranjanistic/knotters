@@ -342,6 +342,7 @@ const initializeTabsView = ({
     viewID = "tabview",
     spinnerID = "loader",
     selected = 0,
+    setDefaultViews=true
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
@@ -374,7 +375,7 @@ const initializeTabsView = ({
 
     tabs.forEach(async (tab, t) => {
         tab.onclick = async () => {
-            showTabLoading();
+            if(setDefaultViews){showTabLoading()}
             sessionStorage.setItem(uniqueID, t);
             const onclicks = Array(tabs.length);
             tabs.forEach((tab1, t1) => {
@@ -398,14 +399,14 @@ const initializeTabsView = ({
                 }
             });
             const response = await onEachTab(tab);
-            if (tabview) hideSpinner(spinnerID);
+            if (tabview && setDefaultViews) hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
                     tab1.style.opacity = 1;
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response ? showTabContent(tab, response) : showTabError(tab);
+            return response ? showTabContent(tab, response) : setDefaultViews ? showTabError(tab):'';
         };
     });
     if (tabs.length) {
