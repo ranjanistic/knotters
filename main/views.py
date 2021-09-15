@@ -12,7 +12,7 @@ from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
-from compete.models import Competition, Result
+from compete.models import Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
@@ -224,6 +224,7 @@ class ServiceWorker(TemplateView):
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.AUTH}*",
+                f"/{URL.SWITCH_LANG}setlang/",
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),

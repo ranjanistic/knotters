@@ -40,7 +40,9 @@
 {% if user.profile.githubID %}
 <div class="w3-center w3-padding-small tertiary w3-animate-opacity">
     <h5>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
-    moderation guidelines</a>.</h5></div>
+    moderation guidelines</a>.</h5>
+</div>
+<center><strong class="dead-text">Do not fill any personal information at any step.</strong></center>
     
 <div class="w3-row w3-padding-64 w3-container">
     <div class="w3-col w3-half w3-padding">
@@ -54,17 +56,6 @@
             {% csrf_token %}
 
             <div class="step-tab" id="step1">
-
-                <div class="w3-row">
-                    <h3>Project Logo</h3>
-                    <button class="active" type="button" id="upload-button">
-                        <i class="material-icons">upload</i>
-                        <label for="projectimage" id="uploadprojectimagelabel">
-                            Upload Image
-                        </label>
-                    </button>
-                    <span id="projectimageerror"></span>
-                </div>
                 <input hidden id="projectImageData" name="projectimage" value="" type="text" />
                 <br />
                 <div class="w3-row">
@@ -196,7 +187,7 @@
                     </div>
                 </div>
                 <br/>
-                <strong>Learn more about <a target="_blank" href="{{URLS.ALLLICENSES}}">choosing a license</a>.</strong>
+                <strong><a target="_blank" onclick="newTab('{{URLS.ALLLICENSES}}')">Learn more</a> about these licenses.</strong>
                 <br/>
                 <label id="confirm-check-box">
                     <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
@@ -241,7 +232,15 @@
     </div>
     <div class="w3-col w3-half w3-center w3-padding w3-animate-right" id="imageview">
         <img class="pallete preview-type-image" id="projectImageOutput" width="60%" src="/media/projects/default.png" /><br/><br/>
-        <strong class="dead-text">Do not fill any personal information at any step.</strong>
+        <div class="w3-row">
+            <button class="active" type="button" id="upload-button">
+                <i class="material-icons">upload</i>
+                <label for="projectimage" id="uploadprojectimagelabel">
+                    Upload Image
+                </label>
+            </button>
+            <span id="projectimageerror"></span>
+        </div>
     </div>
 </div>
 {% endif %}
@@ -256,14 +255,13 @@ let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}")
 alertify.alert("Github ID",`<div class="w3-row w3-padding">
     <h4>Your Github identity must be linked with Knotters before creating a project.</h4>
     <br/>
-    <a href="/auth/github/login/?process=connect&next=/redirector?n={{URLS.CREATE}}">
+    <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${URLS.CREATE}">
         <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
-     
-        &nbsp;+ <img src="{{ICON}}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
+        &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
         </button>
     </a>
 </div>`,()=>{
-    window.location.replace('{{ROOT}}')
+    window.location.replace(ROOT)
 }).set('closable',false).set('label','Cancel')
 </script>
 {% endif %}
