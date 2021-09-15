@@ -17,7 +17,7 @@ from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
-from .env import ADMINPATH
+from .env import ADMINPATH, ISPRODUCTION
 from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
 from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
@@ -287,7 +287,7 @@ def verifyCaptcha(request: WSGIRequest):
             return respondJson(Code.NO)
         if verify_captcha(capt_response):
             return respondJson(Code.OK)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
