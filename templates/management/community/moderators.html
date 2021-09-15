@@ -66,6 +66,7 @@ getElements('demote-moderator').forEach((demote)=>{
         alertify.confirm('Demote as moderator?', `<h5>Are you sure that you want to ${NegativeText('demote')} 
             <span class="positive-text" onclick="miniWindow('${e.target.getAttribute('data-profileurl')}')">${e.target.getAttribute('data-name')}</span>
              as a moderator on ${APPNAME}? Their pending moderations will be transferred to a new moderator. (You are not deleting their account)</h5>`,
+             ()=>{},
              async ()=>{
                 const modID = e.target.getAttribute('data-userID');
                 const modname = e.target.getAttribute('data-name');
@@ -76,9 +77,8 @@ getElements('demote-moderator').forEach((demote)=>{
                     return hideElement(`pallete-demote-${modID}`)
                 }
                 error(data.error)
-             },
-             ()=>{}
-        ).set('labels', {ok:'Yes, demote', cancel: 'No, wait'}).set('closable', false)
+             }
+        ).set('labels', {cancel:'Yes, demote', ok: 'No, wait'}).set('closable', false)
     }
 })
 }
@@ -94,7 +94,7 @@ getElement('search-profile-input').oninput=async(e)=>{
     const mod = data.mod;
     setHtmlContent(resview,`<div class="w3-row pallete-slab" id="pallete-promote-${data.mod.userID}">
             <div class="w3-col s2 m1">
-                <img src="${mod.dp}" class="w3-circle primary" width="50" />
+                <a onclick="miniWindow('${mod.url}')"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
@@ -105,9 +105,6 @@ getElement('search-profile-input').oninput=async(e)=>{
                 </div>
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
-                <div class="w3-row w3-right">
-                    <a href="${mod.url}" target="_blank"><button class="small primary">View</button></a>
-                </div>
                 <div class="w3-row w3-right">
                     <button class="small positive promote-moderator" data-profileurl="${mod.url}" data-name="${mod.name}" data-userID="${mod.userID}">Promote</button>
                 </div>

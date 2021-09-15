@@ -195,7 +195,7 @@ class Project(models.Model):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error)
+                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error,success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
         except:
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
@@ -264,6 +264,10 @@ class Project(models.Model):
 
     def totalTopics(self):
         return self.topics.count()
+
+    @property
+    def getTags(self):
+        return self.tags.all()
 
     def totalTags(self):
         return self.tags.count()

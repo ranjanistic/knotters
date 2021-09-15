@@ -7,6 +7,7 @@ from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
+from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
@@ -99,6 +100,20 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     else:
         raise Http404()
     return renderView(request, template, fromApp=subapp)
+
+
+@require_JSON_body
+def verifyCaptcha(request: WSGIRequest):
+    try:
+        capt_response = request.POST.get('g-recaptcha-response', False)
+        if not capt_response:
+            return respondJson(Code.NO)
+        if verify_captcha(capt_response):
+            return respondJson(Code.OK)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
 
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
@@ -213,13 +228,16 @@ class ServiceWorker(TemplateView):
                 f"/email/*",
                 f"/{URL.MANAGEMENT}*",
                 f"/{URL.MANAGEMENT}",
-                setPathParams(f"/{URL.People.ZOMBIE}"),
-                setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),
                 setPathParams(f"/{URL.DOCS}{URL.Docs.TYPE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.SUCCESSORINVITE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
@@ -260,11 +278,11 @@ def browser(request: WSGIRequest, type: str):
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     cache.set(
                         f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles,count=len(profiles)))
         elif type == "new-projects":
             projects = Project.objects.filter(
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
-            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
+            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects,count=len(projects)))
         elif type == "recent-winners":
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
             if not results:
@@ -272,23 +290,19 @@ def browser(request: WSGIRequest, type: str):
                     timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
                 cache.set(
                     f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
-            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results)))
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results,count=len(results))))
+        elif type == "recommended-projects":
+            query = Q()
+            authquery = query
+            if request.user.is_authenticated:
+                query = Q(topics__in=request.user.profile.getTopics())
+                authquery = ~Q(creator=request.user.profile)
+            projects = Project.objects.filter(Q(status=Code.APPROVED),authquery,query)[0:20]
+            if(len(projects)<1):
+                projects = Project.objects.filter(Q(status=Code.APPROVED),authquery)[0:20]
+            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects,count=len(projects)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:
         print(e)
         raise Http404()
-
-
-@require_JSON_body
-def verifyCaptcha(request: WSGIRequest):
-    try:
-        capt_response = request.POST.get('g-recaptcha-response', False)
-        if not capt_response:
-            return respondJson(Code.NO)
-        if verify_captcha(capt_response):
-            return respondJson(Code.OK)
-        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO if ISPRODUCTION else Code.OK)

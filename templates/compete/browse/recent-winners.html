@@ -1,12 +1,11 @@
 {% load cache %}
 {% load custom_tags %}
-<div class="w3-row">
-    <br/>
-    <div class="w3-row w3-padding-small">
+{% if count %}
+<div class="w3-row active">
+    <div class="w3-row" style="padding:16px 4px">
     <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Recent winners</h4>
     </div>
-    <br/>
     <div class="swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap swiper-wrap_i">
             {% for result in results %}
@@ -35,5 +34,6 @@
             {% endfor %}
         </div>
     </div>
+    <br/>
 </div>
-<br/>
+{% endif %}

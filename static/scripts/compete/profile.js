@@ -51,8 +51,8 @@ try {
     };
 } catch {}
 
-const loadTabScript = (tab) => {
-    switch (tab.id) {
+const loadTabScript = (attr) => {
+    switch (attr) {
         case "submission": {
             if (isActive) {
                 if (compdata.participated) {
@@ -215,10 +215,19 @@ const loadTabScript = (tab) => {
 
 initializeTabsView({
     onEachTab: async (tab) =>
-        await getRequest(setUrlParams(URLS.COMPETETABSECTION, compID, tab.id)),
+        await getRequest(setUrlParams(URLS.COMPETETABSECTION, compID, tab.getAttribute('data-id'))),
     uniqueID: "competetab",
     tabsClass: "side-nav-tab",
     activeTabClass: "active",
     onShowTab: loadTabScript,
+    tabindex
+});
+initializeTabsView({
+    onEachTab: async (tab) =>
+        await getRequest(setUrlParams(URLS.COMPETETABSECTION, compID, tab.getAttribute('data-id'))),
+    uniqueID: "competetabsmall",
+    tabsClass: "side-nav-tab-small",
+    activeTabClass: "active",
+    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id')),
     tabindex
 });

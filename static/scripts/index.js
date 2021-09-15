@@ -42,7 +42,7 @@ const loaders = (show = true) => {
 
 const openSpinner = (id = "loader") => showElement(id);
 
-const hideSpinner = (id = "loader") => hideElement(id);
+const hideSpinner = (id = "loader") =>{ try{hideElement(id)}catch{}}
 
 const csrfHiddenInput = (token) =>
     `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`;
@@ -126,8 +126,8 @@ const loadBrowserSwiper = (_) => {
 };
 
 const loadBrowsers = () => {
-    getElements("browser-view").forEach((view) => {
-        const method = async () => {
+    Promise.all(getElements("browser-view").map(async(view) => {
+        await (async () => {
             setHtmlContent(view, loaderHTML(`${view.id}-loader`));
             const data = await getRequest(
                 setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
@@ -138,9 +138,12 @@ const loadBrowsers = () => {
                 return;
             }
             setHtmlContent(view, data, loadBrowserSwiper);
-        };
-        method();
-    });
+        })()
+    })).then(()=>{
+        loadBrowserSwiper()
+    }).catch((e)=>{
+        console.warn(e)
+    })
 };
 
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
@@ -357,6 +360,7 @@ const initializeTabsView = ({
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
+    spinnerID = spinnerID+uniqueID
     try {
         if (viewID) {
             tabview = getElement(viewID);
@@ -421,13 +425,20 @@ const initializeTabsView = ({
         };
     });
     if (tabs.length) {
-        if(tabindex!==false && tabindex < tabs.length){
-            tabs[tabindex].click();
-        } else{
+        if(tabindex===false){
             try {
                 tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
             } catch (e) {
                 tabs[selected].click();
+            }
+            console.log("this 0")
+        } else{
+            if(tabindex < tabs.length){
+                console.log("this 1")
+                tabs[tabindex].click();
+            } else {
+                console.log("this 2")
+                tabs[tabs.length-1].click();
             }
         }
     }
@@ -503,10 +514,10 @@ const postRequest = async (path, data = {}) => {
     }
 };
 
-const getRequest = async (url) => {
+const getRequest = async (url, query={}) => {
     try {
         subLoader();
-        const response = await window.fetch(url, {
+        const response = await window.fetch(setUrlQueries(url,query), {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
