@@ -23,7 +23,7 @@ To setup environment variables, use any one of the two following methods.
 
 #### Manual creation
 
-Set the values in [main/.env](main/.env) accordingly.
+Set the values in [main/.env](main/.env) and [main/.env.testing](main/.env.testing) accordingly.
 
 #### Interactive CLI
 
@@ -36,6 +36,15 @@ The above cmd will generate env vars step by step.
 ### Dependencies
 
 ```bash
+pip install -r requirements.txt
+```
+
+If there's a ```Microsoft Visual c++ 14.0``` required error with installation of _rcssmin_ or related modules of _django-compressor_, then do following execution if you want to **avoid installing** ```Microsoft C++ Build Tools```
+
+```bash
+pip install rcssmin --install-option="--without-c-extensions"
+pip install rjsmin --install-option="--without-c-extensions"
+pip install django-compressor --upgrade
 pip install -r requirements.txt
 ```
 
@@ -76,7 +85,9 @@ py testmanage.py test <appname>
 py testmanage.py test --tag=<tagname>
 ```
 
-See [main.strings.Code.Test](https://github.com/knottersbot/knotters/blob/7a6632741ba93fc7a62d140b9f953d8bc8084286/main/strings.py#L45) for available `tagname(s)`.
+See [main.strings.Code.Test](https://github.com/knottersbot/knotters/blob/7a6632741ba93fc7a62d140b9f953d8bc8084286/main/strings.py#L45) for available `tagname`(s).
+
+For coverage report of tests
 
 ```bash
 coverage run --source='.' testmanage.py test

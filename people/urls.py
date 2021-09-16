@@ -21,4 +21,5 @@ urlpatterns = [
     path(URL.People.BLOCK_USER, blockUser),
     path(URL.People.UNBLOCK_USER, unblockUser),
     path(URL.People.GITHUB_EVENTS, githubEventsListener),
+    path(URL.People.BROWSE_SEARCH, browseSearch),
 ]

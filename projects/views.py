@@ -17,7 +17,7 @@ from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
 from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category, Asset
 from .mailers import sendProjectSubmissionNotification
-from .methods import renderer, uniqueRepoName, createProject, getProjectLiveData
+from .methods import renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -240,6 +240,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                     changed = True
                 if changed:
                     project.save()
+                    return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
                 return redirect(project.getLink(), permanent=True)
             except:
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
@@ -288,7 +289,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not query or not query.strip():
             return respondJson(Code.NO)
 
-        project = Project.objects.filter(id=projID, status=Code.APPROVED).first()
+        project = Project.objects.filter(id=projID, creator=request.user.profile, status=Code.APPROVED).first()
         excluding = []
         if project:
             for topic in project.getTopics():
@@ -318,10 +319,9 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
-        project = Project.objects.get(id=projID, status=Code.APPROVED)
+        project = Project.objects.get(id=projID, status=Code.APPROVED, creator=request.user.profile)
         if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(project.getLink())
-
         if removetopicIDs:
             removetopicIDs = removetopicIDs.strip(',').split(',')
             ProjectTopic.objects.filter(
@@ -329,17 +329,19 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
         if addtopicIDs:
             addtopicIDs = addtopicIDs.strip(',').split(',')
+            if len(addtopicIDs) < 1:
+                return redirect(project.getLink())
             projtops = ProjectTopic.objects.filter(project=project)
             currentcount = projtops.count()
             if currentcount + len(addtopicIDs) > 5:
-                return redirect(project.getLink())
-
+                return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
             for topic in Topic.objects.filter(id__in=addtopicIDs):
                 project.topics.add(topic)
+                for tag in project.getTags:
+                    topic.tags.add(tag)
 
-        return redirect(project.getLink())
+        return redirect(project.getLink(success=Message.TOPICS_UPDATED))
     except Exception as e:
-        print(e)
         errorLog(e)
         raise Http404()
 
@@ -352,7 +354,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not query or not query.strip():
             return respondJson(Code.NO)
         project = Project.objects.filter(
-            id=projID, status=Code.APPROVED).first()
+            id=projID,creator=request.user.profile, status=Code.APPROVED).first()
         excludeIDs = []
         if project:
             for tag in project.tags.all():
@@ -381,7 +383,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
         removetagIDs = request.POST.get('removetagIDs', None)
-        project = Project.objects.get(id=projID, status=Code.APPROVED)
+        project = Project.objects.get(id=projID, creator=request.user.profile,status=Code.APPROVED)
         if not addtagIDs and not removetagIDs and not (addtagIDs.strip() or removetagIDs.strip()):
             return redirect(project.getLink())
 
@@ -392,15 +394,18 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
         if addtagIDs:
             addtagIDs = addtagIDs.strip(',').split(',')
+            if len(addtagIDs) < 1:
+                return redirect(project.getLink())
             projtags = ProjectTag.objects.filter(project=project)
             currentcount = projtags.count()
             if currentcount + len(addtagIDs) > 5:
-                return redirect(project.getLink())
-
+                return redirect(project.getLink(error=Message.MAX_TAGS_ACHEIVED))
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
+                for topic in project.getTopics():
+                    topic.tags.add(tag)
 
-        return redirect(project.getLink())
+        return redirect(project.getLink(success=Message.TAGS_UPDATED))
     except Exception as e:
         errorLog(e)
         raise Http404()
@@ -498,3 +503,10 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
+
+@require_GET
+def browseSearch(request:WSGIRequest):
+    query = request.GET.get('query','')
+    projects = Project.objects.exclude(trashed=True).filter(Q(Q(status=Code.APPROVED), Q(
+            name__startswith=query)|Q(reponame__startswith=query) | Q(creator__user__first_name__startswith=query) | Q(creator__githubID__startswith=query)))[0:20]
+    return rendererstr(request,Template.Projects.BROWSE_SEARCH,dict(projects=projects, query=query))

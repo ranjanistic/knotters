@@ -8,11 +8,11 @@
 {% block og_title %}{{member.getFName}}'s Certificate{% endblock %}
 {% block og_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
 {% block og_site_name %}{{member.getFName}}'s Certificate{% endblock %}
-{% block og_image_url %}{{result.competition.getBanner}}{% endblock %}
+{% block og_image_url %}{% if certpath %}{{certpath}}{% else %}{{result.competition.getBanner}}{% endif %}{% endblock %}
 
-{% block ld_image_url %}{{result.competition.getBanner}}{% endblock %}
+{% block ld_image_url %}{% if certpath %}{{certpath}}{% else %}{{result.competition.getBanner}}{% endif %}{% endblock %}
 
-{% block tw_image_url %}{{result.competition.getBanner}}{% endblock %}
+{% block tw_image_url %}{% if certpath %}{{certpath}}{% else %}{{result.competition.getBanner}}{% endif %}{% endblock %}
 {% block tw_url %}{{result.getCertLink|params:member.getUserID}}{% endblock %}
 {% block tw_title %}{{member.getFName}}'s Certificate{% endblock %}
 {% block tw_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}

@@ -4,6 +4,7 @@ const Key = {
     appUpdated: "app-updated",
     navigated: "navigated",
     futureMessage: "future-message",
+    deferupdate: "deferupdate",
 };
 
 const code = {
@@ -32,27 +33,13 @@ const getElements = (classname) =>
 const getElementsByTag = (tagname) =>
     Array.from(document.getElementsByTagName(tagname));
 
-const loader = (show = true) => visibleElement("viewloader", show);
-const subLoader = (show = true) => visibleElement("subloader", show);
-const loaders = (show = true) => {
-    loader(show);
-    subLoader(show);
-};
-
-const openSpinner = (id = "loader") => showElement(id);
-
-const hideSpinner = (id = "loader") => hideElement(id);
-
-const csrfHiddenInput = (token) =>
-    `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`;
-
-const hide = (element) => {
+const hide = (element, display = true) => {
     element.hidden = true;
-    element.style.display = "none";
+    if (display) element.style.display = "none";
 };
-const show = (element) => {
+const show = (element, display = true) => {
     element.hidden = false;
-    element.style.display = "block";
+    if (display) element.style.display = "block";
 };
 
 const hideElement = (id) => visibleElement(id, false);
@@ -65,6 +52,25 @@ const visibleElement = (id, show = true) => {
 };
 
 const visible = (element, show = true) => visibleElement(element.id, show);
+
+const loader = (show = true) => visibleElement("viewloader", show);
+const subLoader = (show = true) => visibleElement("subloader", show);
+subLoader(true);
+const loaders = (show = true) => {
+    loader(show);
+    subLoader(show);
+};
+
+const openSpinner = (id = "loader") => showElement(id);
+
+const hideSpinner = (id = "loader") => {
+    try {
+        hideElement(id);
+    } catch {}
+};
+
+const csrfHiddenInput = (token) =>
+    `<input type="hidden" name="csrfmiddlewaretoken" value="${token}"></input>`;
 
 const miniWindow = (url, name = APPNAME) =>
     window.open(
@@ -125,21 +131,33 @@ const loadBrowserSwiper = (_) => {
 };
 
 const loadBrowsers = () => {
-    getElements("browser-view").forEach((view) => {
-        const method = async () => {
-            setHtmlContent(view, loaderHTML(`${view.id}-loader`));
-            const data = await getRequest(
-                setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
-            );
-            if (!data) {
-                setHtmlContent(view, loadErrorHTML(`${view.id}-load-retry`));
-                getElement(`${view.id}-load-retry`).onclick = (_) => method();
-                return;
-            }
-            setHtmlContent(view, data, loadBrowserSwiper);
-        };
-        method();
-    });
+    Promise.all(
+        getElements("browser-view").map(async (view) => {
+            await (async () => {
+                setHtmlContent(view, loaderHTML(`${view.id}-loader`));
+                const data = await getRequest(
+                    setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
+                );
+                if (!data) {
+                    setHtmlContent(
+                        view,
+                        loadErrorHTML(`${view.id}-load-retry`)
+                    );
+                    getElement(`${view.id}-load-retry`).onclick = (_) =>
+                        method();
+                    return;
+                }
+                setHtmlContent(view, data, loadBrowserSwiper);
+                loadBrowserSwiper()
+            })();
+        })
+    )
+        .then(() => {
+            loadBrowserSwiper();
+        })
+        .catch((e) => {
+            console.warn(e);
+        });
 };
 
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
@@ -147,6 +165,7 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
+    loadBrowserSwiper()
     afterset();
 };
 
@@ -215,7 +234,9 @@ const loadGlobalEventListeners = () => {
     getElements("click-to-copy").forEach((elem) => {
         elem.classList.add("pointer");
         elem.addEventListener("click", (e) => {
-            copyToClipboard(e.target.getAttribute("data-copy") || e.target.innerHTML)
+            copyToClipboard(
+                e.target.getAttribute("data-copy") || e.target.innerHTML
+            );
         });
     });
     getElements("previous-action-button").forEach((elem) => {
@@ -243,16 +264,16 @@ const loadGlobalEventListeners = () => {
             });
         };
     });
-    getElements('close-global-alert').forEach((closer)=>{
-        console.log(localStorage.getItem(`hidden-alert-${closer.id}`))
-        if(localStorage.getItem(`hidden-alert-${closer.id}`)){
-            hide(getElement(`view-${closer.id}`))
+    getElements("close-global-alert").forEach((closer) => {
+        console.log(localStorage.getItem(`hidden-alert-${closer.id}`));
+        if (localStorage.getItem(`hidden-alert-${closer.id}`)) {
+            hide(getElement(`view-${closer.id}`));
         }
-        closer.addEventListener('click',(e)=>{
-            hide(getElement(`view-${closer.id}`))
-            localStorage.setItem(`hidden-alert-${closer.id}`,closer.id)
-        })
-    })
+        closer.addEventListener("click", (e) => {
+            hide(getElement(`view-${closer.id}`));
+            localStorage.setItem(`hidden-alert-${closer.id}`, closer.id);
+        });
+    });
 };
 
 const copyToClipboard = (text) => {
@@ -260,9 +281,9 @@ const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
         success("Copied to clipboard");
     } else {
-        error('Unable to copy!')
+        error("Unable to copy!");
     }
-}
+};
 
 const _processReCaptcha = (
     onSuccess = (stopLoaders) => {},
@@ -352,9 +373,11 @@ const initializeTabsView = ({
     viewID = "tabview",
     spinnerID = "loader",
     selected = 0,
+    tabindex = false,
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
+    spinnerID = spinnerID + uniqueID;
     try {
         if (viewID) {
             tabview = getElement(viewID);
@@ -419,10 +442,21 @@ const initializeTabsView = ({
         };
     });
     if (tabs.length) {
-        try {
-            tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
-        } catch (e) {
-            tabs[selected].click();
+        if (tabindex === false) {
+            try {
+                tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+            } catch (e) {
+                tabs[selected].click();
+            }
+            console.log("this 0");
+        } else {
+            if (tabindex < tabs.length) {
+                console.log("this 1");
+                tabs[tabindex].click();
+            } else {
+                console.log("this 2");
+                tabs[tabs.length - 1].click();
+            }
         }
     }
     return tabs;
@@ -497,10 +531,10 @@ const postRequest = async (path, data = {}) => {
     }
 };
 
-const getRequest = async (url) => {
+const getRequest = async (url, query = {}) => {
     try {
         subLoader();
-        const response = await window.fetch(url, {
+        const response = await window.fetch(setUrlQueries(url, query), {
             method: "GET",
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
@@ -555,17 +589,17 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
 
 const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
     if (!url.startsWith(SITE)) {
-        if(url.startsWith('/')){
-            url=SITE+url
+        if (url.startsWith("/")) {
+            url = SITE + url;
         } else {
-            url=SITE+'/'+url
+            url = SITE + "/" + url;
         }
     }
-    if(!title.endsWith('\n')){
-        title=title+'\n'
+    if (!title.endsWith("\n")) {
+        title = title + "\n";
     }
-    if(!text.endsWith('\n')){
-        text=text+'\n'
+    if (!text.endsWith("\n")) {
+        text = text + "\n";
     }
     if (navigator.share) {
         subLoader();
@@ -581,7 +615,7 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
             });
     } else {
         error("Sharing not available on your system.");
-        copyToClipboard(url)
+        copyToClipboard(url);
     }
 };
 
@@ -972,20 +1006,25 @@ const reportFeedbackView = () => {
 
 const previewImageDialog = (src) => {
     if (!src) return;
-    getElement("image-previewer").style.display = 'flex';
-    getElement("image-previewer").addEventListener('click',(e)=>{
-        if(e.target.id!=="preivew-image-src"){
-            e.target.style.display = 'none';
+    getElement("image-previewer").style.display = "flex";
+    getElement("image-previewer").addEventListener("click", (e) => {
+        if (e.target.id !== "preivew-image-src") {
+            e.target.style.display = "none";
         }
-    })
-    getElement('preivew-image-src').src = src;
+    });
+    getElement("preivew-image-src").src = src;
 };
 
 const futuremessage = (message = "") => {
     localStorage.setItem(Key.futureMessage, message);
 };
 
-const radarChartView = (chartCanvas,labels = [], labelsData = [], colorhex = "f5d702") => {
+const radarChartView = (
+    chartCanvas,
+    labels = [],
+    labelsData = [],
+    colorhex = "f5d702"
+) => {
     return new Chart(chartCanvas.getContext("2d"), {
         type: "radar",
         data: {

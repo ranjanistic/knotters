@@ -57,8 +57,8 @@ class Moderation(models.Model):
             return self.competition
         else: return None
 
-    def getLink(self, alert: str = '', error: str = '') -> str:
-        return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error)}"
+    def getLink(self, alert: str = '', error: str = '', success: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error,success)}"
 
     def reapplyLink(self):
         return f"{url.getRoot(APPNAME)}{url.moderation.reapply(modID=self.getID())}"

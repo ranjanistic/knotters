@@ -1,6 +1,7 @@
 {% extends 'allauth_2fa/index.html' %}
 {% load i18n %}
-
+{% block nav_back_onclick %}window.close(){% endblock%}
+{% block nav_links %}{% endblock %}
 {% block content %}
 <br/>
 <div class="w3-row w3-center w3-padding">
@@ -8,11 +9,9 @@
 <h3>Two factor authentication setup</h3>
 <h5>Scan the QR code below with your own token generator</h5>
 <h6>(Google Authenticator, Microsoft Authenticator, etc.)</h6>
-
 <div>
 <img class="pallete" style="background:var(--secondary-text)" src="{{ qr_code_url }}" />
 </div>
-
 {{ text_code }}
 <br/>
 <h5>
@@ -21,9 +20,15 @@
 
 <form method="post">
   {% csrf_token %}
-  <input type="text" name="token" autofocus="autofocus" maxlength="15" required id="id_token" placeholder="Type token here"><br/>
-  <button class="positive big-button" type="submit" data-icon="done">Submit &amp; Enable 2FA</button>
+  <input class="required-field" type="text" name="token" autofocus="autofocus" maxlength="15" required id="id_token" placeholder="Two factor code"><br/>
+  <button class="positive big-button recaptcha-protected-form-action" type="submit" data-icon="done">Submit &amp; Enable 2FA</button>
 </form>
 </div>
 <br/>
 {% endblock %}
+
+{% block ext_scripts %}
+<script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
+{% endblock %}
+
+{% block footer %}{% endblock %}

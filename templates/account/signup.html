@@ -1,5 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
 {% load socialaccount %}
 {% load custom_tags %}
 
@@ -78,7 +80,7 @@
 </div>
 <br/>
 <center class="w3-padding">
-<strong>By continuing via an identity on our platform, you agree to our <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" target="_blank">terms of service</a> and <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" target="_blank">privacy policy</a>.</strong>
+<strong>By continuing via an identity on our platform, you agree to our <a onclick="newTab('{{URLS.Docs.TYPE|params:'termsofservice'}}')" target="_blank">terms of service</a> and <a onclick="newTab('{{URLS.Docs.TYPE|params:'privacypolicy'}}')" target="_blank">privacy policy</a>.</strong>
 </center>
 <br/>
 {%endblock%}

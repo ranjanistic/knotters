@@ -74,5 +74,7 @@ ISTESTING = ENV == Environment.TESTING
 
 try:
     from .__version__ import VERSION
+    from .__refresh__ import REFRESH_STATE
 except:
     VERSION = 'vXXX'
+    REFRESH_STATE = None

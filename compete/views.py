@@ -411,7 +411,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         task = cache.get(f"results_declaration_task_{compID}")
         if task == Message.RESULT_DECLARING:
             return redirect(comp.getManagementLink(error=Message.RESULT_DECLARING))
-        cache.set(f"results_declaration_task_{competition.get_id}",
+        cache.set(f"results_declaration_task_{comp.get_id}",
                   Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{DeclareResults.__name__}", comp)

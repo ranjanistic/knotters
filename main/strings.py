@@ -9,6 +9,32 @@ from management.apps import APPNAME as MANAGEMENT
 AUTH = 'auth'
 DOCS = 'docs'
 
+def classAttrsToDict(className, appendCondition) -> dict:
+    data = dict()
+    for key in className.__dict__:
+        if not (str(key).startswith('__') and str(key).endswith('__')):
+            if appendCondition(key, className.__dict__.get(key)):
+                data[key] = className.__dict__.get(key)
+    return data
+
+def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
+    """
+    Replaces 'lookfor' of given 'path' with given with replacingChars. Replaces each finding with each element of replacingChars.
+
+    :path: The string (primarily url path) to be operated on.
+    :replacingChars: Tuple of characters to replace findings one by one with each element. Defaults to '*' for all findings.
+    :lookfor: String or pattern to be looked for and replaced in path.
+    :extendRemaining: If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings.Defaults to True
+    """
+    lookfor = lookfor if lookfor else Code.URLPARAM
+    if len(replacingChars) < 1:
+        replacingChars = ['*']
+    i = 0
+    while i < len(replacingChars):
+        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
+        i += 1
+    return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+
 class Code():
     OK = "OK"
     NO = "NO"
@@ -49,9 +75,7 @@ class Code():
         STATIC = 'static'
         MAIL = 'mail'
 
-
 code = Code()
-
 
 class Event():
     PING = 'ping'
@@ -64,26 +88,6 @@ class Event():
     TEAMS = 'team'
     CREATED = 'created'
 
-
-def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
-    """
-    Replaces 'lookfor' of given 'path' with given with replacingChars. Replaces each finding with each element of replacingChars.
-
-    :path: The string (primarily url path) to be operated on.
-    :replacingChars: Tuple of characters to replace findings one by one with each element. Defaults to '*' for all findings.
-    :lookfor: String or pattern to be looked for and replaced in path.
-    :extendRemaining: If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings.Defaults to True
-    """
-    lookfor = lookfor if lookfor else Code.URLPARAM
-    if len(replacingChars) < 1:
-        replacingChars = ['*']
-    i = 0
-    while i < len(replacingChars):
-        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
-        i += 1
-    return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
-
-
 # ENVIRONMENTS = [Environment.DEVELOPMENT,
 #                 Environment.TESTING, Environment.PRODUCTION]
 
@@ -93,6 +97,11 @@ class Message():
     INVALID_REQUEST = "Invalid request"
     INVALID_RESPONSE = "Invalid response"
     SAVED = "Saved"
+    PROFILE_UPDATED = "Profile updated, it might take some time for changes to appear."
+    TAGS_UPDATED = "Tags updated."
+    TOPICS_UPDATED = "Topics updated."
+    MAX_TAGS_ACHEIVED = "Maximum tags limit reached."
+    MAX_TOPICS_ACHEIVED = "Maximum topics limit reached."
 
     RESULT_DECLARED = "Results declared!"
     RESULT_NOT_DECLARED = "Results not declared."
@@ -311,8 +320,6 @@ class URL():
             return f"/{self.MODERATION if withslash else self.MODERATION.strip('/')}"
         elif fromApp == MANAGEMENT:
             return f"/{self.MANAGEMENT if withslash else self.MANAGEMENT.strip('/')}"
-        elif fromApp == 'docs':
-            return f"/{self.DOCS if withslash else self.DOCS.strip('/')}"
         else:
             return self.ROOT if withslash else self.ROOT.strip('/')
 
@@ -592,6 +599,7 @@ class URL():
         NEWBIES = 'newbies'
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
+        BROWSE_SEARCH = 'browse/search'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -680,6 +688,7 @@ class URL():
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
 
         NEWBIES = 'newbies'
+        BROWSE_SEARCH = 'browse/search'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1017,6 +1026,11 @@ class Template():
         def profile_result(self):
             return f'{self.DIRNAME}/{self.PROFILE_RESULT}.html'
 
+        BROWSE_RECENT_WINNERS = "browse/recent-winners"
+        @property
+        def browse_recent_winners(self):
+            return f'{self.DIRNAME}/{self.BROWSE_RECENT_WINNERS}.html'
+
     compete = Compete()
 
     class People():
@@ -1044,6 +1058,12 @@ class Template():
         @property
         def browse_newbie(self):
             return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
+
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
 
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
@@ -1136,17 +1156,30 @@ class Template():
         def license_lic(self):
             return f'{self.DIRNAME}/{self.LICENSE_LIC}.html'
 
-        BROWSE_NEWBIE = 'browse/newbie'
-
-        @property
-        def browse_newbie(self):
-            return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
 
         PROFILE_CONTRIBS = 'profile/contributors'
 
         @property
         def profile_contribs(self):
             return f'{self.DIRNAME}/{self.PROFILE_CONTRIBS}.html'
+
+        BROWSE_NEWBIE = 'browse/newbie'
+
+        @property
+        def browse_newbie(self):
+            return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
+
+        BROWSE_RECOMMENDED = 'browse/recommended'
+
+        @property
+        def browse_recommended(self):
+            return f'{self.DIRNAME}/{self.BROWSE_RECOMMENDED}.html'
+
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
 
     projects = Projects()
 
@@ -1289,4 +1322,18 @@ class Template():
 
 template = Template()
 
-from .methods import classAttrsToDict
+BYPASS_DEACTIVATION_PATHS = [
+    f"{url.getRoot()}{URL.FAVICON}",
+    f"{url.getRoot()}{URL.ROBOTS_TXT}",
+    f"{url.getRoot()}{URL.MANIFEST}",
+    f"{url.getRoot()}{URL.SERVICE_WORKER}",
+    f"{url.getRoot()}{URL.SWITCH_LANG}setlang/",
+    f"{url.getRoot()}{URL.OFFLINE}",
+    f"{url.getRoot()}{URL.REDIRECTOR}",
+    f"{url.getRoot(AUTH)}{URL.Auth.LOGOUT}",
+    f"{url.getRoot(PEOPLE)}{URL.People.ACCOUNTACTIVATION}",
+    f"{url.getRoot(DOCS)}",
+    f"{url.getRoot(DOCS)}{URL.Docs.TYPE}",
+    f"{url.getRoot(MANAGEMENT)}{URL.Management.CREATE_REPORT}",
+    f"{url.getRoot(MANAGEMENT)}{URL.Management.CREATE_FEED}",
+]

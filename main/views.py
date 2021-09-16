@@ -2,20 +2,23 @@ import json
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
+from datetime import timedelta
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
+from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
 from projects.models import LegalDoc, Project
-from compete.models import Competition
+from compete.models import Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
-from .env import ADMINPATH
+from compete.methods import rendererstr as competeRendererstr
+from .env import ADMINPATH, ISPRODUCTION
 from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
 from .decorators import dev_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
@@ -44,7 +47,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 @require_GET
 # @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-    
+
     # comp = Competition.objects.filter(
     #     startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
     # data = dict(
@@ -64,35 +67,29 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
     return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
     try:
         doc = LegalDoc.objects.get(pseudonym=type)
         return renderView(request, Template.Docs.DOC, fromApp=DOCS, data=dict(doc=doc))
     except Exception as e:
-        errorLog(e)
         try:
             return renderView(request, type, fromApp=DOCS)
         except Exception as e:
-            errorLog(e)
             raise Http404()
 
 
 @require_GET
-# @cache_page(settings.CACHE_SHORT)
 def landing(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.LANDING)
 
 
 @require_GET
-# @cache_page(settings.CACHE_SHORT)
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     if subapp == COMPETE:
         template = Template.Compete.LANDING
@@ -105,6 +102,20 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
     return renderView(request, template, fromApp=subapp)
 
 
+@require_JSON_body
+def verifyCaptcha(request: WSGIRequest):
+    try:
+        capt_response = request.POST.get('g-recaptcha-response', False)
+        if not capt_response:
+            return respondJson(Code.NO)
+        if verify_captcha(capt_response):
+            return respondJson(Code.OK)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
+
+
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
@@ -112,7 +123,7 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # context = dict(**context,static=settings.STATIC_URL, media=settings.MEDIA_URL)
+        context = dict(**context, media=settings.MEDIA_URL)
         return context
 
 
@@ -150,7 +161,6 @@ class Manifest(TemplateView):
         return context
 
 
-# @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
@@ -168,7 +178,7 @@ class ServiceWorker(TemplateView):
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
 
-        swassets,created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
+        swassets, created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
             value=json.dumps(assets)
         ))
         if not created:
@@ -218,17 +228,21 @@ class ServiceWorker(TemplateView):
                 f"/email/*",
                 f"/{URL.MANAGEMENT}*",
                 f"/{URL.MANAGEMENT}",
-                setPathParams(f"/{URL.People.ZOMBIE}"),
-                setPathParams(f"/{URL.People.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.APPLANDING}"),
-                setPathParams(f"/{URL.DOCTYPE}"),
+                setPathParams(f"/{URL.DOCS}{URL.Docs.TYPE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.SUCCESSORINVITE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.AUTH}*",
+                f"/{URL.SWITCH_LANG}setlang/",
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
@@ -236,11 +250,9 @@ class ServiceWorker(TemplateView):
             ]),
             netFirstList=json.dumps([
                 f"{settings.MEDIA_URL}*",
-                setPathParams(f"/{URL.BROWSER}"),
-                f"/{URL.PROJECTS}{URL.Projects.NEWBIES}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
-                f"/{URL.PEOPLE}{URL.People.NEWBIES}",
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
+                setPathParams(f"/{URL.BROWSER}"),
             ])
         )))
         return context
@@ -254,29 +266,41 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 excludeIDs.append(request.user.profile.getUserID())
                 excludeIDs += request.user.profile.blockedIDs
-            profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles))
+                profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                    suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+            else:
+                profiles = cache.get(
+                    f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
+                if not profiles:
+                    profiles = Profile.objects.filter(
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                    cache.set(
+                        f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles,count=len(profiles)))
         elif type == "new-projects":
             projects = Project.objects.filter(
                 status=Code.APPROVED).order_by('-approvedOn')[0:10]
-            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects))
+            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects,count=len(projects)))
+        elif type == "recent-winners":
+            results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
+            if not results:
+                results = Result.objects.filter(competition__resultDeclared=True, competition__startAt__gte=(
+                    timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
+                cache.set(
+                    f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results,count=len(results))))
+        elif type == "recommended-projects":
+            query = Q()
+            authquery = query
+            if request.user.is_authenticated:
+                query = Q(topics__in=request.user.profile.getTopics())
+                authquery = ~Q(creator=request.user.profile)
+            projects = Project.objects.filter(Q(status=Code.APPROVED),authquery,query)[0:20]
+            if(len(projects)<1):
+                projects = Project.objects.filter(Q(status=Code.APPROVED),authquery)[0:20]
+            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects,count=len(projects)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:
         print(e)
         raise Http404()
-
-
-@require_JSON_body
-def verifyCaptcha(request: WSGIRequest):
-    try:
-        capt_response = request.POST.get('g-recaptcha-response', False)
-        if not capt_response:
-            return respondJson(Code.NO)
-        if verify_captcha(capt_response):
-            return respondJson(Code.OK)
-        return respondJson(Code.NO)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO)

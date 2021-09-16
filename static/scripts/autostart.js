@@ -1,5 +1,3 @@
-subLoader(true);
-
 document.addEventListener("DOMContentLoaded", () => {
     if(sessionStorage.getItem(Key.navigated)===code.LEFT){
         getElementsByTag('html')[0].classList.remove('w3-animate-right')
@@ -22,6 +20,7 @@ window.addEventListener("load", () => {
         })
     });
     loadReporters();
+    loadBrowserSwiper()
     subLoader(false);
     window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
     serviceWorkerRegistration();
