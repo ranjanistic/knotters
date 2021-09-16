@@ -5,7 +5,6 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
-from two_factor.urls import urlpatterns as tf_urls
 
 from .env import ISPRODUCTION, ADMINPATH
 from .views import *
