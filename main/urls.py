@@ -1,3 +1,6 @@
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
+from allauth.account.decorators import login_required
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
@@ -6,12 +9,21 @@ from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
 from .env import ISPRODUCTION, ADMINPATH
 from .views import *
 
+admin.autodiscover()
+
+def staff_or_404(u):
+    if u.is_active and u.profile.is_active:
+        if u.is_staff or u.is_admin:
+            return True
+    raise Http404()
+
+admin.site.login = login_required(user_passes_test(staff_or_404)(admin.site.login))
+
 urlpatterns = [
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),
     path(URL.MANIFEST, Manifest.as_view(), name=URL.MANIFEST),
     path(URL.SERVICE_WORKER, ServiceWorker.as_view(), name=URL.SERVICE_WORKER),
     path(URL.SWITCH_LANG, include('django.conf.urls.i18n')),
-    path(ADMINPATH, admin.site.urls),
     path(URL.INDEX, index),
     path(URL.APPLANDING, applanding),
     path(URL.LANDING, landing),
@@ -29,7 +41,8 @@ urlpatterns = [
     path(URL.BROWSER, browser),
     path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path('email/<str:template>', mailtemplate),
-    path('template/<str:template>', template)
+    path('template/<str:template>', template),
+    path(ADMINPATH, admin.site.urls),
 ]
 
 if not ISPRODUCTION:

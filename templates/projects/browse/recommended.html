@@ -1,10 +1,11 @@
 {% load cache %}
+{% load i18n %}
+{% load l10n %}
 {% load custom_tags %}
 {% if count %}
-<div class="w3-row active">
+<div class="w3-row positive">
     <div class="w3-row" style="padding:16px 4px">
-    <a class="w3-right w3-padding" href="{{URLS.PROJECTS}}"><button class="primary small" data-icon="open_in_new">More</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Newbie projects</h4>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Recommended for you</h4>
     </div>
     <div class="swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap swiper-wrap_i">

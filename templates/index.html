@@ -90,6 +90,7 @@
             {% endblock %}
             {% block nav_right %}
             <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px">
+                <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
                     {% block nav_noauth %}
@@ -131,11 +132,13 @@
         <div style="min-height: 50vh;">
             {% block content %}
             <div class="w3-row">    
-                <div class="w3-row tertiary browser-view" data-type="new-projects" id='newbie-projects-view'>
+                <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
                 </div>
-                <div class="w3-row accent browser-view" data-type="new-profiles" id='newbie-profiles-view'>
+                <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
                 </div>
-                <div class="w3-row active browser-view" data-type="recent-winners" id='recent-winners-view'>
+                <div class="w3-row browser-view" data-type="new-profiles" id='newbie-profiles-view'>
+                </div>
+                <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
                 </div>
             </div>
             {% endblock %}
@@ -228,8 +231,12 @@
             const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}"
             if("{{request.GET.e}}") {
                 error("{{request.GET.e}}");
-            } else if("{{request.GET.a}}") {
+            } 
+            if("{{request.GET.a}}") {
                 message("{{request.GET.a}}");
+            }
+            if("{{request.GET.s}}") {
+                success("{{request.GET.s}}");
             }
             if("{{request.GET.report}}"==="1"){
                 reportFeedbackView()   

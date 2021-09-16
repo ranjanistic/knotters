@@ -4,4 +4,4 @@
 # permission.
 
 User-agent: *
-
+Disallow: {{media}}

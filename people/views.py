@@ -5,8 +5,6 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
-from django.conf import settings
-from django.views.decorators.cache import cache_page
 from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import github_only, require_JSON_body, normal_profile_required
@@ -20,7 +18,6 @@ from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.People.INDEX)
 
@@ -118,6 +115,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                     profile.user.save()
                 if profilechanged:
                     profile.save()
+                    return redirect(profile.getLink(success=Message.PROFILE_UPDATED))
                 return redirect(profile.getLink())
             except:
                 return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
@@ -471,3 +469,13 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
+
+@require_GET
+def browseSearch(request:WSGIRequest):
+    query = request.GET.get('query','')
+    excludeIDs = []
+    if request.user.is_authenticated:
+        excludeIDs = request.user.profile.blockedIDs
+    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
+            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query)))[0:20]
+    return rendererstr(request,Template.People.BROWSE_SEARCH,dict(profiles=profiles, query=query))
