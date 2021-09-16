@@ -250,11 +250,9 @@ class ServiceWorker(TemplateView):
             ]),
             netFirstList=json.dumps([
                 f"{settings.MEDIA_URL}*",
-                setPathParams(f"/{URL.BROWSER}"),
-                f"/{URL.PROJECTS}{URL.Projects.NEWBIES}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
-                f"/{URL.PEOPLE}{URL.People.NEWBIES}",
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
+                setPathParams(f"/{URL.BROWSER}"),
             ])
         )))
         return context
