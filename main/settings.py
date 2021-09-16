@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
-    # 'allauth_2fa',
+    'allauth_2fa',
     "translation_manager",
     "django_q"
     # "compressor",
@@ -65,16 +65,16 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # "main.middleware.TwoFactorMiddleware",
-    # 'django_otp.middleware.OTPMiddleware',
-    # 'allauth_2fa.middleware.AllauthTwoFactorMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'main.middleware.TwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
-    "main.middleware.MessageFilterMiddleware",
     "main.middleware.ProfileActivationMiddleware",
+    "main.middleware.MessageFilterMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"
 
+BYPASS_2FA_PATHS = (url.ROBOTS_TXT,url.MANIFEST,url.SERVICE_WORKER,url.SWITCH_LANG, url.VERIFY_CAPTCHA)
 
 TEMPLATES = [
     {
@@ -224,6 +224,8 @@ ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+# LOGIN_URL = 'two_factor:login'
+# LOGIN_REDIRECT_URL = 'two_factor:profile'
 LOGIN_URL = f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
