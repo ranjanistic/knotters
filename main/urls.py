@@ -40,6 +40,7 @@ urlpatterns = [
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
     path(URL.BROWSER, browser),
+    path(URL.BASE_GITHUB_EVENTS, githubEventsListener),
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),

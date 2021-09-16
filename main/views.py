@@ -4,8 +4,10 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from datetime import timedelta
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
+from allauth.account.decorators import verified_email_required
 from django.core.cache import cache
 from django.db.models import Q
 from django.conf import settings
@@ -19,10 +21,11 @@ from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH, ISPRODUCTION
-from .methods import errorLog, renderData, renderView, respondJson, verify_captcha
-from .decorators import dev_only, require_JSON_body
+from .methods import addMethodToAsyncQueue, errorLog, renderData, renderView, respondJson, verify_captcha
+from .decorators import dev_only, github_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
-from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS
+from .mailers import featureRelease
+from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
 from django_q.tasks import async_task
 
 
@@ -115,6 +118,28 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+@csrf_exempt
+@github_only
+def githubEventsListener(request, type: str, event: str) -> HttpResponse:
+    try:
+        if type != Code.HOOK:
+            return HttpResponseBadRequest('Invaild event type')
+        ghevent = request.POST['ghevent']
+        if event != ghevent:
+            return HttpResponseBadRequest(f'event mismatch')
+
+        if ghevent == Event.RELEASE:
+            release = request.POST['release']
+            action = request.POST.get('action', None)
+            if action == Event.PUBLISHED:
+                if not release['draft'] and release['name'] and release['body']:
+                    addMethodToAsyncQueue(f'main.mailers.{featureRelease.__name__}',release['name'],release['body'])
+        else:
+            return HttpResponseBadRequest(ghevent)
+        return HttpResponse(Code.OK)
+    except Exception as e:
+        errorLog(f"GH-EVENT: {e}")
+        raise Http404()
 
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):

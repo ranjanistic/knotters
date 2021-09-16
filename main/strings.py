@@ -87,6 +87,8 @@ class Event():
     ORG = 'organization'
     TEAMS = 'team'
     CREATED = 'created'
+    RELEASE = 'release'
+    PUBLISHED = 'published'
 
 # ENVIRONMENTS = [Environment.DEVELOPMENT,
 #                 Environment.TESTING, Environment.PRODUCTION]
@@ -296,6 +298,8 @@ class URL():
         return setPathParams(self.BROWSER, type)
 
     VERIFY_CAPTCHA = 'captcha/verify'
+
+    BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
 
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
