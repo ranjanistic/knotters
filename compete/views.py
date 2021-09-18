@@ -13,9 +13,9 @@ from main.decorators import require_JSON_body, normal_profile_required, manager_
 from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
-from .models import Competition, ParticipantCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
+from .models import Competition, ParticipantCertificate,AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
-from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotParticipantCertificates
+from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates
 from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
 from .apps import APPNAME
 
@@ -471,16 +471,18 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
     try:
         if not certID:
             return respondRedirect(APPNAME, URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
-        partcert = ParticipantCertificate.objects.filter(
-            id=UUID(str(certID).strip())).first()
-        if not partcert:
-            return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
-        if not partcert.certificate:
-            return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
-        return respondRedirect(APPNAME, URL.compete.certficate(partcert.result.getID(), partcert.profile.getUserID()))
+        partcert = ParticipantCertificate.objects.filter(id=UUID(str(certID).strip())).first()
+        if partcert and partcert.certificate:
+            return respondRedirect(APPNAME, URL.compete.certficate(partcert.result.getID(), partcert.profile.getUserID()))
+        
+        appcert = AppreciationCertificate.objects.filter(id=UUID(str(certID).strip())).first()
+        if appcert and appcert.certificate:
+            return respondRedirect(APPNAME, URL.compete.apprCertificate(appcert.competition.get_id, appcert.appreciatee.getUserID()))
+
+        return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
     except Exception as e:
         errorLog(e)
-        return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND,)
+        return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
 
 
 @require_GET
@@ -510,6 +512,28 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         errorLog(e)
         raise Http404()
 
+@require_GET
+# @cache_page(settings.CACHE_MINI)
+def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
+    try:
+        if request.user.is_authenticated and request.user.getID() == userID:
+            self = True
+            person = request.user.profile
+        else:
+            self = False
+            person = Profile.objects.get(user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
+
+        if request.user.is_authenticated and person.isBlocked(request.user):
+            raise Exception()
+
+        appcert = AppreciationCertificate.objects.filter(competition__id=compID, appreciatee=person).first()
+
+        certpath = False if not appcert else appcert.getCertImage if appcert.certificate else False
+        certID = False if not appcert else appcert.get_id
+        return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
+    except Exception as e:
+        raise Http404()
+
 
 @manager_only
 @require_POST
@@ -530,11 +554,10 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 ~Q(id__in=doneresultIDs), competition=competition)
         else:
             remainingresults = Result.objects.filter(competition=competition)
-        print(remainingresults)
         cache.set(f"certificates_allotment_task_{competition.get_id}",
                   Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
         addMethodToAsyncQueue(
-            f"{APPNAME}.methods.{AllotParticipantCertificates.__name__}", remainingresults, competition)
+            f"{APPNAME}.methods.{AllotCompetitionCertificates.__name__}", remainingresults, competition)
         return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
     except Exception as e:
         errorLog(e)
@@ -556,7 +579,29 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
             settings.MEDIA_ROOT, str(partcert.certificate))
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
-                response = HttpResponse(fh.read(), content_type="image/jpg")
+                response = HttpResponse(fh.read(), content_type="application/pdf")
+                response['Content-Disposition'] = 'inline; filename=' + \
+                    os.path.basename(file_path)
+                return response
+        raise Exception()
+    except Exception as e:
+        errorLog(e)
+        raise Http404()
+
+@normal_profile_required
+@require_GET
+def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
+    try:
+        if request.user.getID() == userID:
+            person = request.user.profile
+        else:
+            raise Exception()
+        appcert = AppreciationCertificate.objects.get(competition__id=compID, appreciatee=person)
+
+        file_path = os.path.join(settings.MEDIA_ROOT, str(appcert.certificate))
+        if os.path.exists(file_path):
+            with open(file_path, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type="application/pdf")
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response

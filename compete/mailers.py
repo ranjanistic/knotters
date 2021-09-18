@@ -2,7 +2,7 @@ from main.mailers import sendActionEmail, sendAlertEmail, sendCCActionEmail
 from main.strings import URL
 from main.env import PUBNAME
 from people.models import Profile
-from .models import Competition, ParticipantCertificate, Submission
+from .models import AppreciationCertificate, Competition, ParticipantCertificate, Submission
 
 
 
@@ -151,7 +151,6 @@ def certsAllotedAlert(competition: Competition):
     """
     if not competition.resultDeclared:
         return False
-    partcerts = ParticipantCertificate.objects.filter(result__competition=competition)
     sendActionEmail(
         to=competition.creator.getEmail(),
         subject=f"Certificates Alloted: {competition.title}",
@@ -164,6 +163,23 @@ def certsAllotedAlert(competition: Competition):
         footer=f"This marks the successfull end of this competition. Thank you for managing this competition, and thus contributing towards betterment of the {PUBNAME} platform.",
         conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
+    
+    apprcerts = AppreciationCertificate.objects.filter(competition=competition)
+    for apprcert in apprcerts:
+        sendActionEmail(
+            to=apprcert.appreciatee.getEmail(),
+            subject=f"Certificate Available: {competition.title}",
+            greeting="Greetings",
+            username=apprcert.appreciatee.getName(),
+            header=f"Your certficate of appreciation in '{competition.title}' competition has been alloted, and can be accessed permanently via following link.",
+            actions=[{
+                'text': 'View certficate',
+                'url': apprcert.get_link
+            }],
+            footer=f"Your can download your certificate, or just share it from the page itself. Any delay in allotment is deeply regretted. Thank you.",
+            conclusion=f"You received this email because you contributed in the mentioned competition. If this is an error, then please report to us."
+        )
+    partcerts = ParticipantCertificate.objects.filter(result__competition=competition)
     for partcert in partcerts:
         sendActionEmail(
             to=partcert.profile.getEmail(),

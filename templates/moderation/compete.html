@@ -103,7 +103,9 @@
                     <br/>
                     <center>
                     <i class="w3-jumbo positive-text">celebration</i>
-                    <h1>Results Declared.</h1><br/>
+                    <h1>Results Declared.</h1>
+
+                    <a href="{% if ismoderator %}{{moderation.competition.getModCertLink}}{% else %}{{moderation.competition.getJudgeCertLink|params:request.user.getID}}{% endif %}"><button class="accent" data-icon="open_in_new">Your certificate</button></a>
                     <a href="{{moderation.competition.getLink}}?tab=4"><button class="positive" data-icon="open_in_new">See results</button></a>
                     </center>
                 {% else %}    
@@ -112,7 +114,7 @@
                     <h3>All submissions have been marked & results are waiting to be declared.</h3>
                     <h4>Results will be declared by the manager, soon.</h4>
                     <h6>We'll notify you about the results, once declared.</h6>
-                    {% comment %} <button type="submit" class="positive display-button" data-icon="notifications">Remind moderator</button> {% endcomment %}
+                    <h6>Your certificate of appreciation will also be available, you'll be notified via email about that.</h6>
                     </center>
                 {% endif %}
             {% else %}
@@ -132,6 +134,7 @@
                         <h3>All submissions have been marked by you.<br/>Results will be declared soon.</h3>
                         <h4>We're grateful to have you as judge in this competition. Thank you for your contribution.</h4>
                         <h6>We'll notify you about the results, once declared.</h6>
+                        <h6>Your certificate of appreciation will also be available, you'll be notified via email about that.</h6>
                         </center>
                     {% else %}
                         <center><h4 class="dead-text">Manager is waiting for submissions to be marked by you.</h4></center>
