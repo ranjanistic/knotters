@@ -187,10 +187,10 @@ def resultsDeclaredParticipantAlert(competition: Competition):
         done.append(sendCCActionEmail(
             to=sub.getMembersEmail(),
             subject=f"Results Declared: {competition.title}",
-            header=f"This is to inform you that the results of '{competition.title}' competition have been declared. You may check your submission rankings now.",
+            header=f"This is to inform you that the results of '{competition.title}' competition have been declared. You may check your submission ranking now, and don't forget to claim your XP!",
             actions=[{
                 'text': 'View results',
-                'url': competition.getLink()
+                'url': f"{competition.getLink()}?tab=4"
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel. This marks the successfull end of this competition. Thank you for participating, see you again in upcoming competitions!",
             conclusion=f"You received this email because you participated the mentioned competition. If this is an error, then please report to us."
@@ -212,7 +212,7 @@ def resultsDeclaredJudgeAlert(competition: Competition):
             header=f"This is to inform you that the results of '{competition.title}' competition have been declared. This marks the successfull end of this competition. The following link button will lead you to competition results page.",
             actions=[{
                 'text': 'View results',
-                'url': competition.getLink()
+                'url': f"{competition.getLink()}?tab=4"
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel, including you. It was an honour to have you as judge for this competition.",
             conclusion=f"You received this email because you judged the mentioned competition. If this is an error, then please report to us."
@@ -231,7 +231,7 @@ def resultsDeclaredModeratorAlert(competition: Competition):
         header=f"This is to inform you that the results of '{competition.title}' competition have been declared. This marks the successfull end of the competition.",
         actions=[{
             'text': 'View results',
-            'url': competition.getLink()
+            'url': f"{competition.getLink()}?tab=4"
         }],
         footer=f"The results were based on aggregated markings by independent judgement panel. All participants will be informed shortly. Thank you for ensuring successfull conduction of this competition.",
         conclusion=f"You received this email because you moderated the mentioned competition. If this is an error, then please report to us."

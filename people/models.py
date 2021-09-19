@@ -358,6 +358,10 @@ class Profile(models.Model):
         else:
             return 100
 
+    @property
+    def getTopicIds(self):
+        return ProfileTopic.objects.filter(profile=self, trashed=False).values_list('topic',flat=True)
+
     def getTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
         topics = []
@@ -370,6 +374,10 @@ class Profile(models.Model):
 
     def totalTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=False).count()
+
+    @property
+    def getTrashedTopicIds(self):
+        return ProfileTopic.objects.filter(profile=self, trashed=True).values_list('topic',flat=True)
 
     def getTrashedTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
@@ -400,6 +408,10 @@ class Profile(models.Model):
     def totalTrahedTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True).count()
 
+    @property
+    def getAllTopicIds(self):
+        return ProfileTopic.objects.filter(profile=self).values_list('topic',flat=True)
+
     def getAllTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self)
         topics = []
@@ -414,14 +426,13 @@ class Profile(models.Model):
         return ProfileTopic.objects.filter(profile=self).count()
 
     def isBlocked(self, user:User) -> bool:
-        return BlockedUser.objects.filter(profile=self,blockeduser=user).exists() or BlockedUser.objects.filter(profile=user.profile,blockeduser=self.user).exists()
+        return BlockedUser.objects.filter(Q(profile=self,blockeduser=user)|Q(blockeduser=self.user,profile=user.profile)).exists()
 
     def blockUser(self,user:User):
         return self.blocklist.add(user)
 
     def unblockUser(self,user:User):
-        return self.blocklist.remove(user)
-        
+        return self.blocklist.remove(user)    
 
     @property
     def blockedIDs(self) -> list:

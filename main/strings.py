@@ -97,6 +97,11 @@ class Message():
     INVALID_REQUEST = "Invalid request"
     INVALID_RESPONSE = "Invalid response"
     SAVED = "Saved"
+    PROFILE_UPDATED = "Profile updated, it might take some time for changes to appear."
+    TAGS_UPDATED = "Tags updated."
+    TOPICS_UPDATED = "Topics updated."
+    MAX_TAGS_ACHEIVED = "Maximum tags limit reached."
+    MAX_TOPICS_ACHEIVED = "Maximum topics limit reached."
 
     RESULT_DECLARED = "Results declared!"
     RESULT_NOT_DECLARED = "Results not declared."
@@ -591,6 +596,7 @@ class URL():
         NEWBIES = 'newbies'
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
+        BROWSE_SEARCH = 'browse/search'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -674,6 +680,7 @@ class URL():
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
 
         NEWBIES = 'newbies'
+        BROWSE_SEARCH = 'browse/search'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1044,6 +1051,12 @@ class Template():
         def browse_newbie(self):
             return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
 
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
         @property
@@ -1135,17 +1148,30 @@ class Template():
         def license_lic(self):
             return f'{self.DIRNAME}/{self.LICENSE_LIC}.html'
 
-        BROWSE_NEWBIE = 'browse/newbie'
-
-        @property
-        def browse_newbie(self):
-            return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
 
         PROFILE_CONTRIBS = 'profile/contributors'
 
         @property
         def profile_contribs(self):
             return f'{self.DIRNAME}/{self.PROFILE_CONTRIBS}.html'
+
+        BROWSE_NEWBIE = 'browse/newbie'
+
+        @property
+        def browse_newbie(self):
+            return f'{self.DIRNAME}/{self.BROWSE_NEWBIE}.html'
+
+        BROWSE_RECOMMENDED = 'browse/recommended'
+
+        @property
+        def browse_recommended(self):
+            return f'{self.DIRNAME}/{self.BROWSE_RECOMMENDED}.html'
+
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
 
     projects = Projects()
 

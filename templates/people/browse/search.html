@@ -1,10 +1,12 @@
-{% load custom_tags %}
 {% load cache %}
-{% if count %}
-<div class="w3-row accent">
-    <div class="w3-row" style="padding:16px 4px">
-    <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Newbie profiles</h4>
+{% load i18n %}
+{% load l10n %}
+{% load custom_tags %}
+
+{% if query %}
+<div class="w3-row">
+    <div class="w3-row" style="padding:12px 4px">
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Results for '{{query}}'</h4>
     </div>
     <div class="swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap swiper-wrap_i">
@@ -24,8 +26,8 @@
             {% empty %}
             <div class="w3-padding w3-col">
             <center class="w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>No profiles yet. You're the first one!</h3>
+                <i class="w3-jumbo">search</i>
+                <h3>No results for '{{query}}'</h3>
             </center>
             </div>
 			{% endfor %} 

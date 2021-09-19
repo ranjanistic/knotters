@@ -79,7 +79,7 @@ jobs:
         sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
     - name: Merge changes
       run: |
-        sudo git pull --depth=10
+        sudo git pull --depth=20
     - name: Install dependencies
       run: |
         sudo pip install --upgrade pip
@@ -119,4 +119,4 @@ jobs:
         sudo rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
-        sudo git pull --depth=10
+        sudo git pull --depth=20

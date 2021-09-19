@@ -11,7 +11,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
-from .env import ASYNC_CLUSTER
+from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING
 from .strings import Code, classAttrsToDict, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -188,18 +188,15 @@ class JsonEncoder(DjangoJSONEncoder):
 
 
 def errorLog(error):
-    from .env import ISDEVELOPMENT, ISTESTING
-    if not ISTESTING:
-        file = open('_logs_/errors.txt', 'r')
-        existing = file.read()
-        file.close()
-        file2 = open('_logs_/errors.txt', 'w')
-        new = f"{existing}\n{timezone.now()}\n{error}"
-        file2.write(new)
-        file2.close()
-        if ISDEVELOPMENT:
-            print(error)
-
+    try:
+        if not ISTESTING:
+            with open(os.path.join(os.path.join(settings.BASE_DIR,'_logs_'),'errors.txt'), 'a') as log_file:
+                log_file.write(f"\n{timezone.now()}\n{error}")
+            if ISDEVELOPMENT:
+                print(error)
+    except Exception as e:
+        print('Error in logging: ', e)
+        print('\nTo be logged: ', error)
 
 def getNumberSuffix(value: int) -> str:
     valuestr = str(value)

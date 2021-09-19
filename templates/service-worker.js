@@ -12,6 +12,8 @@ const staticCacheName = `static-cache-${version}`,
     dynamicCacheName = `dynamic-cache-${version}`;
 
 const testAsteriskPathRegex = (asteriskPath, testPath) => {
+    if(testPath.includes('*')) console.warn(testPath, ': includes * while being the testpath')
+    if(asteriskPath===testPath) return true;
     const localParamRegex = String(asteriskPath).endsWith("*")
         ? "[a-zA-Z0-9./\\-_?=&%#]"
         : paramRegex;
@@ -45,9 +47,7 @@ self.addEventListener("fetch", async (event) => {
     const path = event.request.url.replace(site, "");
     if (
         netFirstList.some((netFirstPath) =>
-            netFirstPath.includes("*")
-                ? testAsteriskPathRegex(netFirstPath, path)
-                : netFirstPath === path
+            testAsteriskPathRegex(netFirstPath, path)
         )
     ) {
         event.respondWith(
@@ -56,9 +56,7 @@ self.addEventListener("fetch", async (event) => {
                     if (FetchRes.status < 300) {
                         if (
                             recacheList.some((recachepath) =>
-                                recachepath.includes("*")
-                                    ? testAsteriskPathRegex(recachepath, path)
-                                    : recachepath === path
+                                testAsteriskPathRegex(recachepath, path)
                             ) ||
                             event.request.method === "POST"
                         ) {
@@ -66,14 +64,10 @@ self.addEventListener("fetch", async (event) => {
                         }
                         const ignore =
                             ignorelist.some((ignorepath) =>
-                                ignorepath.includes("*")
-                                    ? testAsteriskPathRegex(ignorepath, path)
-                                    : ignorepath === path
+                                testAsteriskPathRegex(ignorepath, path)
                             ) ||
                             noOfflineList.some((noOfflinePath) =>
-                                noOfflinePath.includes("*")
-                                    ? testAsteriskPathRegex(noOfflinePath, path)
-                                    : noOfflinePath === path
+                                testAsteriskPathRegex(noOfflinePath, path)
                             );
                         if (!ignore && event.request.method !== "POST") {
                             return caches
@@ -119,12 +113,10 @@ self.addEventListener("fetch", async (event) => {
                             .catch(() => {
                                 if (
                                     !noOfflineList.find((noOfflinePath) =>
-                                        noOfflinePath.includes("*")
-                                            ? testAsteriskPathRegex(
+                                        testAsteriskPathRegex(
                                                   noOfflinePath,
                                                   path
                                               )
-                                            : noOfflinePath === path
                                     ) &&
                                     event.request.headers.get(
                                         "X-KNOT-REQ-SCRIPT"
@@ -146,12 +138,10 @@ self.addEventListener("fetch", async (event) => {
                         .catch(() => {
                             if (
                                 !noOfflineList.find((noOfflinePath) =>
-                                    noOfflinePath.includes("*")
-                                        ? testAsteriskPathRegex(
+                                    testAsteriskPathRegex(
                                               noOfflinePath,
                                               path
                                           )
-                                        : noOfflinePath === path
                                 ) &&
                                 event.request.headers.get(
                                     "X-KNOT-REQ-SCRIPT"
@@ -184,12 +174,10 @@ self.addEventListener("fetch", async (event) => {
                             }
                             if (
                                 recacheList.some((recachepath) =>
-                                    recachepath.includes("*")
-                                        ? testAsteriskPathRegex(
+                                    testAsteriskPathRegex(
                                               recachepath,
                                               path
                                           )
-                                        : recachepath === path
                                 ) ||
                                 event.request.method === "POST"
                             ) {
@@ -197,20 +185,16 @@ self.addEventListener("fetch", async (event) => {
                             }
                             const ignore =
                                 ignorelist.some((ignorepath) =>
-                                    ignorepath.includes("*")
-                                        ? testAsteriskPathRegex(
+                                    testAsteriskPathRegex(
                                               ignorepath,
                                               path
                                           )
-                                        : ignorepath === path
                                 ) ||
                                 noOfflineList.some((noOfflinePath) =>
-                                    noOfflinePath.includes("*")
-                                        ? testAsteriskPathRegex(
+                                        testAsteriskPathRegex(
                                               noOfflinePath,
                                               path
                                           )
-                                        : noOfflinePath === path
                                 );
                             if (!ignore && event.request.method !== "POST") {
                                 return caches
@@ -242,9 +226,7 @@ self.addEventListener("fetch", async (event) => {
                 .catch((_) => {
                     if (
                         !noOfflineList.find((noOfflinePath) =>
-                            noOfflinePath.includes("*")
-                                ? testAsteriskPathRegex(noOfflinePath, path)
-                                : noOfflinePath === path
+                            testAsteriskPathRegex(noOfflinePath, path)
                         ) &&
                         event.request.headers.get("X-KNOT-REQ-SCRIPT") !==
                             "true"
