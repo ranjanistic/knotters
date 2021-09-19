@@ -316,14 +316,14 @@ const loadCarousels = ({
     container = "swiper-container",
     loop = false,
     grabCursor = true,
-    spaceBetween = 5,
+    spaceBetween = 2,
     breakpoints = {
         640: {
-            slidesPerView: 1,
+            slidesPerView: 2,
             spaceBetween: 0,
         },
         768: {
-            slidesPerView: 1,
+            slidesPerView: 2,
             spaceBetween: 0,
         },
         1024: {

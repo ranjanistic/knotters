@@ -123,36 +123,37 @@
                         <!-- </span> -->
                     </h6>
                 </center>
-                <div class="w3-row">
-                <center><h4>Rank perks<a href="#notice">*</a></h4></center>
-                
-                <div class="w3-col w3-third w3-padding-small w3-center">
-                    <div class="pallete accent">
-                        <i class="w3-jumbo ">emoji_events</i>
-                        <h1>1st</h1>
-                        <h6 class="pallete">
-                            <input class="wide create-compete-input" required placeholder="For Rank 1" type="text" name="compperk1" id="compperk1">
-                        </h6>
+                <div class="w3-row" id="perkDetails">
+                    <center><h4>Rank perks<a href="#notice">*</a></h4></center>
+                    
+                    <div class="w3-col w3-third w3-padding-small w3-center">
+                        <div class="pallete accent">
+                            <i class="w3-jumbo ">emoji_events</i>
+                            <h1>1st</h1>
+                            <h6 class="pallete">
+                                <input class="wide create-compete-input" required placeholder="For Rank 1" type="text" name="compperk1" id="compperk1">
+                            </h6>
+                        </div>
                     </div>
-                </div>
-                <div class="w3-col w3-third w3-padding-small w3-center">
-                    <div class="pallete accent">
-                        <i class="w3-jumbo ">emoji_events</i>
-                        <h1>2nd</h1>
-                        <h6 class="pallete">
-                            <input class="wide create-compete-input" required placeholder="For Rank 2" type="text" name="compperk2" id="compperk2">
-                        </h6>
+                    <div class="w3-col w3-third w3-padding-small w3-center">
+                        <div class="pallete accent">
+                            <i class="w3-jumbo ">emoji_events</i>
+                            <h1>2nd</h1>
+                            <h6 class="pallete">
+                                <input class="wide create-compete-input" required placeholder="For Rank 2" type="text" name="compperk2" id="compperk2">
+                            </h6>
+                        </div>
                     </div>
-                </div>
-                <div class="w3-col w3-third w3-padding-small w3-center">
-                    <div class="pallete accent">
-                        <i class="w3-jumbo ">emoji_events</i>
-                        <h1>3rd</h1>
-                        <h6 class="pallete">
-                            <input class="wide create-compete-input" required placeholder="For Rank 3" type="text" name="compperk3" id="compperk3">
-                        </h6>
+                    <div class="w3-col w3-third w3-padding-small w3-center">
+                        <div class="pallete accent">
+                            <i class="w3-jumbo ">emoji_events</i>
+                            <h1>3rd</h1>
+                            <h6 class="pallete">
+                                <input class="wide create-compete-input" required placeholder="For Rank 3" type="text" name="compperk3" id="compperk3">
+                            </h6>
+                        </div>
                     </div>
-                </div>
+                    <button title="Add Perks" type="button" onclick="addPerks()" class="primary w3-margin-top" data-icon="add" id="addperksbutton">Add Perks</button>
                 </div>
                 <br/>
                 <center>
@@ -215,6 +216,27 @@
 
 {% block in_scripts %}
 <script>
+
+    const addPerks= () => {
+        console.log("pp");
+        const parent=document.getElementById('perkDetails');
+        const position=parent.childElementCount-1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+                    <div class="w3-col w3-third w3-padding-small w3-center">
+                        <div class="pallete accent">
+                            <b class="w3-jumbo">🏆</b>
+                            <h1>${position}th</h1>
+                            <h6 class="pallete">
+                                <input class="wide create-compete-input" required placeholder="For Rank ${position}" type="text" name="compperk${position}" id="compperk${position}">
+                            </h6>
+                        </div>
+                    </div>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[position+4]);
+        // document.getElementById("addPerks").appendChild(newChild);
+        console.log('perksChild=>',parent.childElementCount)
+    }
 
      initializeTabsView({
         onEachTab: async (tab) => {
