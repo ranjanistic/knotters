@@ -158,9 +158,9 @@
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">Contact us</a><br/>
                 <form action="{% url "set_language" %}" method="POST">
                     {% csrf_token %}
-                    <select name="language" id="language" onchange="this.form.submit()">
+                    <select name="language" class="selectLanguage" id="language" onchange="this.form.submit()">
                     {% for language in LANGUAGES %}
-                        <option value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
+                        <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                     {% endfor %}
                     </select>
                 </form>

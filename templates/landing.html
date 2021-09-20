@@ -15,6 +15,7 @@
             <h1 class="w3-jumbo"><b>Knotters Community</b></h1>
         </div>
     </div>
+    
     <div class="landing_features">
         <h2 class="land_f">Features</h2>
         <p class="f_detail">Record or rewind any change to your code to keep you and your team in sync. Host it all for
@@ -50,6 +51,21 @@
                 <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
                     ipsum dolor sit amet, con</p>
             </div>
+            <div class="land_feature_card">
+                <h2>Achievements</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card1">
+                <h2>Sharable Id</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
+            <div class="land_feature_card2">
+                <h2>Profile</h2>
+                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
+                    ipsum dolor sit amet, con</p>
+            </div>
         </div>
     </div>
     <div class="contributor center">
@@ -57,6 +73,42 @@
             <h2>Contribute</h2>
             <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
                 imagine.Any contribution to a code base, including those that you make to the project that you may be working on right now, aims to improve the code base, be it based on new exciting features or hands-on refactoring to lower technical debt.</h6>
+        </div>
+        <div class="c_right center">
+            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}" alt="Img" />
+        </div>
+    </div>
+    <div class="contributor center rc">
+        <div class="c_right center">
+            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}" alt="Img" />
+        </div>
+        <div class="c_left">
+            <h2>Why Open Source</h2>
+            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
+        </div>
+    </div>
+    <div class="contributor center">
+        <div class="c_left">
+            <h2>Everything Count</h2>
+            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
+        </div>
+        <div class="c_right center">
+            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}" alt="Img" />
+        </div>
+    </div>
+    <div class="contributor center rc">
+        <div class="c_right center">
+            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}" alt="Img" />
+        </div>
+        <div class="c_left">
+            <h2>Wall Of Fame</h2>
+            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
+        </div>
+    </div>
+    <div class="contributor center">
+        <div class="c_left">
+            <h2>Top Contribution</h2>
+            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
         </div>
         <div class="c_right center">
             <img class="c_img" src="{% static 'graphics/contribute.jpg' %}" alt="Img" />
@@ -91,36 +143,62 @@
     </div>
 
     <div class="wall_fame">
-        <h1 class="wf_text">Wall Of Fame</h1>
-        <div class="wrapper center">
-            <div class="picture">
-              <div class="hook"></div>
-              <div class="frame">
-                <div class="inside"></div>
-              </div>
-            </div>
-            <div class="picture">
-              <div class="hook"></div>
-              <div class="frame">
-                <div class="inside"></div>
-              </div>
-            </div>
-            <div class="picture">
-                <div class="hook"></div>
-                <div class="frame">
-                  <div class="inside"></div>
-                </div>
-              </div>
-          </div>
+        <h1 class="wf_text">Licenses</h1>
+        <h3 class="lm_text" style="text-align:center">If you are looking at blank cassettes on the web, you may be very confused at the
+            difference in price.
+            If you are looking at blank cassettes on the web, you may be very confused at the
+            difference in price
+            Get license for your project verified by ISI certification. Wow nothing can be more exciting than having license for project.
+        </h3>
     </div>
 
-    <div class="w3-row accent w3-padding">
+    <!-- <div class="w3-row accent w3-padding">
+
         <h1>Your projects => carousel</h1>
-    </div>
-    <div class="w3-row active w3-padding">
+    </div> -->
+    <!-- <div class="w3-row  w3-padding">
         <h1>Our moderators => done</h1>
+        <div class="lmm">
+            <div class="w3-col m4 l3">
+                <div class="lm_img"></div>
+                <div class="lm_details">
+                    <h3>Name</h3>
+                    <p class="lm_text">If you are looking at blank cassettes on the web, you may be very confused at the
+                        difference in price.</p>
+                </div>
+            </div>
+            <div class="w3-col m4 l3">
+                <div class="lm_img"></div>
+                <div class="lm_details">
+                    <h3>Name</h3>
+                    <p class="lm_text">If you are looking at blank cassettes on the web, you may be very confused at the
+                        difference in price.</p>
+                </div>
+            </div>
+            <div class="w3-col m4 l3">
+                <div class="lm_img"></div>
+                <div class="lm_details">
+                    <h3>Name</h3>
+                    <p class="lm_text">If you are looking at blank cassettes on the web, you may be very confused at the
+                        difference in price.</p>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <div class="w3-row s3-center primary w3-padding ">
+        <h2 class="land_f">Guide</h2>
+        <div class="center">
+            <div class="g_contribution g_active" id="g_contribution" onclick="selectTab('g_contribution')">Contribution</div>
+            <div class="g_line"></div>
+            <div class="g_moderation" id="g_moderation" onclick="selectTab('g_moderation')">Moderation</div>
+            <div class="g_line"></div>
+            <div class="g_competition" id="g_competition" onclick="selectTab('g_competition')">Competition</div>
+        </div>
+        <div class="g_con_text" id="g_con_text">1{% lorem %}</div>
+        <div class="g_mod_text" id="g_mod_text">2{% lorem %}</div>
+        <div class="g_comp_text" id="g_comp_text">3{% lorem %}</div>
     </div>
-    <div class="w3-row accent w3-padding">
+    <!-- <div class="w3-row accent w3-padding">
         <h1>Your contribution => done</h1>
     </div>
     <div class="w3-row accent w3-padding">
@@ -173,7 +251,7 @@
         <span>Every minute step you take counts towards your own visible growth on our
             platform, which is showcasable!</span>
     </div>
-
+    
     <div class="w3-row accent w3-padding">
         <h1>Contribution guide</h1>
     </div>
@@ -186,6 +264,30 @@
 
     <div class="w3-row accent w3-padding">
         <h1>Why open source?</h1>
-    </div>
+    </div> -->
 </div>
+<script>
+    const selectTab = (id) => {
+      const cs = document.getElementsByClassName("g_active")[0];
+      cs.classList.remove("g_active");
+      if(id==='g_contribution'){
+            document.getElementById('g_contribution').classList.add("g_active");
+            document.getElementById('g_con_text').style.display='block';
+        console.log("id2",id);
+            document.getElementById('g_mod_text').style.display='none';
+        console.log("id3",id);
+            document.getElementById('g_comp_text').style.display='none';
+        } else if(id === 'g_moderation') {
+            document.getElementById('g_moderation').classList.add("g_active");
+            document.getElementById('g_con_text').style.display='none';
+            document.getElementById('g_mod_text').style.display='block';
+            document.getElementById('g_comp_text').style.display='none';
+        } else{
+            document.getElementById('g_competition').classList.add("g_active");
+            document.getElementById('g_con_text').style.display='none';
+            document.getElementById('g_mod_text').style.display='none';
+            document.getElementById('g_comp_text').style.display='block';
+        }
+      }
+</script>
 {% endblock %}
