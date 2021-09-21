@@ -288,17 +288,32 @@ h6.text-negative {
     box-shadow: 0 0 0 0 #00000000;
     border-radius: 12px;
 }
-
+.swiper-wrap_i {
+    overflow-x: scroll;
+    display: flex;
+}
+.swiper-wrap_i ::-webkit-scrollbar{
+    display: none;
+}
+.pallete_i{
+    width: 300px;
+    height: 300px;
+    margin:0 20px;
+}
 @media (max-width: 640px){
     .pallete_i{
         width: 300px;
-        margin: 0 auto;
+        /* margin: 0 auto; */
     }
     .swiper-wrap_i {
         padding-left: 0px !important;
     }
 }
-
+@media (max-width:450px) {
+    .swiper-slide {
+        width:300px;
+    }
+}
 .scroll-x {
     overflow-x: scroll;
 }
