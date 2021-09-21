@@ -79,12 +79,12 @@
                 class="w3-left w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
                 {% block nav_icon_hide %}
-                    <img alt="{{APPNAME}}" src="{{ICON}}" {% if request.GET.miniwin %}onclick="window.close()"{% endif %} class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />
+                    <img alt="{{APPNAME}}" src="{{ICON}}" onclick="{% block nav_onclick %}{% if not request.GET.previous and request.GET.miniwin %}window.close(){% endif %}{% endblock %}" class="darkimg" data-ext="svg" data-name="self/icon" width="40" height="40" />
                 {% endblock %}
-                
+
                 <button
                     {% block nav_back_show %}hidden{% endblock %}
-                    class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" {% if not request.GET.previous and request.GET.miniwin %}onclick="window.close()"{% endif %}></button>
+                    class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" onclick="{% block nav_back_onclick %}{% if not request.GET.previous and request.GET.miniwin %}window.close(){% endif %}{% endblock %}"></button>
             </a>
             <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}

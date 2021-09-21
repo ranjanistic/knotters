@@ -78,4 +78,10 @@ class ParticipantCertificateAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
-# admin.site.register(ParticipantCertificate)
+@admin.register(AppreciationCertificate)
+class AppreciationCertificateAdmin(admin.ModelAdmin):
+    list_display = ["appreciatee", "competition"]
+    list_filter = ["competition"]
+
+    class Meta:
+        ordering = ("")
