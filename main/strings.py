@@ -87,6 +87,8 @@ class Event():
     ORG = 'organization'
     TEAMS = 'team'
     CREATED = 'created'
+    RELEASE = 'release'
+    PUBLISHED = 'published'
 
 # ENVIRONMENTS = [Environment.DEVELOPMENT,
 #                 Environment.TESTING, Environment.PRODUCTION]
@@ -297,6 +299,8 @@ class URL():
 
     VERIFY_CAPTCHA = 'captcha/verify'
 
+    BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
+
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
         Returns root path of given sub application name.
@@ -487,6 +491,16 @@ class URL():
 
         def certificateDownload(self, resID, userID):
             return setPathParams(self.CERTDOWNLOAD, resID, userID)
+
+        APPR_CERTIFICATE = 'appcertificate/<str:compID>/<str:userID>'
+
+        def apprCertificate(self, compID, userID):
+            return setPathParams(self.APPR_CERTIFICATE, compID, userID)
+
+        APPR_CERTDOWNLOAD = 'appcertificate/download/<str:compID>/<str:userID>'
+
+        def apprCertificateDownload(self, compID, userID):
+            return setPathParams(self.APPR_CERTDOWNLOAD, compID, userID)
 
         @deprecated
         def certficateDownload(self, resID, userID):
@@ -980,6 +994,12 @@ class Template():
         @property
         def cert_certificate(self):
             return f'{self.DIRNAME}/{self.CERT_CERTIFICATE}.html'
+
+        CERT_APPCERTIFICATE = 'certificate/certificate-app'
+
+        @property
+        def cert_appcertificate(self):
+            return f'{self.DIRNAME}/{self.CERT_APPCERTIFICATE}.html'
 
         CERTIFICATE = 'certificate'
 

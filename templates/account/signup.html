@@ -34,21 +34,21 @@
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/><br/>
-				<a class="w3-row" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&next={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="primary w3-padding">
 						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
 						Continue via Google
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&next={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="secondary w3-padding">
 						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
 						Continue via Github
 					</button>
 				</a>
 				<br/>
-				<a class="w3-row" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&next={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
+				<a class="w3-row" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="tertiary w3-padding">
 						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
 						Continue via Discord
@@ -56,22 +56,22 @@
 				</a>
 				<br/>
 				<h4>Already a member?</h4>
-				<a class="w3-row" href="{% url 'account_login' %}?next={{request.GET.next}}">
+				<a class="w3-row" href="{% url 'account_login' %}?{{redirect_field_name}}={{request.GET.next}}">
 					<button class="primary" data-icon="login">Existing Login</button>
 				</a>
 			</div>
 			<div class="w3-col w3-half">
-				<form method="POST" action="{% url 'account_signup' %}" enctype="multipart/form-data">
+				<form method="POST" action="{% url 'account_signup' %}?{{redirect_field_name}}={{request.GET.next}}" enctype="multipart/form-data">
 					{% csrf_token %}
 					<br/>
-					<h3>or create a<br/>Knotters account</h3>
+					<h3>or create a<br/>{{APPNAME}} account</h3>
 					<br/>
 					{% for field in form %}
 						{{ field }}
 						<br/><br/>
 					{% endfor %}
 					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' data-icon="person_add" id="sign-up-action">Create account</button>
-					<input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
+					<input type="hidden" name="{{redirect_field_name}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>
 			</div>

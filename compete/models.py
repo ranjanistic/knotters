@@ -170,7 +170,7 @@ class Competition(models.Model):
         return None if not self.associate else f"{settings.MEDIA_URL}{str(self.associate)}"
 
     @property
-    def moderator(self):
+    def moderator(self)->Profile:
         mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn').first()
         return None if not mod else mod.moderator
             
@@ -435,11 +435,26 @@ class Competition(models.Model):
     def generateCertificatesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.generateCert(compID=self.getID())}"
 
+    def totalParticipantCertificates(self) -> int:
+        return ParticipantCertificate.objects.filter(result__competition=self).count()
+
+    def totalAppreciateCertificates(self) -> int:
+        return AppreciationCertificate.objects.filter(competition=self).count()
+
     def totalCertificates(self) -> int:
-        return ParticipantCertificate.objects.filter(result__submission__competition=self).count()
+        return self.totalParticipantCertificates() + self.totalAppreciateCertificates()
 
     def certificatesGenerated(self) -> bool:
-        return self.totalValidSubmissionParticipants() <= self.totalCertificates()
+        return (self.totalValidSubmissionParticipants() + self.totalJudges() + 1) == self.totalCertificates()
+
+    @property
+    def getModCertLink(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.getID(),userID=self.moderator.getUserID())}"
+
+    @property
+    def getJudgeCertLink(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.getID(),userID='*')}"
+        
 
 class CompetitionJudge(models.Model):
     """
@@ -741,7 +756,37 @@ class ParticipantCertificate(models.Model):
 
     def getCertificate(self):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"
-    
-    def delete(self, *args,**kwargs):
-        return super().delete(*args, **kwargs)
+
+class AppreciationCertificate(models.Model):
+    class Meta:
+        unique_together = ("competition", "appreciatee")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    competition = models.ForeignKey(Competition, on_delete=models.PROTECT, related_name='appreciation_certificate_competition')
+    appreciatee = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='appreciation_certificate_profile')
+    certificate = models.CharField(default='', null=True, blank=True,max_length=1000)
+
+    @property
+    def certficateImage(self):
+        return f"{str(self.certificate).replace('.pdf','.jpg')}" if self.certificate else None
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_link(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.competition.getID(),userID=self.appreciatee.getUserID())}"
+
+    @property
+    def get_download_link(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificateDownload(compID=self.competition.getID(),userID=self.appreciatee.getUserID())}"
+
+    @property
+    def getCertImage(self):
+        return f"{settings.MEDIA_URL}{str(self.certificate).replace('.pdf','.jpg')}"
+
+    @property
+    def getCertificate(self):
+        return f"{settings.MEDIA_URL}{str(self.certificate)}"
 

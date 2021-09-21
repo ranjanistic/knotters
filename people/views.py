@@ -476,6 +476,16 @@ def browseSearch(request:WSGIRequest):
     excludeIDs = []
     if request.user.is_authenticated:
         excludeIDs = request.user.profile.blockedIDs
-    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
-            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query)))[0:20]
+    qparts = query.split(" ")
+    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
+        Q(is_active=True, suspended=False, to_be_zombie=False), 
+        Q(user__email__startswith=query) 
+        | Q(user__first_name__startswith=query.capitalize())
+        | Q(user__last_name__startswith=qparts[len(qparts)-1].capitalize())
+        | Q(githubID__startswith=query)
+        | Q(githubID__iexact=query)
+        | Q(user__first_name__iexact=query)
+        | Q(user__last_name__iexact=query)
+        | Q(user__last_name__iexact=qparts[len(qparts)-1])
+    ))[0:20]
     return rendererstr(request,Template.People.BROWSE_SEARCH,dict(profiles=profiles, query=query))

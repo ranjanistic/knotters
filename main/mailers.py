@@ -45,8 +45,9 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
 def sendBulkEmails(emails:list,subject,html,body):
     for email in emails:
         sendEmail(email,subject,html,body)
+    return True
 
-def getEmailHtmlBody(greeting: str, header: str, footer: str, username: str = '', actions: list = [], conclusion: str = '', action=False) -> str and str:
+def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list = [],greeting: str = '', conclusion: str = '', action=False) -> str and str:
     """
     Creates html and body content using parameters via the application's standard email template.
 
@@ -139,6 +140,11 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
         greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
     return sendCCEmail(to=to, subject=subject, html=html, body=body)
 
+
+def featureRelease(name,content):
+    emails = Profile.objects.filter(is_active=True,suspended=False,to_be_zombie=False).values_list("user__email",flat=True)
+    html, body = getEmailHtmlBody(header=f'A new feature release - {name} - of {PUBNAME} is here! This release has the following details.', footer=content, conclusion="You aren't required to take any action. You were notified because you are a member. You can stop receiving such emails in future.")
+    return sendBulkEmails(emails,'Feature Release!',html, body)
 
 def downtimeAlert():
     """
