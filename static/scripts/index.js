@@ -113,19 +113,19 @@ const loadBrowserSwiper = (_) => {
         breakpoints: {
             1024: {
                 slidesPerView: 4,
-                spaceBetween: 5,
+                spaceBetween: 15,
             },
             768: {
                 slidesPerView: 3,
-                spaceBetween: 5,
+                spaceBetween: 10,
             },
             920: {
                 slidesPerView: 4,
-                spaceBetween: 4,
+                spaceBetween: 10,
             },
             640: {
                 slidesPerView: 4,
-                spaceBetween: 2,
+                spaceBetween: 10,
             },
         },
     });
