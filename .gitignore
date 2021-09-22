@@ -34,3 +34,4 @@ htmlcov/
 *.rdb
 __static__
 templates/certificate*.jpg
+*.mo
