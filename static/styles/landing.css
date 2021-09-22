@@ -30,20 +30,20 @@
 .land_feature_card,
 .land_feature_card1,
 .land_feature_card2 {
-    width: 33%;
+    /* width: 33%; */
     height: 300px;
-    background-color: #f2f3f7;
+    background-color: var(--positive);
     margin: 10px 0;
     padding: 50px 40px;
     position: relative;
-    color:var(--secondary) !important;
+    color:var(--primary) !important;
 }
 .land_feature_card1 {
-    top: -150px;
+    top: -150px !important;
 }
 
 .land_feature_card2 {
-    top: -300px;
+    top: -300px !important;
 }
 
 .landing_moderators {
@@ -227,6 +227,14 @@
 .g_comp_text{
     display: none;
 }
+.l_padding{
+    padding: 0px 80px;
+}
+.verticalAlign{
+    display:flex;
+    justify-content: center;
+    align-items:center;
+}
 
 @media only screen and (max-width:978px) {
     .landing_features {
@@ -236,15 +244,15 @@
     .land_feature_card,
     .land_feature_card1,
     .land_feature_card2 {
-        width: 45%;
+        /* height:350px */
     }
 
     .land_feature_card1 {
-        top: 0;
+        top: 0 !important;
     }
 
     .land_feature_card2 {
-        top: 0;
+        top: 0 !important;
     }
 }
 
@@ -271,7 +279,12 @@
     .land_feature_cards {
         justify-content: center;
     }
-
+    .l_padding{
+        padding:0 40px;
+    }
+    .verticalAlign{
+        flex-direction: column;
+    }
     .land_feature_card,
     .land_feature_card1,
     .land_feature_card2 {

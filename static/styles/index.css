@@ -292,7 +292,7 @@ h6.text-negative {
     overflow-x: scroll;
     display: flex;
 }
-.swiper-wrap_i ::-webkit-scrollbar{
+.swiper-wrap_i::-webkit-scrollbar{
     display: none;
 }
 .pallete_i{
