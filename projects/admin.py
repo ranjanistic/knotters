@@ -5,10 +5,22 @@ from .forms import *
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ["name", "reponame", "status"]
-    list_filter = ["status", "category", "creator"]
+    list_filter = ["status", "category"]
 
     def get_queryset(self, request):
         query_set = super(ProjectAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
+@admin.register(FreeProject)
+class FProjectAdmin(admin.ModelAdmin):
+    list_display = ["name", "repolink"]
+    list_filter = ["category"]
+
+    def get_queryset(self, request):
+        query_set = super(FProjectAdmin, self).get_queryset(request)
         return query_set
 
     class Meta:

@@ -144,29 +144,20 @@ class License(models.Model):
     def isCustom(self):
         return self.creator.getEmail() != BOTMAIL
 
-
-class Project(models.Model):
+class BaseProject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50, null=False, blank=False)
-    url = models.CharField(max_length=500, null=True, blank=True)
-    image = models.ImageField(upload_to=projectImagePath,
-                              max_length=500, default=defaultImagePath, null=True, blank=True)
-    reponame = models.CharField(
-        max_length=500, unique=True, null=False, blank=False)
+    image = models.ImageField(upload_to=projectImagePath, max_length=500, default=defaultImagePath, null=True, blank=True)
     description = models.CharField(max_length=5000, null=False, blank=False)
-    status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
-        project.PROJECTSTATES), default=Code.MODERATION)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
-    approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
     migrated = models.BooleanField(
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
-    acceptedTerms = models.BooleanField(default=True)
-    license = models.ForeignKey(License, on_delete=models.PROTECT)
     trashed = models.BooleanField(
         default=False, help_text="Deleted for creator, can be used when rejected.")
-
+    license = models.ForeignKey(License, on_delete=models.PROTECT)
+    acceptedTerms = models.BooleanField(default=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     topics = models.ManyToManyField(
@@ -184,13 +175,51 @@ class Project(models.Model):
 
     def save(self, *args, **kwargs):
         try:
-            previous = Project.objects.get(id=self.id)
+            previous = BaseProject.objects.get(id=self.id)
             if previous.image != self.image:
                 if previous.image != defaultImagePath():
                     previous.image.delete(False)
         except:
             pass
-        super(Project, self).save(*args, **kwargs)
+        super(BaseProject, self).save(*args, **kwargs)
+
+    def getDP(self) -> str:
+        return f"{MEDIA_URL}{str(self.image)}"
+    
+    def getTopics(self) -> list:
+        return self.topics.all()
+
+    def getTopicsData(self):
+        return ProjectTopic.objects.filter(project=self)
+
+    def totalTopics(self):
+        return self.topics.count()
+
+    @property
+    def getTags(self):
+        return self.tags.all()
+
+    def totalTags(self):
+        return self.tags.count()
+
+    @property
+    def socialsites(self):
+        return ProjectSocial.objects.filter(project=self)
+
+    def addSocial(self, site:str):
+        return ProjectSocial.objects.create(project=self,site=site)
+
+    def removeSocial(self, id:uuid.UUID):
+        return ProjectSocial.objects.filter(id=id,project=self).delete()
+
+
+class Project(BaseProject):
+    url = models.CharField(max_length=500, null=True, blank=True)
+    reponame = models.CharField(
+        max_length=500, unique=True, null=False, blank=False)
+    status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
+        project.PROJECTSTATES), default=Code.MODERATION)
+    approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
@@ -199,9 +228,6 @@ class Project(models.Model):
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
         except:
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
-
-    def getDP(self) -> str:
-        return f"{MEDIA_URL}{str(self.image)}"
 
     def isApproved(self) -> bool:
         return self.status == Code.APPROVED
@@ -256,25 +282,12 @@ class Project(models.Model):
             return self.trashed
         return self.trashed
 
-    def getTopics(self) -> list:
-        return self.topics.all()
-
-    def getTopicsData(self):
-        return ProjectTopic.objects.filter(project=self)
-
-    def totalTopics(self):
-        return self.topics.count()
-
-    @property
-    def getTags(self):
-        return self.tags.all()
-
-    def totalTags(self):
-        return self.tags.count()
-
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
 
+
+class FreeProject(BaseProject):
+    repolink = models.CharField(max_length=500, null=True, blank=True)
 
 class ProjectTag(models.Model):
     class Meta:
@@ -282,7 +295,7 @@ class ProjectTag(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, null=True, blank=True)
+        BaseProject, on_delete=models.CASCADE, null=True, blank=True)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE,
                             related_name='project_tag')
 
@@ -293,10 +306,14 @@ class ProjectTopic(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, null=True, blank=True)
+        BaseProject, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
                               null=True, blank=True, related_name='project_topic')
 
+class ProjectSocial(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
+    site = models.URLField(max_length=800)
 
 class LegalDoc(models.Model):
     class Meta:

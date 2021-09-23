@@ -41,6 +41,9 @@ class Report(models.Model):
     def getLink(self):
         return f"{url.getRoot(APPNAME)}{url.management.reportfeedTypeID(self.reportfeed_type,self.get_id)}"
 
+class ProfileReport(Report):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='reported_profile', null=True, blank=True)
+
 class Feedback(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     feedbacker = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='feedbacker_profile', null=True, blank=True)
