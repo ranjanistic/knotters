@@ -1,0 +1,4 @@
+msgid "You\'re welcome"
+msgstr "आपका स्वागत है"
+msgid "Bye"
+msgstr "अलविदा"

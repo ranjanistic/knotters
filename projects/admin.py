@@ -16,7 +16,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(FreeProject)
 class FProjectAdmin(admin.ModelAdmin):
-    list_display = ["name", "repolink"]
+    list_display = ["name", "repolinked"]
     list_filter = ["category"]
 
     def get_queryset(self, request):

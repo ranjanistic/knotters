@@ -8,6 +8,7 @@ from main.settings import MEDIA_URL
 from main.methods import addMethodToAsyncQueue, maxLengthInList
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
+from management.models import HookRecord
 from .apps import APPNAME
 
 
@@ -211,6 +212,22 @@ class BaseProject(models.Model):
 
     def removeSocial(self, id:uuid.UUID):
         return ProjectSocial.objects.filter(id=id,project=self).delete()
+    
+    @property
+    def is_free(self):
+        return FreeProject.objects.filter(id=self.id).exists()
+
+    def getProject(self,onlyApproved=False):
+        try:
+            project = FreeProject.objects.get(id=self.id)
+        except:
+            project = Project.objects.get(id=self.id)
+            if not onlyApproved:
+                return project
+            else:
+                if project.isApproved(): return project
+            return Project.objects.get(id=self.id)
+        return None
 
 
 class Project(BaseProject):
@@ -287,7 +304,11 @@ class Project(BaseProject):
 
 
 class FreeProject(BaseProject):
-    repolink = models.CharField(max_length=500, null=True, blank=True)
+    username = models.CharField(max_length=500, unique=True, null=False, blank=False)
+    repolinked = models.BooleanField(default=False)
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(username=self.username)}{url.getMessageQuery(alert,error,success)}"
 
 class ProjectTag(models.Model):
     class Meta:
@@ -340,3 +361,10 @@ class LegalDoc(models.Model):
 
     def getLink(self):
         return f"{url.getRoot(DOCS)}{url.docs.type(self.pseudonym)}"
+
+
+class ProjectHookRecord(HookRecord):
+    """
+    Github Webhook event record to avoid redelivery misuse.
+    """
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='hook_record_project')

@@ -8,7 +8,7 @@ from main.strings import Code, Event, url
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
-from .models import Category, License, Project, Tag
+from .models import Category, FreeProject, License, Project, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
@@ -21,7 +21,30 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
-def createProject(name: str, category: str, reponame: str, description: str, tags: list, creator: Profile, licenseID: UUID, url: str = str()) -> Project or bool:
+def createFreeProject(name: str, category: str, username: str, description: str, creator: Profile, licenseID: UUID) -> Project or bool:
+    """
+    Creates project on knotters under moderation status.
+
+    :name: Display name of project
+    :category: The category of project
+    :reponame: Repository name, a unique indetifier of project
+    :description: Visible about (bio) of project
+    :tags: List of tag strings
+    :creator: The profile of project creator
+    :url: A display link for project, optional
+    """
+    try:
+        username = uniqueRepoName(username)
+        if not username:
+            return False
+        license = License.objects.get(id=licenseID)
+        category = Category.objects.get(id=category)
+        return FreeProject.objects.create(creator=creator, name=name, description=description, category=category, license=license, username=username)
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def createProject(name: str, category: str, reponame: str, description: str, creator: Profile, licenseID: UUID, url: str = str()) -> Project or bool:
     """
     Creates project on knotters under moderation status.
 
@@ -41,19 +64,8 @@ def createProject(name: str, category: str, reponame: str, description: str, tag
         categoryObj = addCategoryToDatabase(category)
         if not categoryObj:
             return False
-        project = Project.objects.create(
+        return Project.objects.create(
             creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
-        if tags:
-            count = 0
-            for tag in tags:
-                if count == 5:
-                    break
-                tagobj = addTagToDatabase(tag)
-                if tagobj:
-                    project.tags.add(tagobj)
-                    categoryObj.tags.add(tagobj)
-                    count = count + 1
-        return project
     except Exception as e:
         errorLog(e)
         return False
@@ -102,8 +114,10 @@ def uniqueRepoName(reponame: str) -> bool:
             return False
         if project.underModeration() or project.isApproved():
             return False
-
+    elif FreeProject.objects.filter(username__iexact=str(reponame), trashed=False).exists():
+        return False
     return reponame if reponame and reponame != str() else False
+
 
 
 def uniqueTag(tagname: str) -> Tag:

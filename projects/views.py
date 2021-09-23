@@ -9,15 +9,16 @@ from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, 
 from django.shortcuts import redirect
 from django.conf import settings
 # from django.views.decorators.cache import cache_page
+from main.env import PUBNAME
 from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
 from main.strings import Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
-from .models import License, Project, ProjectTag, ProjectTopic, Tag, Category
-from .mailers import sendProjectSubmissionNotification
-from .methods import renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .models import BaseProject, FreeProject, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Tag, Category
+from .mailers import freeProjectCreated, sendProjectSubmissionNotification
+from .methods import createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -51,10 +52,30 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     except:
         raise Http404()
 
-
 @normal_profile_required
 @require_GET
 def create(request: WSGIRequest) -> HttpResponse:
+    return renderer(request, Template.Projects.CREATE)
+
+@normal_profile_required
+@require_GET
+def createFree(request: WSGIRequest) -> HttpResponse:
+
+    categories = Category.objects.all()
+
+    projects = Project.objects.filter(creator=request.user.profile)
+    licIDs = []
+    if len(projects) > 0:
+        for project in projects:
+            licIDs.append(project.license.id)
+
+    licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
+
+    return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
+    
+@normal_profile_required
+@require_GET
+def createMod(request: WSGIRequest) -> HttpResponse:
     tags = []
     for topic in request.user.profile.getTopics():
         if topic.tags.count():
@@ -74,7 +95,7 @@ def create(request: WSGIRequest) -> HttpResponse:
 
     licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
 
-    return renderer(request, Template.Projects.CREATE, dict(tags=tags, categories=categories, licenses=licenses))
+    return renderer(request, Template.Projects.CREATE_MOD, dict(tags=tags, categories=categories, licenses=licenses))
 
 
 @normal_profile_required
@@ -135,26 +156,65 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+def submitFreeProject(request: WSGIRequest) -> HttpResponse:
+    projectobj = None
+    try:
+        acceptedTerms = request.POST.get("acceptterms", False)
+        if not acceptedTerms:
+            return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.TERMS_UNACCEPTED)
+        license = request.POST.get('license', None)
+        if not license:
+            return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.LICENSE_UNSELECTED)
+        name = request.POST["projectname"]
+        description = request.POST["projectabout"]
+        category = request.POST["projectcategory"]
+        username = request.POST.get("projectusername",None)
+        if not uniqueRepoName(username):
+            return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.USERNAME_ALREADY_TAKEN)
+        projectobj = createFreeProject(
+            creator=request.user.profile, name=name,
+            category=category, description=description, licenseID=license,
+            username=username,
+        )
+        if not projectobj:
+            raise Exception()
+        try:
+            imageData = request.POST['projectimage']
+            imageFile = base64ToImageFile(imageData)
+            if imageFile:
+                projectobj.image = imageFile
+            projectobj.save()
+        except:
+            pass
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{freeProjectCreated.__name__}",projectobj)
+        return redirect(projectobj.getLink(success=Message.FREE_PROJECT_CREATED))
+    except Exception as e:
+        errorLog(e)
+        if projectobj:
+            projectobj.delete()
+        return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.SUBMISSION_ERROR)
+
+@normal_profile_required
+@require_POST
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         if not acceptedTerms:
-            return respondRedirect(APPNAME, URL.projects.create(step=3), error=Message.TERMS_UNACCEPTED)
+            return respondRedirect(APPNAME, URL.projects.createMod(step=3), error=Message.TERMS_UNACCEPTED)
         license = request.POST.get('license', None)
         if not license:
-            return respondRedirect(APPNAME, URL.projects.create(step=3), error=Message.LICENSE_UNSELECTED)
+            return respondRedirect(APPNAME, URL.projects.createMod(step=3), error=Message.LICENSE_UNSELECTED)
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]
         reponame = request.POST["reponame"]
         userRequest = request.POST["description"]
         referURL = request.POST.get("referurl", "")
-        tags = str(request.POST["tags"]).strip().split(",")
         if not uniqueRepoName(reponame):
-            return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
+            return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
         projectobj = createProject(creator=request.user.profile, name=name,
-                                   category=category, reponame=reponame, description=description, tags=tags, url=referURL, licenseID=license)
+                                   category=category, reponame=reponame, description=description, url=referURL, licenseID=license)
         if not projectobj:
             raise Exception()
         try:
@@ -169,14 +229,14 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             projectobj, APPNAME, userRequest, referURL)
         if not mod:
             projectobj.delete()
-            return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
+            return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}",projectobj)
         return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
     except Exception as e:
         errorLog(e)
         if projectobj:
             projectobj.delete()
-        return respondRedirect(APPNAME, URL.Projects.CREATE, error=Message.SUBMISSION_ERROR)
+        return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
 
 
 @normal_profile_required
@@ -193,14 +253,23 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 
 @require_GET
-def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
+def profileFree(request: WSGIRequest, username: str) -> HttpResponse:
+    try:
+        project = FreeProject.objects.get(username=username, trashed=False)
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator))
+    except Exception as e:
+        raise Http404(e)
+
+@require_GET
+def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame, trashed=False)
         if project.status == Code.APPROVED:
             iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else project.getModerator(
             ) == request.user.profile
-            return renderer(request, Template.Projects.PROFILE, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
+            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
@@ -209,16 +278,18 @@ def profile(request: WSGIRequest, reponame: str) -> HttpResponse:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
-        errorLog(e)
-        raise Http404()
+        return profileFree(request, reponame)
+        # raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
-        project = Project.objects.get(
-            id=projectID, creator=request.user.profile,status=Code.APPROVED)
+        project = BaseProject.objects.get(
+            id=projectID, creator=request.user.profile)
+        project = project.getProject(True)
+        if not project: raise Exception(f'{projectID} project not found')
         if section == 'pallete':
             changed = False
             try:
@@ -258,7 +329,9 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not query or not query.strip():
             return respondJson(Code.NO)
 
-        project = Project.objects.filter(id=projID, creator=request.user.profile, status=Code.APPROVED).first()
+        project = BaseProject.objects.get(id=projID, creator=request.user.profile)
+        project = project.getProject(True)
+        if not project: raise Exception(f'{projID} project not found')
         excluding = []
         if project:
             for topic in project.getTopics():
@@ -288,7 +361,9 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
-        project = Project.objects.get(id=projID, status=Code.APPROVED, creator=request.user.profile)
+        project = BaseProject.objects.get(id=projID,creator=request.user.profile)
+        project = project.getProject(True)
+        if not project: raise Exception(f'{projID} project not found')
         if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
             return redirect(project.getLink())
         if removetopicIDs:
@@ -322,8 +397,9 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not query.strip():
             return respondJson(Code.NO)
-        project = Project.objects.filter(
-            id=projID,creator=request.user.profile, status=Code.APPROVED).first()
+        project = BaseProject.objects.get(id=projID,creator=request.user.profile)
+        project = project.getProject(True)
+        if not project: raise Exception(f'{projID} project not found')
         excludeIDs = []
         if project:
             for tag in project.tags.all():
@@ -352,7 +428,9 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
         removetagIDs = request.POST.get('removetagIDs', None)
-        project = Project.objects.get(id=projID, creator=request.user.profile,status=Code.APPROVED)
+        project = BaseProject.objects.get(id=projID, creator=request.user.profile)
+        project = project.getProject(True)
+        if not project: raise Exception(f'{projID} project not found')
         if not addtagIDs and not removetagIDs and not (addtagIDs.strip() or removetagIDs.strip()):
             return redirect(project.getLink())
 
@@ -399,24 +477,59 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
+# # SHA secret won't allow this hook.
+# @csrf_exempt
+# @github_only
+# def githubEventsListenerFree(request:WSGIRequest,type: str, projID:UUID) -> HttpResponse:
+#     if type != Code.HOOK:
+#         return HttpResponseBadRequest('Invaild link type')
+#     event = request.POST['ghevent']
+#     if event != Event.PUSH:
+#         HttpResponse('Unsupported event')
+#     reponame = request.POST["repository"]["name"]
+#     owner_ghID = request.POST["repository"]["owner"]["login"]
+#     pusher = request.POST['pusher']
+#     try:
+#         project = FreeProject.objects.get(id=projID,repolinked=True,username=reponame)
+#         if owner_ghID != project.creator.ghID:
+#             return HttpResponseBadRequest('Invalid owner')
+#     except Exception as e:
+#         errorLog(f"HOOK: {e}")
+#         return HttpResponse(Code.NO)
+#     committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email'])),is_active=True,to_be_zombie=False).first()
+#     if committer:
+#         committer.increaseXP(by=2)
+#         project.creator.increaseXP(by=2)
+#     return HttpResponse(Code.OK)
+
 @csrf_exempt
 @github_only
-def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpResponse:
+def githubEventsListener(request:WSGIRequest, type: str, event: str, projID: UUID) -> HttpResponse:
     try:
         if type != Code.HOOK:
-            return HttpResponseBadRequest('Invaild event type')
+            return HttpResponseBadRequest('Invaild link type')
         ghevent = request.POST['ghevent']
         if ghevent != event:
             return HttpResponseBadRequest('Event mismatch')
+        reponame = request.POST["repository"]["name"]
+        owner_ghID = request.POST["repository"]["owner"]["login"]
+        hookID = request.POST['hookID']
         try:
-            project = Project.objects.get(id=projID)
+            project = Project.objects.get(id=projID,reponame=reponame)
+            if owner_ghID != PUBNAME:
+                return HttpResponseBadRequest('Invalid owner')
         except Exception as e:
             errorLog(f"HOOK: {e}")
             return HttpResponse(Code.NO)
-
+        hookrecord,_ = ProjectHookRecord.objects.get_or_create(hookID=hookID, defaults=dict(
+            success=False,
+            project=project,
+        ))
+        if hookrecord.success:
+            return HttpResponse(Code.NO)
         if event == Event.PUSH:
-            pusher = request.POST.get('pusher', {'email': '', 'name': ''})
-            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email'])),is_active=True).first()
+            pusher = request.POST['pusher']
+            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email'])),is_active=True,to_be_zombie=False).first()
             if committer:
                 committer.increaseXP(by=2)
                 project.creator.increaseXP(by=2)
@@ -425,33 +538,33 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
             pr = request.POST.get('pull_request', None)
             if pr:
                 action = request.POST.get('action', None)
-                creator_ghID = pr['user']['login']
+                pr_creator_ghID = pr['user']['login']
                 if action == 'opened':
-                    creator = Profile.objects.filter(githubID=creator_ghID, is_active=True).first()
-                    if creator:
-                        creator.increaseXP(by=5)
+                    pr_creator = Profile.objects.filter(githubID=pr_creator_ghID, is_active=True).first()
+                    if pr_creator:
+                        pr_creator.increaseXP(by=5)
                 elif action == 'closed':
-                    creator = Profile.objects.filter(githubID=creator_ghID, is_active=True).first()
+                    pr_creator = Profile.objects.filter(githubID=pr_creator_ghID, is_active=True).first()
                     if pr['merged']:
-                        if creator:
-                            creator.increaseXP(by=10)
+                        if pr_creator:
+                            pr_creator.increaseXP(by=10)
                         project.creator.increaseXP(by=5)
                         project.moderator.increaseXP(by=5)
                     else:
-                        if creator:
-                            creator.decreaseXP(by=2)
+                        if pr_creator:
+                            pr_creator.decreaseXP(by=2)
                 elif action == 'reopened':
-                    creator = Profile.objects.filter(githubID=creator_ghID, is_active=True).first()
-                    if creator:
-                        creator.increaseXP(by=2)
+                    pr_creator = Profile.objects.filter(githubID=pr_creator_ghID, is_active=True).first()
+                    if pr_creator:
+                        pr_creator.increaseXP(by=2)
                 elif action == 'review_requested':
-                    reviewer = Profile.objects.filter(githubID=pr['requested_reviewer']['login'], is_active=True).first()
-                    if reviewer:
-                        reviewer.increaseXP(by=5)
+                    pr_reviewer = Profile.objects.filter(githubID=pr['requested_reviewer']['login'], is_active=True).first()
+                    if pr_reviewer:
+                        pr_reviewer.increaseXP(by=5)
                 elif action == 'review_request_removed':
-                    reviewer = Profile.objects.filter(githubID=pr['requested_reviewer']['login'], is_active=True).first()
-                    if reviewer:
-                        reviewer.decreaseXP(by=5)
+                    pr_reviewer = Profile.objects.filter(githubID=pr['requested_reviewer']['login'], is_active=True).first()
+                    if pr_reviewer:
+                        pr_reviewer.decreaseXP(by=5)
                 else:
                     return HttpResponseBadRequest(event)
             else:
@@ -468,6 +581,8 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
                 return HttpResponseBadRequest(event)
         else:
             return HttpResponseBadRequest(event)
+        hookrecord.success = True
+        hookrecord.save()
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
@@ -485,5 +600,14 @@ def browseSearch(request:WSGIRequest):
         | Q(creator__user__first_name__startswith=query)
         | Q(creator__githubID__startswith=query)
         | Q(creator__githubID__iexact=query)
-    ))[0:20]
+    ))[0:10]
+    projects = projects + FreeProject.objects.exclude(trashed=True).filter(Q(
+        Q(name__startswith=query)
+        | Q(name__iexact=query)
+        | Q(username__startswith=query)
+        | Q(username__iexact=query)
+        | Q(creator__user__first_name__startswith=query)
+        | Q(creator__githubID__startswith=query)
+        | Q(creator__githubID__iexact=query)
+    ))[0:10]
     return rendererstr(request,Template.Projects.BROWSE_SEARCH,dict(projects=projects, query=query))

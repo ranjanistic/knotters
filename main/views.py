@@ -261,6 +261,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
             ]),
@@ -275,7 +277,8 @@ class ServiceWorker(TemplateView):
             ]),
             netFirstList=json.dumps([
                 f"{settings.MEDIA_URL}*",
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])
