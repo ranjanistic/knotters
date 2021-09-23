@@ -1,14 +1,18 @@
 from compete.models import SubmissionTopicPoint
+from uuid import uuid4
 from datetime import timedelta
 from django.utils import timezone
 from main.strings import Code
 from django.test import TestCase, tag
 from people.models import Profile, Topic
+from moderation.models import Moderation
+from moderation.methods import assignModeratorToObject
 from people.tests.utils import getTestEmail, getTestName, getTestPassword
 from main.methods import getDeepFilePaths
 from main.tests.utils import getRandomStr
 from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst, getTestTopicsInst
 from .utils import getCompTitle, getCompPerks, getCompBanner, getSubmissionRepos
+from compete.apps import APPNAME
 from compete.methods import *
 from random import randint
 
@@ -28,7 +32,7 @@ class CompeteMethodsTest(TestCase):
         self.profile = Profile.objects.get(user=self.user)
         self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
         self.comp.topics.add(self.topic)
-        users = User.objects.bulk_create(getTestUsersInst(5))
+        users = User.objects.bulk_create(getTestUsersInst(6))
         profiles = []
         for user in users:
             profiles.append(Profile(
@@ -43,6 +47,9 @@ class CompeteMethodsTest(TestCase):
         self.user3 = Profile.objects.filter(user__in=users)[2:3][0]
         self.user4 = Profile.objects.filter(user__in=users)[3:4][0]
         self.user5 = Profile.objects.filter(user__in=users)[4:5][0]
+        self.moderator = Profile.objects.filter(user__in=users)[5:6][0]
+        self.moderator.is_moderator=True
+        self.moderator.save()
         self.subm = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
         self.subm.members.add(self.user)
@@ -58,8 +65,8 @@ class CompeteMethodsTest(TestCase):
         self.subm5 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
         self.subm5.members.add(self.user5)
-        SubmissionParticipant.objects.filter(submission__in=[
-                                             self.subm, self.subm2, self.subm3, self.subm4, self.subm4, self.subm5]).update(confirmed=True)
+        SubmissionParticipant.objects.filter(confirmed=False).update(confirmed=True)
+        assignModeratorToObject(APPNAME,self.comp,self.moderator,self.comp.title)
         self.submTopicPoint = SubmissionTopicPoint.objects.create(
             submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
         self.submTopicPoint2 = SubmissionTopicPoint.objects.create(
@@ -70,6 +77,7 @@ class CompeteMethodsTest(TestCase):
             submission=self.subm4, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
         self.submTopicPoint5 = SubmissionTopicPoint.objects.create(
             submission=self.subm5, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
+        Moderation.objects.filter(type=APPNAME,competition=self.comp,moderator=self.moderator).update(resolved=True)
         return super().setUpTestData()
 
     def test_competition_section_data(self):
@@ -87,20 +95,36 @@ class CompeteMethodsTest(TestCase):
             Compete.RESULT, self.comp, self.user), dict(compete=self.comp, results=None))
 
     def test_certificate_generator(self):
+        self.comp.endAt = timezone.now()
+        self.comp.save()
         self.comp.declareResults()
-        results = Result.objects.filter(competition=self.comp)
-        AllotParticipantCertificates(results, self.comp)
-        # total = self.comp.totalValidSubmissionParticipants()
-        # self.assertEqual(ParticipantCertificate.objects.filter(result__competition=self.comp).count(), total)
         
-        # def appendwhen(path):
-        #     if path.__contains__('certificate'):
-        #         found = False
-        #         for x in resids:
-        #             if path.__contains__(str(x)):
-        #                 found = True
-        #                 break
-        #         return found
-        #     return False
-        # print(getDeepFilePaths('media', appendwhen))
-        ParticipantCertificate.objects.filter().delete()
+        cert = generateCertificate(certname=f'{self.comp.get_id}-{self.user.getID()}',
+            certID=uuid4().hex,
+            username=self.user.getName(),
+            compname=self.comp.title,
+            abouttext=f"from {self.comp.startAt.strftime('%B')} {self.comp.startAt.day}, {self.comp.startAt.year} to {self.comp.endAt.strftime('%B')} {self.comp.endAt.day}, {self.comp.endAt.year}"
+        )
+        self.assertTrue(cert.endswith('.pdf'))
+        
+        cert = generateModCertificate(
+            competition=self.comp,
+            certID=uuid4().hex,
+        )
+        self.assertTrue(cert.endswith('.pdf'))
+
+        cert = generateJudgeCertificate(
+            judge=self.judge,
+            competition=self.comp,
+            certID=uuid4().hex,
+        )
+        self.assertTrue(cert.endswith('.pdf'))
+
+        result = Result.objects.get(submission=self.subm2,competition=self.comp)
+        cert = generateParticipantCertificate(
+            profile=self.user2,
+            result=result,
+            certID=uuid4().hex,
+        )
+        self.assertTrue(cert.endswith('.pdf'))
+

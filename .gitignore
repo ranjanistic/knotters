@@ -2,6 +2,7 @@
 .idea/
 *.bat
 *.exe
+*.sh
 .env
 .env.*
 !.env.example
@@ -32,4 +33,5 @@ htmlcov/
 .history/
 *.rdb
 __static__
-templates/certificate.jpg
+templates/certificate*.jpg
+*.mo

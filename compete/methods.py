@@ -10,7 +10,7 @@ from main.strings import Compete, Message
 from main.env import ISTESTING
 from people.models import User, Profile
 from django.conf import settings
-from .models import Competition, ParticipantCertificate, SubmissionParticipant, Result, Submission
+from .models import Competition, ParticipantCertificate, AppreciationCertificate, SubmissionParticipant, Result, Submission
 from .mailers import resultsDeclaredAlert, certsAllotedAlert
 from .apps import APPNAME
 
@@ -117,22 +117,43 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             break
     return rendererstr(request, f'profile/{section}', data)
 
-def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
-    """
-    Generates certificate image for profile's result, and returns generated path.
-    """
-    try:
-        imagex = 1632
-        imagey = 1056
-        font_dir = 'templates/poppins-500.ttf'
-        body_font_dir = 'templates/questrial-400.ttf'
-        cert_dir = 'templates/certificate.jpg'
-        name_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 72)
-        comp_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 56)
-        about_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 28)
-        id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, body_font_dir), 18)
+def generateCertificate(certname:str, certID, username, compname, abouttext, associate=None, template='certificate'):
+    imagex = 1632
+    imagey = 1056
+    font_dir = 'templates/poppins-500.ttf'
+    body_font_dir = 'templates/questrial-400.ttf'
+    cert_dir = f'templates/{template}.jpg'
+    name_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 72)
+    comp_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 56)
+    about_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 28)
+    id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, body_font_dir), 18)
+    namexy = (imagex-name_font.getsize(username)[0]-77, 220)
+    compxy = (imagex-comp_font.getsize(compname)[0]-77, 411)
+    aboutxy = (imagex-about_font.getsize(abouttext)[0]-77, 515)
+    idxy = (14,1020)
+    certpath = f"{APPNAME}/certificates/{certname}.pdf"
+    certpathimg = f"{APPNAME}/certificates/{certname}.jpg"
+    if not ISTESTING:
         certimage = Image.open(os.path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
+        image_editable.text(xy=namexy, text=username, fill=(0, 0, 0), font=name_font, align='right')
+        image_editable.text(xy=compxy, text=compname, fill=(0, 0, 0), font=comp_font, align='right')
+        image_editable.text(xy=aboutxy, text=abouttext, fill=(0, 0, 0), font=about_font,align='right')
+        image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
+        if associate:
+            assxy = (776,904)
+            assimage = Image.open(os.path.join(settings.MEDIA_ROOT, str(associate)))
+            assimage = assimage.resize((474,144),Image.ANTIALIAS)
+            certimage.paste(assimage, assxy)
+        certimage.save(os.path.join(settings.MEDIA_ROOT, certpath), save_all=True)
+        certimage.save(os.path.join(settings.MEDIA_ROOT, certpathimg))
+    return certpath
+
+def generateParticipantCertificate(profile:Profile,result:Result, certID: UUID) -> str:
+    """
+    Generates certificate for profile's result, and returns generated path.
+    """
+    try:
         name = profile.getName()
         if len(name) > 30:
             name = profile.getFName().capitalize()
@@ -154,28 +175,97 @@ def generateCertificate(profile:Profile,result:Result, certID: UUID) -> str:
         comp = result.competition.title
         if len(comp) > 39:
             comp = comp[:(39-len(comp))]
-
         about = f"from {result.competition.startAt.strftime('%B')} {result.competition.startAt.day}, {result.competition.startAt.year} to {result.competition.endAt.strftime('%B')} {result.competition.endAt.day}, {result.competition.endAt.year}"
-        namexy = (imagex-name_font.getsize(name)[0]-77, 220)
-        compxy = (imagex-comp_font.getsize(comp)[0]-77, 411)
-        aboutxy = (imagex-about_font.getsize(about)[0]-77, 515)
-        idxy = (14,1020)
-        image_editable.text(xy=namexy, text=name, fill=(0, 0, 0), font=name_font, align='right')
-        image_editable.text(xy=compxy, text=comp, fill=(0, 0, 0), font=comp_font, align='right')
-        image_editable.text(xy=aboutxy, text=about, fill=(0, 0, 0), font=about_font,align='right')
-        image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
-        if result.competition.associate:
-            assxy = (776,904)
-            assimage = Image.open(os.path.join(settings.MEDIA_ROOT, str(result.competition.associate)))
-            assimage = assimage.resize((474,144),Image.ANTIALIAS)
-            certimage.paste(assimage, assxy)
+        return generateCertificate(
+            certname=f"{result.competition.getID()}-{profile.getUserID()}",
+            certID=certID,
+            username=name,
+            compname=comp,
+            abouttext=about,
+            associate=result.competition.associate,
+            template='certificate'
+        )
+    except Exception as e:
+        errorLog(e)
+        return False
 
-        certpath = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.pdf"
-        certpathimg = f"{APPNAME}/certificates/{result.competition.getID()}-{profile.getUserID()}.jpg"
-        if not ISTESTING:
-            certimage.save(os.path.join(settings.MEDIA_ROOT, certpath), save_all=True)
-            certimage.save(os.path.join(settings.MEDIA_ROOT, certpathimg))
-        return certpath
+def generateJudgeCertificate(judge:Profile,competition:Competition, certID: UUID) -> str:
+    """
+    Generates certificate for competition's judge, and returns generated path.
+    """
+    try:
+        name = judge.getName()
+        if len(name) > 30:
+            name = judge.getFName().capitalize()
+            lastnames = judge.getLName().split(" ")
+            i = 1
+            for last in lastnames:
+                if str(last).strip():
+                    if i == len(lastnames):
+                        if len(f"{name} {last}") < 31:
+                            name = f"{name} {last.capitalize()}"
+                        else:
+                            name = f"{name} {str(last[0]).upper()}. "
+                    else:
+                        name = f"{name} {str(last[0]).upper()}. "
+                i+=1
+        if len(name) > 30:
+            name = name[:(30-len(name))]
+        
+        comp = competition.title
+        if len(comp) > 39:
+            comp = comp[:(39-len(comp))]
+        about = f"from {competition.startAt.strftime('%B')} {competition.startAt.day}, {competition.startAt.year} to {competition.endAt.strftime('%B')} {competition.endAt.day}, {competition.endAt.year}"
+        return generateCertificate(
+            certname=f"{competition.getID()}-{judge.getUserID()}",
+            certID=certID,
+            username=name,
+            compname=comp,
+            abouttext=about,
+            associate=competition.associate,
+            template='certificate-judge'
+        )
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def generateModCertificate(competition:Competition, certID: UUID) -> str:
+    """
+    Generates certificate for competition's mod, and returns generated path.
+    """
+    try:
+        mod = competition.moderator
+        name = mod.getName()
+        if len(name) > 30:
+            name = mod.getFName().capitalize()
+            lastnames = mod.getLName().split(" ")
+            i = 1
+            for last in lastnames:
+                if str(last).strip():
+                    if i == len(lastnames):
+                        if len(f"{name} {last}") < 31:
+                            name = f"{name} {last.capitalize()}"
+                        else:
+                            name = f"{name} {str(last[0]).upper()}. "
+                    else:
+                        name = f"{name} {str(last[0]).upper()}. "
+                i+=1
+        if len(name) > 30:
+            name = name[:(30-len(name))]
+        
+        comp = competition.title
+        if len(comp) > 39:
+            comp = comp[:(39-len(comp))]
+        about = f"from {competition.startAt.strftime('%B')} {competition.startAt.day}, {competition.startAt.year} to {competition.endAt.strftime('%B')} {competition.endAt.day}, {competition.endAt.year}"
+        return generateCertificate(
+            certname=f"{competition.getID()}-{mod.getUserID()}",
+            certID=certID,
+            username=name,
+            compname=comp,
+            abouttext=about,
+            associate=competition.associate,
+            template='certificate-mod'
+        )
     except Exception as e:
         errorLog(e)
         return False
@@ -190,20 +280,49 @@ def DeclareResults(competition:Competition):
     addMethodToAsyncQueue(f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
 
 
-def AllotParticipantCertificates(results:list,competition:Competition):
+def AllotCompetitionCertificates(results:list,competition:Competition):
     """
     @async
     """
     try:
         cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
+        appreciateeCerts = []
+        id = uuid4()
+        certificate = generateModCertificate(competition,id.hex)
+        if not certificate:
+            cache.delete(f"certificates_allotment_task_{competition.get_id}")
+            raise Exception(f"Couldn't generate certificate of {competition.moderator.getName()} (m) for {competition.title}")
+        appreciateeCerts.append(
+            AppreciationCertificate(
+                id=id,
+                competition=competition,
+                appreciatee=competition.moderator,
+                certificate=certificate
+            )
+        )
+        for judge in competition.getJudges():
+            id = uuid4()
+            certificate = generateJudgeCertificate(judge,competition,id.hex)
+            if not certificate:
+                cache.delete(f"certificates_allotment_task_{competition.get_id}")
+                raise Exception(f"Couldn't generate certificate of {judge.getName()} (j) for {competition.title}")
+            appreciateeCerts.append(
+                AppreciationCertificate(
+                    id=id,
+                    competition=competition,
+                    appreciatee=judge,
+                    certificate=certificate
+                )
+            )
+        AppreciationCertificate.objects.bulk_create(appreciateeCerts)
         participantCerts = []
         for result in results:
             for member in result.getMembers():
                 id = uuid4()
-                certificate = generateCertificate(member,result,id.hex)
+                certificate = generateParticipantCertificate(member,result,id.hex)
                 if not certificate:
                     cache.delete(f"certificates_allotment_task_{competition.get_id}")
-                    raise Exception(f"Couldn't generate certificate of {member.getName()} for {competition.title}")
+                    raise Exception(f"Couldn't generate certificate of {member.getName()} (p) for {competition.title}")
                 participantCerts.append(
                     ParticipantCertificate(
                         id=id,
@@ -212,9 +331,7 @@ def AllotParticipantCertificates(results:list,competition:Competition):
                         certificate=certificate
                     )
                 )
-        certs = ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
-        # if len(certs) != competition.totalValidSubmissionParticipants():
-        #     raise Exception(f"Participant & certificates mismatched: certs {len(certs)}, parts {competition.totalValidSubmissionParticipants()}")
+        ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
         cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
         return True

@@ -1,5 +1,8 @@
 {% extends 'allauth_2fa/index.html' %}
 {% load i18n %}
+{% load l10n %}
+{% load account %}
+{% load custom_tags %}
 {% block nav_auth_links %}{% endblock %}
 {% block nav_noauth %}{% endblock %}
 {% block content %}
@@ -14,6 +17,7 @@
 <form method="POST">
   {% csrf_token %}
   <input type="text" class="required-field" name="otp_token" placeholder="Two factor code or backup token" autofocus="autofocus" autocomplete="off" inputmode="numeric" required="" id="id_otp_token"><br/><br/>
+  <input type="hidden" name="{{redirect_field_name|or:'next'}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
   <button class="accent recaptcha-protected-form-action" type="submit" data-icon="done">Proceed</button>
 </form>
 </div>

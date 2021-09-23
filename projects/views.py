@@ -507,6 +507,14 @@ def githubEventsListener(request, type: str, event: str, projID: UUID) -> HttpRe
 @require_GET
 def browseSearch(request:WSGIRequest):
     query = request.GET.get('query','')
-    projects = Project.objects.exclude(trashed=True).filter(Q(Q(status=Code.APPROVED), Q(
-            name__startswith=query)|Q(reponame__startswith=query) | Q(creator__user__first_name__startswith=query) | Q(creator__githubID__startswith=query)))[0:20]
+    projects = Project.objects.exclude(trashed=True).filter(Q(
+        Q(status=Code.APPROVED), 
+        Q(name__startswith=query)
+        | Q(name__iexact=query)
+        | Q(reponame__startswith=query)
+        | Q(reponame__iexact=query)
+        | Q(creator__user__first_name__startswith=query)
+        | Q(creator__githubID__startswith=query)
+        | Q(creator__githubID__iexact=query)
+    ))[0:20]
     return rendererstr(request,Template.Projects.BROWSE_SEARCH,dict(projects=projects, query=query))

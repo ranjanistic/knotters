@@ -23,4 +23,6 @@ urlpatterns = [
     path(URL.Compete.CERT_VERIFY, certificateVerify),
     path(URL.Compete.CERTIFICATE, certificate),
     path(URL.Compete.CERTDOWNLOAD, downloadCertificate),
+    path(URL.Compete.APPR_CERTIFICATE, appCertificate),
+    path(URL.Compete.APPR_CERTDOWNLOAD, appDownloadCertificate),
 ]

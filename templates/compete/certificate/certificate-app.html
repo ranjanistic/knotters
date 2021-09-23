@@ -1,0 +1,93 @@
+{% extends 'compete/certificate/index.html' %}
+{% load static %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}{{person.getName }}'s certificate of participation in {{appcert.competition.title}}.{% endblock %}
+{% block og_url %}{{appcert.get_link}}{% endblock %}
+{% block og_title %}{{person.getFName}}'s Certificate{% endblock %}
+{% block og_description %}{{person.getName }}'s certificate of participation in {{appcert.competition.title}}.{% endblock %}
+{% block og_site_name %}{{person.getFName}}'s Certificate{% endblock %}
+{% block og_image_url %}{% if certpath %}{{certpath}}{% else %}{{appcert.competition.getBanner}}{% endif %}{% endblock %}
+
+{% block ld_image_url %}{% if certpath %}{{certpath}}{% else %}{{appcert.competition.getBanner}}{% endif %}{% endblock %}
+
+{% block tw_image_url %}{% if certpath %}{{certpath}}{% else %}{{appcert.competition.getBanner}}{% endif %}{% endblock %}
+{% block tw_url %}{{appcert.get_link}}{% endblock %}
+{% block tw_title %}{{person.getFName}}'s Certificate{% endblock %}
+{% block tw_description %}{{person.getName }}'s certificate of participation in {{appcert.competition.title}}.{% endblock %}
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block nav_href %}{{URLS.CERT_INDEX}}{% endblock %}
+
+{% block content %}
+<div style="background:url('{{appcert.competition.getBanner}}'); background-size:cover; height:100%; background-repeat:no-repeat;">
+<div class="w3-row">
+    <div class="w3-col w3-twothird">
+        {% cache CACHE_LONG participant_certificate_header appcert.get_link|add:LANGUAGE_CODE %}
+        <div class="primary w3-padding">
+            <h4>
+                <a href="{{person.getLink}}">
+                    <img src="{{person.getDP}}" class="w3-circle" width="30" alt="{{person.getName}}" />
+                </a> 
+                <b>{{person.getName}}</b> contributed in <a href="{{appcert.competition.getLink}}" >{{appcert.competition.title}}</a>.
+            </h4>
+        </div>
+        {% endcache %}
+        {% if certpath %}
+        {% cache CACHE_MAX participant_certificate_view appcert.get_link|add:LANGUAGE_CODE %}
+        <img src="{{certpath}}" width="100%" class="preview-type-image" />
+        {% endcache %}
+        {% else %}
+        {% cache CACHE_SHORT participant_certificate_unavailable appcert.get_link|add:LANGUAGE_CODE %}
+        <div class="dead-text w3-center primary w3-padding">
+        <h4>
+        <i class="w3-jumbo">hourglass_top</i><br/>
+        The certificate is not yet available.<br/>It'll be available here soon.<br/>
+        Regardless of the availability of certificate, this page also represents the certification.
+        </h4>
+        </div>
+        {% endcache %}
+        {% endif %}
+    </div>
+    <div class="w3-col w3-third">
+        <div class="w3-row primary w3-padding">
+        {% cache CACHE_MICRO participant_certificate_details appcert.get_link|add:LANGUAGE_CODE %}
+            <h3>Certificate Details</h3>
+            <h6><span class="dead-text">Name </span>{{appcert.competition.title}} at Knotters</h6>
+            <h6><span class="dead-text">Issuing Organization </span>Knotters</h6>
+            <h6><span class="dead-text">Issue Date </span>{{appcert.competition.resultDeclaredOn}}</h6>
+            <h6><span class="dead-text">Expiration Date </span>Does not expire</h6>
+            {% if certID %}
+            <h6><span class="dead-text">Credential ID </span><a class="click-to-copy" title="Click to copy" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
+            {% else %}
+            <h6 ><span class="dead-text">Credential ID </span>Will be available soon.</h6>
+            {% endif %}
+            <h6><span class="dead-text">Credential URL</span> <a class="click-to-copy" title="Click to copy" data-copy="{{SITE}}{{appcert.get_link}}">Copy to clipboard</a></h6>
+        {% endcache %}
+        </div>
+        <br/>
+        <div class="w3-row w3-center">
+            {% if self and certpath %}
+            <a href="{{appcert.get_download_link}}" download>
+                <button class="small primary" data-icon="download">Download certificate</button>
+            </a>
+            {% endif %}
+            <button class="small primary" onclick="shareLinkAction(`{{person.getFName}}'s Certificate`,`{{person.getName }}'s certificate of participation in '{{appcert.competition.title}}'.`,`{{appcert.get_link}}`)" data-icon="share">Share</button>
+        </div>
+        <br/>
+        {% if appcert.competition.get_associate %}
+        <div class="w3-row w3-center primary">
+            <div class="w3-row">
+            <h5 class="dead-text">In association with</h5>
+            <img class="preview-type-image" src="{{appcert.competition.get_associate}}" alt="Association" width="100%" />
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<br/><br/>
+</div>
+{% endblock %}

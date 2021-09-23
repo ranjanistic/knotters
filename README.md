@@ -42,11 +42,22 @@ pip install -r requirements.txt
 If there's a ```Microsoft Visual c++ 14.0``` required error with installation of _rcssmin_ or related modules of _django-compressor_, then do following execution if you want to **avoid installing** ```Microsoft C++ Build Tools```
 
 ```bash
+# Only if an error occurs
 pip install rcssmin --install-option="--without-c-extensions"
 pip install rjsmin --install-option="--without-c-extensions"
 pip install django-compressor --upgrade
 pip install -r requirements.txt
 ```
+
+### Language Setup
+
+```bash
+py manage.py compilemessages
+```
+
+This will complie `.po` files and generate corresponding `.mo` files for multi language support.
+
+For translatory contribution, see [TRANSLATION.md](TRANSLATION.md).
 
 ### DB setup
 
