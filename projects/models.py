@@ -177,9 +177,8 @@ class BaseProject(models.Model):
     def save(self, *args, **kwargs):
         try:
             previous = BaseProject.objects.get(id=self.id)
-            if previous.image != self.image:
-                if previous.image != defaultImagePath():
-                    previous.image.delete(False)
+            if not [self.image,defaultImagePath()].__contains__(previous.image):
+                previous.image.delete(False)
         except:
             pass
         super(BaseProject, self).save(*args, **kwargs)
@@ -227,7 +226,8 @@ class BaseProject(models.Model):
             else:
                 if project.isApproved(): return project
             return Project.objects.get(id=self.id)
-        return None
+        return project or None
+
 
 
 class Project(BaseProject):
@@ -304,11 +304,34 @@ class Project(BaseProject):
 
 
 class FreeProject(BaseProject):
-    username = models.CharField(max_length=500, unique=True, null=False, blank=False)
-    repolinked = models.BooleanField(default=False)
+    nickname = models.CharField(max_length=500, unique=True, null=False, blank=False)
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
-        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(username=self.username)}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=self.nickname)}{url.getMessageQuery(alert,error,success)}"
+
+    def moveToTrash(self) -> bool:
+        self.creator.decreaseXP(by=2)
+        self.delete()
+        return True
+
+    @property
+    def has_linked_repo(self) -> bool:
+        return FreeRepository.objects.filter(free_project=self).exists()
+
+    @property
+    def linked_repo(self):
+        return FreeRepository.objects.get(free_project=self)
+
+    def editProfileLink(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+
+class FreeRepository(models.Model):
+    """
+    One to one linked repository record
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
+    repo_id = models.CharField(max_length=100)
 
 class ProjectTag(models.Model):
     class Meta:

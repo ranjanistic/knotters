@@ -34,7 +34,6 @@
                 <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
                 </button>
                 <br/>
-                
                 <form method="POST" action="{{project.editProfileLink}}">
                 {% csrf_token %}
                 <input type="text" hidden id="projectimageData" name="projectimage" value="" />
@@ -195,5 +194,5 @@ const selfProject = "{{iscreator}}"==='True';
 </script>
 {% endblock %}
 {% block scripts %}
-{% comment %} <script src="{% static 'scripts/project/profile.js' %}" ></script> {% endcomment %}
+<script src="{% static 'scripts/project/profile.js' %}" ></script>
 {% endblock %}
