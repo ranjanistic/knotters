@@ -465,9 +465,8 @@ def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
 
 
-@require_POST
 def certificateVerify(request: WSGIRequest) -> HttpResponse:
-    certID = request.POST.get('certID', None)
+    certID = request.POST.get('certID', request.GET.get('id',None))
     try:
         if not certID:
             return respondRedirect(APPNAME, URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)

@@ -334,7 +334,7 @@ def submitCompetition(request) -> HttpResponse:
         perks = []
         for key in request.POST.keys():
             if str(key).startswith('compperk'):
-                perks.append(str(request.POST[key]).strip())
+                perks.append(str(request.POST[key]).replace(';',' ').strip())
 
         if not (title and
                 tagline and
