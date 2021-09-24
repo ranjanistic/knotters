@@ -1,14 +1,21 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
-from .models import Project, BaseProject, defaultImagePath
+from .models import Project, FreeProject, BaseProject,defaultImagePath
 
 
-@receiver(post_save, sender=BaseProject)
+@receiver(post_save, sender=Project)
 def on_project_create(sender, instance:Project, created, **kwargs):
     """
     Project submitted.
     """
-    
+    if created:
+        instance.creator.increaseXP(by=2)
+
+@receiver(post_save, sender=FreeProject)
+def on_freeproject_create(sender, instance:FreeProject, created, **kwargs):
+    """
+    Project submitted.
+    """
     if created:
         instance.creator.increaseXP(by=2)
 

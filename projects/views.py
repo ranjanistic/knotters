@@ -61,42 +61,16 @@ def create(request: WSGIRequest) -> HttpResponse:
 @normal_profile_required
 @require_GET
 def createFree(request: WSGIRequest) -> HttpResponse:
-
     categories = Category.objects.all()
-
-    projects = Project.objects.filter(creator=request.user.profile)
-    licIDs = []
-    if len(projects) > 0:
-        for project in projects:
-            licIDs.append(project.license.id)
-
-    licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
-
+    licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))[0:5]
     return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
     
 @normal_profile_required
 @require_GET
 def createMod(request: WSGIRequest) -> HttpResponse:
-    tags = []
-    for topic in request.user.profile.getTopics():
-        if topic.tags.count():
-            tags.append(topic.tags.all()[0])
-
-    if len(tags) < 5:
-        for tag in Tag.objects.all()[0:5-len(tags)]:
-            tags.append(tag)
-
     categories = Category.objects.all()
-
-    projects = Project.objects.filter(creator=request.user.profile)
-    licIDs = []
-    if len(projects) > 0:
-        for project in projects:
-            licIDs.append(project.license.id)
-
-    licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
-
-    return renderer(request, Template.Projects.CREATE_MOD, dict(tags=tags, categories=categories, licenses=licenses))
+    licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))[0:5]
+    return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
 
 
 @normal_profile_required

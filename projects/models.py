@@ -9,6 +9,7 @@ from main.methods import addMethodToAsyncQueue, maxLengthInList
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord
+from main.exceptions import InvalidBaseProject
 from .apps import APPNAME
 
 
@@ -174,6 +175,9 @@ class BaseProject(models.Model):
     def getID(self) -> str:
         return self.get_id
 
+    def sub_save(self):
+        return
+
     def save(self, *args, **kwargs):
         try:
             previous = BaseProject.objects.get(id=self.id)
@@ -181,6 +185,12 @@ class BaseProject(models.Model):
                 previous.image.delete(False)
         except:
             pass
+        assert self.name is not None
+        assert self.creator is not None
+        assert self.category is not None
+        assert self.license is not None
+        assert self.acceptedTerms is True
+        self.sub_save()
         super(BaseProject, self).save(*args, **kwargs)
 
     def getDP(self) -> str:
@@ -238,6 +248,9 @@ class Project(BaseProject):
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
 
+    def sub_save(self):
+        assert len(self.reponame) > 0
+        
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
