@@ -51,7 +51,7 @@ try {
     };
 } catch {}
 
-const loadTabScript = (attr) => {
+const loadTabScript = (attr,tab) => {
     switch (attr) {
         case "submission": {
             if (isActive) {
@@ -219,7 +219,7 @@ initializeTabsView({
     uniqueID: "competetab",
     tabsClass: "side-nav-tab",
     activeTabClass: "active",
-    onShowTab: loadTabScript,
+    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id'),tab),
     tabindex
 });
 initializeTabsView({
@@ -228,6 +228,6 @@ initializeTabsView({
     uniqueID: "competetabsmall",
     tabsClass: "side-nav-tab-small",
     activeTabClass: "active",
-    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id')),
+    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id'),tab),
     tabindex
 });

@@ -11,8 +11,6 @@
 
 
 {% block content %}
-<br/>
-
 <div class="w3-row tertiary">
   <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
     {% csrf_token %}
@@ -42,7 +40,7 @@
             <input required class="create-compete-input wide primary" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
           </h4>
           <strong>
-            <textarea rows="5" cols="20" class="create-compete-input primary" required placeholder="Short description" type="text" name="compshortdesc" id="compshortdesc"></textarea>
+            <textarea rows="5" cols="20" class="create-compete-input primary wide" required placeholder="Short description" type="text" name="compshortdesc" id="compshortdesc"></textarea>
           </strong><br/>
           </div>
           <div class="w3-col w3-half w3-center dead-text w3-padding">
@@ -89,8 +87,8 @@
       <br/><br/>
         
       <div class="w3-row pallete" id="mainframe">
-        <div class="w3-col w3-quarter tertiary  w3-round">
-          <div class="w3-bar-block w3-hide-small w3-padding" id="sidebar">
+        <div class="w3-col w3-quarter tertiary  pallete-slab w3-padding">
+          <div class="w3-bar-block w3-hide-small" id="sidebar">
             <button type="button" class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
             <br/>
             <button type="button" class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
@@ -98,7 +96,7 @@
             <button type="button" class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button> 
             <br/><br/><br/><br/><br/>  <br/><br/><br/><br/><br/>
           </div>
-          <div class="w3-center w3-hide-large w3-hide-medium">
+          <div class="w3-center w3-hide-large w3-hide-medium w3-padding">
             <button type="button" class="side-nav-tab" id="overview" data-icon="toc"></button>
             <button type="button" class="side-nav-tab" id="task" data-icon="code"></button>
             <button type="button" class="side-nav-tab" id="guidelines" data-icon="rule"></button>
@@ -111,20 +109,17 @@
             <div class="w3-row w3-padding-small" id="overview-block">
                 <center>
                     <h3>Topics of this competition</h3>
-                    <br/>
                     <span id="selectedtopicsview">
                     </span>
                     <input hidden class="create-compete-input no-retain" name="comptopicIDs" id="topicIDs" />
                     <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
                     <br/>
-                    <h6>A chance to level up your profile by &nbsp;&nbsp;
-                        <!-- <span class="accent"> -->
-                            <input class="create-compete-input" required placeholder="Each topic max points" type="number" min="10" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint">
-                        <!-- </span> -->
+                    <h6>The maximum points each judge can appoint to each submission for each topic
+                        <input class="create-compete-input" required placeholder="Max 100" type="number" min="10" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint">
                     </h6>
                 </center>
                 <div class="w3-row" id="perkDetails">
-                    <center><h4>Rank perks<a href="#notice">*</a></h4></center>
+                    <center><h4>Rank perks</h4></center>
                     
                     <div class="w3-col w3-third w3-padding-small w3-center">
                         <div class="pallete accent">
@@ -136,29 +131,21 @@
                         </div>
                     </div>
                     <div class="w3-col w3-third w3-padding-small w3-center">
-                        <div class="pallete accent">
-                            <i class="w3-jumbo ">emoji_events</i>
-                            <h1>2nd</h1>
-                            <h6 class="pallete">
-                                <input class="wide create-compete-input" required placeholder="For Rank 2" type="text" name="compperk2" id="compperk2">
+                        <div class="pallete primary pointer" id="addperksbutton">
+                            <i class="w3-jumbo positive-text">add_circle</i>
+                            <h1 class="positive-text">Add perk</h1>
+                            <h6 class="pallete positive-text">
+                                For next rank
                             </h6>
                         </div>
                     </div>
-                    <div class="w3-col w3-third w3-padding-small w3-center">
-                        <div class="pallete accent">
-                            <i class="w3-jumbo ">emoji_events</i>
-                            <h1>3rd</h1>
-                            <h6 class="pallete">
-                                <input class="wide create-compete-input" required placeholder="For Rank 3" type="text" name="compperk3" id="compperk3">
-                            </h6>
-                        </div>
-                    </div>
-                    <button title="Add Perks" type="button" onclick="addPerks()" class="primary w3-margin-top" data-icon="add" id="addperksbutton">Add Perks</button>
                 </div>
                 <br/>
                 <center>
-                <h6>All participants will receive <span class="accent">e-certificates</span><a href="#notice">*</a>.</h6>
-                <strong>The points obtained from this competition can be claimed as XP for your profile.</strong>
+                <strong>The perks you've set are solely your own responsibility. {{APPNAME}} and its associates will not contribute to your perks in any way.
+                <br/>Participants will also be knowing this.
+                </strong>
+                <h6>All participants will receive <span class="accent">e-certificates</span> from {{APPNAME}}.</h6>
                 </center>
                 <div class="w3-row">
                 <h4>Description</h4>
@@ -216,9 +203,7 @@
 
 {% block in_scripts %}
 <script>
-
-    const addPerks= () => {
-        console.log("pp");
+    getElement('addperksbutton').onclick=_=>{
         const parent=document.getElementById('perkDetails');
         const position=parent.childElementCount-1;
         const newChild=document.createElement('div');
@@ -226,7 +211,7 @@
                     <div class="w3-col w3-third w3-padding-small w3-center">
                         <div class="pallete accent">
                             <i class="w3-jumbo material-icons">emoji_events</i>
-                            <h1>${position}th</h1>
+                            <h1>${numsuffix(position)}</h1>
                             <h6 class="pallete">
                                 <input class="wide create-compete-input" required placeholder="For Rank ${position}" type="text" name="compperk${position}" id="compperk${position}">
                             </h6>
@@ -234,8 +219,6 @@
                     </div>
         `;
         parent.insertBefore(newChild,parent.childNodes[position+4]);
-        // document.getElementById("addPerks").appendChild(newChild);
-        console.log('perksChild=>',parent.childElementCount)
     }
 
      initializeTabsView({

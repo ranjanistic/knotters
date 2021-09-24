@@ -149,7 +149,7 @@ const loadBrowsers = () => {
                     return;
                 }
                 setHtmlContent(view, data, loadBrowserSwiper);
-                loadBrowserSwiper()
+                loadBrowserSwiper();
             })();
         })
     )
@@ -166,7 +166,7 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
-    loadBrowserSwiper()
+    loadBrowserSwiper();
     afterset();
 };
 
@@ -359,7 +359,7 @@ const loadCarousels = ({
             grabCursor,
             spaceBetween,
             breakpoints,
-            freeMode:true,
+            freeMode: true,
         });
     }
     return null;
@@ -375,9 +375,8 @@ const initializeTabsView = ({
     viewID = "tabview",
     spinnerID = "loader",
     selected = 0,
-    setDefaultViews=true,
+    setDefaultViews = true,
     tabindex = false,
-
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
@@ -411,7 +410,9 @@ const initializeTabsView = ({
 
     tabs.forEach(async (tab, t) => {
         tab.onclick = async () => {
-            if(setDefaultViews){showTabLoading()}
+            if (setDefaultViews) {
+                showTabLoading();
+            }
             sessionStorage.setItem(uniqueID, t);
             const onclicks = Array(tabs.length);
             tabs.forEach((tab1, t1) => {
@@ -442,7 +443,11 @@ const initializeTabsView = ({
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response ? showTabContent(tab, response) : setDefaultViews ? showTabError(tab):'';
+            return response
+                ? showTabContent(tab, response)
+                : setDefaultViews
+                ? showTabError(tab)
+                : "";
         };
     });
     if (tabs.length) {
@@ -1006,3 +1011,29 @@ const radarChartView = (
         },
     });
 };
+
+const getNumberSuffix = (value) => {
+    let valuestr = String(value);
+    switch (value) {
+        case 1:
+            return "st";
+        case 2:
+            return "nd";
+        case 3:
+            return "rd";
+        default: {
+            if (value > 9) {
+                if (
+                    valuestr[valuestr.length - 2] === "1" ||
+                    valuestr[valuestr.length - 1] === "0"
+                )
+                    return "th";
+                return getNumberSuffix(
+                    (value = Number(valuestr[valuestr.length - 1]))
+                );
+            } else return "th";
+        }
+    }
+};
+
+const numsuffix = (number) => `${number}${getNumberSuffix(number)}`;
