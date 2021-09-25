@@ -119,6 +119,7 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+
 @csrf_exempt
 @github_only
 def githubEventsListener(request, type: str, event: str) -> HttpResponse:
@@ -134,13 +135,15 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
             action = request.POST.get('action', None)
             if action == Event.PUBLISHED:
                 if not release['draft'] and release['name'] and release['body']:
-                    addMethodToAsyncQueue(f'main.mailers.{featureRelease.__name__}',release['name'],release['body'])
+                    addMethodToAsyncQueue(
+                        f'main.mailers.{featureRelease.__name__}', release['name'], release['body'])
         else:
             return HttpResponseBadRequest(ghevent)
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
+
 
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
@@ -299,6 +302,14 @@ def browser(request: WSGIRequest, type: str):
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
                     createdOn__gte=(timezone.now()+timedelta(days=-15)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                if len(profiles) < 5:
+                    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                        createdOn__gte=(timezone.now()+timedelta(days=-30)),
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                if len(profiles) < 10:
+                    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                        createdOn__gte=(timezone.now()+timedelta(days=-60)),
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
             else:
                 profiles = cache.get(
                     f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
@@ -308,11 +319,24 @@ def browser(request: WSGIRequest, type: str):
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     cache.set(
                         f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles,count=len(profiles)))
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
         elif type == "new-projects":
-            projects = Project.objects.filter(status=Code.APPROVED,approvedOn__gte=(timezone.now()+timedelta(days=-15))).order_by('-approvedOn','-createdOn')[0:5]
-            projects = list(chain(projects,FreeProject.objects.filter(createdOn__gte=(timezone.now()+timedelta(days=-15))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
-            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects,count=len(projects)))
+            projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
+                timezone.now()+timedelta(days=-15))).order_by('-approvedOn', '-createdOn')[0:5]
+            projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
+                timezone.now()+timedelta(days=-15))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+            if len(projects) < 5:
+                projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
+                    timezone.now()+timedelta(days=-30))).order_by('-approvedOn', '-createdOn')[0:5]
+                projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
+                    timezone.now()+timedelta(days=-30))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+            if len(projects) < 10:
+                projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
+                    timezone.now()+timedelta(days=-60))).order_by('-approvedOn', '-createdOn')[0:5]
+                projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
+                    timezone.now()+timedelta(days=-60))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+
+            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
         elif type == "recent-winners":
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
             if not results:
@@ -320,17 +344,19 @@ def browser(request: WSGIRequest, type: str):
                     timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
                 cache.set(
                     f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
-            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results,count=len(results))))
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
         elif type == "recommended-projects":
             query = Q()
             authquery = query
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED),authquery,query)[0:10],FreeProject.objects.filter(authquery,query)[0:10]))
-            if(len(projects)<1):
-                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED),authquery)[0:10],FreeProject.objects.filter(authquery)[0:10]))
-            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects,count=len(projects)))
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED), authquery, query)[
+                            0:10], FreeProject.objects.filter(authquery, query)[0:10]))
+            if len(projects) < 1:
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED), authquery)[
+                                0:10], FreeProject.objects.filter(authquery)[0:10]))
+            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
         elif type == "trending-topics":
             # TODO
             return HttpResponseBadRequest()
