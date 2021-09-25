@@ -529,7 +529,11 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
 
         certpath = False if not appcert else appcert.getCertImage if appcert.certificate else False
         certID = False if not appcert else appcert.get_id
-        return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
+        if appcert:
+            compete = appcert.competition
+        else:
+            compete = Competition.objects.get(id=compID)
+        return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(compete=compete, appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
     except Exception as e:
         raise Http404()
 
