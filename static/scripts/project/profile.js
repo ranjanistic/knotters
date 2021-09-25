@@ -284,18 +284,29 @@ if (selfProject) {
 const loadLiveData = async () => {
     const contribview = getElement('project-contibutors-view');
     const languageview = getElement('project-languages-view');
+    if(contribview)
     setHtmlContent(contribview, loaderHTML());
+    if(languageview)
     setHtmlContent(languageview, loaderHTML());
-    const data = await postRequest(setUrlParams(URLS.LIVEDATA, projectID))
-    if(!data||data.code!==code.OK){
-        setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
-        setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
-        getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
-        getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
-        return
+    if(contribview||languageview){
+        const data = await postRequest(setUrlParams(URLS.LIVEDATA, projectID))
+        if(!data||data.code!==code.OK){
+            setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
+            setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
+            getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
+            getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
+            return
+        }
     }
-    setHtmlContent(contribview, data.contributorsHTML);
-    setHtmlContent(languageview, `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`);
-    radarChartView(getElement('project-languages-distribution-chart'),Object.keys(data.languages),Object.keys(data.languages).map((key)=>data.languages[key]),'12e49d')
+    if(contribview)
+        setHtmlContent(contribview, data.contributorsHTML);
+    if(languageview){
+        setHtmlContent(languageview, `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`);
+        radarChartView(getElement('project-languages-distribution-chart'),Object.keys(data.languages),Object.keys(data.languages).map((key)=>data.languages[key]),'12e49d')
+    }
 }
+try{
 loadLiveData()
+}catch(e){
+    console.debug(e)
+}

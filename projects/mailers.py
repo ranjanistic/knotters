@@ -1,6 +1,23 @@
 from main.mailers import sendActionEmail
-from .models import Project
+from .models import Project, FreeProject
 
+
+def freeProjectCreated(project: FreeProject):
+    """
+    Project has been submitted for moderation
+    """
+    return sendActionEmail(
+        to=project.creator.getEmail(),
+        username=project.creator.getFName(),
+        subject='New Project Created!',
+        header=f"Yay! You have successfully created a new project - '{project.name}' - on Knotters. Now it is visible to everyone at the following link.",
+        actions=[{
+            'text': 'View project',
+            'url': project.getLink()
+        }],
+        footer=f"You can visit the link to get started, bring people to contribute to your project, or just start with adding more details to your project!",
+        conclusion="This email was sent because we have received a project from your Knotters account. If this wasn't you, then please report to us."
+    )
 
 def sendProjectSubmissionNotification(project: Project):
     """

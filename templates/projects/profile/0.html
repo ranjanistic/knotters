@@ -1,0 +1,198 @@
+{% extends 'projects/profile.html' %}
+{% debug %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block content %}
+<div class="w3-row tertiary">
+    <br/>
+    <div class="w3-col w3-quarter w3-padding">
+        <div class="w3-row">
+            <div class="pallete" style="padding:0" id="view-pallete">
+                <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
+                <div class="w3-row w3-center w3-padding-small">
+                <h5>{{project.name}}</h5>
+                <center>{{project.description}}</center>
+                </div>
+                <div class="w3-row w3-padding-small">
+                    {% if user.is_authenticated and user.profile == project.creator %}
+                    <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
+                    {% endif %}
+                    <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{project.name}}', '{{project.description}}', '{{site}}{{project.getLink}}')">share</i>
+                </div>
+            </div>
+            {% if iscreator %}
+            <div class="pallete w3-center" id="edit-pallete">
+                <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
+                <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
+                <button class="active" type="button" id="upload-button">
+                <i class="material-icons">image</i>
+                <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
+                </button>
+                <br/>
+                <form method="POST" action="{{project.editProfileLink}}">
+                {% csrf_token %}
+                <input type="text" hidden id="projectimageData" name="projectimage" value="" />
+                <div class="w3-row w3-padding">
+                    <input type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
+                    <textarea placeholder="About project" name="projectabout" cols="10">{{project.description}}</textarea><br/>
+                </div>
+                <button id="save-edit-pallete" data-icon="done">Save</button>
+                <button id="discard-edit-pallete" data-icon="close">Discard</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        <br/>
+        {% if project.repolink %}
+        <div class="w3-row w3-padding-small">
+            <a target="_blank" rel="noreferrer" href="{{project.repoLink}}">
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.repolink}}</button>
+            </a>
+        </div>
+        <br/>
+        {% endif %}
+        
+        <div class="w3-row w3-padding pallete">
+            <center><h5>Assets</h5><hr/></center>
+            <div class="w3-row">
+                {% for asset in project.assets %}
+                {% empty %}
+                    {% if iscreator %}
+                    <center >
+                    <div class="w3-jumbo material-icons">add_circle</div>
+                    <h5>Add assets</h5>
+                    <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
+                    </center>
+                    {% else %}
+                    <center class="dead-text">
+                    <div class="w3-jumbo material-icons">cloud_off</div>
+                    <h5>No assets</h5>
+                    </center>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="w3-col w3-threequarter">
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row w3-center">
+                <div class="pallete">
+                    <center><h5>Overview</h5><hr/></center>
+                    <h3>{{project.category.name|capfirst}}</h3>
+                    <div class="w3-row" id="view-projecttopics">
+                    {% for topicdata in project.getTopicsData %}
+                        <div class="w3-row pallete-slab w3-padding">
+                            <h6 class=" w3-left topic-name">{{topicdata.topic}}</h6>
+                        </div>
+                    {% empty %}
+                        {% if iscreator %}
+                            <button class="accent edit-action w3-padding" data-edittarget="projecttopics" data-icon="add">Add topics</button>
+                        {% else %}
+                            <div class="dead-text">
+                                <i class="w3-jumbo">hourglass_top</i>
+                                <h4>No topics yet.</h4>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if iscreator and project.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="projecttopics">edit</i>{% endif %}
+                    </div>
+                    {% if iscreator %}
+                    <div id="edit-projecttopics">
+                        <br/>
+                        <strong class="dead-text">Total 5 topics allowed</strong>
+                        <form action="{{URLS.TOPICSUPDATE|params:project.getID}}" method="POST">
+                            {% csrf_token %}
+                            <input class="wide" placeholder="Search topics" id="topic-search-input" />
+                            <div class="w3-row w3-padding" id="topics-viewer">
+                                {% for topic in project.getTopics %}
+                                <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                                {% endfor %}
+                                <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                            </div>
+                            <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                            <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                            <br/>
+                            <button id="save-edit-projecttopics" data-icon="done">Save</button>
+                            <button id="discard-edit-projecttopics" data-icon="close">Cancel</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="w3-row w3-padding" id="tags">
+                <div id="view-projecttags">
+                {% for tag in project.tags.all %}
+                <a href="/projects?q={{tag}}&type=tag"><button class="positive">#{{tag}}</button></a>
+                {% empty %}
+                    <h5 class="dead-text">No tags assigned</h5>
+                {% endfor %}
+                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+                </div>
+                {% if iscreator %}
+                <div id="edit-projecttags">
+                    <strong class="dead-text">Total 5 tags allowed</strong>
+                    <form action="{{URLS.TAGSUPDATE|params:project.getID}}" method="POST">
+                        {% csrf_token %}
+                        <input class="wide" placeholder="Search tags" id="tag-search-input" />
+                        <div class="w3-row w3-padding" id="topics-viewer">
+                            {% for tag in project.tags.all %}
+                            <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                        </div>
+                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                        <br/>
+                        <button id="save-edit-projecttags" data-icon="done">Save</button>
+                        <button id="discard-edit-projecttags" data-icon="close">Cancel</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% comment %} <div class="w3-row w3-padding pallete">
+                <center><h5>Language distribution</h5><hr/></center>
+                <div class="w3-row" id="project-languages-view">
+                </div>
+            </div> {% endcomment %}
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
+                    <center><h5>Description</h5><hr/></center>
+                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
+                    {% comment %} <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
+                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/> {% endcomment %}
+                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    {% endcache %}
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row">    
+                <div class="pallete">
+                <center><h5>Contributors</h5><hr/></center>
+                {% comment %} <div class="w3-row" id="project-contibutors-view"></div> {% endcomment %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="w3-row"></div>
+    <br/>
+</div>
+{% endblock %}
+
+{% block in_scripts %}
+<script>
+const projectID = "{{ project.get_id }}";
+const selfProject = "{{iscreator}}"==='True';
+</script>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'scripts/project/profile.js' %}" ></script>
+{% endblock %}

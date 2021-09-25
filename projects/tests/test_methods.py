@@ -31,11 +31,11 @@ class ProjectsMethodTest(TestCase):
         self.assertIsInstance(addTagToDatabase(getTag()), Tag)
 
     def test_createProject(self):
-        self.assertIsInstance(createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), getTestTags(3), self.creator, self.license.getID()), Project)
+        self.assertIsInstance(createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), self.creator, self.license.getID()), Project)
         pass
 
     def test_setupApprovedProject(self):
-        project = createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), getTestTags(5), self.creator, self.license.getID())
+        project = createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), self.creator, self.license.getID())
         self.assertIsInstance(project, Project)
         self.assertFalse(setupApprovedProject(project, self.mod))
         project.status = Code.APPROVED

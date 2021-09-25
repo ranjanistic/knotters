@@ -133,7 +133,7 @@ const loadBrowserSwiper = (_) => {
 const loadBrowsers = () => {
     Promise.all(
         getElements("browser-view").map(async (view) => {
-            await (async () => {
+            let method = async () => {
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest(
                     setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
@@ -149,7 +149,8 @@ const loadBrowsers = () => {
                 }
                 setHtmlContent(view, data, loadBrowserSwiper);
                 loadBrowserSwiper()
-            })();
+            };
+            await method()
         })
     )
         .then(() => {
@@ -1060,3 +1061,18 @@ const radarChartView = (
         },
     });
 };
+
+const connectWithGithub = (next=URLS.ROOT, oncancel=_=>{}) =>{
+    alertify.alert("Github ID Required",
+    `<div class="w3-row w3-padding">
+    <h4>Your Github identity must be linked with Knotters for this action.</h4>
+    <br/>
+    <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
+        <button type="button" class="secondary"><img src="/static/graphics/thirdparty/github-dark.png" width="20" />
+        &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
+        </button>
+    </a>
+    </div>`,()=>{
+        oncancel()
+    }).set('closable',false).set('label','Cancel')
+}

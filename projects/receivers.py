@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
-from .models import Asset, Project, defaultImagePath
+from .models import Project, FreeProject, BaseProject, Asset, defaultImagePath
 
 
 @receiver(post_save, sender=Project)
@@ -11,8 +11,16 @@ def on_project_create(sender, instance:Project, created, **kwargs):
     if created:
         instance.creator.increaseXP(by=2)
 
+@receiver(post_save, sender=FreeProject)
+def on_freeproject_create(sender, instance:FreeProject, created, **kwargs):
+    """
+    Project submitted.
+    """
+    if created:
+        instance.creator.increaseXP(by=2)
 
-@receiver(post_delete, sender=Project)
+
+@receiver(post_delete, sender=BaseProject)
 def on_project_delete(sender, instance, **kwargs):
     """
     Project cleanup.

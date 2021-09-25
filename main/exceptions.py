@@ -26,3 +26,7 @@ class IllegalModerationEntity(IllegalModeration):
 class IllegalModerationState(IllegalModeration):
     """The given state of moderation is illegal"""
     pass
+
+class InvalidBaseProject(Exception):
+    """The given state of moderation is illegal"""
+    pass
