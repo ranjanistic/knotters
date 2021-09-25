@@ -133,7 +133,7 @@ const loadBrowserSwiper = (_) => {
 const loadBrowsers = () => {
     Promise.all(
         getElements("browser-view").map(async (view) => {
-            await (async () => {
+            let method = async () => {
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest(
                     setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
@@ -149,7 +149,8 @@ const loadBrowsers = () => {
                 }
                 setHtmlContent(view, data, loadBrowserSwiper);
                 loadBrowserSwiper()
-            })();
+            };
+            await method()
         })
     )
         .then(() => {

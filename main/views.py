@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -14,7 +15,7 @@ from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
-from projects.models import LegalDoc, Project
+from projects.models import FreeProject, LegalDoc, Project
 from compete.models import Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
@@ -295,19 +296,21 @@ def browser(request: WSGIRequest, type: str):
                 excludeIDs.append(request.user.profile.getUserID())
                 excludeIDs += request.user.profile.blockedIDs
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                    createdOn__gte=(timezone.now()+timedelta(days=-15)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
             else:
                 profiles = cache.get(
                     f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
                 if not profiles:
                     profiles = Profile.objects.filter(
+                        createdOn__gte=(timezone.now()+timedelta(days=-15)),
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     cache.set(
                         f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles,count=len(profiles)))
         elif type == "new-projects":
-            projects = Project.objects.filter(
-                status=Code.APPROVED).order_by('-approvedOn')[0:10]
+            projects = Project.objects.filter(status=Code.APPROVED,approvedOn__gte=(timezone.now()+timedelta(days=-15))).order_by('-approvedOn','-createdOn')[0:5]
+            projects = list(chain(projects,FreeProject.objects.filter(createdOn__gte=(timezone.now()+timedelta(days=-15))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects,count=len(projects)))
         elif type == "recent-winners":
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
@@ -323,10 +326,25 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            projects = Project.objects.filter(Q(status=Code.APPROVED),authquery,query)[0:20]
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED),authquery,query)[0:10],FreeProject.objects.filter(authquery,query)[0:10]))
             if(len(projects)<1):
-                projects = Project.objects.filter(Q(status=Code.APPROVED),authquery)[0:20]
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED),authquery)[0:10],FreeProject.objects.filter(authquery)[0:10]))
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects,count=len(projects)))
+        elif type == "trending-topics":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "trending-projects":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "trending-profiles":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "newly-moderated":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "highest-month-xp-profiles":
+            # TODO
+            return HttpResponseBadRequest()
         else:
             return HttpResponseBadRequest()
     except Exception as e:

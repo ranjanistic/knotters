@@ -8,7 +8,7 @@ from main.strings import Code, Event, url
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
-from .models import Category, FreeProject, License, Project, Tag
+from .models import Category, FreeProject, License, Project, ProjectSocial, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
@@ -21,7 +21,7 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
-def createFreeProject(name: str, category: str, username: str, description: str, creator: Profile, licenseID: UUID) -> Project or bool:
+def createFreeProject(name: str, category: str, nickname: str, description: str, creator: Profile, licenseID: UUID,sociallinks=[]) -> Project or bool:
     """
     Creates project on knotters under moderation status.
 
@@ -34,12 +34,17 @@ def createFreeProject(name: str, category: str, username: str, description: str,
     :url: A display link for project, optional
     """
     try:
-        username = uniqueRepoName(username)
-        if not username:
+        nickname = uniqueRepoName(nickname)
+        if not nickname:
             return False
         license = License.objects.get(id=licenseID)
         category = Category.objects.get(id=category)
-        return FreeProject.objects.create(creator=creator, name=name, description=description, category=category, license=license, username=username)
+        project = FreeProject.objects.create(creator=creator, name=name, description=description, category=category, license=license, nickname=nickname)
+        socials = []
+        for soc in sociallinks:
+            socials.append(ProjectSocial(project=project,site=str(soc).strip()))
+        ProjectSocial.objects.bulk_create(socials)
+        return project
     except Exception as e:
         errorLog(e)
         return False
@@ -114,7 +119,7 @@ def uniqueRepoName(reponame: str) -> bool:
             return False
         if project.underModeration() or project.isApproved():
             return False
-    elif FreeProject.objects.filter(username__iexact=str(reponame), trashed=False).exists():
+    elif FreeProject.objects.filter(nickname__iexact=str(reponame), trashed=False).exists():
         return False
     return reponame if reponame and reponame != str() else False
 
@@ -213,6 +218,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                     allow_rebase_merge=False,
                     delete_branch_on_merge=False
                 )
+                ghOrgRepo.create_file('LICENSE','Add LICENSE',str(project.license.content))
 
         ghBranch = ghOrgRepo.get_branch("main")
 

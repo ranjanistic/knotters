@@ -1,4 +1,5 @@
 from uuid import UUID
+from itertools import chain
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
@@ -60,42 +61,16 @@ def create(request: WSGIRequest) -> HttpResponse:
 @normal_profile_required
 @require_GET
 def createFree(request: WSGIRequest) -> HttpResponse:
-
     categories = Category.objects.all()
-
-    projects = Project.objects.filter(creator=request.user.profile)
-    licIDs = []
-    if len(projects) > 0:
-        for project in projects:
-            licIDs.append(project.license.id)
-
-    licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
-
+    licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))[0:5]
     return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
     
 @normal_profile_required
 @require_GET
 def createMod(request: WSGIRequest) -> HttpResponse:
-    tags = []
-    for topic in request.user.profile.getTopics():
-        if topic.tags.count():
-            tags.append(topic.tags.all()[0])
-
-    if len(tags) < 5:
-        for tag in Tag.objects.all()[0:5-len(tags)]:
-            tags.append(tag)
-
     categories = Category.objects.all()
-
-    projects = Project.objects.filter(creator=request.user.profile)
-    licIDs = []
-    if len(projects) > 0:
-        for project in projects:
-            licIDs.append(project.license.id)
-
-    licenses = License.objects.filter(Q(id__in=licIDs) | Q(public=True))[0:5]
-
-    return renderer(request, Template.Projects.CREATE_MOD, dict(tags=tags, categories=categories, licenses=licenses))
+    licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))[0:5]
+    return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
 
 
 @normal_profile_required
@@ -134,7 +109,7 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
     if not (name and description and content):
         return respondJson(Code.NO, error=Message.INVALID_LIC_DATA)
 
-    if License.objects.filter(name__iexact=str(name).strip()).count() > 0:
+    if License.objects.filter(name__iexact=str(name).strip()).exists():
         return respondJson(Code.NO, error=Message.Custom.already_exists(name))
     try:
         lic = License.objects.create(
@@ -158,6 +133,7 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
 @require_POST
 def submitFreeProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
+    alerted = False
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         if not acceptedTerms:
@@ -168,13 +144,18 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
         category = request.POST["projectcategory"]
-        username = request.POST.get("projectusername",None)
-        if not uniqueRepoName(username):
-            return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.USERNAME_ALREADY_TAKEN)
+        nickname = request.POST.get("projectnickname",None)
+        if not uniqueRepoName(nickname):
+            return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.NICKNAME_ALREADY_TAKEN)
+        sociallinks = []
+        for key in request.POST.keys():
+            if str(key).startswith('sociallink'):
+                sociallinks.append(request.POST[key])
         projectobj = createFreeProject(
             creator=request.user.profile, name=name,
             category=category, description=description, licenseID=license,
-            username=username,
+            nickname=nickname,
+            sociallinks=sociallinks
         )
         if not projectobj:
             raise Exception()
@@ -187,10 +168,11 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
         except:
             pass
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{freeProjectCreated.__name__}",projectobj)
+        alerted = True
         return redirect(projectobj.getLink(success=Message.FREE_PROJECT_CREATED))
     except Exception as e:
         errorLog(e)
-        if projectobj:
+        if projectobj and not alerted:
             projectobj.delete()
         return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.SUBMISSION_ERROR)
 
@@ -243,9 +225,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
 @require_POST
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = Project.objects.get(
-            id=projID, creator=request.user.profile, status=Code.REJECTED, trashed=False)
-        project.moveToTrash()
+        project = BaseProject.objects.get(id=projID, creator=request.user.profile)
+        project.getProject().moveToTrash()
         return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
     except Exception as e:
         errorLog(e)
@@ -253,9 +234,9 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 
 @require_GET
-def profileFree(request: WSGIRequest, username: str) -> HttpResponse:
+def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
     try:
-        project = FreeProject.objects.get(username=username, trashed=False)
+        project = FreeProject.objects.get(nickname=nickname, trashed=False)
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator))
     except Exception as e:
@@ -313,7 +294,8 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                     project.save()
                     return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
                 return redirect(project.getLink(), permanent=True)
-            except:
+            except Exception as e:
+                print(e)
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
     except Exception as e:
@@ -490,7 +472,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 #     owner_ghID = request.POST["repository"]["owner"]["login"]
 #     pusher = request.POST['pusher']
 #     try:
-#         project = FreeProject.objects.get(id=projID,repolinked=True,username=reponame)
+#         project = FreeProject.objects.get(id=projID,repolinked=True,nickname=reponame)
 #         if owner_ghID != project.creator.ghID:
 #             return HttpResponseBadRequest('Invalid owner')
 #     except Exception as e:
@@ -601,13 +583,13 @@ def browseSearch(request:WSGIRequest):
         | Q(creator__githubID__startswith=query)
         | Q(creator__githubID__iexact=query)
     ))[0:10]
-    projects = projects + FreeProject.objects.exclude(trashed=True).filter(Q(
+    projects = chain(projects,FreeProject.objects.exclude(trashed=True).filter(Q(
         Q(name__startswith=query)
         | Q(name__iexact=query)
-        | Q(username__startswith=query)
-        | Q(username__iexact=query)
+        | Q(nickname__startswith=query)
+        | Q(nickname__iexact=query)
         | Q(creator__user__first_name__startswith=query)
         | Q(creator__githubID__startswith=query)
         | Q(creator__githubID__iexact=query)
-    ))[0:10]
+    ))[0:10])
     return rendererstr(request,Template.Projects.BROWSE_SEARCH,dict(projects=projects, query=query))

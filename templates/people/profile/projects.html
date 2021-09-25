@@ -1,3 +1,7 @@
+{% load cache %}
+{% load i18n %}
+{% load l10n %}
+{% load custom_tags %}
 <div class="w3-row">
 
   {% if self %}
@@ -17,7 +21,7 @@
           <div class="w3-row pallete-slab primary">
             <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
             <h6>{{project.name}}</h6>
-            <span>{{project.reponame}}</span>
+            <span>{% if project.nickname %}{{project.nickname}}{% else %}{{project.reponame}}{% endif %}</span>
             <a href="{{project.getLink}}" class="w3-right"><button class="positive small" data-icon="open_in_new"></button></a>
           </div>
           {% empty %}
@@ -91,7 +95,7 @@
 			<div class="pallete-slab">
 			<img class="w3-circle w3-right" width="30" src="{{project.getDP}}" />
 			<h6>{{project.name}}</h6>
-			<span>{{project.reponame}}</span>
+			<span>{% if project.nickname %}{{project.nickname}}{% else %}{{project.reponame}}{% endif %}</span>
 			<a href="{{project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
         	</div>
         </div>

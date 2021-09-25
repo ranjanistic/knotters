@@ -9,6 +9,7 @@ from main.methods import addMethodToAsyncQueue, maxLengthInList
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord
+from main.exceptions import InvalidBaseProject
 from .apps import APPNAME
 
 
@@ -174,14 +175,22 @@ class BaseProject(models.Model):
     def getID(self) -> str:
         return self.get_id
 
+    def sub_save(self):
+        return
+
     def save(self, *args, **kwargs):
         try:
             previous = BaseProject.objects.get(id=self.id)
-            if previous.image != self.image:
-                if previous.image != defaultImagePath():
-                    previous.image.delete(False)
+            if not [self.image,defaultImagePath()].__contains__(previous.image):
+                previous.image.delete(False)
         except:
             pass
+        assert self.name is not None
+        assert self.creator is not None
+        assert self.category is not None
+        assert self.license is not None
+        assert self.acceptedTerms is True
+        self.sub_save()
         super(BaseProject, self).save(*args, **kwargs)
 
     def getDP(self) -> str:
@@ -227,7 +236,8 @@ class BaseProject(models.Model):
             else:
                 if project.isApproved(): return project
             return Project.objects.get(id=self.id)
-        return None
+        return project or None
+
 
 
 class Project(BaseProject):
@@ -238,6 +248,9 @@ class Project(BaseProject):
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
 
+    def sub_save(self):
+        assert len(self.reponame) > 0
+        
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
@@ -304,11 +317,34 @@ class Project(BaseProject):
 
 
 class FreeProject(BaseProject):
-    username = models.CharField(max_length=500, unique=True, null=False, blank=False)
-    repolinked = models.BooleanField(default=False)
+    nickname = models.CharField(max_length=500, unique=True, null=False, blank=False)
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
-        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(username=self.username)}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=self.nickname)}{url.getMessageQuery(alert,error,success)}"
+
+    def moveToTrash(self) -> bool:
+        self.creator.decreaseXP(by=2)
+        self.delete()
+        return True
+
+    @property
+    def has_linked_repo(self) -> bool:
+        return FreeRepository.objects.filter(free_project=self).exists()
+
+    @property
+    def linked_repo(self):
+        return FreeRepository.objects.get(free_project=self)
+
+    def editProfileLink(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+
+class FreeRepository(models.Model):
+    """
+    One to one linked repository record
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
+    repo_id = models.CharField(max_length=100)
 
 class ProjectTag(models.Model):
     class Meta:

@@ -127,7 +127,7 @@ class Message():
     PROJECT_DELETED = "Project deleted"
     TERMS_UNACCEPTED = "You have not accepted the terms"
     LICENSE_UNSELECTED = "You have to choose a license"
-    USERNAME_ALREADY_TAKEN = "The username is not available, try something else."
+    NICKNAME_ALREADY_TAKEN = "The nickname is not available, try something else."
     INVALID_LIC_DATA = 'Invalid license data'
 
     UNDER_MODERATION = "Currently under moderation"
@@ -671,10 +671,10 @@ class URL():
         def trash(self, projID):
             return setPathParams(self.TRASH, projID)
 
-        PROFILE_FREE = 'profile/<str:username>'
+        PROFILE_FREE = 'profile/<str:nickname>'
 
-        def profileFree(self, username):
-            return setPathParams(self.PROFILE_FREE, username)
+        def profileFree(self, nickname):
+            return setPathParams(self.PROFILE_FREE, nickname)
 
         PROFILE_MOD = 'profile/<str:reponame>'
 
