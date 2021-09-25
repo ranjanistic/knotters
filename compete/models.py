@@ -465,11 +465,16 @@ class CompetitionJudge(models.Model):
         Competition, related_name='judging_competition', on_delete=models.PROTECT)
     judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
 
+    class Meta:
+        unique_together = ("competition", "judge")
+
     def __str__(self) -> str:
         return self.competition.title
 
-    class Meta:
-        unique_together = ("competition", "judge")
+    @property
+    def get_cert_link(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(self.competition.get_id,self.judge.get_userid)}"
+
 
 
 class CompetitionTopic(models.Model):
