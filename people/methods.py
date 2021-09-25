@@ -8,7 +8,7 @@ from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString
 from projects.models import Project
 from moderation.models import Moderation
-from compete.models import Result
+from compete.models import CompetitionJudge, Result
 from .models import ProfileSetting, Topic, User, Profile
 from .apps import APPNAME
 
@@ -95,6 +95,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         data[Code.REJECTED] = projects.filter(status=Code.REJECTED)
     elif section == profileString.ACHEIVEMENTS:
         data[Code.RESULTS] = Result.objects.filter(submission__members=profile)
+        data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile)
     elif section == profileString.CONTRIBUTION:
         pass
     elif section == profileString.ACTIVITY:

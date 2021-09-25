@@ -67,6 +67,7 @@ class Code():
     FEEDBACKS = 'feedbacks'
 
     RESULTS = "results"
+    JUDGEMENTS = 'judgements'
 
     class Test():
         MODEL = 'model'
