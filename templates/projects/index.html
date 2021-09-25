@@ -76,6 +76,7 @@
 
 {% block scripts %}
 <script>
+try{
 getElement("browse-search-clear").onclick=()=>{
   getElement("browse-search-view").innerHTML='';
   hideElement("browse-search-actions");
@@ -89,6 +90,9 @@ getElement("browse-search-exec").onclick=async()=>{
   const data = await getRequest(URLS.BROWSE_SEARCH,{query})
   if(!data) return
   setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
+}
+}catch(e){
+  console.error(e)
 }
 </script>
 {% endblock %}
