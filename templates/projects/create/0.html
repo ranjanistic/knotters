@@ -55,14 +55,14 @@
                         <button class="secondary" type='button'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link Github repository</button>
                     {% endif %}
                     <h4>Or</h4> {% endcomment %}
-                    <input class="create-project-input" type="text" autocomplete="nickname" required placeholder="Project's unique username" name="projectusername" id="projectusername" /><br/><br/>
-                    <button class="primary" type='button' data-icon="link">Add social link</button>
-                    <div class="w3-row" id="social-links">
-                    <br/><br/>
-                    <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink1" id="sociallink1" /><br/><br/>
-                    <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink2" id="sociallink2" />
+                        <input class="create-project-input" type="text" autocomplete="nickname" required placeholder="Project's unique username" name="projectusername" id="projectusername" /><br/><br/>
+                        <div class="w3-row" id="social-links">
+                            {% comment %} <br/><br/> {% endcomment %}
+                            {% comment %} <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink1" id="sociallink1" /><br/><br/>
+                            <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink2" id="sociallink2" /> {% endcomment %}
+                        </div>
+                        <button class="primary" type='button' data-icon="link" id="addSocialLinkButton">Add social link</button>
                     </div>
-                </div>
             </div>
         </div>
         <div class="w3-col w3-half w3-padding">
@@ -101,6 +101,16 @@
 {% endblock %}
 {% block in_scripts %}
 <script>
+    getElement('addSocialLinkButton').onclick=_=>{
+        const parent=document.getElementById('social-links');
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink${linkNumber}" id=${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
+
     initializeTabsView({
         uniqueID: "license",
         activeTabClass: "positive text-positive",
