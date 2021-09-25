@@ -1,4 +1,4 @@
-from main.mailers import sendActionEmail
+from main.mailers import sendActionEmail, sendAlertEmail
 from .models import Project, FreeProject
 
 
@@ -17,6 +17,19 @@ def freeProjectCreated(project: FreeProject):
         }],
         footer=f"You can visit the link to get started, bring people to contribute to your project, or just start with adding more details to your project!",
         conclusion="This email was sent because we have received a project from your Knotters account. If this wasn't you, then please report to us."
+    )
+
+def freeProjectDeleted(project: FreeProject):
+    """
+    Project has been submitted for moderation
+    """
+    return sendAlertEmail(
+        to=project.creator.getEmail(),
+        username=project.creator.getFName(),
+        subject='Project Deleted',
+        header=f"This is to inform you that your project - '{project.name}' ({project.nickname}) - has been deleted on Knotters, with all its associated data.",
+        footer=f"You can always create a new project, whenever you like to start one.",
+        conclusion="This email was sent because a project from your Knotters account was deleted. If this wasn't you, then please report to us."
     )
 
 def sendProjectSubmissionNotification(project: Project):

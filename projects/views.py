@@ -167,7 +167,6 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
             projectobj.save()
         except:
             pass
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{freeProjectCreated.__name__}",projectobj)
         alerted = True
         return redirect(projectobj.getLink(success=Message.FREE_PROJECT_CREATED))
     except Exception as e:
@@ -222,11 +221,13 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
 
 
 @normal_profile_required
-@require_POST
+@require_JSON_body
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = BaseProject.objects.get(id=projID, creator=request.user.profile)
+        project = BaseProject.objects.get(id=projID, creator=request.user.profile, creator__is_active=True,creator__suspended=False,creator__is_zombie=False)
         project.getProject().moveToTrash()
+        if request.headers.get('X-KNOT-REQ-SCRIPT', False):
+            return respondJson(Code.OK)
         return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
     except Exception as e:
         errorLog(e)
