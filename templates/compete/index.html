@@ -17,39 +17,38 @@
 
 {% block nav_noauth_competes %}{% endblock %} 
 {% block nav_href %}{{URLS.ROOT}}{% endblock %}
+{% block nav_text %}Competitions{% endblock %}
 
 {% block nav_extra_links %}
 <a href="{{URLS.CERT_INDEX}}"><button title="Certification" class="tertiary" data-icon="badge"><span class="w3-hide-small">Certification</span></button></a>
 {% endblock %}
 
 {% block content %}
-<br/>
-<div class="w3-row w3-padding welcome-row">
+<div class="w3-row w3-padding welcome-row first-time-view" id='compete-intro-banner'
+  data-html="
   <br/><br/>
+  <div class='dropdown-box' id='compete-dropdown'></div>
+  <div class='input-dropdown-box' id='compete-input-dropdown'></div>
 
-  <div class="dropdown-box" id="compete-dropdown"></div>
-  <div class="input-dropdown-box" id="compete-input-dropdown"></div>
-
-  <div class="w3-row w3-padding">
+  <div class='w3-row w3-padding'>
   <h1>Competitions</h1>
   </div>
   <br/>
-  <div class="w3-row w3-padding">
+  <div class='w3-row w3-padding'>
   <h4>
     Time to time mass challenges, targeted primarily on real world problems.<br/>And for you to level up with enthusiasm.
   </h4>
   </div>
-  <div class="w3-row w3-padding">
-    <a href="#mainframe"><button class="display-button accent">
-        <i class="material-icons">volunteer_activism</i>Explore
+  <div class='w3-row w3-padding'>
+    <button class='display-button accent' id='close-compete-intro-banner'>
+        <i class='material-icons'>volunteer_activism</i>I'm ready
+    </button>
+    <a href='{{URLS.LANDING}}'>
+      <button class='positive display-button'>
+        <i class='material-icons'>open_in_new</i>Learn More
       </button>
     </a>
-    <a href="{{URLS.APPLANDING|params:SUBAPPNAME}}" hidden>
-      <button class="secondary display-button">
-        <i class="material-icons">open_in_new</i>Learn More
-      </button>
-    </a>
-  </div>
+  </div>">
 </div>
 
 <div class="w3-row tertiary" id="mainframe">

@@ -186,6 +186,17 @@ const setUrlQueries = (path, query = {}) => {
 };
 
 const loadGlobalEventListeners = () => {
+    getElements("first-time-view").forEach((view)=>{
+        if(localStorage.getItem(view.id)==1){
+            hide(view)
+        } else {
+            view.innerHTML=view.getAttribute('data-html')
+            getElement(`close-${view.id}`).addEventListener('click',()=>{
+                localStorage.setItem(view.id, 1)
+                hide(view)
+            })
+        }
+    })
     getElementsByTag("form").forEach((form) => {
         form.addEventListener("submit", (e) => {
             if (form.classList.contains("no-auto")) {
@@ -266,7 +277,6 @@ const loadGlobalEventListeners = () => {
         };
     });
     getElements("close-global-alert").forEach((closer) => {
-        console.log(localStorage.getItem(`hidden-alert-${closer.id}`));
         if (localStorage.getItem(`hidden-alert-${closer.id}`)) {
             hide(getElement(`view-${closer.id}`));
         }
@@ -292,6 +302,7 @@ const _processReCaptcha = (
         error("An error occurred");
     }
 ) => {
+    try{
     grecaptcha.ready(function () {
         try {
             grecaptcha
@@ -328,6 +339,12 @@ const _processReCaptcha = (
             loader(false);
         }
     });
+    } catch {
+        onSuccess(() => {
+            loader(false);
+            subLoader(false);
+        });
+    }
 };
 
 const Icon = (name, classnames = "") =>
@@ -457,13 +474,10 @@ const initializeTabsView = ({
             } catch (e) {
                 tabs[selected].click();
             }
-            console.log("this 0");
         } else {
             if (tabindex < tabs.length) {
-                console.log("this 1");
                 tabs[tabindex].click();
             } else {
-                console.log("this 2");
                 tabs[tabs.length - 1].click();
             }
         }

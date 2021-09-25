@@ -241,6 +241,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LIVEDATA}"),
             ]),
             ignorelist=json.dumps([
+                f"/",
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",

@@ -618,3 +618,9 @@ label > input[type="checkbox"] {
 .no-pad{
     padding: 0 !important;
 }
+
+.vertical-align{
+    display:flex;
+    justify-content: center;
+    align-items:center;
+}
