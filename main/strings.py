@@ -712,16 +712,21 @@ class URL():
         def tagsUpdate(self, projID):
             return setPathParams(self.TAGSUPDATE, projID)
 
+        USER_GH_REPOS = "github/user/repos"
+        LINK_FREE_REPO = "github/user/repos/link"
+        UNLINK_FREE_REPO = "github/user/repos/unlink"
+
         LIVEDATA = 'livedata/<str:projID>/'
 
         def liveData(self, projectID):
             return setPathParams(self.LIVEDATA, projectID)
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>/<str:projID>'
-        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
 
         def githubEvents(self, type, event, projID):
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
+
+        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
 
         NEWBIES = 'newbies/'
         BROWSE_SEARCH = 'browse/search/'

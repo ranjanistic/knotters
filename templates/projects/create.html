@@ -5,8 +5,6 @@
 {% load tz %}
 {% load custom_tags %}
 
-{% block themecolor %}#f5d702{% endblock %}
-
 {% block og_url %}{{URLS.CREATE}}{% endblock %}
 {% block og_title %}Create Project{% endblock %}
 {% block og_site_name %}Create Project{% endblock %}
@@ -17,7 +15,7 @@
 {% block title%}Create project{%endblock%}
 
 {% block nav_extra_links %}
-<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
+<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="primary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
 {% endblock %}
 
 {% block stylesheets %}
@@ -27,18 +25,44 @@
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_back_icon %}close{% endblock %}
-
 {% block nav_href %}{{ROOT}}{% endblock %}
-{% block nav_style %}accent{% endblock %}
-{% block nav_text_style %}text-accent{% endblock %}
+
 {% block nav_text %}Create project{% endblock %}
-{% block nav_auth_links %}{% endblock %} 
-{% block nav_noauth %}{% endblock %}
+
 
 {% block content %}
-<div class="w3-row">
-<a href="{{URLS.CREATE_FREE}}">Free</a> | <a href="{{URLS.CREATE_MOD}}">Moderated</a>
+<div class="w3-row w3-padding">
+    <div class="w3-col w3-half w3-padding">
+            <div class="pallete primary positive-text">
+                <center><h2>Quick Project</h2></center><br/>
+                <div class="pallete-slab">
+                    <h4>Instantly start a new project without waiting for someone's approval.</h4><br/>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Choose license from publicly available licenses at {{APPNAME}}</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Get a permanent publicly available URL for your project</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Associate at most 10 static assets of your own</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Link with your own public Github repository, after creation</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;</h6>
+                    <a href="{{URLS.CREATE_FREE}}">
+                        <center><button class="big-button positive" data-icon="add">New Quick Project</button></center>
+                    </a>
+                    <br/>
+                </div>
+            </div>
+    </div>
+    <div class="w3-col w3-half w3-padding">
+        <a href="{{URLS.CREATE_MOD}}">
+            <div class="pallete accent text-accent">
+                <center><h2>Moderated Project</h2></center>
+                <div class="pallete-slab primary">
+                    <h6>Submit a project to get an approved, moderated project with a repository at 
+                    <a href="https://github.com/Knotters">{{APPNAME}}</a>
+                    </h6>
+                    <strong></strong>
+                    <strong></strong>
+                </div>
+            </div>
+        </a>
+    </div>
 </div>
 {% endblock %}
 

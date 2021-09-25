@@ -2,14 +2,15 @@ import uuid
 from deprecated import deprecated
 from django.db import models
 from django.utils import timezone
-from main.env import BOTMAIL, MAILUSER, PUBNAME
+from main.bots import Github
+from main.env import BOTMAIL, PUBNAME
 from main.settings import MEDIA_URL
-# from people.models import Profile
-from main.methods import addMethodToAsyncQueue, maxLengthInList
+from django.core.cache import cache
+from django.conf import settings
+from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord
-from main.exceptions import InvalidBaseProject
 from .apps import APPNAME
 
 
@@ -344,7 +345,34 @@ class FreeRepository(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
-    repo_id = models.CharField(max_length=100)
+    repo_id = models.IntegerField()
+
+    @property
+    def reponame(self):
+        try:
+            data = cache.get(f"gh_repo_data_{self.repo_id}")
+            if data:
+                return data.name
+            data = Github.get_repo(int(self.repo_id))
+            cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+            return data.name
+        except Exception as e:
+            errorLog(e)
+            return None
+
+    @property
+    def repolink(self):
+        try:
+            data = cache.get(f"gh_repo_data_{self.repo_id}")
+            if data:
+                return data.html_url
+            data = Github.get_repo(int(self.repo_id))
+            cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+            return data.html_url
+        except Exception as e:
+            errorLog(e)
+            return None
+
 
 class ProjectTag(models.Model):
     class Meta:

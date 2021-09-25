@@ -176,11 +176,11 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
     try:
         if not project.isApproved():
             return False
-        if not project.creator.githubID or not moderator.githubID:
+        if not project.creator.ghID or not moderator.ghID:
             return False
 
-        ghUser = Github.get_user(project.creator.githubID)
-        ghMod = Github.get_user(moderator.githubID)
+        ghUser = Github.get_user(project.creator.ghID)
+        ghMod = Github.get_user(moderator.ghID)
 
         ghOrgRepo = getGhOrgRepo(project.reponame)
 
@@ -227,7 +227,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             enforce_admins=False,
             dismiss_stale_reviews=True,
             required_approving_review_count=1,
-            user_push_restrictions=[moderator.githubID],
+            user_push_restrictions=[moderator.ghID],
         )
 
         invited = inviteMemberToGithubOrg(ghUser)
@@ -255,9 +255,9 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             )
 
         ghOrgRepo.add_to_collaborators(
-            collaborator=moderator.githubID, permission="maintain")
+            collaborator=moderator.ghID, permission="maintain")
         ghOrgRepo.add_to_collaborators(
-            collaborator=project.creator.githubID, permission="push")
+            collaborator=project.creator.ghID, permission="push")
 
         ghOrgRepo.create_hook(
             name='web',

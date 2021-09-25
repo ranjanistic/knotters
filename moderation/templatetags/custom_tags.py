@@ -22,3 +22,10 @@ def safechars(value):
 def numsuffix(value):
     return f"{value}{getNumberSuffix(int(value))}"
 
+@register.filter(name='noprotocol')
+def noprotocol(link):
+    if str(link).startswith(('http','https')):
+        link = link.replace('https://','')
+        link = link.replace('http://','')
+    return link
+
