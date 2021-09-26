@@ -5,17 +5,155 @@
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/landing.css' %}">
 {% endblock %}
+{% block nav_text %}Getting Started{% endblock %}
 {% block content %}
 <div class="w3-row">
-    <div class="w3-row w3-center" style="height:110vh">
+    <div class="w3-row w3-center" style="height:100vh">
         <div class="w3-row w3-center">
-            <img class="w3-animate-zoom" src="{% static 'graphics/self/icon.svg' %}" width="30%" />
+            <img class="w3-hide-small w3-animate-zoom darkimg" src="{% static 'graphics/self/icon-circle.svg' %}" width="20%" />
+            <img class="w3-hide-large w3-hide-medium w3-animate-zoom darkimg" src="{% static 'graphics/self/icon-circle.svg' %}" width="50%" />
         </div>
         <div class="w3-row w3-center w3-animate-bottom">
-            <h1 class="w3-jumbo"><b>Knotters Community</b></h1>
+            <h1>Knotters</h1>
+            <h1 class="w3-hide-small w3-jumbo"><b>The landing page</b></h1>
+            <h1 class="w3-hide-large w3-hide-medium"><b>The landing page</b></h1>
+            <h4>Keep scrolling, will ya?</h4>
+        </div>
+        <br/>
+        <div class="w3-row w3-center w3-animate-bottom">
+            <button class="positive big-button">Scroll for me!</button>
+        </div>
+        <br/>
+        <div class="w3-row w3-center w3-animate-opacity">
+            <h6>(Please scroll, virtually begging you 😥)</h6>
         </div>
     </div>
-    
+    <br>
+    <div class="w3-row w3-padding-large" align='left'>
+        <h2>Not exactly a landing page<a href="https://en.wikipedia.org/wiki/Landing_page" title="What is a landing page?" target="_blank" rel="noreferrer"><i>open_in_new</i></a></h2>
+        <div class="w3-col w3-half">
+            <strong class="w3-large">
+            <p> 
+                Please come back here if you'll click the above link icon. Wikipedia articles can be intriguing sometimes.<br/>
+                This page is a story, telling the story of this page itself, with a tiny (very tiny, almost microscopic) focus on {{APPNAME}} platform.
+            </p>
+            <p>
+                Are you interested in our story? Regardless, we'll continue to tell.
+                Not that we don't care about <a onclick="reportFeedbackView(1)">your opinion</a> (which we do), but most of the content on this page is static.
+            </p>
+            </strong>
+        </div>
+        <div class="w3-col w3-half">
+            <img class="w3-right" src="{{ICON}}"  width="50" />
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large" align='center'>
+        <h2>The center heading</h2>
+        <strong class="w3-large">
+        <p>
+            To indicate that something important has come up, however, everything is important in this page,
+            it's just that center heading looks cool. <a onclick="reportFeedbackView(1)">Does it?</a>
+        </p>
+        <p>
+            This <img src={{ICON}} class="darkimg" width="24"/> icon is our logo, which you must've realized by now.
+            The name <em>{{APPNAME}}</em> is what we call this platform, and so should you.
+        </p>
+        </strong>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large" align='right'>
+        <h2>Introductory section</h2>
+        <div class="w3-col w3-half" align='left'>
+            <img src="{{ICON}}"  width="50" />
+        </div>
+        <div class="w3-col w3-half" align='right'>
+            <strong class="w3-large">
+            <p>
+                Has the story started? It did when you first visited this page. It's all about patience.
+                Ofcourse you can speed scroll all the way down to the bottom of this page to get rid of this slow character buildup. But, where's the fun in that?
+            </p>
+            </strong>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large dead-text" align='center'>
+        <h3>Did you notice the staircase we formed above? left-center-right 😁</h3>
+        <h4>Creativity  +100XP 😎</h4>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding">
+        <div class="pallete-slab accent w3-padding-large">
+            <center><h1>The Better Truth</h1></center>
+            <div class="pallete primary w3-padding-large">
+                <h5>
+                    Here's the truth about why the long storytelling on a landing page.<br/>
+                    We were sooo involved in the making of this platform and the services it provides,
+                    that we forgot to add landing page on our bucket list.<br/><br/>
+                    And about the time we realised that, Knotters had become sooo vast in terms of features
+                    (quick projects, moderated projects, competitions, moderators, judges, licensing, repositories, etc.),
+                    that no language had enough words (or variables) to describe them all.
+                </h5>
+            </div>
+            <br/>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding">
+        <div class="pallete-slab secondary w3-padding-large">
+            <center><h1 class="text-secondary">The Bitter Truth</h1></center>
+            <div class="pallete primary w3-padding-large">
+                <h5>
+                    Here's the bitter truth for some of you. The story is not yet complete on our side😿. So in the mean time
+                    we'll try to explain you the vast & variety of features of Knotters, of which a few have been mentioned in The Better Truth as well.
+                </h5>
+            </div>
+            <br/>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large">
+        <div class="w3-row">
+            <h1 class="w3-jumbo"><span class="active">The Projects</span></h1>
+            <strong class="w3-large">
+                <p>
+                    As we said, it's all about patience, therefore the first thing that we'd like to have you introduced,
+                    is the Projects feature of Knotters, which actively involves the patience factor.
+                </p>
+            </strong>
+            <h3>Have you ever worked on a project? Like a software project or a community project, or anything you'd like to categorize as a project?
+            </h3>
+            <strong class="w3-large">
+                <p>
+                    <h4><span class="tertiary">If you haven't, then</span></h4>
+                    Knotters could prove to be the right place to start, in case you want to start.
+                    <h5>Why so?</h5>
+                    At the planck epoch stage of any project,
+                    which is the idea state, the first time creator gets pretty confused regarding where thee shall begin.<br/>
+                    This is the stage at which starting a project with Knotters gives your idea a certain amount of exposure, a head start,
+                    a profile, a face, a room on internet, a family to your project to-be. We call that family <em>Knotters Community</em>.
+                    And it's fruitful.
+                </p>
+                <p>
+                    <h4><span class="tertiary">If you have, then</span></h4>
+                    There's always a need for any project to be in the public eye. Social networking sites could be helpfull, but those 
+                    only provide exposure to the deliverability of your project, not to the project itself. As mentioned previously, having 
+                    an official profile of your project, in whichever domain it may be, gives it a recognizable face, a room on internet, and
+                    again, a family.
+                </p>
+            </strong>
+        </div>
+        <div class="w3-row">
+            <h1><span class="accent">Moderated Projects</span></h1>
+            
+            <strong class="w3-large">
+                <p>
+                    
+                </p>
+            </strong>
+        </div>
+    </div>
+    <br/>
     <div class="landing_features">
         <h2 class="land_f">Features</h2>
         <p class="f_detail">Record or rewind any change to your code to keep you and your team in sync. Host it all for
@@ -143,7 +281,7 @@
         </div>
     </div>
 
-    <div class="wall_fame">
+    {% comment %} <div class="wall_fame">
         <h1 class="wf_text">Licenses</h1>
         <h3 class="lm_text" style="text-align:center">If you are looking at blank cassettes on the web, you may be very confused at the
             difference in price.
@@ -151,7 +289,7 @@
             difference in price
             Get license for your project verified by ISI certification. Wow nothing can be more exciting than having license for project.
         </h3>
-    </div>
+    </div> {% endcomment %}
 
     <div class="w3-row accent w3-padding">
         <h1>Your projects</h1>

@@ -3,12 +3,18 @@ from github import Github as GHub
 from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 
-if GITHUBBOTTOKEN:
-    Github = GHub(GITHUBBOTTOKEN)
-    GithubKnotters = Github.get_organization(PUBNAME)
-else:
+try:
+    if GITHUBBOTTOKEN:
+            Github = GHub(GITHUBBOTTOKEN)
+            GithubKnotters = Github.get_organization(PUBNAME)
+    else:
+        Github = None
+        GithubKnotters = None
+except Exception as e:
+    print(e)
     Github = None
     GithubKnotters = None
+
 
 class Sender():
     def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:

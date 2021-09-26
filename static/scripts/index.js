@@ -149,9 +149,9 @@ const loadBrowsers = () => {
                     return;
                 }
                 setHtmlContent(view, data, loadBrowserSwiper);
-                loadBrowserSwiper()
+                loadBrowserSwiper();
             };
-            await method()
+            await method();
         })
     )
         .then(() => {
@@ -187,17 +187,18 @@ const setUrlQueries = (path, query = {}) => {
 };
 
 const loadGlobalEventListeners = () => {
-    getElements("first-time-view").forEach((view)=>{
-        if(localStorage.getItem(view.id)==1){
-            hide(view)
+    getElements("first-time-view").forEach((view) => {
+        if (localStorage.getItem(`first-intro-${view.id}`) == 1) {
+            hide(view);
         } else {
-            view.innerHTML=view.getAttribute('data-html')
-            getElement(`close-${view.id}`).addEventListener('click',()=>{
-                localStorage.setItem(view.id, 1)
-                hide(view)
-            })
+            view.innerHTML = view.getAttribute("data-html");
+            getElement(`close-${view.id}`).addEventListener("click", () => {
+                localStorage.setItem(`first-intro-${view.id}`, 1);
+                message('Press Alt+R for introduction')
+                hide(view);
+            });
         }
-    })
+    });
     getElementsByTag("form").forEach((form) => {
         form.addEventListener("submit", (e) => {
             if (form.classList.contains("no-auto")) {
@@ -303,43 +304,43 @@ const _processReCaptcha = (
         error("An error occurred");
     }
 ) => {
-    try{
-    grecaptcha.ready(function () {
-        try {
-            grecaptcha
-                .execute(RECAPTCHA_KEY, { action: "submit" })
-                .then(async (token) => {
-                    loader(true);
-                    const data = await postRequest(URLS.VERIFY_CAPTCHA, {
-                        "g-recaptcha-response": token,
-                    });
-                    if (!data) {
-                        subLoader(false);
-                        loader(false);
-                        return;
-                    }
-                    if (data.code === code.OK) {
-                        onSuccess(() => {
-                            loader(false);
-                            subLoader(false);
+    try {
+        grecaptcha.ready(function () {
+            try {
+                grecaptcha
+                    .execute(RECAPTCHA_KEY, { action: "submit" })
+                    .then(async (token) => {
+                        loader(true);
+                        const data = await postRequest(URLS.VERIFY_CAPTCHA, {
+                            "g-recaptcha-response": token,
                         });
-                    } else {
-                        onFailure(data);
+                        if (!data) {
+                            subLoader(false);
+                            loader(false);
+                            return;
+                        }
+                        if (data.code === code.OK) {
+                            onSuccess(() => {
+                                loader(false);
+                                subLoader(false);
+                            });
+                        } else {
+                            onFailure(data);
+                            subLoader(false);
+                            loader(false);
+                        }
+                    })
+                    .catch((e) => {
+                        onFailure(e);
                         subLoader(false);
                         loader(false);
-                    }
-                })
-                .catch((e) => {
-                    onFailure(e);
-                    subLoader(false);
-                    loader(false);
-                });
-        } catch (e) {
-            onFailure(e);
-            subLoader(false);
-            loader(false);
-        }
-    });
+                    });
+            } catch (e) {
+                onFailure(e);
+                subLoader(false);
+                loader(false);
+            }
+        });
     } catch {
         onSuccess(() => {
             loader(false);
@@ -886,7 +887,7 @@ const reportFeedback = async ({
     return false;
 };
 
-const reportFeedbackView = () => {
+const reportFeedbackView = (report = 0) => {
     let isReport = false;
     const dial = alertify;
     dial.confirm().set({
@@ -901,6 +902,7 @@ const reportFeedbackView = () => {
                         visible(view, `${tab.id}-view` === view.id);
                     });
                 },
+                tabindex: report,
             }),
     });
     dial.confirm(
@@ -1052,9 +1054,11 @@ const getNumberSuffix = (value) => {
 };
 
 const numsuffix = (number) => `${number}${getNumberSuffix(number)}`;
-const connectWithGithub = (next=URLS.ROOT, oncancel=_=>{}) =>{
-    alertify.alert("Github ID Required",
-    `<div class="w3-row w3-padding">
+const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
+    alertify
+        .alert(
+            "Github ID Required",
+            `<div class="w3-row w3-padding">
     <h4>Your Github identity must be linked with Knotters for this action.</h4>
     <br/>
     <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
@@ -1062,7 +1066,19 @@ const connectWithGithub = (next=URLS.ROOT, oncancel=_=>{}) =>{
         &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
         </button>
     </a>
-    </div>`,()=>{
-        oncancel()
-    }).set('closable',false).set('label','Cancel')
-}
+    </div>`,
+            () => {
+                oncancel();
+            }
+        )
+        .set("closable", false)
+        .set("label", "Cancel");
+};
+
+const restartIntros = () => {
+    Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("first-intro-")) {
+            localStorage.removeItem(key);
+        }
+    });
+};
