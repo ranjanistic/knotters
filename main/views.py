@@ -270,6 +270,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_CATEGORIES}"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
@@ -278,6 +279,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.BLOCK_USER}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_USER}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
             netFirstList=json.dumps([

@@ -607,8 +607,10 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
-        BLOCK_USER = 'blockuser'
-        UNBLOCK_USER = 'unblockuser'
+        BLOCK_USER = 'blockuser/'
+        UNBLOCK_USER = 'unblockuser/'
+        REPORT_CATEGORIES = 'report/categories'
+        REPORT_USER = 'reportuser/'
 
         NEWBIES = 'newbies'
 
