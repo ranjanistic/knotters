@@ -1,6 +1,20 @@
 {% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
 {% load static %}
-{% block title %}Landing{%endblock%}
+{% load custom_tags %}
+
+{% block meta_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
+{% block og_url %}{{URLS.LANDING}}{% endblock %}
+{% block og_title %}The Landing Page{% endblock %}
+{% block og_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
+{% block og_site_name %}The Landing Page{% endblock %}
+
+{% block tw_url %}{{URLS.LANDING}}{% endblock %}
+{% block tw_title %}The Landing Page{% endblock %}
+{% block tw_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
+
+{% block title %}The Landing Page{%endblock%}
 {% block nav_style %}transparent{% endblock %}
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/landing.css' %}">
@@ -21,7 +35,7 @@
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-bottom">
-            <button class="positive big-button">Scroll for me!</button>
+            <a href="#scrolled"><button class="positive big-button">Scroll for me!</button></a>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-opacity">
@@ -29,7 +43,7 @@
         </div>
     </div>
     <br>
-    <div class="w3-row w3-padding-large" align='left'>
+    <div class="w3-row w3-padding-large" align='left' id='scrolled'>
         <h2>Not exactly a landing page<a href="https://en.wikipedia.org/wiki/Landing_page" title="What is a landing page?" target="_blank" rel="noreferrer"><i>open_in_new</i></a></h2>
         <div class="w3-col w3-half">
             <strong class="w3-large">
@@ -104,7 +118,7 @@
             <center><h1 class="text-secondary">The Bitter Truth</h1></center>
             <div class="pallete primary w3-padding-large">
                 <h5>
-                    Here's the bitter truth for some of you. The story is not yet complete on our side😿. So in the mean time
+                    Here's the bitter truth for some of you. The story of our landing page is still under construction😿. So in the mean time
                     we'll try to explain you the vast & variety of features of {{APPNAME}}, of which a few have been mentioned in The Better Truth as well.
                 </h5>
             </div>
@@ -139,18 +153,26 @@
                     There's always a need for any project to be in the public eye. Social networking sites could be helpfull, but those 
                     only provide exposure to the deliverability of your project, not to the project itself. As mentioned previously, having 
                     an official profile of your project, in whichever domain it may be, gives it a recognizable face, a room on internet, and
-                    again, a family.
+                    again, a family. {{APPNAME}} provides all of these to your project.
                 </p>
             </strong>
-        </div>
-        <div class="w3-row">
-            <h1><span class="accent">Moderated Projects</span></h1>
-            
-            <strong class="w3-large">
-                <p>
-                    
-                </p>
-            </strong>
+            <h3>Your project could be one of the following two
+            </h3>
+            <div class="w3-row">
+                <h1><span class="accent">Moderated Project</span></h1>
+                <h4>
+                    A project under this category will have its own Github repository under {{APPNAME}} organization,
+                    and much more. But to fall under this category, your project has to undergo a review procedure.
+                    Currently recommended for coding based projects only.
+                </h4>
+                <br/>
+                <h1><span class="positive">Quick Project</span></h1>
+                <h4>
+                    As the name goes, a quick project can be created quickly, without waiting for anyone's approval.
+                    This is the fastest way to start a new project here. Any kind of project can be created under this category.
+                </h4>
+                <a onclick="newTab('{{URLS.Projects.CREATE}}')"><button class='big-button positive' data-icon="open_in_new">Try creating a project</button></a>
+            </div>
         </div>
     </div>
     <br/>

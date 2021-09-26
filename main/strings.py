@@ -289,7 +289,7 @@ class URL():
 
     DOCTYPE = 'docs/<str:type>'
     LANDINGS = 'landing/'
-    LANDING = 'landing'
+    LANDING = 'landing/'
     APPLANDING = '<str:subapp>/landing'
 
     def applanding(self, subapp):
