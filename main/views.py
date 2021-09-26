@@ -252,7 +252,6 @@ class ServiceWorker(TemplateView):
                 f"/{URL.AUTH}*",
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",
-                f"/{URL.LANDING}",
                 f"/{URL.PROJECTS}{URL.Projects.ALLLICENSES}",
                 f"/email/*",
                 f"/{URL.MANAGEMENT}*",
@@ -285,6 +284,7 @@ class ServiceWorker(TemplateView):
             ]),
             netFirstList=json.dumps([
                 f"{settings.MEDIA_URL}*",
+                f"/{URL.LANDING}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
