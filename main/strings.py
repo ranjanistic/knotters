@@ -461,6 +461,11 @@ class URL():
         def declareResults(self, compID):
             return setPathParams(self.DECLARERESULTS, compID)
 
+        TOPIC_SCORES = 'scores/<str:resID>/'
+
+        def topicscores(self, resID):
+            return setPathParams(self.TOPIC_SCORES, resID)
+
         CLAIMXP = 'claimxp/<str:compID>/<str:subID>'
 
         def claimXP(self, compID, subID):

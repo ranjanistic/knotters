@@ -17,6 +17,7 @@ urlpatterns = [
     path(URL.Compete.SUBMIT, finalSubmit),
     path(URL.Compete.SUBMITPOINTS, submitPoints),
     path(URL.Compete.DECLARERESULTS, declareResults),
+    path(URL.Compete.TOPIC_SCORES, getTopicScores),
     path(URL.Compete.CLAIMXP, claimXP),
     path(URL.Compete.GENERATE_CERTS, generateCertificates),
     path(URL.Compete.CERT_INDEX, certificateIndex),

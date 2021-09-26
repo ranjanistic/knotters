@@ -459,6 +459,26 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
+@require_JSON_body
+def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
+    try:
+        result = cache.get(f"competition_result_{resID}")
+        if not result:
+            result = Result.objects.get(id=resID)
+            cache.set(f"competition_result_{resID}", result, settings.CACHE_MAX)
+        topics = []
+        for top in result.topic_points:
+            topics.append(dict(
+                id=top["topic__id"],
+                name=top["topic__name"],
+                score=top["score"]
+            ))
+        return respondJson(Code.OK, dict(topics=topics))
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
+
 @require_GET
 # @cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
