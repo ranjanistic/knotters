@@ -324,7 +324,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 excluding.append(topic.id)
 
         topics = Topic.objects.exclude(id__in=excluding).filter(
-            Q(name__startswith=query.capitalize()) | Q(name__iexact=query))[0:5]
+            Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
         topicslist = []
         for topic in topics:
             topicslist.append(dict(
@@ -392,7 +392,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 excludeIDs.append(tag.id)
 
         tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-            Q(name__startswith=query.lower()) | Q(name__iexact=query))[0:5]
+            Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
         tagslist = []
         for tag in tags:
             tagslist.append(dict(
@@ -627,21 +627,42 @@ def browseSearch(request:WSGIRequest):
     query = request.GET.get('query','')
     projects = Project.objects.exclude(trashed=True).filter(Q(
         Q(status=Code.APPROVED), 
-        Q(name__startswith=query)
+        Q(name__istartswith=query)
+        | Q(name__endswith=query)
         | Q(name__iexact=query)
-        | Q(reponame__startswith=query)
+        | Q(reponame__istartswith=query)
         | Q(reponame__iexact=query)
-        | Q(creator__user__first_name__startswith=query)
-        | Q(creator__githubID__startswith=query)
+        | Q(creator__user__first_name__istartswith=query)
+        | Q(creator__user__last_name__istartswith=query)
+        | Q(creator__user__email__istartswith=query)
+        | Q(creator__githubID__istartswith=query)
         | Q(creator__githubID__iexact=query)
     ))[0:10]
     projects = chain(projects,FreeProject.objects.exclude(trashed=True).filter(Q(
-        Q(name__startswith=query)
+        Q(name__istartswith=query)
+        | Q(name__endswith=query)
         | Q(name__iexact=query)
-        | Q(nickname__startswith=query)
+        | Q(nickname__istartswith=query)
         | Q(nickname__iexact=query)
-        | Q(creator__user__first_name__startswith=query)
-        | Q(creator__githubID__startswith=query)
+        | Q(creator__user__first_name__istartswith=query)
+        | Q(creator__user__last_name__istartswith=query)
+        | Q(creator__user__email__istartswith=query)
+        | Q(creator__githubID__istartswith=query)
         | Q(creator__githubID__iexact=query)
     ))[0:10])
     return rendererstr(request,Template.Projects.BROWSE_SEARCH,dict(projects=projects, query=query))
+
+@require_GET
+def licenseSearch(request:WSGIRequest):
+    query = request.GET.get('query','')
+    print(query)
+    licenses = License.objects.exclude(public=False).filter(Q(
+        Q(name__istartswith=query)
+        | Q(name__iexact=query)
+        | Q(name__icontains=query)
+        | Q(keyword__iexact=query)
+        | Q(description__istartswith=query)
+        | Q(description__icontains=query)
+    ))[0:10]
+    print(licenses)
+    return rendererstr(request,Template.Projects.LICENSE_SEARCH,dict(licenses=licenses, query=query))

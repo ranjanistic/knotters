@@ -245,7 +245,6 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LIVEDATA}"),
             ]),
             ignorelist=json.dumps([
-                f"/",
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",
@@ -265,6 +264,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),

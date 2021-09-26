@@ -632,14 +632,16 @@ class URL():
 
         ALLLICENSES = 'licenses/'
 
-        LICENSE = 'licenses/<str:id>'
+        LICENSE = 'licenses/<str:id>/'
 
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
-        LICENSES = 'alllicenses/'
+        LICENSES = 'license/all/'
 
-        ADDLICENSE = 'addlicense/'
+        ADDLICENSE = 'license/add/'
+
+        LICENSE_SEARCH = 'license/search/'
 
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
@@ -1251,6 +1253,12 @@ class Template():
         @property
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+
+        LICENSE_SEARCH = 'license/search'
+
+        @property
+        def license_search(self):
+            return f'{self.DIRNAME}/{self.LICENSE_SEARCH}.html'
 
     projects = Projects()
 
