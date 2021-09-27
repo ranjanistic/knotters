@@ -194,7 +194,7 @@ const loadGlobalEventListeners = () => {
             view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message('Press Alt+R for introduction')
+                message('Press Alt+R for introduction, or visit The Landing Page')
                 hide(view);
             });
         }

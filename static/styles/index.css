@@ -26,22 +26,36 @@ footer {
     width: 100%;
 }
 
-.selectLanguage{
-    padding: 5px 10px 5px 0;
+select{
+    padding: 4px 2px;
     border-radius: 4px;
+    background: var(--primary);
     font-weight:bold;
-    border: 3px solid var(--accent);
-}
-
-.selectLanguage:focus,.selectLanguage:hover{
+    border: 0;
+    transition: var(--delay);
+    color: var(--positive);
+    cursor:pointer;
     outline: none;
-    border: 3px solid var(--positive);
 }
 
-.optionLanguage{
-    background-color:var(--active);
+select:hover{
+    outline: none;
+    border: 0;
+    opacity: 0.8;
+}
+
+select:active{
+    outline: none;
+    border: 0;
+    opacity: 0.4;
+}
+
+option{
+    background-color:var(--tertiary);
     font-size:16px;
-    margin:10px 0;
+    padding:4px;
+    color:var(--tertiary-text);
+    cursor: pointer;
 }
 
 .bold {

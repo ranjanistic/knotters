@@ -282,6 +282,7 @@ class URL():
     PEOPLE = f'{PEOPLE}/'
     MODERATION = f'{MODERATION}/'
     MANAGEMENT = f'{MANAGEMENT}/'
+    FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
 
     def redirector(self, to='/'):
@@ -871,6 +872,12 @@ class Template():
     @property
     def landing(self):
         return f'{self.LANDING}.html'
+
+    FAME_WALL = 'famewall'
+
+    @property
+    def famewall(self):
+        return f'{self.FAME_WALL}.html'
 
     INVITATION = 'invitation'
 

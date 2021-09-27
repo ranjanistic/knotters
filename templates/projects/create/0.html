@@ -45,7 +45,8 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
-                    <select placeholder="Choose Category" class="wide" name="projectcategory" required>
+                    <h6>Project Category</h6>
+                    <select class="wide" name="projectcategory" required>
                         {% for cat in categories %}
                         <option value="{{cat.get_id}}">{{cat.name}}</option>
                         {% endfor %}
@@ -56,7 +57,7 @@
             <br/>
             <div class="w3-row w3-center">
                 <div class="pallete">
-                    <center><h5>Metadata</h5><hr/></center>
+                    <center><h5>About</h5><hr/></center>
                         <input class="create-project-input" type="text" autocomplete="nickname" required placeholder="Project's nickname" name="projectnickname" id="projectnickname" /><br/><br/>
                         <div class="w3-row" id="social-links">
                         </div>

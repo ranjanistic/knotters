@@ -17,7 +17,7 @@
 {% block title %}The Landing Page{%endblock%}
 {% block nav_style %}transparent{% endblock %}
 {% block stylesheets %}
-<link rel="stylesheet" href="{% static 'styles/landing.css' %}">
+<!-- <link rel="stylesheet" href="{% static 'styles/landing.css' %}"> -->
 {% endblock %}
 {% block nav_text %}Getting Started{% endblock %}
 {% block content %}
@@ -35,7 +35,7 @@
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-bottom">
-            <a href="#scrolled"><button class="positive big-button">Scroll for me!</button></a>
+            <a href="#scrolled"><button class="positive big-button">Scroll</button></a>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-opacity">
@@ -68,8 +68,7 @@
         <p>
             To indicate that something important has come up, however, everything is important in this page,
             it's just that center heading looks cool. <a onclick="reportFeedbackView(1)">Does it?</a>
-        </p>
-        <p>
+            <br/>
             This <img src={{ICON}} class="darkimg" width="24"/> icon is our logo, which you must've realized by now.
             The name <em>{{APPNAME}}</em> is what we call this platform, and so should you.
         </p>
@@ -91,7 +90,7 @@
         </div>
     </div>
     <br/>
-    <div class="w3-row w3-padding-large dead-text" align='center'>
+    <div class="w3-row w3-padding-large dead-text" align='center' id='creativity-xp'>
         <h3>Did you notice the staircase we formed above? left-center-right 😁</h3>
         <h4>Creativity  +100XP 😎</h4>
     </div>
@@ -105,7 +104,7 @@
                     We were sooo involved in the making of this platform and the services it provides,
                     that we forgot to add landing page on our bucket list.<br/><br/>
                     And about the time we realised that, {{APPNAME}} had become sooo vast in terms of features
-                    (quick projects, moderated projects, competitions, moderators, judges, licensing, repositories, etc.),
+                    (quick projects, moderated projects, competitions, moderators, judges, licensing, certificates, etc.),
                     that no language had enough words (or variables) to describe them all.
                 </h5>
             </div>
@@ -156,24 +155,214 @@
                     again, a family. {{APPNAME}} provides all of these to your project.
                 </p>
             </strong>
-            <h3>Your project could be one of the following two
+            <h3>Your project could be one of the <span class="accent">following two</span>.
             </h3>
             <div class="w3-row">
-                <h1><span class="accent">Moderated Project</span></h1>
-                <h4>
-                    A project under this category will have its own Github repository under {{APPNAME}} organization,
-                    and much more. But to fall under this category, your project has to undergo a review procedure.
-                    Currently recommended for coding based projects only.
-                </h4>
-                <br/>
-                <h1><span class="positive">Quick Project</span></h1>
+                <h1><span class="accent">Quick Project</span></h1>
                 <h4>
                     As the name goes, a quick project can be created quickly, without waiting for anyone's approval.
                     This is the fastest way to start a new project here. Any kind of project can be created under this category.
                 </h4>
+                <br/>
+                <h1><span class="accent">Moderated Project</span></h1>
+                <h4>
+                    A project under this category will have its own Github repository under {{APPNAME}} organization,
+                    and much more. But to fall under this category, your project has to undergo a review procedure
+                    (Moderators are there for that, we'll discuss them later).
+                    Currently recommended for coding based projects only.
+                </h4>
+                <br/>
+                <h4>
+                    And it doesn't end here
+                </h4>
+                <h6>
+                    All projects at Knotters have some special powers through which a track record is maintained of every contributor,
+                    and it reflects in each of their profiles accordingly, alongside their respective topics (We'll discuss 'topics' soon).<br/>
+                    In short - Everything counts!
+                </h6>
                 <a onclick="newTab('{{URLS.Projects.CREATE}}')"><button class='big-button positive' data-icon="open_in_new">Try creating a project</button></a>
             </div>
+
+            <div class="w3-row">
+            </div>
         </div>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large">
+        <div class="w3-row">
+            <h1 class="w3-jumbo"><span class="accent">The Competitions</span></h1>
+            <strong class="w3-large">
+                <p>
+                    We conduct and host competitions in which anyone - even your pet 🐶 - can participate. Robot🤖 participants are still not allowed. Sorry <a onclick="miniWindow('{{URLS.ROBOTS_TXT}}')">robots</a>!<br/>
+                    Most of our competitions are based & targeted on real world problems, and not money oriented. However, perks & prizes are involved.
+                </p>
+            </strong>
+            <h3><span class="active">Following</span> are the perks of participation.
+            </h3>
+            <div class="w3-row">
+                <h1><span class="active">Flex-able certificate</span></h1>
+                <h4>
+                    You'll earn a flex-able certificate upon successfull participation in any active competition at Knotters.
+                    Just make your submissions follow our <a onclick="newTab('{{URLS.Docs.TYPE|params:'competitionguidelines'}}')">competition guidelines</a>.
+                    The certificates you earn here are immortal, and can be shared anywhere.<br/>
+                    We also provide appreciation certificates to judges and moderators as well.
+                </h4>
+                <br/>
+                <h1><span class="active">Profile +XP</span></h1>
+                <h4>
+                    If you would've had noticed <a href="#creativity-xp">this</a>, we mentioned someting about +100XP in creativity. The XP here indicates
+                    the experience count, points, like in video games, and just like we earned +100 in creativity, you can also earn massive amount
+                    of XPs from our competitions for its topics (We'll discuss 'XP' soon).
+                </h4>
+                <br/>
+                <h1><span class="active">Submission to Project</span></h1>
+                <h4>
+                    After a competion ends, which is right after results declaration, we convert the winner's submission into a moderated project on Knotters,
+                    without any need to undergo our review procedure, so that it opens up to further contribution.
+                </h4>
+                <br/>
+                <h4>
+                    And it doesn't end here
+                </h4>
+                <h6>
+                    All competitions at Knotters have some special powers through which a track record is maintained of every participant,
+                    and it reflects in each of their profiles accordingly, alongside their respective topics.
+                    Finished competitions remain as an archive to explore the historical records of endeavour.
+                    <br/>
+                    Again - Everything counts!
+                </h6>
+                <a onclick="newTab('{{URLS.COMPETE}}')"><button class='big-button positive' data-icon="open_in_new">Try participating</button></a>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large">
+        <h1>The moderators</h1>
+        <h6>
+            To review and take action on moderated projects submissions, a category of users at Knotters are called the moderators.
+            The descision taken by a moderator for a project decides its future. If approved, the project enters our world.
+            If rejected, then the creator gets a few chances to resubmit the same for review to a different moderator.
+            No creator or moderator knows each other during review process. The project assigned to a moderator is assigned 
+            according to their area of expertise, which is interpreted from their overall contribution record on Knotters.
+            The moderator helps a project reach new heights if approved. Moderator is like a project mentor.
+        </h6>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>The Licenses</h1>
+        <h6>
+            Several open source licenses are provided on Knotters by default to choose from for your next project.
+            You cannot change the license after a project is live. For quick projects, you can only choose from available licenses
+            (which are enough in numbers). For moderated projects, you can add your own license if the default ones doesn't suit you.
+            If you don't understand licenses and their importance, you can go with the default selected license for your projects.
+        </h6>
+        <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button accent' data-icon="open_in_new">View licenses</button></a>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>Your profile</h1>
+        <h6>
+            Just like the profile of your project is its own room on Knotters, your own profile also represents your presence in our community.
+            Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself.
+            You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.
+        </h6>
+        {% if request.user.is_authenticated %}
+        <a onclick="newTab('{{request.user.profile.getLink}}')"><button class='big-button accent'><img src="{{request.user.profile.getDP}}" class="w3-circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
+        {% else %}
+        <a onclick="newTab('{{URLS.Auth.LOGIN}}')"><button class='big-button accent' data-icon="login">Login for profile</button></a>
+        {% endif %}
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>The Topics</h1>
+        <h6>
+            Our platform is filled with numerous of topics to choose from, for your profile, for your projects, and for the competitions,
+            through with you can uniquely select and level up your expertise in the domain of your choice.
+            The topics have indiviual XP points for everyone on Knotters, which can be increased via various sources, the major source being participation 
+            in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
+        </h6>
+    </div>
+    
+    <div class="w3-row w3-padding-large">
+        <h1>Everything counts</h1>
+        <h6>
+            As you'd have read, your level of expertise on Knotters depends on the XP your profile and your topics have.
+            Every action you take on Knotters duly contributes to your own visible growth, reflecting in your profile.
+            You can contribute to the projects of your choice, and depending on the associated topics of that particular project,
+            your own XP will increase for those topics. This was just one of the various ways through which your XPs can be controlled, 
+            and for most of the part, you don't need to care about the ways. Focus on the work you do here, or just play around the
+            different segments of this platform, and we'll take care of your growth reflection.
+        </h6>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>Level up</h1>
+        <h6>
+            If you've read about how a moderator gets projects to review, then you could probably interpret the importance of 
+            XP of topics for a moderator. As the submitted projects have a category, the associated topics with that particular
+            category play an important role in assignment of a moderator.
+
+            Moderators hold an elite position on our platform.
+            They perform superlative tasks, govern their approved project's growth, and also moderate submissions of competitions as well!<br/>
+            You can, if you want to, become a moderator too. It is a selective process, and depending upon your performance and
+            experience at Knotters, we'll reach out to you for the opportunity.
+        </h6>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>Wall of Fame</h1>
+        <h6>
+            Yes, you read that right. We have a dedicated wall of fame at Knotters! For those who are unfamiliar with this kind of wall,
+            it showcases the acheivers of historical significance at one place. Winners of competitions take the most of the area in 
+            that wall, but there's space for the top contributors of every era too. Aim for that wall, and you could achieve 
+            most out of this community along the way.
+        </h6>
+        <a onclick="newTab('{{URLS.FAME_WALL}}')"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>Top activities & highlights</h1>
+        <h6>
+            On the top of everything, most of the sections on this platform will regularly higlight projects, people,
+            and several categories of recommendations for you to never stop exploring. By showing you relevant profiles at Knotters 
+            we intend to provide you sources of inspiration, exposure to what other people do here, 
+            and increase the possibilities for you to find the next suitable project that you'd like to start contributing in.
+        </h6>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>Tips & Tricks</h1>
+        <h6>
+            <li>Use Alt + R to restart introductions anywhere.</li>
+            <li>Use Alt + F10 to switch theme.</li>
+        </h6>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>The 'why' of everything</h1>
+        <h6>
+            So far you've come, assuming not scrolled all the way down here, you must've got an idea of Knotters,
+            and what the existence of this platform intends to bring in the world of open collaboration through your browser.
+            If not, then don't worry, follow your instincts, move around and explore the different sections of Knotters.
+            It's not that hard to understand the importance of open source community, with proper project recognition and
+            exposure to new kinds of skillsets favouring your own personal growth, by doing a simple thing - get started.
+            <br/>
+            Are you ready?
+        </h6>
+    </div>
+    <div class="w3-row w3-padding-large" align='center'>
+        <a href="{{URLS.ROOT}}"><button class="display-button positive" data-icon='flight_takeoff'>I'm ready</button></a>
+        <button class="display-button accent" data-icon="share" onclick="shareLinkAction('The Landing Page', 'The Landing Page of {{APPNAME}}', '{{URLS.LANDING}}')">Share this</button>
+    </div>
+    <br/>
+    {% comment %} 
+    <div class="w3-row accent w3-padding">
+        <h1>The community</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Contribution guide</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Moderation guide</h1>
+    </div>
+    <div class="w3-row accent w3-padding">
+        <h1>Competition guide</h1>
+    </div>
+    
+    <div class="w3-row s3-center primary w3-padding ">
+        <h2 class="land_f">Guide</h2>
     </div>
     <br/>
     <div class="landing_features">
@@ -302,96 +491,15 @@
             <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
         </div>
     </div>
+    {% endcomment %}
 
-    {% comment %} <div class="wall_fame">
-        <h1 class="wf_text">Licenses</h1>
-        <h3 class="lm_text" style="text-align:center">If you are looking at blank cassettes on the web, you may be very confused at the
-            difference in price.
-            If you are looking at blank cassettes on the web, you may be very confused at the
-            difference in price
-            Get license for your project verified by ISI certification. Wow nothing can be more exciting than having license for project.
-        </h3>
-    </div> {% endcomment %}
-
-    <div class="w3-row accent w3-padding">
-        <h1>Your projects</h1>
-    </div>
-    <div class="w3-row  w3-padding">
-        <h1>Our moderators => done</h1>
-    </div>
-    <div class="w3-row s3-center primary w3-padding ">
-        <h2 class="land_f">Guide</h2>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Your contribution => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Level up by earning XP => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Top contributors every month</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>The licenses</h1>
-    </div>
-
-    <div class="w3-row accent w3-padding">
-        <h1>Our competitions => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Our managers => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Your acheivements</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Winner perks => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Your skills => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Competition to Project</h1>
-    </div>
-
-    <div class="w3-row accent w3-padding">
-        <h1>The community</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Your profile</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Wall of fame => done</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Become moderator</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Shareable ID</h1>
-    </div>
-
-    <div class="w3-row accent w3-padding">
-        <h1>Everything counts</h1>
-        <span>Every minute step you take counts towards your own visible growth on our
-            platform, which is showcasable!</span>
-    </div>
     
-    <div class="w3-row accent w3-padding">
-        <h1>Contribution guide</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Moderation guide</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Competition guide</h1>
-    </div>
-
-    <div class="w3-row accent w3-padding">
-        <h1>Why open source?</h1>
-    </div>
 </div>
+{% endblock %}
+{% block in_scripts %}
 <script>
-    const selectTab = (id) => {
+    restartIntros()
+    {% comment %} const selectTab = (id) => {
       const cs = document.getElementsByClassName("g_active")[0];
       cs.classList.remove("g_active");
       if(id==='g_contribution'){
@@ -412,6 +520,6 @@
             document.getElementById('g_mod_text').style.display='none';
             document.getElementById('g_comp_text').style.display='block';
         }
-      }
+      } {% endcomment %}
 </script>
 {% endblock %}

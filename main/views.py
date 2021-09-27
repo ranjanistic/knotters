@@ -105,6 +105,9 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
         raise Http404()
     return renderView(request, template, fromApp=subapp)
 
+@require_GET
+def fameWall(request:WSGIRequest):
+    return renderView(request, Template.FAME_WALL)
 
 @require_JSON_body
 def verifyCaptcha(request: WSGIRequest):
@@ -152,7 +155,8 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = dict(**context, media=settings.MEDIA_URL)
+        suspended = Profile.objects.filter(Q(suspended=True)|Q(is_zombie=True))
+        context = dict(**context, media=settings.MEDIA_URL, suspended=suspended)
         return context
 
 
@@ -285,6 +289,7 @@ class ServiceWorker(TemplateView):
             netFirstList=json.dumps([
                 f"{settings.MEDIA_URL}*",
                 f"/{URL.LANDING}",
+                f"/{URL.FAME_WALL}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
