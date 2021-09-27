@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from django.core.cache import cache
 from .strings import url, DIVISIONS, PEOPLE, AUTH
 from . import env
 
