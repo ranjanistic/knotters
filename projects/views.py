@@ -492,11 +492,10 @@ def unlinkFreeGithubRepo(request):
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
-@require_JSON_body
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         project = Project.objects.get(id=projID, status=Code.APPROVED)
-        data = cache.get(f"json_livedata_{projID}")
+        data = cache.get(f"project_livedata_json_{projID}")
         if not data:
             contributors,languages = getProjectLiveData(project)
             contributorsHTML=renderString(request, Template.Projects.PROFILE_CONTRIBS, dict(contributors=contributors),APPNAME)

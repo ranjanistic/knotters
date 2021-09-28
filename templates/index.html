@@ -106,7 +106,7 @@
                             {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" alt="{{user.getName}}" id="navbarprofilepic" /></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
-                            <a href="{% url 'account_login' %}?next=/"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
+                            <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
                             {% endblock %}
                             {% block nav_auth_signup %}
                             <a href="{% url 'account_signup' %}?next=/"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">Join</span></button></a>

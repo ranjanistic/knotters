@@ -1,16 +1,16 @@
 const previews = Array.from(
     document.querySelectorAll(
-        "#projectnamepreview, #reponamepreview, #projectaboutpreview, #descriptionpreview, #projectcategorypreview, #tagspreview, #referurlpreview"
+        "#projectnamepreview, #reponamepreview, #projectaboutpreview, #descriptionpreview, #projectcategorypreview, #referurlpreview"
     )
 );
 const formValues = Array.from(
     document.querySelectorAll(
-        "#projectname, #reponame, #projectabout, #description, #projectcategory, #tags, #referurl"
+        "#projectname, #reponame, #projectabout, #description, #projectcategory, #referurl"
     )
 );
 const validationError = Array.from(
     document.querySelectorAll(
-        "#projectnameerror, #reponameerror, #projectabouterror,#descriptionerror, #projectcategoryerror, #tagserror, #referurlerror"
+        "#projectnameerror, #reponameerror, #projectabouterror,#descriptionerror, #projectcategoryerror, #referurlerror"
     )
 );
 
@@ -121,7 +121,6 @@ const expr = {
         projectname: /^[a-zA-Z0-9 ]{1,40}$/,
         reponame: /^[a-z\-]{2,15}$/,
         projectabout: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{1,200}$/,
-        tags: /^[a-zA-Z_, ]{3,60}/,
         projectcategory: /^[a-zA-Z ]{3,}$/,
         description: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{5,5000}$/,
         referurl: /^(|https?:\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)$/,
@@ -132,8 +131,6 @@ const expr = {
             "Only lowercase alphabets & single hyphens in middle allowed with min 3 & max 15 characeters.",
         projectabout:
             "Only communicative language characters allowed, max 200.",
-        tags:
-            "Please type relevent valid keywords separated by comma, max 5 tags.",
         projectcategory: "Please set an appropriate category for your project.",
         description:
             "Please describe your project in detail, so that moderators can understand it better.",
@@ -189,28 +186,6 @@ function fixStepIndicator(n) {
             : step.classList.remove("active");
     });
 }
-
-const tagbutton = getElements("tagbutton");
-
-tagbutton.forEach((button) => {
-    button.onclick = (e) => {
-        if (expr.reg.tags.test(formValues[5].value)) {
-            if(formValues[5].value.split(',').length>=5){
-                return error('Max 5 tags allowed')
-            }
-            formValues[5].value +=
-                button.innerHTML
-                    .replace("#", formValues[5].value.endsWith(",") ? "" : ",")
-                    .trim() + ", ";
-        } else {
-            formValues[5].value =
-                button.innerHTML.replace("#", "").trim() + ", ";
-        }
-        formValues[5].value = formValues[5].value.trim();
-        validateForm(formValues[5].id);
-        hide(button);
-    };
-});
 
 getElement("projectimage").onchange = (e) => {
     handleCropImageUpload(e, "projectImageData", "projectImageOutput", (_) => {

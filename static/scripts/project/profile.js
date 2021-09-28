@@ -321,7 +321,10 @@ loadsnaps.onclick = (_) => {
     getRequest(
         setUrlParams(URLS.SNAPSHOTS, projectID, snapstart, snapend)
     ).then((data) => {
-        if (data === false) return;
+        if (data === false) {
+            currentsnapsview.innerHTML = loadErrorHTML();
+            return
+        }
         if (!String(data).trim()) {
             if (snapstart < 1) {
                 currentsnapsview.innerHTML = `<div class="dead-text" align="center">No snapshots yet</div>`;
@@ -345,8 +348,7 @@ const loadLiveData = async () => {
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {
-        const data = await postRequest(setUrlParams(URLS.LIVEDATA, projectID));
-        console.log(data)
+        const data = JSON.parse(await getRequest(setUrlParams(URLS.LIVEDATA, projectID)))
         if (!data || data.code !== code.OK) {
             setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
             setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));

@@ -72,6 +72,7 @@
                     <div class="w3-jumbo material-icons">add_circle</div>
                     <h5>Add assets</h5>
                     <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
+                    <strong class="dead-text">Coming soon</strong>
                     </center>
                     {% else %}
                     <center class="dead-text">
@@ -88,7 +89,7 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
-                    <h3>{{project.category.name|capfirst}}</h3>
+                    <a href="{{URLS.PROJECTS}}?category={{project.category.get_id}}" ><h3>{{project.category.name|capfirst}}</h3></a>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <div class="w3-row pallete-slab w3-padding">
@@ -170,7 +171,7 @@
                     <input type='file' hidden id='snap-file' />
                     <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
                         {% csrf_token %}
-                        <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything remotely related."></textarea>
+                        <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything."></textarea>
                         <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
                         <img width='100%' id='snapimageview' hidden />
                         <div class="dead-text" id='add-image-view'>
