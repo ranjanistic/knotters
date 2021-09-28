@@ -9,16 +9,17 @@ from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.conf import settings
+from main.bots import Github
 # from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
 from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
-from main.strings import Code, Event, Message, URL, Template
+from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
-from .models import BaseProject, FreeProject, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Tag, Category
-from .mailers import freeProjectCreated, sendProjectSubmissionNotification
+from .models import BaseProject, FreeProject, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
+from .mailers import sendProjectSubmissionNotification
 from .methods import createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
@@ -62,7 +63,7 @@ def create(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def createFree(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all()
-    licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))[0:5]
+    licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))
     return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
     
 @normal_profile_required
@@ -78,7 +79,7 @@ def createMod(request: WSGIRequest) -> HttpResponse:
 def validateField(request: WSGIRequest, field: str) -> JsonResponse:
     try:
         data = request.POST[field]
-        if field == 'reponame':
+        if ['reponame','nickname'].__contains__(field):
             if not uniqueRepoName(data):
                 return respondJson(Code.NO, error=Message.Custom.already_exists(data))
             else:
@@ -141,16 +142,18 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
         license = request.POST.get('license', None)
         if not license:
             return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.LICENSE_UNSELECTED)
-        name = request.POST["projectname"]
-        description = request.POST["projectabout"]
+        name = str(request.POST["projectname"]).strip()
+        description = str(request.POST["projectabout"]).strip()
         category = request.POST["projectcategory"]
-        nickname = request.POST.get("projectnickname",None)
-        if not uniqueRepoName(nickname):
+        nickname = str(request.POST.get("projectnickname",'')).strip()
+        if not nickname or not uniqueRepoName(nickname):
             return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.NICKNAME_ALREADY_TAKEN)
         sociallinks = []
         for key in request.POST.keys():
             if str(key).startswith('sociallink'):
-                sociallinks.append(request.POST[key])
+                link = str(request.POST[key]).strip()
+                if link:
+                    sociallinks.append(link)
         projectobj = createFreeProject(
             creator=request.user.profile, name=name,
             category=category, description=description, licenseID=license,
@@ -296,7 +299,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                     return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
                 return redirect(project.getLink(), permanent=True)
             except Exception as e:
-                print(e)
+                errorLog(e)
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
     except Exception as e:
@@ -321,7 +324,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 excluding.append(topic.id)
 
         topics = Topic.objects.exclude(id__in=excluding).filter(
-            Q(name__startswith=query.capitalize()) | Q(name__iexact=query))[0:5]
+            Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
         topicslist = []
         for topic in topics:
             topicslist.append(dict(
@@ -389,7 +392,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 excludeIDs.append(tag.id)
 
         tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-            Q(name__startswith=query.lower()) | Q(name__iexact=query))[0:5]
+            Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
         tagslist = []
         for tag in tags:
             tagslist.append(dict(
@@ -441,6 +444,54 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
+@require_JSON_body
+def userGithubRepos(request):
+    try:
+        ghuser = Github.get_user(request.user.profile.ghID)
+        repos = ghuser.get_repos('public')
+        data = []
+        for repo in repos:
+            data.append({'name':repo.name, 'id':repo.id})
+        return respondJson(Code.OK, dict(repos=data))
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+@normal_profile_required
+@require_JSON_body
+def linkFreeGithubRepo(request):
+    try:
+        repoID = int(request.POST['repoID'])
+        project = FreeProject.objects.get(id=request.POST['projectID'],creator=request.user.profile)
+        if FreeRepository.objects.filter(free_project=project).exists():
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        ghuser = Github.get_user(request.user.profile.ghID)
+        repo = Github.get_repo(repoID)
+        if repo.owner == ghuser:
+            FreeRepository.objects.create(free_project=project,repo_id=repoID)
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+@normal_profile_required
+@require_JSON_body
+def unlinkFreeGithubRepo(request):
+    try:
+        project = FreeProject.objects.get(id=request.POST['projectID'],creator=request.user.profile)
+        freerepo = FreeRepository.objects.get(free_project=project)
+        ghuser = Github.get_user(request.user.profile.ghID)
+        repo = Github.get_repo(int(freerepo.repo_id))
+        if repo.owner == ghuser:
+            freerepo.delete()
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
 @require_JSON_body
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
@@ -456,7 +507,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
             cache.set(f"project_livedata_json_{projID}", data, settings.CACHE_SHORT)
         return respondJson(Code.OK, data)
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404()
 
 
@@ -576,21 +627,109 @@ def browseSearch(request:WSGIRequest):
     query = request.GET.get('query','')
     projects = Project.objects.exclude(trashed=True).filter(Q(
         Q(status=Code.APPROVED), 
-        Q(name__startswith=query)
+        Q(name__istartswith=query)
+        | Q(name__endswith=query)
         | Q(name__iexact=query)
-        | Q(reponame__startswith=query)
+        | Q(reponame__istartswith=query)
         | Q(reponame__iexact=query)
-        | Q(creator__user__first_name__startswith=query)
-        | Q(creator__githubID__startswith=query)
+        | Q(creator__user__first_name__istartswith=query)
+        | Q(creator__user__last_name__istartswith=query)
+        | Q(creator__user__email__istartswith=query)
+        | Q(creator__githubID__istartswith=query)
         | Q(creator__githubID__iexact=query)
     ))[0:10]
     projects = chain(projects,FreeProject.objects.exclude(trashed=True).filter(Q(
-        Q(name__startswith=query)
+        Q(name__istartswith=query)
+        | Q(name__endswith=query)
         | Q(name__iexact=query)
-        | Q(nickname__startswith=query)
+        | Q(nickname__istartswith=query)
         | Q(nickname__iexact=query)
-        | Q(creator__user__first_name__startswith=query)
-        | Q(creator__githubID__startswith=query)
+        | Q(creator__user__first_name__istartswith=query)
+        | Q(creator__user__last_name__istartswith=query)
+        | Q(creator__user__email__istartswith=query)
+        | Q(creator__githubID__istartswith=query)
         | Q(creator__githubID__iexact=query)
     ))[0:10])
     return rendererstr(request,Template.Projects.BROWSE_SEARCH,dict(projects=projects, query=query))
+
+@require_GET
+def licenseSearch(request:WSGIRequest):
+    query = request.GET.get('query','')
+    print(query)
+    licenses = License.objects.exclude(public=False).filter(Q(
+        Q(name__istartswith=query)
+        | Q(name__iexact=query)
+        | Q(name__icontains=query)
+        | Q(keyword__iexact=query)
+        | Q(description__istartswith=query)
+        | Q(description__icontains=query)
+    ))[0:10]
+    return rendererstr(request,Template.Projects.LICENSE_SEARCH,dict(licenses=licenses, query=query))
+
+
+def snapshots(request:WSGIRequest, projID:UUID, start:int=0, end:int=10):
+    try:
+        if end < 1:
+            end = 10
+        
+        snaps = Snapshot.objects.filter(base_project__id=projID).order_by('-created_on')[start:end]
+        if request.method == 'GET':
+            return rendererstr(request,Template.Projects.SNAPSHOTS, dict(snaps=snaps))
+        if request.method == 'POST':
+            jsonsnaps = []
+            for snap in snaps:
+                jsonsnaps.append(dict(
+                    id=snap.get_id,
+                    projectID=snap.project_id,
+                    text=snap.text,
+                    image=snap.get_image,
+                    video=snap.get_video,
+                ))
+            return respondJson(Code.OK, dict(
+                snaps=jsonsnaps
+            ))
+        return HttpResponseBadRequest()
+    except Exception as e:
+        print(e)
+        return HttpResponseBadRequest()
+
+@normal_profile_required
+@require_JSON_body
+def snapshot(request:WSGIRequest, projID:UUID, action:str):
+    try:
+        baseproject = BaseProject.objects.get(id=projID,creator=request.user.profile)
+        if action == Action.CREATE:
+            text = request.POST.get('snaptext', None)
+            image = request.POST.get('snapimage', None)
+            video = request.POST.get('snapvideo', None)
+            if not (text or image or video):
+                return redirect(baseproject.getProject().getLink(error=Message.INVALID_REQUEST))
+
+            imagefile = base64ToImageFile(image)
+            videofile = base64ToImageFile(video)
+
+            snapshot = Snapshot.objects.create(
+                base_project=baseproject,
+                creator=request.user.profile,
+                text=(text or ''),
+                image=imagefile,
+                video=videofile
+            )
+            return redirect(baseproject.getProject().getLink())
+
+        id = request.POST['snapid']
+        snapshot = Snapshot.objects.get(id=id,base_project=baseproject)
+        if action == Action.UPDATE:
+            text = request.POST.get('snaptext', None)
+            image = request.POST.get('snapimage', None)
+            video = request.POST.get('snapvideo', None)
+            if not (text or image or video):
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+
+        if action == Action.REMOVE:
+            snapshot.delete()
+            return respondJson(Code.OK)
+
+        return respondJson(Code.NO)
+    except:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)

@@ -31,5 +31,5 @@
 {% block nav_icon_hide %}{% endblock %}
 
 {% block nav_href %}{{ROOT}}#mainframe{% endblock %}
-{% block nav_text %}{{project.name}}{% endblock %}
+{% block nav_text %}{% if project.nickname %}{{project.nickname}}{% else %}{{project.reponame}}{% endif %}{% endblock %}
 

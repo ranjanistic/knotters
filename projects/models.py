@@ -2,20 +2,21 @@ import uuid
 from deprecated import deprecated
 from django.db import models
 from django.utils import timezone
-from main.env import BOTMAIL, MAILUSER, PUBNAME
-from main.settings import MEDIA_URL
-# from people.models import Profile
-from main.methods import addMethodToAsyncQueue, maxLengthInList
+from main.bots import Github
+from main.env import BOTMAIL, PUBNAME
+from django.core.cache import cache
+from django.conf import settings
+from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord
-from main.exceptions import InvalidBaseProject
 from .apps import APPNAME
 
 
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
+
 
 
 def defaultImagePath():
@@ -190,11 +191,12 @@ class BaseProject(models.Model):
         assert self.category is not None
         assert self.license is not None
         assert self.acceptedTerms is True
+        self.modifiedOn = timezone.now()
         self.sub_save()
         super(BaseProject, self).save(*args, **kwargs)
 
     def getDP(self) -> str:
-        return f"{MEDIA_URL}{str(self.image)}"
+        return f"{settings.MEDIA_URL}{str(self.image)}"
     
     def getTopics(self) -> list:
         return self.topics.all()
@@ -344,7 +346,34 @@ class FreeRepository(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
-    repo_id = models.CharField(max_length=100)
+    repo_id = models.IntegerField()
+
+    @property
+    def reponame(self):
+        try:
+            data = cache.get(f"gh_repo_data_{self.repo_id}")
+            if data:
+                return data.name
+            data = Github.get_repo(int(self.repo_id))
+            cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+            return data.name
+        except Exception as e:
+            errorLog(e)
+            return None
+
+    @property
+    def repolink(self):
+        try:
+            data = cache.get(f"gh_repo_data_{self.repo_id}")
+            if data:
+                return data.html_url
+            data = Github.get_repo(int(self.repo_id))
+            cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+            return data.html_url
+        except Exception as e:
+            errorLog(e)
+            return None
+
 
 class ProjectTag(models.Model):
     class Meta:
@@ -404,3 +433,37 @@ class ProjectHookRecord(HookRecord):
     Github Webhook event record to avoid redelivery misuse.
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='hook_record_project')
+
+def snapMediaPath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/snapshots/{str(instance.get_id)}-{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+
+class Snapshot(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='base_project_snapshot')
+    text = models.CharField(max_length=6000,null=True,blank=True)
+    image = models.ImageField(upload_to=snapMediaPath, max_length=500, null=True, blank=True)
+    video = models.FileField(upload_to=snapMediaPath, max_length=500, null=True, blank=True)
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='project_snapshot_creator')
+    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+    modified_on = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    def save(self, *args, **kwargs):
+        self.modified_on = timezone.now()
+        super(Snapshot, self).save(*args, **kwargs)
+
+    @property
+    def project_id(self):
+        return self.base_project.get_id
+
+    @property
+    def get_image(self):
+        return f"{settings.MEDIA_URL}{str(self.image)}"
+
+    @property
+    def get_video(self):
+        return f"{settings.MEDIA_URL}{str(self.video)}"

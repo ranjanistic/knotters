@@ -55,7 +55,7 @@
             </button>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <button class="small primary">{{selfresult.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
+            <button class="small primary result-points" id="result-points-{{selfresult.get_id}}" data-rank='{{selfresult.rank}}' data-resultID='{{selfresult.get_id}}'>{{selfresult.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
         </div>
     </div>
     <div class="w3-col m9">
@@ -99,7 +99,7 @@
             </button>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <button class="small primary">{{result.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
+            <button class="small primary result-points" id="result-points-{{result.get_id}}" data-rank='{{result.rank}}' data-resultID='{{result.get_id}}'>{{result.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
         </div>
     </div>
     <div class="w3-col m9">

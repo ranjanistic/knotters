@@ -159,11 +159,43 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="w3-row w3-padding pallete">
-                <center><h5>Language distribution</h5><hr/></center>
-                <div class="w3-row" id="project-languages-view">
+            <div class="w3-row pallete no-pad">
+                <center><h5 class="w3-padding">Snapshots</h5>
+                {% if iscreator %}
+                <div class="w3-row" id="view-snapshot">
+                    <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
+                    <hr/>
                 </div>
+                <div class="w3-row" id="edit-snapshot">
+                    <input type='file' hidden id='snap-file' />
+                    <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
+                        {% csrf_token %}
+                        <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything remotely related."></textarea>
+                        <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
+                        <img width='100%' id='snapimageview' hidden />
+                        <div class="dead-text" id='add-image-view'>
+                            <label for="snap-file">
+                                <div class="w3-jumbo material-icons">add_circle</div>
+                                <h5>Add image</h5>
+                            </label>
+                        </div>
+                        <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">Submit snapshot</button>
+                        <button class="small negative" type='button' id="discard-edit-snapshot" data-icon="close">Discard</button>
+                    </form>
+                    <hr/>
+                </div>
+                {% else %}
+                <hr/>
+                {% endif %}
+                </center>
+                <div class="w3-row" id="snapshots-view">
+                    
+                </div>
+                <br/>
+                <center><button class="small primary" data-icon='expand_more' hidden id='load-more-snaps'>Load more</button></center>
+                <br/>
             </div>
+            
         </div>
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row">
@@ -176,6 +208,12 @@
                     <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/>
                     <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
                     {% endcache %}
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row w3-padding pallete">
+                <center><h5>Language distribution</h5><hr/></center>
+                <div class="w3-row" id="project-languages-view">
                 </div>
             </div>
             <br/>

@@ -48,6 +48,21 @@
             {% endif %}
         </div>
         <br/>
+        {% if project.has_linked_repo %}
+        <div class="w3-row w3-padding-small">
+            <a target="_blank" rel="noreferrer" href="{{project.linked_repo.repolink}}">
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.linked_repo.reponame}}</button>
+            </a>
+        </div>
+        <br/>
+        {% endif %}
+        {% if project.socialsites.count %}
+        <div class="w3-row pallete">
+        {% for site in project.socialsites %}
+        <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol}}<i class="w3-small">open_in_new</i></strong></a><br/>
+        {% endfor %}
+        </div>
+        {% endif %}
         {% if project.repolink %}
         <div class="w3-row w3-padding-small">
             <a target="_blank" rel="noreferrer" href="{{project.repoLink}}">
@@ -62,7 +77,7 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
-                    <h3>{{project.category.name|capfirst}}</h3>
+                    <a href="{{URLS.PROJECTS}}?category={{project.category.get_id}}" ><h3>{{project.category.name|capfirst}}</h3></a>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <div class="w3-row pallete-slab w3-padding">
@@ -70,7 +85,7 @@
                         </div>
                     {% empty %}
                         {% if iscreator %}
-                            <button class="accent edit-action w3-padding" data-edittarget="projecttopics" data-icon="add">Add topics</button>
+                            <button class="accent edit-action big-button" data-edittarget="projecttopics" data-icon="add">Add topics</button>
                         {% else %}
                             <br/>
                             <div class="dead-text">
@@ -134,24 +149,6 @@
                 </div>
                 {% endif %}
             </div>
-            {% comment %} <div class="w3-row w3-padding pallete">
-                <center><h5>Language distribution</h5><hr/></center>
-                <div class="w3-row" id="project-languages-view">
-                </div>
-            </div> {% endcomment %}
-        </div>
-        <div class="w3-col w3-half w3-padding">
-            <div class="w3-row">
-                <div class="pallete">
-                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
-                    <center><h5>Description</h5><hr/></center>
-                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
-                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
-                    {% endcache %}
-                </div>
-            </div>
-            <br/>
             <div class="w3-row w3-padding pallete">
                 <center><h5>Assets</h5><hr/></center>
                 <div class="w3-row">
@@ -178,11 +175,68 @@
                 <div class="pallete">
                 <center><h5>Settings</h5><hr/></center>
                 <div class="w3-row">
-                    <button class="small negative" data-icon="delete" id='delete-project'>Delete project</button>
+                {% if project.has_linked_repo %}
+                    <button class="negative" id='unlink-github-repository'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Unlink {{project.linked_repo.reponame}}</button>
+                {% else %}
+                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link GitHub repository</button>
+                {% endif %}
+                </div>
+                <div class="w3-row">
+                    <button class="negative" data-icon="delete" id='delete-project'>Delete project</button>
                 </div>
                 </div>
             </div>
             {% endif %}
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
+                    <center><h5>Description</h5><hr/></center>
+                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
+                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    {% endcache %}
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row pallete no-pad">
+                <center><h5 class="w3-padding">Snapshots</h5>
+                {% if iscreator %}
+                <div class="w3-row" id="view-snapshot">
+                    <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
+                    <hr/>
+                </div>
+                <div class="w3-row" id="edit-snapshot">
+                    <input type='file' hidden id='snap-file' />
+                    <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
+                        {% csrf_token %}
+                        <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything remotely related."></textarea>
+                        <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
+                        <img width='100%' id='snapimageview' hidden />
+                        <div class="dead-text" id='add-image-view'>
+                            <label for="snap-file">
+                                <div class="w3-jumbo material-icons">add_circle</div>
+                                <h5>Add image</h5>
+                            </label>
+                        </div>
+                        <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">Submit snapshot</button>
+                        <button class="small negative" type='button' id="discard-edit-snapshot" data-icon="close">Discard</button>
+                    </form>
+                    <hr/>
+                </div>
+                {% else %}
+                <hr/>
+                {% endif %}
+                </center>
+                <div class="w3-row" id="snapshots-view">
+                    
+                </div>
+                <br/>
+                <center><button class="small primary" data-icon='expand_more' hidden id='load-more-snaps'>Load more</button></center>
+                <br/>
+            </div>
+            
         </div>
     </div>
     <div class="w3-row"></div>
@@ -194,6 +248,7 @@
 <script>
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
+
 
 getElement('delete-project').onclick=_=>{
     alertify.confirm('Delete Project', 
@@ -215,6 +270,73 @@ getElement('delete-project').onclick=_=>{
     }
     ).set('closable', false).set('labels',{ok:'No, wait', cancel:'Yes delete'})
 }
+{% if not project.has_linked_repo %}
+getElement('link-github-repository').onclick=async()=>{
+    {% if request.user.profile.ghID %}
+        loader()
+        const data = await postRequest(URLS.USER_GH_REPOS,{public:true});
+        loader(false)
+        if(!data) return
+        if(data.code===code.OK){
+            let options = '';
+            data.repos.forEach((repo)=>{
+                options+=`<option value=${repo.id}>${repo.name}</option>`
+            })
+            return alertify.confirm('Link Github repository',
+                `<h6>Select a repository from the list to link. Only public repositories can be linked.</h6>
+                    <div class="w3-row">
+                        <select id="selected-repo">
+                            ${options}
+                        </select>
+                    </div>
+                `,
+                async ()=>{
+                    loader()
+                    message('Linking...')
+                    const data = await postRequest(URLS.LINK_FREE_REPO,{repoID:getElement('selected-repo').value,projectID})
+                    if(!data) return loader(false)
+                    if(data.code===code.OK){
+                        futuremessage(`Repository linked`)
+                        return window.location.reload()
+                    }
+                    loader(false)
+                    error(data.error)
+                },
+                ()=>{}
+            ).set('labels', {ok:'Link', cancel:'Discard'})
+        }
+        error(data.error)
+    {% else %}
+        connectWithGithub("{{project.getLink}}", ()=>{ error("Cannot link repository without linking account.")})
+    {% endif %}
+}
+{% else %}
+getElement("unlink-github-repository").onclick=_=>{
+    alertify.confirm('Unlink Github repository?',
+        `<h6>Are you sure you want to unlink your Github repository '{{project.linked_repo.reponame}}' from your '{{project.nickname}}' project on {{APPNAME}}?</h6>
+        `,
+        ()=>{},
+        async ()=>{
+            loader()
+            message('Unlinking...')
+            const data = await postRequest(URLS.UNLINK_FREE_REPO,{projectID})
+            if(!data) return loader(false)
+            if(data.code===code.OK){
+                futuremessage(`Unlinked your '{{project.linked_repo.reponame}}' repository`)
+                return window.location.reload()
+            }
+            loader(false)
+            error(data.error)
+        },
+    ).set('closable', false).set('labels', {ok:'No, wait', cancel:'Yes, unlink'})
+}
+
+getElement('save-edit-snapshot').onclick=(e)=>{
+    e.preventDefault();
+
+    e.target.form.submit()
+}
+{% endif %}
 </script>
 {% endblock %}
 {% block scripts %}

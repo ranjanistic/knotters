@@ -1,0 +1,16 @@
+{% for snap in snaps %}
+<div class="w3-row tertiary" id='{{snap.get_id}}'>
+    <br/>
+    <div class="w3-row w3-padding-small">
+    <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
+    <strong>{{snap.text}}</strong><br/>
+    <span class='dead-text'>{{snap.created_on}}</span>
+    </div>
+    <br/>
+    {% if snap.image %}
+        <img src="{{snap.get_image}}" width="100%" class="preview-type-image" />
+    {% elif snap.video %}
+        <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
+    {% endif %}
+</div>
+{% endfor %}

@@ -51,7 +51,7 @@ try {
     };
 } catch {}
 
-const loadTabScript = (attr) => {
+const loadTabScript = (attr,tab) => {
     switch (attr) {
         case "submission": {
             if (isActive) {
@@ -209,6 +209,32 @@ const loadTabScript = (attr) => {
                     };
                 } catch {}
             }
+        } break;
+        case 'result': {
+            getElements('result-points').forEach((points)=>{
+                const rank = Number(points.getAttribute('data-rank'))
+                const resID = points.getAttribute('data-resultID')
+                points.onclick=async()=>{
+                    const data = await postRequest(setUrlParams(URLS.TOPIC_SCORES,resID))
+                    if(!data) return
+                    if(data.code!==code.OK){
+                        return error(data.error)
+                    }
+                    let scores = ''
+                    data.topics.forEach((topic)=>{
+                        scores+=`<div class="w3-row pallete-slab" id='${resID}-${topic.id}'>
+                            <h6>${topic.name}<span class="w3-right">${topic.score}</span></h6>
+                        </div>
+                        `
+                        topic.id,topic.name,topic.score
+                    })
+                    alertify.alert(`Rank Scorecard`,
+                      `<h4>Rank ${numsuffix(rank)} points distribution</h4>
+                       ${scores}
+                      `
+                    )
+                }
+            })
         }
     }
 };
@@ -219,7 +245,7 @@ initializeTabsView({
     uniqueID: "competetab",
     tabsClass: "side-nav-tab",
     activeTabClass: "active",
-    onShowTab: loadTabScript,
+    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id'),tab),
     tabindex
 });
 initializeTabsView({
@@ -228,6 +254,6 @@ initializeTabsView({
     uniqueID: "competetabsmall",
     tabsClass: "side-nav-tab-small",
     activeTabClass: "active",
-    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id')),
+    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id'),tab),
     tabindex
 });

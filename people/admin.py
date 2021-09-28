@@ -92,3 +92,4 @@ class RelationAdmin(admin.ModelAdmin):
 admin.site.register(ProfileSetting)
 admin.site.register(Topic)
 admin.site.register(BlockedUser)
+admin.site.register(ReportedUser)

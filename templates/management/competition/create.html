@@ -11,101 +11,190 @@
 
 
 {% block content %}
-<br/>
-<div class="w3-row w3-padding">
+<div class="w3-row tertiary">
+  <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
+    {% csrf_token %}
     <input type="file" accept="image/png,image/jpg" id="compbannerfile" hidden />
     <input type="file" accept="image/png,image/jpg" id="compassociatefile" hidden />
-    <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
-        {% csrf_token %}
-        <div class="w3-col w3-half">
-            <input type="text" id="compbanner" name="compbanner" hidden />
-            <input type="text" id="compassociate" name="compassociate" hidden />
-            <br/>
-            <div class="w3-col w3-half">
-                <div class="w3-col w3-half">
-                <input required class="create-compete-input wide" placeholder="Title" type="text" name="comptitle" id="comptitle">
-                </div>
-                <div class="w3-col w3-half">
-                </div>
-            </div>
-            <div class="w3-col w3-half">
-            <input required class="create-compete-input wide" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
-            </div>
+    <input type="text" id="compbanner" name="compbanner" hidden />
+    <input type="text" id="compassociate" name="compassociate" hidden />
+    <div id="banner">
+        <img class="preview-type-image" src="/media/compete/default.png" alt="Select Banner" width="100%" id="competebanneroutput" />
+    </div>
+    <div class="w3-row w3-center accent w3-padding">
+      <strong>
+          This competition will accept submissions from the given beginning date, till &nbsp;&nbsp;&nbsp;
+        <input required placeholder="End at"  class="create-compete-input" type="datetime-local" name="compendAt" id="compendAt">
+      </strong>
+    </div>
+    <form class="w3-row w3-padding">
+      <br/>
+      <div class="w3-row">
+        <div class="w3-col w3-twothird w3-left w3-padding">
+          <div class="w3-col w3-half">
+          <h2>
+            <input required class="create-compete-input wide primary" placeholder="Title" type="text" name="comptitle" id="comptitle">
 
-            <textarea rows="5" cols="20" class="create-compete-input" required placeholder="Short description" type="text" name="compshortdesc" id="compshortdesc"></textarea>
-            <textarea rows="5" cols="18" class="create-compete-input"  required placeholder="Description" type="text" name="compdesc" id="compdesc"></textarea><br/><br/>
-
-            <span id="selectedmodview"></span>
-            <button title="Select moderator" type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
-            <input hidden placeholder="Moderator" class="create-compete-input no-retain" type="text" name="compmodID" id="compmodID" />
-            <br/><br/>
-            <fieldset>
-                <legend>Topics</legend>
-                <span id="selectedtopicsview">
-                </span>
-                <input hidden class="create-compete-input no-retain" name="comptopicIDs" id="topicIDs" />
-                <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
-            </fieldset>
-            <fieldset>
-                <legend>Judges</legend>
-                <span id="selectedjudgesview">
-                </span>
-                <input hidden class="create-compete-input no-retain" name="compjudgeIDs" id="judgeIDs" />
-                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
-            </fieldset>
-            <br/><br/>
-            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Task summary" type="text" name="comptaskSummary" id="comptaskSummary"></textarea>
-            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Task details" type="text" name="comptaskDetail" id="comptaskDetail"></textarea>
-            <textarea rows="5" cols="25" class="create-compete-input" required placeholder="Task sample" type="text" name="comptaskSample" id="comptaskSample"></textarea>
-        
-        </div>
-
-        <div class="w3-col w3-half w3-padding">
-            <div class="w3-row w3-center">
-                <img class="pallete preview-type-image" src="/media/compete/default.png" width="100%" id="competebanneroutput" /><br/><br/>
-                <button class="active" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select banner</label></button><br/><br/>
-                <img class="pallete preview-type-image" 
+          </h2>
+          <h4>
+            <input required class="create-compete-input wide primary" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
+          </h4>
+          <strong>
+            <textarea rows="5" cols="20" class="create-compete-input primary wide" required placeholder="Short description" type="text" name="compshortdesc" id="compshortdesc"></textarea>
+          </strong><br/>
+          </div>
+          <div class="w3-col w3-half w3-center dead-text w3-padding">
+            <button class="active" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select banner</label></button><br/><br/>
+            <h4>In association with </h4>
+            <img class="pallete preview-type-image" 
                 {% if associate %}
                 src="{{associate}}"
                 {% else %}
                 src="/media/compete/default.png"
                 {% endif %} width="40%" id="competeassociateoutput" /><br/><br/>
-                <button class="active" type="button" data-icon="upload">
-                    <label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label>
-                </button><br/>
-                <input name="useAssociate" type='checkbox' id="useAssociate" {% if associate %}checked{% endif %} />
-                <label for="useAssociate" >
-                    Use association
-                </label>
-            </div>
-            <br/><br/>
-            <div class="w3-row">
-                <fieldset class="w3-col w3-third">
-                    <legend>Starts at</legend>
-                    <input required placeholder="Start at"  class="create-compete-input" type="datetime-local" name="compstartAt" id="compstartAt">
-                </fieldset>
-                <fieldset class="w3-col w3-third">
-                    <legend>Ends at</legend>
-                    <input required placeholder="End at"  class="create-compete-input" type="datetime-local" name="compendAt" id="compendAt">
-                </fieldset>
-                <fieldset class="w3-col w3-third">
-                    <legend>Max score of each topic for each submission by each judge</legend>
-                    <input class="wide create-compete-input" required placeholder="Each topic max points" type="number" min="10" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/><br/>
-                </fieldset>
-                <fieldset class="w3-col w3-half">
-                    <legend>Perks</legend>
-                    <input class="wide create-compete-input" required placeholder="For Rank 1" type="text" name="compperk1" id="compperk1"><br/><br/>
-                    <input class="wide create-compete-input" required placeholder="For Rank 2" type="text" name="compperk2" id="compperk2"><br/><br/>
-                    <input class="wide create-compete-input" required placeholder="For Rank 3" type="text" name="compperk3" id="compperk3"><br/><br/>
-                </fieldset>
-            </div>
-
+            <button class="active" type="button" data-icon="upload">
+                <label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label>
+            </button><br/>
+            <input name="useAssociate" type='checkbox' id="useAssociate" {% if associate %}checked{% endif %} />
+            <label for="useAssociate" >
+                Use association
+            </label>
         </div>
+        </div>
+        <div class="w3-col w3-third w3-center w3-padding">
+        <br/>
+          
+          <div class="pallete accent">
+            <h6>Begins at</h6>
+            <h1>
+                <input required placeholder="Start at"  class="create-compete-input" type="datetime-local" name="compstartAt" id="compstartAt">
+            </h1>
+            <h6>Upcoming</h6>
+          </div>
+          <br/>
+          <div class="w3-row">
+            <span id="selectedmodview"></span>
+            <button title="Select moderator" type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
+            <input hidden placeholder="Moderator" class="create-compete-input no-retain" type="text" name="compmodID" id="compmodID" />
+            <br/><br/>
+            <span id="selectedjudgesview">
+            </span>
+            <input hidden class="create-compete-input no-retain" name="compjudgeIDs" id="judgeIDs" />
+            <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
+          </div>
+        </div>
+      </div>
+      <br/><br/>
+        
+      <div class="w3-row pallete" id="mainframe">
+        <div class="w3-col w3-quarter tertiary  pallete-slab w3-padding">
+          <div class="w3-bar-block w3-hide-small" id="sidebar">
+            <button type="button" class="w3-bar-item side-nav-tab" id="overview" data-icon="toc">Overview</button>
+            <br/>
+            <button type="button" class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
+            <br/>
+            <button type="button" class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button> 
+            <br/><br/><br/><br/><br/>  <br/><br/><br/><br/><br/>
+          </div>
+          <div class="w3-center w3-hide-large w3-hide-medium w3-padding">
+            <button type="button" class="side-nav-tab" id="overview" data-icon="toc"></button>
+            <button type="button" class="side-nav-tab" id="task" data-icon="code"></button>
+            <button type="button" class="side-nav-tab" id="guidelines" data-icon="rule"></button>
+          </div>
+        </div>
+  
+        <div class="w3-col w3-threequarter w3-padding">
+          <br/>
+          <div id="tabview">
+            <div class="w3-row w3-padding-small" id="overview-block">
+                <center>
+                    <h3>Topics of this competition</h3>
+                    <span id="selectedtopicsview">
+                    </span>
+                    <input hidden class="create-compete-input no-retain" name="comptopicIDs" id="topicIDs" />
+                    <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
+                    <br/>
+                    <h6>The maximum points each judge can appoint to each submission for each topic
+                        <input class="create-compete-input" required placeholder="Max 100" type="number" min="10" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint">
+                    </h6>
+                </center>
+                <div class="w3-row" id="perkDetails">
+                    <center><h4>Rank perks</h4></center>
+                    
+                    <div class="w3-col w3-third w3-padding-small w3-center">
+                        <div class="pallete accent">
+                            <i class="w3-jumbo ">emoji_events</i>
+                            <h1>1st</h1>
+                            <h6 class="pallete">
+                                <input class="wide create-compete-input" required placeholder="For Rank 1" type="text" name="compperk1" id="compperk1">
+                            </h6>
+                        </div>
+                    </div>
+                    <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
+                        <div class="pallete primary pointer">
+                            <i class="w3-jumbo positive-text">add_circle</i>
+                            <h1 class="positive-text">Add perk</h1>
+                            <h6 class="pallete positive-text">
+                                For next rank
+                            </h6>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <center>
+                <strong>The perks you've set are solely your own responsibility. {{APPNAME}} and its associates will not contribute to your perks in any way.
+                <br/>Participants will also be knowing this.
+                </strong>
+                <h6>All participants will receive <span class="accent">e-certificates</span> from {{APPNAME}}.</h6>
+                </center>
+                <div class="w3-row">
+                <h4>Description</h4>
+                <strong>
+                    <textarea rows="4" cols="18" class="create-compete-input wide"  required placeholder="Description" type="text" name="compdesc" id="compdesc"></textarea><br/><br/>
+                </strong>
+                </div>
+          </div>
+          <div class="w3-row w3-padding-small" id="task-block">
+            <h4>Summary</h4>
+            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task summary" type="text" name="comptaskSummary" id="comptaskSummary"></textarea>
+            <h4>Detail</h4>            
+            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task details" type="text" name="comptaskDetail" id="comptaskDetail"></textarea>
+            <h4>Sample</h4>
+            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task sample" type="text" name="comptaskSample" id="comptaskSample"></textarea>
+          </div>
+          <div class="w3-row w3-padding-small" id="guideline-block">
+            <center><h4>All participants must adhere to our <a onclick="miniWindow('/docs/competitionguidelines')" class="positive-text">competition guidelines</a>, and then the following.</h4></center>
+            <br/>
+            <h4>What to submit</h4>
+            <p>Your submission should be a valid URL with all the neccessary content required by the task of this competition. Make sure that your provided URL is publicly available all the time after submission.
+            If our judges and moderator are unable to access the content provided on your submission URL, then your submission will stand INVALID.
+            </p>
+            
+            <h4>Where to submit</h4>
+            <p>For your submission to be considered valid, you must only submit from the only <strong>Submission</strong> tab in this page. For small devices, submission tab will the 4th bubble above this view.<br/>
+            Only the <strong class="positive-text">submissions from this page</strong> will be considered <strong class="positive-text">VALID</strong>. We strictly advise you to <strong>NOT use any other means of submission</strong>.
+            If you provide your submission via any means <strong class="negative-text">other than this page</strong>, then your submission
+            will be <strong class="negative-text">INVALID</strong>
+            </p>
+            
+            <h4>When to submit</h4>
+            <p>It is a general advise that you should prepare your submission till at least an hour before a competition ends, to avoid hassle.<br/>
+            This competition will accept submissions between <strong>{{compete.startAt}}</strong> and <strong>{{compete.endAt}}</strong>.
+            <br/>Any submission after the latter time will be considered late, and therefore, will be <a class="negative-text" target="_blank" href="/docs/competitionguidelines">vulnerable to invalidation</a>.
+            </p>
+        </div>
+        </div>
+      </div>
+  
+      <br/>
+    </div>
+    <br/>
     </form>
+    <center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
+    <button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button></center>
+    <br/>
 </div>
-<center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
-<button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button></center>
-<br/>
+
 {% endblock %}
 
 {% block ext_scripts %}
@@ -114,20 +203,47 @@
 
 {% block in_scripts %}
 <script>
+    getElement('addperksbutton').onclick=_=>{
+        const parent=document.getElementById('perkDetails');
+        const position=parent.childElementCount-1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+                    <div class="w3-col w3-third w3-padding-small w3-center">
+                        <div class="pallete accent">
+                            <i class="w3-jumbo material-icons">emoji_events</i>
+                            <h1>${numsuffix(position)}</h1>
+                            <h6 class="pallete">
+                                <input class="wide create-compete-input" required placeholder="For Rank ${position}" type="text" name="compperk${position}" id="compperk${position}">
+                            </h6>
+                        </div>
+                    </div>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[position+3]);
+    }
 
-    {% comment %} initializeTabsView({
+     initializeTabsView({
         onEachTab: async (tab) => {
-            if(tab.id==='over'){
-
-            } else {}
+            if(tab.id==='overview'){
+                getElement('overview-block').style.display='block';
+                getElement('task-block').style.display='none';
+                getElement('guideline-block').style.display='none';
+            } else if(tab.id === 'task') {
+                getElement('overview-block').style.display='none';
+                getElement('task-block').style.display='block';
+                getElement('guideline-block').style.display='none';
+            } else{
+                getElement('overview-block').style.display='none';
+                getElement('task-block').style.display='none';
+                getElement('guideline-block').style.display='block';
+            }
         },
         uniqueID: "competetab",
-        tabsClass: "sdf-tab",
+        tabsClass: "side-nav-tab",
         activeTabClass: "active",
+        setDefaultViews:false,
         onShowTab: (tab)=>{
-
         },
-    }); {% endcomment %}
+    });
 
     let excludemods = [];
     let excludejudges = [];
@@ -218,8 +334,8 @@
                         if(getElement('judgeIDs').value.includes(id)){
                             excludemods = excludemods.filter(id=>id!==id)
                             getElement('judgeIDs').value = getElement('judgeIDs').value.replaceAll(`,${id}`,'')
-                            e.target.hidden = true
-                            e.target.remove()
+                            btn.hidden = true
+                            btn.remove()
                         }
                     }
                 })
@@ -244,7 +360,7 @@
                     excludemods.push(id)
                     getElement('judgeIDs').value = existing + ',' + id;
                     getElement('selectedjudgesview').innerHTML+=`
-                    <button type='button' class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">
+                    <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">
                     ${Icon('close')}<img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>`
                     
                 }
@@ -264,9 +380,9 @@
                     btn.onclick=(e)=>{
                         getElement('compmodID').value = ""
                         excludejudges = []
-                        e.target.hidden = true
-                        e.target.remove()
-                        show(ebtn.target)
+                        btn.hidden = true
+                        btn.remove()
+                        show(getElement('selectmodbutton'))
                     }
                 })
             }
@@ -287,10 +403,10 @@
                     getElement('compmodID').value = id;
                     excludejudges.push(id)
                     getElement('selectedmodview').innerHTML =`
-                    <button type='button' class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">
+                    <button type='button' title="Moderator" class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">
                         ${Icon('close')}<img src="${data.mod.dp}" width="20" class="w3-circle primary" /> ${data.mod.name}
                     </button>`
-                    hide(ebtn.target)
+                    hide(getElement('selectmodbutton'))
                 }
             }
         }
