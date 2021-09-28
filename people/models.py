@@ -4,6 +4,7 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from deprecated import deprecated
 from django.db import models
 from django.db.models import Q
+from management.models import ReportCategory
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
@@ -202,9 +203,10 @@ class Profile(models.Model):
 
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
 
-    blocklist = models.ManyToManyField('User', through='BlockedUser', default=[], related_name='blocked_users')
-
     xp = models.IntegerField(default=10, help_text='Experience count')
+
+    blocklist = models.ManyToManyField('User', through='BlockedUser', default=[], related_name='blocked_users')
+    reportlist = models.ManyToManyField('User', through='ReportedUser',default=[], related_name='reported_users')
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -432,6 +434,12 @@ class Profile(models.Model):
     def isBlocked(self, user:User) -> bool:
         return BlockedUser.objects.filter(Q(profile=self,blockeduser=user)|Q(blockeduser=self.user,profile=user.profile)).exists()
 
+    def reportUser(self,user:User, category):
+        report, _ = ReportedUser.objects.get_or_create(user=user,profile=self,category=category,defaults=dict(
+            user=user,profile=self,category=category
+        ))
+        return report
+
     def blockUser(self,user:User):
         return self.blocklist.add(user)
 
@@ -519,5 +527,14 @@ class BlockedUser(models.Model):
 
     class Meta:
         unique_together = ('profile', 'blockeduser')
+
+class ReportedUser(models.Model):
+    class Meta:
+        unique_together = ('profile', 'user', 'category')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='user_reporter_profile')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
+    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_user_category')
 
 from .methods import isPictureDeletable, getUsernameFromGHSocial

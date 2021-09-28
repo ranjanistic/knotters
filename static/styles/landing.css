@@ -11,7 +11,7 @@
 
 .land_f,
 .moderator {
-    font-family: "Playfair Display", serif;
+    /* font-family: "Playfair Display", serif; */
     font-weight: 900;
     font-size: 54px;
     display: block;
@@ -30,20 +30,20 @@
 .land_feature_card,
 .land_feature_card1,
 .land_feature_card2 {
-    width: 33%;
+    /* width: 33%; */
     height: 300px;
-    background-color: #f2f3f7;
+    background-color: var(--positive);
     margin: 10px 0;
     padding: 50px 40px;
     position: relative;
+    color:var(--primary) !important;
 }
-
 .land_feature_card1 {
-    top: -150px;
+    top: -150px !important;
 }
 
 .land_feature_card2 {
-    top: -300px;
+    top: -300px !important;
 }
 
 .landing_moderators {
@@ -62,14 +62,23 @@
     width: 28%;
 }
 
+.lmm{
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
 .lm_details {
     padding: 60px 20px 40px 20px;
-    background-color: #12E49D;
+    background-color: var(--active);
     text-align: center;
 }
 
 .lm_text {
     color: #fff;
+}
+.wall_fame>.lm_text{
+    padding-bottom: 100px;
 }
 
 .lm_img {
@@ -78,7 +87,7 @@
     margin: 0 auto;
     position: relative;
     top: 30px;
-    background-color: #000;
+    background-color: var(--primary-text);
 }
 
 .contributor {
@@ -93,7 +102,7 @@
 }
 
 .c_left>h2 {
-    font-family: "Playfair Display", serif;
+    /* font-family: "Playfair Display", serif; */
     font-size: 54px;
 }
 
@@ -108,9 +117,9 @@
 
 .wall_fame {
     width: 100vw;
-    min-height: 550px;
-    background-color: #1657CE;
-    margin: 100px 0 150px !important;
+    min-height: 510px;
+    background-color: var(--positive);
+    margin: 100px 0 50px !important;
     padding: 0 80px;
     clip-path: polygon(50% 0%, 76% 6%, 100% 0, 100% 100%, 77% 94%, 50% 100%, 25% 94%, 0 100%, 0 0, 23% 6%);
 }
@@ -118,7 +127,7 @@
 .wf_text {
     color: #fff;
     font-size: 54px;
-    font-family: "Playfair Display", serif;
+    /* font-family: "Playfair Display", serif; */
     line-height: 5cm;
     text-align: center;
 }
@@ -187,6 +196,46 @@
     right: 1.5em;
 }
 
+.g_contribution,.g_moderation,.g_competition{
+    width:max-content;
+    font-size:18px;
+    padding:5px 10px;
+    font-weight:bold;
+    border-radius:40px;
+    background-color: var(--positive) !important;
+    color: var(--primary) !important;
+    cursor:pointer;
+}
+.g_line{
+    width: 100px;
+    height:2px;
+    background-color:var(--dead-text);
+}
+.g_active{
+    background-color:#1f57bf !important;
+    color:white;
+    box-shadow:0px 0px 7px 5px #b5b7c0ba;
+}
+.g_con_text,.g_mod_text,.g_comp_text{
+    font-size:27px ;
+    padding: 40px;
+    text-align: center;
+}
+.g_mod_text{
+    display: none;
+}
+.g_comp_text{
+    display: none;
+}
+.l_padding{
+    padding: 0px 80px;
+}
+.verticalAlign{
+    display:flex;
+    justify-content: center;
+    align-items:center;
+}
+
 @media only screen and (max-width:978px) {
     .landing_features {
         padding: 0 60px;
@@ -195,21 +244,24 @@
     .land_feature_card,
     .land_feature_card1,
     .land_feature_card2 {
-        width: 45%;
+        /* height:350px */
     }
 
     .land_feature_card1 {
-        top: 0;
+        top: 0 !important;
     }
 
     .land_feature_card2 {
-        top: 0;
+        top: 0 !important;
     }
 }
 
 @media only screen and (max-width:887px) {
     .contributor {
         flex-direction: column;
+    }
+    .rc{
+        flex-direction: column-reverse !important;
     }
 
     .c_left,
@@ -227,7 +279,12 @@
     .land_feature_cards {
         justify-content: center;
     }
-
+    .l_padding{
+        padding:0 40px;
+    }
+    .verticalAlign{
+        flex-direction: column;
+    }
     .land_feature_card,
     .land_feature_card1,
     .land_feature_card2 {
@@ -241,14 +298,19 @@
 }
 
 @media only screen and (max-width:637px) {
-.landing_features {
-    padding: 0 40px;
-}
+    .landing_features {
+        padding: 0 40px;
+    }
+    .g_con_text,.g_mod_text,.g_comp_text{
+        font-size:18px;
+    }
     .contributor {
         flex-direction: column;
         padding: 0;
     }
-
+    .c_left>h2,.moderator{
+        font-size: 40px;
+    }
     .c_left,
     .c_right {
         width: 100%;
@@ -264,22 +326,25 @@
         width: 300px;
         height: 300px;
     }
-.landing_moderators {
-    padding: 0 40px;
-}
-.moderator{
-    padding: 0 40px;
-}
-.l_moderator{
-    width:80%;
-}
-.wall_fame {
-    padding: 0 40px;
-}
+    .landing_moderators {
+        padding: 0 40px;
+    }
+    .moderator{
+        padding: 0 40px;
+    }
+    .l_moderator{
+        width:80%;
+    }
+    .wall_fame {
+        padding: 0 20px;
+    }
 }
 
 @media only screen and (max-width:400px) {
     .landing_features {
         padding: 0 20px;
+    }
+    .c_left>h2,.moderator{
+        font-size:32px;
     }
 }

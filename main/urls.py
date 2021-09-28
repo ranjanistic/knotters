@@ -39,6 +39,7 @@ urlpatterns = [
     path(URL.REDIRECTOR, redirector),
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
+    path(URL.FAME_WALL, fameWall),
     path(URL.BROWSER, browser),
     path(URL.BASE_GITHUB_EVENTS, githubEventsListener),
     path('email/<str:template>', mailtemplate),

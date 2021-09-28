@@ -1,9 +1,10 @@
+from projects.models import Category, License
 from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
 from people.models import User
 from django.test import TestCase, tag
 from main.tests.utils import getRandomStr
 from moderation.methods import *
-from projects.tests.utils import getProjName, getProjRepo
+from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
 from compete.tests.utils import getCompTitle
 
 
@@ -28,8 +29,9 @@ class ModerationMethodTest(TestCase):
         self.competition = Competition.objects.create(title=getCompTitle(),creator=self.mguser.profile)
         self.competition.judges.add(self.profiles[1])
         self.competition.judges.add(self.profiles[2])
-        self.project = Project.objects.create(
-            name=getProjName(), creator=self.profiles[3], reponame=getProjRepo())
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.project = Project.objects.create(name=getProjName(), creator=self.profiles[3], reponame=getProjRepo(),category=self.category, license=self.license)
         return super().setUpTestData()
 
     def test_getModelByType(self):

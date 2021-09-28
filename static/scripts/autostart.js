@@ -29,3 +29,13 @@ window.addEventListener("load", () => {
         localStorage.removeItem(Key.futureMessage)
     }
 });
+
+addEventListener('keydown',(e)=>{
+    if((e.key==='F10'||e.code==='F10'||e.keyCode===121) && e.altKey){
+        toggleTheme();
+    }
+    if((e.key==='r'||e.code==='r') && e.altKey){
+        restartIntros()
+        window.location.reload()
+    }
+})

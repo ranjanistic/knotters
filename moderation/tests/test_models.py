@@ -4,8 +4,8 @@ from main.exceptions import DuplicateKeyError, IllegalModeration, IllegalModerat
 from people.models import User, Profile
 from main.tests.utils import getRandomStr
 from compete.models import Competition
-from projects.tests.utils import getProjName, getProjRepo
-from projects.models import Project
+from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
+from projects.models import Category, License, Project
 from compete.tests.utils import getCompTitle
 from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
 from moderation.apps import APPNAME
@@ -28,8 +28,9 @@ class ModerationTest(TestCase):
             user=self.mguser).update(is_manager=True)
         self.competition = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
-        self.project = Project.objects.create(
-            name=getProjName(), creator=self.profile, reponame=getProjRepo())
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.project = Project.objects.create(name=getProjName(), creator=self.profile, reponame=getProjRepo(),category=self.category, license=self.license)
 
         return super().setUpTestData()
 
@@ -65,8 +66,9 @@ class ModerationAttributeTest(TestCase):
             user=users[0], is_moderator=True)
 
         self.profile = Profile.objects.create(user=users[1])
-        self.project = Project.objects.create(
-            name=getProjName(), creator=self.profile, reponame=getProjRepo())
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.project = Project.objects.create(name=getProjName(), creator=self.profile, reponame=getProjRepo(),category=self.category, license=self.license)
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(

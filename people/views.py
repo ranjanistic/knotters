@@ -11,6 +11,7 @@ from main.decorators import github_only, require_JSON_body, normal_profile_requi
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
 from main.env import BOTMAIL
 from main.strings import Action, Code, Event, Message, Template
+from management.models import ReportCategory
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
@@ -408,6 +409,29 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         raise Http404()
+
+def reportCategories(request: WSGIRequest):
+    try:
+        categories = ReportCategory.objects.all()
+        reports = []
+        for cat in categories:
+            reports.append(dict(id=cat.id,name=cat.name))
+        return respondJson(Code.OK, dict(reports=reports))
+    except Exception as e:
+        return respondJson(Code.NO)
+
+@normal_profile_required
+@require_JSON_body
+def reportUser(request: WSGIRequest):
+    try:
+        report = request.POST['report']
+        userID = request.POST['userID']
+        user = User.objects.get(id=userID)
+        category = ReportCategory.objects.get(id=report)
+        request.user.profile.reportUser(user,category)
+        return respondJson(Code.OK)
+    except Exception as e:
+        return respondJson(Code.NO)
 
 @normal_profile_required
 @require_JSON_body

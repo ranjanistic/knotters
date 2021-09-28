@@ -5,3 +5,6 @@
 
 User-agent: *
 Disallow: {{media}}
+{% for sus in suspended %}
+Disallow: {{sus.getLink}}
+{% endfor %}

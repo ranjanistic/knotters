@@ -114,9 +114,12 @@ if (selfProject) {
             }
         }
         getElement("topics-viewer-new").innerHTML = "";
-        const data = await postRequest(setUrlParams(URLS.TOPICSEARCH,projectID), {
-            query: e.target.value,
-        });
+        const data = await postRequest(
+            setUrlParams(URLS.TOPICSEARCH, projectID),
+            {
+                query: e.target.value,
+            }
+        );
         if (!data) return;
         if (data.code === code.OK) {
             let buttons = [];
@@ -145,7 +148,6 @@ if (selfProject) {
         }
     };
     loadExistingTopics();
-
 
     const loadExistingTags = () => {
         initializeMultiSelector({
@@ -250,9 +252,12 @@ if (selfProject) {
             }
         }
         getElement("tags-viewer-new").innerHTML = "";
-        const data = await postRequest(setUrlParams(URLS.TAGSEARCH,projectID), {
-            query: e.target.value,
-        });
+        const data = await postRequest(
+            setUrlParams(URLS.TAGSEARCH, projectID),
+            {
+                query: e.target.value,
+            }
+        );
         if (!data) return;
         if (data.code === code.OK) {
             let buttons = [];
@@ -262,7 +267,9 @@ if (selfProject) {
                         getElement("addtagIDs").value.includes(tag.id)
                             ? "positive"
                             : "primary"
-                    } tag-new" id="${tag.id}">${Icon("add")}${tag.name}</button>`
+                    } tag-new" id="${tag.id}">${Icon("add")}${
+                        tag.name
+                    }</button>`
                 );
             });
             if (buttons.length) {
@@ -280,22 +287,92 @@ if (selfProject) {
     };
     loadExistingTags();
 
+    getElement("snap-file").onchange = (e) => {
+        handleCropImageUpload(
+            e,
+            "snapimage",
+            "snapimageview",
+            (croppedB64) => {
+                hide(getElement("add-image-view"));
+                show(getElement("snapimageview"));
+            },
+            true
+        );
+    };
 }
+
+let snapstart = 0,
+    snapend = snapstart + 10;
+const snapsview = getElement(`snapshots-view`);
+
+const addSnapsView = () => {
+    const newsnapview = document.createElement("div");
+    newsnapview.innerHTML = `<div class="w3-row" id="snapshots-view-${snapstart}"><div class="loader"></div></div>`;
+    snapsview.insertBefore(
+        newsnapview,
+        snapsview.childNodes[Array.from(snapsview.childNodes).length - 1]
+    );
+};
+const loadsnaps = getElement("load-more-snaps");
+
+loadsnaps.onclick = (_) => {
+    addSnapsView();
+    const currentsnapsview = getElement(`snapshots-view-${snapstart}`);
+    getRequest(
+        setUrlParams(URLS.SNAPSHOTS, projectID, snapstart, snapend)
+    ).then((data) => {
+        if (data === false) {
+            currentsnapsview.innerHTML = loadErrorHTML();
+            return
+        }
+        if (!String(data).trim()) {
+            if (snapstart < 1) {
+                currentsnapsview.innerHTML = `<div class="dead-text" align="center">No snapshots yet</div>`;
+            } else {
+                currentsnapsview.innerHTML = `<div class="dead-text" align="center"><br/>No more snapshots</div>`;
+            }
+            return hide(loadsnaps);
+        }
+        setHtmlContent(currentsnapsview, data);
+        snapstart = snapend;
+        snapend = snapstart + 10;
+        show(loadsnaps);
+    });
+};
+
+loadsnaps.click();
+
 const loadLiveData = async () => {
-    const contribview = getElement('project-contibutors-view');
-    const languageview = getElement('project-languages-view');
-    setHtmlContent(contribview, loaderHTML());
-    setHtmlContent(languageview, loaderHTML());
-    const data = await postRequest(setUrlParams(URLS.LIVEDATA, projectID))
-    if(!data||data.code!==code.OK){
-        setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
-        setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
-        getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
-        getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
-        return
+    const contribview = getElement("project-contibutors-view");
+    const languageview = getElement("project-languages-view");
+    if (contribview) setHtmlContent(contribview, loaderHTML());
+    if (languageview) setHtmlContent(languageview, loaderHTML());
+    if (contribview || languageview) {
+        const data = JSON.parse(await getRequest(setUrlParams(URLS.LIVEDATA, projectID)))
+        if (!data || data.code !== code.OK) {
+            setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
+            setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
+            getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
+            getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
+            return;
+        }
+        if (contribview) setHtmlContent(contribview, data.contributorsHTML);
+        if (languageview) {
+            setHtmlContent(
+                languageview,
+                `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`
+            );
+            radarChartView(
+                getElement("project-languages-distribution-chart"),
+                Object.keys(data.languages),
+                Object.keys(data.languages).map((key) => data.languages[key]),
+                "12e49d"
+            );
+        }
     }
-    setHtmlContent(contribview, data.contributorsHTML);
-    setHtmlContent(languageview, `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`);
-    radarChartView(getElement('project-languages-distribution-chart'),Object.keys(data.languages),Object.keys(data.languages).map((key)=>data.languages[key]),'12e49d')
+};
+try {
+    loadLiveData();
+} catch (e) {
+    console.debug(e);
 }
-loadLiveData()

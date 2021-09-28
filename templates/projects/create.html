@@ -5,8 +5,6 @@
 {% load tz %}
 {% load custom_tags %}
 
-{% block themecolor %}#f5d702{% endblock %}
-
 {% block og_url %}{{URLS.CREATE}}{% endblock %}
 {% block og_title %}Create Project{% endblock %}
 {% block og_site_name %}Create Project{% endblock %}
@@ -17,7 +15,7 @@
 {% block title%}Create project{%endblock%}
 
 {% block nav_extra_links %}
-<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
+<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="primary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
 {% endblock %}
 
 {% block stylesheets %}
@@ -27,245 +25,58 @@
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_back_icon %}close{% endblock %}
-
 {% block nav_href %}{{ROOT}}{% endblock %}
-{% block nav_style %}accent{% endblock %}
-{% block nav_text_style %}text-accent{% endblock %}
+
 {% block nav_text %}Create project{% endblock %}
-{% block nav_auth_links %}{% endblock %} 
-{% block nav_noauth %}{% endblock %}
+
 
 {% block content %}
-{% if user.profile.githubID %}
-<div class="w3-center w3-padding-small tertiary w3-animate-opacity">
-    <h5>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
-    moderation guidelines</a>.</h5>
-</div>
-<center><strong class="dead-text">Do not fill any personal information at any step.</strong></center>
-    
-<div class="w3-row w3-padding-64 w3-container">
-    <div class="w3-col w3-half w3-padding">
-        <input
-            type="file"
-            accept="image/*"
-            id="projectimage"
-            hidden
-        />
-        <form id="create-project-form" class="w3-animate-left" method="POST" action="{{URLS.SUBMIT}}">
-            {% csrf_token %}
-
-            <div class="step-tab" id="step1">
-                <input hidden id="projectImageData" name="projectimage" value="" type="text" />
-                <br />
-                <div class="w3-row">
-				<h3>Display name</h3>
-                <input
-                    required
-                    class="big-input"
-                    name="projectname"
-                    id="projectname"
-                    placeholder="Project title"
-                    type="text"
-                    maxlength="40"
-                />
-                <span id="projectnameerror"></span>
-                <br /><br /><br />
-
-                <h3>Repository name</h3>
-                <input
-                    required
-                    class="big-input"
-                    name="reponame"
-                    id="reponame"
-                    type="text"
-                    maxlength="15"
-                    placeholder="Project's unique username"
-                />
-                <span id="reponameerror"></span>
-                </div>
-            </div>
-
-            <div class="step-tab" id="step2">
-                <h3>About</h3>
-                <textarea
-                    required
-                    class="big-input"
-                    maxlength="200"
-                    rows="4"
-                    name="projectabout"
-                    id="projectabout"
-                    placeholder="What's your project about?"
-                ></textarea>
-                <span id="projectabouterror"></span>
-                <br /><br />
-
-                <h3>Extra description</h3>
-                <textarea
-                    required
-                    class="big-input"
-                    name="description"
-                    maxlength="5000"
-                    rows="5"
-                    id="description"
-                    placeholder="Detailed explanation of the project, i.e. motive, etc. for moderators to read."
-                ></textarea>
-                <span id="descriptionerror"></span>
-                
-            </div>
-
-            <div class="step-tab" id="step3">
-                <h3>Category</h3>
-                <input
-                    required
-                    class="big-input"
-                    name="projectcategory"
-                    id="projectcategory"
-                    maxlength="30"
-                    placeholder="Choose type of project"
-                    list="categories"
-                />
-                <datalist id="categories">
-                  {% for cat in categories %}
-                  <option value="{{cat.name}}">{{cat.name}}</option>
-                  {% endfor %}
-                </datalist>
-                <span id="projectcategoryerror"></span>
-                <br /><br />
-
-                <h3>Tags</h3>
-                <input
-                    required
-                    class="big-input"
-                    name="tags"
-                    id="tags"
-                    maxlength="50"
-                    placeholder="Separate by comma"
-                />
-                <span id="tagserror"></span>
-                <div class="w3-row" id="tagssuggestions">
-                    <span class="dead-text">Suggesstions</span>
-                    {% for tag in tags %}
-                        <button type="button" class="positive tagbutton">#{{tag.name}}</button>
-                    {% endfor %}
-                </div>
-                <br /><br />
-
-                <h3>Link (optional)</h3>
-                <input
-                    class="big-input"
-                    name="referurl"
-                    id="referurl"
-                    maxlength="100"
-                    placeholder="Any link related to this project."
-                />
-                <span id="referurlerror"></span>
-            </div>
-
-            <div class="step-tab" id="step4">
-                <div class="w3-row" id="preview-step">
-                    <div class="w3-row">
-                        <h3 id="projectnamepreview"></h3>
-                        <h5 id="reponamepreview"></h5>
-                        <div id="projectaboutpreview"></div><br/>
-                        <span class="dead-text">Tags: </span><strong id="tagspreview"></strong><br/>
-                        <span class="dead-text">Category: </span><strong id="projectcategorypreview"></strong><br/><br/>
-                        <h6>Extra description</h6>
-                        <div id="descriptionpreview"></div>
-                        <strong class="positive-text pointer" id="referurlpreview"></strong>
-                    </div>
-                    <br/>
-                    <div class="w3-row">
-                        <h6>License</h6>
-                        <span id='licenses'>
-                        {% for license in licenses %}
-                        <button type="button" class="license-choice" id="{{license.getID}}" title="{{license.name}}: {{license.description}}">{{license.name}}</button>
-                        {% endfor %}
-                        </span>
-                        <button type="button" class="primary" id="more-licenses" data-icon="add">More licenses</button>
-                        <input type="hidden" id="license" name="license" value="{{licenses.0.getID}}" />
-                    </div>
-                </div>
-                <br/>
-                <strong><a target="_blank" onclick="newTab('{{URLS.ALLLICENSES}}')">Learn more</a> about these licenses.</strong>
-                <br/>
-                <label id="confirm-check-box">
-                    <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
-                    I've read the {{appname}} 
-                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">moderation guidelines</a>, 
-                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
-                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
-                </label>
-            </div>
-            <br/>
-            <div class="w3-row">
-                <div class="w3-row w3-right">
-                    <div class="loader" id="actionloader"></div>
-                    <div id="actionbuttons">
-                    <button
-                        type="button"
-                        class="primary big-button"
-                        id="prevBtn"
-                        onclick="nextPrev(-1)"
-                    >
-                        <i class="big-icon">navigate_before</i> Previous
-                    </button>
-                    <button
-                        type="button"
-                        class="big-button positive"
-                        id="nextBtn"
-                        onclick="nextPrev(1)"
-                    >
-                        Next <i class="big-icon">navigate_next</i>
-                    </button>
-                </div>
-                </div>
-            </div>
-            <br/><br/>
-            <div class="w3-row w3-center">
-                <span class="step"></span>
-                <span class="step"></span>
-                <span class="step"></span>
-                <span class="step"></span>
-            </div>
-        </form>
-    </div>
-    <div class="w3-col w3-half w3-center w3-padding w3-animate-right" id="imageview">
-        <img class="pallete preview-type-image" id="projectImageOutput" width="60%" src="/media/projects/default.png" /><br/><br/>
-        <div class="w3-row">
-            <button class="active" type="button" id="upload-button">
-                <i class="material-icons">upload</i>
-                <label for="projectimage" id="uploadprojectimagelabel">
-                    Upload Image
-                </label>
-            </button>
-            <span id="projectimageerror"></span>
-        </div>
-    </div>
-</div>
-{% endif %}
-{% endblock %}
-
-{% block in_scripts %}
-<script>
-let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");
-</script>
-{% if not user.profile.githubID %}
-<script>
-alertify.alert("Github ID",`<div class="w3-row w3-padding">
-    <h4>Your Github identity must be linked with Knotters before creating a project.</h4>
+<div class="w3-row w3-padding-small">
+    <center>
+    <h1 class="dead-text">A new project is always a good start.</h1>
+    </center>
     <br/>
-    <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${URLS.CREATE}">
-        <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
-        &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
-        </button>
-    </a>
-</div>`,()=>{
-    window.location.replace(ROOT)
-}).set('closable',false).set('label','Cancel')
-</script>
-{% endif %}
+    <div class="w3-col w3-half w3-padding">
+            <div class="pallete primary positive-text">
+                <center><h2>Quick Project</h2></center><br/>
+                <div class="pallete-slab tertiary">
+                    <h4>Instantly start a new project without waiting for someone's approval.</h4><br/>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Choose license from publicly available licenses at {{APPNAME}}</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Get a permanent publicly available URL for your project</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Associate at most 10 static assets of your own</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Link with your own public Github repository, after creation</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Snapshots!</h6>
+                    <center>
+                    <a href="{{URLS.CREATE_FREE}}">
+                        <button class="big-button positive" data-icon="add">New Quick Project</button>
+                    </a>
+                    </center>
+                    <br/>
+                </div>
+            </div>
+    </div>
+    <div class="w3-col w3-half w3-padding">
+            <div class="pallete accent">
+                <center><h2>Verified Project</h2></center><br/>
+                <div class="pallete-slab primary">
+                    <h4>Submit a project to get an approved, verified project with a preset repository at <a href="https://github.com/Knotters">{{APPNAME}}</a>.</h4><br/>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Everything of the Quick Project</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Create your own license, if available licenses not suitable.</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Associate any number of static assets of your own</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;A moderator for help and support</h6>
+                    <h6 class="dead-text">&#183;&nbsp;&nbsp;Snapshots!</h6>
+                    <center>
+                    <a href="{{URLS.CREATE_MOD}}">
+                        <button class="big-button accent" data-icon="send">New Project Submission</button>
+                    </a>
+                    </center>
+                    <br/>
+                </div>
+            </div>
+    </div>
+</div>
+<br/>
 {% endblock %}
+
 {% block scripts %}
-<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endblock %}

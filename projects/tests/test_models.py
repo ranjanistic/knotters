@@ -1,11 +1,11 @@
 from django.test import TestCase, tag
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
 from people.models import Topic, User, Profile
 from moderation.methods import requestModerationForObject
 from people.tests.utils import getTestName, getTestPassword, getTestEmail, getTestTopicsInst, getTestUsersInst
 from projects.models import *
-from .utils import getProjCategory, getProjImage, getProjName, getProjRepo, getTag, getTestTagsInst
+from .utils import getLicDesc, getLicName, getProjCategory, getProjImage, getProjName, getProjRepo, getTag, getTestTagsInst
 
 
 @tag(Code.Test.MODEL, APPNAME)
@@ -15,15 +15,22 @@ class ProjectTest(TestCase):
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
 
     def test_project_create_invalid(self):
         with self.assertRaises(ObjectDoesNotExist):
-            Project.objects.create(name=getProjName())
+            Project.objects.create(name=getProjName(),reponame=getProjRepo(),)
+        with self.assertRaises(ObjectDoesNotExist):
+            Project.objects.create(name=getProjName(), reponame=getProjRepo(),creator=self.creator)
+        with self.assertRaises(ObjectDoesNotExist):
+            Project.objects.create(name=getProjName(),reponame=getProjRepo(), creator=self.creator,category=self.category)
+        with self.assertRaises(AssertionError):
+            Project.objects.create(name=getProjName(), creator=self.creator,category=self.category, license=self.license)
 
     def test_project_create_valid(self):
         prevxp = self.creator.xp
-        proj = Project.objects.create(
-            name=getProjName(), creator=self.creator, reponame=getProjRepo())
+        proj = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
         self.assertEqual(proj.status, Code.MODERATION)
         self.assertTrue(proj.creator.xp > prevxp)
 
@@ -35,8 +42,9 @@ class ProjectAttributeTest(TestCase):
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
-        self.project = Project.objects.create(
-            name=getProjName(), creator=self.creator, reponame=getProjRepo())
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.project = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
 
     def test_project_default_methods(self):
         self.assertEqual(self.project.__str__(), self.project.name)
@@ -76,8 +84,9 @@ class TagTest(TestCase):
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
-        self.project = Project.objects.create(
-            name=getProjName(), creator=self.creator, reponame=getProjRepo())
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.project = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
         return super().setUpTestData()
 
     def test_tag_create(self):
@@ -120,6 +129,8 @@ class CategoryTest(TestCase):
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.category = Category.objects.create(name=getProjCategory())
         return super().setUpTestData()
 
     def test_create_category(self):
@@ -127,19 +138,17 @@ class CategoryTest(TestCase):
 
     def test_category_assign_project(self):
         category = Category.objects.create(name=getProjCategory())
-        proj = Project.objects.create(
-            name=getProjName(), creator=self.creator, reponame=getProjRepo(), category=category)
+        proj = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=category, license=self.license)
         self.assertEqual(proj.category.getID(), category.getID())
 
+    @tag('cat')
     def test_category_assign_tags(self):
         category = Category.objects.create(name=getProjCategory())
-        proj = Project.objects.create(
-            name=getProjName(), creator=self.creator, reponame=getProjRepo(), category=category)
+        proj = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=category, license=self.license)
         tags = Tag.objects.bulk_create(getTestTagsInst(4))
         for tag in tags:
             proj.category.tags.add(tag)
-        self.assertEqual(len(tags), CategoryTag.objects.filter(
-            category=category, tag__in=tags).count())
+        self.assertEqual(len(tags), CategoryTag.objects.filter(category=category,tag__in=tags).count())
         for tag in tags:
             category.tags.add(tag)
         self.assertEqual(len(tags), CategoryTag.objects.filter(
@@ -166,8 +175,9 @@ class TopicTest(TestCase):
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
-        self.project = Project.objects.create(
-            name=getProjName(), creator=self.creator, reponame=getProjRepo())
+        self.category = Category.objects.create(name=getProjCategory())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.project = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
         return super().setUpTestData()
 
     def test_topic_assign_project(self):

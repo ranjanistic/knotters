@@ -4,8 +4,8 @@ from .forms import *
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ["name", "reponame", "status"]
-    list_filter = ["status", "category"]
+    list_display = ["name", "reponame", "status", 'trashed']
+    list_filter = ["status", "category", 'trashed']
 
     def get_queryset(self, request):
         query_set = super(ProjectAdmin, self).get_queryset(request)
@@ -16,7 +16,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(FreeProject)
 class FProjectAdmin(admin.ModelAdmin):
-    list_display = ["name", "repolink"]
+    list_display = ["name"]
     list_filter = ["category"]
 
     def get_queryset(self, request):
@@ -89,10 +89,14 @@ class ProjectTopicAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
-admin.site.register(License)
-
 @admin.register(LegalDoc)
 class LegalDocAdmin(admin.ModelAdmin):
     list_display = ["name", "pseudonym", "icon", 'lastUpdate', 'effectiveDate']
 
     form = LegalDocForm
+
+admin.site.register(License)
+
+admin.site.register(ProjectSocial)
+admin.site.register(FreeRepository)
+admin.site.register(Snapshot)
