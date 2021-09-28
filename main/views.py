@@ -292,6 +292,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.FAME_WALL}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.SNAPSHOTS}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])

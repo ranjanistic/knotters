@@ -102,7 +102,7 @@
 {% block in_scripts %}
 <script>
     getElement('addSocialLinkButton').onclick=_=>{
-        const parent=document.getElementById('social-links');
+        const parent=getElement('social-links');
         const linkNumber=parent.childElementCount+1;
         const newChild=document.createElement('div');
         newChild.innerHTML = `

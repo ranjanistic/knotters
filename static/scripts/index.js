@@ -677,6 +677,7 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
+                        console.debug(e)
                         error(
                             `An error occurred. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
@@ -690,7 +691,7 @@ const handleCropImageUpload = (
                 cancel: "Cancel",
             });
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
-            aspectRatio: ratio,
+            ...(ratio!==true?{aspectRatio:ratio}:{}),
             viewMode: 1,
             responsive: true,
             center: true,

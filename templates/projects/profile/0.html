@@ -149,24 +149,6 @@
                 </div>
                 {% endif %}
             </div>
-            {% comment %} <div class="w3-row w3-padding pallete">
-                <center><h5>Language distribution</h5><hr/></center>
-                <div class="w3-row" id="project-languages-view">
-                </div>
-            </div> {% endcomment %}
-        </div>
-        <div class="w3-col w3-half w3-padding">
-            <div class="w3-row">
-                <div class="pallete">
-                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
-                    <center><h5>Description</h5><hr/></center>
-                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
-                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
-                    {% endcache %}
-                </div>
-            </div>
-            <br/>
             <div class="w3-row w3-padding pallete">
                 <center><h5>Assets</h5><hr/></center>
                 <div class="w3-row">
@@ -196,7 +178,7 @@
                 {% if project.has_linked_repo %}
                     <button class="negative" id='unlink-github-repository'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Unlink {{project.linked_repo.reponame}}</button>
                 {% else %}
-                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link public Github repository</button>
+                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link GitHub repository</button>
                 {% endif %}
                 </div>
                 <div class="w3-row">
@@ -205,6 +187,56 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
+                    <center><h5>Description</h5><hr/></center>
+                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
+                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    {% endcache %}
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row pallete no-pad">
+                <center><h5 class="w3-padding">Snapshots</h5>
+                {% if iscreator %}
+                <div class="w3-row" id="view-snapshot">
+                    <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
+                    <hr/>
+                </div>
+                <div class="w3-row" id="edit-snapshot">
+                    <input type='file' hidden id='snap-file' />
+                    <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
+                        {% csrf_token %}
+                        <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything remotely related."></textarea>
+                        <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
+                        <img width='100%' id='snapimageview' hidden />
+                        <div class="dead-text" id='add-image-view'>
+                            <label for="snap-file">
+                                <div class="w3-jumbo material-icons">add_circle</div>
+                                <h5>Add image</h5>
+                            </label>
+                        </div>
+                        <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">Submit snapshot</button>
+                        <button class="small negative" type='button' id="discard-edit-snapshot" data-icon="close">Discard</button>
+                    </form>
+                    <hr/>
+                </div>
+                {% else %}
+                <hr/>
+                {% endif %}
+                </center>
+                <div class="w3-row" id="snapshots-view">
+                    
+                </div>
+                <br/>
+                <center><button class="small primary" data-icon='expand_more' hidden id='load-more-snaps'>Load more</button></center>
+                <br/>
+            </div>
+            
         </div>
     </div>
     <div class="w3-row"></div>
@@ -216,6 +248,7 @@
 <script>
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
+
 
 getElement('delete-project').onclick=_=>{
     alertify.confirm('Delete Project', 
@@ -270,7 +303,7 @@ getElement('link-github-repository').onclick=async()=>{
                     error(data.error)
                 },
                 ()=>{}
-            )
+            ).set('labels', {ok:'Link', cancel:'Discard'})
         }
         error(data.error)
     {% else %}
@@ -296,6 +329,12 @@ getElement("unlink-github-repository").onclick=_=>{
             error(data.error)
         },
     ).set('closable', false).set('labels', {ok:'No, wait', cancel:'Yes, unlink'})
+}
+
+getElement('save-edit-snapshot').onclick=(e)=>{
+    e.preventDefault();
+
+    e.target.form.submit()
 }
 {% endif %}
 </script>

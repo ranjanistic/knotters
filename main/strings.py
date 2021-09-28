@@ -190,6 +190,10 @@ message = Message()
 class Action():
     ACCEPT = "accept"
     DECLINE = "decline"
+    CREATE = "create"
+    VIEW = "view"
+    UPDATE = "update"
+    REMOVE = "remove"
 
 
 action = Action()
@@ -740,6 +744,8 @@ class URL():
 
         NEWBIES = 'newbies/'
         BROWSE_SEARCH = 'browse/search/'
+        SNAPSHOTS = 'snapshots/<str:projID>/<int:start>/<int:end>/'
+        SNAPSHOT = 'snapshot/<str:projID>/<str:action>/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1273,6 +1279,12 @@ class Template():
         @property
         def license_search(self):
             return f'{self.DIRNAME}/{self.LICENSE_SEARCH}.html'
+
+        SNAPSHOTS = 'snapshots'
+
+        @property
+        def snapshots(self):
+            return f'{self.DIRNAME}/{self.SNAPSHOTS}.html'
 
     projects = Projects()
 

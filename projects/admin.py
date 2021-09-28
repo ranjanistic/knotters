@@ -99,3 +99,4 @@ admin.site.register(License)
 
 admin.site.register(ProjectSocial)
 admin.site.register(FreeRepository)
+admin.site.register(Snapshot)

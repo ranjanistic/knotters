@@ -14,11 +14,11 @@ from main.bots import Github
 from main.env import PUBNAME
 from main.decorators import require_JSON_body, github_only, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
-from main.strings import Code, Event, Message, URL, Template
+from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from people.models import Profile, Topic
-from .models import BaseProject, FreeProject, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Tag, Category
+from .models import BaseProject, FreeProject, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
 from .methods import createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
@@ -664,5 +664,72 @@ def licenseSearch(request:WSGIRequest):
         | Q(description__istartswith=query)
         | Q(description__icontains=query)
     ))[0:10]
-    print(licenses)
     return rendererstr(request,Template.Projects.LICENSE_SEARCH,dict(licenses=licenses, query=query))
+
+
+def snapshots(request:WSGIRequest, projID:UUID, start:int=0, end:int=10):
+    try:
+        if end < 1:
+            end = 10
+        
+        snaps = Snapshot.objects.filter(base_project__id=projID).order_by('-created_on')[start:end]
+        if request.method == 'GET':
+            return rendererstr(request,Template.Projects.SNAPSHOTS, dict(snaps=snaps))
+        if request.method == 'POST':
+            jsonsnaps = []
+            for snap in snaps:
+                jsonsnaps.append(dict(
+                    id=snap.get_id,
+                    projectID=snap.project_id,
+                    text=snap.text,
+                    image=snap.get_image,
+                    video=snap.get_video,
+                ))
+            return respondJson(Code.OK, dict(
+                snaps=jsonsnaps
+            ))
+        return HttpResponseBadRequest()
+    except Exception as e:
+        print(e)
+        return HttpResponseBadRequest()
+
+@normal_profile_required
+@require_JSON_body
+def snapshot(request:WSGIRequest, projID:UUID, action:str):
+    try:
+        baseproject = BaseProject.objects.get(id=projID,creator=request.user.profile)
+        if action == Action.CREATE:
+            text = request.POST.get('snaptext', None)
+            image = request.POST.get('snapimage', None)
+            video = request.POST.get('snapvideo', None)
+            if not (text or image or video):
+                return redirect(baseproject.getProject().getLink(error=Message.INVALID_REQUEST))
+
+            imagefile = base64ToImageFile(image)
+            videofile = base64ToImageFile(video)
+
+            snapshot = Snapshot.objects.create(
+                base_project=baseproject,
+                creator=request.user.profile,
+                text=(text or ''),
+                image=imagefile,
+                video=videofile
+            )
+            return redirect(baseproject.getProject().getLink())
+
+        id = request.POST['snapid']
+        snapshot = Snapshot.objects.get(id=id,base_project=baseproject)
+        if action == Action.UPDATE:
+            text = request.POST.get('snaptext', None)
+            image = request.POST.get('snapimage', None)
+            video = request.POST.get('snapvideo', None)
+            if not (text or image or video):
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+
+        if action == Action.REMOVE:
+            snapshot.delete()
+            return respondJson(Code.OK)
+
+        return respondJson(Code.NO)
+    except:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
