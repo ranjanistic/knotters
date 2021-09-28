@@ -160,6 +160,35 @@
                 </div>
                 {% endif %}
             </div>
+            <br/>
+            <div class="w3-row w3-padding pallete">
+                <center><h5>Language distribution</h5><hr/></center>
+                <div class="w3-row" id="project-languages-view">
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row">    
+                <div class="pallete">
+                <center><h5>Contributors</h5><hr/></center>
+                <div class="w3-row" id="project-contibutors-view"></div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
+                    <center><h5>Description</h5><hr/></center>
+                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
+                    <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
+                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/>
+                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    {% endcache %}
+                </div>
+            </div>
+            <br/>
             <div class="w3-row pallete no-pad">
                 <center><h5 class="w3-padding">Snapshots</h5>
                 {% if iscreator %}
@@ -195,34 +224,6 @@
                 <br/>
                 <center><button class="small primary" data-icon='expand_more' hidden id='load-more-snaps'>Load more</button></center>
                 <br/>
-            </div>
-            
-        </div>
-        <div class="w3-col w3-half w3-padding">
-            <div class="w3-row">
-                <div class="pallete">
-                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
-                    <center><h5>Description</h5><hr/></center>
-                    <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
-                    <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
-                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/>
-                    <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
-                    {% endcache %}
-                </div>
-            </div>
-            <br/>
-            <div class="w3-row w3-padding pallete">
-                <center><h5>Language distribution</h5><hr/></center>
-                <div class="w3-row" id="project-languages-view">
-                </div>
-            </div>
-            <br/>
-            <div class="w3-row">    
-                <div class="pallete">
-                <center><h5>Contributors</h5><hr/></center>
-                <div class="w3-row" id="project-contibutors-view"></div>
-                </div>
             </div>
         </div>
     </div>
