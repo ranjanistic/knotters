@@ -67,6 +67,7 @@ class Code():
     FEEDBACKS = 'feedbacks'
 
     RESULTS = "results"
+    JUDGEMENTS = 'judgements'
 
     class Test():
         MODEL = 'model'
@@ -122,10 +123,12 @@ class Message():
     SUBMISSION_MARKING_INVALID = "Invalid submission markings, try again."
     SUBMISSION_ERROR = "Error in submission"
 
+    FREE_PROJECT_CREATED = "Project created successfully!"
     SENT_FOR_REVIEW = "Sent for review"
     PROJECT_DELETED = "Project deleted"
     TERMS_UNACCEPTED = "You have not accepted the terms"
     LICENSE_UNSELECTED = "You have to choose a license"
+    NICKNAME_ALREADY_TAKEN = "The nickname is not available, try something else."
     INVALID_LIC_DATA = 'Invalid license data'
 
     UNDER_MODERATION = "Currently under moderation"
@@ -630,40 +633,66 @@ class URL():
 
     class Projects():
 
-        ALLLICENSES = 'licenses'
+        ALLLICENSES = 'licenses/'
 
         LICENSE = 'licenses/<str:id>'
 
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
-        LICENSES = 'alllicenses'
+        LICENSES = 'alllicenses/'
 
-        ADDLICENSE = 'addlicense'
+        ADDLICENSE = 'addlicense/'
 
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
         def createValidField(self, field):
             return setPathParams(self.CREATEVALIDATEFIELD, field)
 
-        CREATE = 'create'
+        CREATE = 'create/'
 
-        def create(self, step: int = 0):
-            return f"{self.CREATE}?step={step}"
+        def create(self):
+            return self.CREATE
 
-        SUBMIT = 'submit'
+        CREATE_FREE = 'create/0/'
 
-        TRASH = 'trash/<str:projID>'
+        def createFree(self):
+            return self.CREATE_FREE
+
+        CREATE_MOD = 'create/1/'
+
+        def createMod(self, step: int = 0):
+            return f"{self.CREATE_MOD}?step={step}"
+
+        SUBMIT_FREE = 'submit/0/'
+        SUBMIT_MOD = 'submit/1/'
+
+        """ deprecated """
+        SUBMIT = SUBMIT_MOD
+
+        TRASH = 'trash/<str:projID>/'
 
         def trash(self, projID):
             return setPathParams(self.TRASH, projID)
 
-        PROFILE = 'profile/<str:reponame>'
+        PROFILE_FREE = 'profile/<str:nickname>'
 
+        def profileFree(self, nickname):
+            return setPathParams(self.PROFILE_FREE, nickname)
+
+        PROFILE_MOD = 'profile/<str:reponame>'
+
+        def profileMod(self, reponame):
+            return setPathParams(self.PROFILE_MOD, reponame)
+
+        PROFILE = PROFILE_MOD
+
+        @deprecated
         def profile(self, reponame):
-            return setPathParams(self.PROFILE, reponame)
+            return self.profileMod(reponame)
 
-        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>'
+
+        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>/'
 
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
@@ -673,36 +702,37 @@ class URL():
         def manageAssets(self, projectID, action):
             return setPathParams(self.MANAGE_ASSETS, projectID, action)
 
-        TOPICSEARCH = "topics/search/<str:projID>"
+        TOPICSEARCH = "topics/search/<str:projID>/"
 
         def topicsSearch(self, projID):
             return setPathParams(self.TOPICSEARCH, projID)
-        TOPICSUPDATE = "topics/update/<str:projID>"
+        TOPICSUPDATE = "topics/update/<str:projID>/"
 
         def topicsUpdate(self, projID):
             return setPathParams(self.TOPICSUPDATE, projID)
 
-        TAGSEARCH = "tags/search/<str:projID>"
+        TAGSEARCH = "tags/search/<str:projID>/"
 
         def tagsSearch(self, projID):
             return setPathParams(self.TAGSEARCH, projID)
-        TAGSUPDATE = "tags/update/<str:projID>"
+        TAGSUPDATE = "tags/update/<str:projID>/"
 
         def tagsUpdate(self, projID):
             return setPathParams(self.TAGSUPDATE, projID)
 
-        LIVEDATA = 'livedata/<str:projID>'
+        LIVEDATA = 'livedata/<str:projID>/'
 
         def liveData(self, projectID):
             return setPathParams(self.LIVEDATA, projectID)
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>/<str:projID>'
+        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
 
         def githubEvents(self, type, event, projID):
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
 
-        NEWBIES = 'newbies'
-        BROWSE_SEARCH = 'browse/search'
+        NEWBIES = 'newbies/'
+        BROWSE_SEARCH = 'browse/search/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1152,17 +1182,41 @@ class Template():
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
-        PROFILE = 'profile'
+        PROFILE_FREE = 'profile/0'
+
+        @property
+        def profile_free(self):
+            return f'{self.DIRNAME}/{self.PROFILE_FREE}.html'
+
+        PROFILE_MOD = 'profile/1'
+
+        @property
+        def profile_mod(self):
+            return f'{self.DIRNAME}/{self.PROFILE_MOD}.html'
+
+        PROFILE = PROFILE_MOD
 
         @property
         def profile(self):
-            return f'{self.DIRNAME}/{self.PROFILE}.html'
+            return self.profile_mod
 
         CREATE = 'create'
 
         @property
         def create(self):
             return f'{self.DIRNAME}/{self.CREATE}.html'
+
+        CREATE_FREE = 'create/0'
+
+        @property
+        def create_free(self):
+            return f'{self.DIRNAME}/{self.CREATE_FREE}.html'
+
+        CREATE_MOD = 'create/1'
+
+        @property
+        def create_mod(self):
+            return f'{self.DIRNAME}/{self.CREATE_MOD}.html'
 
         LICENSE_INDEX = 'license/index'
 

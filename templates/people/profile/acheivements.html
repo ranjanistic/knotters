@@ -1,7 +1,7 @@
 {% load custom_tags %}
 <div class="w3-row">
-
-{% for result in results %} 
+{% if results.count or judgements.count %}
+    {% for result in results %} 
     <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
         <a href="{{result.submission.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{result.submission.competition.getBanner}}" /></a>
@@ -10,11 +10,23 @@
         <a href="{{result.getCertLink|params:person.getID}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
         </div>
     </div>
-    {% empty %}
-    <br/><br/>
-        <center class="dead-text">
-            <i class="w3-jumbo">hourglass_top</i>
-            <h3>No achievements, yet.</h3>
-        </center>
     {% endfor %}
+    {% for judgement in judgements %} 
+    <div class="w3-col w3-half w3-padding-small">
+        <div class="w3-row pallete-slab">
+        <a href="{{judgement.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{judgement.competition.getBanner}}" /></a>
+        <h6>{{judgement.competition.title}}</h6>
+        <strong>Judge</strong><br/>
+        <a href="{{judgement.get_cert_link}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
+        </div>
+    </div>
+    {% endfor %}
+
+{% else %}
+    <br/><br/>
+    <center class="dead-text">
+        <i class="w3-jumbo">hourglass_top</i>
+        <h3>No achievements, yet.</h3>
+    </center>
+{% endif %}
 </div>

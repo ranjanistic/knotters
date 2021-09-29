@@ -213,7 +213,11 @@ class Profile(models.Model):
         return self.id.hex
 
     def getUserID(self) -> str:
-        return self.getID() if self.is_zombie else self.user.getID()
+        return self.getID() if self.is_zombie else self.user.get_id
+
+    @property
+    def get_userid(self) -> str:
+        return None if self.is_zombie else self.user.get_id
 
     def save(self, *args, **kwargs):
         try:
