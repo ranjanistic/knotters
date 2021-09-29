@@ -755,6 +755,89 @@ const handleFileUpload = (fileoutputs=[], title='Upload') => {
     }
 }
 
+const hadnleMultiFileUpload = (
+    limit=3,
+    file=(b64)=>{}
+) => {
+    alertify.confirm("Multiple Files Upload",
+        `
+        <div class="container">
+            <form id="form" action="">
+                <div>
+                    <label for="upload">
+                        <input type="file" class="file positive" id="input multifile" hidden>
+                        <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Choose Files</label></button><br/><br/>
+                        Upload Files
+                    </label>
+                </div>
+                <div class="files" id="files">
+                    <h2>Files Selected</h2>
+                    <ul id="ul"></ul>
+                </div>
+                <input type="submit" class="submit" value="Submit" name="submit" id="input" />
+            </form>	
+        </div>
+        `,
+        () => {
+            file(b64)
+        },
+        ()=>{}
+    ).set('closable', false).set('labels',{ok:'Done', cancel:'Discard'})
+    
+    let test = [];
+    
+   
+
+        // event handlers
+        document.getElementById("input multifile").onchange= function(e) {
+            console.log("Input click",e.target.files);
+            let files = e.target.files;
+            let filesArr = Array.from(files);
+            test.push({ filesArr: filesArr });
+            if (test.length > 0) {
+                document.getElementById("mutlifilebutton").innerHTML = "Add Files";
+            }
+            renderFileList();
+        };
+
+        document.getElementById("files").onclick= function(e) {
+            let key = document.body.parentNode.dataset.key;
+            console.log("Files click",document.body.parentNode.className);
+            console.log("Files key",document.body.parentNode.dataset.key);
+            // let curArr = state.filesArr;
+            test.splice(key, 1);
+            // updateState({ filesArr: curArr });
+            // test.push({ filesArr: curArr });
+            renderFileList();
+        };
+        document.getElementById("form").onsubmit= function(e) {
+            e.preventDefault();
+            renderFileList();
+        };
+
+        // render functions
+    function renderFileList() {
+
+            let fileMap = test.map(file => file.filesArr.map((file, index) => {
+                let suffix = "bytes";
+                let size = file.size;
+                if (size >= 1024 && size < 1024000) {
+                    suffix = "KB";
+                    size = Math.round(size / 1024 * 100) / 100;
+                } else if (size >= 1024000) {
+                    suffix = "MB";
+                    size = Math.round(size / 1024000 * 100) / 100;
+                }
+
+                return `<li key="${index}">${
+                    file.name
+                } <span class="file-size">${size} ${suffix}</span><i class="material-icons md-48">delete</i></li>`;
+            }));
+            document.getElementById("ul").innerHTML =fileMap;
+        }
+}
+
+
 const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown = getElement(dropdownID);
     const selectedOptionDiv = document.createElement("div");
