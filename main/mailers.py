@@ -1,10 +1,37 @@
-from django.core.mail.message import EmailMessage
+from django.core.mail.message import EmailMessage, sanitize_address
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives, send_mass_mail
 from people.models import Profile
+from django.conf import settings
 from .methods import errorLog, addMethodToAsyncQueue
 from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE
 from .strings import URL
+from django.core.mail.backends.smtp import EmailBackend as EB
+import smtplib
+
+
+class EmailBackend(EB):
+
+    def queue_send_mail(connection,from_email, recipients, message, fail_silently):
+        try:
+            connection.sendmail(from_email, recipients, message.as_bytes(linesep='\r\n'))
+        except smtplib.SMTPException:
+            if not fail_silently:
+                raise
+            return False
+        return True
+
+    def _send(self, email_message):
+        """Override of the default helper method that does the actual sending."""
+        if not email_message.recipients():
+            return False
+        encoding = email_message.encoding or settings.DEFAULT_CHARSET
+        from_email = sanitize_address(email_message.from_email, encoding)
+        recipients = [sanitize_address(addr, encoding) for addr in email_message.recipients()]
+        message = email_message.message()
+        addMethodToAsyncQueue(f"main.mailers.{EmailBackend.__name__}.{EmailBackend.queue_send_mail.__name__}",self.connection,from_email, recipients, message.as_bytes(linesep='\r\n'),self.fail_silently)
+        return True
+        
 
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
