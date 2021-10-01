@@ -56,6 +56,12 @@
         </div>
         <br/>
         {% endif %}
+        {% if not iscreator and user.is_authenticated %}
+        <div class="w3-row">
+            <button class="small tertiary negative-text" data-icon="report" id='report-project'>Report</button>
+        </div>
+        <br />
+		{% endif %}
         {% if project.socialsites.count %}
         <div class="w3-row pallete">
         {% for site in project.socialsites %}
@@ -250,28 +256,29 @@
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 
-
-getElement('delete-project').onclick=_=>{
-    alertify.confirm('Delete Project', 
-    `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and
-    this action is permanent.</h4>`,
-    ()=>{
-        message('Phew!')
-    },
-    async ()=>{
-        loader()
-        const data = await postRequest(setUrlParams(URLS.TRASH,projectID))
-        if(!data) return loader(false)
-        if(data.code===code.OK){
-            futuremessage('{{project.nickname}} was deleted.')
-            return window.location.href=URLS.PROJECTS
+if (selfProject){
+    getElement('delete-project').onclick=_=>{
+        alertify.confirm('Delete Project', 
+        `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and
+        this action is permanent.</h4>`,
+        ()=>{
+            message('Phew!')
+        },
+        async ()=>{
+            loader()
+            const data = await postRequest(setUrlParams(URLS.TRASH,projectID))
+            if(!data) return loader(false)
+            if(data.code===code.OK){
+                futuremessage('{{project.nickname}} was deleted.')
+                return window.location.href=URLS.PROJECTS
+            }
+            error(data.error)
+            loader(false)
         }
-        error(data.error)
-        loader(false)
+        ).set('closable', false).set('labels',{ok:'No, wait', cancel:'Yes delete'})
     }
-    ).set('closable', false).set('labels',{ok:'No, wait', cancel:'Yes delete'})
 }
-{% if not project.has_linked_repo %}
+{% if not project.has_linked_repo and iscreator %}
 getElement('link-github-repository').onclick=async()=>{
     {% if request.user.profile.ghID %}
         loader()
@@ -311,7 +318,7 @@ getElement('link-github-repository').onclick=async()=>{
         connectWithGithub("{{project.getLink}}", ()=>{ error("Cannot link repository without linking account.")})
     {% endif %}
 }
-{% else %}
+{% elif iscreator %}
 getElement("unlink-github-repository").onclick=_=>{
     alertify.confirm('Unlink Github repository?',
         `<h6>Are you sure you want to unlink your Github repository '{{project.linked_repo.reponame}}' from your '{{project.nickname}}' project on {{APPNAME}}?</h6>
@@ -338,6 +345,42 @@ getElement('save-edit-snapshot').onclick=(e)=>{
     e.target.form.submit()
 }
 {% endif %}
+if(!selfProject){
+    getElement('report-project').onclick=async()=>{
+        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+        if(!data) return
+        if(data.code!==code.OK){
+            return error(data.error)
+        }
+        let options=''
+        data.reports.forEach((rep)=>{
+            options+=`<option value='${rep.id}'>${rep.name}</option>`
+        })
+        alertify.confirm(
+            `<h3>Report {{project.nickname}}</h3>`,
+            `
+            <select id='report-category' required>
+            ${options}
+            </select>
+            `,
+            ()=>{},
+            async()=>{
+                loader()
+                message('Reporting...')
+                const data = await postRequest(URLS.REPORT_PROJECT,{
+                    projectID: '{{project.get_id}}',
+                    report: getElement('report-category').value,
+                })
+                loader(false)
+                if(!data) return 
+                if(data.code===code.OK){
+                    return message("Reported {{project.nickname}}. We'll investigate.")
+                }
+                error(data.error)
+            }
+        ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
+    }
+}
 </script>
 {% endblock %}
 {% block scripts %}

@@ -17,6 +17,7 @@ from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, ren
 from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
+from management.models import ReportCategory
 from people.models import Profile, Topic
 from .models import BaseProject, FreeProject, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
@@ -732,3 +733,27 @@ def snapshot(request:WSGIRequest, projID:UUID, action:str):
         return respondJson(Code.NO)
     except:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+
+def reportCategories(request: WSGIRequest):
+    try:
+        categories = ReportCategory.objects.all()
+        reports = []
+        for cat in categories:
+            reports.append(dict(id=cat.id,name=cat.name))
+        return respondJson(Code.OK, dict(reports=reports))
+    except Exception as e:
+        return respondJson(Code.NO)
+
+@normal_profile_required
+@require_JSON_body
+def reportProject(request: WSGIRequest):
+    try:
+        report = request.POST['report']
+        projectID = request.POST['projectID']
+        baseproject = BaseProject.objects.get(id=projectID)
+        category = ReportCategory.objects.get(id=report)
+        request.user.profile.reportProject(baseproject,category)
+        return respondJson(Code.OK)
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)

@@ -22,7 +22,7 @@ from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH, ISPRODUCTION
-from .methods import addMethodToAsyncQueue, errorLog, renderData, renderView, respondJson, verify_captcha
+from .methods import activity, addMethodToAsyncQueue, errorLog, renderData, renderView, respondJson, verify_captcha
 from .decorators import dev_only, github_only, require_JSON_body
 from .methods import renderView, getDeepFilePaths
 from .mailers import featureRelease
@@ -49,14 +49,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 
 @require_GET
-# @cache_page(settings.CACHE_SHORT)
 def index(request: WSGIRequest) -> HttpResponse:
-
-    # comp = Competition.objects.filter(
-    #     startAt__lt=timezone.now(), endAt__gte=timezone.now()).order_by('-createdOn').first()
-    # data = dict(
-    #     alerts=alerts
-    # )
     return renderView(request, Template.INDEX)
 
 
@@ -274,6 +267,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_CATEGORIES}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.REPORT_CATEGORIES}"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",

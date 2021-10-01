@@ -9,7 +9,7 @@ from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
-from management.models import HookRecord
+from management.models import HookRecord, ReportCategory
 from .apps import APPNAME
 
 
@@ -467,3 +467,12 @@ class Snapshot(models.Model):
     @property
     def get_video(self):
         return f"{settings.MEDIA_URL}{str(self.video)}"
+
+class ReportedProject(models.Model):
+    class Meta:
+        unique_together = ('profile', 'baseproject', 'category')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_reporter_profile')
+    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
+    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')

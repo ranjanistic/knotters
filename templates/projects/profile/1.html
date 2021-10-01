@@ -55,6 +55,12 @@
             </a>
         </div>
         <br/>
+        {% if not iscreator and user.is_authenticated %}
+        <div class="w3-row">
+            <button class="small tertiary negative-text" data-icon="report" id='report-project'>Report</button>
+        </div>
+        <br />
+		{% endif %}
         {% if project.url %}
         <div class="w3-row pallete">
             <strong><a target="_blank" rel="noreferrer" href="{{project.url}}">{{project.url}}</a></strong>
@@ -236,6 +242,43 @@
 <script>
 const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
+
+if(!selfProject){
+    getElement('report-project').onclick=async()=>{
+        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+        if(!data) return
+        if(data.code!==code.OK){
+            return error(data.error)
+        }
+        let options=''
+        data.reports.forEach((rep)=>{
+            options+=`<option value='${rep.id}'>${rep.name}</option>`
+        })
+        alertify.confirm(
+            `<h3>Report {{project.nickname}}</h3>`,
+            `
+            <select id='report-category' required>
+            ${options}
+            </select>
+            `,
+            ()=>{},
+            async()=>{
+                loader()
+                message('Reporting...')
+                const data = await postRequest(URLS.REPORT_PROJECT,{
+                    projectID: '{{project.get_id}}',
+                    report: getElement('report-category').value,
+                })
+                loader(false)
+                if(!data) return 
+                if(data.code===code.OK){
+                    return message("Reported {{project.nickname}}. We'll investigate.")
+                }
+                error(data.error)
+            }
+        ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
+    }
+}
 </script>
 {% endblock %}
 {% block scripts %}

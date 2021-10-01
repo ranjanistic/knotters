@@ -4,8 +4,9 @@ from django.urls import resolve
 from ipaddress import ip_address, ip_network
 from allauth_2fa.middleware import AllauthTwoFactorMiddleware
 from django.conf import settings
-from .strings import message
-from .methods import allowBypassDeactivated
+from .strings import message, URL
+from .env import ADMINPATH
+from .methods import allowBypassDeactivated, activity
 from django.core.handlers.wsgi import WSGIRequest
 
 
@@ -38,12 +39,24 @@ class MessageFilterMiddleware(object):
             request.GET._mutable = False
         return self.get_response(request)
 
-class AuthAccessMiddleware(object):
-    """
-    To filter alert/error messages provided via GET url queries, allowing only the messages derived from Message class of main.strings.
+class ActivityMiddleware(object):
 
-    This helps prevent malicious users from showing custom alerts via changing url alert query values.
-    """
+    def __init__(self, get_response) -> None:
+        self.get_response = get_response
+        super().__init__()
+
+    def __call__(self, request: WSGIRequest):
+        real_ip = u'{}'.format(request.META.get('HTTP_X_REAL_IP'))
+        if real_ip and real_ip != 'None':
+            client_ip_address = ip_address(real_ip)
+            print(client_ip_address)
+        def addslash(path):
+            return f"/{path}" if not path.startswith('/') else path
+        if not (request.path.startswith(f"/{ADMINPATH}") or list(map(addslash,[URL.SERVICE_WORKER])).__contains__(request.path)):
+            activity(request,self.get_response(request))
+        return self.get_response(request)
+
+class AuthAccessMiddleware(object):
 
     def __init__(self, get_response) -> None:
         self.get_response = get_response

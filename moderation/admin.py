@@ -19,3 +19,5 @@ class moderationAdmin(admin.ModelAdmin):
 class storageAdmin(admin.ModelAdmin):
     list_display = ["key","value"]
 
+
+admin.site.register(ReportedModeration)

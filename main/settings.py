@@ -69,6 +69,7 @@ MIDDLEWARE = [
     'main.middleware.TwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "main.middleware.ProfileActivationMiddleware",
+    # "main.middleware.ActivityMiddleware",
     "main.middleware.MessageFilterMiddleware",
 ]
 

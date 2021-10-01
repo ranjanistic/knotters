@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from django.utils import timezone
+from management.models import ReportCategory
 from projects.methods import setupApprovedProject
 from projects.mailers import projectRejectedNotification
 from compete.mailers import submissionsModeratedAlert
@@ -168,3 +169,29 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
         return respondJson(Code.OK)
     except:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+def reportCategories(request: WSGIRequest):
+    try:
+        categories = ReportCategory.objects.all()
+        reports = []
+        for cat in categories:
+            reports.append(dict(id=cat.id,name=cat.name))
+        return respondJson(Code.OK, dict(reports=reports))
+    except Exception as e:
+        return respondJson(Code.NO)
+
+@normal_profile_required
+@require_JSON_body
+def reportModeration(request: WSGIRequest):
+    try:
+        report = request.POST['report']
+        moderationID = request.POST['moderationID']
+        moderation = Moderation.objects.get(id=moderationID)
+        category = ReportCategory.objects.get(id=report)
+        request.user.profile.reportModeration(moderation,category)
+        return respondJson(Code.OK)
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
+    

@@ -3,6 +3,7 @@ from uuid import uuid4
 from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, moderation
 from main.methods import maxLengthInList
 from main.exceptions import IllegalModerationEntity
+from management.models import ReportCategory
 from django.utils import timezone
 from .apps import APPNAME
 
@@ -43,9 +44,13 @@ class Moderation(models.Model):
             return self.profile.getName()
         elif self.type == COMPETE:
             return self.competition.title
+    @property
+    def get_id(self) -> str:
+        return self.id.hex
 
     def getID(self) -> str:
-        return self.id.hex
+        return self.get_id
+
 
     @property
     def object(self) -> models.Model:
@@ -138,3 +143,12 @@ class LocalStorage(models.Model):
 
     def __str__(self) -> str:
         return self.key
+
+class ReportedModeration(models.Model):
+    class Meta:
+        unique_together = ('profile', 'moderation', 'category')
+
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='moderation_reporter_profile')
+    moderation = models.ForeignKey(Moderation, on_delete=models.CASCADE, related_name='reported_moderation')
+    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_moderation_category')
