@@ -21,7 +21,7 @@ from management.models import ReportCategory
 from people.models import Profile, Topic
 from .models import BaseProject, FreeProject, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
-from .methods import createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData, uniqueTag
 from .apps import APPNAME
 
 
@@ -414,6 +414,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
+        addtags = request.POST.get('addtags', None)
         removetagIDs = request.POST.get('removetagIDs', None)
         project = BaseProject.objects.get(id=projID, creator=request.user.profile)
         project = project.getProject(True)
@@ -426,18 +427,29 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             ProjectTag.objects.filter(
                 project=project, tag__id__in=removetagIDs).delete()
 
+        currentcount = ProjectTag.objects.filter(project=project).count()
         if addtagIDs:
             addtagIDs = addtagIDs.strip(',').split(',')
             if len(addtagIDs) < 1:
                 return redirect(project.getLink())
-            projtags = ProjectTag.objects.filter(project=project)
-            currentcount = projtags.count()
             if currentcount + len(addtagIDs) > 5:
                 return redirect(project.getLink(error=Message.MAX_TAGS_ACHEIVED))
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
                 for topic in project.getTopics():
                     topic.tags.add(tag)
+            currentcount = currentcount + len(addtagIDs)
+
+        if addtags:
+            if currentcount < 5:
+                addtags = addtags.strip(',').split(',')
+                if (currentcount + len(addtags)) <= 5:
+                    for addtag in addtags:
+                        tag = addTagToDatabase(addtag)
+                        project.tags.add(tag)
+                        for topic in project.getTopics():
+                            topic.tags.add(tag)
+                currentcount = currentcount + len(addtags)
 
         return redirect(project.getLink(success=Message.TAGS_UPDATED))
     except Exception as e:
