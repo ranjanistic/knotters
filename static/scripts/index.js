@@ -772,7 +772,7 @@ const hadnleMultiFileUpload = (
                         Upload Files
                     </label>
                 </div>
-                <div class="files" id="files">
+                <div class="files">
                     <h2>Files Selected</h2>
                     <ul id="ul"></ul>
                 </div>
@@ -790,21 +790,18 @@ const hadnleMultiFileUpload = (
 
         // event handlers
         document.getElementById("input multifile").onchange= async (e) => {
-            console.log("Input click",e.target.files);
             let files = e.target.files;
             // let filesArr = Array.from(files);
-            console.log("Files==>", files);
-            multiFiles.push({name:files[0].name,size:files[0].size,content: await fileToBase64(files[0])});
+            for (var data of multiFiles) {
+                if (data.name == files[0].name) {
+                    return;
+                }
+            }
+            multiFiles.push({ id:Date.now(),name: files[0].name, size: files[0].size, content: await fileToBase64(files[0]) });
             renderFileList();
         };
 
-        document.getElementById("files").onclick= (e) => {
-            let key = document.body.parentNode.dataset.key;
-            console.log("Files click",document.body.parentNode.className);
-            console.log("Files key",document.body.parentNode.dataset.key);
-            multiFiles.splice(key, 1);
-            renderFileList();
-        };
+       
         document.getElementById("form").onsubmit= function(e) {
             e.preventDefault();
             renderFileList();
@@ -827,13 +824,36 @@ const hadnleMultiFileUpload = (
                     size = Math.round(size / 1024000 * 100) / 100;
                 }
 
-                return `<li key="${index}">${
-                    file.name
-                } <span class="file-size">${size} ${suffix}</span><i class="material-icons md-48">delete</i></li>`;
+                return `<li key="${index}"><input class="file-size" id="name_${file.id}" type="text" value="${file.name}"></input><i class="material-icons md-48 delete-files" id=${file.id} value=${file.id}>delete</i><label  for="name_${file.id}"><i class="material-icons md-48 cloud">cloud</i></label></li>`;
             });
             document.getElementById("ul").innerHTML =fileMap;
         }
+
+        for (var data of multiFiles) {
+            const ele = document.getElementById(`name_${data.id}`);
+            ele.addEventListener("change", (e) => {
+                data.name = ele.value;
+            })
         }
+
+        for (var data of multiFiles) {
+            const ele = document.getElementById(data.id);
+
+            ele.addEventListener ("click", (e) => {
+                const newArr = multiFiles.filter(file =>  ele.id != file.id);
+                multiFiles = newArr;
+                renderFileList();
+            })
+        }
+    }
+    
+    const delFunc = (e) => {
+        // let key = document.body.parentNode.dataset.key;
+        // console.log("Files click",document.body.parentNode.className);
+        // console.log("Files key",document.body.parentNode.dataset.key);
+        multiFiles.splice(e.value, 1);
+        renderFileList();
+    };
 }
 
 
