@@ -19,6 +19,9 @@ body {
     color: var(--primary-text);
     font-family: var(--body-font);
     transition: var(--delay);
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
 }
 
 footer {
