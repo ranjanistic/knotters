@@ -10,6 +10,16 @@
 {% block content %}
 <div class="w3-row tertiary">
     <br/>
+{% if project.suspended %}
+    <div class="w3-row w3-center w3-padding">
+      <i class="w3-jumbo negative-text">toggle_off</i>
+      <h2>This project is currently suspended.</h2><br/>
+      <h3>This means the project is currently invisible to the world.</h3>
+      <strong>We must have emailed you regarding this action, please check your inbox.</strong>
+    </div>
+    <br/><br/>
+    <br/>
+{% else %}
     <div class="w3-col w3-quarter w3-padding">
         <div class="w3-row">
             <div class="pallete" style="padding:0" id="view-pallete">
@@ -38,8 +48,8 @@
                 {% csrf_token %}
                 <input type="text" hidden id="projectimageData" name="projectimage" value="" />
                 <div class="w3-row w3-padding">
-                    <input type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
-                    <textarea class="wide" placeholder="About project" name="projectabout" >{{project.description}}</textarea><br/>
+                    <input maxlength="70" type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
+                    <textarea maxlength="120" class="wide" placeholder="About project" name="projectabout" >{{project.description}}</textarea><br/>
                 </div>
                 <button id="save-edit-pallete" data-icon="done">Save</button>
                 <button id="discard-edit-pallete" data-icon="close">Discard</button>
@@ -249,6 +259,7 @@
     </div>
     <div class="w3-row"></div>
     <br/>
+{% endif %}
 </div>
 {% endblock %}
 
@@ -257,6 +268,7 @@
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 
+{% if not project.suspended %}
 if (selfProject){
     getElement('delete-project').onclick=_=>{
         alertify.confirm('Delete Project', 
@@ -382,8 +394,11 @@ if(!selfProject){
         ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
     }
 }
+{% endif %}
 </script>
 {% endblock %}
 {% block scripts %}
+{% if not project.suspended %}
 <script src="{% static 'scripts/project/profile.js' %}" ></script>
+{% endif %}
 {% endblock %}

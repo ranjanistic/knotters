@@ -2,7 +2,7 @@ import uuid
 from deprecated import deprecated
 from django.db import models
 from django.utils import timezone
-from main.bots import Github
+from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL, PUBNAME
 from django.core.cache import cache
 from django.conf import settings
@@ -161,6 +161,7 @@ class BaseProject(models.Model):
         default=False, help_text="Deleted for creator, can be used when rejected.")
     license = models.ForeignKey(License, on_delete=models.PROTECT)
     acceptedTerms = models.BooleanField(default=True)
+    suspended = models.BooleanField(default=False)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     topics = models.ManyToManyField(
@@ -246,9 +247,12 @@ class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
+    repo_id = models.IntegerField(default=0, null=True, blank=True)
     status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
+
+    verified = True
 
     def sub_save(self):
         assert len(self.reponame) > 0
@@ -274,7 +278,26 @@ class Project(BaseProject):
         return self.status == Code.MODERATION
 
     def getRepoLink(self) -> str:
-        return f"https://github.com/{PUBNAME}/{self.reponame}"
+        try:
+            if self.repo_id:
+                data = cache.get(f"gh_repo_data_{self.repo_id}")
+                if data:
+                    return data.html_url
+                data = GithubKnotters.get_repo(self.repo_id)
+                cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                return data.html_url
+            else:
+                data = Github.get_repo(f"{PUBNAME}/{self.reponame}")
+                self.repo_id = data.id
+                self.save()
+                cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                return data.html_url
+        except Exception as e:
+            return None
+
+    @property
+    def nickname(self):
+        return self.reponame
 
     @property
     def moderator(self):
@@ -320,6 +343,7 @@ class Project(BaseProject):
 
 class FreeProject(BaseProject):
     nickname = models.CharField(max_length=500, unique=True, null=False, blank=False)
+    verified = False
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=self.nickname)}{url.getMessageQuery(alert,error,success)}"

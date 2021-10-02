@@ -63,14 +63,14 @@ def create(request: WSGIRequest) -> HttpResponse:
 @normal_profile_required
 @require_GET
 def createFree(request: WSGIRequest) -> HttpResponse:
-    categories = Category.objects.all()
+    categories = Category.objects.all().order_by('name')
     licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))
     return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
     
 @normal_profile_required
 @require_GET
 def createMod(request: WSGIRequest) -> HttpResponse:
-    categories = Category.objects.all()
+    categories = Category.objects.all().order_by('name')
     licenses = License.objects.filter(Q(creator=request.user.profile) | Q(public=True))[0:5]
     return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
 
@@ -242,6 +242,8 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
 def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
     try:
         project = FreeProject.objects.get(nickname=nickname, trashed=False)
+        if project.suspended and project.creator != request.user.profile:
+            raise Exception()
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator))
     except Exception as e:
@@ -252,9 +254,10 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         project = Project.objects.get(reponame=reponame, trashed=False)
         if project.status == Code.APPROVED:
+            if project.suspended and project.creator != request.user.profile:
+                raise Exception()
             iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-            ismoderator = False if not request.user.is_authenticated else project.getModerator(
-            ) == request.user.profile
+            ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
         else:
             if request.user.is_authenticated:
@@ -264,8 +267,8 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
-        return profileFree(request, reponame)
         # raise Http404(e)
+        return profileFree(request, reponame)
 
 
 @normal_profile_required
