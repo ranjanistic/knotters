@@ -65,7 +65,11 @@ h3,
 h4,
 h5,
 h6 {
-    overflow-wrap: break-word;
+    /* overflow-wrap: break-word; */
+    /* max-width: 100%; */
+    -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
     font-family: var(--head-font);
     font-weight: bold;
 }
@@ -186,7 +190,10 @@ nav {
 }
 
 strong{
-    word-break: break-all;
+    /* word-break: break-all; */
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
 }
 button {
     padding: 4px 12px;
@@ -200,7 +207,10 @@ button {
     border: 0;
     box-shadow: 2px 1px 12px 1px #0000001f;
     overflow-wrap: anywhere;
-    word-break: break-all;
+    /* word-break: break-all; */
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
 }
 
 button > span.w3-hide-small {
