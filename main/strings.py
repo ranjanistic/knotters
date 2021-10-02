@@ -558,6 +558,9 @@ class URL():
         def approveCompete(self, modID):
             return setPathParams(self.APPROVECOMPETE, modID)
 
+        REPORT_CATEGORIES = 'report/categories/'
+        REPORT_MODERATION = 'reportmoderation/'
+        
         def getURLSForClient(self):
             URLS = dict()
 
@@ -746,6 +749,9 @@ class URL():
         BROWSE_SEARCH = 'browse/search/'
         SNAPSHOTS = 'snapshots/<str:projID>/<int:start>/<int:end>/'
         SNAPSHOT = 'snapshot/<str:projID>/<str:action>/'
+
+        REPORT_CATEGORIES = 'report/categories'
+        REPORT_PROJECT = 'reportproject/'        
 
         def getURLSForClient(self):
             URLS = dict()

@@ -1,7 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from main.methods import errorLog, renderString, renderView
-from compete.models import Competition
+from compete.models import Competition, Perk
 from people.models import Topic, Profile
 from .apps import APPNAME
 
@@ -21,7 +21,7 @@ def createCompetition(creator, title, tagline, shortdescription,
         if not creator.is_manager:
             raise Exception(f"Unauthorized manager")
 
-        if len(perks) < 2:
+        if len(perks) < 1:
             raise Exception(f"invalid perks {perks}")
         if startAt >= endAt:
             raise Exception(f"invalid timings")
@@ -39,7 +39,6 @@ def createCompetition(creator, title, tagline, shortdescription,
             taskSample=taskSample,
             startAt=startAt,
             endAt=endAt,
-            perks=";".join(perks),
             eachTopicMaxPoint=eachTopicMaxPoint,
             resultDeclared=False,
         )
@@ -49,6 +48,14 @@ def createCompetition(creator, title, tagline, shortdescription,
         judges = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, user__id__in=judgeIDs)
         for judge in judges:
             compete.judges.add(judge)
+        perkobjs = []
+        for i, perk in enumerate(perks):
+            perkobjs.append(Perk(
+                competition=compete,
+                name=perk,
+                rank=(i+1)
+            ))
+        Perk.objects.bulk_create(perkobjs)
         return compete
     except Exception as e:
         errorLog(e)

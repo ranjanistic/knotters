@@ -459,7 +459,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         raise Http404()
 
 
-@normal_profile_required
+# @normal_profile_required
 @require_JSON_body
 def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
     try:

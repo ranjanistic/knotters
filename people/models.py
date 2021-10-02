@@ -5,6 +5,8 @@ from deprecated import deprecated
 from django.db import models
 from django.db.models import Q
 from management.models import ReportCategory
+from projects.models import ReportedProject
+from moderation.models import ReportedModeration
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
@@ -437,6 +439,18 @@ class Profile(models.Model):
     def reportUser(self,user:User, category):
         report, _ = ReportedUser.objects.get_or_create(user=user,profile=self,category=category,defaults=dict(
             user=user,profile=self,category=category
+        ))
+        return report
+
+    def reportProject(self,baseproject, category):
+        report, _ = ReportedProject.objects.get_or_create(baseproject=baseproject,profile=self,category=category,defaults=dict(
+            baseproject=baseproject,profile=self,category=category
+        ))
+        return report
+        
+    def reportModeration(self,moderation, category):
+        report, _ = ReportedModeration.objects.get_or_create(moderation=moderation,profile=self,category=category,defaults=dict(
+            moderation=moderation,profile=self,category=category
         ))
         return report
 

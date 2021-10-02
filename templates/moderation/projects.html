@@ -36,7 +36,7 @@
         <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
         {% csrf_token %}
         <strong>Requestor message</strong>
-        {% if ismoderator %}<button class="w3-right report-button" data-icon="warning" onclick="reportFeedbackView()">Report</button><br/>{% endif %}
+        {% if ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">Report</button><br/>{% endif %}
 
         <textarea required name="requestdata" class="wide" rows="4" maxlength="6000" placeholder="This is visible to the moderator."
         {% if ismoderator or moderation.resolved %}disabled{% endif %}
@@ -50,7 +50,7 @@
         {% if not ismoderator or moderation.resolved %}disabled placeholder="No response"{% endif %}
         {% if ismoderator and not moderation.resolved %}placeholder="This is visible to the requestor."{% endif %}
         >{% if moderation.response %}{{moderation.response}}{% endif %}</textarea>
-        {% if not ismoderator %}<button class="w3-right report-button" onclick="reportFeedbackView()"><i class="material-icons">warning</i>Report</button><br/>{% endif %}
+        {% if not ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">Report</button><br/>{% endif %}
         {% if ismoderator and not moderation.resolved %}
         <button type="submit" class="positive small w3-right" data-icon="send">Save</button>
         {% endif %}
@@ -162,5 +162,39 @@ getElements("modaction").forEach((action)=>{
     })
 })
 {% endif %}
+    getElement('report-moderation').onclick=async()=>{
+        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+        if(!data) return
+        if(data.code!==code.OK){
+            return error(data.error)
+        }
+        let options=''
+        data.reports.forEach((rep)=>{
+            options+=`<option value='${rep.id}'>${rep.name}</option>`
+        })
+        alertify.confirm(
+            `<h3>Report</h3>`,
+            `
+            <select id='report-category' required>
+            ${options}
+            </select>
+            `,
+            ()=>{},
+            async()=>{
+                loader()
+                message('Reporting...')
+                const data = await postRequest(URLS.REPORT_MODERATION,{
+                    moderationID: '{{moderation.get_id}}',
+                    report: getElement('report-category').value,
+                })
+                loader(false)
+                if(!data) return 
+                if(data.code===code.OK){
+                    return message("Reported. We'll investigate.")
+                }
+                error(data.error)
+            }
+        ).set('labels', {cancel:`${Icon('report')} Report`, ok:'No, go back'}).set('closable', false)
+    }
 </script>
 {% endblock %}

@@ -2,6 +2,7 @@ import os
 import requests
 import base64
 import re
+import json
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,6 +12,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
+from management.models import ActivityRecord
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING
 from .strings import Code, classAttrsToDict, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS
 
@@ -231,7 +233,6 @@ def addMethodToAsyncQueue(methodpath,*params):
         if ASYNC_CLUSTER:
             from django_q.tasks import async_task
             async_task(methodpath,*params)
-            print(f"{methodpath} async task started")
         else:
             import main, people, projects, management, moderation, compete
             eval(f"{methodpath}{params}",dict(main=main, people=people, projects=projects, management=management, moderation=moderation, compete=compete))
@@ -261,3 +262,13 @@ def allowBypassDeactivated(path):
         if (testPathRegex(pathreg,path)):
             return True
     return False
+
+def addActivity(view,user,request_get,request_post,status):
+    print(request_post)
+    ActivityRecord.objects.create(view_name=view,user=user,request_get=json.dumps(request_get),request_post=json.dumps(request_post),response_status=status)
+
+def activity(request,response):
+    print(request.POST)
+    addMethodToAsyncQueue(f"main.methods.{addActivity.__name__}",request.path, request.user,request.GET.__dict__,request.POST,response.status_code)
+    
+

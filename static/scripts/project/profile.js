@@ -164,25 +164,30 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                let addtopids = getElement("addtagIDs").value.split(",");
-                let addtoplen = addtopids.length;
-                if (addtoplen === 1 && addtopids.includes("")) {
-                    addtoplen = 0;
+                let addtagids = getElement("addtagIDs").value.split(",");
+                let addtags = getElement("addtags").value.split(",");
+                let addtaglen = addtagids.length + addtags.length;
+                if (addtaglen === 1 && addtagids.includes("")) {
+                    addtaglen = addtags.length;
                 }
-                let remtopids = getElement("removetagIDs").value.split(",");
-                let remtoplen = remtopids.length;
-                if (remtoplen === 1 && remtopids.includes("")) {
-                    remtoplen = 0;
+                if (addtaglen === 1 && addtags.includes("")) {
+                    addtaglen = 0;
+                }
+                let remtagids = getElement("removetagIDs").value.split(",");
+                let remtaglen = remtagids.length;
+                if (remtaglen === 1 && remtagids.includes("")) {
+                    remtaglen = 0;
                 }
                 if (
                     getElements("tag-existing").length -
-                        remtoplen +
-                        addtoplen ===
+                        remtaglen +
+                        addtaglen ===
                     5
                 ) {
                     error("Only upto 5 tags allowed");
                     return false;
                 }
+                
                 let ids = getElement("removetagIDs").value;
                 ids = ids.replaceAll(btn.id, "");
                 if (ids.endsWith(",")) {
@@ -191,6 +196,7 @@ if (selfProject) {
                     ids.join(",");
                 }
                 getElement("removetagIDs").value = ids;
+                
                 return true;
             },
         });
@@ -201,41 +207,64 @@ if (selfProject) {
             selectedClass: "positive",
             deselectedClass: "primary",
             onSelect: (btn) => {
-                let addtopids = getElement("addtagIDs").value.split(",");
-                let addtoplen = addtopids.length;
-                if (addtoplen === 1 && addtopids.includes("")) {
-                    addtoplen = 0;
+                let addtagids = getElement("addtagIDs").value.split(",");
+                let addtags = getElement("addtags").value.split(",");
+                let addtaglen = addtagids.length + addtags.length;
+                if (addtaglen === 1 && addtagids.includes("")) {
+                    addtaglen = addtags.length;
                 }
-                let remtopids = getElement("removetagIDs").value.split(",");
-                let remtoplen = remtopids.length;
-                if (remtoplen === 1 && remtopids.includes("")) {
-                    remtoplen = 0;
+                if (addtaglen === 1 && addtags.includes("")) {
+                    addtaglen = 0;
+                }
+                let remtagids = getElement("removetagIDs").value.split(",");
+                let remtaglen = remtagids.length;
+                if (remtaglen === 1 && remtagids.includes("")) {
+                    remtaglen = 0;
                 }
                 if (
                     getElements("tag-existing").length -
-                        remtoplen +
-                        addtoplen ===
+                        remtaglen +
+                        addtaglen ===
                     5
                 ) {
                     error("Only upto 5 tags allowed");
                     return false;
                 }
-                if (!getElement("addtagIDs").value.includes(btn.id))
-                    getElement("addtagIDs").value += getElement("addtagIDs")
-                        .value
-                        ? "," + btn.id
-                        : btn.id;
+                if(btn.classList.contains('tag-name')){
+                    if (!getElement("addtags").value.includes(btn.id))
+                        getElement("addtags").value += getElement("addtags")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                } else {
+                    if (!getElement("addtagIDs").value.includes(btn.id))
+                        getElement("addtagIDs").value += getElement("addtagIDs")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                }
                 return true;
             },
             onDeselect: (btn) => {
-                let ids = getElement("addtagIDs").value;
-                ids = ids.replaceAll(btn.id, "");
-                if (ids.endsWith(",")) {
-                    ids = ids.split(",");
-                    ids.pop();
-                    ids.join(",");
+                if(!btn.classList.contains('tag-name')){
+                    let ids = getElement("addtagIDs").value;
+                    ids = ids.replaceAll(btn.id, "");
+                    if (ids.endsWith(",")) {
+                        ids = ids.split(",");
+                        ids.pop();
+                        ids.join(",");
+                    }
+                    getElement("addtagIDs").value = ids;
+                } else {
+                    let ids = getElement("addtags").value;
+                    ids = ids.replaceAll(btn.id, "");
+                    if (ids.endsWith(",")) {
+                        ids = ids.split(",");
+                        ids.pop();
+                        ids.join(",");
+                    }
+                    getElement("addtags").value = ids;
                 }
-                getElement("addtagIDs").value = ids;
                 return true;
             },
         });
@@ -277,9 +306,21 @@ if (selfProject) {
                 loadNewTags();
                 loadExistingTags();
             } else {
-                getElement(
-                    "tags-viewer-new"
-                ).innerHTML = `No tags for '${e.target.value}'`;
+                buttons.push(
+                    `<button type="button" class="${
+                        getElement("addtags").value.includes(e.target.value)
+                            ? "positive"
+                            : "primary"
+                    } tag-new tag-name" id="${e.target.value}">${Icon("add")}${
+                        e.target.value
+                    }</button>`
+                );
+                getElement("tags-viewer-new").innerHTML = buttons.join("");
+                loadNewTags();
+                loadExistingTags();
+                // getElement(
+                //     "tags-viewer-new"
+                // ).innerHTML = `No tags for '${e.target.value}'`;
             }
         } else {
             error(data.error);

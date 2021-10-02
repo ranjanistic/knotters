@@ -36,7 +36,7 @@
         <strong>Is Active? {{compete.isActive|yesno}}</strong><br/>
         <strong>Is History? {{compete.isHistory|yesno}}</strong><br/>
         <strong>Topics: {%for topic in compete.getTopics %}[<a href="{{topic.getLink}}">{{topic.name}}</a>] {% endfor %}</strong><br/>
-        <strong>Perks: {%for perk in compete.getPerks %}[{{perk}}] {% endfor %}</strong><br/>
+        <strong>Perks: {%for perk in compete.getPerks %}[{% if perk.name %}{{perk.name}} for {{perk.rank|numsuffix}}{% else %}{{perk}}{% endif %}] {% endfor %}</strong><br/>
         <strong>Task summary: {{compete.taskSummary}}</strong><br/>
         <strong>Task detail: {{compete.taskDetail}}</strong><br/>
         <strong>Task sample: {{compete.taskSample}}</strong><br/>

@@ -153,10 +153,12 @@ class Competition(models.Model):
         return self.topics.all()
 
     def getPerks(self) -> list:
-        perks = []
-        for p in str(self.perks).split(';'):
-            if p and p != '' and p != 'None':
-                perks.append(p)
+        perks = Perk.objects.filter(competition=self).order_by('rank')
+        if perks.count() < 1:
+            perks = []
+            for p in str(self.perks).split(';'):
+                if p and p != '' and p != 'None':
+                    perks.append(p)
         return perks
 
     def totalTopics(self) -> list:
@@ -454,7 +456,18 @@ class Competition(models.Model):
     @property
     def getJudgeCertLink(self):
         return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.getID(),userID='*')}"
-        
+
+class Perk(models.Model):
+    """
+    Prize of a competition
+    """
+    class Meta:
+        unique_together = ("competition", "rank")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    competition = competition = models.ForeignKey(Competition, related_name='perk_competition', on_delete=models.PROTECT)
+    rank = models.IntegerField(default=1)
+    name = models.CharField(max_length=1000)
 
 class CompetitionJudge(models.Model):
     """

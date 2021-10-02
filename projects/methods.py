@@ -127,7 +127,7 @@ def uniqueRepoName(reponame: str) -> bool:
 
 def uniqueTag(tagname: str) -> Tag:
     """
-    Checks for unique tag name among existing tags
+    Checks for unique tag name among existing tags. Returns true if given tagname is unique, otherwise returns the matching Tag object
     """
     try:
         return Tag.objects.get(name__iexact=tagname)
