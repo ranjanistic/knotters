@@ -66,10 +66,9 @@ h4,
 h5,
 h6 {
     /* overflow-wrap: break-word; */
-    /* max-width: 100%; */
     -webkit-hyphens: auto;
-  -ms-hyphens: auto;
-  hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
     font-family: var(--head-font);
     font-weight: bold;
 }
