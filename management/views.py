@@ -2,6 +2,7 @@ from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
+from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 # from django.conf import settings
 # from django.views.decorators.cache import cache_page
@@ -411,7 +412,7 @@ def submitCompetition(request) -> HttpResponse:
             COMPETE, compete, mod, "Competition")
         if not assigned:
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_MODERATOR)
-        return respondRedirect(APPNAME, compete.getManagementLink())
+        return redirect(compete.getManagementLink())
     except Exception as e:
         errorLog(e)
         return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.ERROR_OCCURRED)

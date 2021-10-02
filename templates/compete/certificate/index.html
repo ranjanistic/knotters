@@ -38,8 +38,8 @@
     </form>
     <br/>
     {% cache CACHE_LONG certificate_verification_footer LANGUAGE_CODE %}
-    <strong>Each and every certificate issued by {{APPNAME}} contains a unique 32-digit ID at its bottom left.</strong><br/>
-    <strong>If a certificate shared with you doesn't have an ID, or it has but isn't being found here, it could possibly be invalid.</strong><br/>
+    <strong>Each and every certificate issued by {{APPNAME}} contains a QR code at top left and unique 32-digit ID at its bottom left.</strong><br/>
+    <strong>If a certificate shared with you doesn't have an ID or QR code, or it has but isn't being found here, it could possibly be invalid.</strong><br/>
     <strong>If you think someone is issuing fake certificates on behalf of us, then please <a class="negative-text" onclick="reportFeedbackView()">report it</a> to us.</strong><br/>
     <strong>If your certificate doesn't have an ID, or it has but isn't being found here, then you may <a href="mailto:{{CONTACTMAIL}}">contact us</a>.</strong><br/>
     {% endcache %}
