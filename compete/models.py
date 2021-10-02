@@ -1,5 +1,5 @@
 import uuid
-import os
+from django.core.cache import cache
 from django.db import models
 from django.db.models import Sum
 from people.models import Profile
@@ -465,11 +465,16 @@ class CompetitionJudge(models.Model):
         Competition, related_name='judging_competition', on_delete=models.PROTECT)
     judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
 
+    class Meta:
+        unique_together = ("competition", "judge")
+
     def __str__(self) -> str:
         return self.competition.title
 
-    class Meta:
-        unique_together = ("competition", "judge")
+    @property
+    def get_cert_link(self):
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(self.competition.get_id,self.judge.get_userid)}"
+
 
 
 class CompetitionTopic(models.Model):
@@ -710,6 +715,14 @@ class Result(models.Model):
 
     def getMembers(self):
         return self.submission.getMembers()
+    
+    @property
+    def topic_points(self):
+        topicscore = cache.get(f"submission_topic_score_result_{self.id}")
+        if not topicscore:
+            topicscore = SubmissionTopicPoint.objects.filter(submission=self.submission).values('topic__id','topic__name').annotate(score=Sum('points'))
+            cache.set(f"submission_topic_score_result_{self.id}", topicscore, settings.CACHE_MAX)
+        return topicscore
 
 
 class ResultXPClaimer(models.Model):

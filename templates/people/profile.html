@@ -212,6 +212,7 @@
 			()=>{},
 			async()=>{
 				loader()
+        message('Blocking...')
 				const data = await postRequest(URLS.BLOCK_USER,{
 					userID: '{{person.get_id}}'
 				})
@@ -224,6 +225,41 @@
 				error(data.error)
 			}
 		).set('labels', {cancel:`${Icon('block')} Block {{person.profile.getFName}}`, ok:'No, go back'}).set('closable', false)
+	}
+	getElement('report-account').onclick=async()=>{
+    const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+    if(!data) return message('Block instead?')
+    if(data.code!==code.OK){
+      error(data.error)
+      return message('Block instead?')
+    }
+    let options=''
+    data.reports.forEach((rep)=>{
+      options+=`<option value='${rep.id}'>${rep.name}</option>`
+    })
+		alertify.confirm(
+			`<h3>Report {{person.profile.getName}}</h3>`,
+			`
+        <select id='report-category' required>
+          ${options}
+        </select>
+      `,
+			()=>{},
+			async()=>{
+				loader()
+        message('Reporting...')
+				const data = await postRequest(URLS.REPORT_USER,{
+					userID: '{{person.get_id}}',
+          report: getElement('report-category').value,
+				})
+        loader(false)
+				if(!data) return 
+				if(data.code===code.OK){
+					return message("Reported {{person.profile.getName}}. We'll investigate.")
+				}
+				error(data.error)
+			}
+		).set('labels', {cancel:`${Icon('report')} Report {{person.profile.getFName}}`, ok:'No, go back'}).set('closable', false)
 	}
   }
 </script>

@@ -13,6 +13,7 @@ def replaceParams(url,params):
 def useOR(value,Or):
     return value or Or
 
+
 @register.filter(name='safechars')
 def safechars(value):
     return str(value).replace('\\n','\n').replace('\"','').replace('\\','\"').replace('&lt;','[').replace('&gt;',']')
@@ -20,4 +21,11 @@ def safechars(value):
 @register.filter(name='numsuffix')
 def numsuffix(value):
     return f"{value}{getNumberSuffix(int(value))}"
+
+@register.filter(name='noprotocol')
+def noprotocol(link):
+    if str(link).startswith(('http','https')):
+        link = link.replace('https://','')
+        link = link.replace('http://','')
+    return link
 

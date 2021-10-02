@@ -1,14 +1,15 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
+from itertools import chain
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString
-from projects.models import Project
+from projects.models import FreeProject, Project
 from moderation.models import Moderation
-from compete.models import Result
+from compete.models import CompetitionJudge, Result
 from .models import ProfileSetting, Topic, User, Profile
 from .apps import APPNAME
 
@@ -90,11 +91,12 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         else:
             projects = Project.objects.filter(
                 creator=profile, status=Code.APPROVED,trashed=False)
-        data[Code.APPROVED] = projects.filter(status=Code.APPROVED)
+        data[Code.APPROVED] = list(chain(projects.filter(status=Code.APPROVED),FreeProject.objects.filter(creator=profile,trashed=False)))
         data[Code.MODERATION] = projects.filter(status=Code.MODERATION)
         data[Code.REJECTED] = projects.filter(status=Code.REJECTED)
     elif section == profileString.ACHEIVEMENTS:
         data[Code.RESULTS] = Result.objects.filter(submission__members=profile)
+        data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile)
     elif section == profileString.CONTRIBUTION:
         pass
     elif section == profileString.ACTIVITY:

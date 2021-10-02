@@ -1,0 +1,150 @@
+{% extends 'projects/create.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load custom_tags %}
+
+
+{% block themecolor %}#f5d702{% endblock %}
+
+{% block nav_style %}accent{% endblock %}
+{% block nav_text_style %}text-accent{% endblock %}
+
+{% block nav_href %}{{URLS.CREATE}}{% endblock %}
+{% block nav_text %}New Quick project{% endblock %}
+{% block nav_back_icon %}close{% endblock %}
+{% block nav_auth_links %}{% endblock %} 
+{% block nav_noauth %}{% endblock %}
+
+{% block content %}
+<div class="w3-row tertiary">
+    <br/>
+    <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
+    <form action="{{URLS.SUBMIT_FREE}}" method="POST">
+    {% csrf_token %}
+    <div class="w3-col w3-quarter w3-padding">
+        <div class="w3-row">
+            <div class="pallete w3-center" id="edit-pallete">
+                <img src="/media/projects/default.png" id="projectimageoutput" />
+                <button class="active" type="button" id="upload-button" data-icon="image">
+                <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
+                </button>
+                <br/>
+                <input type="text" hidden id="projectimagedata" name="projectimage" value="" />
+                <div class="w3-row w3-padding">
+                    <input type="text" class="create-project-input" autocomplete="organization-title" autocapitalize placeholder="Project name" required name="projectname" /><br/><br/>
+                    <textarea required placeholder="About project" class="create-project-input wide" name="projectabout" ></textarea><br/>
+                </div>
+            </div>
+        </div>
+        <br/>
+    </div>
+    <div class="w3-col w3-threequarter">
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row w3-center">
+                <div class="pallete">
+                    <center><h5>Overview</h5><hr/></center>
+                    <h6>Project Category</h6>
+                    <select class="wide" name="projectcategory" required>
+                        {% for cat in categories %}
+                        <option value="{{cat.get_id}}">{{cat.name}}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row w3-center">
+                <div class="pallete">
+                    <center><h5>About</h5><hr/></center>
+                        <input class="create-project-input" type="text" autocomplete="nickname" required placeholder="Project's nickname" name="projectnickname" id="projectnickname" /><br/><br/>
+                        <div class="w3-row" id="social-links">
+                        </div>
+                        <button class="primary" type='button' data-icon="link" id="addSocialLinkButton">Add social link</button>
+                    </div>
+            </div>
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    <center><h5>Description</h5><hr/></center>
+                    <strong>Created on <span>{% now "DATETIME_FORMAT" %}</span></strong><br/><br/>
+                    <strong>Created by</strong><a href="{{request.user.profile.getLink}}"><button class="primary" type="button"><img class="w3-circle primary" src="{{request.user.profile.getDP}}"  width="20"/>&nbsp;{{request.user.profile.getName}}</button></a><br/><br/>
+                    <strong>License</strong><br/>
+                    {% for license in licenses %}
+                        <button type="button" class="license-choice" id="{{license.getID}}" title="{{license.name}}: {{license.description}}">{{license.name}}</button>
+                    {% endfor %}
+                    <input type="hidden" id="license" name="license" value="{{licenses.0.getID}}" />
+                    <br/><br/>
+                    <strong><a target="_blank" onclick="newTab('{{URLS.ALLLICENSES}}')">Learn more</a> about these licenses.</strong>
+                </div>
+            </div>
+            <div class="w3-row">
+                <br/>
+                <label id="confirm-check-box">
+                <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
+                I've read the {{appname}} 
+                <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
+                </label>
+            </div>
+            <div class="w3-row">
+                <button type="submit" class="w3-right big-button positive" data-icon="done">Create Project</button>
+            </div>
+        </div>
+    </div>
+    <div class="w3-row"></div>
+    <br/>
+</div>
+{% endblock %}
+{% block in_scripts %}
+<script>
+    getElement('addSocialLinkButton').onclick=_=>{
+        const parent=getElement('social-links');
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink${linkNumber}" id=${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
+
+    initializeTabsView({
+        uniqueID: "license",
+        activeTabClass: "positive text-positive",
+        inactiveTabClass: "primary dead-text",
+        tabsClass: "license-choice",
+        onEachTab: (tab) => {
+            getElement("license").value = tab.id;
+        },
+        selected:0
+    });
+    getElements('create-project-input').forEach(element => {
+        if(!Array.from(element.classList).includes('no-retain')){
+            element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
+            element.oninput=(e)=>{
+                sessionStorage.setItem(`create-compete-input-${element.id}`,element.value)
+            }
+        }
+    });
+    getElement("uploadprojectimage").onchange = (e) => {
+        handleCropImageUpload(e, "projectimagedata", "projectimageoutput", (_) => {
+            getElement("uploadprojectimagelabel").innerHTML = "Selected";
+        });
+    };
+
+    getElement('projectnickname').onchange=async(e)=>{
+        let nickname = String(e.target.value).trim()
+        if(!nickname) return
+        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD,'nickname'),{nickname})
+        if(!data) return
+        if(data.code!==code.OK) return error(data.error)
+        return success(`'${String(e.target.value).trim()}' is available!`)
+    }
+
+</script>
+{% endblock %}
+{% block scripts %}
+{% endblock %}

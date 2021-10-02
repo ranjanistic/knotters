@@ -67,6 +67,7 @@ class Code():
     FEEDBACKS = 'feedbacks'
 
     RESULTS = "results"
+    JUDGEMENTS = 'judgements'
 
     class Test():
         MODEL = 'model'
@@ -122,10 +123,12 @@ class Message():
     SUBMISSION_MARKING_INVALID = "Invalid submission markings, try again."
     SUBMISSION_ERROR = "Error in submission"
 
+    FREE_PROJECT_CREATED = "Project created successfully!"
     SENT_FOR_REVIEW = "Sent for review"
     PROJECT_DELETED = "Project deleted"
     TERMS_UNACCEPTED = "You have not accepted the terms"
     LICENSE_UNSELECTED = "You have to choose a license"
+    NICKNAME_ALREADY_TAKEN = "The nickname is not available, try something else."
     INVALID_LIC_DATA = 'Invalid license data'
 
     UNDER_MODERATION = "Currently under moderation"
@@ -187,6 +190,10 @@ message = Message()
 class Action():
     ACCEPT = "accept"
     DECLINE = "decline"
+    CREATE = "create"
+    VIEW = "view"
+    UPDATE = "update"
+    REMOVE = "remove"
 
 
 action = Action()
@@ -279,6 +286,7 @@ class URL():
     PEOPLE = f'{PEOPLE}/'
     MODERATION = f'{MODERATION}/'
     MANAGEMENT = f'{MANAGEMENT}/'
+    FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
 
     def redirector(self, to='/'):
@@ -286,7 +294,7 @@ class URL():
 
     DOCTYPE = 'docs/<str:type>'
     LANDINGS = 'landing/'
-    LANDING = 'landing'
+    LANDING = 'landing/'
     APPLANDING = '<str:subapp>/landing'
 
     def applanding(self, subapp):
@@ -458,6 +466,11 @@ class URL():
         def declareResults(self, compID):
             return setPathParams(self.DECLARERESULTS, compID)
 
+        TOPIC_SCORES = 'scores/<str:resID>/'
+
+        def topicscores(self, resID):
+            return setPathParams(self.TOPIC_SCORES, resID)
+
         CLAIMXP = 'claimxp/<str:compID>/<str:subID>'
 
         def claimXP(self, compID, subID):
@@ -604,8 +617,10 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
-        BLOCK_USER = 'blockuser'
-        UNBLOCK_USER = 'unblockuser'
+        BLOCK_USER = 'blockuser/'
+        UNBLOCK_USER = 'unblockuser/'
+        REPORT_CATEGORIES = 'report/categories'
+        REPORT_USER = 'reportuser/'
 
         NEWBIES = 'newbies'
 
@@ -627,63 +642,95 @@ class URL():
 
     class Projects():
 
-        ALLLICENSES = 'licenses'
+        ALLLICENSES = 'licenses/'
 
-        LICENSE = 'licenses/<str:id>'
+        LICENSE = 'licenses/<str:id>/'
 
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
-        LICENSES = 'alllicenses'
+        LICENSES = 'license/all/'
 
-        ADDLICENSE = 'addlicense'
+        ADDLICENSE = 'license/add/'
+
+        LICENSE_SEARCH = 'license/search/'
 
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
         def createValidField(self, field):
             return setPathParams(self.CREATEVALIDATEFIELD, field)
 
-        CREATE = 'create'
+        CREATE = 'create/'
 
-        def create(self, step: int = 0):
-            return f"{self.CREATE}?step={step}"
+        def create(self):
+            return self.CREATE
 
-        SUBMIT = 'submit'
+        CREATE_FREE = 'create/0/'
 
-        TRASH = 'trash/<str:projID>'
+        def createFree(self):
+            return self.CREATE_FREE
+
+        CREATE_MOD = 'create/1/'
+
+        def createMod(self, step: int = 0):
+            return f"{self.CREATE_MOD}?step={step}"
+
+        SUBMIT_FREE = 'submit/0/'
+        SUBMIT_MOD = 'submit/1/'
+
+        """ deprecated """
+        SUBMIT = SUBMIT_MOD
+
+        TRASH = 'trash/<str:projID>/'
 
         def trash(self, projID):
             return setPathParams(self.TRASH, projID)
 
-        PROFILE = 'profile/<str:reponame>'
+        PROFILE_FREE = 'profile/<str:nickname>'
 
+        def profileFree(self, nickname):
+            return setPathParams(self.PROFILE_FREE, nickname)
+
+        PROFILE_MOD = 'profile/<str:reponame>'
+
+        def profileMod(self, reponame):
+            return setPathParams(self.PROFILE_MOD, reponame)
+
+        PROFILE = PROFILE_MOD
+
+        @deprecated
         def profile(self, reponame):
-            return setPathParams(self.PROFILE, reponame)
+            return self.profileMod(reponame)
 
-        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>'
+
+        PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>/'
 
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
 
-        TOPICSEARCH = "topics/search/<str:projID>"
+        TOPICSEARCH = "topics/search/<str:projID>/"
 
         def topicsSearch(self, projID):
             return setPathParams(self.TOPICSEARCH, projID)
-        TOPICSUPDATE = "topics/update/<str:projID>"
+        TOPICSUPDATE = "topics/update/<str:projID>/"
 
         def topicsUpdate(self, projID):
             return setPathParams(self.TOPICSUPDATE, projID)
 
-        TAGSEARCH = "tags/search/<str:projID>"
+        TAGSEARCH = "tags/search/<str:projID>/"
 
         def tagsSearch(self, projID):
             return setPathParams(self.TAGSEARCH, projID)
-        TAGSUPDATE = "tags/update/<str:projID>"
+        TAGSUPDATE = "tags/update/<str:projID>/"
 
         def tagsUpdate(self, projID):
             return setPathParams(self.TAGSUPDATE, projID)
 
-        LIVEDATA = 'livedata/<str:projID>'
+        USER_GH_REPOS = "github/user/repos"
+        LINK_FREE_REPO = "github/user/repos/link"
+        UNLINK_FREE_REPO = "github/user/repos/unlink"
+
+        LIVEDATA = 'livedata/<str:projID>/'
 
         def liveData(self, projectID):
             return setPathParams(self.LIVEDATA, projectID)
@@ -693,8 +740,12 @@ class URL():
         def githubEvents(self, type, event, projID):
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
 
-        NEWBIES = 'newbies'
-        BROWSE_SEARCH = 'browse/search'
+        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
+
+        NEWBIES = 'newbies/'
+        BROWSE_SEARCH = 'browse/search/'
+        SNAPSHOTS = 'snapshots/<str:projID>/<int:start>/<int:end>/'
+        SNAPSHOT = 'snapshot/<str:projID>/<str:action>/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -827,6 +878,12 @@ class Template():
     @property
     def landing(self):
         return f'{self.LANDING}.html'
+
+    FAME_WALL = 'famewall'
+
+    @property
+    def famewall(self):
+        return f'{self.FAME_WALL}.html'
 
     INVITATION = 'invitation'
 
@@ -1144,17 +1201,41 @@ class Template():
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
 
-        PROFILE = 'profile'
+        PROFILE_FREE = 'profile/0'
+
+        @property
+        def profile_free(self):
+            return f'{self.DIRNAME}/{self.PROFILE_FREE}.html'
+
+        PROFILE_MOD = 'profile/1'
+
+        @property
+        def profile_mod(self):
+            return f'{self.DIRNAME}/{self.PROFILE_MOD}.html'
+
+        PROFILE = PROFILE_MOD
 
         @property
         def profile(self):
-            return f'{self.DIRNAME}/{self.PROFILE}.html'
+            return self.profile_mod
 
         CREATE = 'create'
 
         @property
         def create(self):
             return f'{self.DIRNAME}/{self.CREATE}.html'
+
+        CREATE_FREE = 'create/0'
+
+        @property
+        def create_free(self):
+            return f'{self.DIRNAME}/{self.CREATE_FREE}.html'
+
+        CREATE_MOD = 'create/1'
+
+        @property
+        def create_mod(self):
+            return f'{self.DIRNAME}/{self.CREATE_MOD}.html'
 
         LICENSE_INDEX = 'license/index'
 
@@ -1192,6 +1273,18 @@ class Template():
         @property
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+
+        LICENSE_SEARCH = 'license/search'
+
+        @property
+        def license_search(self):
+            return f'{self.DIRNAME}/{self.LICENSE_SEARCH}.html'
+
+        SNAPSHOTS = 'snapshots'
+
+        @property
+        def snapshots(self):
+            return f'{self.DIRNAME}/{self.SNAPSHOTS}.html'
 
     projects = Projects()
 

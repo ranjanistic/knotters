@@ -134,7 +134,7 @@ const loadBrowserSwiper = (_) => {
 const loadBrowsers = () => {
     Promise.all(
         getElements("browser-view").map(async (view) => {
-            await (async () => {
+            let method = async () => {
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest(
                     setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
@@ -150,7 +150,8 @@ const loadBrowsers = () => {
                 }
                 setHtmlContent(view, data, loadBrowserSwiper);
                 loadBrowserSwiper();
-            })();
+            };
+            await method();
         })
     )
         .then(() => {
@@ -186,6 +187,18 @@ const setUrlQueries = (path, query = {}) => {
 };
 
 const loadGlobalEventListeners = () => {
+    getElements("first-time-view").forEach((view) => {
+        if (localStorage.getItem(`first-intro-${view.id}`) == 1) {
+            hide(view);
+        } else {
+            view.innerHTML = view.getAttribute("data-html");
+            getElement(`close-${view.id}`).addEventListener("click", () => {
+                localStorage.setItem(`first-intro-${view.id}`, 1);
+                message('Press Alt+R for introduction, or visit The Landing Page')
+                hide(view);
+            });
+        }
+    });
     getElementsByTag("form").forEach((form) => {
         form.addEventListener("submit", (e) => {
             if (form.classList.contains("no-auto")) {
@@ -266,7 +279,6 @@ const loadGlobalEventListeners = () => {
         };
     });
     getElements("close-global-alert").forEach((closer) => {
-        console.log(localStorage.getItem(`hidden-alert-${closer.id}`));
         if (localStorage.getItem(`hidden-alert-${closer.id}`)) {
             hide(getElement(`view-${closer.id}`));
         }
@@ -292,42 +304,49 @@ const _processReCaptcha = (
         error("An error occurred");
     }
 ) => {
-    grecaptcha.ready(function () {
-        try {
-            grecaptcha
-                .execute(RECAPTCHA_KEY, { action: "submit" })
-                .then(async (token) => {
-                    loader(true);
-                    const data = await postRequest(URLS.VERIFY_CAPTCHA, {
-                        "g-recaptcha-response": token,
-                    });
-                    if (!data) {
-                        subLoader(false);
-                        loader(false);
-                        return;
-                    }
-                    if (data.code === code.OK) {
-                        onSuccess(() => {
-                            loader(false);
-                            subLoader(false);
+    try {
+        grecaptcha.ready(function () {
+            try {
+                grecaptcha
+                    .execute(RECAPTCHA_KEY, { action: "submit" })
+                    .then(async (token) => {
+                        loader(true);
+                        const data = await postRequest(URLS.VERIFY_CAPTCHA, {
+                            "g-recaptcha-response": token,
                         });
-                    } else {
-                        onFailure(data);
+                        if (!data) {
+                            subLoader(false);
+                            loader(false);
+                            return;
+                        }
+                        if (data.code === code.OK) {
+                            onSuccess(() => {
+                                loader(false);
+                                subLoader(false);
+                            });
+                        } else {
+                            onFailure(data);
+                            subLoader(false);
+                            loader(false);
+                        }
+                    })
+                    .catch((e) => {
+                        onFailure(e);
                         subLoader(false);
                         loader(false);
-                    }
-                })
-                .catch((e) => {
-                    onFailure(e);
-                    subLoader(false);
-                    loader(false);
-                });
-        } catch (e) {
-            onFailure(e);
-            subLoader(false);
+                    });
+            } catch (e) {
+                onFailure(e);
+                subLoader(false);
+                loader(false);
+            }
+        });
+    } catch {
+        onSuccess(() => {
             loader(false);
-        }
-    });
+            subLoader(false);
+        });
+    }
 };
 
 const Icon = (name, classnames = "") =>
@@ -457,13 +476,10 @@ const initializeTabsView = ({
             } catch (e) {
                 tabs[selected].click();
             }
-            console.log("this 0");
         } else {
             if (tabindex < tabs.length) {
-                console.log("this 1");
                 tabs[tabindex].click();
             } else {
-                console.log("this 2");
                 tabs[tabs.length - 1].click();
             }
         }
@@ -661,6 +677,7 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
+                        console.debug(e)
                         error(
                             `An error occurred. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
@@ -674,7 +691,7 @@ const handleCropImageUpload = (
                 cancel: "Cancel",
             });
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
-            aspectRatio: ratio,
+            ...(ratio!==true?{aspectRatio:ratio}:{}),
             viewMode: 1,
             responsive: true,
             center: true,
@@ -871,7 +888,7 @@ const reportFeedback = async ({
     return false;
 };
 
-const reportFeedbackView = () => {
+const reportFeedbackView = (report = 0) => {
     let isReport = false;
     const dial = alertify;
     dial.confirm().set({
@@ -886,6 +903,7 @@ const reportFeedbackView = () => {
                         visible(view, `${tab.id}-view` === view.id);
                     });
                 },
+                tabindex: report,
             }),
     });
     dial.confirm(
@@ -1037,3 +1055,31 @@ const getNumberSuffix = (value) => {
 };
 
 const numsuffix = (number) => `${number}${getNumberSuffix(number)}`;
+const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
+    alertify
+        .alert(
+            "Github ID Required",
+            `<div class="w3-row w3-padding">
+    <h4>Your Github identity must be linked with Knotters for this action.</h4>
+    <br/>
+    <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
+        <button type="button" class="secondary"><img src="/static/graphics/thirdparty/github-dark.png" width="20" />
+        &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
+        </button>
+    </a>
+    </div>`,
+            () => {
+                oncancel();
+            }
+        )
+        .set("closable", false)
+        .set("label", "Cancel");
+};
+
+const restartIntros = () => {
+    Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("first-intro-")) {
+            localStorage.removeItem(key);
+        }
+    });
+};

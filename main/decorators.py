@@ -127,7 +127,8 @@ def github_only(function):
                 ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
                 if ghevent == Event.PING:
                     return HttpResponse(Code.OK)
-                request.POST = dict(**request.POST,ghevent=ghevent)
+                hookID = request.META.get('HTTP_X_GITHUB_DELIVERY', None)
+                request.POST = dict(**request.POST,ghevent=ghevent,hookID=hookID)
                 return function(request, *args, **kwargs)
             except Exception as e:
                 errorLog(e)

@@ -459,6 +459,26 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         raise Http404()
 
 
+@normal_profile_required
+@require_JSON_body
+def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
+    try:
+        result = cache.get(f"competition_result_{resID}")
+        if not result:
+            result = Result.objects.get(id=resID)
+            cache.set(f"competition_result_{resID}", result, settings.CACHE_MAX)
+        topics = []
+        for top in result.topic_points:
+            topics.append(dict(
+                id=top["topic__id"],
+                name=top["topic__name"],
+                score=top["score"]
+            ))
+        return respondJson(Code.OK, dict(topics=topics))
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
+
 @require_GET
 # @cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
@@ -529,7 +549,11 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
 
         certpath = False if not appcert else appcert.getCertImage if appcert.certificate else False
         certID = False if not appcert else appcert.get_id
-        return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
+        if appcert:
+            compete = appcert.competition
+        else:
+            compete = Competition.objects.get(id=compID)
+        return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(compete=compete, appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
     except Exception as e:
         raise Http404()
 

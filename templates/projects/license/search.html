@@ -1,0 +1,31 @@
+{% load cache %}
+{% load i18n %}
+{% load l10n %}
+{% load custom_tags %}
+
+{% if query %}
+<div class="w3-row tertiary">
+    <div class="w3-row" style="padding:12px 4px">
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Results for '{{query}}'</h4>
+    </div>
+    <div class="w3-row w3-padding">
+        {% for license in licenses %}
+        <div class="w3-col w3-third w3-padding-small">
+            <div class="w3-row pallete">
+                <h4>{{license}}</h4>
+                <strong>{{license.description}}</strong>
+                <a href="{{license.getLink}}" class="w3-right"><button class="positive small">View</button></a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="w3-padding w3-col">
+        <center class="w3-padding">
+            <i class="w3-jumbo">search</i>
+            <h3>No results for '{{query}}'</h3>
+        </center>
+        </div>
+        {% endfor %} 
+    </div>
+    <br/>
+</div>
+{% endif %}

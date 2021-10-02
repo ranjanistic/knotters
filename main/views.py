@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -14,7 +15,7 @@ from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
-from projects.models import LegalDoc, Project
+from projects.models import FreeProject, LegalDoc, Project
 from compete.models import Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
@@ -104,6 +105,9 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
         raise Http404()
     return renderView(request, template, fromApp=subapp)
 
+@require_GET
+def fameWall(request:WSGIRequest):
+    return renderView(request, Template.FAME_WALL)
 
 @require_JSON_body
 def verifyCaptcha(request: WSGIRequest):
@@ -117,6 +121,7 @@ def verifyCaptcha(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
+
 
 @csrf_exempt
 @github_only
@@ -133,13 +138,15 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
             action = request.POST.get('action', None)
             if action == Event.PUBLISHED:
                 if not release['draft'] and release['name'] and release['body']:
-                    addMethodToAsyncQueue(f'main.mailers.{featureRelease.__name__}',release['name'],release['body'])
+                    addMethodToAsyncQueue(
+                        f'main.mailers.{featureRelease.__name__}', release['name'], release['body'])
         else:
             return HttpResponseBadRequest(ghevent)
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
+
 
 @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
@@ -148,7 +155,8 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = dict(**context, media=settings.MEDIA_URL)
+        suspended = Profile.objects.filter(Q(suspended=True)|Q(is_zombie=True))
+        context = dict(**context, media=settings.MEDIA_URL, suspended=suspended)
         return context
 
 
@@ -248,7 +256,6 @@ class ServiceWorker(TemplateView):
                 f"/{URL.AUTH}*",
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",
-                f"/{URL.LANDING}",
                 f"/{URL.PROJECTS}{URL.Projects.ALLLICENSES}",
                 f"/email/*",
                 f"/{URL.MANAGEMENT}*",
@@ -260,9 +267,13 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_CATEGORIES}"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
@@ -271,11 +282,17 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INVITEACTION}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILEEDIT}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ACCOUNTPREFERENCES}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.BLOCK_USER}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_USER}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILEEDIT}"),
             ]),
             netFirstList=json.dumps([
                 f"{settings.MEDIA_URL}*",
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
+                f"/{URL.LANDING}",
+                f"/{URL.FAME_WALL}",
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
+                # setPathParams(f"/{URL.PROJECTS}{URL.Projects.SNAPSHOTS}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])
@@ -292,20 +309,43 @@ def browser(request: WSGIRequest, type: str):
                 excludeIDs.append(request.user.profile.getUserID())
                 excludeIDs += request.user.profile.blockedIDs
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                    createdOn__gte=(timezone.now()+timedelta(days=-15)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                if len(profiles) < 5:
+                    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                        createdOn__gte=(timezone.now()+timedelta(days=-30)),
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                if len(profiles) < 10:
+                    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                        createdOn__gte=(timezone.now()+timedelta(days=-60)),
+                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
             else:
                 profiles = cache.get(
                     f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
                 if not profiles:
                     profiles = Profile.objects.filter(
+                        createdOn__gte=(timezone.now()+timedelta(days=-15)),
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     cache.set(
                         f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles,count=len(profiles)))
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
         elif type == "new-projects":
-            projects = Project.objects.filter(
-                status=Code.APPROVED).order_by('-approvedOn')[0:10]
-            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects,count=len(projects)))
+            projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
+                timezone.now()+timedelta(days=-15))).order_by('-approvedOn', '-createdOn')[0:5]
+            projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
+                timezone.now()+timedelta(days=-15))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+            if len(projects) < 5:
+                projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
+                    timezone.now()+timedelta(days=-30))).order_by('-approvedOn', '-createdOn')[0:5]
+                projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
+                    timezone.now()+timedelta(days=-30))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+            if len(projects) < 10:
+                projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
+                    timezone.now()+timedelta(days=-60))).order_by('-approvedOn', '-createdOn')[0:5]
+                projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
+                    timezone.now()+timedelta(days=-60))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+
+            return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
         elif type == "recent-winners":
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
             if not results:
@@ -313,17 +353,34 @@ def browser(request: WSGIRequest, type: str):
                     timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[0:10]
                 cache.set(
                     f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
-            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results,count=len(results))))
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
         elif type == "recommended-projects":
             query = Q()
             authquery = query
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            projects = Project.objects.filter(Q(status=Code.APPROVED),authquery,query)[0:20]
-            if(len(projects)<1):
-                projects = Project.objects.filter(Q(status=Code.APPROVED),authquery)[0:20]
-            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects,count=len(projects)))
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED), authquery, query)[
+                            0:10], FreeProject.objects.filter(authquery, query)[0:10]))
+            if len(projects) < 1:
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED), authquery)[
+                                0:10], FreeProject.objects.filter(authquery)[0:10]))
+            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
+        elif type == "trending-topics":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "trending-projects":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "trending-profiles":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "newly-moderated":
+            # TODO
+            return HttpResponseBadRequest()
+        elif type == "highest-month-xp-profiles":
+            # TODO
+            return HttpResponseBadRequest()
         else:
             return HttpResponseBadRequest()
     except Exception as e:
