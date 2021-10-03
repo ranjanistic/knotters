@@ -7,9 +7,9 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from main.bots import Sender
 from main.methods import errorLog, addMethodToAsyncQueue
-from .models import ProfileSetting, User, Profile, defaultImagePath
+from .models import ProfileSetting, User, Profile, defaultImagePath, isPictureDeletable
 from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert, welcomeAlert
-from .methods import getProfileImageBySocialAccount, isPictureDeletable, isPictureSocialImage, getUsernameFromGHSocial
+from .methods import getProfileImageBySocialAccount, isPictureSocialImage, getUsernameFromGHSocial
 from .apps import APPNAME
 
 @receiver(post_save, sender=User)

@@ -3,7 +3,7 @@ from deprecated import deprecated
 from django.db import models
 from django.utils import timezone
 from main.bots import Github, GithubKnotters
-from main.env import BOTMAIL, PUBNAME
+from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
@@ -283,16 +283,17 @@ class Project(BaseProject):
                 data = cache.get(f"gh_repo_data_{self.repo_id}")
                 if data:
                     return data.html_url
-                data = GithubKnotters.get_repo(self.repo_id)
+                data = Github.get_repo(int(self.repo_id))
                 cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
                 return data.html_url
             else:
-                data = Github.get_repo(f"{PUBNAME}/{self.reponame}")
+                data = GithubKnotters.get_repo(self.reponame)
                 self.repo_id = data.id
                 self.save()
                 cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
                 return data.html_url
         except Exception as e:
+            errorLog(e)
             return None
 
     @property

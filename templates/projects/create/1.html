@@ -18,7 +18,7 @@
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-{% if user.profile.githubID %}
+{% if user.profile.has_ghID %}
 <div class="w3-center w3-padding-small tertiary w3-animate-opacity">
     <h6>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
     moderation guidelines</a>.</h6>
@@ -212,12 +212,12 @@
 <script>
 let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");
 </script>
-{% if not user.profile.githubID %}
-<script>
-connectWithGithub(URLS.CREATE_MOD,_=>{window.location.replace(ROOT)})
-</script>
-{% endif %}
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
+<script>
+{% if not user.profile.has_ghID %}
+    connectWithGithub(URLS.CREATE_MOD,_=>{window.location.replace(URLS.CREATE)})
+{% endif %}
+</script>
 {% endblock %}

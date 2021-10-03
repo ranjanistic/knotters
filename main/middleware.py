@@ -1,7 +1,7 @@
 from django.shortcuts import redirect
 from django.http.response import HttpResponseForbidden
 from django.urls import resolve
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_address
 from allauth_2fa.middleware import AllauthTwoFactorMiddleware
 from django.conf import settings
 from .strings import message, URL

@@ -1,15 +1,20 @@
-from uuid import uuid4
 from django.core.cache import cache
-from main.methods import renderData
+from django.conf import settings
+from people.models import Profile
+from .methods import renderData
 from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
 from .strings import DIVISIONS, URL
-from django.conf import settings
 
 
 def Global(request):
     # id = uuid4()
     # cache.set(f"global_alerts_{id}",{'message':'haha this the alert', 'url':'/compete/shit', 'id':id}, settings.CACHE_MICRO)
     # alerts = cache.get(f"global_alerts_{id}") or []
+    knotbot = cache.get('profile_knottersbot')
+    if not knotbot:
+        knotbot = Profile.objects.get(user__email=BOTMAIL)
+        cache.set('profile_knottersbot', knotbot, settings.CACHE_MAX)
+
     data = dict(
         APPNAME=PUBNAME,
         CONTACTMAIL=BOTMAIL,
@@ -29,12 +34,11 @@ def Global(request):
         CACHE_LONGER=settings.CACHE_LONGER,
         CACHE_MAX=settings.CACHE_MAX,
         CACHE_ETERNAL=settings.CACHE_ETERNAL,
-        alerts=[]
+        alerts=[],
+        knotbot=knotbot
     )
 
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div
         data['SUBAPPSLIST'].append(div)
-
     return renderData(data)
-

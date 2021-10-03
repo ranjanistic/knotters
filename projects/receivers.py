@@ -39,7 +39,6 @@ def on_freeproject_delete(sender, instance, **kwargs):
     """
     Project cleanup.
     """
-    print("deleting")
     
     try:
         if instance.image != defaultImagePath():
