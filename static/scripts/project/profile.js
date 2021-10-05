@@ -114,9 +114,12 @@ if (selfProject) {
             }
         }
         getElement("topics-viewer-new").innerHTML = "";
-        const data = await postRequest(setUrlParams(URLS.TOPICSEARCH,projectID), {
-            query: e.target.value,
-        });
+        const data = await postRequest(
+            setUrlParams(URLS.TOPICSEARCH, projectID),
+            {
+                query: e.target.value,
+            }
+        );
         if (!data) return;
         if (data.code === code.OK) {
             let buttons = [];
@@ -146,7 +149,6 @@ if (selfProject) {
     };
     loadExistingTopics();
 
-
     const loadExistingTags = () => {
         initializeMultiSelector({
             candidateClass: "tag-existing",
@@ -162,25 +164,30 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                let addtopids = getElement("addtagIDs").value.split(",");
-                let addtoplen = addtopids.length;
-                if (addtoplen === 1 && addtopids.includes("")) {
-                    addtoplen = 0;
+                let addtagids = getElement("addtagIDs").value.split(",");
+                let addtags = getElement("addtags").value.split(",");
+                let addtaglen = addtagids.length + addtags.length;
+                if (addtaglen === 1 && addtagids.includes("")) {
+                    addtaglen = addtags.length;
                 }
-                let remtopids = getElement("removetagIDs").value.split(",");
-                let remtoplen = remtopids.length;
-                if (remtoplen === 1 && remtopids.includes("")) {
-                    remtoplen = 0;
+                if (addtaglen === 1 && addtags.includes("")) {
+                    addtaglen = 0;
+                }
+                let remtagids = getElement("removetagIDs").value.split(",");
+                let remtaglen = remtagids.length;
+                if (remtaglen === 1 && remtagids.includes("")) {
+                    remtaglen = 0;
                 }
                 if (
                     getElements("tag-existing").length -
-                        remtoplen +
-                        addtoplen ===
+                        remtaglen +
+                        addtaglen ===
                     5
                 ) {
                     error("Only upto 5 tags allowed");
                     return false;
                 }
+                
                 let ids = getElement("removetagIDs").value;
                 ids = ids.replaceAll(btn.id, "");
                 if (ids.endsWith(",")) {
@@ -189,6 +196,7 @@ if (selfProject) {
                     ids.join(",");
                 }
                 getElement("removetagIDs").value = ids;
+                
                 return true;
             },
         });
@@ -199,41 +207,64 @@ if (selfProject) {
             selectedClass: "positive",
             deselectedClass: "primary",
             onSelect: (btn) => {
-                let addtopids = getElement("addtagIDs").value.split(",");
-                let addtoplen = addtopids.length;
-                if (addtoplen === 1 && addtopids.includes("")) {
-                    addtoplen = 0;
+                let addtagids = getElement("addtagIDs").value.split(",");
+                let addtags = getElement("addtags").value.split(",");
+                let addtaglen = addtagids.length + addtags.length;
+                if (addtaglen === 1 && addtagids.includes("")) {
+                    addtaglen = addtags.length;
                 }
-                let remtopids = getElement("removetagIDs").value.split(",");
-                let remtoplen = remtopids.length;
-                if (remtoplen === 1 && remtopids.includes("")) {
-                    remtoplen = 0;
+                if (addtaglen === 1 && addtags.includes("")) {
+                    addtaglen = 0;
+                }
+                let remtagids = getElement("removetagIDs").value.split(",");
+                let remtaglen = remtagids.length;
+                if (remtaglen === 1 && remtagids.includes("")) {
+                    remtaglen = 0;
                 }
                 if (
                     getElements("tag-existing").length -
-                        remtoplen +
-                        addtoplen ===
+                        remtaglen +
+                        addtaglen ===
                     5
                 ) {
                     error("Only upto 5 tags allowed");
                     return false;
                 }
-                if (!getElement("addtagIDs").value.includes(btn.id))
-                    getElement("addtagIDs").value += getElement("addtagIDs")
-                        .value
-                        ? "," + btn.id
-                        : btn.id;
+                if(btn.classList.contains('tag-name')){
+                    if (!getElement("addtags").value.includes(btn.id))
+                        getElement("addtags").value += getElement("addtags")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                } else {
+                    if (!getElement("addtagIDs").value.includes(btn.id))
+                        getElement("addtagIDs").value += getElement("addtagIDs")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                }
                 return true;
             },
             onDeselect: (btn) => {
-                let ids = getElement("addtagIDs").value;
-                ids = ids.replaceAll(btn.id, "");
-                if (ids.endsWith(",")) {
-                    ids = ids.split(",");
-                    ids.pop();
-                    ids.join(",");
+                if(!btn.classList.contains('tag-name')){
+                    let ids = getElement("addtagIDs").value;
+                    ids = ids.replaceAll(btn.id, "");
+                    if (ids.endsWith(",")) {
+                        ids = ids.split(",");
+                        ids.pop();
+                        ids.join(",");
+                    }
+                    getElement("addtagIDs").value = ids;
+                } else {
+                    let ids = getElement("addtags").value;
+                    ids = ids.replaceAll(btn.id, "");
+                    if (ids.endsWith(",")) {
+                        ids = ids.split(",");
+                        ids.pop();
+                        ids.join(",");
+                    }
+                    getElement("addtags").value = ids;
                 }
-                getElement("addtagIDs").value = ids;
                 return true;
             },
         });
@@ -250,9 +281,12 @@ if (selfProject) {
             }
         }
         getElement("tags-viewer-new").innerHTML = "";
-        const data = await postRequest(setUrlParams(URLS.TAGSEARCH,projectID), {
-            query: e.target.value,
-        });
+        const data = await postRequest(
+            setUrlParams(URLS.TAGSEARCH, projectID),
+            {
+                query: e.target.value,
+            }
+        );
         if (!data) return;
         if (data.code === code.OK) {
             let buttons = [];
@@ -262,7 +296,9 @@ if (selfProject) {
                         getElement("addtagIDs").value.includes(tag.id)
                             ? "positive"
                             : "primary"
-                    } tag-new" id="${tag.id}">${Icon("add")}${tag.name}</button>`
+                    } tag-new" id="${tag.id}">${Icon("add")}${
+                        tag.name
+                    }</button>`
                 );
             });
             if (buttons.length) {
@@ -270,9 +306,21 @@ if (selfProject) {
                 loadNewTags();
                 loadExistingTags();
             } else {
-                getElement(
-                    "tags-viewer-new"
-                ).innerHTML = `No tags for '${e.target.value}'`;
+                buttons.push(
+                    `<button type="button" class="${
+                        getElement("addtags").value.includes(e.target.value)
+                            ? "positive"
+                            : "primary"
+                    } tag-new tag-name" id="${e.target.value}">${Icon("add")}${
+                        e.target.value
+                    }</button>`
+                );
+                getElement("tags-viewer-new").innerHTML = buttons.join("");
+                loadNewTags();
+                loadExistingTags();
+                // getElement(
+                //     "tags-viewer-new"
+                // ).innerHTML = `No tags for '${e.target.value}'`;
             }
         } else {
             error(data.error);
@@ -280,33 +328,92 @@ if (selfProject) {
     };
     loadExistingTags();
 
+    getElement("snap-file").onchange = (e) => {
+        handleCropImageUpload(
+            e,
+            "snapimage",
+            "snapimageview",
+            (croppedB64) => {
+                hide(getElement("add-image-view"));
+                show(getElement("snapimageview"));
+            },
+            true
+        );
+    };
 }
+
+let snapstart = 0,
+    snapend = snapstart + 10;
+const snapsview = getElement(`snapshots-view`);
+
+const addSnapsView = () => {
+    const newsnapview = document.createElement("div");
+    newsnapview.innerHTML = `<div class="w3-row" id="snapshots-view-${snapstart}"><div class="loader"></div></div>`;
+    snapsview.insertBefore(
+        newsnapview,
+        snapsview.childNodes[Array.from(snapsview.childNodes).length - 1]
+    );
+};
+const loadsnaps = getElement("load-more-snaps");
+
+loadsnaps.onclick = (_) => {
+    addSnapsView();
+    const currentsnapsview = getElement(`snapshots-view-${snapstart}`);
+    getRequest(
+        setUrlParams(URLS.SNAPSHOTS, projectID, snapstart, snapend)
+    ).then((data) => {
+        if (data === false) {
+            currentsnapsview.innerHTML = loadErrorHTML();
+            return
+        }
+        if (!String(data).trim()) {
+            if (snapstart < 1) {
+                currentsnapsview.innerHTML = `<div class="dead-text" align="center">No snapshots yet</div>`;
+            } else {
+                currentsnapsview.innerHTML = `<div class="dead-text" align="center"><br/>No more snapshots</div>`;
+            }
+            return hide(loadsnaps);
+        }
+        setHtmlContent(currentsnapsview, data);
+        snapstart = snapend;
+        snapend = snapstart + 10;
+        show(loadsnaps);
+    });
+};
+
+loadsnaps.click();
+
 const loadLiveData = async () => {
-    const contribview = getElement('project-contibutors-view');
-    const languageview = getElement('project-languages-view');
-    if(contribview)
-    setHtmlContent(contribview, loaderHTML());
-    if(languageview)
-    setHtmlContent(languageview, loaderHTML());
-    if(contribview||languageview){
-        const data = await postRequest(setUrlParams(URLS.LIVEDATA, projectID))
-        if(!data||data.code!==code.OK){
+    const contribview = getElement("project-contibutors-view");
+    const languageview = getElement("project-languages-view");
+    if (contribview) setHtmlContent(contribview, loaderHTML());
+    if (languageview) setHtmlContent(languageview, loaderHTML());
+    if (contribview || languageview) {
+        const data = JSON.parse(await getRequest(setUrlParams(URLS.LIVEDATA, projectID)))
+        if (!data || data.code !== code.OK) {
             setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
             setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
             getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
             getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
-            return
+            return;
+        }
+        if (contribview) setHtmlContent(contribview, data.contributorsHTML);
+        if (languageview) {
+            setHtmlContent(
+                languageview,
+                `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`
+            );
+            radarChartView(
+                getElement("project-languages-distribution-chart"),
+                Object.keys(data.languages),
+                Object.keys(data.languages).map((key) => data.languages[key]),
+                "12e49d"
+            );
         }
     }
-    if(contribview)
-        setHtmlContent(contribview, data.contributorsHTML);
-    if(languageview){
-        setHtmlContent(languageview, `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`);
-        radarChartView(getElement('project-languages-distribution-chart'),Object.keys(data.languages),Object.keys(data.languages).map((key)=>data.languages[key]),'12e49d')
-    }
-}
-try{
-loadLiveData()
-}catch(e){
-    console.debug(e)
+};
+try {
+    loadLiveData();
+} catch (e) {
+    console.debug(e);
 }

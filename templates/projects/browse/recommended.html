@@ -3,23 +3,23 @@
 {% load l10n %}
 {% load custom_tags %}
 {% if count %}
-<div class="w3-row positive">
+<div class="w3-row tertiary">
     <div class="w3-row" style="padding:16px 4px">
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Recommended for you</h4>
     </div>
-    <div class="swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap swiper-wrap_i">
+    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
+        <div class="swiper-wrapper swiper-wrap">
             {% for project in projects %}
-            <div class="w3-col swiper-slide">
+            <div class="swiper-slide">
                 <a href="{{project.getLink}}">
-                <div class="pallete pallete_i w3-center" style="padding:0;">
-                    <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
-                    <div class="w3-row w3-padding">
-                        <h5>{{ project.name }}</h5>
-                        <span>{{ project.description|truncatechars:32 }}</span>
+                    <div class="pallete w3-center no-pad">
+                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                        <div class="w3-row w3-padding">
+                            <h5>{{ project.name }}</h5>
+                            <span>{{ project.description|truncatechars:45 }}</span>
+                        </div>
+                        <br/>
                     </div>
-                    <br/>
-                </div>
                 </a>
             </div>
             {% empty %}
@@ -29,7 +29,32 @@
                 <h3>No projects yet. Yours could be the first!</h3>
             </center>
             </div>
-            {% endfor %}
+			{% endfor %} 
+        </div>
+    </div>
+    <div class="w3-hide-large w3-row">
+        <div class="swiper-wrap_i">
+            {% for project in projects %}
+            <div class="w3-col">
+                <a href="{{project.getLink}}">
+                    <div class="pallete pallete_i w3-center">
+                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                        <div class="w3-row w3-padding">
+                            <h5>{{ project.name }}</h5>
+                            <span>{{ project.description|truncatechars:45 }}</span>
+                        </div>
+                        <br/>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="dead-text w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>No projects yet. Yours could be the first!</h3>
+            </center>
+            </div>
+			{% endfor %} 
         </div>
     </div>
     <br/>

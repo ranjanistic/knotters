@@ -1,4 +1,5 @@
 from django.core.handlers.wsgi import WSGIRequest
+from qrcode import make
 from uuid import UUID, uuid4
 import os
 from django.core.cache import cache
@@ -6,8 +7,8 @@ from PIL import Image, ImageFont, ImageDraw
 from django.utils import timezone
 from django.http.response import HttpResponse
 from main.methods import addMethodToAsyncQueue, errorLog, renderView, renderString
-from main.strings import Compete, Message
-from main.env import ISTESTING
+from main.strings import Compete, Message, url
+from main.env import ISTESTING, SITE
 from people.models import User, Profile
 from django.conf import settings
 from .models import Competition, ParticipantCertificate, AppreciationCertificate, SubmissionParticipant, Result, Submission
@@ -131,8 +132,11 @@ def generateCertificate(certname:str, certID, username, compname, abouttext, ass
     compxy = (imagex-comp_font.getsize(compname)[0]-77, 411)
     aboutxy = (imagex-about_font.getsize(abouttext)[0]-77, 515)
     idxy = (14,1020)
+    qrxy = (14,14)
     certpath = f"{APPNAME}/certificates/{certname}.pdf"
     certpathimg = f"{APPNAME}/certificates/{certname}.jpg"
+    qrimage = make(f"{SITE}{url.getRoot(APPNAME)}{url.compete.CERT_VERIFY}?id={certID}")
+    qrimage = qrimage.resize((222,222),Image.ANTIALIAS)
     if not ISTESTING:
         certimage = Image.open(os.path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
@@ -140,6 +144,7 @@ def generateCertificate(certname:str, certID, username, compname, abouttext, ass
         image_editable.text(xy=compxy, text=compname, fill=(0, 0, 0), font=comp_font, align='right')
         image_editable.text(xy=aboutxy, text=abouttext, fill=(0, 0, 0), font=about_font,align='right')
         image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
+        certimage.paste(qrimage, qrxy)
         if associate:
             assxy = (776,904)
             assimage = Image.open(os.path.join(settings.MEDIA_ROOT, str(associate)))

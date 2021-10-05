@@ -2,6 +2,7 @@ from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
+from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 # from django.conf import settings
 # from django.views.decorators.cache import cache_page
@@ -328,12 +329,15 @@ def submitCompetition(request) -> HttpResponse:
                        ).strip().strip(',').split(',')
         judgeIDs = str(request.POST['compjudgeIDs']
                        ).strip().strip(',').split(',')
-        perks = [str(request.POST['compperk1']).strip(),
-                 str(request.POST['compperk2']).strip(),
-                 str(request.POST['compperk3']).strip()]
         taskSummary = str(request.POST['comptaskSummary']).strip()
         taskDetail = str(request.POST['comptaskDetail']).strip()
         taskSample = str(request.POST['comptaskSample']).strip()
+        perks = []
+        for key in request.POST.keys():
+            if str(key).startswith('compperk'):
+                perk = str(request.POST[key]).strip()
+                if perk:
+                    perks.append(perk)
 
         if not (title and
                 tagline and
@@ -345,7 +349,7 @@ def submitCompetition(request) -> HttpResponse:
                 eachTopicMaxPoint > 0 and
                 len(topicIDs) > 0 and
                 len(judgeIDs) > 0 and
-                len(perks) > 2 and
+                len(perks) > 0 and
                 taskSummary and
                 taskDetail and
                 taskSample):
@@ -408,7 +412,7 @@ def submitCompetition(request) -> HttpResponse:
             COMPETE, compete, mod, "Competition")
         if not assigned:
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_MODERATOR)
-        return respondRedirect(APPNAME, URL.Management.COMPETITIONS)
+        return redirect(compete.getManagementLink())
     except Exception as e:
         errorLog(e)
         return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.ERROR_OCCURRED)

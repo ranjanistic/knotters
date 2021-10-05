@@ -190,7 +190,8 @@ message = Message()
 class Action():
     ACCEPT = "accept"
     DECLINE = "decline"
-    ADD = "add"
+    CREATE = "create"
+    VIEW = "view"
     UPDATE = "update"
     REMOVE = "remove"
 
@@ -285,6 +286,7 @@ class URL():
     PEOPLE = f'{PEOPLE}/'
     MODERATION = f'{MODERATION}/'
     MANAGEMENT = f'{MANAGEMENT}/'
+    FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
 
     def redirector(self, to='/'):
@@ -292,7 +294,7 @@ class URL():
 
     DOCTYPE = 'docs/<str:type>'
     LANDINGS = 'landing/'
-    LANDING = 'landing'
+    LANDING = 'landing/'
     APPLANDING = '<str:subapp>/landing'
 
     def applanding(self, subapp):
@@ -464,6 +466,11 @@ class URL():
         def declareResults(self, compID):
             return setPathParams(self.DECLARERESULTS, compID)
 
+        TOPIC_SCORES = 'scores/<str:resID>/'
+
+        def topicscores(self, resID):
+            return setPathParams(self.TOPIC_SCORES, resID)
+
         CLAIMXP = 'claimxp/<str:compID>/<str:subID>'
 
         def claimXP(self, compID, subID):
@@ -551,6 +558,9 @@ class URL():
         def approveCompete(self, modID):
             return setPathParams(self.APPROVECOMPETE, modID)
 
+        REPORT_CATEGORIES = 'report/categories/'
+        REPORT_MODERATION = 'reportmoderation/'
+        
         def getURLSForClient(self):
             URLS = dict()
 
@@ -610,8 +620,10 @@ class URL():
         def zombie(self, profileID):
             return setPathParams(self.ZOMBIE, profileID)
 
-        BLOCK_USER = 'blockuser'
-        UNBLOCK_USER = 'unblockuser'
+        BLOCK_USER = 'blockuser/'
+        UNBLOCK_USER = 'unblockuser/'
+        REPORT_CATEGORIES = 'report/categories'
+        REPORT_USER = 'reportuser/'
 
         NEWBIES = 'newbies'
 
@@ -635,14 +647,16 @@ class URL():
 
         ALLLICENSES = 'licenses/'
 
-        LICENSE = 'licenses/<str:id>'
+        LICENSE = 'licenses/<str:id>/'
 
         def license(self, id):
             return setPathParams(self.LICENSE, id)
 
-        LICENSES = 'alllicenses/'
+        LICENSES = 'license/all/'
 
-        ADDLICENSE = 'addlicense/'
+        ADDLICENSE = 'license/add/'
+
+        LICENSE_SEARCH = 'license/search/'
 
         CREATEVALIDATEFIELD = 'create/validate/<str:field>'
 
@@ -720,19 +734,29 @@ class URL():
         def tagsUpdate(self, projID):
             return setPathParams(self.TAGSUPDATE, projID)
 
+        USER_GH_REPOS = "github/user/repos"
+        LINK_FREE_REPO = "github/user/repos/link"
+        UNLINK_FREE_REPO = "github/user/repos/unlink"
+
         LIVEDATA = 'livedata/<str:projID>/'
 
         def liveData(self, projectID):
             return setPathParams(self.LIVEDATA, projectID)
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>/<str:projID>'
-        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
 
         def githubEvents(self, type, event, projID):
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
 
+        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
+
         NEWBIES = 'newbies/'
         BROWSE_SEARCH = 'browse/search/'
+        SNAPSHOTS = 'snapshots/<str:projID>/<int:start>/<int:end>/'
+        SNAPSHOT = 'snapshot/<str:projID>/<str:action>/'
+
+        REPORT_CATEGORIES = 'report/categories'
+        REPORT_PROJECT = 'reportproject/'        
 
         def getURLSForClient(self):
             URLS = dict()
@@ -865,6 +889,12 @@ class Template():
     @property
     def landing(self):
         return f'{self.LANDING}.html'
+
+    FAME_WALL = 'famewall'
+
+    @property
+    def famewall(self):
+        return f'{self.FAME_WALL}.html'
 
     INVITATION = 'invitation'
 
@@ -1254,6 +1284,18 @@ class Template():
         @property
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+
+        LICENSE_SEARCH = 'license/search'
+
+        @property
+        def license_search(self):
+            return f'{self.DIRNAME}/{self.LICENSE_SEARCH}.html'
+
+        SNAPSHOTS = 'snapshots'
+
+        @property
+        def snapshots(self):
+            return f'{self.DIRNAME}/{self.SNAPSHOTS}.html'
 
     projects = Projects()
 

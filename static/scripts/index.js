@@ -109,22 +109,23 @@ const loadErrorHTML = (
 const loadBrowserSwiper = (_) => {
     loadCarousels({
         container: "swiper-browser",
+        freeMode: true,
         breakpoints: {
             1024: {
                 slidesPerView: 4,
-                spaceBetween: 5,
+                spaceBetween: 15,
             },
             768: {
                 slidesPerView: 3,
-                spaceBetween: 5,
+                spaceBetween: 10,
             },
             920: {
                 slidesPerView: 4,
-                spaceBetween: 12,
+                spaceBetween: 10,
             },
             640: {
                 slidesPerView: 4,
-                spaceBetween: 12,
+                spaceBetween: 10,
             },
         },
     });
@@ -148,9 +149,9 @@ const loadBrowsers = () => {
                     return;
                 }
                 setHtmlContent(view, data, loadBrowserSwiper);
-                loadBrowserSwiper()
+                loadBrowserSwiper();
             };
-            await method()
+            await method();
         })
     )
         .then(() => {
@@ -166,7 +167,7 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
-    loadBrowserSwiper()
+    loadBrowserSwiper();
     afterset();
 };
 
@@ -186,6 +187,18 @@ const setUrlQueries = (path, query = {}) => {
 };
 
 const loadGlobalEventListeners = () => {
+    getElements("first-time-view").forEach((view) => {
+        if (localStorage.getItem(`first-intro-${view.id}`) == 1) {
+            hide(view);
+        } else {
+            view.innerHTML = view.getAttribute("data-html");
+            getElement(`close-${view.id}`).addEventListener("click", () => {
+                localStorage.setItem(`first-intro-${view.id}`, 1);
+                message('Press Alt+R for introduction, or visit The Landing Page')
+                hide(view);
+            });
+        }
+    });
     getElementsByTag("form").forEach((form) => {
         form.addEventListener("submit", (e) => {
             if (form.classList.contains("no-auto")) {
@@ -266,7 +279,6 @@ const loadGlobalEventListeners = () => {
         };
     });
     getElements("close-global-alert").forEach((closer) => {
-        console.log(localStorage.getItem(`hidden-alert-${closer.id}`));
         if (localStorage.getItem(`hidden-alert-${closer.id}`)) {
             hide(getElement(`view-${closer.id}`));
         }
@@ -292,42 +304,49 @@ const _processReCaptcha = (
         error("An error occurred");
     }
 ) => {
-    grecaptcha.ready(function () {
-        try {
-            grecaptcha
-                .execute(RECAPTCHA_KEY, { action: "submit" })
-                .then(async (token) => {
-                    loader(true);
-                    const data = await postRequest(URLS.VERIFY_CAPTCHA, {
-                        "g-recaptcha-response": token,
-                    });
-                    if (!data) {
-                        subLoader(false);
-                        loader(false);
-                        return;
-                    }
-                    if (data.code === code.OK) {
-                        onSuccess(() => {
-                            loader(false);
-                            subLoader(false);
+    try {
+        grecaptcha.ready(function () {
+            try {
+                grecaptcha
+                    .execute(RECAPTCHA_KEY, { action: "submit" })
+                    .then(async (token) => {
+                        loader(true);
+                        const data = await postRequest(URLS.VERIFY_CAPTCHA, {
+                            "g-recaptcha-response": token,
                         });
-                    } else {
-                        onFailure(data);
+                        if (!data) {
+                            subLoader(false);
+                            loader(false);
+                            return;
+                        }
+                        if (data.code === code.OK) {
+                            onSuccess(() => {
+                                loader(false);
+                                subLoader(false);
+                            });
+                        } else {
+                            onFailure(data);
+                            subLoader(false);
+                            loader(false);
+                        }
+                    })
+                    .catch((e) => {
+                        onFailure(e);
                         subLoader(false);
                         loader(false);
-                    }
-                })
-                .catch((e) => {
-                    onFailure(e);
-                    subLoader(false);
-                    loader(false);
-                });
-        } catch (e) {
-            onFailure(e);
-            subLoader(false);
+                    });
+            } catch (e) {
+                onFailure(e);
+                subLoader(false);
+                loader(false);
+            }
+        });
+    } catch {
+        onSuccess(() => {
             loader(false);
-        }
-    });
+            subLoader(false);
+        });
+    }
 };
 
 const Icon = (name, classnames = "") =>
@@ -337,14 +356,14 @@ const loadCarousels = ({
     container = "swiper-container",
     loop = false,
     grabCursor = true,
-    spaceBetween = 5,
+    spaceBetween = 2,
     breakpoints = {
         640: {
-            slidesPerView: 1,
+            slidesPerView: 2,
             spaceBetween: 0,
         },
         768: {
-            slidesPerView: 1,
+            slidesPerView: 2,
             spaceBetween: 0,
         },
         1024: {
@@ -359,6 +378,7 @@ const loadCarousels = ({
             grabCursor,
             spaceBetween,
             breakpoints,
+            freeMode: true,
         });
     }
     return null;
@@ -374,6 +394,7 @@ const initializeTabsView = ({
     viewID = "tabview",
     spinnerID = "loader",
     selected = 0,
+    setDefaultViews = true,
     tabindex = false,
 }) => {
     const tabs = getElements(tabsClass);
@@ -408,7 +429,9 @@ const initializeTabsView = ({
 
     tabs.forEach(async (tab, t) => {
         tab.onclick = async () => {
-            showTabLoading();
+            if (setDefaultViews) {
+                showTabLoading();
+            }
             sessionStorage.setItem(uniqueID, t);
             const onclicks = Array(tabs.length);
             tabs.forEach((tab1, t1) => {
@@ -432,14 +455,18 @@ const initializeTabsView = ({
                 }
             });
             const response = await onEachTab(tab);
-            if (tabview) hideSpinner(spinnerID);
+            if (tabview && setDefaultViews) hideSpinner(spinnerID);
             tabs.forEach((tab1, t1) => {
                 if (t1 !== t) {
                     tab1.style.opacity = 1;
                 }
                 tab1.onclick = onclicks[t1];
             });
-            return response ? showTabContent(tab, response) : showTabError(tab);
+            return response
+                ? showTabContent(tab, response)
+                : setDefaultViews
+                ? showTabError(tab)
+                : "";
         };
     });
     if (tabs.length) {
@@ -449,13 +476,10 @@ const initializeTabsView = ({
             } catch (e) {
                 tabs[selected].click();
             }
-            console.log("this 0");
         } else {
             if (tabindex < tabs.length) {
-                console.log("this 1");
                 tabs[tabindex].click();
             } else {
-                console.log("this 2");
                 tabs[tabs.length - 1].click();
             }
         }
@@ -653,6 +677,7 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
+                        console.debug(e)
                         error(
                             `An error occurred. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
@@ -666,7 +691,7 @@ const handleCropImageUpload = (
                 cancel: "Cancel",
             });
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
-            aspectRatio: ratio,
+            ...(ratio!==true?{aspectRatio:ratio}:{}),
             viewMode: 1,
             responsive: true,
             center: true,
@@ -1022,7 +1047,7 @@ const reportFeedback = async ({
     return false;
 };
 
-const reportFeedbackView = () => {
+const reportFeedbackView = (report = 0) => {
     let isReport = false;
     const dial = alertify;
     dial.confirm().set({
@@ -1037,6 +1062,7 @@ const reportFeedbackView = () => {
                         visible(view, `${tab.id}-view` === view.id);
                     });
                 },
+                tabindex: report,
             }),
     });
     dial.confirm(
@@ -1163,9 +1189,36 @@ const radarChartView = (
     });
 };
 
-const connectWithGithub = (next=URLS.ROOT, oncancel=_=>{}) =>{
-    alertify.alert("Github ID Required",
-    `<div class="w3-row w3-padding">
+const getNumberSuffix = (value) => {
+    let valuestr = String(value);
+    switch (value) {
+        case 1:
+            return "st";
+        case 2:
+            return "nd";
+        case 3:
+            return "rd";
+        default: {
+            if (value > 9) {
+                if (
+                    valuestr[valuestr.length - 2] === "1" ||
+                    valuestr[valuestr.length - 1] === "0"
+                )
+                    return "th";
+                return getNumberSuffix(
+                    (value = Number(valuestr[valuestr.length - 1]))
+                );
+            } else return "th";
+        }
+    }
+};
+
+const numsuffix = (number) => `${number}${getNumberSuffix(number)}`;
+const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
+    alertify
+        .alert(
+            "Github ID Required",
+            `<div class="w3-row w3-padding">
     <h4>Your Github identity must be linked with Knotters for this action.</h4>
     <br/>
     <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
@@ -1173,7 +1226,19 @@ const connectWithGithub = (next=URLS.ROOT, oncancel=_=>{}) =>{
         &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
         </button>
     </a>
-    </div>`,()=>{
-        oncancel()
-    }).set('closable',false).set('label','Cancel')
-}
+    </div>`,
+            () => {
+                oncancel();
+            }
+        )
+        .set("closable", false)
+        .set("label", "Cancel");
+};
+
+const restartIntros = () => {
+    Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("first-intro-")) {
+            localStorage.removeItem(key);
+        }
+    });
+};

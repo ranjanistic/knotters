@@ -18,32 +18,33 @@
 
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %}
 {% block nav_href %}/{% endblock %}
+{% block nav_text %}People{% endblock %}
 
 {% block nav_noauth_people %}{% endblock %} 
 
 {% block content %}
-<br/>
-<div class="w3-row w3-center w3-padding-32 welcome-row">
+<div class="w3-row w3-center w3-padding-32 welcome-row first-time-view" id='people-intro-banner'
+  data-html="
   <br/><br/>
   <h1>Community</h1>
   <br/>
-  <div class="w3-row w3-padding">
+  <div class='w3-row w3-padding'>
   <h4>
     Meet the people you share this platform with.<br/>
 	Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.
   </h4>
   </div>
-  <div class="w3-row">
-    <a href="#mainframe"><button class="display-button accent">
-        <i class="material-icons">group_work</i>Explore
+  <div class='w3-row'>
+    <a href='{{URLS.LANDING}}'>
+      <button class='positive display-button' data-icon='flight_land'>
+        Learn More
       </button>
     </a>
-    <a href="{{URLS.APPLANDING|params:SUBAPPNAME}}" hidden>
-      <button class="secondary display-button">
-        <i class="material-icons">open_in_new</i>Learn More
-      </button>
-    </a>
-  </div>
+  
+    <button class='display-button accent' id='close-people-intro-banner' data-icon='flight_takeoff'>
+      I'm ready
+    </button>
+  </div>">
 </div>
 
 <div class="w3-row tertiary" id="mainframe">
@@ -60,6 +61,8 @@
 	<div class="w3-row search-view" data-search-type="profiles" id='browse-search-view'>
   </div>
 	<div class="w3-row browser-view" data-type="new-profiles" id='newbie-profiles-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
   </div>
 </div>
 {% endblock %}

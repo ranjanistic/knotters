@@ -1,0 +1,26 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load static %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}The wall of fame showcasing historical acheivements of all time at {{APPNAME}}.{% endblock %}
+{% block og_url %}{{URLS.LANDING}}{% endblock %}
+{% block og_title %}Wall of Fame{% endblock %}
+{% block og_description %}The wall of fame showcasing historical acheivements of all time at {{APPNAME}}.{% endblock %}
+{% block og_site_name %}Wall of Fame{% endblock %}
+
+{% block tw_url %}{{URLS.LANDING}}{% endblock %}
+{% block tw_title %}Wall of Fame{% endblock %}
+{% block tw_description %}The wall of fame showcasing historical acheivements of all time at {{APPNAME}}.{% endblock %}
+
+{% block title %}Wall of Fame{%endblock%}
+
+{% block content %}
+<div class="w3-row">
+    <center>
+    <h1>Wall of Fame</h1>
+    </center>
+</div>
+{% endblock %}

@@ -40,9 +40,6 @@ class Report(models.Model):
     def getLink(self):
         return f"{url.getRoot(APPNAME)}{url.management.reportfeedTypeID(self.reportfeed_type,self.get_id)}"
 
-class ProfileReport(Report):
-    profile = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='reported_profile', null=True, blank=True)
-
 class Feedback(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     feedbacker = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='feedbacker_profile', null=True, blank=True)
@@ -77,6 +74,12 @@ class Feedback(models.Model):
     def getLink(self):
         return f"{url.getRoot(APPNAME)}{url.management.reportfeedTypeID(self.reportfeed_type,self.get_id)}"
 
+class ReportCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=1000)
+
+    def __str__(self):
+        return self.name
 
 class HookRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -89,3 +92,18 @@ class HookRecord(models.Model):
     @property
     def get_id(self):
         return self.id.hex
+
+class ActivityRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(f'{PEOPLE}.User', on_delete=models.CASCADE)
+    view_name = models.CharField(max_length=500)
+    request_get = models.CharField(max_length=60000)
+    request_post = models.CharField(max_length=60000)
+    response_status = models.IntegerField(default=200)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    def __str__(self):
+        return self.get_id

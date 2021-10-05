@@ -89,12 +89,15 @@ class ProjectTopicAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
-admin.site.register(License)
-admin.site.register(ProjectSocial)
-admin.site.register(FreeRepository)
-
 @admin.register(LegalDoc)
 class LegalDocAdmin(admin.ModelAdmin):
     list_display = ["name", "pseudonym", "icon", 'lastUpdate', 'effectiveDate']
 
     form = LegalDocForm
+
+admin.site.register(License)
+
+admin.site.register(ProjectSocial)
+admin.site.register(FreeRepository)
+admin.site.register(Snapshot)
+admin.site.register(ReportedProject)

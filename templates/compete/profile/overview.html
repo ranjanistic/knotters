@@ -18,7 +18,7 @@
             {% if forloop.counter == 1%}emoji_events{% elif forloop.counter == 2%}military_tech{% elif forloop.counter == 3%}celebration{% else %}card_giftcard{% endif %}
             </i>
             <h1>{{forloop.counter|numsuffix}}</h1>
-            <h6 class="pallete">{{perk}}</h6>
+            <h6 class="pallete">{% if perk.name %}{{perk.name}}{% else %}{{perk}}{% endif %}</h6>
         </div>
     </div>
     {% endfor %}

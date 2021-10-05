@@ -18,42 +18,42 @@
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 
 {% block nav_href %}/{% endblock %}
+{% block nav_text %}Projects{% endblock %}
 
 
 {% block nav_extra_links %}
-{% block nav_noauth_licenses %}<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="tertiary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>{% endblock %}
+{% block nav_noauth_licenses %}<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="primary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>{% endblock %}
 <a href="{{URLS.CREATE}}"><button title="New project" class="positive" data-icon="add"><span class="w3-hide-small">New project</span></button></a>
 {% endblock %}
 
 {% block nav_noauth_projects %}{% endblock %} 
 
-{% block content %}
-<br/>
-<div class="w3-row w3-padding welcome-row">
-  <br/>
-  <br/>
 
-  <div class="w3-row w3-padding">
+{% block content %}
+<div class="w3-row w3-padding welcome-row first-time-view" id='projects-intro-banner'
+  data-html="
+  <br/>
+  <br/>
+  <div class='w3-row w3-padding'>
   <h1>Projects</h1>
   </div>
   <br/>
-  <div class="w3-row w3-padding">
+  <div class='w3-row w3-padding'>
   <h4>
     Community projects, open for everyone, to everyone.<br/>
     Contribute to existing ideas, or submit your own to make it real together with everyone.
   </h4>
   </div>
-  <div class="w3-row w3-padding">
-    <a href="#mainframe"><button class="display-button accent">
-        <i class="material-icons">volunteer_activism</i>Contribute
+  <div class='w3-row w3-padding'>
+    <a href='{{URLS.LANDING}}'>
+      <button class='positive display-button' data-icon='flight_land'>
+        Learn More
       </button>
     </a>
-    <a href="{{URLS.APPLANDING|params:SUBAPPNAME}}" hidden>
-      <button class="secondary display-button">
-        <i class="material-icons">open_in_new</i>Learn More
-      </button>
-    </a>
-  </div>
+    <button class='display-button accent' id='close-projects-intro-banner' data-icon='flight_takeoff'>
+      I'm ready
+    </button>
+  </div>">
 </div>
 
 <div class="w3-row tertiary" id="mainframe">
@@ -68,6 +68,8 @@
     </div>
   </div>
 	<div class="w3-row search-view" data-search-type="projects" id='browse-search-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
   </div>
   <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
   </div>

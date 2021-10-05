@@ -120,12 +120,18 @@ class CompetitionAttributeTest(TestCase):
 
     def test_modified_comp_methods(self):
         self.comp.endAt = timezone.now()
-        perks = getCompPerks()
-        self.comp.perks = perks
+        perks = []
+        for p,perk in enumerate(getCompPerks().split(';')):
+            perks.append(Perk(
+                name=perk,
+                rank=p+1,
+                competition=self.comp
+            ))
+        Perk.objects.bulk_create(perks)
         self.judges = None
         self.comp.save()
         self.assertEqual(self.comp.secondsLeft(), 0)
-        self.assertCountEqual(self.comp.getPerks(), perks.split(';'))
+        self.assertCountEqual(self.comp.getPerks(), Perk.objects.filter(competition=self.comp))
         users = User.objects.bulk_create(getTestUsersInst(3))
         Profile.objects.create(user=users[0], is_moderator=True)
         requestModerationForObject(self.comp, APPNAME)

@@ -4,4 +4,5 @@ from .models import *
 
 admin.site.register(Report)
 admin.site.register(Feedback)
-admin.site.register(ProfileReport)
+admin.site.register(ReportCategory)
+admin.site.register(ActivityRecord)

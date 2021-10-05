@@ -6,13 +6,13 @@
     <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Recent winners</h4>
     </div>
-    <div class="swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap swiper-wrap_i">
+    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
+        <div class="swiper-wrapper swiper-wrap">
             {% for result in results %}
                 {% for member in result.submission.getMembers %}
-                    <div class="w3-col swiper-slide">
-                        <a href="{{member.getLink}}">
-                        <div class="pallete pallete_i w3-center" style="padding:0">
+                <div class="swiper-slide">
+                    <a href="{{member.getLink}}">
+                        <div class="pallete w3-center no-pad">
                             <img class="primary" src="{{ member.getDP }}" alt="{{ member.getName }}" />
                             <div class="w3-row w3-padding">
                                 <h5>{{ member.getName }}</h5>
@@ -21,8 +21,8 @@
                             </div>
                             <br/>
                         </div>
-                        </a>
-                    </div>
+                    </a>
+                </div>
                 {% endfor %}
             {% empty %}
             <div class="w3-padding w3-col">
@@ -31,7 +31,35 @@
                 <h3>No results yet.</h3>
             </center>
             </div>
-            {% endfor %}
+			{% endfor %} 
+        </div>
+    </div>
+    <div class="w3-hide-large w3-row">
+        <div class="swiper-wrap_i">
+            {% for result in results %}
+                {% for member in result.submission.getMembers %}
+                <div class="w3-col">
+                    <a href="{{member.getLink}}">
+                        <div class="pallete pallete_i w3-center">
+                            <img class="primary" src="{{ member.getDP }}" alt="{{ member.getName }}" />
+                            <div class="w3-row w3-padding">
+                                <h5>{{ member.getName }}</h5>
+                                <strong>{{ result.rank|numsuffix }}</strong><br/>
+                                <span>{{result.competition.title}}</span>
+                            </div>
+                            <br/>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>No results yet.</h3>
+            </center>
+            </div>
+			{% endfor %} 
         </div>
     </div>
     <br/>
