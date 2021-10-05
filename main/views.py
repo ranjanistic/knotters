@@ -318,7 +318,7 @@ def browser(request: WSGIRequest, type: str):
                             suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     finalprofiles = []
                     for prof in profiles:
-                        if EmailAddress.objects.filter(user=prof.user,verified=True).exists():
+                        if EmailAddress.objects.filter(user=prof.user,primary=True,verified=True).exists():
                             finalprofiles.append(prof)
                     if len(finalprofiles):
                         cache.set(
@@ -334,7 +334,7 @@ def browser(request: WSGIRequest, type: str):
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     finalprofiles = []
                     for prof in profiles:
-                        if EmailAddress.objects.filter(user=prof.user,verified=True).exists():
+                        if EmailAddress.objects.filter(user=prof.user,primary=True,verified=True).exists():
                             finalprofiles.append(prof)
                     if len(finalprofiles):
                         cache.set(

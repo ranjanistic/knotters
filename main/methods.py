@@ -5,6 +5,7 @@ import re
 import json
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
+from datetime import timedelta
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.files.base import ContentFile, File
 from django.db.models.fields.files import ImageFieldFile
@@ -12,9 +13,12 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.template.loader import render_to_string
 from django.shortcuts import redirect, render
 from django.conf import settings
+from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
-from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING
-from .strings import Code, classAttrsToDict, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS
+
+from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING, PUBNAME
+from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH
+
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """
@@ -46,8 +50,9 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     elif fromApp == DOCS:
         URLS = dict(**URLS, **url.docs.getURLSForClient(), Projects=url.projects.getURLSForClient(), Management=url.management.getURLSForClient(),
                     People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient())
-                    
-    URLS = dict(**URLS,Docs=url.docs.getURLSForClient(),Auth=url.auth.getURLSForClient())
+
+    URLS = dict(**URLS, Docs=url.docs.getURLSForClient(),
+                Auth=url.auth.getURLSForClient())
 
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 
@@ -73,7 +78,6 @@ def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: 
     :fromApp: The subapplication division name under which the given view named template file resides
     """
     return render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
-    
 
 
 def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str()) -> JsonResponse:
@@ -85,9 +89,9 @@ def respondJson(code: str, data: dict = dict(), error: str = str(), message: str
     """
 
     if error:
-        data = dict(**data,error=error)
+        data = dict(**data, error=error)
     if message:
-        data = dict(**data,message=message)
+        data = dict(**data, message=message)
 
     return JsonResponse({
         'code': code,
@@ -102,7 +106,7 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
     return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
 
 
-def getDeepFilePaths(dir_name:str, appendWhen=None):
+def getDeepFilePaths(dir_name: str, appendWhen=None):
     """
     Returns list of mapping of file paths only inside the given directory.
 
@@ -192,13 +196,14 @@ class JsonEncoder(DjangoJSONEncoder):
 def errorLog(error):
     try:
         if not ISTESTING:
-            with open(os.path.join(os.path.join(settings.BASE_DIR,'_logs_'),'errors.txt'), 'a') as log_file:
+            with open(os.path.join(os.path.join(settings.BASE_DIR, '_logs_'), 'errors.txt'), 'a') as log_file:
                 log_file.write(f"\n{timezone.now()}\n{error}")
             if ISDEVELOPMENT:
                 print(error)
     except Exception as e:
         print('Error in logging: ', e)
         print('\nTo be logged: ', error)
+
 
 def getNumberSuffix(value: int) -> str:
     valuestr = str(value)
@@ -216,7 +221,8 @@ def getNumberSuffix(value: int) -> str:
         else:
             return "th"
 
-def verify_captcha(recaptcha_response:str) -> bool:
+
+def verify_captcha(recaptcha_response: str) -> bool:
     try:
         resp = requests.post(settings.GOOGLE_RECAPTCHA_VERIFY_SITE, dict(
             secret=settings.GOOGLE_RECAPTCHA_SECRET_KEY,
@@ -228,47 +234,105 @@ def verify_captcha(recaptcha_response:str) -> bool:
         errorLog(e)
         return False
 
-def addMethodToAsyncQueue(methodpath,*params):
+
+def addMethodToAsyncQueue(methodpath, *params):
     try:
         if ASYNC_CLUSTER:
             from django_q.tasks import async_task
-            async_task(methodpath,*params)
+            async_task(methodpath, *params)
         else:
-            import main, people, projects, management, moderation, compete
-            eval(f"{methodpath}{params}",dict(main=main, people=people, projects=projects, management=management, moderation=moderation, compete=compete))
+            import main
+            import people
+            import projects
+            import management
+            import moderation
+            import compete
+            eval(f"{methodpath}{params}", dict(main=main, people=people, projects=projects,
+                 management=management, moderation=moderation, compete=compete))
         return True
     except Exception as e:
         errorLog(e)
         return False
 
-def testPathRegex(pathreg,path):
+
+def testPathRegex(pathreg, path):
     localParamRegex = "[a-zA-Z0-9\. \\-\_\%]"
     regpath = re.sub(Code.URLPARAM, f"+{localParamRegex}+", pathreg)
     if regpath == path:
         return True
     parts = regpath.split("+")
     parts.pop()
-    def eachpart(part:str):
+
+    def eachpart(part: str):
         return localParamRegex if part == localParamRegex else f"({part})"
-    finalreg = "+".join(map(eachpart,parts))
+    finalreg = "+".join(map(eachpart, parts))
     match = re.compile(finalreg).match(path)
     if match:
-        return len(match.groups())>0
+        return len(match.groups()) > 0
     return False
+
 
 def allowBypassDeactivated(path):
     path = path.split('?')[0]
     for pathreg in BYPASS_DEACTIVATION_PATHS:
-        if (testPathRegex(pathreg,path)):
+        if (testPathRegex(pathreg, path)):
             return True
     return False
 
-def addActivity(view,user,request_get,request_post,status):
+
+def addActivity(view, user, request_get, request_post, status):
     print(request_post)
-    ActivityRecord.objects.create(view_name=view,user=user,request_get=json.dumps(request_get),request_post=json.dumps(request_post),response_status=status)
+    ActivityRecord.objects.create(view_name=view, user=user, request_get=json.dumps(
+        request_get), request_post=json.dumps(request_post), response_status=status)
 
-def activity(request,response):
+
+def activity(request, response):
     print(request.POST)
-    addMethodToAsyncQueue(f"main.methods.{addActivity.__name__}",request.path, request.user,request.GET.__dict__,request.POST,response.status_code)
-    
+    addMethodToAsyncQueue(f"main.methods.{addActivity.__name__}", request.path,
+                          request.user, request.GET.__dict__, request.POST, response.status_code)
 
+def alertUnverified():
+    from .mailers import sendActionEmail
+    emails = EmailAddress.objects.filter(
+        verified=False,
+        primary=True,
+        user__date_joined__lte=(timezone.now()+timedelta(days=-2)),
+        user__date_joined__gte=(timezone.now()+timedelta(days=-4)),
+    )
+    for email in emails:
+        sendActionEmail(
+            username=email.user.first_name,
+            to=email.user.email,
+            subject="Unverified account",
+            header=f"Please login to verify your account at {PUBNAME}, or else your account will be deleted automatically in two days.",
+            footer=f"This is done to prevent spam accounts on our platform, and if you're reading this, please verify your account asap.",
+            conclusion="This is to alert you about your unverified account on Knotters. If this is unfamiliar, then you don't need to worry.",
+            actions=[dict(
+                text='Login to continue',
+                url=f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
+            )]
+        )
+
+def deactivateUnverified():
+    from people.models import Profile
+    users = EmailAddress.objects.filter(
+        verified=False,
+        primary=True,
+        user__date_joined__lte=(timezone.now()+timedelta(days=-4)),
+        user__date_joined__gte=(timezone.now()+timedelta(days=-6)),
+    ).values_list('user', flat=True)
+    profiles = Profile.objects.filter(
+        user__id__in=list(users),is_active=True).update(is_active=False)
+    return profiles
+
+
+def removeUnverified():
+    from people.models import Profile, User
+    users = EmailAddress.objects.filter(
+        verified=False,
+        primary=True,
+        user__date_joined__lte=(timezone.now()+timedelta(days=-6))
+    ).values_list('user', flat=True)
+    Profile.objects.filter(user__id__in=list(users)).delete()
+    delusers = User.objects.filter(id__in=list(users)).delete()
+    return delusers

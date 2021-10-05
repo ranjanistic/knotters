@@ -47,7 +47,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             if request.user.is_authenticated:
                 if person.profile.isBlocked(request.user):
                     raise Exception()
-        if not EmailAddress.objects.filter(user=person,verified=True).exists():
+        if not EmailAddress.objects.filter(user=person,primary=True,verified=True).exists():
             raise Exception()
         return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
     except Exception as e:
@@ -64,7 +64,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
                 raise Exception()
-        if not EmailAddress.objects.filter(user=profile.user,verified=True).exists():
+        if not EmailAddress.objects.filter(user=profile.user,primary=True,verified=True).exists():
             raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
