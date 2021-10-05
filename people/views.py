@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import login_required
+from allauth.account.models import EmailAddress
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import github_only, require_JSON_body, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
@@ -46,9 +47,10 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             if request.user.is_authenticated:
                 if person.profile.isBlocked(request.user):
                     raise Exception()
+        if not EmailAddress.objects.filter(user=person,verified=True).exists():
+            raise Exception()
         return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
     except Exception as e:
-        errorLog(e)
         raise Http404()
 
 
@@ -62,9 +64,10 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
                 raise Exception()
+        if not EmailAddress.objects.filter(user=profile.user,verified=True).exists():
+            raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
-        errorLog(e)
         raise Http404()
 
 
@@ -78,7 +81,6 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
         else:
             raise Exception()
     except Exception as e:
-        errorLog(e)
         raise Http404()
 
 
