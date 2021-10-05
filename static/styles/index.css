@@ -23,7 +23,17 @@ body {
     -ms-hyphens: auto;
     hyphens: auto;
 }
-
+.align{
+    display: flex;
+    justify-content:center;
+    align-items:center;
+}
+.margin{
+    margin: 10px 0;
+}
+.name{
+    margin:5px 0 3px 0;
+}
 footer {
     min-height: 50vh;
     width: 100%;

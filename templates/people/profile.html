@@ -73,7 +73,8 @@
           <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
-            <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.getName }}</h5>
+            <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%} name align">{{ person.getName }} <i class="w3-margin-left w3-text-blue w3-large material-icons">check_circle</i></h5>
+            <span class="w3-tiny w3-tag w3-round-xxlarge w3-border accent" style="margin-bottom:10px">MOD</span><br/>
             <span class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
@@ -100,6 +101,7 @@
                 <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{user.getName}}" name="displayname" /><br/><br/>
                 <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="120" name="profilebio" >{{ user.profile.getBio }}</textarea><br/>
               </div>
+              fhd
               <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
               <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
             </form>
