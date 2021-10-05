@@ -298,6 +298,7 @@ class ServiceWorker(TemplateView):
 def browser(request: WSGIRequest, type: str):
     try:
         if type == "new-profiles":
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=[], count=0))
             excludeIDs = []
             if request.user.is_authenticated:
                 excludeIDs.append(request.user.profile.getUserID())
