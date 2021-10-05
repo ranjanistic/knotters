@@ -20,13 +20,7 @@
 	<div class="w3-col w3-half">
     <h3>You can still continue with us.</h3>
     <br/>
-    <form method="POST" action="{% url 'account_logout' %}">
-      {% csrf_token %}
-      {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-      {% endif %}
-      <a href="{{ROOT}}"><button class="positive" type="button"><i class="material-icons">home</i>Return home</button></a>
-      </form>
+    <a href="{% url 'account_login' %}"><button class="positive" type="button">Retry</button></a>
     <br/>
   </div>
 </div>

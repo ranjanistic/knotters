@@ -15,7 +15,7 @@ from management.models import ReportCategory
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
-from .mailers import successorInvite, accountReactiveAlert, accountInactiveAlert
+from .mailers import successorAccepted, successorDeclined, successorInvite, accountReactiveAlert, accountInactiveAlert
 
 
 @require_GET
@@ -27,7 +27,7 @@ def index(request: WSGIRequest) -> HttpResponse:
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
         self = False
-        if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.githubID == userID):
+        if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.ghID == userID):
             person = request.user
             self = True
         else:
@@ -43,9 +43,9 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
                     person = profile.user
                 except:
                     raise Exception()
-        if request.user.is_authenticated:
-            if person.profile.isBlocked(request.user):
-                raise Exception()
+            if request.user.is_authenticated:
+                if person.profile.isBlocked(request.user):
+                    raise Exception()
         return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
     except Exception as e:
         errorLog(e)
@@ -158,7 +158,7 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
             excluding.append(topic.id)
 
     topics = Topic.objects.exclude(id__in=excluding).filter(
-        Q(name__startswith=query.capitalize()) | Q(name__iexact=query))[0:5]
+        Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
     topicslist = []
     for topic in topics:
         topicslist.append(dict(
@@ -231,9 +231,11 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
         if not done:
             return respondJson(Code.NO)
         if is_active:
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{accountReactiveAlert.__name__}",request.user.profile)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{accountReactiveAlert.__name__}", request.user.profile)
         else:
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{accountInactiveAlert.__name__}", request.user.profile)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{accountInactiveAlert.__name__}", request.user.profile)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
@@ -274,7 +276,8 @@ def profileSuccessor(request: WSGIRequest):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
-                            addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorInvite.__name__}", request.user, successor)
+                            addMethodToAsyncQueue(
+                                f"{APPNAME}.mailers.{successorInvite.__name__}", request.user, successor)
                         return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
                     successor_confirmed = userID == BOTMAIL
                 except:
@@ -289,7 +292,8 @@ def profileSuccessor(request: WSGIRequest):
         Profile.objects.filter(user=request.user).update(
             successor=successor, successor_confirmed=successor_confirmed)
         if successor and not successor_confirmed:
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorInvite.__name__}",successor,request.user)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{successorInvite.__name__}", successor, request.user)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
@@ -342,28 +346,36 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
             raise Exception()
 
-        if not accept:
+        if accept:
+            successor = request.user
+            predecessor.profile.successor_confirmed = True
+        else:
             if predecessor.profile.to_be_zombie:
                 successor = User.objects.get(email=BOTMAIL)
                 predecessor.profile.successor_confirmed = True
             else:
                 successor = None
-        else:
-            successor = request.user
-            predecessor.profile.successor_confirmed = True
 
         predecessor.profile.successor = successor
         predecessor.profile.save()
 
+        deleted = False
         if predecessor.profile.to_be_zombie:
             migrateUserAssets(predecessor, successor)
             predecessor.delete()
+            deleted = True
 
-        alert = Message.SUCCESSORSHIP_DECLINED
         if accept:
             alert = Message.SUCCESSORSHIP_ACCEPTED
-        profile = Profile.objects.get(id=predecessor.profile.id)
-        return redirect(profile.getLink(alert=alert))
+            if not deleted:
+                addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorAccepted.__name__}", successor, predecessor)
+        else:
+            alert = Message.SUCCESSORSHIP_DECLINED
+            if not deleted:
+                addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorDeclined.__name__}", request.user, predecessor)
+        if not deleted:
+            return redirect(predecessor.profile.getLink(alert=alert))
+        return redirect(request.user.profile.getLink(alert=alert))
     except:
         return HttpResponseForbidden()
 
@@ -410,15 +422,17 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404()
 
+
 def reportCategories(request: WSGIRequest):
     try:
         categories = ReportCategory.objects.all()
         reports = []
         for cat in categories:
-            reports.append(dict(id=cat.id,name=cat.name))
+            reports.append(dict(id=cat.id, name=cat.name))
         return respondJson(Code.OK, dict(reports=reports))
     except Exception as e:
         return respondJson(Code.NO)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -428,10 +442,11 @@ def reportUser(request: WSGIRequest):
         userID = request.POST['userID']
         user = User.objects.get(id=userID)
         category = ReportCategory.objects.get(id=report)
-        request.user.profile.reportUser(user,category)
+        request.user.profile.reportUser(user, category)
         return respondJson(Code.OK)
     except Exception as e:
         return respondJson(Code.NO)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -442,7 +457,9 @@ def blockUser(request: WSGIRequest):
         request.user.profile.blockUser(user)
         return respondJson(Code.OK)
     except Exception as e:
+        errorLog(e)
         return respondJson(Code.NO)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -453,8 +470,9 @@ def unblockUser(request: WSGIRequest):
         request.user.profile.unblockUser(user)
         return respondJson(Code.OK)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO)
+
 
 @csrf_exempt
 @github_only
@@ -494,22 +512,26 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
 
+
 @require_GET
-def browseSearch(request:WSGIRequest):
-    query = request.GET.get('query','')
+def browseSearch(request: WSGIRequest):
+    query = request.GET.get('query', '')
     excludeIDs = []
     if request.user.is_authenticated:
         excludeIDs = request.user.profile.blockedIDs
-    qparts = query.split(" ")
+    fname, lname = convertToFLname(query)
     profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
-        Q(is_active=True, suspended=False, to_be_zombie=False), 
-        Q(user__email__startswith=query) 
-        | Q(user__first_name__startswith=query.capitalize())
-        | Q(user__last_name__startswith=qparts[len(qparts)-1].capitalize())
-        | Q(githubID__startswith=query)
+        Q(is_active=True, suspended=False, to_be_zombie=False),
+        Q(user__email__istartswith=query)
+        | Q(user__email__icontains=query)
+        | Q(user__first_name__istartswith=fname)
+        | Q(user__first_name__iendswith=fname)
+        | Q(user__last_name__istartswith=(lname or fname))
+        | Q(user__last_name__iendswith=(lname or fname))
+        | Q(githubID__istartswith=query)
         | Q(githubID__iexact=query)
         | Q(user__first_name__iexact=query)
         | Q(user__last_name__iexact=query)
-        | Q(user__last_name__iexact=qparts[len(qparts)-1])
+        | Q(user__last_name__iexact=(lname or fname))
     ))[0:20]
-    return rendererstr(request,Template.People.BROWSE_SEARCH,dict(profiles=profiles, query=query))
+    return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))

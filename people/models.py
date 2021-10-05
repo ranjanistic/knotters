@@ -4,6 +4,8 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from deprecated import deprecated
 from django.db import models
 from django.db.models import Q
+from django.core.cache import cache
+from main.bots import Github
 from management.models import ReportCategory
 from projects.models import ReportedProject
 from moderation.models import ReportedModeration
@@ -13,6 +15,13 @@ from django.utils import timezone
 from django.conf import settings
 from main.strings import Code, PROJECTS, url, MANAGEMENT
 from .apps import APPNAME
+
+
+def isPictureDeletable(picture: str) -> bool:
+    """
+    Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
+    """
+    return picture != defaultImagePath() and not str(picture).startswith('http')
 
 
 class UserAccountManager(BaseUserManager):
@@ -71,7 +80,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def getID(self) -> str:
         return self.get_id
-
 
     def has_perm(self, perm, obj=None):
         return self.is_admin
@@ -207,8 +215,10 @@ class Profile(models.Model):
 
     xp = models.IntegerField(default=10, help_text='Experience count')
 
-    blocklist = models.ManyToManyField('User', through='BlockedUser', default=[], related_name='blocked_users')
-    reportlist = models.ManyToManyField('User', through='ReportedUser',default=[], related_name='reported_users')
+    blocklist = models.ManyToManyField(
+        'User', through='BlockedUser', default=[], related_name='blocked_users')
+    reportlist = models.ManyToManyField(
+        'User', through='ReportedUser', default=[], related_name='reported_users')
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -258,7 +268,7 @@ class Profile(models.Model):
         return self.bio if self.bio else ''
 
     def getSubtitle(self) -> str:
-        return self.bio if self.bio else self.githubID if self.githubID else ''
+        return self.bio if self.bio else self.ghID if self.ghID else ''
 
     @property
     def ghID(self) -> str:
@@ -268,8 +278,14 @@ class Profile(models.Model):
         if self.is_zombie:
             return None
         try:
-            data = SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)
-            ghID = getUsernameFromGHSocial(data)
+            data = SocialAccount.objects.get(
+                user=self.user, provider=GitHubProvider.id)
+            ghUser = cache.get(f"gh_user_data_{data.uid}")
+            if not ghUser:
+                ghUser = Github.get_user_by_id(int(data.uid))
+                cache.set(f"gh_user_data_{data.uid}",
+                          ghUser, settings.CACHE_SHORT)
+            ghID = ghUser.login
             if ghID:
                 if ghID != self.githubID:
                     self.githubID = ghID
@@ -285,14 +301,13 @@ class Profile(models.Model):
         """
         return not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
 
-
     @property
     def get_ghLink(self) -> str:
-        return url.githubProfile(ghID=self.ghID) if self.ghID else ''
+        return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()
 
     @deprecated('Use the property method for the same')
     def getGhUrl(self) -> str:
-        return url.githubProfile(ghID=self.ghID) if self.ghID else ''
+        return self.get_ghLink
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
@@ -306,7 +321,6 @@ class Profile(models.Model):
     def is_normal(self) -> bool:
         return self.user and self.user.is_active and self.is_active and not (self.suspended or self.to_be_zombie or self.is_zombie)
 
-    
     @deprecated('Use the property method for the same')
     def isNormal(self) -> bool:
         return self.is_normal
@@ -330,7 +344,8 @@ class Profile(models.Model):
         return self.get_xp
 
     def increaseXP(self, by: int = 0) -> int:
-        if not self.is_active: return self.xp
+        if not self.is_active:
+            return self.xp
         if self.xp == None:
             self.xp = 0
         self.xp = self.xp + by
@@ -338,7 +353,8 @@ class Profile(models.Model):
         return self.xp
 
     def decreaseXP(self, by: int = 0) -> int:
-        if not self.is_active: return self.xp
+        if not self.is_active:
+            return self.xp
         if self.xp == None:
             self.xp = 0
             self.save()
@@ -368,7 +384,7 @@ class Profile(models.Model):
 
     @property
     def getTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=False).values_list('topic',flat=True)
+        return ProfileTopic.objects.filter(profile=self, trashed=False).values_list('topic', flat=True)
 
     def getTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
@@ -385,7 +401,7 @@ class Profile(models.Model):
 
     @property
     def getTrashedTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True).values_list('topic',flat=True)
+        return ProfileTopic.objects.filter(profile=self, trashed=True).values_list('topic', flat=True)
 
     def getTrashedTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
@@ -418,7 +434,7 @@ class Profile(models.Model):
 
     @property
     def getAllTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self).values_list('topic',flat=True)
+        return ProfileTopic.objects.filter(profile=self).values_list('topic', flat=True)
 
     def getAllTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self)
@@ -433,37 +449,37 @@ class Profile(models.Model):
     def totalAllTopics(self):
         return ProfileTopic.objects.filter(profile=self).count()
 
-    def isBlocked(self, user:User) -> bool:
-        return BlockedUser.objects.filter(Q(profile=self,blockeduser=user)|Q(blockeduser=self.user,profile=user.profile)).exists()
+    def isBlocked(self, user: User) -> bool:
+        return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()
 
-    def reportUser(self,user:User, category):
-        report, _ = ReportedUser.objects.get_or_create(user=user,profile=self,category=category,defaults=dict(
-            user=user,profile=self,category=category
+    def reportUser(self, user: User, category):
+        report, _ = ReportedUser.objects.get_or_create(user=user, profile=self, category=category, defaults=dict(
+            user=user, profile=self, category=category
         ))
         return report
 
-    def reportProject(self,baseproject, category):
-        report, _ = ReportedProject.objects.get_or_create(baseproject=baseproject,profile=self,category=category,defaults=dict(
-            baseproject=baseproject,profile=self,category=category
-        ))
-        return report
-        
-    def reportModeration(self,moderation, category):
-        report, _ = ReportedModeration.objects.get_or_create(moderation=moderation,profile=self,category=category,defaults=dict(
-            moderation=moderation,profile=self,category=category
+    def reportProject(self, baseproject, category):
+        report, _ = ReportedProject.objects.get_or_create(baseproject=baseproject, profile=self, category=category, defaults=dict(
+            baseproject=baseproject, profile=self, category=category
         ))
         return report
 
-    def blockUser(self,user:User):
+    def reportModeration(self, moderation, category):
+        report, _ = ReportedModeration.objects.get_or_create(moderation=moderation, profile=self, category=category, defaults=dict(
+            moderation=moderation, profile=self, category=category
+        ))
+        return report
+
+    def blockUser(self, user: User):
         return self.blocklist.add(user)
 
-    def unblockUser(self,user:User):
-        return self.blocklist.remove(user)    
+    def unblockUser(self, user: User):
+        return self.blocklist.remove(user)
 
     @property
     def blockedIDs(self) -> list:
         ids = []
-        for block in BlockedUser.objects.filter(Q(profile=self)|Q(blockeduser=self.user)):
+        for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
             if block.blockeduser == self.user:
                 ids.append(block.profile.getUserID())
             else:
@@ -473,7 +489,7 @@ class Profile(models.Model):
     @property
     def blockedProfiles(self) -> list:
         profiles = []
-        for block in BlockedUser.objects.filter(Q(profile=self)|Q(blockeduser=self.user)):
+        for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
             if block.blockeduser == self.user:
                 profiles.append(block.profile)
             else:
@@ -496,6 +512,7 @@ class ProfileSetting(models.Model):
     def savePreferencesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.ACCOUNTPREFERENCES}"
 
+
 class ProfileTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
@@ -511,7 +528,6 @@ class ProfileTopic(models.Model):
     @property
     def hidden(self) -> bool:
         return self.trashed
-
 
     def increasePoints(self, by: int = 0) -> int:
         points = 0
@@ -534,21 +550,26 @@ class ProfileTopic(models.Model):
         self.save()
         return self.points
 
+
 class BlockedUser(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='blocker_profile')
-    blockeduser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_user')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='blocker_profile')
+    blockeduser = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='blocked_user')
 
     class Meta:
         unique_together = ('profile', 'blockeduser')
+
 
 class ReportedUser(models.Model):
     class Meta:
         unique_together = ('profile', 'user', 'category')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='user_reporter_profile')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
-    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_user_category')
-
-from .methods import isPictureDeletable, getUsernameFromGHSocial
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='user_reporter_profile')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reported_user')
+    category = models.ForeignKey(
+        ReportCategory, on_delete=models.PROTECT, related_name='reported_user_category')
