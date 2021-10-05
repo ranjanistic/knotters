@@ -1,3 +1,4 @@
+from main.env import BOTMAIL
 from django.db.models import Sum
 from compete.models import ParticipantCertificate, SubmissionTopicPoint
 from django.http.response import HttpResponseNotFound, HttpResponseForbidden
@@ -23,6 +24,8 @@ from compete.methods import *
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.email = getTestEmail()
         self.password = getTestPassword()
         self.user = User.objects.create_user(
@@ -559,8 +562,8 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
-        Profile.objects.exclude(user=self.mguser).delete()
-        User.objects.exclude(email=self.mgemail).delete()
+        Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
+        User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
         totalusers = 10
         useremails = getTestEmails(totalusers)
@@ -679,8 +682,8 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
-        Profile.objects.exclude(user=self.mguser).delete()
-        User.objects.exclude(email=self.mgemail).delete()
+        Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
+        User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
         totalusers = 10
         useremails = getTestEmails(totalusers)
@@ -799,8 +802,8 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
-        Profile.objects.exclude(user=self.mguser).delete()
-        User.objects.exclude(email=self.mgemail).delete()
+        Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
+        User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
         totalusers = 10
         useremails = getTestEmails(totalusers)
@@ -941,8 +944,8 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
-        Profile.objects.exclude(user=self.mguser).delete()
-        User.objects.exclude(email=self.mgemail).delete()
+        Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
+        User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
         totalusers = 10
         useremails = getTestEmails(totalusers)

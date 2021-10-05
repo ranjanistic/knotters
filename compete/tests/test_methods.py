@@ -1,3 +1,4 @@
+from main.env import BOTMAIL
 from compete.models import SubmissionTopicPoint
 from uuid import uuid4
 from datetime import timedelta
@@ -21,6 +22,8 @@ from random import randint
 class CompeteMethodsTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(

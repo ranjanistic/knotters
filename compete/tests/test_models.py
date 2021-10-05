@@ -26,6 +26,8 @@ class CompetitionTest(TestCase):
 class CompetitionM2MTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -69,6 +71,8 @@ class CompetitionM2MTest(TestCase):
 class CompetitionAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -159,6 +163,8 @@ class CompetitionAttributeTest(TestCase):
 class CompetitionJudgeAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -179,6 +185,8 @@ class CompetitionJudgeAttributeTest(TestCase):
 class CompetitionTopicAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -198,6 +206,8 @@ class CompetitionTopicAttributeTest(TestCase):
 class SubmissionTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -274,6 +284,8 @@ class SubmissionTest(TestCase):
 class SubmissionM2MTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -320,6 +332,8 @@ class SubmissionM2MTest(TestCase):
 class SubmissionAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -367,6 +381,8 @@ class SubmissionAttributeTest(TestCase):
 class SubmissionTopicPointTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -420,6 +436,8 @@ class SubmissionTopicPointTest(TestCase):
 class SubmissionTopicPointAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -452,6 +470,8 @@ class SubmissionTopicPointAttributeTest(TestCase):
 class ResultTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(
@@ -519,6 +539,8 @@ class ResultTest(TestCase):
 class ResultAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = Profile.objects.filter(

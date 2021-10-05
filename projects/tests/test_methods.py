@@ -1,7 +1,8 @@
-from people.tests.utils import getTestUsersInst
+from people.tests.utils import getTestPassword, getTestUsersInst
 from main.strings import Code
 from people.models import User
 from django.test import TestCase, tag
+from main.env import BOTMAIL
 from .utils import getProjName, getProjRepo, getProjCategory, getProjDesc, getTag, getLicName, getLicDesc, getTestTags
 from projects.methods import *
 
@@ -10,6 +11,8 @@ from projects.methods import *
 class ProjectsMethodTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         users = User.objects.bulk_create(getTestUsersInst(2))
         self.creator = Profile.objects.create(user=users[0])
         self.mod = Profile.objects.create(user=users[1], is_moderator=True)

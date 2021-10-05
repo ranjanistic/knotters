@@ -3,6 +3,7 @@ from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.test import TestCase, Client, tag
 from django.db.models import QuerySet
 from django.http import HttpResponse
+from main.env import BOTMAIL
 from main.strings import Code, url, template, Message
 from main.tests.utils import getRandomStr
 from people.models import Profile, Topic, User
@@ -17,6 +18,8 @@ from .utils import getProjDesc, getProjRepo, getTestTags, getTestTagsInst, root,
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.client = Client()
         self.license = License.objects.create(
             name=getLicName(), description=getLicDesc())

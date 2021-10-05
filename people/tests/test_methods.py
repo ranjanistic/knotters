@@ -1,6 +1,7 @@
 from main.strings import Code
 from django.test import TestCase, tag
 from main.tests.utils import getRandomStr
+from main.env import BOTMAIL
 from people.methods import *
 from .utils import getTestBio, getTestEmail, getTestFName, getTestLName, getTestName, getTestPassword
 
@@ -9,6 +10,8 @@ from .utils import getTestBio, getTestEmail, getTestFName, getTestLName, getTest
 class PeopleMethodsTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.user = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)

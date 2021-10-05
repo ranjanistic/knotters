@@ -2,6 +2,7 @@ from projects.models import Category, License
 from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
 from people.models import User
 from django.test import TestCase, tag
+from main.env import BOTMAIL
 from main.tests.utils import getRandomStr
 from moderation.methods import *
 from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
@@ -12,6 +13,8 @@ from compete.tests.utils import getCompTitle
 class ModerationMethodTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         choices = [True, False, True, False, True, False, False]
         users = User.objects.bulk_create(getTestUsersInst(len(choices)))
         profiles = []

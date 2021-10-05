@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from main.exceptions import DuplicateKeyError, IllegalModeration, IllegalModerationEntity, IllegalModerationState, IllegalModerationType, IllegalModerator
 from people.models import User, Profile
 from main.tests.utils import getRandomStr
+from main.env import BOTMAIL
 from compete.models import Competition
 from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
 from projects.models import Category, License, Project
@@ -17,6 +18,8 @@ from moderation.models import *
 class ModerationTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         users = User.objects.bulk_create(getTestUsersInst(2))
         self.moderator = Profile.objects.create(
             user=users[0], is_moderator=True)
@@ -61,6 +64,8 @@ class ModerationTest(TestCase):
 class ModerationAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         users = User.objects.bulk_create(getTestUsersInst(3))
         self.moderator = Profile.objects.create(
             user=users[0], is_moderator=True)
@@ -128,6 +133,8 @@ class LocalStorageTest(TestCase):
 class LocalStorageAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.local = LocalStorage.objects.create(
             key=getLocalKey(), value=getLocalValue())
 

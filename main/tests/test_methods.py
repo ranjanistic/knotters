@@ -1,4 +1,7 @@
+from main.env import BOTMAIL
 from django.test import TestCase, tag
+from people.models import User
+from people.tests.utils import getTestPassword
 from main.strings import Code, Message
 from main.methods import *
 from .utils import B64
@@ -8,6 +11,8 @@ from .utils import B64
 class MainMethodsTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         return super().setUpTestData()
 
     def test_respondJSON(self):

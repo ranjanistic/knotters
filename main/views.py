@@ -8,6 +8,7 @@ from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.utils.decorators import method_decorator
+from allauth.account.models import EmailAddress
 from allauth.account.decorators import verified_email_required
 from django.core.cache import cache
 from django.db.models import Q
@@ -298,22 +299,32 @@ class ServiceWorker(TemplateView):
 def browser(request: WSGIRequest, type: str):
     try:
         if type == "new-profiles":
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=[], count=0))
             excludeIDs = []
             if request.user.is_authenticated:
-                excludeIDs.append(request.user.profile.getUserID())
-                excludeIDs += request.user.profile.blockedIDs
-                profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                    createdOn__gte=(timezone.now()+timedelta(days=-15)),
-                    suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-                if len(profiles) < 5:
+                profiles = cache.get(f"new_profiles_suggestion_{request.LANGUAGE_CODE}_{request.user.id}")
+                if not profiles:
+                    excludeIDs.append(request.user.profile.getUserID())
+                    excludeIDs += request.user.profile.blockedIDs
                     profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                        createdOn__gte=(timezone.now()+timedelta(days=-30)),
+                        createdOn__gte=(timezone.now()+timedelta(days=-15)),
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-                if len(profiles) < 10:
-                    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                        createdOn__gte=(timezone.now()+timedelta(days=-60)),
-                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                    if len(profiles) < 5:
+                        profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                            createdOn__gte=(timezone.now()+timedelta(days=-30)),
+                            suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                    if len(profiles) < 10:
+                        profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                            createdOn__gte=(timezone.now()+timedelta(days=-60)),
+                            suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
+                    finalprofiles = []
+                    for prof in profiles:
+                        if EmailAddress.objects.filter(user=prof.user,verified=True).exists():
+                            finalprofiles.append(prof)
+                    if len(finalprofiles):
+                        cache.set(
+                            f"new_profiles_suggestion_{request.LANGUAGE_CODE}_{request.user.id}", finalprofiles, settings.CACHE_SHORT)
+                else:
+                    finalprofiles = profiles
             else:
                 profiles = cache.get(
                     f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
@@ -321,9 +332,16 @@ def browser(request: WSGIRequest, type: str):
                     profiles = Profile.objects.filter(
                         createdOn__gte=(timezone.now()+timedelta(days=-15)),
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-                    cache.set(
-                        f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
+                    finalprofiles = []
+                    for prof in profiles:
+                        if EmailAddress.objects.filter(user=prof.user,verified=True).exists():
+                            finalprofiles.append(prof)
+                    if len(finalprofiles):
+                        cache.set(
+                            f"new_profiles_suggestion_{request.LANGUAGE_CODE}", finalprofiles, settings.CACHE_LONG)
+                else:
+                    finalprofiles = profiles
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=finalprofiles, count=len(finalprofiles)))
         elif type == "new-projects":
             projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
                 timezone.now()+timedelta(days=-15))).order_by('-approvedOn', '-createdOn')[0:5]

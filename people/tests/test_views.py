@@ -15,6 +15,8 @@ from .utils import getTestDP, getTestEmail, getTestGHID, getTestName, getTestPas
 class TestViews(TestCase):
     def setUpTestData(self) -> None:
         self.client = Client()
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.email = getTestEmail()
         self.password = getTestPassword()
         self.client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(

@@ -5,6 +5,7 @@ Tests for models & signal receivers of people subapplication.
 from django.test import TestCase, tag
 from django.core.exceptions import ObjectDoesNotExist
 from allauth.account.models import EmailAddress
+from main.env import BOTMAIL
 from people.apps import APPNAME
 from people.models import *
 from .utils import getTestDP, getTestGHID, getTestName, getTestEmail, getTestPassword, getTestEmails, getTestNames, getTestPasswords, getTestTopics
@@ -70,6 +71,8 @@ class UserTest(TestCase):
 class UserAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.name = getTestName()
         self.user = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=self.name)
@@ -119,6 +122,8 @@ class UserAttributeTest(TestCase):
 class ProfileAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.user = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
@@ -165,6 +170,8 @@ class ProfileAttributeTest(TestCase):
 class ProfileM2MTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.user = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
@@ -190,6 +197,8 @@ class ProfileM2MTest(TestCase):
 class TopicTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.topicnames = getTestTopics(3)
         topics = []
         for name in self.topicnames:

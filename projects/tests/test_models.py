@@ -2,6 +2,7 @@ from django.test import TestCase, tag
 from django.db.utils import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 from people.models import Topic, User, Profile
+from main.env import BOTMAIL
 from moderation.methods import requestModerationForObject
 from people.tests.utils import getTestName, getTestPassword, getTestEmail, getTestTopicsInst, getTestUsersInst
 from projects.models import *
@@ -12,6 +13,8 @@ from .utils import getLicDesc, getLicName, getProjCategory, getProjImage, getPro
 class ProjectTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
@@ -39,6 +42,8 @@ class ProjectTest(TestCase):
 class ProjectAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
@@ -81,6 +86,8 @@ class ProjectAttributeTest(TestCase):
 class TagTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
@@ -115,6 +122,8 @@ class TagTest(TestCase):
 class TagAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.tag = Tag.objects.create(name=getTag())
         return super().setUpTestData()
 
@@ -126,6 +135,8 @@ class TagAttributeTest(TestCase):
 class CategoryTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
@@ -161,6 +172,8 @@ class CategoryTest(TestCase):
 class CategoryAttributeTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.category = Category.objects.create(name=getProjCategory())
         return super().setUpTestData()
 
@@ -172,6 +185,8 @@ class CategoryAttributeTest(TestCase):
 class TopicTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
