@@ -303,7 +303,10 @@ class Profile(models.Model):
 
     @property
     def get_ghLink(self) -> str:
-        return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()
+        try:
+            return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()
+        except:
+            return None
 
     @deprecated('Use the property method for the same')
     def getGhUrl(self) -> str:

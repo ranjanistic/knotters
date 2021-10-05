@@ -63,8 +63,8 @@ class ProjectAttributeTest(TestCase):
         self.project.save()
         self.assertTrue(self.project.isApproved())
         self.assertEqual(self.project.isApproved(), self.project.isLive())
-        self.assertTrue(self.project.getRepoLink().endswith(
-            self.project.reponame))
+        # self.assertTrue(self.project.getRepoLink().endswith(
+        #     self.project.reponame))
         self.assertTrue(self.project.getLink().endswith(self.project.reponame))
         self.assertEqual(self.project.moderationRetriesLeft(), 0)
         self.assertFalse(self.project.canRetryModeration())

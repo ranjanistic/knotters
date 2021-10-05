@@ -47,7 +47,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             if request.user.is_authenticated:
                 if person.profile.isBlocked(request.user):
                     raise Exception()
-        if not EmailAddress.objects.filter(user=person,primary=True,verified=True).exists():
+        if not EmailAddress.objects.filter(user=person).exists():
             raise Exception()
         return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
     except Exception as e:
@@ -104,7 +104,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 fname, lname = convertToFLname(
                     str(request.POST['displayname']))
                 bio = str(request.POST['profilebio']).strip()
-                if fname != profile.user.first_name:
+                if fname and fname != profile.user.first_name:
                     profile.user.first_name = fname
                     userchanged = True
                 if lname != profile.user.last_name:
@@ -120,11 +120,12 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                     profile.save()
                     return redirect(profile.getLink(success=Message.PROFILE_UPDATED))
                 return redirect(profile.getLink())
-            except:
+            except Exception as e:
                 return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
         else:
             raise Exception()
-    except:
+    except Exception as e:
+        print(e)
         return HttpResponseForbidden()
 
 

@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 from django.http import HttpResponse
 from main.env import BOTMAIL
 from main.strings import Code, url, template, Message
+from allauth.account.models import EmailAddress
 from main.tests.utils import getRandomStr
 from people.models import Profile, Topic, User
 from people.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword, getTestTopicsInst
@@ -37,6 +38,7 @@ class TestViews(TestCase):
         self.category = Category.objects.create(name=getProjCategory())
         self.license = License.objects.create(
             name=getLicName(), description=getLicDesc())
+        EmailAddress.objects.get_or_create(user=self.user,email=self.email,verified=True,primary=True)
         return super().setUpTestData()
 
     def setUp(self) -> None:
@@ -199,6 +201,7 @@ class TestViews(TestCase):
         self.assertEqual(str(project.image), defaultImagePath())
         self.assertIsNone(project.approvedOn)
 
+    @tag('afag')
     def test_trashProject(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)

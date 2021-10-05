@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, Client, tag
 from django.http import HttpResponse, HttpResponseForbidden
 from main.strings import Code, url, template, Message, Action
+from allauth.account.models import EmailAddress
 from main.tests.utils import authroot, getRandomStr
 from main.env import BOTMAIL
 from people.apps import APPNAME
@@ -15,8 +16,8 @@ from .utils import getTestDP, getTestEmail, getTestGHID, getTestName, getTestPas
 class TestViews(TestCase):
     def setUpTestData(self) -> None:
         self.client = Client()
-        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
-            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
+        self.botuser, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name=getTestName(), email=BOTMAIL, password=getTestPassword()))
         self.email = getTestEmail()
         self.password = getTestPassword()
         self.client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
@@ -25,13 +26,14 @@ class TestViews(TestCase):
             password1=self.password
         ))
         try:
-            self.botuser = User.objects.create_user(
-                email=BOTMAIL, password=getTestPassword(), first_name=getTestName())
-            self.botprofile = Profile.objects.filter(
+            Profile.objects.filter(
                 user=self.botuser).update(githubID=getRandomStr())
         except:
-            self.botuser = User.objects.get(email=BOTMAIL)
-            self.botprofile = Profile.objects.get(user=self.botuser)
+            self.botuser = User.objects.create_user(
+                email=BOTMAIL, password=getTestPassword(), first_name=getTestName())
+            Profile.objects.filter(
+                user=self.botuser).update(githubID=getRandomStr())
+        self.botprofile = Profile.objects.get(user=self.botuser)
         try:
             self.user = User.objects.get(email=self.email)
         except:
@@ -40,6 +42,7 @@ class TestViews(TestCase):
 
         Profile.objects.filter(user=self.user).update(githubID=getRandomStr())
         self.profile = self.user.profile
+        EmailAddress.objects.filter(user=self.user).update(verified=True)
         return super().setUpTestData()
 
     def setUp(self) -> None:
@@ -56,10 +59,10 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.index)
 
+    @tag("gg")
     def test_profile(self):
-        profile = Profile.objects.filter().first()
         resp = self.client.get(follow=True, path=root(url.people.profile(
-            userID=profile.getUserID())))
+            userID=self.profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.profile)
@@ -67,23 +70,23 @@ class TestViews(TestCase):
     def test_profileTab(self):
         profile = Profile.objects.filter().first()
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
-            profile.getUserID(), section=profileString.OVERVIEW)))
+            self.profile.getUserID(), section=profileString.OVERVIEW)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_overview)
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
-            profile.getUserID(), section=profileString.PROJECTS)))
+            self.profile.getUserID(), section=profileString.PROJECTS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_projects)
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
-            profile.getUserID(), section=profileString.CONTRIBUTION)))
+            self.profile.getUserID(), section=profileString.CONTRIBUTION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_contribution)
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
-            profile.getUserID(), section=profileString.ACTIVITY)))
+            self.profile.getUserID(), section=profileString.ACTIVITY)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_activity)
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
-            profile.getUserID(), section=profileString.MODERATION)))
+            self.profile.getUserID(), section=profileString.MODERATION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_moderation)
 
