@@ -17,7 +17,7 @@ cryptography==3.4.7
 defusedxml==0.7.1
 Deprecated==1.2.12
 discord.py==1.7.2
-Django==3.0.5
+Django==3.1.13
 django-allauth==0.44.0
 django-allauth-2fa==0.8
 django-appconf==1.0.4
