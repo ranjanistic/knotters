@@ -11,6 +11,12 @@ _`py` (python), `pip` (python package manager) - these cmdlets may vary dependin
 - Python 3.x, pip 21.x
 - MongoDB connection string
 
+Conditionally,
+
+- A running redis server
+
+This is required by a parallel qcluster. While the server can work without it, it depends on the cluster for particular resource eating tasks, like emailing, filesystem bulk I/O, asynchronous server requests, etc.
+
 ### Initial setup
 
 ```bash
@@ -68,6 +74,13 @@ py manage.py migrate
 
 ### Server
 
+If you have a redis server running, then a qcluster can be started in a separate process,
+which runs in parallel with the main server process.
+
+```bash
+py manage.py qcluster # requires redis config in .env file
+```
+
 ```bash
 py manage.py runserver
 ```
@@ -78,7 +91,7 @@ py manage.py runserver
 py genversion.py
 ```
 
-Use this if you want to have control over client side service worker updates. The above cmd will update a version tag on every exec, which is linked directly with the service worker, forcing it to emit an update.
+Use this anytime if you want to have control over client side service worker updates. The above cmdlet will update a version tag on every execution, which is linked directly with the service worker, forcing it to emit an update via web browser.
 
 ## Testing
 
@@ -96,8 +109,6 @@ py testmanage.py test <appname>
 py testmanage.py test --tag=<tagname>
 ```
 
-See [main.strings.Code.Test](https://github.com/knottersbot/knotters/blob/7a6632741ba93fc7a62d140b9f953d8bc8084286/main/strings.py#L45) for available `tagname`(s).
-
 For coverage report of tests
 
 ```bash
@@ -106,6 +117,8 @@ coverage report
 coverage html
 ```
 
-## Contribution
+## Footnotes
 
-Try to separate changes in client side & server side code using separate branches, for efficient workflow run.
+- Try to separate changes in client side & server side code using separate branches, for efficient workflow run.
+
+- Try to publish the server sided changes before client side ones for better update delivery.
