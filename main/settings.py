@@ -409,3 +409,6 @@ if env.ASYNC_CLUSTER:
             'db': 2,
         }
     }
+
+
+RATELIMIT_ENABLE = env.ISPRODUCTION

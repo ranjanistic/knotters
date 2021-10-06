@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
+from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import redirect
@@ -138,6 +139,7 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='10/m', block=True, method=('POST'))
 def submitFreeProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     alerted = False
@@ -187,6 +189,7 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='3/m', block=True, method=('POST'))
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     try:
@@ -281,6 +284,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = BaseProject.objects.get(
@@ -357,6 +361,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
@@ -428,6 +433,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
@@ -493,6 +499,7 @@ def userGithubRepos(request):
 
 @normal_profile_required
 @require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def linkFreeGithubRepo(request):
     try:
         repoID = int(request.POST['repoID'])
@@ -513,6 +520,7 @@ def linkFreeGithubRepo(request):
 
 @normal_profile_required
 @require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def unlinkFreeGithubRepo(request):
     try:
         project = FreeProject.objects.get(
@@ -742,6 +750,7 @@ def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10)
 
 @normal_profile_required
 @require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def snapshot(request: WSGIRequest, projID: UUID, action: str):
     try:
         baseproject = BaseProject.objects.get(
@@ -796,6 +805,7 @@ def reportCategories(request: WSGIRequest):
 
 @normal_profile_required
 @require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def reportProject(request: WSGIRequest):
     try:
         report = request.POST['report']

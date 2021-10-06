@@ -3,6 +3,8 @@
 # and should only be conducted for the limited purpose contained in said
 # permission.
 
+# We have a dedicated api for our data provision at: https://api.knotters.org
+
 User-agent: *
 Disallow: {{media}}
 {% for sus in suspended %}

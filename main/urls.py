@@ -4,13 +4,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from ratelimit.decorators import ratelimit
 from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
-
 from .env import ISPRODUCTION, ADMINPATH
 from .views import *
+from allauth.account import views
+
+views.signup = ratelimit(key='user_or_ip', rate='5/m',block=True, method=('POST'))(views.signup)
+views.password_reset = ratelimit(key='user_or_ip', rate='5/m',block=True, method=('POST'))(views.password_reset)
+views.password_reset_from_key = ratelimit(key='user_or_ip', rate='5/m',block=True, method=('POST'))(views.password_reset_from_key)
+views.login = ratelimit(key='user_or_ip', rate='15/m',block=True, method=('POST'))(views.login)
 
 admin.autodiscover()
-
 def staff_or_404(u):
     if u.is_active and u.profile.is_active:
         if u.is_staff or u.is_admin:
@@ -18,6 +23,7 @@ def staff_or_404(u):
     raise Http404()
 
 admin.site.login = login_required(user_passes_test(staff_or_404)(admin.site.login))
+
 
 urlpatterns = [
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),

@@ -64,6 +64,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
                 raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
+        print(e)
         raise Http404()
 
 
@@ -268,7 +269,7 @@ def profileSuccessor(request: WSGIRequest):
                     return respondJson(Code.NO)
             elif userID and request.user.email != userID:
                 try:
-                    successor = User.objects.get(email=userID)
+                    successor = User.objects.get(email=userID, emailaddress__verified=True)
                     if successor.profile.isBlocked(request.user):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
                     if not successor.profile.ghID and not successor.profile.githubID:
@@ -317,7 +318,7 @@ def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
     Render profile successor invitation view.
     """
     try:
-        predecessor = User.objects.get(id=predID)
+        predecessor = User.objects.get(id=predID, emailaddress__verified=True)
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
             raise Exception()
         return render(request, Template().invitation, renderData(dict(predecessor=predecessor), APPNAME))
@@ -340,7 +341,7 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
             raise Exception()
 
-        predecessor = User.objects.get(id=predID)
+        predecessor = User.objects.get(id=predID,emailaddress__verified=True)
 
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
             raise Exception()
@@ -439,7 +440,7 @@ def reportUser(request: WSGIRequest):
     try:
         report = request.POST['report']
         userID = request.POST['userID']
-        user = User.objects.get(id=userID)
+        user = User.objects.get(id=userID,emailaddress__verified=True)
         category = ReportCategory.objects.get(id=report)
         request.user.profile.reportUser(user, category)
         return respondJson(Code.OK)
@@ -452,7 +453,7 @@ def reportUser(request: WSGIRequest):
 def blockUser(request: WSGIRequest):
     try:
         userID = request.POST['userID']
-        user = User.objects.get(id=userID)
+        user = User.objects.get(id=userID,emailaddress__verified=True)
         request.user.profile.blockUser(user)
         return respondJson(Code.OK)
     except Exception as e:

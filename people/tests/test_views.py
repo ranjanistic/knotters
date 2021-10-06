@@ -12,7 +12,7 @@ from people.models import Profile, Topic, User
 from .utils import getTestDP, getTestEmail, getTestGHID, getTestName, getTestPassword, getTestTopicsInst, root
 
 
-@tag(Code.Test.VIEW, APPNAME)
+@tag(Code.Test.VIEW, APPNAME, 'aha')
 class TestViews(TestCase):
     def setUpTestData(self) -> None:
         self.client = Client()
@@ -39,10 +39,18 @@ class TestViews(TestCase):
         except:
             self.user = User.objects.create_user(
                 email=self.email, password=self.password, first_name=getTestName())
-
+        EmailAddress.objects.filter(email=self.email).update(verified=True)
         Profile.objects.filter(user=self.user).update(githubID=getRandomStr())
         self.profile = self.user.profile
-        EmailAddress.objects.filter(user=self.user).update(verified=True)
+        # mail, created = EmailAddress.objects.get_or_create(user=self.user,defaults=dict(
+        #     email=self.user.email,
+        #     verified=True,
+        #     primary=True
+        # ))
+        # if not created:
+        #     mail.verified=True
+        #     mail.primary=True
+        #     mail.save()
         return super().setUpTestData()
 
     def setUp(self) -> None:
@@ -60,14 +68,15 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.index)
 
     @tag("gg")
-    def _test_profile(self):
+    def test_profile(self):
         resp = self.client.get(follow=True, path=root(url.people.profile(
             userID=self.profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.profile)
 
-    def test_profileTab(self):
+    @tag("aag")
+    def _test_profileTab(self):
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.OVERVIEW)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -141,7 +150,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
     @tag("gg")
-    def _test_accountprefs(self):
+    def test_accountprefs(self):
         resp = self.client.post(follow=True, path=root(
             url.people.ACCOUNTPREFERENCES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -231,7 +240,7 @@ class TestViews(TestCase):
         P2 = getTestPassword()
         user = User.objects.create_user(
             email=E2, password=P2, first_name=getTestName())
-
+        EmailAddress.objects.create(user=user,email=user.email,primary=True,verified=True)
         resp = self.client.post(follow=True, path=root(url.people.INVITESUCCESSOR), data={
                                 'set': True, 'userID': E2})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -276,7 +285,8 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, successorID=str()))
 
-    def est_successorInvitation(self):
+    @tag("aga")
+    def _test_successorInvitation(self):
         client2 = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -285,11 +295,15 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        client2.login(email=E2, password=P2)
+        EmailAddress.objects.filter(email=E2).update(verified=True)
+        client2.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            email=E2,
+            password=P2
+        ))
         resp = client2.post(follow=True, path=root(url.people.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-
+        print(resp.content)
         self.assertDictEqual(json.loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         profile = Profile.objects.get(
@@ -304,7 +318,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
-    def est_successorInviteAction(self):
+    def _test_successorInviteAction(self):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -313,7 +327,11 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        client.login(email=E2, password=P2)
+        EmailAddress.objects.filter(email=E2).update(verified=True)
+        client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            email=E2,
+            password=P2
+        ))
         resp = client.post(follow=True, path=root(url.people.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -381,7 +399,7 @@ class TestViews(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
 
-    def est_accountDelete(self):
+    def _test_accountDelete(self):
         clientx = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -390,7 +408,11 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        clientx.login(email=E2, password=P2)
+        EmailAddress.objects.filter(email=E2).update(verified=True)
+        clientx.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            email=E2,
+            password=P2
+        ))
         resp = clientx.post(follow=True, path=root(url.people.ACCOUNTDELETE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(

@@ -1,4 +1,5 @@
 from uuid import UUID
+from ratelimit.decorators import ratelimit
 import os
 from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
@@ -97,6 +98,7 @@ def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResp
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='10/m', block=True, method=('POST'))
 def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     Take participation
@@ -131,6 +133,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
 
 @normal_profile_required
 @require_JSON_body
+@ratelimit(key='user', rate='5/m', block=True, method=('POST'))
 def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     """
     To invite a member in submission, relation to be confirmed via mail link. (Must not be judge or moderator for the competition)
@@ -168,6 +171,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
                 f'{APPNAME}.mailers.{participantInviteAlert.__name__}', person, request.user.profile, submission)
             return respondJson(Code.OK)
     except Exception as e:
+        print(e)
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
@@ -272,6 +276,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='5/s', block=True, method=('POST'))
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         now = timezone.now()
@@ -327,6 +332,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
 @normal_profile_required
 @judge_only
 @require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     """
     For judge to submit their markings of all submissions of a competition.
@@ -396,6 +402,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
 @manager_only
 @require_POST
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     For manager to declare results after markings of all submissions by all judges have been completed.
@@ -424,6 +431,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         result = Result.objects.get(submission__competition__id=compID,
@@ -485,7 +493,7 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
 
-
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def certificateVerify(request: WSGIRequest) -> HttpResponse:
     certID = request.POST.get('certID', request.GET.get('id',None))
     try:
@@ -561,6 +569,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
 
 @manager_only
 @require_POST
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         competition = Competition.objects.get(
@@ -590,6 +599,7 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
 
 @normal_profile_required
 @require_GET
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.getID() == userID:
@@ -614,6 +624,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
 
 @normal_profile_required
 @require_GET
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.getID() == userID:

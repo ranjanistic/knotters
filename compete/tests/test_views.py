@@ -3,6 +3,7 @@ from django.db.models import Sum
 from compete.models import ParticipantCertificate, SubmissionTopicPoint
 from django.http.response import HttpResponseNotFound, HttpResponseForbidden
 from django.contrib.auth.hashers import make_password
+from allauth.account.models import EmailAddress
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta
 from django.utils import timezone
@@ -58,6 +59,15 @@ class TestViews(TestCase):
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(5))
         for top in self.topics:
             self.comp.topics.add(top)
+        mailaddrs = []
+        for u in [self.mguser,self.moduser,self.judgeuser,self.user]:
+            mailaddrs.append(EmailAddress(
+                user=u,
+                email=u.email,
+                primary=True,
+                verified=True
+            ))
+        EmailAddress.objects.bulk_create(mailaddrs)
         return super().setUpTestData()
 
     def test_index(self):
@@ -255,7 +265,16 @@ class TestViews(TestCase):
         Submission.objects.filter(competition=self.comp).delete()
         self.client.logout()
 
+    @tag("tg")
     def test_invite(self):
+        user = User.objects.create_user(email=getTestEmail(
+        ), password=getTestPassword(), first_name=getTestName())
+        P2 = getTestPassword()
+        user2 = User.objects.create_user(
+            email=getTestEmail(), password=P2, first_name=getTestName())
+        EmailAddress.objects.create(user=user,email=user.email,primary=True,verified=True)
+        EmailAddress.objects.create(user=user2,email=user2.email,primary=True,verified=True)
+
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True,path=
             root(url.compete.participate(self.comp.getID())))
@@ -270,8 +289,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json.loads(resp.content.decode(
             'utf-8')), dict(code=Code.NO, error=Message.INVALID_ID))
 
-        user = User.objects.create_user(email=getTestEmail(
-        ), password=getTestPassword(), first_name=getTestName())
+        
         resp = self.client.post(follow=True,path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
@@ -283,9 +301,6 @@ class TestViews(TestCase):
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID).count(), 2)
 
-        P2 = getTestPassword()
-        user2 = User.objects.create_user(
-            email=getTestEmail(), password=P2, first_name=getTestName())
         client2 = Client()
         client2.login(email=user2.email, password=P2)
         resp = client2.post(follow=True,path=
@@ -326,6 +341,10 @@ class TestViews(TestCase):
         Submission.objects.filter(competition=self.comp).delete()
 
     def test_invitation(self):
+        P2 = getTestPassword()
+        user = User.objects.create_user(
+            email=getTestEmail(), password=P2, first_name=getTestName())
+        EmailAddress.objects.create(user=user,email=user.email,primary=True,verified=True)
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True,path=
             root(url.compete.participate(self.comp.getID())))
@@ -335,9 +354,6 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json.loads(resp.content.decode('utf-8'))['subID']
 
-        P2 = getTestPassword()
-        user = User.objects.create_user(
-            email=getTestEmail(), password=P2, first_name=getTestName())
         resp = self.client.post(follow=True,path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
@@ -356,6 +372,10 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['submission'], Submission)
 
     def test_inviteAction(self):
+        P2 = getTestPassword()
+        user = User.objects.create_user(
+            email=getTestEmail(), password=P2, first_name=getTestName())
+        EmailAddress.objects.create(user=user,email=user.email,primary=True,verified=True)
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True,path=
             root(url.compete.participate(self.comp.getID())))
@@ -365,9 +385,6 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json.loads(resp.content.decode('utf-8'))['subID']
 
-        P2 = getTestPassword()
-        user = User.objects.create_user(
-            email=getTestEmail(), password=P2, first_name=getTestName())
         resp = self.client.post(follow=True,path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
@@ -411,6 +428,10 @@ class TestViews(TestCase):
         Submission.objects.filter(competition=self.comp).delete()
 
     def test_removeMember(self):
+        P2 = getTestPassword()
+        user = User.objects.create_user(
+            email=getTestEmail(), password=P2, first_name=getTestName())
+        EmailAddress.objects.create(user=user,email=user.email,primary=True,verified=True)
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True,path=
             root(url.compete.participate(self.comp.getID())))
@@ -420,9 +441,6 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json.loads(resp.content.decode('utf-8'))['subID']
 
-        P2 = getTestPassword()
-        user = User.objects.create_user(
-            email=getTestEmail(), password=P2, first_name=getTestName())
         resp = self.client.post(follow=True,path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
@@ -613,6 +631,7 @@ class TestViews(TestCase):
         modpassword = getTestPassword()
         moduser = User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
+        EmailAddress.objects.create(user=moduser,email=moduser.email,primary=True,verified=True)
         Profile.objects.filter(user=moduser).update(is_moderator=True)
         requestModerationForObject(self.comp, APPNAME, reassignIfApproved=True)
         Moderation.objects.filter(
@@ -729,6 +748,7 @@ class TestViews(TestCase):
         modpassword = getTestPassword()
         moduser = User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
+        EmailAddress.objects.create(user=moduser,email=moduser.email,primary=True,verified=True)
         Profile.objects.filter(user=moduser).update(is_moderator=True)
 
         requestModerationForObject(self.comp, APPNAME, reassignIfApproved=True)
@@ -849,6 +869,7 @@ class TestViews(TestCase):
         modpassword = getTestPassword()
         moduser = User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
+        EmailAddress.objects.create(user=moduser,email=moduser.email,primary=True,verified=True)
         Profile.objects.filter(user=moduser).update(is_moderator=True)
 
         requestModerationForObject(self.comp, APPNAME, reassignIfApproved=True)
@@ -990,6 +1011,7 @@ class TestViews(TestCase):
         modpassword = getTestPassword()
         moduser = User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
+        EmailAddress.objects.create(user=moduser,email=moduser.email,primary=True,verified=True)
         Profile.objects.filter(user=moduser).update(is_moderator=True)
 
         requestModerationForObject(self.comp, APPNAME, reassignIfApproved=True)
