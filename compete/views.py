@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 from django.core.cache import cache
+from allauth.account.models import EmailAddress
 from main.decorators import require_JSON_body, normal_profile_required, manager_only
 from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
@@ -145,7 +146,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
         if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID:
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID), Q(
-            is_active=True, suspended=False, to_be_zombie=False)).first()
+            is_active=True, suspended=False, to_be_zombie=False, user__emailaddress__verified=True)).first()
         if not person:
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         if person.isBlocked(request.user):
@@ -514,7 +515,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         else:
             self = False
             member = Profile.objects.get(
-                user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
+                user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and member.isBlocked(request.user):
             raise Exception()
@@ -540,7 +541,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
             person = request.user.profile
         else:
             self = False
-            person = Profile.objects.get(user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
+            person = Profile.objects.get(user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and person.isBlocked(request.user):
             raise Exception()

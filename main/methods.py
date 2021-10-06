@@ -291,48 +291,37 @@ def activity(request, response):
     addMethodToAsyncQueue(f"main.methods.{addActivity.__name__}", request.path,
                           request.user, request.GET.__dict__, request.POST, response.status_code)
 
-def alertUnverified():
-    from .mailers import sendActionEmail
-    emails = EmailAddress.objects.filter(
-        verified=False,
-        primary=True,
-        user__date_joined__lte=(timezone.now()+timedelta(days=-2)),
-        user__date_joined__gte=(timezone.now()+timedelta(days=-4)),
-    )
-    for email in emails:
-        sendActionEmail(
-            username=email.user.first_name,
-            to=email.user.email,
-            subject="Unverified account",
-            header=f"Please login to verify your account at {PUBNAME}, or else your account will be deleted automatically in two days.",
-            footer=f"This is done to prevent spam accounts on our platform, and if you're reading this, please verify your account asap.",
-            conclusion="This is to alert you about your unverified account on Knotters. If this is unfamiliar, then you don't need to worry.",
-            actions=[dict(
-                text='Login to continue',
-                url=f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
-            )]
-        )
-
-def deactivateUnverified():
-    from people.models import Profile
-    users = EmailAddress.objects.filter(
-        verified=False,
-        primary=True,
-        user__date_joined__lte=(timezone.now()+timedelta(days=-4)),
-        user__date_joined__gte=(timezone.now()+timedelta(days=-6)),
-    ).values_list('user', flat=True)
-    profiles = Profile.objects.filter(
-        user__id__in=list(users),is_active=True).update(is_active=False)
-    return profiles
-
+# def alertUnverified():
+#     from .mailers import sendActionEmail
+#     emails = EmailAddress.objects.filter(
+#         verified=False,
+#         primary=True,
+#         user__date_joined__lte=(timezone.now()+timedelta(days=-2)),
+#     )
+#     for email in emails:
+#         sendActionEmail(
+#             username=email.user.first_name,
+#             to=email.user.email,
+#             subject="Unverified account",
+#             header=f"Please login to verify your account at {PUBNAME}, or else your unverified account will be deleted automatically in two days.",
+#             footer=f"This is done to prevent spam accounts on our platform, and if you're reading this, please verify your account asap.",
+#             conclusion=f"This an alert about your unverified account at {PUBNAME}. If this is unfamiliar, then you don't need to worry.",
+#             actions=[dict(
+#                 text='Login to continue',
+#                 url=f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
+#             )]
+#         )
 
 def removeUnverified():
     from people.models import Profile, User
+    time = timezone.now() + timedelta(days=-4)
     users = EmailAddress.objects.filter(
         verified=False,
         primary=True,
-        user__date_joined__lte=(timezone.now()+timedelta(days=-6))
+        user__date_joined__lte=time
     ).values_list('user', flat=True)
-    Profile.objects.filter(user__id__in=list(users)).delete()
-    delusers = User.objects.filter(id__in=list(users)).delete()
-    return delusers
+    if not EmailAddress.objects.filter(user__id__in=list(users),verified=True).exists():
+        profs = Profile.objects.filter(user__id__in=list(users)).delete()
+        delusers = User.objects.filter(id__in=list(users)).delete()
+        return delusers, profs
+    return False

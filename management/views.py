@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 # from django.conf import settings
 # from django.views.decorators.cache import cache_page
+from allauth.account.models import EmailAddress
 from django.core.cache import cache
 from main.decorators import manager_only, require_JSON_body
 from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
@@ -43,6 +44,7 @@ def moderators(request: WSGIRequest):
     moderators = Profile.objects.exclude(user__email__in=[
                                          request.user.email, BOTMAIL]).filter(is_moderator=True, to_be_zombie=False)
     profiles = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
+        user__emailaddress__verified=True, 
         is_moderator=False, to_be_zombie=False, is_active=True).order_by('-xp')[0:10]
     return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
 
@@ -54,8 +56,14 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=False), Q(
-            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
+            Q(
+                Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False, is_moderator=False),
+                Q(user__email__startswith=query) 
+                | Q(user__first_name__startswith=query) 
+                | Q(githubID__startswith=query)
+            )
+        ).first()
         if profile.isBlocked(request.user):
             raise Exception()
         return respondJson(Code.OK, dict(mod=dict(
@@ -100,14 +108,14 @@ def addModerator(request: WSGIRequest):
         userID = request.POST.get('userID', None)
         if not userID or userID == request.user.get_id:
             return respondJson(Code.NO)
-
         user = Profile.objects.filter(user__id=userID, is_moderator=False,
                                       suspended=False, to_be_zombie=False).update(is_moderator=True)
         if user == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
     except Exception as e:
-        return respondJson(Code.NO, error=e)
+        print(e)
+        return respondJson(Code.NO)
 
 
 @manager_only
@@ -260,8 +268,14 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False), Q(
-            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
+            Q(
+                Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False), 
+                Q(user__email__startswith=query) 
+                | Q(user__first_name__startswith=query) 
+                | Q(githubID__startswith=query)
+            )
+        ).first()
         if profile.isBlocked(request.user):
             raise Exception()
         return respondJson(Code.OK, dict(judge=dict(
@@ -284,8 +298,14 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(Q(Q(is_active=True, suspended=False, to_be_zombie=False, is_moderator=True), Q(
-            user__email__startswith=query) | Q(user__first_name__startswith=query) | Q(githubID__startswith=query))).first()
+        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
+            Q(
+                Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False, is_moderator=True),
+                Q(user__email__startswith=query) 
+                | Q(user__first_name__startswith=query) 
+                | Q(githubID__startswith=query)
+            )
+        ).first()
         if profile.isBlocked(request.user):
             raise Exception()
         return respondJson(Code.OK, dict(mod=dict(
@@ -407,7 +427,7 @@ def submitCompetition(request) -> HttpResponse:
             compete.save()
 
         mod = Profile.objects.get(
-            user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
+            user__id=modID, user__emailaddress__verified=True, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
         assigned = assignModeratorToObject(
             COMPETE, compete, mod, "Competition")
         if not assigned:

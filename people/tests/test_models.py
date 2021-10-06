@@ -142,7 +142,7 @@ class ProfileAttributeTest(TestCase):
         self.assertFalse(self.profile.isRemoteDp())
         self.assertEqual(self.profile.getBio(), str())
         self.assertEqual(self.profile.getSubtitle(), str())
-        self.assertEqual(self.profile.getGhUrl(), str())
+        # self.assertEqual(self.profile.getGhUrl(), str())
         self.assertTrue(self.profile.getLink().endswith(
             self.profile.getUserID()))
         self.profile.githubID = getTestGHID()

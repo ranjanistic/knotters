@@ -7,7 +7,7 @@ from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString
-from projects.models import FreeProject, Project
+from projects.models import BaseProject, FreeProject, Project
 from moderation.models import Moderation
 from compete.models import CompetitionJudge, Result
 from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
@@ -195,12 +195,9 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
         if predecessor == successor: return True
         Project.objects.filter(creator=predecessor.profile,
                                status=Code.MODERATION).delete()
-        Project.objects.filter(creator=predecessor.profile, status__in=[
-                               Code.APPROVED, Code.REJECTED]).update(migrated=True, creator=successor.profile)
+        BaseProject.objects.filter(creator=predecessor.profile).update(migrated=True, creator=successor.profile)
         if predecessor.profile.hasPredecessors:
-            for pred in predecessor.profile.predecessors:
-                pred.successor = successor
-                pred.save()
+            predecessor.profile.predecessors.update(successor=successor)
         return True
     except Exception as e:
         errorLog(e)

@@ -34,21 +34,19 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         else:
             try:
                 person = User.objects.get(
-                    id=userID, profile__to_be_zombie=False, profile__suspended=False, profile__is_active=True)
+                    id=userID, emailaddress__verified=True, profile__to_be_zombie=False, profile__suspended=False, profile__is_active=True)
                 if person.profile.ghID:
                     return redirect(person.profile.getLink())
             except:
                 try:
                     profile = Profile.objects.get(
-                        githubID=userID, to_be_zombie=False, suspended=False, is_active=True)
+                        githubID=userID, user__emailaddress__verified=True, to_be_zombie=False, suspended=False, is_active=True)
                     person = profile.user
                 except:
                     raise Exception()
             if request.user.is_authenticated:
                 if person.profile.isBlocked(request.user):
                     raise Exception()
-        if not EmailAddress.objects.filter(user=person).exists():
-            raise Exception()
         return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
     except Exception as e:
         raise Http404()
@@ -60,12 +58,10 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         if request.user.is_authenticated and request.user.id == userID:
             profile = request.user.profile
         else:
-            profile = Profile.objects.get(user__id=userID)
+            profile = Profile.objects.get(user__id=userID,user__emailaddress__verified=True)
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
                 raise Exception()
-        if not EmailAddress.objects.filter(user=profile.user,primary=True,verified=True).exists():
-            raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
         raise Http404()
@@ -524,7 +520,7 @@ def browseSearch(request: WSGIRequest):
         excludeIDs = request.user.profile.blockedIDs
     fname, lname = convertToFLname(query)
     profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
-        Q(is_active=True, suspended=False, to_be_zombie=False),
+        Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False),
         Q(user__email__istartswith=query)
         | Q(user__email__icontains=query)
         | Q(user__first_name__istartswith=fname)

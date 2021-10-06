@@ -60,7 +60,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.index)
 
     @tag("gg")
-    def test_profile(self):
+    def _test_profile(self):
         resp = self.client.get(follow=True, path=root(url.people.profile(
             userID=self.profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -68,7 +68,6 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.profile)
 
     def test_profileTab(self):
-        profile = Profile.objects.filter().first()
         resp = self.client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.OVERVIEW)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -141,7 +140,8 @@ class TestViews(TestCase):
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-    def test_accountprefs(self):
+    @tag("gg")
+    def _test_accountprefs(self):
         resp = self.client.post(follow=True, path=root(
             url.people.ACCOUNTPREFERENCES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
