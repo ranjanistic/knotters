@@ -99,9 +99,11 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
         raise Http404()
     return renderView(request, template, fromApp=subapp)
 
+
 @require_GET
-def fameWall(request:WSGIRequest):
+def fameWall(request: WSGIRequest):
     return renderView(request, Template.FAME_WALL)
+
 
 @require_JSON_body
 def verifyCaptcha(request: WSGIRequest):
@@ -149,8 +151,10 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        suspended = Profile.objects.filter(Q(suspended=True)|Q(is_zombie=True))
-        context = dict(**context, media=settings.MEDIA_URL, suspended=suspended)
+        suspended = Profile.objects.filter(
+            Q(suspended=True) | Q(is_zombie=True))
+        context = dict(**context, media=settings.MEDIA_URL,
+                       suspended=suspended)
         return context
 
 
@@ -261,14 +265,16 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_CATEGORIES}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.REPORT_CATEGORIES}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.REPORT_CATEGORIES}"),
             ]),
             recacheList=json.dumps([
                 f"/{URL.REDIRECTOR}*",
@@ -301,62 +307,55 @@ def browser(request: WSGIRequest, type: str):
         if type == "new-profiles":
             excludeIDs = []
             if request.user.is_authenticated:
-                profiles = cache.get(f"new_profiles_suggestion_{request.LANGUAGE_CODE}_{request.user.id}")
+                profiles = cache.get(
+                    f"new_profiles_suggestion_{request.LANGUAGE_CODE}_{request.user.id}")
                 if not profiles:
                     excludeIDs.append(request.user.profile.getUserID())
                     excludeIDs += request.user.profile.blockedIDs
                     profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                        user__emailaddress__verified=True,
                         createdOn__gte=(timezone.now()+timedelta(days=-15)),
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     if len(profiles) < 5:
                         profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                            createdOn__gte=(timezone.now()+timedelta(days=-30)),
+                            user__emailaddress__verified=True,
+                            createdOn__gte=(
+                                timezone.now()+timedelta(days=-30)),
                             suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
                     if len(profiles) < 10:
                         profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                            createdOn__gte=(timezone.now()+timedelta(days=-60)),
+                            user__emailaddress__verified=True,
+                            createdOn__gte=(
+                                timezone.now()+timedelta(days=-60)),
                             suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-                    finalprofiles = []
-                    for prof in profiles:
-                        if EmailAddress.objects.filter(user=prof.user,primary=True,verified=True).exists():
-                            finalprofiles.append(prof)
-                    if len(finalprofiles):
-                        cache.set(
-                            f"new_profiles_suggestion_{request.LANGUAGE_CODE}_{request.user.id}", finalprofiles, settings.CACHE_SHORT)
-                else:
-                    finalprofiles = profiles
+                    cache.set(
+                        f"new_profiles_suggestion_{request.LANGUAGE_CODE}_{request.user.id}", profiles, settings.CACHE_SHORT)
             else:
                 profiles = cache.get(
                     f"new_profiles_suggestion_{request.LANGUAGE_CODE}")
                 if not profiles:
                     profiles = Profile.objects.filter(
+                        user__emailaddress__verified=True,
                         createdOn__gte=(timezone.now()+timedelta(days=-15)),
                         suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[0:10]
-                    finalprofiles = []
-                    for prof in profiles:
-                        if EmailAddress.objects.filter(user=prof.user,primary=True,verified=True).exists():
-                            finalprofiles.append(prof)
-                    if len(finalprofiles):
-                        cache.set(
-                            f"new_profiles_suggestion_{request.LANGUAGE_CODE}", finalprofiles, settings.CACHE_LONG)
-                else:
-                    finalprofiles = profiles
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=finalprofiles, count=len(finalprofiles)))
+                    cache.set(
+                        f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
         elif type == "new-projects":
             projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                timezone.now()+timedelta(days=-15))).order_by('-approvedOn', '-createdOn')[0:5]
+                timezone.now()+timedelta(days=-15)),suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
             projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                timezone.now()+timedelta(days=-15))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+                timezone.now()+timedelta(days=-15)),suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
             if len(projects) < 5:
                 projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                    timezone.now()+timedelta(days=-30))).order_by('-approvedOn', '-createdOn')[0:5]
+                    timezone.now()+timedelta(days=-30)),suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
                 projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-30))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+                    timezone.now()+timedelta(days=-30)),suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
             if len(projects) < 10:
                 projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                    timezone.now()+timedelta(days=-60))).order_by('-approvedOn', '-createdOn')[0:5]
+                    timezone.now()+timedelta(days=-60)),suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
                 projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-60))).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+                    timezone.now()+timedelta(days=-60)),suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
         elif type == "recent-winners":
@@ -373,11 +372,11 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED), authquery, query)[
-                            0:10], FreeProject.objects.filter(authquery, query)[0:10]))
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED,suspended=False), authquery, query)[
+                            0:10], FreeProject.objects.filter(Q(suspended=False),authquery, query)[0:10]))
             if len(projects) < 1:
-                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED), authquery)[
-                                0:10], FreeProject.objects.filter(authquery)[0:10]))
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED,suspended=False), authquery)[
+                                0:10], FreeProject.objects.filter(Q(suspended=False),authquery)[0:10]))
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
         elif type == "trending-topics":
             # TODO

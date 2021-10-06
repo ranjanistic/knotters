@@ -28,13 +28,15 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
         isRequestor = moderation.isRequestor(request.user.profile)
         if not isRequestor and not isModerator:
             raise Exception()
-        data = dict(moderation=moderation,ismoderator=isModerator)
+        data = dict(moderation=moderation, ismoderator=isModerator)
         if moderation.type == COMPETE:
             if isRequestor:
-                data = dict(**data, allSubmissionsMarkedByJudge=moderation.competition.allSubmissionsMarkedByJudge(request.user.profile))
+                data = dict(
+                    **data, allSubmissionsMarkedByJudge=moderation.competition.allSubmissionsMarkedByJudge(request.user.profile))
         if moderation.type == PROJECTS and moderation.resolved:
-            forwarded = Moderation.objects.filter(~Q(id=id),type=PROJECTS,project=moderation.project,resolved=False).order_by('-requestOn').first()
-            data = dict(**data,forwarded=forwarded)
+            forwarded = Moderation.objects.filter(
+                ~Q(id=id), type=PROJECTS, project=moderation.project, resolved=False).order_by('-requestOn').first()
+            data = dict(**data, forwarded=forwarded)
         return renderer(request, moderation.type, data)
     except:
         raise Http404()
@@ -89,14 +91,17 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     Moderator action on moderation. (Project, primarily)
     """
     try:
-        mod = Moderation.objects.get(id=modID, moderator=request.user.profile, resolved=False)
+        mod = Moderation.objects.get(
+            id=modID, moderator=request.user.profile, resolved=False)
         skip = request.POST.get('skip', None)
         if skip:
-            newmod = getModeratorToAssignModeration(mod.type,mod.object,[mod.moderator])
+            newmod = getModeratorToAssignModeration(
+                mod.type, mod.object, [mod.moderator])
             mod.moderator = newmod
             mod.save()
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}",mod)
-            return respondRedirect(PEOPLE,'',alert=Message.MODERATION_SKIPPED)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}", mod)
+            return respondRedirect(PEOPLE, '', alert=Message.MODERATION_SKIPPED)
         else:
             approve = request.POST.get('approve', None)
             if approve == None:
@@ -104,7 +109,8 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             if not approve:
                 done = mod.reject()
                 if done and mod.type == PROJECTS:
-                    addMethodToAsyncQueue(f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}",mod.project)
+                    addMethodToAsyncQueue(
+                        f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}", mod.project)
                 return respondJson(Code.OK if done else Code.NO)
             elif approve:
                 done = mod.approve()
@@ -155,17 +161,19 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
     To finalize valid submissions for judgement of a competition under moderation.
     """
     try:
-        mod = Moderation.objects.get(id=modID, type=COMPETE, status=Code.MODERATION, resolved=False, moderator=request.user.profile)
+        mod = Moderation.objects.get(
+            id=modID, type=COMPETE, status=Code.MODERATION, resolved=False, moderator=request.user.profile)
         submissions = request.POST['submissions']
         invalidSubIDs = []
         for sub in submissions:
             if not sub['valid']:
                 invalidSubIDs.append(sub['subID'])
         Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
-        mod.status=Code.APPROVED
-        mod.resolved=True
+        mod.status = Code.APPROVED
+        mod.resolved = True
         mod.save()
-        addMethodToAsyncQueue(f"{COMPETE}.mailers.{submissionsModeratedAlert.__name__}", mod.competition)
+        addMethodToAsyncQueue(
+            f"{COMPETE}.mailers.{submissionsModeratedAlert.__name__}", mod.competition)
         return respondJson(Code.OK)
     except:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -176,10 +184,11 @@ def reportCategories(request: WSGIRequest):
         categories = ReportCategory.objects.all()
         reports = []
         for cat in categories:
-            reports.append(dict(id=cat.id,name=cat.name))
+            reports.append(dict(id=cat.id, name=cat.name))
         return respondJson(Code.OK, dict(reports=reports))
     except Exception as e:
         return respondJson(Code.NO)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -189,9 +198,8 @@ def reportModeration(request: WSGIRequest):
         moderationID = request.POST['moderationID']
         moderation = Moderation.objects.get(id=moderationID)
         category = ReportCategory.objects.get(id=report)
-        request.user.profile.reportModeration(moderation,category)
+        request.user.profile.reportModeration(moderation, category)
         return respondJson(Code.OK)
     except Exception as e:
         print(e)
         return respondJson(Code.NO)
-    

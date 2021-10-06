@@ -58,7 +58,8 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         if request.user.is_authenticated and request.user.id == userID:
             profile = request.user.profile
         else:
-            profile = Profile.objects.get(user__id=userID,user__emailaddress__verified=True)
+            profile = Profile.objects.get(
+                user__id=userID, user__emailaddress__verified=True)
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
                 raise Exception()
@@ -269,7 +270,8 @@ def profileSuccessor(request: WSGIRequest):
                     return respondJson(Code.NO)
             elif userID and request.user.email != userID:
                 try:
-                    successor = User.objects.get(email=userID, emailaddress__verified=True)
+                    successor = User.objects.get(
+                        email=userID, emailaddress__verified=True)
                     if successor.profile.isBlocked(request.user):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
                     if not successor.profile.ghID and not successor.profile.githubID:
@@ -341,7 +343,7 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
             raise Exception()
 
-        predecessor = User.objects.get(id=predID,emailaddress__verified=True)
+        predecessor = User.objects.get(id=predID, emailaddress__verified=True)
 
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
             raise Exception()
@@ -368,11 +370,13 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         if accept:
             alert = Message.SUCCESSORSHIP_ACCEPTED
             if not deleted:
-                addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorAccepted.__name__}", successor, predecessor)
+                addMethodToAsyncQueue(
+                    f"{APPNAME}.mailers.{successorAccepted.__name__}", successor, predecessor)
         else:
             alert = Message.SUCCESSORSHIP_DECLINED
             if not deleted:
-                addMethodToAsyncQueue(f"{APPNAME}.mailers.{successorDeclined.__name__}", request.user, predecessor)
+                addMethodToAsyncQueue(
+                    f"{APPNAME}.mailers.{successorDeclined.__name__}", request.user, predecessor)
         if not deleted:
             return redirect(predecessor.profile.getLink(alert=alert))
         return redirect(request.user.profile.getLink(alert=alert))
@@ -440,7 +444,7 @@ def reportUser(request: WSGIRequest):
     try:
         report = request.POST['report']
         userID = request.POST['userID']
-        user = User.objects.get(id=userID,emailaddress__verified=True)
+        user = User.objects.get(id=userID, emailaddress__verified=True)
         category = ReportCategory.objects.get(id=report)
         request.user.profile.reportUser(user, category)
         return respondJson(Code.OK)
@@ -453,7 +457,7 @@ def reportUser(request: WSGIRequest):
 def blockUser(request: WSGIRequest):
     try:
         userID = request.POST['userID']
-        user = User.objects.get(id=userID,emailaddress__verified=True)
+        user = User.objects.get(id=userID, emailaddress__verified=True)
         request.user.profile.blockUser(user)
         return respondJson(Code.OK)
     except Exception as e:
@@ -521,7 +525,8 @@ def browseSearch(request: WSGIRequest):
         excludeIDs = request.user.profile.blockedIDs
     fname, lname = convertToFLname(query)
     profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
-        Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False),
+        Q(user__emailaddress__verified=True, is_active=True,
+          suspended=False, to_be_zombie=False),
         Q(user__email__istartswith=query)
         | Q(user__email__icontains=query)
         | Q(user__first_name__istartswith=fname)

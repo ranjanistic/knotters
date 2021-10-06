@@ -15,7 +15,7 @@ from main.decorators import require_JSON_body, normal_profile_required, manager_
 from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
-from .models import Competition, ParticipantCertificate,AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
+from .models import Competition, ParticipantCertificate, AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
 from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates
 from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
@@ -475,7 +475,8 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
         result = cache.get(f"competition_result_{resID}")
         if not result:
             result = Result.objects.get(id=resID)
-            cache.set(f"competition_result_{resID}", result, settings.CACHE_MAX)
+            cache.set(f"competition_result_{resID}",
+                      result, settings.CACHE_MAX)
         topics = []
         for top in result.topic_points:
             topics.append(dict(
@@ -488,22 +489,26 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
         print(e)
         return respondJson(Code.NO)
 
+
 @require_GET
 # @cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
 
+
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def certificateVerify(request: WSGIRequest) -> HttpResponse:
-    certID = request.POST.get('certID', request.GET.get('id',None))
+    certID = request.POST.get('certID', request.GET.get('id', None))
     try:
         if not certID:
             return respondRedirect(APPNAME, URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
-        partcert = ParticipantCertificate.objects.filter(id=UUID(str(certID).strip())).first()
+        partcert = ParticipantCertificate.objects.filter(
+            id=UUID(str(certID).strip())).first()
         if partcert and partcert.certificate:
             return respondRedirect(APPNAME, URL.compete.certficate(partcert.result.getID(), partcert.profile.getUserID()))
-        
-        appcert = AppreciationCertificate.objects.filter(id=UUID(str(certID).strip())).first()
+
+        appcert = AppreciationCertificate.objects.filter(
+            id=UUID(str(certID).strip())).first()
         if appcert and appcert.certificate:
             return respondRedirect(APPNAME, URL.compete.apprCertificate(appcert.competition.get_id, appcert.appreciatee.getUserID()))
 
@@ -540,6 +545,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         errorLog(e)
         raise Http404()
 
+
 @require_GET
 # @cache_page(settings.CACHE_MINI)
 def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
@@ -549,12 +555,14 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
             person = request.user.profile
         else:
             self = False
-            person = Profile.objects.get(user__id=userID, suspended=False, to_be_zombie=False)
+            person = Profile.objects.get(
+                user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and person.isBlocked(request.user):
             raise Exception()
 
-        appcert = AppreciationCertificate.objects.filter(competition__id=compID, appreciatee=person).first()
+        appcert = AppreciationCertificate.objects.filter(
+            competition__id=compID, appreciatee=person).first()
 
         certpath = False if not appcert else appcert.getCertImage if appcert.certificate else False
         certID = False if not appcert else appcert.get_id
@@ -613,7 +621,8 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
             settings.MEDIA_ROOT, str(partcert.certificate))
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
-                response = HttpResponse(fh.read(), content_type="application/pdf")
+                response = HttpResponse(
+                    fh.read(), content_type="application/pdf")
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response
@@ -621,6 +630,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
     except Exception as e:
         errorLog(e)
         raise Http404()
+
 
 @normal_profile_required
 @require_GET
@@ -631,12 +641,14 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
             person = request.user.profile
         else:
             raise Exception()
-        appcert = AppreciationCertificate.objects.get(competition__id=compID, appreciatee=person)
+        appcert = AppreciationCertificate.objects.get(
+            competition__id=compID, appreciatee=person)
 
         file_path = os.path.join(settings.MEDIA_ROOT, str(appcert.certificate))
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
-                response = HttpResponse(fh.read(), content_type="application/pdf")
+                response = HttpResponse(
+                    fh.read(), content_type="application/pdf")
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response

@@ -7,7 +7,8 @@ if str(input('This will override previously done setup, if any. Continue? (y/n) 
     print('Creating _logs_/error.txt')
     try:
         os.mkdir('_logs_')
-    except: pass
+    except:
+        pass
     f = open('_logs_/error.txt', 'w')
     f.write('Exception logs will also remain here.')
     f.close()
@@ -25,11 +26,13 @@ if str(input('This will override previously done setup, if any. Continue? (y/n) 
 
     print(f'Creating {ENVTESTPATH}')
     tenvf = open(ENVTESTPATH, 'w')
-    envcontent = envcontent.replace('development','testing').replace('HOSTS=127.0.0.1','HOSTS=127.0.0.1,testserver')
+    envcontent = envcontent.replace('development', 'testing').replace(
+        'HOSTS=127.0.0.1', 'HOSTS=127.0.0.1,testserver')
     tenvf.write(envcontent)
     tenvf.close()
     print(f'Created {ENVTESTPATH}')
 
     print('Setup complete.')
-    print(f'NOTE: Values at {ENVPATH} and {ENVTESTPATH} might still require manual edit.\n')
+    print(
+        f'NOTE: Values at {ENVPATH} and {ENVTESTPATH} might still require manual edit.\n')
     print('You may now proceed with the next steps.')

@@ -44,7 +44,7 @@ def moderators(request: WSGIRequest):
     moderators = Profile.objects.exclude(user__email__in=[
                                          request.user.email, BOTMAIL]).filter(is_moderator=True, to_be_zombie=False)
     profiles = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
-        user__emailaddress__verified=True, 
+        user__emailaddress__verified=True,
         is_moderator=False, to_be_zombie=False, is_active=True).order_by('-xp')[0:10]
     return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
 
@@ -58,9 +58,10 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
             Q(
-                Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False, is_moderator=False),
-                Q(user__email__startswith=query) 
-                | Q(user__first_name__startswith=query) 
+                Q(user__emailaddress__verified=True, is_active=True,
+                  suspended=False, to_be_zombie=False, is_moderator=False),
+                Q(user__email__startswith=query)
+                | Q(user__first_name__startswith=query)
                 | Q(githubID__startswith=query)
             )
         ).first()
@@ -270,9 +271,10 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         excludeIDs = request.POST.get('excludeIDs', [])
         profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
             Q(
-                Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False), 
-                Q(user__email__startswith=query) 
-                | Q(user__first_name__startswith=query) 
+                Q(user__emailaddress__verified=True, is_active=True,
+                  suspended=False, to_be_zombie=False),
+                Q(user__email__startswith=query)
+                | Q(user__first_name__startswith=query)
                 | Q(githubID__startswith=query)
             )
         ).first()
@@ -300,9 +302,10 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         excludeIDs = request.POST.get('excludeIDs', [])
         profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
             Q(
-                Q(user__emailaddress__verified=True, is_active=True, suspended=False, to_be_zombie=False, is_moderator=True),
-                Q(user__email__startswith=query) 
-                | Q(user__first_name__startswith=query) 
+                Q(user__emailaddress__verified=True, is_active=True,
+                  suspended=False, to_be_zombie=False, is_moderator=True),
+                Q(user__email__startswith=query)
+                | Q(user__first_name__startswith=query)
                 | Q(githubID__startswith=query)
             )
         ).first()
