@@ -29,9 +29,9 @@ window.addEventListener("load", () => {
         localStorage.removeItem(Key.futureMessage)
     }
 
-    if(window.location.host.startsWith('beta.') && !window.sessionStorage.getItem('beta-alerted')){
+    if(window.location.host.startsWith('beta.')||true){
         getElements('beta-alert-view').forEach((elem)=>show(elem))
-        betaAlert()
+        if (!window.sessionStorage.getItem('beta-alerted')) betaAlert()
     }
 });
 
