@@ -28,6 +28,11 @@ window.addEventListener("load", () => {
         message(localStorage.getItem(Key.futureMessage))
         localStorage.removeItem(Key.futureMessage)
     }
+
+    if(window.location.host.startsWith('beta.') && !window.sessionStorage.getItem('beta-alerted')){
+        getElements('beta-alert-view').forEach((elem)=>show(elem))
+        betaAlert()
+    }
 });
 
 addEventListener('keydown',(e)=>{

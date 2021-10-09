@@ -6,7 +6,6 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import login_required
-from allauth.account.models import EmailAddress
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import github_only, require_JSON_body, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData

@@ -194,7 +194,9 @@ const loadGlobalEventListeners = () => {
             view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message('Press Alt+R for introduction, or visit The Landing Page')
+                message(
+                    "Press Alt+R for introduction, or visit The Landing Page"
+                );
                 hide(view);
             });
         }
@@ -677,7 +679,7 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        console.debug(e)
+                        console.debug(e);
                         error(
                             `An error occurred. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
@@ -691,7 +693,7 @@ const handleCropImageUpload = (
                 cancel: "Cancel",
             });
         const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
-            ...(ratio!==true?{aspectRatio:ratio}:{}),
+            ...(ratio !== true ? { aspectRatio: ratio } : {}),
             viewMode: 1,
             responsive: true,
             center: true,
@@ -1082,4 +1084,37 @@ const restartIntros = () => {
             localStorage.removeItem(key);
         }
     });
+};
+
+const betaAlert = () => {
+    if (window.location.host.startsWith("beta.")||1) {
+        alertify
+            .confirm(
+                "<h6>This is Knotters Beta</h6>",
+                `<h5>Welcome to Knotters Beta, the pre-stable version of Knotters.
+                New features become available here before Knotters.<br/>
+                You'll have to create an account here separately from Knotters. None of the information at Knotters will be made available here.<br/>
+                By continuing, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
+            </h5>
+            <h5>
+                You can go to the stable Knotters (knotters.org) if you're here by mistake.
+            </h5>
+            `,
+                () => {
+                    window.location.href = window.location.href.replace(
+                        "//beta.",
+                        "//"
+                    );
+                },
+                () => {
+                    window.sessionStorage.setItem('beta-alerted', 1)
+                    message("Remember, you're using Knotters Beta.");
+                }
+            )
+            .set("closable", false)
+            .set("labels", {
+                ok: "Go to Knotters",
+                cancel: "Stay in Knotters Beta",
+            });
+    }
 };
