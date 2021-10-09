@@ -3,9 +3,10 @@ name: Beta CD
 on:
   push:
     branches: [ beta ]
-    paths:
-      - '**/.py'
-      - '**/.po'
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.bat"
+      - "**/*.sh"
       
 jobs:
   deploy:
