@@ -190,7 +190,6 @@
     </div>
     <br/>
     </form>
-<<<<<<< HEAD
     {% comment %} <div class="container">
         <form id="form" action="">
             <div>
@@ -207,11 +206,9 @@
         </form>	
     </div> {% endcomment %}
 
-=======
     <center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
     <button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button></center>
     <br/>
->>>>>>> landing
 </div>
 
 {% endblock %}
@@ -222,11 +219,6 @@
 
 {% block in_scripts %}
 <script>
-<<<<<<< HEAD
-        
-    </script>
-<script>
-=======
     getElement('addperksbutton').onclick=_=>{
         const parent=document.getElementById('perkDetails');
         const position=parent.childElementCount-1;
@@ -244,7 +236,6 @@
         `;
         parent.insertBefore(newChild,parent.childNodes[position+3]);
     }
->>>>>>> landing
 
      initializeTabsView({
         onEachTab: async (tab) => {

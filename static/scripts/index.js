@@ -781,7 +781,7 @@ const handleFileUpload = (fileoutputs=[], title='Upload') => {
     }
 }
 
-const hadnleMultiFileUpload = (
+const handleMultiFileUpload = (
     limit=3,
     onSubmit = (files) => {}
 ) => {
@@ -790,7 +790,7 @@ const hadnleMultiFileUpload = (
         `
         <div class="container">
             <form id="form" action="">
-                <div>
+                <div hidden>
                     <label for="upload">
                         <input type="file" class="file positive" id="input multifile" hidden>
                         <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Add Files</label></button><br/><br/>
@@ -799,7 +799,17 @@ const hadnleMultiFileUpload = (
                 </div>
                 <div class="files">
                     <h2>Files Selected</h2>
-                    <ul id="ul"></ul>
+                    <div id="ul" class="w3-row">
+                        <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
+                            <div class="pallete primary pointer">
+                                <i class="w3-jumbo material-icons positive-text">add_circle</i>
+                                <label for="upload">
+                                    <input type="file" class="file positive" id="input multifile" hidden>
+                                    <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Add Files</label></button><br/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>	
         </div>
@@ -837,8 +847,8 @@ const hadnleMultiFileUpload = (
         if (multiFiles.length > limit) {
             error("Limit Exceeded");
         } else {
-            
-            let fileMap = multiFiles.map((file, index) => {
+            document.getElementById("ul").innerHTML = ``;
+            multiFiles.forEach((file, index) => {
                 let suffix = "bytes";
                 let size = file.size;
                 if (size >= 1024 && size < 1024000) {
@@ -849,9 +859,25 @@ const hadnleMultiFileUpload = (
                     size = Math.round(size / 1024000 * 100) / 100;
                 }
 
-                return `<li key="${index}"><input class="file-size" id="name_${file.id}" type="text" value="${file.name}"></input><i class="material-icons md-48 delete-files" id=${file.id} value=${file.id}>delete</i><label  for="name_${file.id}"><i class="material-icons md-48 cloud">cloud</i></label></li>`;
+                document.getElementById("ul").innerHTML += `<div key="${index}" class="w3-col w3-third">
+                                                                <div class="w3-padding-small w3-center">
+                                                                    <div class="pallete accent">
+                                                                        <i class="w3-jumbo material-icons">folder</i>
+                                                                        <input class="wide file-size" id="name_${file.id}" type="text" value="${file.name}"></input><i class="material-icons md-48 delete-files" id=${file.id} value=${file.id}>delete</i><label  for="name_${file.id}"></label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+            `;
             });
-            document.getElementById("ul").innerHTML =fileMap;
+            document.getElementById("ul").innerHTML += ` <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
+                                                            <div class="pallete primary pointer">
+                                                                <i class="w3-jumbo material-icons positive-text">add_circle</i>
+                                                                <label for="upload">
+                                                                    <input type="file" class="file positive" id="input multifile" hidden>
+                                                                    <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Add Files</label></button><br/>
+                                                                </label>
+                                                            </div>
+                                                        </div>`;
         }
 
         for (var data of multiFiles) {

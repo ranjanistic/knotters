@@ -73,7 +73,7 @@
           <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
-            <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%} name align">{{ person.getName }} <i class="w3-margin-left w3-text-blue w3-large material-icons">check_circle</i></h5>
+            <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%} name align">{{ person.getName }} <i class="positive-text w3-large material-icons">check_circle</i></h5>
             <span class="w3-tiny w3-tag w3-round-xxlarge w3-border accent" style="margin-bottom:10px">MOD</span><br/>
             <span class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.profile.getBio }}</span>
           </div>
