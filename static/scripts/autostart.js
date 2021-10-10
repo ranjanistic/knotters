@@ -29,7 +29,7 @@ window.addEventListener("load", () => {
         localStorage.removeItem(Key.futureMessage)
     }
 
-    if(window.location.host.startsWith('beta.')||true){
+    if(window.location.host.startsWith('beta.')){
         getElements('beta-alert-view').forEach((elem)=>show(elem))
         if (!window.sessionStorage.getItem('beta-alerted')) betaAlert()
     }
