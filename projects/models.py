@@ -229,6 +229,10 @@ class BaseProject(models.Model):
     def is_free(self):
         return FreeProject.objects.filter(id=self.id).exists()
 
+    @property
+    def is_approved(self):
+        return Project.objects.filter(id=self.id,status=Code.APPROVED).exists()
+
     def getProject(self,onlyApproved=False):
         try:
             project = FreeProject.objects.get(id=self.id)
