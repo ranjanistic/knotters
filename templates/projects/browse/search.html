@@ -11,6 +11,7 @@
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
             {% for project in projects %}
+             {% if project.isApproved or not project.verified %}
             <div class="swiper-slide">
                 <a href="{{project.getLink}}">
                     <div class="pallete w3-center no-pad">
@@ -23,6 +24,7 @@
                     </div>
                 </a>
             </div>
+            {% endif %}
             {% empty %}
             <div class="w3-padding w3-col">
             <center class="w3-padding">
@@ -36,6 +38,7 @@
     <div class="w3-hide-large w3-row">
         <div class="swiper-wrap_i">
             {% for project in projects %}
+             {% if project.isApproved or not project.verified %}
             <div class="w3-col">
                 <a href="{{project.getLink}}">
                     <div class="pallete pallete_i w3-center">
@@ -48,6 +51,7 @@
                     </div>
                 </a>
             </div>
+            {% endif %}
             {% empty %}
             <div class="w3-padding w3-col">
             <center class="w3-padding">
