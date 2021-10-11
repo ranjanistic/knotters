@@ -678,31 +678,21 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
 @require_GET
 def browseSearch(request: WSGIRequest):
     query = request.GET.get('query', '')
-    projects = Project.objects.exclude(trashed=True).filter(Q(
-        Q(status=Code.APPROVED),
+    projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
         Q(name__istartswith=query)
-        | Q(name__endswith=query)
+        | Q(name__iendswith=query)
         | Q(name__iexact=query)
+        | Q(name__icontains=query)
         | Q(reponame__istartswith=query)
         | Q(reponame__iexact=query)
+        | Q(reponame__icontains=query)
+        | Q(description__icontains=query)
         | Q(creator__user__first_name__istartswith=query)
         | Q(creator__user__last_name__istartswith=query)
         | Q(creator__user__email__istartswith=query)
         | Q(creator__githubID__istartswith=query)
         | Q(creator__githubID__iexact=query)
     ))[0:10]
-    projects = chain(projects, FreeProject.objects.exclude(trashed=True).filter(Q(
-        Q(name__istartswith=query)
-        | Q(name__endswith=query)
-        | Q(name__iexact=query)
-        | Q(nickname__istartswith=query)
-        | Q(nickname__iexact=query)
-        | Q(creator__user__first_name__istartswith=query)
-        | Q(creator__user__last_name__istartswith=query)
-        | Q(creator__user__email__istartswith=query)
-        | Q(creator__githubID__istartswith=query)
-        | Q(creator__githubID__iexact=query)
-    ))[0:10])
     return rendererstr(request, Template.Projects.BROWSE_SEARCH, dict(projects=projects, query=query))
 
 
