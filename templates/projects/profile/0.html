@@ -226,7 +226,7 @@
                     <hr/>
                 </div>
                 <div class="w3-row" id="edit-snapshot">
-                    <input type='file' hidden id='snap-file' />
+                    <input type='file' hidden id='snap-file' accept="image/png, image/jpg, image/jpeg" />
                     <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
                         {% csrf_token %}
                         <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything."></textarea>
