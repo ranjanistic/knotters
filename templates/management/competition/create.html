@@ -12,10 +12,10 @@
 
 {% block content %}
 <div class="w3-row tertiary">
+  <input type="file" accept="image/png, image/jpg, image/jpeg" id="compbannerfile" hidden />
+  <input type="file" accept="image/png, image/jpg, image/jpeg" id="compassociatefile" hidden />
   <form method="POST" action="{{URLS.SUBMIT_COMP}}" id="create-compete-form">
     {% csrf_token %}
-    <input type="file" accept="image/png,image/jpg" id="compbannerfile" hidden />
-    <input type="file" accept="image/png,image/jpg" id="compassociatefile" hidden />
     <input type="text" id="compbanner" name="compbanner" hidden />
     <input type="text" id="compassociate" name="compassociate" hidden />
     <div id="banner">
@@ -27,7 +27,7 @@
         <input required placeholder="End at"  class="create-compete-input" type="datetime-local" name="compendAt" id="compendAt">
       </strong>
     </div>
-    <form class="w3-row w3-padding">
+    <div class="w3-row w3-padding">
       <br/>
       <div class="w3-row">
         <div class="w3-col w3-twothird w3-left w3-padding">
