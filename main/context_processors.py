@@ -18,7 +18,7 @@ def Global(request):
     data = dict(
         APPNAME=PUBNAME,
         CONTACTMAIL=BOTMAIL,
-        DESCRIPTION="Solving problems together.",
+        DESCRIPTION="Solving problems together. Be a part of Knotters community and explore what everyone's involved into.",
         SITE=SITE,
         VERSION=VERSION,
         SUBAPPS=dict(),
