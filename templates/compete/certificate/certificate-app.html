@@ -3,10 +3,10 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block meta_description %}{{person.getName }}'s certificate of participation in {{compete.title}}.{% endblock %}
+{% block meta_description %}{{person.getName }}'s certificate of appreciation for {{compete.title}}.{% endblock %}
 {% block og_url %}{{appcert.get_link}}{% endblock %}
 {% block og_title %}{{person.getFName}}'s Certificate{% endblock %}
-{% block og_description %}{{person.getName }}'s certificate of participation in {{compete.title}}.{% endblock %}
+{% block og_description %}{{person.getName }}'s certificate of appreciation for {{compete.title}}.{% endblock %}
 {% block og_site_name %}{{person.getFName}}'s Certificate{% endblock %}
 {% block og_image_url %}{% if certpath %}{{certpath}}{% else %}{{compete.getBanner}}{% endif %}{% endblock %}
 
@@ -15,7 +15,7 @@
 {% block tw_image_url %}{% if certpath %}{{certpath}}{% else %}{{compete.getBanner}}{% endif %}{% endblock %}
 {% block tw_url %}{{appcert.get_link}}{% endblock %}
 {% block tw_title %}{{person.getFName}}'s Certificate{% endblock %}
-{% block tw_description %}{{person.getName }}'s certificate of participation in {{compete.title}}.{% endblock %}
+{% block tw_description %}{{person.getName }}'s certificate of appreciation for {{compete.title}}.{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
