@@ -252,7 +252,11 @@ class BaseProject(models.Model):
             return Project.objects.get(id=self.id)
         return project or None
 
-
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        project = self.getProject()
+        if project.verified:
+            return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=project.reponame)}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
 
 class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
