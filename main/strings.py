@@ -711,6 +711,11 @@ class URL():
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
 
+        MANAGE_ASSETS = 'assets/<str:projectID>/<str:action>'
+
+        def manageAssets(self, projectID, action):
+            return setPathParams(self.MANAGE_ASSETS, projectID, action)
+
         TOPICSEARCH = "topics/search/<str:projID>/"
 
         def topicsSearch(self, projID):

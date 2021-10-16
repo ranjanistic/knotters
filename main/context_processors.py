@@ -12,6 +12,7 @@ def Global(request):
     # alerts = cache.get(f"global_alerts_{id}") or []
     knotbot = cache.get('profile_knottersbot')
     if not knotbot:
+        print("bot",BOTMAIL)
         knotbot = Profile.objects.get(user__email=BOTMAIL)
         cache.set('profile_knottersbot', knotbot, settings.CACHE_MAX)
 

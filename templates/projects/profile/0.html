@@ -173,7 +173,7 @@
                     {% empty %}
                         {% if iscreator %}
                         <center>
-                        <div class="w3-jumbo material-icons">add_circle</div>
+                        <div class="w3-jumbo material-icons" id="add_assets">add_circle</div>
                         <h5>Add assets</h5>
                         <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
                         <strong class="dead-text">Coming soon</strong>
@@ -265,11 +265,15 @@
 
 {% block in_scripts %}
 <script>
+
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 
 {% if not project.suspended %}
 if (selfProject){
+    getElement('add_assets').onclick=()=>{
+
+    }
     getElement('delete-project').onclick=_=>{
         alertify.confirm('Delete Project', 
         `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and

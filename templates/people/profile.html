@@ -68,13 +68,14 @@
     <div class="w3-row tertiary">
       <br/>
       <div class="w3-col w3-container m4 l3 w3-animate-left">
-        <div class="pallete w3-center w3-animate-zoom {% if person.profile.is_moderator %}accent{% endif%}" style="padding: 0" id="view-pallete">
+        <div class="pallete w3-center w3-animate-zoom" style="padding: 0" id="view-pallete">
           
           <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
-            <h5 class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.getName }}</h5>
-            <span class="{% if person.profile.is_moderator %}text-accent{% endif%}">{{ person.profile.getBio }}</span>
+            <h5 class="{% if person.profile.is_verified %}name align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %} <i class="positive-text w3-large">check_circle</i>{% endif %}</h5>
+            {% if person.profile.is_moderator %}<span class="w3-tiny w3-tag w3-round-xxlarge w3-border accent" style="margin-bottom:10px">MOD</span><br/>{% endif %}
+            <span>{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
           {% if user.is_authenticated and user == person %}
@@ -100,6 +101,7 @@
                 <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{user.getName}}" name="displayname" /><br/><br/>
                 <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="120" name="profilebio" >{{ user.profile.getBio }}</textarea><br/>
               </div>
+              fhd
               <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
               <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>
             </form>

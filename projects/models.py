@@ -147,6 +147,13 @@ class License(models.Model):
     def isCustom(self):
         return self.creator.getEmail() != BOTMAIL
 
+def projectImagePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
+
+def defaultImagePath():
+    return f"{APPNAME}/default.png"
+
 class BaseProject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50, null=False, blank=False)
@@ -340,6 +347,39 @@ class Project(BaseProject):
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+    
+    @property
+    def assets(self):
+        return Asset.objects.filter(project=self)
+
+    @property
+    def total_assets(self):
+        return Asset.objects.filter(project=self).count()
+
+    @property
+    def public_assets(self):
+        return Asset.objects.filter(project=self,public=True)
+
+    @property
+    def total_public_assets(self):
+        return Asset.objects.filter(project=self,public=True).count()
+
+
+
+def assetFilePath(instance, filename):
+    fileparts = filename.split('.')
+    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}.{fileparts[len(fileparts)-1]}"
+
+class Asset(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(Project,on_delete=models.CASCADE)
+    name = models.CharField(max_length=250, null=False, blank=False)
+    file = models.FileField(upload_to=assetFilePath,max_length=500)
+    public = models.BooleanField(default=False)
+
+    @property
+    def get_id(self):
+        return self.id.hex
 
 
 class FreeProject(BaseProject):
@@ -425,6 +465,7 @@ class ProjectSocial(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
     site = models.URLField(max_length=800)
+
 
 class LegalDoc(models.Model):
     class Meta:

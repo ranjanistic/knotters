@@ -190,6 +190,22 @@
     </div>
     <br/>
     </form>
+    {% comment %} <div class="container">
+        <form id="form" action="">
+            <div>
+                <label for="upload">
+                    <input type="file" class="file" id="input" multiple>
+                Upload Files
+                </label>
+            </div>
+            <div class="files" onclick="filesFunc()">
+                <h2>Files Selected</h2>
+                <ul id="ul"></ul>
+            </div>
+            <input type="submit" class="submit" value="Submit" name="submit" id="input" />
+        </form>	
+    </div> {% endcomment %}
+
     <center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
     <button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button></center>
     <br/>
@@ -244,6 +260,66 @@
         onShowTab: (tab)=>{
         },
     });
+
+    {% comment %} let state = {};
+
+        // state management
+        function updateState(newState) {
+            state = { ...state, ...newState };
+            console.log(state);
+        }
+
+        // event handlers
+        console.log("xxxx3");
+        document.getElementById("input").onchange= function(e) {
+            console.log("Input click",e.target.files);
+            let files = e.target.files;
+            let filesArr = Array.from(files);
+            updateState({ files: files, filesArr: filesArr });
+            console.log("updateState==>",files,"  filesAttr==>",filesArr);
+            renderFileList();
+        };
+
+        console.log("xxxx2");
+        const filesFunc = (e)=> {
+            let key = this
+                .parent()
+                .attr("key");
+            console.log("Files click",e.target.className);
+            console.log("Files key",this.parent().attr("key"));
+            let curArr = state.filesArr;
+            curArr.splice(key, 1);
+            updateState({ filesArr: curArr });
+            renderFileList();
+        };
+        console.log("xxxx1");
+        document.getElementById("form").onsubmit= function(e) {
+            console.log("Form click",e.target.className);
+            e.preventDefault();
+            console.log(state);
+            renderFileList();
+        };
+
+        // render functions
+        function renderFileList() {
+            let fileMap = state.filesArr.map((file, index) => {
+                let suffix = "bytes";
+                let size = file.size;
+                if (size >= 1024 && size < 1024000) {
+                    suffix = "KB";
+                    size = Math.round(size / 1024 * 100) / 100;
+                } else if (size >= 1024000) {
+                    suffix = "MB";
+                    size = Math.round(size / 1024000 * 100) / 100;
+                }
+
+                return `<li key="${index}">${
+                    file.name
+                } <span class="file-size">${size} ${suffix}</span><i class="material-icons md-48">delete</i></li>`;
+            });
+            console.log("new line==>",state);
+            document.getElementById("ul").innerHTML =fileMap;
+        } {% endcomment %}
 
     let excludemods = [];
     let excludejudges = [];

@@ -1,6 +1,7 @@
 import os
 import requests
 import base64
+from uuid import uuid4
 import re
 import json
 from django.core.handlers.wsgi import WSGIRequest
@@ -171,7 +172,16 @@ def base64ToImageFile(base64Data: base64) -> File:
         ext = format.split('/')[-1]
         if not ['jpg', 'png', 'jpeg'].__contains__(ext):
             return False
-        return ContentFile(base64.b64decode(imgstr), name='profile.' + ext)
+        return ContentFile(base64.b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
+    except Exception as e:
+        errorLog(e)
+        return None
+
+def base64ToFile(base64Data: base64) -> File:
+    try:
+        format, filestr = base64Data.split(';base64,')
+        ext = format.split('/')[-1]
+        return ContentFile(base64.b64decode(filestr), name=f"{uuid4().hex}.{ext}")
     except Exception as e:
         errorLog(e)
         return None
