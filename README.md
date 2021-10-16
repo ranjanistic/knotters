@@ -119,6 +119,8 @@ coverage html
 
 ## Footnotes
 
+- Any push on beta branch deploys it directly to [beta.knotters.org](https://beta.knotters.org)
+
 - Try to separate changes in client side & server side code using separate branches, for efficient workflow run.
 
 - Try to publish the server sided changes before client side ones for better update delivery.
