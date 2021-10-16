@@ -25,7 +25,7 @@
             <div class="pallete" style="padding:0" id="view-pallete">
                 <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
                 <div class="w3-row w3-center w3-padding-small">
-                <h5 class="align name">{{project.name}}<i class="positive-text w3-large material-icons">check_circle</i></h5>
+                <h5>{{project.name}}</h5>
                 <center>{{project.description}}</center>
                 </div>
                 <div class="w3-row w3-padding-small">
@@ -272,7 +272,7 @@ const selfProject = "{{iscreator}}"==='True';
 {% if not project.suspended %}
 if (selfProject){
     getElement('add_assets').onclick=()=>{
-        handleMultiFileUpload(10,()=>{});
+
     }
     getElement('delete-project').onclick=_=>{
         alertify.confirm('Delete Project', 
