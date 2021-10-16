@@ -53,3 +53,77 @@ textarea.invalid {
   padding: 0 !important;
   margin: 0 !important;
 }
+
+.file {
+	position: absolute;
+	right: -9999px;
+	visibility: hidden;
+	opacity: 0;
+}
+.submit {
+	position: relative;
+	padding: 1rem 3rem;
+	background: #0c8fda;
+	display: inline-block;
+	text-align: center;
+	overflow: hidden;
+	border-radius: 10px;
+	border: 0;
+	color:#fff;
+}
+.submit:hover {
+  background: darken(#0c8fda, 5);
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s all;
+}
+label {
+	position: relative;
+	padding: 1rem 3rem;
+	background: #eee;
+	display: inline-block;
+	text-align: center;
+	overflow: hidden;
+	border-radius: 10px;
+}
+label:hover {
+  background: #0c8fda;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s all;
+}
+
+
+.files {
+  background: #eee;
+  padding: 1rem;
+  margin:1rem 0;
+  border-radius:10px;
+}
+#ul{
+  list-style:none;
+  padding:0;
+  max-height:150px;
+  overflow:auto;
+}
+.files>ul>li{
+  padding:0.5rem 0;
+  padding-right:2rem;
+  position:relative;
+}
+.files>ul>li>i{
+  cursor:pointer;
+  position:absolute;
+  top:50%;
+  right:0;
+  transform:translatey(-50%);
+}
+.container {
+  width: 100%;
+  padding: 0 2rem;
+}
+
+span.file-size {
+	color: #999;
+	padding-left: 0.5rem;
+}

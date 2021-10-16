@@ -326,6 +326,37 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 
 @normal_profile_required
 @require_JSON_body
+def manageAssets(request: WSGIRequest, projID: UUID, action:str) -> JsonResponse:
+    try:
+        project = Project.objects.get(id=projID,creator=request.user.profile)
+        if action == Action.ADD:
+            name = str(request.POST['filename']).strip()
+            file = base64ToFile(request.POST['filedata'])
+            public = request.POST.get('public',False)
+            asset = Asset.objects.create(project=project,name=name,file=file,public=public)
+            return respondJson(Code.OK,dict(asset=dict(
+                id=asset.id,
+                name=asset.name
+            )))
+        elif action == Action.UPDATE:
+            assetID = request.POST['assetID']
+            name = str(request.POST['filename']).strip()
+            public = request.POST['public']
+            Asset.objects.filter(id=assetID,project=project).update(name=name,public=public)
+            return respondJson(Code.OK)
+        elif action == Action.REMOVE:
+            assetID = request.POST['assetID']
+            Asset.objects.filter(id=assetID,project=project).delete()
+            return respondJson(Code.OK)
+        else:
+            return respondJson(Code.NO)
+    except Exception as e:
+        print(e)
+        return respondJson(Code.NO)
+
+
+@normal_profile_required
+@require_JSON_body
 def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
     try:
         query = request.POST.get('query', None)

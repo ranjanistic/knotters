@@ -725,6 +725,191 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     return blob;
 };
 
+const fileToBase64 = async (file) => {
+    try{
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    } catch(e) {
+        error('Failed to process file')
+        return null
+    }
+}
+
+const handleFileUpload = (fileoutputs=[], title='Upload') => {
+    let fileinputs = '';
+    let inputIDs = []
+    fileoutputs.forEach((f)=>{
+        let id = `handle-file-input-${f.id}`
+        fileinputs+=`<input hidden id="${id}" type="file" />`
+        inputIDs.push(id)
+    })
+    alertify.confirm(title,
+        `
+        ${fileinputs}
+        <div class="w3-row">
+            <div class="w3-row" id="handle-file-upload-view">
+                
+            </div>
+            <div class="w3-row w3-center">
+                <button class="primary" id="handle-file-upload-action">${Icon('add')}Add file</button>
+            </div>
+        </div>
+        `,
+        ()=>{},
+        ()=>{}
+    ).set('closable', false).set('labels',{ok:'Done', cancel:'Discard'})
+    
+    getElement('handle-file-upload-action').onclick=_=>{
+        inputIDs.some((inp)=>{
+            if(!getElement(inp).files[0]){
+                getElement(inp).onchange=async(e)=>{
+                    let b64 = await fileToBase64(Array.from(e.target.files)[0])
+                    if(!b64) return
+                    getElement('handle-file-upload-view').innerHTML+=`<input type='text' `
+                    fileoutputs.some((out)=>{if(`handle-file-input-${out.id}`===inp){
+                        out.value = b64
+                        return true
+                    }})
+                }
+                getElement(inp).click()
+                return true
+            }
+            return false
+        })
+    }
+}
+
+const handleMultiFileUpload = (
+    limit=3,
+    onSubmit = (files) => {}
+) => {
+    let multiFiles = [];
+    alertify.confirm("Multiple Files Upload",
+        `
+        <div class="container">
+            <form id="form" action="">
+                <div hidden>
+                    <label for="upload">
+                        <input type="file" class="file positive" id="input multifile" hidden>
+                        <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Add Files</label></button><br/><br/>
+                        Upload Files
+                    </label>
+                </div>
+                <div class="files">
+                    <h2>Files Selected</h2>
+                    <div id="ul" class="w3-row">
+                        <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
+                            <div class="pallete primary pointer">
+                                <i class="w3-jumbo material-icons positive-text">add_circle</i>
+                                <label for="upload">
+                                    <input type="file" class="file positive" id="input multifile" hidden>
+                                    <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Add Files</label></button><br/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>	
+        </div>
+        `,
+        () => {
+            onSubmit(multiFiles)
+        },
+        ()=>{}
+    ).set('closable', false).set('labels',{ok:'Done', cancel:'Discard'})
+    
+    
+   
+
+        // event handlers
+        document.getElementById("input multifile").onchange= async (e) => {
+            let files = e.target.files;
+            // let filesArr = Array.from(files);
+            for (var data of multiFiles) {
+                if (data.name == files[0].name) {
+                    return;
+                }
+            }
+            multiFiles.push({ id:Date.now(),name: files[0].name, size: files[0].size, content: await fileToBase64(files[0]) });
+            renderFileList();
+        };
+
+       
+        document.getElementById("form").onsubmit= function(e) {
+            e.preventDefault();
+            renderFileList();
+        };
+
+        // render functions
+    function renderFileList() {
+        if (multiFiles.length > limit) {
+            error("Limit Exceeded");
+        } else {
+            document.getElementById("ul").innerHTML = ``;
+            multiFiles.forEach((file, index) => {
+                let suffix = "bytes";
+                let size = file.size;
+                if (size >= 1024 && size < 1024000) {
+                    suffix = "KB";
+                    size = Math.round(size / 1024 * 100) / 100;
+                } else if (size >= 1024000) {
+                    suffix = "MB";
+                    size = Math.round(size / 1024000 * 100) / 100;
+                }
+
+                document.getElementById("ul").innerHTML += `<div key="${index}" class="w3-col w3-third">
+                                                                <div class="w3-padding-small w3-center">
+                                                                    <div class="pallete accent">
+                                                                        <i class="w3-jumbo material-icons">folder</i>
+                                                                        <input class="wide file-size" id="name_${file.id}" type="text" value="${file.name}"></input><i class="material-icons md-48 delete-files" id=${file.id} value=${file.id}>delete</i><label  for="name_${file.id}"></label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+            `;
+            });
+            document.getElementById("ul").innerHTML += ` <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
+                                                            <div class="pallete primary pointer">
+                                                                <i class="w3-jumbo material-icons positive-text">add_circle</i>
+                                                                <label for="upload">
+                                                                    <input type="file" class="file positive" id="input multifile" hidden>
+                                                                    <button class="active" type="button" data-icon="upload"><label for="input multifile" id="mutlifilebutton">Add Files</label></button><br/>
+                                                                </label>
+                                                            </div>
+                                                        </div>`;
+        }
+
+        for (var data of multiFiles) {
+            const ele = document.getElementById(`name_${data.id}`);
+            ele.addEventListener("change", (e) => {
+                data.name = ele.value;
+            })
+        }
+
+        for (var data of multiFiles) {
+            const ele = document.getElementById(data.id);
+
+            ele.addEventListener ("click", (e) => {
+                const newArr = multiFiles.filter(file =>  ele.id != file.id);
+                multiFiles = newArr;
+                renderFileList();
+            })
+        }
+    }
+    
+    const delFunc = (e) => {
+        // let key = document.body.parentNode.dataset.key;
+        // console.log("Files click",document.body.parentNode.className);
+        // console.log("Files key",document.body.parentNode.dataset.key);
+        multiFiles.splice(e.value, 1);
+        renderFileList();
+    };
+}
+
+
 const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown = getElement(dropdownID);
     const selectedOptionDiv = document.createElement("div");
