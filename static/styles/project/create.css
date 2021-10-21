@@ -77,7 +77,7 @@ textarea.invalid {
   cursor: pointer;
   transition: 0.2s all;
 }
-label {
+/*label {
 	position: relative;
 	padding: 1rem 3rem;
 	background: #eee;
@@ -91,7 +91,7 @@ label:hover {
   color: #fff;
   cursor: pointer;
   transition: 0.2s all;
-}
+}*/
 
 
 .files {
