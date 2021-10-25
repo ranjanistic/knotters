@@ -12,9 +12,9 @@ class CustomSignupForm(SignupForm):
     def save(self,request):
         try:
             fname, lname = convertToFLname(str(self.cleaned_data["first_name"]))
-            self.cleaned_data["first_name"] = fname.replace('https://','_').replace('http://','_').replace('.','_')
+            self.cleaned_data["first_name"] = fname.replace('https://','_').replace('http://','_')
             if lname:
-                self.cleaned_data["last_name"] = lname.replace('https://','_').replace('http://','_').replace('.','_')
+                self.cleaned_data["last_name"] = lname.replace('https://','_').replace('http://','_')
         except:
             pass
         return super(CustomSignupForm,self).save(request)        
