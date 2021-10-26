@@ -158,7 +158,7 @@ class Robots(TemplateView):
         return context
 
 
-@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
+# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
