@@ -4,7 +4,7 @@
     "version": "{{VERSION}}",
     "author": "{{APPNAME}}",
     "manifest_version": "{{VERSION}}",
-    "description": "{{DESCRIPTION}}",
+    "description": "{{DESCRIPTION|escape}}",
     "start_url": "{{ROOT}}",
     "scope": "{{ROOT}}",
     "display": "standalone",
