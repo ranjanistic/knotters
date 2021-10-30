@@ -57,7 +57,7 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
         raise Http404()
 
 
-@normal_profile_required
+# @normal_profile_required
 @require_GET
 def create(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Projects.CREATE)
