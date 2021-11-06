@@ -812,7 +812,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
 
 def reportCategories(request: WSGIRequest):
     try:
-        categories = ReportCategory.objects.all()
+        categories = ReportCategory.objects.filter().order_by("name")
         reports = []
         for cat in categories:
             reports.append(dict(id=cat.id, name=cat.name))
