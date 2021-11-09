@@ -136,7 +136,7 @@
         });
     };
     getElement('projectnickname').oninput=async(e)=>{
-      e.target.value = String(e.target.value).toLowerCase().trim().replaceAll(" ", "-").replaceAll("--","-");
+      e.target.value = String(e.target.value).toLowerCase().trim().replaceAll(" ", "-").replaceAll("--","-").replace(/[^a-zA-Z0-9\-]/g, "-");
     }
 
     getElement('projectnickname').onchange=async(e)=>{
