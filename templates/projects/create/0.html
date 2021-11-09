@@ -135,6 +135,9 @@
             getElement("uploadprojectimagelabel").innerHTML = "Selected";
         });
     };
+    getElement('projectnickname').oninput=async(e)=>{
+      e.target.value = String(e.target.value).toLowerCase().trim().replaceAll(" ", "-").replaceAll("--","-");
+    }
 
     getElement('projectnickname').onchange=async(e)=>{
         let nickname = String(e.target.value).trim()
