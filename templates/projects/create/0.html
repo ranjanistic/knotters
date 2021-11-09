@@ -125,9 +125,9 @@
     getElements('create-project-input').forEach(element => {
         if(!Array.from(element.classList).includes('no-retain')){
             element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
-            element.oninput=(e)=>{
+            element.addEventListener("input", (e)=>{
                 sessionStorage.setItem(`create-compete-input-${element.id}`,element.value)
-            }
+            })
         }
     });
     getElement("uploadprojectimage").onchange = (e) => {
