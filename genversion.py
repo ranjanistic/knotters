@@ -21,7 +21,7 @@ if contents and contents.__contains__('='):
     key = version[0]
     version[1] = version[1].strip('\'')
     print(f"Last version: {version[1]}")
-    vParts = version[1].split('.')
+    vParts = version[1].replace('v','').split('.')
     if int(vParts[2]) < 9:
         vParts[2] = f"{int(vParts[2])+1}"
     else:
