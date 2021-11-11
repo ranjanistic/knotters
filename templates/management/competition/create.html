@@ -362,6 +362,7 @@
             <input id='topicquery' placeholder="Type to search topic" class="wide"></input><br/><br/>
             <div id='topicqueryresult'>
             </div>
+            <div><a onclick="newTab(URLS.LABELS)">Click here</a> to see available topics.</div>
             `,
             ()=>{
                 getElements('selected-compete-topic').forEach((btn)=>{
@@ -393,6 +394,8 @@
                     getElement('selectedtopicsview').innerHTML+=`<button type='button' class="primary negative-text selected-compete-topic" data-topicID='${id}' id="removetopic${id}">${Icon('close')}${data.topic.name}</button>`
                     
                 }
+            } else {
+              getElement('topicqueryresult').innerHTML='No results.'
             }
         }
     }
@@ -400,7 +403,7 @@
         alertify.alert(
             'Search judges',
             `
-            <input id='judgequery' placeholder="Type to search judge" class="wide"></input><br/><br/>
+            <input id='judgequery' placeholder="Type to search your judge" class="wide"></input><br/><br/>
             <div id='judgequeryresult'>
             </div>
             `,
@@ -441,6 +444,8 @@
                     ${Icon('close')}<img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>`
                     
                 }
+            } else {
+              getElement('judgequeryresult').innerHTML='No results.'
             }
         }
     }
@@ -448,7 +453,7 @@
         alertify.alert(
             'Search mods',
             `
-            <input id='modquery' placeholder="Type to search mod" class="wide"></input><br/><br/>
+            <input id='modquery' placeholder="Type to search your moderator" class="wide"></input><br/><br/>
             <div id='modqueryresult'>
             </div>
             `,
@@ -485,6 +490,8 @@
                     </button>`
                     hide(getElement('selectmodbutton'))
                 }
+            } else {
+              getElement('modqueryresult').innerHTML='No results.'
             }
         }
     }
