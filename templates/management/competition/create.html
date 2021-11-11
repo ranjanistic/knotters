@@ -38,10 +38,10 @@
 
           </h2>
           <h4>
-            <input required class="create-compete-input wide primary" placeholder="Tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
+            <input required class="create-compete-input wide primary" placeholder="Competition tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
           </h4>
           <strong>
-            <textarea rows="5" cols="20" class="create-compete-input primary wide" required placeholder="Short description" type="text" name="compshortdesc" id="compshortdesc"></textarea>
+            <textarea rows="5" cols="20" class="create-compete-input primary wide" required placeholder="Short description of competition" type="text" name="compshortdesc" id="compshortdesc"></textarea>
           </strong><br/>
           </div>
           <div class="w3-col w3-half w3-center dead-text w3-padding">
@@ -60,6 +60,7 @@
             <label for="useAssociate" >
                 Use association
             </label>
+            <br/><strong>Association image should be different from your banner.</strong>
         </div>
         </div>
         <div class="w3-col w3-third w3-center w3-padding">
@@ -74,14 +75,18 @@
           </div>
           <br/>
           <div class="w3-row">
+            <strong>Moderator</strong><br/>
             <span id="selectedmodview"></span>
             <button title="Select moderator" type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
             <input hidden placeholder="Moderator" class="create-compete-input no-retain" type="text" name="compmodID" id="compmodID" />
             <br/><br/>
+            <strong>Judges</strong><br/>
             <span id="selectedjudgesview">
             </span>
             <input hidden class="create-compete-input no-retain" name="compjudgeIDs" id="judgeIDs" />
             <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
+            <br/>
+            <strong>Moderator and judges should be different.</strong>
           </div>
         </div>
       </div>
