@@ -6,6 +6,9 @@
 <div class="w3-row">
     <div class="w3-col w3-half w3-padding">
         <h4>Existing moderators</h4>
+        <input class="wide" placeholder="Type to search moderators" id="search-mod-input" />
+        <br/><br/>
+        <span id="mod-search-results"></span><br/>
         <span id="new-moderators-view"></span>
         {% for mod in moderators %}
         <div class="w3-row pallete-slab" id="pallete-demote-{{mod.getUserID}}">
@@ -82,6 +85,35 @@ getElements('demote-moderator').forEach((demote)=>{
     }
 })
 }
+
+getElement('search-mod-input').oninput=async(e)=>{
+    const resview = getElement('mod-search-results')
+    if(!e.target.value.trim()) {
+        resview.innerHTML = ''
+        return 
+//         loadAddMods()
+    }
+    const data = await postRequest(URLS.MODSEARCH, {query:e.target.value})
+    if(!data) return
+    if (data.code!==code.OK) return
+    const mod = data.mod;
+    setHtmlContent(resview,`<div class="w3-row pallete-slab" id="pallete-demote-${data.mod.userID}">
+            <div class="w3-col s2 m1">
+                <a onclick="miniWindow('${mod.url}')"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
+            </div>
+            <div class="w3-col s10 m8 w3-padding-small">
+                <div class="w3-row">
+                    ${mod.name}
+                </div>
+                <div class="w3-row">
+                    ${mod.email}
+                </div>
+            </div>
+        </div>`);
+    
+}
+
+
 getElement('search-profile-input').oninput=async(e)=>{
     const resview = getElement('profile-search-results')
     if(!e.target.value.trim()) {
