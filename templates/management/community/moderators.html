@@ -22,7 +22,7 @@
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
-                    <button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
+                    {% comment %}<button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>{% endcomment %}
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@ getElements('demote-moderator').forEach((demote)=>{
              async ()=>{
                 const modID = e.target.getAttribute('data-userID');
                 const modname = e.target.getAttribute('data-name');
-                const data = await postRequest('{{URLS.REMOVE_MODERATOR}}', {modID})
+                {% comment %}const data = await postRequest('{{URLS.REMOVE_MODERATOR}}', {modID}){% endcomment %}
                 if (!data) return
                 if (data.code == code.OK){
                     message(`Demoted ${modname} as moderator`)
@@ -127,9 +127,9 @@ const loadAddMods = () => {
                     if (data.code == code.OK){
                         message(`Promoted ${username} as moderator`)
                         hideElement(`pallete-promote-${userID}`)
-                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', 'demote-').replaceAll('positive', 'negative').replaceAll('Promote', 'Demote')
+                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', '').replaceAll('positive', '').replaceAll('Promote', '')
                         getElement('new-moderators-view').innerHTML += `<div class="w3-row pallete-slab" id="pallete-demote-${userID}">${newmod}</div>`
-                        loadDemoteMods()
+                        {% comment %}loadDemoteMods(){% endcomment %}
                         return
                     }
                     error(data.error)
@@ -139,7 +139,7 @@ const loadAddMods = () => {
         }
     })
 }
-loadDemoteMods()
+{% comment %}loadDemoteMods(){% endcomment %}
 loadAddMods()
 </script>
 {% endblock %}
