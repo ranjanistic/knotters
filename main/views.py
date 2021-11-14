@@ -267,7 +267,6 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
@@ -293,6 +292,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.FAME_WALL}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
+ ​               ​setPathParams​(​f"/​{​URL​.​PROJECTS​}​{​URL​.​Projects​.​CREATE​}​"​),
                 # setPathParams(f"/{URL.PROJECTS}{URL.Projects.SNAPSHOTS}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.BROWSER}"),
