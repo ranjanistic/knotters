@@ -6,6 +6,9 @@
 <div class="w3-row">
     <div class="w3-col w3-half w3-padding">
         <h4>Existing moderators</h4>
+        <input class="wide" placeholder="Type to search moderators" id="search-mod-input" />
+        <br/><br/>
+        <span id="mod-search-results"></span><br/>
         <span id="new-moderators-view"></span>
         {% for mod in moderators %}
         <div class="w3-row pallete-slab" id="pallete-demote-{{mod.getUserID}}">
@@ -22,7 +25,7 @@
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
-                    <button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
+                    {% comment %}<button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>{% endcomment %}
                 </div>
             </div>
         </div>
@@ -70,7 +73,7 @@ getElements('demote-moderator').forEach((demote)=>{
              async ()=>{
                 const modID = e.target.getAttribute('data-userID');
                 const modname = e.target.getAttribute('data-name');
-                const data = await postRequest('{{URLS.REMOVE_MODERATOR}}', {modID})
+                {% comment %}const data = await postRequest('{{URLS.REMOVE_MODERATOR}}', {modID}){% endcomment %}
                 if (!data) return
                 if (data.code == code.OK){
                     message(`Demoted ${modname} as moderator`)
@@ -82,6 +85,35 @@ getElements('demote-moderator').forEach((demote)=>{
     }
 })
 }
+
+getElement('search-mod-input').oninput=async(e)=>{
+    const resview = getElement('mod-search-results')
+    if(!e.target.value.trim()) {
+        resview.innerHTML = ''
+        return 
+//         loadAddMods()
+    }
+    const data = await postRequest(URLS.MODSEARCH, {query:e.target.value})
+    if(!data) return
+    if (data.code!==code.OK) return
+    const mod = data.mod;
+    setHtmlContent(resview,`<div class="w3-row pallete-slab" id="pallete-demote-${data.mod.userID}">
+            <div class="w3-col s2 m1">
+                <a onclick="miniWindow('${mod.url}')"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
+            </div>
+            <div class="w3-col s10 m8 w3-padding-small">
+                <div class="w3-row">
+                    ${mod.name}
+                </div>
+                <div class="w3-row">
+                    ${mod.email}
+                </div>
+            </div>
+        </div>`);
+    
+}
+
+
 getElement('search-profile-input').oninput=async(e)=>{
     const resview = getElement('profile-search-results')
     if(!e.target.value.trim()) {
@@ -127,9 +159,9 @@ const loadAddMods = () => {
                     if (data.code == code.OK){
                         message(`Promoted ${username} as moderator`)
                         hideElement(`pallete-promote-${userID}`)
-                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', 'demote-').replaceAll('positive', 'negative').replaceAll('Promote', 'Demote')
+                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', '').replaceAll('positive', '').replaceAll('Promote', '')
                         getElement('new-moderators-view').innerHTML += `<div class="w3-row pallete-slab" id="pallete-demote-${userID}">${newmod}</div>`
-                        loadDemoteMods()
+                        {% comment %}loadDemoteMods(){% endcomment %}
                         return
                     }
                     error(data.error)
@@ -139,7 +171,7 @@ const loadAddMods = () => {
         }
     })
 }
-loadDemoteMods()
+{% comment %}loadDemoteMods(){% endcomment %}
 loadAddMods()
 </script>
 {% endblock %}

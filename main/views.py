@@ -267,7 +267,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
+​                # ​setPathParams​(​f"/​{​URL​.​PROJECTS​}​{​URL​.​Projects​.​CREATE​}​"​),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
