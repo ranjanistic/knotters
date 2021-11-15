@@ -72,7 +72,7 @@
                         <strong class="w3-padding-small {% if sub.late %}negative-text">late{% else %}text-tertiary">on time{% endif %}</strong>
                         at <strong class="w3-padding-small">{{sub.submitOn}}</strong>
                         {% endif %}
-                        <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
+                        <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">View submission</button>
                     </div>
                         <div class="w3-col w3-quarter w3-center w3-padding">
                         <button class="rejectsubmission negative small" data-subID="{{sub.getID}}" data-subItem="{{sub.getRepo}}" data-icon="cancel" id="reject{{sub.getID}}" >Reject</button>
@@ -148,7 +148,7 @@
                         <div class="w3-row pallete-slab" id="subslab{{sub.getID}}">
                             <div class="w3-col w3-padding l4">
                             <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
-                            <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">{{sub.getRepo}}</button>
+                            <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">View submission</button>
                             </div>
                             
                             <div class="w3-col l6">
