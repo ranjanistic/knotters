@@ -21,7 +21,16 @@
         </div>
     </div>
     {% endfor %}
-
+    {% for moderation in moderations %} 
+    <div class="w3-col w3-half w3-padding-small">
+        <div class="w3-row pallete-slab">
+        <a href="{{moderation.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{moderation.competition.getBanner}}" /></a>
+        <h6>{{moderation.competition.title}}</h6>
+        <strong>Moderator</strong><br/>
+        <a href="{{moderation.competition.getModCertLink}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
+        </div>
+    </div>
+    {% endfor %}
 {% else %}
     <br/><br/>
     <center class="dead-text">

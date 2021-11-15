@@ -28,8 +28,8 @@
         <h6>Creator: {% if iscreator %}You{% else %}<a href="{{compete.creator.getLink}}" target="_blank">{{compete.creator.getName}}</a>{% endif %}</h6>
         <h6>Moderator: <a href="{{compete.getModerator.getLink}}" target="_blank">{{compete.getModerator.getName}}</a></h6>
         <h6>Judges: {%for judge in compete.getJudges %}[<a href="{{judge.getLink}}" target="_blank">{{judge.getName}}</a>] {% endfor %}</h6>
-        <strong>Short description: {{compete.shortdescription}}</strong><br/>
-        <strong>Description: {{compete.description}}</strong><br/>
+        <strong>Short description: {{compete.shortdescription|truncatechars:100}}</strong><br/>
+        <strong>Description: {{compete.description|truncatechars:100}}</strong><br/>
         <strong>Start At: {{compete.startAt}}</strong><br/>
         <strong>End At: {{compete.endAt}}</strong><br/>
         <strong>Is Upcoming? {{compete.isUpcoming|yesno}}</strong><br/>
@@ -37,9 +37,9 @@
         <strong>Is History? {{compete.isHistory|yesno}}</strong><br/>
         <strong>Topics: {%for topic in compete.getTopics %}[<a href="{{topic.getLink}}">{{topic.name}}</a>] {% endfor %}</strong><br/>
         <strong>Perks: {%for perk in compete.getPerks %}[{% if perk.name %}{{perk.name}} for {{perk.rank|numsuffix}}{% else %}{{perk}}{% endif %}] {% endfor %}</strong><br/>
-        <strong>Task summary: {{compete.taskSummary}}</strong><br/>
-        <strong>Task detail: {{compete.taskDetail}}</strong><br/>
-        <strong>Task sample: {{compete.taskSample}}</strong><br/>
+        <strong>Task summary: {{compete.taskSummary |truncatechars:100 }}</strong><br/>
+        <strong>Task detail: {{compete.taskDetail|truncatechars:100}}</strong><br/>
+        <strong>Task sample: {{compete.taskSample|truncatechars:100}}</strong><br/>
         <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
         <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
         <strong>Moderated? {{compete.moderated|yesno}}</strong><br/>
@@ -56,7 +56,7 @@
                             <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
                         </form>
                         {% else %}
-                        Certificates generation in progress
+                        Certificates generation in progress, refresh page to check status.
                         {% endif %}
                     {% endif %}
                 {% else %}
@@ -68,16 +68,20 @@
                             <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
                         </form>
                         {% else  %}
-                        Results declaration in progress
+                        Results declaration in progress, refresh page to check status.
                         {% endif %}
                     {% endif %}
                 {% endif %}
             {% elif not compete.allSubmissionsMarked %}
                 <strong>{{compete.countJudgesWhoMarkedSubmissions}}/{{compete.totalJudges}} judges have marked submissions.</strong>
                 <br/>
-                {% for judge in compete.getJudges %}
-                    <strong>{{judge.getName}} has marked ? {{compete.allSubmissionsMarkedByJudge|params:judge|yesno}}</strong><br/>
-                {% endfor %}
+                {% for judge in compete.judgesWhoMarkedSubmissions %}
+                    <strong>{{judge.getName}}</strong>,
+                {% endfor %} have marked submissions.<br/>
+                {% for judge in compete.judgesWhoNotMarkedSubmissions %}
+                    <strong>{{judge.getName}}</strong>,
+                {% endfor %}have NOT marked submissions.<br/>
+                
             {% endif %}
         {% endif %}
     </div>

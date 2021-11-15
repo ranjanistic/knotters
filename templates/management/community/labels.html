@@ -18,6 +18,7 @@
 
 {% block in_scripts %}
 <script>
+const tabindex = Number("{{request.GET.tab}}") || false;
 initializeTabsView({
     onEachTab: async (tab) => {
         return await getRequest(setUrlParams(URLS.LABEL_TYPE, tab.id));
@@ -66,7 +67,8 @@ initializeTabsView({
                 }
             })
         }
-    }
+    },
+    tabindex
 });
 
 </script>

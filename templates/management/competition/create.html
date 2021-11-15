@@ -23,8 +23,8 @@
     </div>
     <div class="w3-row w3-center accent w3-padding">
       <strong>
-          This competition will accept submissions till &nbsp;&nbsp;&nbsp;
-        <input required placeholder="End at"  class="create-compete-input" type="datetime-local" name="compendAt" id="compendAt" />&nbsp;&nbsp;
+          This competition will accept submissions till &nbsp;&nbsp;
+        <input required placeholder="End at"  class="create-compete-input" type="datetime-local" name="compendAt" id="compendAt" title="Ending time" />&nbsp;&nbsp;
         only.
       </strong>
     </div>
@@ -34,14 +34,14 @@
         <div class="w3-col w3-twothird w3-left w3-padding">
           <div class="w3-col w3-half">
           <h2>
-            <input required class="create-compete-input wide primary" placeholder="Title" type="text" name="comptitle" id="comptitle">
+            <input required class="create-compete-input wide primary" placeholder="Title" type="text" name="comptitle" id="comptitle" max="100">
 
           </h2>
           <h4>
-            <input required class="create-compete-input wide primary" placeholder="Competition tagline" type="text" name="comptagline" id="comptagline"><br/><br/>
+            <input required class="create-compete-input wide primary" placeholder="Competition tagline" type="text" name="comptagline" id="comptagline" max="100"><br/><br/>
           </h4>
           <strong>
-            <textarea rows="5" cols="20" class="create-compete-input primary wide" required placeholder="Short description of competition" type="text" name="compshortdesc" id="compshortdesc"></textarea>
+            <textarea rows="5" cols="20" class="create-compete-input primary wide" required placeholder="Short description of competition (max 400 characters)" type="text" name="compshortdesc" id="compshortdesc" maxlength="400"></textarea>
           </strong><br/>
           </div>
           <div class="w3-col w3-half w3-center dead-text w3-padding">
@@ -69,7 +69,7 @@
           <div class="pallete accent">
             <h6>Begins at</h6>
             <h1>
-                <input required placeholder="Start at"  class="create-compete-input" type="datetime-local" name="compstartAt" id="compstartAt">
+                <input required placeholder="Start at"  class="create-compete-input" type="datetime-local" name="compstartAt" id="compstartAt" title="Begin time">
             </h1>
             <h6>Upcoming</h6>
           </div>
@@ -77,21 +77,22 @@
           <div class="w3-row">
             <strong>Moderator</strong><br/>
             <span id="selectedmodview"></span>
-            <button title="Select moderator" type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
-            <input hidden placeholder="Moderator" class="create-compete-input no-retain" type="text" name="compmodID" id="compmodID" />
+            <button title="Moderator to moderate submissions before judgement, after competition ends." type="button" class="primary active-text" data-icon="add" id="selectmodbutton">Select moderator</button>
+            <input hidden placeholder="Moderator" required class="create-compete-input no-retain" type="text" name="compmodID" id="compmodID" />
             <br/><br/>
             <strong>Judges</strong><br/>
             <span id="selectedjudgesview">
             </span>
-            <input hidden class="create-compete-input no-retain" name="compjudgeIDs" id="judgeIDs" />
+            <input hidden required placeholder="Judges" class="create-compete-input no-retain" name="compjudgeIDs" id="judgeIDs" />
             <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
             <br/>
             <strong>Moderator and judges should be different.</strong>
           </div>
         </div>
       </div>
-      <br/><br/>
-        
+      <br/>
+      <center><h6 class="dead-text">The following info will remain hidden until competition begins.</h6></center>
+      <br/>
       <div class="w3-row pallete" id="mainframe">
         <div class="w3-col w3-quarter tertiary  pallete-slab w3-padding">
           <div class="w3-bar-block w3-hide-small" id="sidebar">
@@ -117,11 +118,11 @@
                     <h3>Topics of this competition</h3>
                     <span id="selectedtopicsview">
                     </span>
-                    <input hidden class="create-compete-input no-retain" name="comptopicIDs" id="topicIDs" />
+                    <input hidden required title="Topics" class="create-compete-input no-retain" name="comptopicIDs" id="topicIDs" />
                     <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
                     <br/>
                     <h6>The maximum points each judge can appoint to each submission for each topic
-                        <input class="create-compete-input" required placeholder="Max 100" type="number" min="10" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint">
+                        <input class="create-compete-input" title="Max points for each topic" required placeholder="Max 100" type="number" min="10" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint">
                     </h6>
                 </center>
                 <div class="w3-row" id="perkDetails">
@@ -132,7 +133,7 @@
                             <i class="w3-jumbo ">emoji_events</i>
                             <h1>1st</h1>
                             <h6 class="pallete">
-                                <input class="wide create-compete-input" required placeholder="For Rank 1" type="text" name="compperk1" id="compperk1">
+                                <input class="wide create-compete-input" required placeholder="Perk for Rank 1" type="text" name="compperk1" id="compperk1" maxlength="100">
                             </h6>
                         </div>
                     </div>
@@ -148,25 +149,24 @@
                 </div>
                 <br/>
                 <center>
-                <strong>The perks you've set are solely your own responsibility. {{APPNAME}} and its associates will not contribute to your perks in any way.
-                <br/>Participants will also be knowing this.
+                <strong>The perks you've set are solely your own responsibility. Participants will also be knowing this.
                 </strong>
                 <h6>All participants will receive <span class="accent">e-certificates</span> from {{APPNAME}}.</h6>
                 </center>
                 <div class="w3-row">
                 <h4>Description</h4>
                 <strong>
-                    <textarea rows="4" cols="18" class="create-compete-input wide"  required placeholder="Competition description" type="text" name="compdesc" id="compdesc"></textarea><br/><br/>
+                    <textarea rows="4" cols="18" class="create-compete-input wide"  required placeholder="Competition description (max 1000 characters)" type="text" name="compdesc" id="compdesc" maxlength="1000"></textarea><br/><br/>
                 </strong>
                 </div>
           </div>
           <div class="w3-row w3-padding-small" id="task-block">
             <h4>Summary</h4>
-            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task summary" type="text" name="comptaskSummary" id="comptaskSummary"></textarea>
+            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task summary (Basic HTML allowed)" type="text" name="comptaskSummary" id="comptaskSummary"></textarea>
             <h4>Detail</h4>            
-            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task details" type="text" name="comptaskDetail" id="comptaskDetail"></textarea>
+            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task details (Basic HTML allowed)" type="text" name="comptaskDetail" id="comptaskDetail"></textarea>
             <h4>Sample</h4>
-            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task sample" type="text" name="comptaskSample" id="comptaskSample"></textarea>
+            <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task sample (Basic HTML allowed)" type="text" name="comptaskSample" id="comptaskSample"></textarea>
           </div>
           <div class="w3-row w3-padding-small" id="guideline-block">
             <center><h4>The following guidelines are to be followed by participants, including the generic <a onclick="miniWindow('/docs/competitionguidelines')">competition guidelines</a>.</h4></center>
@@ -196,24 +196,9 @@
     </div>
     <br/>
     </form>
-    {% comment %} <div class="container">
-        <form id="form" action="">
-            <div>
-                <label for="upload">
-                    <input type="file" class="file" id="input" multiple>
-                Upload Files
-                </label>
-            </div>
-            <div class="files" onclick="filesFunc()">
-                <h2>Files Selected</h2>
-                <ul id="ul"></ul>
-            </div>
-            <input type="submit" class="submit" value="Submit" name="submit" id="input" />
-        </form>	
-    </div> {% endcomment %}
-
     <center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
-    <button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button></center>
+    <!-- <button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button> -->
+    </center>
     <br/>
 </div>
 
@@ -235,7 +220,7 @@
                             <i class="w3-jumbo material-icons">emoji_events</i>
                             <h1>${numsuffix(position)}</h1>
                             <h6 class="pallete">
-                                <input class="wide create-compete-input" required placeholder="For Rank ${position}" type="text" name="compperk${position}" id="compperk${position}">
+                                <input class="wide create-compete-input" required placeholder="Perk for Rank ${position}" type="text" name="compperk${position}" id="compperk${position}">
                             </h6>
                         </div>
                     </div>
@@ -243,7 +228,7 @@
         parent.insertBefore(newChild,parent.childNodes[position+3]);
     }
 
-     initializeTabsView({
+    initializeTabsView({
         onEachTab: async (tab) => {
             if(tab.id==='overview'){
                 getElement('overview-block').style.display='block';
@@ -266,66 +251,6 @@
         onShowTab: (tab)=>{
         },
     });
-
-    {% comment %} let state = {};
-
-        // state management
-        function updateState(newState) {
-            state = { ...state, ...newState };
-            console.log(state);
-        }
-
-        // event handlers
-        console.log("xxxx3");
-        document.getElementById("input").onchange= function(e) {
-            console.log("Input click",e.target.files);
-            let files = e.target.files;
-            let filesArr = Array.from(files);
-            updateState({ files: files, filesArr: filesArr });
-            console.log("updateState==>",files,"  filesAttr==>",filesArr);
-            renderFileList();
-        };
-
-        console.log("xxxx2");
-        const filesFunc = (e)=> {
-            let key = this
-                .parent()
-                .attr("key");
-            console.log("Files click",e.target.className);
-            console.log("Files key",this.parent().attr("key"));
-            let curArr = state.filesArr;
-            curArr.splice(key, 1);
-            updateState({ filesArr: curArr });
-            renderFileList();
-        };
-        console.log("xxxx1");
-        document.getElementById("form").onsubmit= function(e) {
-            console.log("Form click",e.target.className);
-            e.preventDefault();
-            console.log(state);
-            renderFileList();
-        };
-
-        // render functions
-        function renderFileList() {
-            let fileMap = state.filesArr.map((file, index) => {
-                let suffix = "bytes";
-                let size = file.size;
-                if (size >= 1024 && size < 1024000) {
-                    suffix = "KB";
-                    size = Math.round(size / 1024 * 100) / 100;
-                } else if (size >= 1024000) {
-                    suffix = "MB";
-                    size = Math.round(size / 1024000 * 100) / 100;
-                }
-
-                return `<li key="${index}">${
-                    file.name
-                } <span class="file-size">${size} ${suffix}</span><i class="material-icons md-48">delete</i></li>`;
-            });
-            console.log("new line==>",state);
-            document.getElementById("ul").innerHTML =fileMap;
-        } {% endcomment %}
 
     let excludemods = [];
     let excludejudges = [];
@@ -367,7 +292,7 @@
             <input id='topicquery' placeholder="Type to search topic" class="wide"></input><br/><br/>
             <div id='topicqueryresult'>
             </div>
-            <div><a onclick="newTab(URLS.LABELS)">Click here</a> to see available topics.</div>
+            <div><a onclick="newTab(setUrlQueries(URLS.LABELS,{tab:1}))">Click here</a> to see available topics.</div>
             `,
             ()=>{
                 getElements('selected-compete-topic').forEach((btn)=>{
@@ -410,6 +335,9 @@
             `
             <input id='judgequery' placeholder="Type to search your judge" class="wide"></input><br/><br/>
             <div id='judgequeryresult'>
+            </div><br/>
+            <div>Judge(s) to mark submissions with points according to topics, after competition ends. Make sure they know about your competition beforehand.
+                You'll be responsible for the actions of judge(s) you choose in this competition.
             </div>
             `,
             ()=>{
@@ -417,7 +345,7 @@
                     btn.onclick=(e)=>{
                         const id = btn.getAttribute('data-judgeID')
                         if(getElement('judgeIDs').value.includes(id)){
-                            excludemods = excludemods.filter(id=>id!==id)
+                            excludemods = excludemods.filter(mid=>mid!==id)
                             getElement('judgeIDs').value = getElement('judgeIDs').value.replaceAll(`,${id}`,'')
                             btn.hidden = true
                             btn.remove()
@@ -435,7 +363,8 @@
             if(data.code===code.OK && data.judge){
                 getElement('judgequeryresult').innerHTML=`
                 <button class="primary" type='button' id="${data.judge.id}">
-                    <img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>`
+                    <img src="${data.judge.dp}" width="20" class="w3-circle primary" /> ${data.judge.name}</button>
+                    <a onclick="miniWindow('${data.judge.url}')">${Icon('open_in_new')}</a>`
                 getElement(data.judge.id).onclick=(e)=>{
                     const id = e.target.id.replaceAll('-','')
                     let existing = String(getElement('judgeIDs').value).trim();
@@ -456,17 +385,20 @@
     }
     getElement('selectmodbutton').onclick=(ebtn)=>{
         alertify.alert(
-            'Search mods',
+            'Search moderator',
             `
             <input id='modquery' placeholder="Type to search your moderator" class="wide"></input><br/><br/>
             <div id='modqueryresult'>
+            </div><br/>
+            <div>A moderator to moderate submissions before judgement, after competition ends. Make sure they know about your competition beforehand.
+                You'll be responsible for the actions of moderator you choose in this competition.
             </div>
             `,
             ()=>{
                 getElements('selected-compete-mod').forEach((btn)=>{
                     btn.onclick=(e)=>{
                         getElement('compmodID').value = ""
-                        excludejudges = []
+                        excludejudges = excludejudges.filter((id)=>id!=btn.getAttribute('data-modID'))
                         btn.hidden = true
                         btn.remove()
                         show(getElement('selectmodbutton'))
@@ -474,6 +406,7 @@
                 })
             }
         )
+        let lastmodid = ''
         getElement('modquery').oninput=async(e)=>{
             const data = await postRequest(URLS.MODSEARCH, {
                 query: e.target.value,
@@ -484,31 +417,54 @@
                 getElement('modqueryresult').innerHTML=`
                 <button class="primary" type='button' id="${data.mod.id}">
                     <img src="${data.mod.dp}" width="20" class="w3-circle" /> ${data.mod.name}
-                </button>`
+                </button><a onclick="miniWindow('${data.mod.url}')">${Icon('open_in_new')}</a>
+                `
                 getElement(data.mod.id).onclick=(e)=>{
                     const id = e.target.id.replaceAll('-','')
                     getElement('compmodID').value = id;
+                    excludejudges = excludejudges.filter((id)=>id!=lastmodid)
                     excludejudges.push(id)
+                    lastmodid = id
                     getElement('selectedmodview').innerHTML =`
                     <button type='button' title="Moderator" class="primary negative-text selected-compete-mod" data-modID='${id}' id="removemod${id}">
                         ${Icon('close')}<img src="${data.mod.dp}" width="20" class="w3-circle primary" /> ${data.mod.name}
                     </button>`
                     hide(getElement('selectmodbutton'))
+                    success('Moderator selected!')
                 }
             } else {
               getElement('modqueryresult').innerHTML='No results.'
             }
         }
     }
+    getElement("compendAt").addEventListener('blur',(e)=>{
+        if(e.target.value <= getElement("compstartAt").value){
+            error('Ending time should be greater than begin time!')
+        }
+        if (new Date(getElement("compstartAt").value).getTime() <= new Date().getTime()) {
+            error('Begin time should be greater than current time!')
+        }
+    })
+    getElement("compstartAt").addEventListener('blur',(e)=>{
+        if (new Date(e.target.value).getTime() <= new Date().getTime()) {
+            error('Begin time should be greater than current time!')
+        }
+        if(e.target.value >= getElement("compendAt").value){
+            error('Ending time should be greater than begin time!')
+        }
+    })
     getElement("create-compete-form-submit-button").onclick=(e)=>{
         e.preventDefault();
         if(!getElements('create-compete-input').every(element => {
-            if(!element.value){
-                error("Some fields not filled.")
+            if(!element.value && element.required){
+                error(`${element.title || element.placeholder || 'Some fields'} not filled.`)
+                element.scrollIntoView()
+                element.focus()
                 return false
             }
             return true
         })) return
+        subLoader()
         _processReCaptcha(()=>{
             getElement("create-compete-form").submit()
         })

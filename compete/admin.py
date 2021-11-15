@@ -85,3 +85,11 @@ class AppreciationCertificateAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
+@admin.register(Perk)
+class PerkAdmin(admin.ModelAdmin):
+    list_display = ["competition", "rank", "name"]
+    list_filter = ["competition"]
+
+    class Meta:
+        ordering = ("")

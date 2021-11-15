@@ -368,6 +368,27 @@ class Competition(models.Model):
             if self.allSubmissionsMarkedByJudge(judge):
                 count = count+1
         return count
+    def judgesWhoMarkedSubmissions(self):
+        """
+        Judges of this competition who have submitted topic points of all valid submissions.
+        """
+        judges = self.getJudges()
+        markedJudges = []
+        for judge in judges:
+            if self.allSubmissionsMarkedByJudge(judge):
+                markedJudges.append(judge)
+        return markedJudges
+
+    def judgesWhoNotMarkedSubmissions(self):
+        """
+        Judges of this competition who have not submitted topic points of all valid submissions.
+        """
+        judges = self.getJudges()
+        unmarkedJudges = []
+        for judge in judges:
+            if not self.allSubmissionsMarkedByJudge(judge):
+                unmarkedJudges.append(judge)
+        return unmarkedJudges
 
     def declareResultsLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.declareResults(compID=self.getID())}"
@@ -465,7 +486,7 @@ class Perk(models.Model):
         unique_together = ("competition", "rank")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    competition = competition = models.ForeignKey(Competition, related_name='perk_competition', on_delete=models.PROTECT)
+    competition = competition = models.ForeignKey(Competition, related_name='perk_competition', on_delete=models.CASCADE)
     rank = models.IntegerField(default=1)
     name = models.CharField(max_length=1000)
 

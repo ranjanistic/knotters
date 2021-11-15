@@ -1,9 +1,9 @@
 from main.mailers import sendActionEmail, sendAlertEmail, sendCCActionEmail
-from main.strings import URL
+from main.strings import URL, url
 from main.env import PUBNAME
 from people.models import Profile
 from .models import AppreciationCertificate, Competition, ParticipantCertificate, Submission
-
+from .apps import APPNAME
 
 
 def participantInviteAlert(profile: Profile, host: Profile, submission: Submission) -> bool:
@@ -13,7 +13,7 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
     return sendActionEmail(
         to=profile.getEmail(), username=profile.getFName(), subject='Invitation to Participate Together',
         header=f"{host.getName()} ({host.getEmail()}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.",
-        actions=[{'text': "See invitation",'url': URL.compete.invitation(submission.get_id,profile.getUserID())}],
+        actions=[{'text': "See invitation",'url': f"{url.getRoot(APPNAME)}{URL.compete.invitation(submission.get_id,profile.getUserID())}"}],
         footer=f"You may accept or deny this invitation. If you won't respond, then this invitation will automatically become invalid at the end of competition, or, upon final submission, or, cancellation of your invitation by {host.getName()}, whichever occurrs earlier.",
         conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
     )
@@ -72,7 +72,7 @@ def submissionConfirmedAlert(submission: Submission):
     for profile in profiles:
         sendAlertEmail(
             to=profile.getEmail(), username=profile.getFName(), subject=f"Submission Submitted Successfully",
-            header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn} (IST, Asia/Kolkata).{' Your submission was late.' if submission.late else ''}. Submission ID: {submission.getID()}",
+            header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn}.{' Your submission was late, and hence is vulnerable to invalidation.' if submission.late else ''}. Submission ID: {submission.getID()}",
             footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have received, altogether, soon. Till then, chill out! NOTE: We're lenient.",
             conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
         )

@@ -17,6 +17,7 @@ def createCompetition(creator, title, tagline, shortdescription,
                       description, perks, startAt, endAt, eachTopicMaxPoint, topicIDs,
                       judgeIDs, taskSummary, taskDetail, taskSample
                       ) -> Competition:
+    compete = None
     try:
         if not creator.is_manager:
             raise Exception(f"Unauthorized manager")
@@ -27,6 +28,10 @@ def createCompetition(creator, title, tagline, shortdescription,
             raise Exception(f"invalid timings")
         if eachTopicMaxPoint < 0:
             raise Exception(f"invalid eachTopicMaxPoint")
+        
+        taskSummary = taskSummary.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
+        taskDetail = taskDetail.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
+        taskSample = taskSample.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
 
         compete = Competition.objects.create(
             creator=creator,
@@ -43,20 +48,32 @@ def createCompetition(creator, title, tagline, shortdescription,
             resultDeclared=False,
         )
         topics = Topic.objects.filter(id__in=topicIDs)
+        if len(topics) < 1:
+            raise Exception(f"invalid topics")
         for topic in topics:
             compete.topics.add(topic)
         judges = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, user__id__in=judgeIDs)
         for judge in judges:
+            if judge.isBlocked(creator.user):
+                continue
             compete.judges.add(judge)
+        if compete.totalJudges() < 1:
+            raise Exception(f"invalid judges")
         perkobjs = []
         for i, perk in enumerate(perks):
+            if perk.strip() == "":
+                continue
             perkobjs.append(Perk(
                 competition=compete,
                 name=perk,
                 rank=(i+1)
             ))
+        if len(perkobjs) < 1:
+            raise Exception("invalid perks")
         Perk.objects.bulk_create(perkobjs)
         return compete
     except Exception as e:
         errorLog(e)
+        if compete:
+            compete.delete()
         return False

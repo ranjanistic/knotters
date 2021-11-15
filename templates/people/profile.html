@@ -110,7 +110,7 @@
         <br />
         
         <div class="w3-row w3-padding-small">
-        {% if person.profile.ghID %}
+        {% if person.profile.has_ghID %}
           <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.ghID}}</button></a>
         {% elif user.is_authenticated and user == person %}
           <a href="{{URLS.Auth.GITHUB}}login/?process=connect&next={{URLS.REDIRECTOR}}?n={{user.profile.getLink}}">

@@ -6,6 +6,8 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 # from django.conf import settings
 # from django.views.decorators.cache import cache_page
+from datetime import datetime
+from django.utils import timezone
 from allauth.account.models import EmailAddress
 from django.core.cache import cache
 from main.decorators import manager_only, require_JSON_body
@@ -338,6 +340,7 @@ def createCompete(request: WSGIRequest) -> HttpResponse:
 @manager_only
 @require_POST
 def submitCompetition(request) -> HttpResponse:
+    compete = None
     try:
         title = str(request.POST["comptitle"]).strip()
         tagline = str(request.POST["comptagline"]).strip()
@@ -381,6 +384,12 @@ def submitCompetition(request) -> HttpResponse:
         if Competition.objects.filter(title__iexact=title).exists():
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.COMP_TITLE_EXISTS)
 
+        if startAt >= endAt:
+            return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_TIME_PAIR)
+
+        if judgeIDs.__contains__(modID):
+            return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_TIME_PAIR)
+        
         compete = createCompetition(
             creator=request.user.profile,
             title=title,
@@ -435,9 +444,11 @@ def submitCompetition(request) -> HttpResponse:
             COMPETE, compete, mod, "Competition")
         if not assigned:
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_MODERATOR)
-        return redirect(compete.getManagementLink())
+        return redirect(compete.getManagementLink(alert=Message.COMP_CREATED))
     except Exception as e:
         errorLog(e)
+        if compete:
+            compete.delete()
         return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.ERROR_OCCURRED)
 
 
