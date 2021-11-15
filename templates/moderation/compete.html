@@ -54,7 +54,7 @@
                 </div>
                 <br/>
                 <div class="w3-row">
-                    <h6 class="w3-col w3-half">Submissions <span class="dead-text">(Ordered by earliest submissions)</span></h6>
+                    <h6 class="w3-col w3-half">Submissions <span class="dead-text"></span></h6>
                     <div class="w3-col w3-half">
                     <button class="small w3-right accent" id="selectall" data-icon="check_box" >Select all</button>
                     <button class="small w3-right negative" id="rejectselected" data-icon="close">Reject selected</button>
@@ -66,7 +66,7 @@
                 
                 <div class="w3-row pallete-slab" id="subslab{{sub.getID}}">
                     <div class="w3-col w3-threequarter">
-                        <strong class="w3-padding-small">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
+                        <strong class="w3-padding-small">{{sub.totalActiveMembers}} <span class="dead-text">member{{sub.totalActiveMembers|pluralize}}</span></strong>
                         <strong class="w3-padding-small {% if sub.submitted %}text-tertiary">Submitted{% else %}negative-text">Un-submitted{% endif %}</strong>
                         {% if sub.submitted %}
                         <strong class="w3-padding-small {% if sub.late %}negative-text">late{% else %}text-tertiary">on time{% endif %}</strong>
@@ -126,6 +126,7 @@
                     <h4>Judges are now marking valid submissions for final ranking. Thank you for your contribution.</h4><br/>
                     <h3>{{moderation.competition.countJudgesWhoMarkedSubmissions}} out of {{moderation.competition.totalJudges}} have marked submissions.</h3>
                     <h6 class="positive-text">We'll notify you about the results, once declared.</h6>
+                    <h6>Your certificate of appreciation will also be available, you'll be notified via email about that.</h6>
                     </center>
                 {% else %}
                     {% if allSubmissionsMarkedByJudge %}
@@ -147,7 +148,7 @@
                         {% for sub in moderation.competition.getValidSubmissions %}
                         <div class="w3-row pallete-slab" id="subslab{{sub.getID}}">
                             <div class="w3-col w3-padding l4">
-                            <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">{{sub.memberOrMembers}}</span></strong>
+                            <strong class="w3-padding">{{sub.totalActiveMembers}} <span class="dead-text">member{{sub.totalActiveMembers|pluralize}}</span></strong>
                             <button onclick="miniWindow('{{sub.getRepo}}')" class="primary small" data-icon="open_in_new">View submission</button>
                             </div>
                             
@@ -451,9 +452,9 @@ if(allsubsMarked){
         reject.onclick=_=>{
             const rejectDialog = alertify.confirm(`Confirm rejection?`,
             `<h4>Confirm to <span class="negative-text">reject</span> the following submission?</h4>
-                <button class="small primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}${reject.getAttribute("data-subItem")}</button>
+                <button class="small primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}View submission</button>
             `,()=>{
-                message(`rejecting ${reject.getAttribute("data-subID")}...`)
+                message(`rejecting...`)
                 finalData = finalData.filter((fd)=>fd.subID!=reject.getAttribute("data-subID"))
                 finalData.push({
                     subID: reject.getAttribute("data-subID"),

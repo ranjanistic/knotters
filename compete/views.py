@@ -259,12 +259,14 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         if not submission.competition.isActive():
             raise Exception()
         try:
+            conf = SubmissionParticipant.objects.filter(profile=member, submission=submission, confirmed=True).first()
             submission.members.remove(member)
             if submission.totalActiveMembers() == 0:
                 submission.delete()
-            member.decreaseXP(by=5)
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
+            if conf:
+                member.decreaseXP(by=5)
+                addMethodToAsyncQueue(
+                    f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
             return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
         except Exception as e:
             errorLog(e)

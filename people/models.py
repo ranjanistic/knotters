@@ -278,8 +278,12 @@ class Profile(models.Model):
         if self.is_zombie:
             return None
         try:
-            data = SocialAccount.objects.get(
-                user=self.user, provider=GitHubProvider.id)
+            data = cache.get(f"socialaccount_gh_{self.get_userid}")
+            if not (data and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()):
+                data = SocialAccount.objects.get(
+                    user=self.user, provider=GitHubProvider.id)
+                cache.set(f"socialaccount_gh_{self.get_userid}", data, settings.CACHE_SHORT)
+            
             ghUser = cache.get(f"gh_user_data_{data.uid}")
             if not ghUser:
                 ghUser = Github.get_user_by_id(int(data.uid))

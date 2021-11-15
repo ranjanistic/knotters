@@ -267,7 +267,6 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
-​                # ​setPathParams​(​f"/​{​URL​.​PROJECTS​}​{​URL​.​Projects​.​CREATE​}​"​),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
@@ -293,7 +292,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.FAME_WALL}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
-                # setPathParams(f"/{URL.PROJECTS}{URL.Projects.SNAPSHOTS}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])
@@ -343,19 +342,19 @@ def browser(request: WSGIRequest, type: str):
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
         elif type == "new-projects":
             projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                timezone.now()+timedelta(days=-15)),suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
+                timezone.now()+timedelta(days=-15)), suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
             projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                timezone.now()+timedelta(days=-15)),suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+                timezone.now()+timedelta(days=-15)), suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
             if len(projects) < 5:
                 projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                    timezone.now()+timedelta(days=-30)),suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
+                    timezone.now()+timedelta(days=-30)), suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
                 projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-30)),suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+                    timezone.now()+timedelta(days=-30)), suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
             if len(projects) < 10:
                 projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                    timezone.now()+timedelta(days=-60)),suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
+                    timezone.now()+timedelta(days=-60)), suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
                 projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-60)),suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
+                    timezone.now()+timedelta(days=-60)), suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
         elif type == "recent-winners":
@@ -372,11 +371,11 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED,suspended=False), authquery, query)[
-                            0:10], FreeProject.objects.filter(Q(suspended=False),authquery, query)[0:10]))
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
+                            0:10], FreeProject.objects.filter(Q(suspended=False), authquery, query)[0:10]))
             if len(projects) < 1:
-                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED,suspended=False), authquery)[
-                                0:10], FreeProject.objects.filter(Q(suspended=False),authquery)[0:10]))
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
+                                0:10], FreeProject.objects.filter(Q(suspended=False), authquery)[0:10]))
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
         elif type == "trending-topics":
             # TODO

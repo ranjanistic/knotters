@@ -26,7 +26,6 @@
 <div style="background:url('{{compete.getBanner}}'); background-size:cover; height:100%; background-repeat:no-repeat;">
 <div class="w3-row">
     <div class="w3-col w3-twothird">
-        {% cache CACHE_LONG participant_certificate_header appcert.get_link|add:LANGUAGE_CODE %}
         <div class="primary w3-padding">
             <h4>
                 <a href="{{person.getLink}}">
@@ -35,13 +34,9 @@
                 <b>{{person.getName}}</b> contributed in <a href="{{compete.getLink}}" >{{compete.title}}</a>.
             </h4>
         </div>
-        {% endcache %}
         {% if certpath %}
-        {% cache CACHE_MAX participant_certificate_view appcert.get_link|add:LANGUAGE_CODE %}
         <img src="{{certpath}}" width="100%" class="preview-type-image" />
-        {% endcache %}
         {% else %}
-        {% cache CACHE_SHORT participant_certificate_unavailable appcert.get_link|add:LANGUAGE_CODE %}
         <div class="dead-text w3-center primary w3-padding">
         <h4>
         <i class="w3-jumbo">hourglass_top</i><br/>
@@ -49,12 +44,10 @@
         Regardless of the availability of certificate, this page equally represents the certification.
         </h4>
         </div>
-        {% endcache %}
         {% endif %}
     </div>
     <div class="w3-col w3-third">
         <div class="w3-row primary w3-padding">
-        {% cache CACHE_MICRO participant_certificate_details appcert.get_link|add:LANGUAGE_CODE %}
             <h3>Certificate Details</h3>
             <h6><span class="dead-text">Name </span>{{compete.title}} at Knotters</h6>
             <h6><span class="dead-text">Issuing Organization </span>Knotters</h6>
@@ -66,7 +59,6 @@
             <h6 ><span class="dead-text">Credential ID </span>Will be available soon.</h6>
             {% endif %}
             <h6><span class="dead-text">Credential URL</span> <a class="click-to-copy" title="Click to copy" data-copy="{{request.build_absolute_uri}}">Copy to clipboard</a></h6>
-        {% endcache %}
         </div>
         <br/>
         <div class="w3-row w3-center">

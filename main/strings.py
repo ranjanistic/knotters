@@ -68,6 +68,7 @@ class Code():
 
     RESULTS = "results"
     JUDGEMENTS = 'judgements'
+    MODERATIONS = 'moderations'
 
     class Test():
         MODEL = 'model'
@@ -155,6 +156,9 @@ class Message():
 
     INVALID_MODERATOR = 'Invalid moderator'
     COMP_TITLE_EXISTS = 'Competition with similar title exists'
+    INVALID_TIME_PAIR = 'Timings are abnormal, please correct them'
+    SAME_MOD_JUDGE = 'Moderator and judges should be different'
+    COMP_CREATED = "Competition created successfully"
     CERTS_GENERATED = 'Certificates generated successfully.'
     CERTS_GENERATING = 'Certificates are being generated.'
     CERT_NOT_FOUND = 'Certificate not found'

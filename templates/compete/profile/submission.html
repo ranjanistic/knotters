@@ -35,6 +35,10 @@
         {% endif %}
         </button>
         {% endif %}
+        {% if not submission.submitted and compete.moderated %}
+            <br/>
+            <span class="negative-text">Your submission {% if compete.resultDeclared %}was {% else %}is {% endif %}vulnerable to being invalidated by the moderator.</span>
+        {% endif %}
     </div>
     
     <div class="w3-col w3-half w3-padding-small">

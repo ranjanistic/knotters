@@ -25,7 +25,7 @@
 {% block nav_icon_hide %}{% endblock %}
 
 {% block nav_href %}{{ROOT}}{% endblock %} 
-{% block nav_text %}{{compete.title}}{% endblock %} 
+{% block nav_text %}{{compete.title}}{% endblock %}
 {% block nav_noauth_competes %}{% endblock %} 
 {% block content %}
   {% if isJudge or isMod or isManager %}
@@ -58,7 +58,7 @@
         <div class="w3-col {% if compete.associate %}w3-half{% endif %}">
         <h2>{{compete.title}}</h2>
         <h4>{{compete.tagline}}</h4>
-        <strong>{{compete.shortdescription}} </strong><br/>
+        <strong>{{compete.shortdescription}}</strong><br/>
         </div>
         {% if compete.associate %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">

@@ -6,7 +6,7 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import errorLog, renderString, renderView
-from main.strings import Code, profile as profileString
+from main.strings import Code, profile as profileString, COMPETE
 from projects.models import BaseProject, FreeProject, Project
 from moderation.models import Moderation
 from compete.models import CompetitionJudge, Result
@@ -97,6 +97,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
     elif section == profileString.ACHEIVEMENTS:
         data[Code.RESULTS] = Result.objects.filter(submission__members=profile)
         data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile)
+        data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True)
     elif section == profileString.CONTRIBUTION:
         pass
     elif section == profileString.ACTIVITY:
