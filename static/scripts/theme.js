@@ -53,7 +53,12 @@ const setTheme = (themevalue = theme.light) => {
 };
 
 if (!localStorage.getItem(theme.key)) {
-    localStorage.setItem(theme.key, theme.light);
+   if (window.matchMedia && window.matchMedia(`(prefers-color-scheme: ${theme.dark})`).matches) {
+     localStorage.setItem(theme.key, theme.dark);
+   } else {
+     localStorage.setItem(theme.key, theme.light);
+   }
+    
 }
 
 setTheme(localStorage.getItem(theme.key));
@@ -67,3 +72,9 @@ addEventListener('keydown',(e)=>{
         toggleTheme();
     }
 })
+if(window.matchMedia) {
+    window.matchMedia(`(prefers-color-scheme: ${theme.dark})`).addEventListener('change', e => {
+        localStorage.setItem(theme.key, e.matches? theme.dark: theme.light);
+        setTheme(localStorage.getItem(theme.key))
+    });
+}
