@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'allauth_2fa',
     "translation_manager",
-    "django_q"
+    "django_q",
+    "webpush"
     # "compressor",
 ] + DIVISIONS
 
@@ -110,6 +111,14 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+VAPID_PUBLIC_KEY = env.VAPID_PUBLIC_KEY
+
+WEBPUSH_SETTINGS = {
+   "VAPID_PUBLIC_KEY": VAPID_PUBLIC_KEY,
+   "VAPID_PRIVATE_KEY": env.VAPID_PRIVATE_KEY,
+   "VAPID_ADMIN_EMAIL": env.VAPID_ADMIN_MAIL,
+}
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
