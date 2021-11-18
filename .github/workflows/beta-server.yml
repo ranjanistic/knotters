@@ -19,18 +19,16 @@ jobs:
     steps:
     - name: Create backup
       run: |
-        sudo tar czf _backup_/media.tar.gz media
-        sudo rm -f _backup_/media.tar.gz.gpg
+        tar czf _backup_/media.tar.gz media
+        rm -f _backup_/media.tar.gz.gpg
         sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
-        sudo rm -f _backup_/media.tar.gz
+        rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
         git pull
     - name: Install dependencies
       run: |
-        sudo pip install --upgrade pip
         pip install --upgrade pip
-        sudo pip install -r requirements.txt
         pip install -r requirements.txt
     - name: Run migrations
       run: |
