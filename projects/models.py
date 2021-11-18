@@ -173,6 +173,7 @@ class BaseProject(models.Model):
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     topics = models.ManyToManyField(
         f'{PEOPLE}.Topic', through='ProjectTopic', default=[])
+    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[], related_name='base_project_admirer')
 
     def __str__(self):
         return self.name
@@ -257,6 +258,10 @@ class BaseProject(models.Model):
         if project.verified:
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=project.reponame)}{url.getMessageQuery(alert,error,success)}"
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
+    
+    @property
+    def total_admiration(self):
+        return self.admirers.count()
 
 class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
@@ -550,3 +555,11 @@ class ReportedProject(models.Model):
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_reporter_profile')
     baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
     category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')
+
+class ProjectAdmirer(models.Model):
+    class Meta:
+        unique_together = ('profile', 'base_project')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_admirer_profile')
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')

@@ -16,15 +16,15 @@ from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from moderation.models import LocalStorage
-from projects.models import FreeProject, LegalDoc, Project
+from projects.models import BaseProject, FreeProject, LegalDoc, Project, Snapshot
 from compete.models import Result
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
-from projects.methods import rendererstr as projectsRendererstr
+from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH, ISPRODUCTION
 from .methods import activity, addMethodToAsyncQueue, errorLog, renderData, renderView, respondJson, verify_captcha
-from .decorators import dev_only, github_only, require_JSON_body
+from .decorators import dev_only, github_only, require_JSON_body, decode_JSON
 from .methods import renderView, getDeepFilePaths
 from .mailers import featureRelease
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
@@ -299,11 +299,27 @@ class ServiceWorker(TemplateView):
         )))
         return context
 
-
-@require_GET
+@decode_JSON
 def browser(request: WSGIRequest, type: str):
     try:
-        if type == "new-profiles":
+        if type == "project-snapshots":
+            snaps = []
+            excludeIDs = request.POST.get('excludeIDs', [])
+            recommended = True
+            if request.user.is_authenticated:
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")
+                recommended = False
+                if len(snaps) < 1:
+                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")
+                    recommended = True
+            else:
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")
+            return respondJson(Code.OK,dict(
+                html=projectsRenderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
+                snapIDs=list(snaps.values_list("id", flat=True)),
+                recommended=recommended
+            )) 
+        elif type == "new-profiles":
             excludeIDs = []
             if request.user.is_authenticated:
                 profiles = cache.get(
@@ -396,4 +412,4 @@ def browser(request: WSGIRequest, type: str):
             return HttpResponseBadRequest()
     except Exception as e:
         print(e)
-        raise Http404()
+        raise Http404(e)

@@ -46,6 +46,16 @@ def require_JSON_body(function):
             return HttpResponseNotAllowed(permitted_methods=['POST'])
     return wrap
 
+def decode_JSON(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        try:
+            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)))
+            return function(request, *args, **kwargs)
+        except Exception as e:
+            pass
+        return function(request, *args, **kwargs)
+    return wrap
 
 def dev_only(function):
     @wraps(function)
