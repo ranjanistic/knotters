@@ -534,7 +534,7 @@ const initializeMultiSelector = ({
     return candidates;
 };
 
-const postRequest = async (path, data = {}) => {
+const postRequest = async (path, data = {}, headers = {}, options = {}) => {
     const body = { ...data };
     try {
         subLoader();
@@ -545,20 +545,27 @@ const postRequest = async (path, data = {}) => {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfmiddlewaretoken,
                 "X-KNOT-REQ-SCRIPT": true,
+                ...headers,
             },
             body: JSON.stringify(body),
+            ...options,
         });
-        const data = await response.json();
+        const data = await response.text();
         subLoader(false);
-        return data;
+        try {
+            return JSON.parse(data)
+        } catch {
+            return data
+        }
     } catch (e) {
+        console.log(e)
         error("An error occurred");
         subLoader(false);
         return false;
     }
 };
 
-const getRequest = async (url, query = {}) => {
+const getRequest = async (url, query = {}, headers = {}, options = {}) => {
     try {
         subLoader();
         const response = await window.fetch(setUrlQueries(url, query), {
@@ -566,7 +573,9 @@ const getRequest = async (url, query = {}) => {
             headers: {
                 "X-CSRFToken": csrfmiddlewaretoken,
                 "X-KNOT-REQ-SCRIPT": true,
+                ...headers,
             },
+            ...options,
         });
         const data = await response.text();
         subLoader(false);
@@ -726,70 +735,79 @@ const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
 };
 
 const fileToBase64 = async (file) => {
-    try{
+    try {
         return await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
+            reader.onerror = (error) => reject(error);
         });
-    } catch(e) {
-        error('Failed to process file')
-        return null
+    } catch (e) {
+        error("Failed to process file");
+        return null;
     }
-}
+};
 
-const handleFileUpload = (fileoutputs=[], title='Upload') => {
-    let fileinputs = '';
-    let inputIDs = []
-    fileoutputs.forEach((f)=>{
-        let id = `handle-file-input-${f.id}`
-        fileinputs+=`<input hidden id="${id}" type="file" />`
-        inputIDs.push(id)
-    })
-    alertify.confirm(title,
-        `
+const handleFileUpload = (fileoutputs = [], title = "Upload") => {
+    let fileinputs = "";
+    let inputIDs = [];
+    fileoutputs.forEach((f) => {
+        let id = `handle-file-input-${f.id}`;
+        fileinputs += `<input hidden id="${id}" type="file" />`;
+        inputIDs.push(id);
+    });
+    alertify
+        .confirm(
+            title,
+            `
         ${fileinputs}
         <div class="w3-row">
             <div class="w3-row" id="handle-file-upload-view">
                 
             </div>
             <div class="w3-row w3-center">
-                <button class="primary" id="handle-file-upload-action">${Icon('add')}Add file</button>
+                <button class="primary" id="handle-file-upload-action">${Icon(
+                    "add"
+                )}Add file</button>
             </div>
         </div>
         `,
-        ()=>{},
-        ()=>{}
-    ).set('closable', false).set('labels',{ok:'Done', cancel:'Discard'})
-    
-    getElement('handle-file-upload-action').onclick=_=>{
-        inputIDs.some((inp)=>{
-            if(!getElement(inp).files[0]){
-                getElement(inp).onchange=async(e)=>{
-                    let b64 = await fileToBase64(Array.from(e.target.files)[0])
-                    if(!b64) return
-                    getElement('handle-file-upload-view').innerHTML+=`<input type='text' `
-                    fileoutputs.some((out)=>{if(`handle-file-input-${out.id}`===inp){
-                        out.value = b64
-                        return true
-                    }})
-                }
-                getElement(inp).click()
-                return true
-            }
-            return false
-        })
-    }
-}
+            () => {},
+            () => {}
+        )
+        .set("closable", false)
+        .set("labels", { ok: "Done", cancel: "Discard" });
 
-const handleMultiFileUpload = (
-    limit=3,
-    onSubmit = (files) => {}
-) => {
+    getElement("handle-file-upload-action").onclick = (_) => {
+        inputIDs.some((inp) => {
+            if (!getElement(inp).files[0]) {
+                getElement(inp).onchange = async (e) => {
+                    let b64 = await fileToBase64(Array.from(e.target.files)[0]);
+                    if (!b64) return;
+                    getElement(
+                        "handle-file-upload-view"
+                    ).innerHTML += `<input type='text' `;
+                    fileoutputs.some((out) => {
+                        if (`handle-file-input-${out.id}` === inp) {
+                            out.value = b64;
+                            return true;
+                        }
+                    });
+                };
+                getElement(inp).click();
+                return true;
+            }
+            return false;
+        });
+    };
+};
+
+const handleMultiFileUpload = (limit = 3, onSubmit = (files) => {}) => {
     let multiFiles = [];
-    alertify.confirm("Multiple Files Upload",
-        `
+    alertify
+        .confirm(
+            "Multiple Files Upload",
+            `
         <div class="container">
             <form id="form" action="">
                 <div hidden>
@@ -816,35 +834,38 @@ const handleMultiFileUpload = (
             </form>	
         </div>
         `,
-        () => {
-            onSubmit(multiFiles)
-        },
-        ()=>{}
-    ).set('closable', false).set('labels',{ok:'Done', cancel:'Discard'})
-    
-    
-   
+            () => {
+                onSubmit(multiFiles);
+            },
+            () => {}
+        )
+        .set("closable", false)
+        .set("labels", { ok: "Done", cancel: "Discard" });
 
-        // event handlers
-        document.getElementById("input multifile").onchange= async (e) => {
-            let files = e.target.files;
-            // let filesArr = Array.from(files);
-            for (var data of multiFiles) {
-                if (data.name == files[0].name) {
-                    return;
-                }
+    // event handlers
+    document.getElementById("input multifile").onchange = async (e) => {
+        let files = e.target.files;
+        // let filesArr = Array.from(files);
+        for (var data of multiFiles) {
+            if (data.name == files[0].name) {
+                return;
             }
-            multiFiles.push({ id:Date.now(),name: files[0].name, size: files[0].size, content: await fileToBase64(files[0]) });
-            renderFileList();
-        };
+        }
+        multiFiles.push({
+            id: Date.now(),
+            name: files[0].name,
+            size: files[0].size,
+            content: await fileToBase64(files[0]),
+        });
+        renderFileList();
+    };
 
-       
-        document.getElementById("form").onsubmit= function(e) {
-            e.preventDefault();
-            renderFileList();
-        };
+    document.getElementById("form").onsubmit = function (e) {
+        e.preventDefault();
+        renderFileList();
+    };
 
-        // render functions
+    // render functions
     function renderFileList() {
         if (multiFiles.length > limit) {
             error("Limit Exceeded");
@@ -855,13 +876,15 @@ const handleMultiFileUpload = (
                 let size = file.size;
                 if (size >= 1024 && size < 1024000) {
                     suffix = "KB";
-                    size = Math.round(size / 1024 * 100) / 100;
+                    size = Math.round((size / 1024) * 100) / 100;
                 } else if (size >= 1024000) {
                     suffix = "MB";
-                    size = Math.round(size / 1024000 * 100) / 100;
+                    size = Math.round((size / 1024000) * 100) / 100;
                 }
 
-                document.getElementById("ul").innerHTML += `<div key="${index}" class="w3-col w3-third">
+                document.getElementById(
+                    "ul"
+                ).innerHTML += `<div key="${index}" class="w3-col w3-third">
                                                                 <div class="w3-padding-small w3-center">
                                                                     <div class="pallete accent">
                                                                         <i class="w3-jumbo material-icons">folder</i>
@@ -871,7 +894,9 @@ const handleMultiFileUpload = (
                                                             </div>
             `;
             });
-            document.getElementById("ul").innerHTML += ` <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
+            document.getElementById(
+                "ul"
+            ).innerHTML += ` <div class="w3-col w3-third w3-padding-small w3-center"  id="addperksbutton">
                                                             <div class="pallete primary pointer">
                                                                 <i class="w3-jumbo material-icons positive-text">add_circle</i>
                                                                 <label for="upload">
@@ -886,20 +911,20 @@ const handleMultiFileUpload = (
             const ele = document.getElementById(`name_${data.id}`);
             ele.addEventListener("change", (e) => {
                 data.name = ele.value;
-            })
+            });
         }
 
         for (var data of multiFiles) {
             const ele = document.getElementById(data.id);
 
-            ele.addEventListener ("click", (e) => {
-                const newArr = multiFiles.filter(file =>  ele.id != file.id);
+            ele.addEventListener("click", (e) => {
+                const newArr = multiFiles.filter((file) => ele.id != file.id);
                 multiFiles = newArr;
                 renderFileList();
-            })
+            });
         }
     }
-    
+
     const delFunc = (e) => {
         // let key = document.body.parentNode.dataset.key;
         // console.log("Files click",document.body.parentNode.className);
@@ -907,8 +932,7 @@ const handleMultiFileUpload = (
         multiFiles.splice(e.value, 1);
         renderFileList();
     };
-}
-
+};
 
 const handleDropDowns = (dropdownClassName, dropdownID, optionValues) => {
     const dropdown = getElement(dropdownID);
@@ -1272,7 +1296,7 @@ const restartIntros = () => {
 };
 
 const betaAlert = () => {
-    if (window.location.host.startsWith("beta.")||1) {
+    if (window.location.host.startsWith("beta.") || 1) {
         alertify
             .confirm(
                 "<h6>This is Knotters Beta</h6>",
@@ -1292,7 +1316,7 @@ const betaAlert = () => {
                     );
                 },
                 () => {
-                    window.sessionStorage.setItem('beta-alerted', 1)
+                    window.sessionStorage.setItem("beta-alerted", 1);
                     message("Remember, you're using Knotters Beta.");
                 }
             )

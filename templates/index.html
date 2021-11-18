@@ -6,7 +6,6 @@
 {% load socialaccount %}
 {% load account %}
 {% load custom_tags %}
-{% comment %} {% load compress %} {% endcomment %}
 <!DOCTYPE html>
 <html lang="en" class="">
     {% block head %}
@@ -14,7 +13,6 @@
     
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      {% comment %}  <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endcomment %}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
         <meta name="description" content="{% block meta_description %}{{DESCRIPTION}}{% endblock %}" />
@@ -49,7 +47,7 @@
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.png' %}{% endblock %}" class="darkimg">
-        {% comment %} {% compress css %} {% endcomment %}
+
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -65,7 +63,7 @@
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
         <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
         {% block stylesheets %}{% endblock %}
-        {% comment %} {% endcompress %} {% endcomment %}
+
         <link rel="manifest" href="{{MANIFESTURL}}" />
         <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
     </head>
@@ -233,7 +231,7 @@
             <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
-        {% comment %} {% compress js %} {% endcomment %}
+        
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
@@ -241,7 +239,7 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
-        {% comment %} {% endcompress %} {% endcomment %}
+        
         <script>
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
@@ -252,8 +250,9 @@
             const SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}};
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
-            const ICON = "{{ICON}}"
-            const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}"
+            const ICON = "{{ICON}}";
+            const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
+            const VAPID_KEY = "{{VAPID_KEY}}";
             if("{{request.GET.e}}") {
                 error("{{request.GET.e}}");
             } 
@@ -264,18 +263,17 @@
                 success("{{request.GET.s}}");
             }
             if("{{request.GET.report}}"==="1"){
-                reportFeedbackView()   
+                reportFeedbackView()
             }
             const URLS = Object.freeze({{URLS|or:'{}'|safe}})
         </script>
+
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
 
-        {% comment %} {% compress js %} {% endcomment %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
-        {% comment %} {% endcompress %} {% endcomment %}
 
         {% block messages %}
         <script>
