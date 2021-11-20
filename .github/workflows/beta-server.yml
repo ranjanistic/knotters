@@ -34,6 +34,9 @@ jobs:
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput
+    - name: Compile messages
+      run: |
+        python3 manage.py compilemessages
     - name: Release new version
       run: |
         python3 genversion.py
