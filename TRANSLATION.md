@@ -1,6 +1,6 @@
 # Translation Contribution
 
-To translate in any language, the language specific `django.po` file is present at `apps/locale/<language-code>/LC_MESSAGES/django.po`.
+To translate in any language, the language specific `django.po` file is present at `locale/<language-code>/LC_MESSAGES/django.po`.
 The `<language-code>` is the code for specific language. (like `hi` for Hindi)
 
 The format of translation is
@@ -22,4 +22,18 @@ msgid "Bye"
 msgstr "अलविदा"
 ```
 
-If `msgid`(s) in the `django.po` file of a language that you want to translate to are not present, then you can simply copy the contents of another language's `django.po` file, and paste it into yours, and translate the `msgstr`(s) for each `msgid` in your language.
+If `msgid`(s) in the `django.po` file of a language that you want to translate to are not present, then you can add them by following the below steps.
+
+Add missing `msgid`s in `.po` files by enclosing text in `{% trans %}` or `{% blocktrans %}` in html templates, then run the following
+
+```bash
+py manage.py makemessages --ignore=*.txt
+```
+
+After that, you may create translations for now available msgids for your respective language in the format mentioned above.
+
+Then, compile `.po` files to `.mo` files to load translations, run the following
+
+```bash
+py manage.py compilemessages
+```
