@@ -138,10 +138,10 @@
                     data-html="
                     <div class='w3-col w3-half w3-padding-large'>
                         <br/>
-                        <h1 class='w3-jumbo w3-hide-small'>{% trans 'Welcome to Knotters' %}</h1>
-                        <h1 class='w3-hide-large w3-hide-medium'>{% trans 'Welcome to Knotters' %}</h1>
+                        <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
+                        <h1 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
                         <br/>
-                        <h3>Ready to takeoff? Virtually ofcourse.</h3>
+                        <h3>{% trans "Ready to takeoff? Virtually ofcourse." %}</h3>
                         <a href='{{URLS.LANDING}}'><button class='display-button accent' data-icon='flight_land'>Get ready</button></a>
                         <button class='display-button positive' id='close-intro-banner' data-icon='flight_takeoff'>I'm ready</button>
                     </div>
@@ -160,8 +160,8 @@
                 </div>
                 <div class="w3-row w3-padding w3-center dead-text">
                   <div class="material-icons w3-jumbo">done</div>
-                  <h3 class="dead-text">That's all here for now.</h3>
-                  <strong>Browse other things meanwhile.</strong><br/><br/>
+                  <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
+                  <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
                 </div>
             </div>
             {% endblock %}

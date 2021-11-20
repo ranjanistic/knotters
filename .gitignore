@@ -36,3 +36,8 @@ __static__
 templates/certificate*.jpg
 *.mo
 *.sh
+*.ps1
+*.pyc
+*.pyo
+*.egg-info
+*.egg
