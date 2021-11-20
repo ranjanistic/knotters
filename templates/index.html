@@ -96,7 +96,7 @@
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
                     {% block nav_noauth %}
-                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">Competitions</span></button></a>{% endblock %}
+                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
                         {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">People</span></button></a>{% endblock %}
                         {% block nav_noauth_extra_links %}{% endblock %}
