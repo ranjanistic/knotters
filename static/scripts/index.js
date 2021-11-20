@@ -88,7 +88,7 @@ const message = (msg = "") => {
     alertify.message(msg);
 };
 
-const error = (msg = "An error occurred") => {
+const error = (msg = "Something went wrong, try that again?") => {
     alertify.set("notifier", "position", "bottom-right");
     alertify.error(msg);
 };
@@ -303,7 +303,7 @@ const copyToClipboard = (text) => {
 const _processReCaptcha = (
     onSuccess = (stopLoaders) => {},
     onFailure = (e) => {
-        error("An error occurred");
+        error("Something went wrong, try that again?");
     }
 ) => {
     try {
@@ -558,8 +558,7 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
             return data
         }
     } catch (e) {
-        console.log(e)
-        error("An error occurred");
+        error("Something went wrong, try that again?");
         subLoader(false);
         return false;
     }
@@ -690,7 +689,7 @@ const handleCropImageUpload = (
                     } catch (e) {
                         console.debug(e);
                         error(
-                            `An error occurred. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
+                            `Something went wrong. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
                     }
                 },
