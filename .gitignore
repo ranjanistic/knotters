@@ -46,3 +46,4 @@ media/
 templates/*.py
 static/*.py
 media/*.py
+*.log

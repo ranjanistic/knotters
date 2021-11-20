@@ -93,7 +93,7 @@ msgstr "वस्तुतः उड़ान के लिए तैयार?"
 
 #: .\templates\index.html:149
 msgid "Get ready"
-msgstr "तैयार हो जाओ"
+msgstr "तैयार करें"
 
 #: .\templates\index.html:150
 msgid "I'm ready"
