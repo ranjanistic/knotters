@@ -30,7 +30,9 @@ Add missing `msgid`s in `.po` files by enclosing text in `{% trans %}` or `{% bl
 py manage.py makemessages --ignore=*.txt
 ```
 
-To compile `.po` files to `.mo` files for translation availablity
+After that, you may create translations for now available msgids for your respective language in the format mentioned above.
+
+Then, compile `.po` files to `.mo` files to load translations, run the following
 
 ```bash
 py manage.py compilemessages

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-21 02:00+0530\n"
+"POT-Creation-Date: 2021-11-21 02:26+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -52,6 +52,10 @@ msgstr ""
 #: .\templates\compete\certificate\index.html:36
 msgid "Verify Certificate"
 msgstr "प्रमाणपत्र सत्यापित करें"
+
+#: .\templates\index.html:103
+msgid "Competitions"
+msgstr "प्रतियोगिता"
 
 #: .\templates\index.html:145 .\templates\index.html:146
 #, python-format
