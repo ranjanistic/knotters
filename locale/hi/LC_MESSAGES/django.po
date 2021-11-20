@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-21 02:26+0530\n"
+"POT-Creation-Date: 2021-11-21 03:03+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,9 +53,34 @@ msgstr ""
 msgid "Verify Certificate"
 msgstr "प्रमाणपत्र सत्यापित करें"
 
+#: .\templates\index.html:32 .\templates\index.html:34
+#: .\templates\index.html:74
+msgid "Home"
+msgstr ""
+
+#: .\templates\index.html:78
+msgid "Click here to learn more."
+msgstr ""
+
 #: .\templates\index.html:103
 msgid "Competitions"
 msgstr "प्रतियोगिता"
+
+#: .\templates\index.html:104
+msgid "Projects"
+msgstr "परियोजनाएं"
+
+#: .\templates\index.html:105
+msgid "People"
+msgstr "लोग"
+
+#: .\templates\index.html:115
+msgid "Login"
+msgstr "लॉग इन करें"
+
+#: .\templates\index.html:118
+msgid "Join"
+msgstr "शामिल हों"
 
 #: .\templates\index.html:145 .\templates\index.html:146
 #, python-format
@@ -66,6 +91,14 @@ msgstr "%(APPNAME)s में आपका स्वागत है"
 msgid "Ready to takeoff? Virtually ofcourse."
 msgstr "वस्तुतः उड़ान के लिए तैयार?"
 
+#: .\templates\index.html:149
+msgid "Get ready"
+msgstr "तैयार हो जाओ"
+
+#: .\templates\index.html:150
+msgid "I'm ready"
+msgstr "मैं तैयार हूं"
+
 #: .\templates\index.html:167
 msgid "That's all here for now."
 msgstr "अभी के लिए बस इतना ही।"
@@ -73,6 +106,50 @@ msgstr "अभी के लिए बस इतना ही।"
 #: .\templates\index.html:168
 msgid "Browse other things meanwhile."
 msgstr "इस बीच अन्य चीजें ब्राउज़ करें।"
+
+#: .\templates\index.html:186
+msgid "Report"
+msgstr "रिपोर्ट"
+
+#: .\templates\index.html:186
+msgid "Feedback"
+msgstr "प्रतिक्रिया"
+
+#: .\templates\index.html:187
+msgid "Docs"
+msgstr "दस्तावेज़"
+
+#: .\templates\index.html:187
+msgid "statements"
+msgstr "बयान"
+
+#: .\templates\index.html:188
+msgid "Terms of service"
+msgstr "सेवा की शर्तें"
+
+#: .\templates\index.html:189
+msgid "Privacy Policy"
+msgstr "गोपनीयता नीति"
+
+#: .\templates\index.html:193
+msgid "Contact us"
+msgstr "हमसे संपर्क करें"
+
+#: .\templates\index.html:194
+msgid "The Landing Page"
+msgstr "लैंडिंग पेज"
+
+#: .\templates\index.html:195
+msgid "API"
+msgstr "ए.पी.आई"
+
+#: .\templates\index.html:196
+msgid "Beta"
+msgstr "बीटा"
+
+#: .\templates\index.html:223
+msgid "Copyright"
+msgstr "कॉपीराइट"
 
 #: .\templates\projects\license\license.html:58
 #, fuzzy, python-format

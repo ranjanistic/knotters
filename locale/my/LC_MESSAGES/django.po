@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-21 02:26+0530\n"
+"POT-Creation-Date: 2021-11-21 03:03+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,8 +53,33 @@ msgstr ""
 msgid "Verify Certificate"
 msgstr ""
 
+#: .\templates\index.html:32 .\templates\index.html:34
+#: .\templates\index.html:74
+msgid "Home"
+msgstr ""
+
+#: .\templates\index.html:78
+msgid "Click here to learn more."
+msgstr ""
+
 #: .\templates\index.html:103
 msgid "Competitions"
+msgstr ""
+
+#: .\templates\index.html:104
+msgid "Projects"
+msgstr ""
+
+#: .\templates\index.html:105
+msgid "People"
+msgstr ""
+
+#: .\templates\index.html:115
+msgid "Login"
+msgstr ""
+
+#: .\templates\index.html:118
+msgid "Join"
 msgstr ""
 
 #: .\templates\index.html:145 .\templates\index.html:146
@@ -66,12 +91,64 @@ msgstr ""
 msgid "Ready to takeoff? Virtually ofcourse."
 msgstr ""
 
+#: .\templates\index.html:149
+msgid "Get ready"
+msgstr ""
+
+#: .\templates\index.html:150
+msgid "I'm ready"
+msgstr ""
+
 #: .\templates\index.html:167
 msgid "That's all here for now."
 msgstr ""
 
 #: .\templates\index.html:168
 msgid "Browse other things meanwhile."
+msgstr ""
+
+#: .\templates\index.html:186
+msgid "Report"
+msgstr ""
+
+#: .\templates\index.html:186
+msgid "Feedback"
+msgstr ""
+
+#: .\templates\index.html:187
+msgid "Docs"
+msgstr ""
+
+#: .\templates\index.html:187
+msgid "statements"
+msgstr ""
+
+#: .\templates\index.html:188
+msgid "Terms of service"
+msgstr ""
+
+#: .\templates\index.html:189
+msgid "Privacy Policy"
+msgstr ""
+
+#: .\templates\index.html:193
+msgid "Contact us"
+msgstr ""
+
+#: .\templates\index.html:194
+msgid "The Landing Page"
+msgstr ""
+
+#: .\templates\index.html:195
+msgid "API"
+msgstr ""
+
+#: .\templates\index.html:196
+msgid "Beta"
+msgstr ""
+
+#: .\templates\index.html:223
+msgid "Copyright"
 msgstr ""
 
 #: .\templates\projects\license\license.html:58

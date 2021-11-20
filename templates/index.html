@@ -27,9 +27,9 @@
         <meta name="image" property="og:image" content="{% block og_image_url_full %}{{SITE}}{% block og_image_url %}/static/graphics/self/1024/icon.png{% endblock %}{% endblock %}" />
         <meta property="og:type" content="social" />
         <meta property="og:url" content="{{SITE}}{% block og_url %}{% endblock %}" />
-        <meta property="og:title" content="{% block og_title %}Home{% endblock %} &#183; {{APPNAME}}" />
+        <meta property="og:title" content="{% block og_title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}" />
         <meta property="og:description" content="{% block og_description %}{{DESCRIPTION}}{% endblock %}" />
-        <meta property="og:site_name" content="{% block og_site_name %}Home{% endblock %} &#183; {{APPNAME}}" />
+        <meta property="og:site_name" content="{% block og_site_name %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}" />
 
         <meta name="twitter:title" content="{% block tw_title %}{{APPNAME}}{% endblock %}" />
         <meta name="twitter:description" content="{% block tw_description %}{{DESCRIPTION}}{% endblock %}" />
@@ -67,11 +67,11 @@
         {% block stylesheets %}{% endblock %}
         {% comment %} {% endcompress %} {% endcomment %}
         <link rel="manifest" href="{{MANIFESTURL}}" />
-        <title>{% block title %}Home{% endblock %} &#183; {{APPNAME}}</title>
+        <title>{% block title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
     <body>
-        <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. Click here to learn more.</div>
+        <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
             {% block nav_title %}
@@ -97,21 +97,21 @@
                 {% block nav_links %}
                     {% block nav_noauth %}
                         {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">Projects</span></button></a>{% endblock %}
-                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">People</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">{% trans "People" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_extra_links %}{% endblock %}
                     {% endblock %}
                     {% block nav_extra_links %}{% endblock %}
                     {% block nav_auth %}
                         {% if user.is_authenticated %}
                             {% block nav_auth_links %}{% endblock %}
-                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName }}" class="accent"><img src="{{user.profile.getDP}}" alt="{{user.getName}}" id="navbarprofilepic" /></button></a>{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.getName}}" class="accent"><img src="{{user.profile.getDP}}" alt="{{user.getName}}" id="navbarprofilepic" /></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
-                            <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">Login</span></button></a>
+                            <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small">{% trans "Login" %}</span></button></a>
                             {% endblock %}
                             {% block nav_auth_signup %}
-                            <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">Join</span></button></a>
+                            <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">{% trans "Join" %}</span></button></a>
                             {% endblock %}
                         {% endif %}
                         {% block nav_auth_extra_links %}{% endblock %}
@@ -142,8 +142,8 @@
                         <h1 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
                         <br/>
                         <h3>{% trans "Ready to takeoff? Virtually ofcourse." %}</h3>
-                        <a href='{{URLS.LANDING}}'><button class='display-button accent' data-icon='flight_land'>Get ready</button></a>
-                        <button class='display-button positive' id='close-intro-banner' data-icon='flight_takeoff'>I'm ready</button>
+                        <a href='{{URLS.LANDING}}'><button class='display-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
+                        <button class='display-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
                     </div>
                     <div class='w3-col w3-half'>
                         <img src='{{ICON}}' width='80%' class='darkimg' />
@@ -179,17 +179,17 @@
                     </select>
                 </form>
                 <a href="/press" class="text-secondary w3-animate-left" hidden>For the press</a><br/>
-                <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">Report &amp; Feedback</span><br/>
-                <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">Docs &amp; statements</a><br/>
-                <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">Terms of service</a><br/>
-                <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">Privacy Policy</a><br/>
+                <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">{% trans "Report" %} &amp; {% trans "Feedback" %}</span><br/>
+                <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
+                <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
+                <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">{% trans "Privacy Policy" %}</a><br/>
                 {% if request.user.is_authenticated and request.user.profile.is_manager %}
                 <a href="{{URLS.MANAGEMENT}}" class="text-secondary w3-animate-left">Management</a><br/>
                 {% endif %}
-                <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">Contact us</a><br/>
-                <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">The Landing Page</a><br/>
-                <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} API</a><br/>
-                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} Beta</a><br/>
+                <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">{% trans "Contact us" %}</a><br/>
+                <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
+                <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
+                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Beta" %}</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>
@@ -216,7 +216,7 @@
                     <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" height="18" /></button></a>
                 {% endblock %}
                 <br/><br/>
-                <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">Copyright 2021</a>
+                <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} 2021</a>
                 </center>
             </div>
         </footer>
