@@ -336,7 +336,7 @@ class Project(BaseProject):
 
     def moderationRetriesLeft(self) -> int:
         if self.status != Code.APPROVED:
-            return 3 - Moderation.objects.filter(type=APPNAME, project=self).count()
+            return 2 - Moderation.objects.filter(type=APPNAME, project=self).count()
         return 0
 
     def canRetryModeration(self) -> bool:
