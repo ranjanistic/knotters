@@ -5,6 +5,7 @@
 *.sh
 .env
 .env.*
+media/
 !.env.example
 runserver
 migrate
@@ -14,7 +15,6 @@ __pycache__
 createsuperuser
 migrations
 qcluster
-media/
 static/admin
 py
 *.apk
@@ -32,8 +32,10 @@ _logs_/
 htmlcov/
 .history/
 *.rdb
+media/
 __static__
 templates/certificate*.jpg
+media/
 *.mo
 *.sh
 *.ps1
@@ -41,3 +43,6 @@ templates/certificate*.jpg
 *.pyo
 *.egg-info
 *.egg
+templates/*.py
+static/*.py
+media/*.py
