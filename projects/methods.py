@@ -20,6 +20,9 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
+def renderer_stronly(request: WSGIRequest, file: str, data: dict = dict()) -> str:
+    return renderString(request, file, data, fromApp=APPNAME)
+
 
 def createFreeProject(name: str, category: str, nickname: str, description: str, creator: Profile, licenseID: UUID,sociallinks=[]) -> Project or bool:
     """

@@ -762,6 +762,8 @@ class URL():
         REPORT_CATEGORIES = 'report/categories'
         REPORT_PROJECT = 'reportproject/'        
 
+        TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
+
         def getURLSForClient(self):
             URLS = dict()
 

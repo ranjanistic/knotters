@@ -14,13 +14,13 @@ from main.bots import Github
 # from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
 from main.decorators import require_JSON_body, github_only, normal_profile_required
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, renderString, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, FreeProject, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
+from .models import BaseProject, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData, uniqueTag
 from .apps import APPNAME
@@ -252,7 +252,8 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @require_GET
 def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
     try:
-        project = FreeProject.objects.get(nickname=nickname, trashed=False)
+        project = FreeProject.objects.get(
+            nickname=nickname, trashed=False, suspended=False)
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
             raise Exception()
@@ -264,7 +265,8 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
 @require_GET
 def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
-        project = Project.objects.get(reponame=reponame, trashed=False)
+        project = Project.objects.get(
+            reponame=reponame, trashed=False, suspended=False)
         if project.status == Code.APPROVED:
             iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
@@ -318,6 +320,8 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
             except Exception as e:
                 errorLog(e)
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
+        elif section == "metadata":
+            return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
     except Exception as e:
         errorLog(e)
@@ -326,15 +330,16 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 
 @normal_profile_required
 @require_JSON_body
-def manageAssets(request: WSGIRequest, projID: UUID, action:str) -> JsonResponse:
+def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
-        project = Project.objects.get(id=projID,creator=request.user.profile)
+        project = Project.objects.get(id=projID, creator=request.user.profile)
         if action == Action.ADD:
             name = str(request.POST['filename']).strip()
             file = base64ToFile(request.POST['filedata'])
-            public = request.POST.get('public',False)
-            asset = Asset.objects.create(project=project,name=name,file=file,public=public)
-            return respondJson(Code.OK,dict(asset=dict(
+            public = request.POST.get('public', False)
+            asset = Asset.objects.create(
+                project=project, name=name, file=file, public=public)
+            return respondJson(Code.OK, dict(asset=dict(
                 id=asset.id,
                 name=asset.name
             )))
@@ -342,11 +347,12 @@ def manageAssets(request: WSGIRequest, projID: UUID, action:str) -> JsonResponse
             assetID = request.POST['assetID']
             name = str(request.POST['filename']).strip()
             public = request.POST['public']
-            Asset.objects.filter(id=assetID,project=project).update(name=name,public=public)
+            Asset.objects.filter(id=assetID, project=project).update(
+                name=name, public=public)
             return respondJson(Code.OK)
         elif action == Action.REMOVE:
             assetID = request.POST['assetID']
-            Asset.objects.filter(id=assetID,project=project).delete()
+            Asset.objects.filter(id=assetID, project=project).delete()
             return respondJson(Code.OK)
         else:
             return respondJson(Code.NO)
@@ -374,7 +380,11 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 excluding.append(topic.id)
 
         topics = Topic.objects.exclude(id__in=excluding).filter(
-            Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
+            Q(name__istartswith=query)
+            | Q(name__iendswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[0:5]
         topicslist = []
         for topic in topics:
             topicslist.append(dict(
@@ -446,7 +456,11 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 excludeIDs.append(tag.id)
 
         tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-            Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
+            Q(name__istartswith=query)
+            | Q(name__iendswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[0:5]
         tagslist = []
         for tag in tags:
             tagslist.append(dict(
@@ -552,7 +566,7 @@ def linkFreeGithubRepo(request):
 @normal_profile_required
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
-def unlinkFreeGithubRepo(request):
+def unlinkFreeGithubRepo(request: WSGIRequest):
     try:
         project = FreeProject.objects.get(
             id=request.POST['projectID'], creator=request.user.profile)
@@ -563,6 +577,23 @@ def unlinkFreeGithubRepo(request):
             freerepo.delete()
             return respondJson(Code.OK)
         return respondJson(Code.NO)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+@require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+def toggleAdmiration(request: WSGIRequest, projID: UUID):
+    try:
+        project = BaseProject.objects.get(
+            id=projID, creator=request.user.profile)
+        if request.POST['admire'] == True:
+            project.admirers.add(request.user.profile)
+        elif request.POST['admire'] == False:
+            project.admirers.remove(request.user.profile)
+        return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

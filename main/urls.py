@@ -33,6 +33,7 @@ urlpatterns = [
     path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path(URL.AUTH, include('allauth_2fa.urls')),
     path(URL.AUTH, include('allauth.urls')),
+    path('webpush/', include('webpush.urls')),
     path(URL.INDEX, index),
     path(URL.APPLANDING, applanding),
     path(URL.LANDING, landing),

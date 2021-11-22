@@ -4,7 +4,6 @@ from .strings import url, DIVISIONS, PEOPLE, AUTH
 from . import env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-APPS_DIR = os.path.join(BASE_DIR, "apps")
 SECRET_KEY = env.PROJECTKEY
 
 VERSION = env.VERSION
@@ -33,9 +32,8 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
     'allauth_2fa',
-    "translation_manager",
+    "webpush",
     "django_q"
-    # "compressor",
 ] + DIVISIONS
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
@@ -54,7 +52,6 @@ STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    # 'compressor.finders.CompressorFinder',
 ]
 
 MIDDLEWARE = [
@@ -110,6 +107,14 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+VAPID_PUBLIC_KEY = env.VAPID_PUBLIC_KEY
+
+WEBPUSH_SETTINGS = {
+   "VAPID_PUBLIC_KEY": VAPID_PUBLIC_KEY,
+   "VAPID_PRIVATE_KEY": env.VAPID_PRIVATE_KEY,
+   "VAPID_ADMIN_EMAIL": env.VAPID_ADMIN_MAIL,
+}
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -359,7 +364,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-TRANSLATIONS_PROJECT_BASE_DIR = os.path.join(APPS_DIR, 'locale')
+TRANSLATIONS_PROJECT_BASE_DIR = os.path.join(BASE_DIR, 'locale')
 
 LOCALE_PATHS = (TRANSLATIONS_PROJECT_BASE_DIR,)
 
@@ -382,11 +387,6 @@ GH_HOOK_SECRET = env.GH_HOOK_SECRET
 
 GOOGLE_RECAPTCHA_SECRET_KEY = env.RECAPTCHA_SECRET
 GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
-
-# COMPRESS_ENABLED = True
-# COMPRESS_OFFLINE = False
-# COMPRESS_OUTPUT_DIR = "__static__"
-# COMPRESS_ROOT = BASE_DIR
 
 if env.ASYNC_CLUSTER:
     Q_CLUSTER = {

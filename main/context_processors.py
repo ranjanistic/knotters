@@ -35,7 +35,8 @@ def Global(request):
         CACHE_MAX=settings.CACHE_MAX,
         CACHE_ETERNAL=settings.CACHE_ETERNAL,
         alerts=[],
-        knotbot=knotbot
+        knotbot=knotbot,
+        VAPID_KEY=settings.VAPID_PUBLIC_KEY
     )
 
     for div in DIVISIONS:
