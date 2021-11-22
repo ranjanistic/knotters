@@ -9,7 +9,7 @@ const getSnapshot = async () => {
         const ids = [...document.querySelectorAll("#browser-snapshots [id]")].map(({id})=>id);
         console.log("Snapshot=>", ids);
         let callTime = 0;
-        const element = document.querySelector(`a#${ids[4]}`);
+        const element = document.querySelector(`#${ids[4]}`);
         document.addEventListener('scroll', () => {
         const clientHeight = document.documentElement.clientHeight;
         const elementSectionY = element.getBoundingClientRect().y;
