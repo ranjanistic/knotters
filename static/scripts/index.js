@@ -162,6 +162,29 @@ const loadBrowsers = () => {
         });
 };
 
+const loadSnapshots = () => {
+    
+    Promise.all(
+        getElements("browser-snap").map(async (view) => {
+            let method = async () => {
+                const data = await getRequest(
+                    '/browser-snap',{index:"0"}
+                );
+                if (!data) {
+                    return;
+                }
+                setHtmlContent(view, data);
+            };
+            await method();
+        })
+    )
+        .then(() => {
+        })
+        .catch((e) => {
+            console.warn(e);
+        });
+}
+
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;
     loadGlobalEventListeners();
@@ -1010,6 +1033,7 @@ const loadReporters = () => {
         };
     });
 };
+
 
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;

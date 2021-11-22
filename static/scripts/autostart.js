@@ -7,10 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
         getElementsByTag('html')[0].classList.remove('w3-animate-left')
         getElementsByTag('html')[0].classList.add('w3-animate-right')
     }
+    getSnapshot();
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
-    loadBrowsers()
+    loadBrowsers();
 });
 
 window.addEventListener("load", () => {

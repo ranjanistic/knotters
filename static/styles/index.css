@@ -517,9 +517,19 @@ button.small > i {
     min-height: 73vh;
 }
 .welcome-row h1 {
-    font-size: 3.3rem;
+    font-size: 3.0rem;
 }
-
+.browser-snap{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.snapshot-image{
+    width: 100%;
+    max-height:300px;
+    object-fit:scale-down;
+}
 #navbarprofilepic {
     padding:1px !important;
     margin:0 !important;
