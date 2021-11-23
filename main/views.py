@@ -312,13 +312,13 @@ def browser(request: WSGIRequest, type: str):
             excludeIDs = request.POST.get('excludeIDs', [])
             recommended = True
             if request.user.is_authenticated:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:10]
                 recommended = False
                 if len(snaps) < 1:
-                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")
+                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:10]
                     recommended = True
             else:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:10]
             return respondJson(Code.OK,dict(
                 html=projectsRenderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
                 snapIDs=list(snaps.values_list("id", flat=True)),
