@@ -12,5 +12,8 @@
     {% elif snap.video %}
         <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
     {% endif %}
+    {% if snap.creator == request.user.profile %}
+    <i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i>
+    {% endif %}
 </div>
 {% endfor %}

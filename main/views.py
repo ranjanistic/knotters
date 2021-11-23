@@ -296,6 +296,14 @@ class ServiceWorker(TemplateView):
         )))
         return context
 
+class Strings(TemplateView):
+    content_type = Code.APPLICATION_JS
+    template_name = Template.STRINGS
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
 @decode_JSON
 def browser(request: WSGIRequest, type: str):
     try:

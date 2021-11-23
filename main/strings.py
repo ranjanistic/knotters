@@ -131,7 +131,9 @@ class Message():
     LICENSE_UNSELECTED = "You have to choose a license"
     NICKNAME_ALREADY_TAKEN = "The nickname is not available, try something else."
     INVALID_LIC_DATA = 'Invalid license data'
-
+    SNAP_CREATED = "Snapshot published"
+    SNAP_UPDATED = "Snapshot updated"
+    SNAP_DELETED = "Snapshot removed"
     UNDER_MODERATION = "Currently under moderation"
     ALREADY_RESOLVED = "Already resolved"
     ALREADY_EXISTS = "Already exists"
@@ -280,6 +282,7 @@ class URL():
     ROBOTS_TXT = 'robots.txt'
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
+    STRINGS = 'strings.js'
     SWITCH_LANG = 'i18n/'
     OFFLINE = 'off408'
     ROOT = '/'
@@ -870,6 +873,7 @@ class Template():
 
     ROBOTS_TXT = "robots.txt"
     SW_JS = "service-worker.js"
+    STRINGS = "strings.js"
     MANIFEST_JSON = "manifest.json"
 
     INDEX = 'index'

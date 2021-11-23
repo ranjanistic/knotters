@@ -234,6 +234,7 @@
         </div>
         {% endblock %}
         {% comment %} {% compress js %} {% endcomment %}
+        <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
