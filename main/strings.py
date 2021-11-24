@@ -5,6 +5,7 @@ from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
+from django.utils.translation import gettext_lazy as _
 
 AUTH = 'auth'
 DOCS = 'docs'
@@ -97,73 +98,73 @@ class Event():
 
 
 class Message():
-    ERROR_OCCURRED = "An error occurred."
-    INVALID_REQUEST = "Invalid request"
-    INVALID_RESPONSE = "Invalid response"
-    SAVED = "Saved"
-    PROFILE_UPDATED = "Profile updated, it might take some time for changes to appear."
-    TAGS_UPDATED = "Tags updated."
-    TOPICS_UPDATED = "Topics updated."
-    MAX_TAGS_ACHEIVED = "Maximum tags limit reached."
-    MAX_TOPICS_ACHEIVED = "Maximum topics limit reached."
+    ERROR_OCCURRED = _("An error occurred.")
+    INVALID_REQUEST = _("Invalid request")
+    INVALID_RESPONSE = _("Invalid response")
+    SAVED = _("Saved")
+    PROFILE_UPDATED = _("Profile updated, it might take some time for changes to appear.")
+    TAGS_UPDATED = _("Tags updated.")
+    TOPICS_UPDATED = _("Topics updated.")
+    MAX_TAGS_ACHEIVED = _("Maximum tags limit reached.")
+    MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
 
-    RESULT_DECLARED = "Results declared!"
-    RESULT_NOT_DECLARED = "Results not declared."
-    RESULT_DECLARING = "Results declaration in progress"
-    ALREADY_PARTICIPATING = "You're already participating."
-    PARTICIPATION_CONFIRMED = 'Participation confirmed!'
-    PARTICIPATION_WITHDRAWN = 'Participation withdrawn.'
-    MEMBER_REMOVED = 'Member removed'
-    INVALID_ID = 'Invalid ID'
-    USER_NOT_EXIST = 'User doesn\'t exist.'
-    USER_PARTICIPANT_OR_INVITED = "User already participating or invited."
-    SUBMITTED_ALREADY = "Already submitted"
-    SUBMITTED_SUCCESS = "Submitted successfully"
-    SUBMITTED_LATE = "Submitted, but late."
-    SUBMISSION_TOO_LATE = "It is too late now."
-    SUBMISSION_MARKING_INVALID = "Invalid submission markings, try again."
-    SUBMISSION_ERROR = "Error in submission"
+    RESULT_DECLARED = _("Results declared!")
+    RESULT_NOT_DECLARED = _("Results not declared.")
+    RESULT_DECLARING = _("Results declaration in progress")
+    ALREADY_PARTICIPATING = _("You're already participating.")
+    PARTICIPATION_CONFIRMED = _('Participation confirmed!')
+    PARTICIPATION_WITHDRAWN = _('Participation withdrawn.')
+    MEMBER_REMOVED = _('Member removed')
+    INVALID_ID = _('Invalid ID')
+    USER_NOT_EXIST = _('User doesn\'t exist.')
+    USER_PARTICIPANT_OR_INVITED = _("User already participating or invited.")
+    SUBMITTED_ALREADY = _("Already submitted")
+    SUBMITTED_SUCCESS = _("Submitted successfully")
+    SUBMITTED_LATE = _("Submitted, but late.")
+    SUBMISSION_TOO_LATE = _("It is too late now.")
+    SUBMISSION_MARKING_INVALID = _("Invalid submission markings, try again.")
+    SUBMISSION_ERROR = _("Error in submission")
 
-    FREE_PROJECT_CREATED = "Project created successfully!"
-    SENT_FOR_REVIEW = "Sent for review"
-    PROJECT_DELETED = "Project deleted"
-    TERMS_UNACCEPTED = "You have not accepted the terms"
-    LICENSE_UNSELECTED = "You have to choose a license"
-    NICKNAME_ALREADY_TAKEN = "The nickname is not available, try something else."
-    INVALID_LIC_DATA = 'Invalid license data'
+    FREE_PROJECT_CREATED = _("Project created successfully!")
+    SENT_FOR_REVIEW = _("Sent for review")
+    PROJECT_DELETED = _("Project deleted")
+    TERMS_UNACCEPTED = _("You have not accepted the terms")
+    LICENSE_UNSELECTED = _("You have to choose a license")
+    NICKNAME_ALREADY_TAKEN = _("The nickname is not available, try something else.")
+    INVALID_LIC_DATA = _('Invalid license data')
 
-    UNDER_MODERATION = "Currently under moderation"
-    ALREADY_RESOLVED = "Already resolved"
-    ALREADY_EXISTS = "Already exists"
-    REQ_MESSAGE_SAVED = "Request message saved"
-    RES_MESSAGE_SAVED = "Response message saved"
-    MODERATION_REAPPLIED = "Re-applied for moderation to another moderator."
+    UNDER_MODERATION = _("Currently under moderation")
+    ALREADY_RESOLVED = _("Already resolved")
+    ALREADY_EXISTS = _("Already exists")
+    REQ_MESSAGE_SAVED = _("Request message saved")
+    RES_MESSAGE_SAVED = _("Response message saved")
+    MODERATION_REAPPLIED = _("Re-applied for moderation to another moderator.")
 
-    ACCOUNT_PREF_SAVED = "Account preferences saved."
-    SUCCESSOR_GH_UNLINKED = 'Your successor should have Github profile linked to their account.'
-    SUCCESSOR_OF_PROFILE = 'You are the successor of this profile.'
-    SUCCESSOR_NOT_FOUND = 'Successor not found'
-    SUCCESSOR_UNSET = 'Successor not set, use default successor if none.'
-    SUCCESSORSHIP_DECLINED = "You\'ve declined this profile\'s successorship"
-    SUCCESSORSHIP_ACCEPTED = "You\'re now the successor of this profile\'s assets."
+    ACCOUNT_PREF_SAVED = _("Account preferences saved.")
+    SUCCESSOR_GH_UNLINKED = _('Your successor should have Github profile linked to their account.')
+    SUCCESSOR_OF_PROFILE = _('You are the successor of this profile.')
+    SUCCESSOR_NOT_FOUND = _('Successor not found')
+    SUCCESSOR_UNSET = _('Successor not set, use default successor if none.')
+    SUCCESSORSHIP_DECLINED = _("You\'ve declined this profile\'s successorship")
+    SUCCESSORSHIP_ACCEPTED = _("You\'re now the successor of this profile\'s assets.")
 
-    ACCOUNT_DEACTIVATED = "Account deactivated."
-    ACCOUNT_DELETED = "Account deleted successfully."
+    ACCOUNT_DEACTIVATED = _("Account deactivated.")
+    ACCOUNT_DELETED = _("Account deleted successfully.")
 
-    XP_ADDED = "Profile XP increased"
+    XP_ADDED = _("Profile XP increased")
 
-    UNAUTHORIZED = 'Unauthorized access'
+    UNAUTHORIZED = _('Unauthorized access')
 
-    INVALID_MODERATOR = 'Invalid moderator'
-    COMP_TITLE_EXISTS = 'Competition with similar title exists'
-    INVALID_TIME_PAIR = 'Timings are abnormal, please correct them'
-    SAME_MOD_JUDGE = 'Moderator and judges should be different'
-    COMP_CREATED = "Competition created successfully"
-    CERTS_GENERATED = 'Certificates generated successfully.'
-    CERTS_GENERATING = 'Certificates are being generated.'
-    CERT_NOT_FOUND = 'Certificate not found'
+    INVALID_MODERATOR = _('Invalid moderator')
+    COMP_TITLE_EXISTS = _('Competition with similar title exists')
+    INVALID_TIME_PAIR = _('Timings are abnormal, please correct them')
+    SAME_MOD_JUDGE = _('Moderator and judges should be different')
+    COMP_CREATED = _("Competition created successfully")
+    CERTS_GENERATED = _('Certificates generated successfully.')
+    CERTS_GENERATING = _('Certificates are being generated.')
+    CERT_NOT_FOUND = _('Certificate not found')
 
-    MODERATION_SKIPPED = "That moderation was passed on to another moderator."
+    MODERATION_SKIPPED = _("That moderation was passed on to another moderator.")
 
     def isValid(self, message: str) -> bool:
         """

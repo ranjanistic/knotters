@@ -72,7 +72,7 @@ def submissionConfirmedAlert(submission: Submission):
     for profile in profiles:
         sendAlertEmail(
             to=profile.getEmail(), username=profile.getFName(), subject=f"Submission Submitted Successfully",
-            header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn}.{' Your submission was late, and hence is vulnerable to invalidation.' if submission.late else ''}. Submission ID: {submission.getID()}",
+            header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn}.{' Your submission was late, and hence is vulnerable to rejection.' if submission.late else ''}. Submission ID: {submission.getID()}",
             footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have received, altogether, soon. Till then, chill out! NOTE: We're lenient.",
             conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
         )
