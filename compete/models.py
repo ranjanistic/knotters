@@ -71,7 +71,7 @@ class Competition(models.Model):
         Profile, on_delete=models.PROTECT, related_name='competition_creator')
 
     associate = models.ImageField(upload_to=competeAssociatePath,null=True,blank=True)
-
+    max_grouping = models.IntegerField(default=5)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
@@ -640,7 +640,7 @@ class Submission(models.Model):
         Whether this submission can invite more participants or not, 
         depending on current totalmembers, submission status & competition active status.
         """
-        return (self.totalMembers() < 5) and not self.submitted and self.competition.isActive()
+        return (self.totalMembers() < self.competition.max_grouping) and not self.submitted and self.competition.isActive()
 
     def getRepo(self) -> bool:
         """
