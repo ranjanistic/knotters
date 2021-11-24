@@ -378,6 +378,26 @@ loadsnaps.onclick = (_) => {
         snapstart = snapend;
         snapend = snapstart + 10;
         show(loadsnaps);
+        getElements('delete-snapshot').forEach((btn) => {
+            btn.onclick = (e) => {
+                alertify.confirm('Delete snapshot', 
+                "Are you sure you want to delete snapshot?",
+                ()=>{
+                    postRequest(
+                        setUrlParams(URLS.SNAPSHOT, projectID, "remove"), {
+                            snapid:btn.getAttribute("data-snapid")
+                        }
+                    ).then((data) => {
+                        if (data.code === code.OK) {
+                            btn.parentElement.remove();
+                            message(data.message);
+                        } else {
+                            error(data.error);
+                        }
+                    });
+                }, ()=>{}).set('labels', {ok:'Yes', cancel:'No'}).set('closable', false);
+            };
+        });
     });
 };
 

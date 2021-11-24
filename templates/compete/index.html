@@ -23,6 +23,9 @@
 
 {% block nav_extra_links %}
 <a href="{{URLS.CERT_INDEX}}"><button title="Certification" class="primary" data-icon="badge"><span class="w3-hide-small">Certification</span></button></a>
+{% if request.user.profile.is_manager %}
+<a href="{{URLS.Management.CREATE_COMP}}"><button title="Create competition" class="active" data-icon="add"><span class="w3-hide-small">Create</span></button></a>
+{% endif %}
 {% endblock %}
 
 {% block content %}
