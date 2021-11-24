@@ -1,5 +1,5 @@
 {% for snap in snaps %}
-<div class="w3-row tertiary" style="margin-bottom:30px" id='a{{snap.get_id}}'>
+<div class="w3-row tertiary" style="width:100%;margin-bottom:30px" id='a{{snap.get_id}}'>
     <br/>
     <div class="w3-row w3-padding-small">
     <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
@@ -8,7 +8,7 @@
     </div>
     <br/>
     {% if snap.image %}
-        <img src="{{snap.get_image}}" width="100%" class="snapshot-image preview-type-image" />
+        <img src="{{snap.get_image}}" width="100%" style="margin:10px 0" class="snapshot-image preview-type-image" />
     {% elif snap.video %}
         <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
     {% endif %}

@@ -7,12 +7,17 @@ document.addEventListener("DOMContentLoaded", () => {
         getElementsByTag('html')[0].classList.remove('w3-animate-left')
         getElementsByTag('html')[0].classList.add('w3-animate-right')
     }
-    getSnapshot();
+    getSnap();
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
     loadBrowsers();
 });
+
+const toAdmire = () => {
+    const elem = document.getElementById("follow-button");
+    
+}
 
 window.addEventListener("load", () => {
     getElements('previous-navigation-button').forEach(btn => {

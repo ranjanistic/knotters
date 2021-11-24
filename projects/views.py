@@ -257,7 +257,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
             raise Exception()
-        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator))
+        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isFollower=False))
     except Exception as e:
         raise Http404(e)
 

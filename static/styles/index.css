@@ -530,6 +530,18 @@ button.small > i {
     max-height:300px;
     object-fit:scale-down;
 }
+.follow-button {
+    color: var(--positive-text);
+    font-size: 14pt;
+    background-color:var(--primary);
+    border: 1px solid;
+    border-color: var(--positive-text);
+    border-radius: 30px;
+    width: 150px;
+    height: 35px;
+    cursor: hand;
+    margin-top: 15px;		    
+  }
 #navbarprofilepic {
     padding:1px !important;
     margin:0 !important;
