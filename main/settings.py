@@ -56,7 +56,7 @@ STATICFILES_FINDERS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    "main.middleware.ExtendedSessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -67,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "main.middleware.ProfileActivationMiddleware",
     # "main.middleware.ActivityMiddleware",
+    # "main.middleware.AuthAccessMiddleware",
     "main.middleware.MessageFilterMiddleware",
 ]
 
@@ -169,6 +170,9 @@ if not env.ISTESTING and env.ASYNC_CLUSTER:
     }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+SESSION_REBOOT_THRESHOLD = 1
+SESSION_EXTENSION_DAYS = 7
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 CACHE_MICRO = 60 * 2
 CACHE_MIN = CACHE_MICRO * 3
