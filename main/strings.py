@@ -166,6 +166,8 @@ class Message():
 
     MODERATION_SKIPPED = _("That moderation was passed on to another moderator.")
 
+    PAYMENT_REG_SUCCESS = _("You have successfully paid the registration fee")
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that

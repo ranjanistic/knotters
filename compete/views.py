@@ -187,7 +187,7 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
             raise Exception()
         submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
-        if not submission.competition.isActive() or not submission.canInvite():
+        if not submission.competition.isActive():
             raise Exception()
         if not submission.competition.isAllowedToParticipate(request.user.profile):
             raise Exception()

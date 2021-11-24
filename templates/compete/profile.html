@@ -55,10 +55,13 @@
     <br/>
     <div class="w3-row">
       <div class="w3-col w3-twothird w3-left w3-padding">
-        <div class="w3-col {% if compete.associate %}w3-half{% endif %}">
+        <div class="w3-col {% if compete.associate or compete.reg_fee %}w3-half{% endif %}">
         <h2>{{compete.title}}</h2>
         <h4>{{compete.tagline}}</h4>
-        <strong>{{compete.shortdescription}}</strong><br/>
+        <strong>{{compete.shortdescription}}
+        </strong>
+        <br/><br/>
+        <button class="small navigator-share-action accent" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}">Share</button>
         </div>
         {% if compete.associate %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">
@@ -66,8 +69,22 @@
           <img class="pallete preview-type-image" src="{{compete.get_associate}}" width="80%" />
         </div>
         {% endif %}
-        
-        <button class="small navigator-share-action accent" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}">Share</button>
+        {% if request.user.is_authenticated and not isJudge and not isMod and not isManager %}
+        {% if compete.reg_fee and not compete.isHistory %}
+        <div class="w3-col w3-half w3-center dead-text w3-padding">
+          <h4>To be eligible for prizes,</h4>
+          <div class="razorpay-embed-btn" data-url="https://pages.razorpay.com/pl_IPZ86a6xkiVXuU/view" data-text="Pay Registration Fee" data-color="#F5D702" data-size="medium">
+            <script>
+              (function(){
+                var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
+                if(x){ var s=d.createElement('script'); s.defer=!0;s.id='razorpay-embed-btn-js';
+                s.src='https://cdn.razorpay.com/static/embed_btn/bundle.js';d.body.appendChild(s);} else{var rzp=window['__rzp__'];
+                rzp && rzp.init && rzp.init()}})();
+            </script>
+          </div>
+        </div>
+        {% endif %}
+        {% endif %}
       </div>
       <div class="w3-col w3-third w3-center w3-padding">
       <br/>
