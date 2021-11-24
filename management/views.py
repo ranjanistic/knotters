@@ -351,6 +351,7 @@ def submitCompetition(request) -> HttpResponse:
         startAt = request.POST['compstartAt']
         endAt = request.POST['compendAt']
         eachTopicMaxPoint = int(request.POST['compeachTopicMaxPoint'])
+        max_grouping = int(request.POST['compmaxgrouping'])
         topicIDs = str(request.POST['comptopicIDs']
                        ).strip().strip(',').split(',')
         judgeIDs = str(request.POST['compjudgeIDs']
@@ -373,6 +374,7 @@ def submitCompetition(request) -> HttpResponse:
                 startAt and
                 endAt and
                 eachTopicMaxPoint > 0 and
+                max_grouping > 0 and
                 len(topicIDs) > 0 and
                 len(judgeIDs) > 0 and
                 len(perks) > 0 and
@@ -405,6 +407,7 @@ def submitCompetition(request) -> HttpResponse:
             taskSummary=taskSummary,
             taskDetail=taskDetail,
             taskSample=taskSample,
+            max_grouping=max_grouping
         )
         if not compete:
             raise Exception("Competition not created")

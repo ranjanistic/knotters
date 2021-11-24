@@ -29,6 +29,7 @@ urlpatterns = [
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),
     path(URL.MANIFEST, Manifest.as_view(), name=URL.MANIFEST),
     path(URL.SERVICE_WORKER, ServiceWorker.as_view(), name=URL.SERVICE_WORKER),
+    path(URL.STRINGS, Strings.as_view(), name=URL.STRINGS),
     path(URL.SWITCH_LANG, include('django.conf.urls.i18n')),
     path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path(URL.AUTH, include('allauth_2fa.urls')),

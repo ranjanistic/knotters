@@ -73,15 +73,19 @@
           <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
-            <h5 class="{% if person.profile.is_verified %}name align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %} <i class="positive-text w3-large">check_circle</i>{% endif %}</h5>
-            {% if person.profile.is_moderator %}<span class="w3-tiny w3-tag w3-round-xxlarge w3-border accent" style="margin-bottom:10px">MOD</span><br/>{% endif %}
+            <h5 class="{% if person.profile.is_verified %}align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+            {% if person.profile.is_moderator %}<strong class="w3-tiny w3-round w3-tag accent" style="margin-bottom:5px">MOD</strong><br/>{% endif %}
             <span>{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
           {% if user.is_authenticated and user == person %}
-            <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
+            <i class="edit-action w3-right" data-edittarget="pallete">edit</i>
           {% endif %}
-          <i class="w3-left material-icons pointer {% if person.profile.is_moderator %}text-accent{% endif%}" onclick="shareLinkAction('{{ person.getName }}', '{{ person.profile.getBio }}', '{{site}}{{person.profile.getLink}}')">share</i>
+          <i class="w3-left pointer navigator-share-action" 
+          data-title="{{ person.getName }}"
+          data-text="{{ person.profile.getBio|or:'Checkout this profile!' }}"
+          data-url="{{ person.profile.getLink }}"
+          >share</i>
           </div>
         </div>
 
@@ -142,10 +146,18 @@
       <div class="w3-col w3-container m8 l9 ">
         <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
           <div class="w3-row w3-center w3-animate-top">
+            {% if not person.profile.is_manager %}
             <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">Overview</span></button>
+            {% endif %}
             <button title="Personal projects" id="projects" class="nav-tab" data-icon="widgets"><span class="w3-hide-small">Projects</span></button>
+            {% if not person.profile.is_manager %}
             <button title="Acheivements" id="acheivements" class="nav-tab" data-icon="emoji_events"><span class="w3-hide-small">Acheivements</span></button>
-            <button hidden id="contribution" class="nav-tab" data-icon="group_work"><span class="w3-hide-small">Contribution</span></button>
+            {% endif %}
+            {% if person.profile.is_manager %}
+            <button title="Competitions" id="competitions" class="nav-tab" data-icon="psychology"><span class="w3-hide-small">Competitions</span></button>
+            {% endif %}
+            
+            {% comment %} <button hidden id="contribution" class="nav-tab" data-icon="group_work"><span class="w3-hide-small">Contribution</span></button> {% endcomment %}
             <button hidden id="activity" class="nav-tab" data-icon="history"><span class="w3-hide-small">Activity</span></button>
             {% if person.profile.is_moderator %}
             <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">Moderation</span></button>

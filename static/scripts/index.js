@@ -195,7 +195,7 @@ const loadGlobalEventListeners = () => {
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
                 message(
-                    "Press Alt+R for introduction, or visit The Landing Page"
+                    STRING.re_introduction
                 );
                 hide(view);
             });
@@ -289,6 +289,12 @@ const loadGlobalEventListeners = () => {
             localStorage.setItem(`hidden-alert-${closer.id}`, closer.id);
         });
     });
+
+    getElements("navigator-share-action").forEach((share)=>{
+        share.addEventListener("click", ()=>{
+            shareLinkAction(share.getAttribute("data-title"), share.getAttribute("data-text"), share.getAttribute("data-url"));
+        })
+    })
 };
 
 const copyToClipboard = (text) => {
@@ -644,9 +650,8 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
                 subLoader(false);
                 afterShared();
             })
-            .catch(() => {
+            .catch((e) => {
                 subLoader(false);
-                error("Failed to share");
             });
     } else {
         error("Sharing not available on your system.");

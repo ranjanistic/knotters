@@ -821,23 +821,28 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
                 image=imagefile,
                 video=videofile
             )
-            return redirect(baseproject.getProject().getLink())
+            return redirect(baseproject.getProject().getLink(alert=Message.SNAP_CREATED))
 
         id = request.POST['snapid']
-        snapshot = Snapshot.objects.get(id=id, base_project=baseproject)
+        snapshot = Snapshot.objects.get(id=id, base_project=baseproject, creator=request.user.profile)
         if action == Action.UPDATE:
             text = request.POST.get('snaptext', None)
             image = request.POST.get('snapimage', None)
             video = request.POST.get('snapvideo', None)
             if not (text or image or video):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            snapshot.text = text
+            snapshot.save()
+            return respondJson(Code.OK, message=Message.SNAP_UPDATED)
+
 
         if action == Action.REMOVE:
             snapshot.delete()
-            return respondJson(Code.OK)
+            return respondJson(Code.OK, message=Message.SNAP_DELETED)
 
         return respondJson(Code.NO)
-    except:
+    except Exception as e:
+        print(e)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
 

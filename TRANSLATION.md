@@ -27,7 +27,7 @@ If `msgid`(s) in the `django.po` file of a language that you want to translate t
 Add missing `msgid`s in `.po` files by enclosing text in `{% trans %}` or `{% blocktrans %}` in html templates, then run the following
 
 ```bash
-py manage.py makemessages --ignore=*.txt
+py manage.py makemessages --extension=html,js
 ```
 
 After that, you may create translations for now available msgids for your respective language in the format mentioned above.

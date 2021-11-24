@@ -14,7 +14,7 @@
             {% if not submission.submitted and compete.isActive %}
             <form class="w3-row" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
-            <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" required value="{{submission.getRepo}}">
+            <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}">
             <div><br/></div>
             <button type="submit" class="primary" data-icon="save">Save</button>
             </form>
@@ -34,6 +34,7 @@
             Final Submit
         {% endif %}
         </button>
+        Save your submission before final submit.
         {% endif %}
         {% if not submission.submitted and compete.moderated %}
             <br/>
