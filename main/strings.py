@@ -67,6 +67,7 @@ class Code():
     REPORTS = 'reports'
     FEEDBACKS = 'feedbacks'
 
+    COMPETITIONS = 'competitions'
     RESULTS = "results"
     JUDGEMENTS = 'judgements'
     MODERATIONS = 'moderations'
@@ -245,6 +246,7 @@ class Profile():
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
     MODERATION = "moderation"
+    COMPETITIONS = "competitions"
 
     class Setting():
         ACCOUNT = "account"
