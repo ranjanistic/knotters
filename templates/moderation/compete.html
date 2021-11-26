@@ -14,7 +14,7 @@
                 <div class="pallete secondary">
                     <h5 class="text-secondary">{{moderation.competition.title}}</h5>
                     <h6 class="text-secondary">{{moderation.competition.tagline}}</h6>
-                    <div class="text-secondary"><strong>{{moderation.competition.shortdescription}}</strong></div>
+                    <div class="text-secondary"><strong>{{moderation.competition.shortdescription|truncatechars:120}}</strong></div>
                     <a href="{{moderation.competition.getLink}}#mainframe"><button class="accent small w3-right" data-icon="open_in_new">More details</button></a>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                 
                 <div class="w3-row pallete-slab" id="subslab{{sub.getID}}">
                     <div class="w3-col w3-threequarter">
-                        <strong class="w3-padding-small">{{sub.totalActiveMembers}} <span class="dead-text">member{{sub.totalActiveMembers|pluralize}}</span></strong>
+                        <a><strong class="w3-padding-small members-count-view" data-subID="{{sub.getID}}">{{sub.totalActiveMembers}} <span class="dead-text">member{{sub.totalActiveMembers|pluralize}}</span></strong></a>
                         <strong class="w3-padding-small {% if sub.submitted %}text-tertiary">Submitted{% else %}negative-text">Un-submitted{% endif %}</strong>
                         {% if sub.submitted %}
                         <strong class="w3-padding-small {% if sub.late %}negative-text">late{% else %}text-tertiary">on time{% endif %}</strong>
@@ -206,7 +206,7 @@
 {% block in_scripts %}
 <script>
 
-const ismoderator = "{{ismoderator}}" === 'True'
+const ismoderator = "{{ismoderator}}" === 'True';
 const allsubsMarked = "{{moderation.competition.allSubmissionsMarked}}" === "True";
 
 if(allsubsMarked){
@@ -389,136 +389,173 @@ if(allsubsMarked){
     let selectedAll = false;
 
     if(Number("{{moderation.competition.totalValidSubmissions}}") > 0){
-    let finalData = [];
-    getElement("selectall").onclick=_=>{
-        allsubmissionchecks.forEach((checkbox)=>{
-            checkbox.checked = !selectedAll
-            getElement("selectall").innerHTML = selectedAll?`${Icon('check_box')} Select All`:`${Icon('check_box_outline_blank')} Deselect All`;
-        });
-        selectedAll = !selectedAll
-    }
-
-    getElement('approveselected').onclick=_=>{
-        if(!allsubmissionchecks.some((checkbox)=>checkbox.checked)) return error('No submission selected')
-        let data = allsubmissionchecks.map((checkbox)=>({
-            subID: String(checkbox.getAttribute("data-subID")).trim(),
-            valid: checkbox.checked
-        }));
-        const bulkDialog = alertify.confirm(`Confirm bulk operation?`,
-            `<h4>Confirm to <span class="positive-text">approve ${data.filter((sub)=>sub.valid).length}</span> submssions and 
-            <span class="negative-text">reject ${data.filter((sub)=>!sub.valid).length}</span> submissions?</h4>
-            `,()=>{
-                message(`Filtering...`)
-                data.forEach((d)=>{
-                    finalData = finalData.filter((fd)=>fd.subID!=d.subID)
-                    finalData.push(d)
-                    if(!d.valid){
-                        allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${d.subID}`)
-                        hide(getElement(`subslab${d.subID}`))
-                    }
-                })
-                window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
-                message(`Filtered`)
-            },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
-    }
-
-    getElement('rejectselected').onclick=_=>{
-        if(!allsubmissionchecks.some((checkbox)=>checkbox.checked)) return error('No submission selected')
-        let data = allsubmissionchecks.map((checkbox)=>({
-            subID: String(checkbox.getAttribute("data-subID")).trim(),
-            valid: !checkbox.checked
-        }));
-        const bulkDialog = alertify.confirm(`Confirm bulk operation?`,
-            `<h4>Confirm to <span class="negative-text">reject ${data.filter((sub)=>!sub.valid).length}</span> submssions and 
-            <span class="positive-text">approve ${data.filter((sub)=>sub.valid).length}</span> submissions?</h4>
-            `,()=>{
-                message(`Filtering...`)
-
-                data.forEach((d)=>{
-                    finalData = finalData.filter((fd)=>fd.subID!=d.subID)
-                    finalData.push(d)
-                    if(!d.valid){
-                        allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${d.subID}`)
-                        hide(getElement(`subslab${d.subID}`))
-                    }
-                })
-                window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
-                message(`Filtered`)
-            },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
-        
-    }
-
-    getElements("rejectsubmission").forEach((reject)=>{
-        reject.onclick=_=>{
-            const rejectDialog = alertify.confirm(`Confirm rejection?`,
-            `<h4>Confirm to <span class="negative-text">reject</span> the following submission?</h4>
-                <button class="small primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}View submission</button>
-            `,()=>{
-                message(`rejecting...`)
-                finalData = finalData.filter((fd)=>fd.subID!=reject.getAttribute("data-subID"))
-                finalData.push({
-                    subID: reject.getAttribute("data-subID"),
-                    valid: false
-                });
-                allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${reject.getAttribute("data-subID")}`)
-                window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
-                hide(getElement(`subslab${reject.getAttribute("data-subID")}`))
-            },()=>rejectDialog.close()).set('labels',{ok:'Yes, reject this one', cancel: 'No, wait!'})
-        }
-    })
-
-    getElement("finalsend").onclick=_=>{
-        if(!finalData.length){
-            if(allsubmissionchecks.every((checkbox)=>!checkbox.checked)){
-                finalData = allsubmissionchecks.map((checkbox)=>({
-                    subID: String(checkbox.getAttribute("data-subID")).trim(),
-                    valid: true
-                }))
-            } else {
-                finalData = allsubmissionchecks.map((checkbox)=>({
-                    subID: String(checkbox.getAttribute("data-subID")).trim(),
-                    valid: checkbox.checked
-                }))
-            }
-        }
-        alertify.confirm(`Send to judges?`,
-        `<h4>Are you sure you want to send 
-            <span class="positive-text">${finalData.filter((fd)=>fd.valid).length} submissions approved</span> by you
-            to judges for final evaluation?
-            This will also invalidate <span class="negative-text">${finalData.filter((fd)=>!fd.valid).length} submissions rejected</span>
-            by you. This action is <span class="negative-text">irreversible</span>.
-        </h4>`,
-        async ()=>{
-            message('Submitting...')
-            loader(true)
-            subLoader(true)
-            const data = await postRequest("{{moderation.approveCompeteLink}}",{
-                submissions: finalData   
+        let finalData = [];
+        getElement("selectall").onclick=_=>{
+            allsubmissionchecks.forEach((checkbox)=>{
+                checkbox.checked = !selectedAll
+                getElement("selectall").innerHTML = selectedAll?`${Icon('check_box')} Select All`:`${Icon('check_box_outline_blank')} Deselect All`;
             });
-            if(data.code===code.OK){
-                success('Filtered submissions submitted for judgement')
-                window.location.reload()
-            } else {
-                loader(false)
-                subLoader(false)
-                error(data.error);
-            }
-        },
-        ()=>{}
-        ).set('labels',{ok:'Yes, do it', cancel:'No, wait!'})
-    }
+            selectedAll = !selectedAll
+        }
 
-    getElement("discardall").onclick=_=>{
-        alertify.confirm(`Discard changes?`,
-        `<h4>Are you sure to discard all changes you made? All rejected submissions will be restored, and you'll have to start again.</h4>`,
-        ()=>{
-            subLoader()
-            window.localStorage.removeItem(localStorageKey)
-            window.location.reload()
-        },
-        ()=>{}
-        ).set('labels',{ok:'Yes, discard', cancel:'No, wait!'})
-    }
+        getElement('approveselected').onclick=_=>{
+            if(!allsubmissionchecks.some((checkbox)=>checkbox.checked)) return error('No submission selected')
+            let data = allsubmissionchecks.map((checkbox)=>({
+                subID: String(checkbox.getAttribute("data-subID")).trim(),
+                valid: checkbox.checked
+            }));
+            const bulkDialog = alertify.confirm(`Confirm bulk operation?`,
+                `<h4>Confirm to <span class="positive-text">approve ${data.filter((sub)=>sub.valid).length}</span> submssions and 
+                <span class="negative-text">reject ${data.filter((sub)=>!sub.valid).length}</span> submissions?</h4>
+                `,()=>{
+                    message(`Filtering...`)
+                    data.forEach((d)=>{
+                        finalData = finalData.filter((fd)=>fd.subID!=d.subID)
+                        finalData.push(d)
+                        if(!d.valid){
+                            allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${d.subID}`)
+                            hide(getElement(`subslab${d.subID}`))
+                        }
+                    })
+                    window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
+                    message(`Filtered`)
+                },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
+        }
+        
+        
+        getElement('rejectselected').onclick=_=>{
+            if(!allsubmissionchecks.some((checkbox)=>checkbox.checked)) return error('No submission selected')
+            let data = allsubmissionchecks.map((checkbox)=>({
+                subID: String(checkbox.getAttribute("data-subID")).trim(),
+                valid: !checkbox.checked
+            }));
+            const bulkDialog = alertify.confirm(`Confirm bulk operation?`,
+                `<h4>Confirm to <span class="negative-text">reject ${data.filter((sub)=>!sub.valid).length}</span> submssions and 
+                <span class="positive-text">approve ${data.filter((sub)=>sub.valid).length}</span> submissions?</h4>
+                `,()=>{
+                    message(`Filtering...`)
+
+                    data.forEach((d)=>{
+                        finalData = finalData.filter((fd)=>fd.subID!=d.subID)
+                        finalData.push(d)
+                        if(!d.valid){
+                            allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${d.subID}`)
+                            hide(getElement(`subslab${d.subID}`))
+                        }
+                    })
+                    window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
+                    message(`Filtered`)
+                },()=>bulkDialog.close()).set('labels',{ok:'Yes, confirm', cancel: 'No, wait!'})
+            
+        }
+
+        getElements("rejectsubmission").forEach((reject)=>{
+            reject.onclick=_=>{
+                const rejectDialog = alertify.confirm(`Confirm rejection?`,
+                `<h4>Confirm to <span class="negative-text">reject</span> the following submission?</h4>
+                    <button class="small primary" onclick="miniWindow('${reject.getAttribute("data-subItem")}')">${Icon('open_in_new')}View submission</button>
+                `,()=>{
+                    message(`rejecting...`)
+                    finalData = finalData.filter((fd)=>fd.subID!=reject.getAttribute("data-subID"))
+                    finalData.push({
+                        subID: reject.getAttribute("data-subID"),
+                        valid: false
+                    });
+                    allsubmissionchecks = allsubmissionchecks.filter((checkbox)=>checkbox.id!=`select${reject.getAttribute("data-subID")}`)
+                    window.localStorage.setItem(localStorageKey, JSON.stringify(finalData))
+                    hide(getElement(`subslab${reject.getAttribute("data-subID")}`))
+                },()=>rejectDialog.close()).set('labels',{ok:'Yes, reject this one', cancel: 'No, wait!'})
+            }
+        })
+
+        getElement("finalsend").onclick=_=>{
+            if(!finalData.length){
+                if(allsubmissionchecks.every((checkbox)=>!checkbox.checked)){
+                    finalData = allsubmissionchecks.map((checkbox)=>({
+                        subID: String(checkbox.getAttribute("data-subID")).trim(),
+                        valid: true
+                    }))
+                } else {
+                    finalData = allsubmissionchecks.map((checkbox)=>({
+                        subID: String(checkbox.getAttribute("data-subID")).trim(),
+                        valid: checkbox.checked
+                    }))
+                }
+            }
+            alertify.confirm(`Send to judges?`,
+            `<h4>Are you sure you want to send 
+                <span class="positive-text">${finalData.filter((fd)=>fd.valid).length} submissions approved</span> by you
+                to judges for final evaluation?
+                This will also invalidate <span class="negative-text">${finalData.filter((fd)=>!fd.valid).length} submissions rejected</span>
+                by you. This action is <span class="negative-text">irreversible</span>.
+            </h4>`,
+            async ()=>{
+                message('Submitting...')
+                loader(true)
+                subLoader(true)
+                const data = await postRequest("{{moderation.approveCompeteLink}}",{
+                    submissions: finalData   
+                });
+                if(data.code===code.OK){
+                    success('Filtered submissions submitted for judgement')
+                    window.location.reload()
+                } else {
+                    loader(false)
+                    subLoader(false)
+                    error(data.error);
+                }
+            },
+            ()=>{}
+            ).set('labels',{ok:'Yes, do it', cancel:'No, wait!'})
+        }
+
+        getElement("discardall").onclick=_=>{
+            alertify.confirm(`Discard changes?`,
+            `<h4>Are you sure to discard all changes you made? All rejected submissions will be restored, and you'll have to start again.</h4>`,
+            ()=>{
+                subLoader()
+                window.localStorage.removeItem(localStorageKey)
+                window.location.reload()
+            },
+            ()=>{}
+            ).set('labels',{ok:'Yes, discard', cancel:'No, wait!'})
+        }
+
+        const allSubmissionsData = []
+        {% for sub in moderation.competition.getValidSubmissions %}
+            allSubmissionsData.push({
+                subID: "{{sub.getID}}",
+                members: [
+                    {% for member in sub.getMembers %}
+                        {
+                            id: "{{member.getUserID}}",
+                            name: "{{member.getName}}",
+                            email: "{{member.getEmail}}",
+                            link: "{{member.getLink}}",
+                            dp: "{{member.getDP}}"
+                        },
+                    {% endfor %}
+                ],
+            })
+        {% endfor %}
+        
+        getElements("members-count-view").forEach((count)=>{
+            count.onclick=_=>{
+                const submission = allSubmissionsData.find((subm)=>subm.subID == count.getAttribute("data-subID"))
+                let mdata = ''
+                submission.members.forEach((member)=>{
+                    mdata += `
+                    <div class="pallete-slab">
+                        <a onclick="miniWindow('${member.link}')"><img src="${member.dp}" class="w3-circle" width="30" /></a>
+                        <strong>${member.name}</strong><br/>
+                        <span>${member.email}</span>
+                    </div>
+                    `;
+                    
+                })
+                alertify.alert(`<h6>Members View (Only to verify authenticity)</h6>`, mdata,()=>{})
+            }
+        })
     }
 }
 </script>

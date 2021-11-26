@@ -72,6 +72,8 @@ class Competition(models.Model):
 
     associate = models.ImageField(upload_to=competeAssociatePath,null=True,blank=True)
     max_grouping = models.IntegerField(default=5)
+
+    reg_fee = models.IntegerField(default=0)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 

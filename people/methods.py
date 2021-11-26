@@ -9,7 +9,7 @@ from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString, COMPETE
 from projects.models import BaseProject, FreeProject, Project
 from moderation.models import Moderation
-from compete.models import CompetitionJudge, Result
+from compete.models import Competition, CompetitionJudge, Result
 from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
 from .apps import APPNAME
 
@@ -70,7 +70,7 @@ def addTopicToDatabase(topic: str) -> Topic:
     return topicObj
 
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
-                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS]
+                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS, profileString.COMPETITIONS ]
 
 SETTING_SECTIONS = [profileString.setting.ACCOUNT,
                     profileString.setting.PREFERENCE,profileString.setting.SECURITY]
@@ -108,6 +108,9 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             data[Code.UNRESOLVED] = mods.filter(resolved=False).order_by('-requestOn')
             data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
             data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
+    elif section == profileString.COMPETITIONS:
+        if profile.is_manager:
+            data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile)
     else: return False
     return data
 
@@ -194,6 +197,7 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
 def migrateUserAssets(predecessor: User, successor: User) -> bool:
     try:
         if predecessor == successor: return True
+        Competition.objects.filter(creator=predecessor.profile).update(creator=successor.profile)
         Project.objects.filter(creator=predecessor.profile,
                                status=Code.MODERATION).delete()
         BaseProject.objects.filter(creator=predecessor.profile).update(migrated=True, creator=successor.profile)
