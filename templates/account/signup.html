@@ -82,7 +82,7 @@
 </div>
 <br/>
 <center class="w3-padding">
-<strong>{% blocktrans %}By continuing via an identity on our platform, you agree to our <a onclick="newTab('{{URLS.Docs.TYPE|params:'termsofservice'}}')" target="_blank">terms of service</a> and <a onclick="newTab('{{URLS.Docs.TYPE|params:'privacypolicy'}}')" target="_blank">privacy policy</a>.{% endblocktrans %}</strong>
+<strong>{% trans "By continuing via an identity on our platform" %}, {% trans "you agree to our" %} <a onclick="newTab('{{URLS.Docs.TYPE|params:'termsofservice'}}')" target="_blank">{% trans "terms of service" %}</a> {% trans "and" %} <a onclick="newTab('{{URLS.Docs.TYPE|params:'privacypolicy'}}')" target="_blank">{% trans "privacy policy" %}</a>.</strong>
 </center>
 <br/>
 {%endblock%}
