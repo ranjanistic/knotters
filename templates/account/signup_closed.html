@@ -1,22 +1,22 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}Signup closed{% endblock %}
+{% block title %}{% trans "Signup suspended" %}{% endblock %}
 
 {% block nav_href %}{% url 'account_login' %}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}Signup suspended{% endblock %}
+{% block nav_text %}{% trans "Signup suspended" %}{% endblock %}
 {% block nav_auth_links %}{% endblock %}
 
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
-<i class="material-icons w3-jumbo">construction</i>
-<h1>Sign Up unavailable</h1>
+<i class="w3-jumbo">construction</i>
+<h1>{% trans "Sign Up unavailable" %}</h1>
 <br/>
-<h4>We are sorry, but sign up is currently suspended.</h4>
+<h4>{% trans "We are sorry, but sign up is currently suspended." %}</h4>
 </div>
 <br/>
 {% endblock %}

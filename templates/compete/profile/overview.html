@@ -1,7 +1,7 @@
 {% load custom_tags %}
 <div class="w3-row w3-padding-small">
     <center>
-        <h3>Topics of this competition</h3>
+        <h3>{% trans "Topics of this competition" %}</h3>
         {% for topic in compete.getTopics %}
         <button class=" positive">{{topic.name}}</button>
         {% endfor %}
@@ -10,7 +10,7 @@
         <h6>A chance to level up your profile by <span class="accent">+{{compete.getMaxScore}} XP</span>!<a href="#notice">*</a></h6>
     </center>
     <div class="w3-row">
-    <center><h4>Rank perks<a href="#notice">*</a></h4></center>
+    <center><h4>{% trans "Rank prizes" %}<a href="#notice">*</a></h4></center>
     {% for perk in compete.getPerks %}
     <div class="w3-col w3-third w3-padding-small w3-center">
         <div class="pallete accent">
@@ -25,11 +25,11 @@
     </div>
     <br/>
     <center>
-    <h6>All participants will receive <span class="accent">e-certificates</span><a href="#notice">*</a>.</h6>
-    <strong>The points obtained from this competition can be claimed as XP for your profile.</strong>
+    <h6>{% trans "All participants will receive" %} <span class="accent">{% trans "e-certificates" %}</span><a href="#notice">*</a>{% trans "." %}</h6>
+    <strong>{% trans "The points obtained from this competition can be claimed as XP for your profile." %}</strong>
     </center>
     <div class="w3-row">
-    <h4>Description</h4>
+    <h4>{% trans "Description" %}</h4>
     <strong>{{compete.description}}</strong>
     </div>
 </>

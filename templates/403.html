@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load socialaccount %}
-{% block title %}Forbidden{% endblock %}
+{% block title %}{% trans "Forbidden" %}{% endblock %}
 {% block nav_text %}
 403
 {% endblock %}
@@ -13,9 +13,9 @@
 	<h1>403</h1>
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half">
-  <h1>Forbidden</h1><br/>
-  <h4>This part of our application is currently not allowed for you. Try again later.</h4><br/>
-  <a href="/"><button class="positive" type="button"><i class="material-icons">home</i>Return home</button></a>
+  <h1>{% trans "Forbidden" %}</h1><br/>
+  <h4>{% trans "This part of our application is currently not allowed for you." %} {% trans "Try again later." %}</h4><br/>
+  <a href="/"><button class="positive" type="button" data-icon="home">{% trans "Return home" %}</button></a>
   </div>
   <div class="w3-row w3-padding"></div>
   <br/><br/>

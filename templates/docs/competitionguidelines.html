@@ -3,16 +3,16 @@
 {% load custom_tags %}
 
 {% block og_url %}{{URLS.TYPE|params:'competitionguidelines'}}{% endblock %}
-{% block og_title %}Competition Guidelines{% endblock %}
-{% block og_description %}Before participating in a competition, go through our guidelines.{% endblock %}
+{% block og_title %}{% trans "Competition Guidelines" %}{% endblock %}
+{% block og_description %}{% trans "Before participating in a competition, go through our guidelines." %}{% endblock %}
 {% block og_site_name %}Competition Guidelines{% endblock %}
 
 {% block tw_url %}{{URLS.TYPE|params:'competitionguidelines'}}{% endblock %}
-{% block tw_title %}Competition Guidelines{% endblock %}
-{% block tw_description %}Before participating in a competition, go through our guidelines.{% endblock %}
-{% block tw_site_name %}Competition Guidelines{% endblock %}
+{% block tw_title %}{% trans "Competition Guidelines" %}{% endblock %}
+{% block tw_description %}{% trans "Before participating in a competition, go through our guidelines." %}{% endblock %}
+{% block tw_site_name %}{% trans "Competition Guidelines" %}{% endblock %}
 
-{% block title %}Competition Guidelines{% endblock %}
+{% block title %}{% trans "Competition Guidelines" %}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
@@ -23,11 +23,11 @@
 <div class="w3-row w3-padding">
     <center>
         <div class="material-icons w3-jumbo">psychology</div>
-        <h1>Competition Guidelines</h1>
-        <h3>Before participating, go through the following.</h3>
+        <h1>{% trans "Competition Guidelines" %}</h1>
+        <h3>{% trans "Before participating in a competition, go through the following." %}</h3>
     </center><br/>
     <div>
-     <h5>For participants</h5>
+     <h5>{% trans "For participants" %}</h5>
      
       <li>
         Participating in a competition does not guarantee that your submission will be included in the results as well. There are several reasons for which your submission may get rejected which will be mentioned in this page, keep reading.
@@ -72,7 +72,7 @@
       </li>
      
 
-     <h5>For moderators</h5>
+     <h5>{% trans "For moderators" %}</h5>
      
       <li>
 	The moderator of a competition has duty to filter out and reject the submissions which do not follow competition guidelines and therefore are not eligible for judgement.
@@ -94,7 +94,7 @@
       </li>
      
 
-     <h5>For judges</h5>
+     <h5>{% trans "For judges" %}</h5>
      
       <li>
 	Judge of a competition has duty to mark each and every submission approved by the moderator, against the topics of the competition. Your points decide the future of every submission’s result.
@@ -114,7 +114,7 @@
       </li>
     </div>
  <br/>
- You can go through our <a href="{{URLS.TYPE|params:'termsofservice'}}">terms of service</a> for general terms.
+ You can go through our <a href="{{URLS.TYPE|params:'termsofservice'}}">{% trans "terms of service" %}</a> for general terms.
  <br/>
 </div>
 {% endblock %}

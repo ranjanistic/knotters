@@ -1,7 +1,7 @@
 {% extends 'docs/index.html' %}
 {% load static %}
 
-{% block title %}Community Guidelines{% endblock %}
+{% block title %}{% trans "Community Guidelines" %}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
@@ -11,8 +11,8 @@
 <div class="w3-row w3-padding">
     <center>
         <div class="material-icons w3-jumbo">groups</div>
-        <h1>Community Guidelines</h1>
-        <h3>Liberty to create & contribute for betterment of each other is the central aspect of our guidelines.</h3>
+        <h1>{% trans "Community Guidelines" %}</h1>
+        <h3>{% trans "Liberty to create & contribute for betterment of each other is the central aspect of our guidelines." %}</h3>
     </center><br/>
 </div>
 {% endblock %}

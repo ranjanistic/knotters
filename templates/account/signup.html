@@ -6,18 +6,18 @@
 {% load custom_tags %}
 
 {% block og_url %}{{URLS.Auth.SIGNUP}}{% endblock %}
-{% block og_title %}Join community{% endblock %}
-{% block og_site_name %}Join community{% endblock %}
+{% block og_title %}{% trans "{% trans "Join community" %}" %}{% endblock %}
+{% block og_site_name %}{% trans "{% trans "Join community" %}" %}{% endblock %}
 
 {% block tw_url %}{{URLS.Auth.SIGNUP}}{% endblock %}
-{% block tw_title %}Join community{% endblock %}
-{% block tw_site_name %}Join community{% endblock %}
-{% block title %}Join community{% endblock %}
+{% block tw_title %}{% trans "{% trans "Join community" %}" %}{% endblock %}
+{% block tw_site_name %}{% trans "Join community" %}{% endblock %}
+{% block title %}{% trans "Join community" %}{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}Join community{% endblock %}
+{% block nav_text %}{% trans "Join community" %}{% endblock %}
 {% block nav_auth_links %}{% endblock %}
 {% block nav_auth_signup %}{% endblock %}
 
@@ -25,7 +25,7 @@
 
 <div class="w3-row w3-padding w3-center tertiary">
 	<img src="{{ICON}}" width="50" class="darkimg" />
-	<h4>Be a part of a community that's always there for you.</h4>
+	<h4>{% trans "Be a part of a community that's always there for you." %}</h4>
 </div>
 <br/>
 <div class="w3-row w3-padding w3-center">
@@ -37,40 +37,40 @@
 				<a class="w3-row" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="primary w3-padding">
 						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
-						Continue via Google
+						{% trans "Continue via Google" %}
 					</button>
 				</a>
 				<br/>
 				<a class="w3-row" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="secondary w3-padding">
 						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
-						Continue via Github
+						{% trans "Continue via Github" %}
 					</button>
 				</a>
 				<br/>
 				<a class="w3-row" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="tertiary w3-padding">
 						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
-						Continue via Discord
+						{% trans "Continue via Discord" %}
 					</button>
 				</a>
 				<br/>
-				<h4>Already a member?</h4>
+				<h4>{% trans "Already a member?" %}</h4>
 				<a class="w3-row" href="{% url 'account_login' %}?{{redirect_field_name}}={{request.GET.next}}">
-					<button class="primary" data-icon="login">Existing Login</button>
+					<button class="primary" data-icon="login">{% trans "Existing Login" %}</button>
 				</a>
 			</div>
 			<div class="w3-col w3-half">
 				<form method="POST" action="{% url 'account_signup' %}?{{redirect_field_name}}={{request.GET.next}}" enctype="multipart/form-data">
 					{% csrf_token %}
 					<br/>
-					<h3>or create a<br/>{{APPNAME}} account</h3>
+					<h3>{% trans "or create a" %}<br/>{{APPNAME}} {% trans "account" %}</h3>
 					<br/>
 					{% for field in form %}
 						{{ field }}
 						<br/><br/>
 					{% endfor %}
-					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' data-icon="person_add" id="sign-up-action">Create account</button>
+					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' data-icon="person_add" id="sign-up-action">{% trans "Create account" %}</button>
 					<input type="hidden" name="{{redirect_field_name}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>
@@ -80,7 +80,7 @@
 </div>
 <br/>
 <center class="w3-padding">
-<strong>By continuing via an identity on our platform, you agree to our <a onclick="newTab('{{URLS.Docs.TYPE|params:'termsofservice'}}')" target="_blank">terms of service</a> and <a onclick="newTab('{{URLS.Docs.TYPE|params:'privacypolicy'}}')" target="_blank">privacy policy</a>.</strong>
+<strong>{% blocktrans %}By continuing via an identity on our platform, you agree to our <a onclick="newTab('{{URLS.Docs.TYPE|params:'termsofservice'}}')" target="_blank">terms of service</a> and <a onclick="newTab('{{URLS.Docs.TYPE|params:'privacypolicy'}}')" target="_blank">privacy policy</a>.{% endblocktrans %}</strong>
 </center>
 <br/>
 {%endblock%}

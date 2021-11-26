@@ -31,7 +31,7 @@
                 <a href="{{person.getLink}}">
                     <img src="{{person.getDP}}" class="w3-circle" width="30" alt="{{person.getName}}" />
                 </a> 
-                <b>{{person.getName}}</b> contributed in <a href="{{compete.getLink}}" >{{compete.title}}</a>.
+                <b>{% blocktrans %}{{person.getName}}</b> contributed in <a href="{{compete.getLink}}" >{{compete.title}}{% endblocktrans %}</a>.
             </h4>
         </div>
         {% if certpath %}
@@ -40,41 +40,41 @@
         <div class="dead-text w3-center primary w3-padding">
         <h4>
         <i class="w3-jumbo">hourglass_top</i><br/>
-        The certificate is not yet available.<br/>It'll be available here soon.<br/>
-        Regardless of the availability of certificate, this page equally represents the certification.
+        {% trans "The certificate is not yet available." %}<br/>{% trans "It'll be available here soon." %}<br/>
+        {% trans "Regardless of the availability of certificate, this page is equivalent to the said certification." %}
         </h4>
         </div>
         {% endif %}
     </div>
     <div class="w3-col w3-third">
         <div class="w3-row primary w3-padding">
-            <h3>Certificate Details</h3>
-            <h6><span class="dead-text">Name </span>{{compete.title}} at Knotters</h6>
-            <h6><span class="dead-text">Issuing Organization </span>Knotters</h6>
-            <h6><span class="dead-text">Issue Date </span>{{compete.resultDeclaredOn|or:compete.endAt}}</h6>
-            <h6><span class="dead-text">Expiration Date </span>Does not expire</h6>
+            <h3>{% trans "Certificate Details" %}</h3>
+            <h6><span class="dead-text">{% trans "Name" %} </span>{{compete.title}} at {{APPNAME}}</h6>
+            <h6><span class="dead-text">{% trans "Issuing Organization" %} </span>{{APPNAME}}</h6>
+            <h6><span class="dead-text">{% trans "Issue Date" %} </span>{{compete.resultDeclaredOn|or:compete.endAt}}</h6>
+            <h6><span class="dead-text">{% trans "Expiration Date" %} </span>{% trans "Does not expire" %}</h6>
             {% if certID %}
-            <h6><span class="dead-text">Credential ID </span><a class="click-to-copy" title="Click to copy" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
+            <h6><span class="dead-text">{% trans "Credential ID" %} </span><a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
             {% else %}
-            <h6 ><span class="dead-text">Credential ID </span>Will be available soon.</h6>
+            <h6 ><span class="dead-text">{% trans "Credential ID" %} </span>{% trans "Will be available soon." %}</h6>
             {% endif %}
-            <h6><span class="dead-text">Credential URL</span> <a class="click-to-copy" title="Click to copy" data-copy="{{request.build_absolute_uri}}">Copy to clipboard</a></h6>
+            <h6><span class="dead-text">{% trans "Credential URL" %}</span> <a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{request.build_absolute_uri}}">{% trans "Copy to clipboard" %}</a></h6>
         </div>
         <br/>
         <div class="w3-row w3-center">
             {% if self and certpath %}
             <a href="{{appcert.get_download_link}}" download>
-                <button class="small primary" data-icon="download">Download certificate</button>
+                <button class="small primary" data-icon="download">{% trans "Download certificate" %}</button>
             </a>
             {% endif %}
-            <button class="small primary" onclick="shareLinkAction(`{{person.getFName}}'s Certificate`,`{{person.getName }}'s certificate of participation in '{{compete.title}}'.`,`{{request.build_absolute_uri}}`)" data-icon="share">Share</button>
+            <button class="small primary navigator-share-action" data-title="{{person.getFName}}'s Certificate" data-text="{{person.getName }}'s certificate of participation in '{{compete.title}}" data-url="{{request.build_absolute_uri}}" data-icon="share">{% trans "Share" %}</button>
         </div>
         <br/>
         {% if compete.get_associate %}
         <div class="w3-row w3-center primary">
             <div class="w3-row">
-            <h5 class="dead-text">In association with</h5>
-            <img class="preview-type-image" src="{{compete.get_associate}}" alt="Association" width="100%" />
+            <h5 class="dead-text">{% trans "In association with" %}</h5>
+            <img class="preview-type-image" src="{{compete.get_associate}}" alt="{% trans "Association" %}" width="100%" />
             </div>
         </div>
         {% endif %}

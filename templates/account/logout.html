@@ -2,35 +2,35 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}Logout{% endblock %}
+{% block title %}{% trans "Logout" %}{% endblock %}
 
 {% block og_url %}{{URLS.Auth.LOGOUT}}{% endblock %}
-{% block og_title %}Logout{% endblock %}
-{% block og_site_name %}Logout{% endblock %}
+{% block og_title %}{% trans "Logout" %}{% endblock %}
+{% block og_site_name %}{% trans "Logout" %}{% endblock %}
 
 {% block tw_url %}{{URLS.Auth.LOGOUT}}{% endblock %}
-{% block tw_title %}Logout{% endblock %}
-{% block tw_site_name %}Logout{% endblock %}
+{% block tw_title %}{% trans "Logout" %}{% endblock %}
+{% block tw_site_name %}{% trans "Logout" %}{% endblock %}
 
 {% block nav_href %}{{request.user.profile.getLink}}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}Logout{% endblock %}
+{% block nav_text %}{% trans "Logout" %}{% endblock %}
 
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
 	<div class="w3-padding"><img src="{{user.profile.getDP}}" class="w3-circle" width="100"/></div>
-	<h1>{{user.first_name|capfirst}}, are you sure you want to log out?</h1>
+	<h1>{% blocktrans %}{{user.first_name|capfirst}}, are you sure you want to log out?{% endblocktrans %}</h1>
   <br/>
 	<div class="w3-col w3-quarter w3-padding"></div>
 	<div class="w3-col w3-half">
     <form method="POST" action="{% url 'account_logout' %}">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{URLS.REDIRECTOR}}?n={{ redirect_field_value }}" />
-      <button class="negative" type="submit" data-icon="logout">Yes, logout</button>
-      <a href="/"><button class="positive" type="button" data-icon="home">No, return home</button></a>
+      <button class="negative" type="submit" data-icon="logout">{% trans "Yes, logout" %}</button>
+      <a href="/"><button class="positive" type="button" data-icon="home">{% trans "No" %}, {% trans "return home" %}</button></a>
       </form>
     <br/>
   </div>

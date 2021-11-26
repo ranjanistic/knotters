@@ -4,13 +4,13 @@
     <div class="w3-col w3-half w3-padding-small">
         <h4>
         {% if not submission.submitted %}
-        <i class="material-icons">pending</i>&nbsp;Not submitted
+        <i>pending</i>&nbsp;{% trans "Not submitted" %}
         {% else %}
-        <i class="material-icons">task_alt</i>&nbsp;Submitted{% if submission.late %} <span class="negative-text">late</span>{% endif%}.
+        <i>task_alt</i>&nbsp;{% trans "Submitted" %}{% if submission.late %} <span class="negative-text">{% trans "late" %}</span>{% endif%}.
         {% endif %}
         </h4>
         <div class="w3-row pallete positive">
-            <h3>Submission</h3>
+            <h3>{% trans "Submission" %}</h3>
             {% if not submission.submitted and compete.isActive %}
             <form class="w3-row" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
@@ -19,7 +19,7 @@
             <button type="submit" class="primary" data-icon="save">Save</button>
             </form>
             {% elif not submission.submittingLate and submission.submitted %}
-                <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">Your submission</button></a>
+                <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">{% trans "Your submission" %}</button></a>
                 <h4 class="text-positive">Submitted on {{submission.submitOn}}
                 </h4>
             {% else %}
@@ -29,12 +29,12 @@
         {% if not submission.submitted and not compete.moderated %}
         <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
         {% if submission.submittingLate %}
-            Late Submit
+            {% trans "Late Submit" %}
         {% else %}
-            Final Submit
+            {% trans "Final Submit" %}
         {% endif %}
         </button>
-        <br/><strong>Save your submission before final submit.</strong>
+        <br/><strong>{% trans "Save your submission before final submit." %}</strong>
         {% endif %}
         {% if not submission.submitted and compete.moderated %}
             <br/>
@@ -43,7 +43,7 @@
     </div>
     
     <div class="w3-col w3-half w3-padding-small">
-        <h5 class="w3-left w3-padding-small">Teammates</h5>
+        <h5 class="w3-left w3-padding-small">{% trans "Teammates" %}</h5>
         <div class="w3-row">
             {% for member in submission.getMembers %}
             <div class="w3-col w3-third w3-padding-small">
@@ -64,9 +64,9 @@
         {% if compete.isActive and not submission.submitted %}
         <br/>
         {% if submission.canInvite %}
-        <button class="w3-right active" data-icon="person_add" id="invitepeople">Invite</button>
+        <button class="w3-right active" data-icon="person_add" id="invitepeople">{% trans "Invite" %}</button>
         {% endif %}
-        <h5 class="w3-padding-small">Invitees</h5>
+        <h5 class="w3-padding-small">{% trans "Invitees" %}</h5>
         <div class="w3-row">
             {% for invitee in submission.getInvitees %}
             <div class="w3-col w3-third w3-padding-small">
@@ -77,7 +77,7 @@
                 </div>
             </div>
             {% empty %}
-            <center><h4>No pending invites</h4></center>
+            <center><h4>{% trans "No pending invites" %}</h4></center>
             {% endfor %}
         </div>
         {% endif %}
@@ -87,7 +87,7 @@
             <br/><br/>
             <center>
             <div class="w3-jumbo material-icons">hourglass_bottom</div>
-            <h1>Competition ended{% if request.user.is_authenticated %}<br/>before you could participate.{% else %}.{% endif%}
+            <h1>{% trans "Competition ended" %}{% if request.user.is_authenticated %}<br/>{% trans "before you could participate." %}{% else %}.{% endif%}
             </h1>
             </center>
         {% else %}
@@ -95,21 +95,21 @@
             <div class="w3-row w3-center">
             <i class="w3-jumbo">group_work</i>
             
-            <h1>Competition is a thrill way to learn.</h1>
+            <h1>{% trans "Competition is a thrill way to grow." %}</h1>
             {% if request.user.is_authenticated %}
             <form action="{{compete.participationLink}}" method="POST">
                 {% csrf_token %}
-                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">Participate Independently</button></a>
+                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">{% trans "Participate Independently" %}</button></a>
                 <br/><br/><br/>
-                <strong>If you have been invited, then the above button will cancel your pending invitations.</strong>
+                <strong>{% trans "If you have been invited, then the above button will cancel your pending invitations." %}</strong>
                 <br/><br/>
             </form>
                 {% if submission and not confirmed %}
-                    <h5>You have a pending invitation for participation in this competition</h5>
-                    <a href="{{URLS.INVITATION|params:submission.get_id|params:request.user.get_id}}"><button class="positive">View invitation</button></a>
+                    <h5>{% trans "You have a pending invitation for participation in this competition" %}</h5>
+                    <a href="{{URLS.INVITATION|params:submission.get_id|params:request.user.get_id}}"><button class="positive">{% trans "View invitation" %}</button></a>
                 {% endif %}
             {% else %}
-                <a href="{% url 'account_login' %}?next={{compete.getLink}}#mainframe"><button class="display-button positive" data-icon="login">Login to Participate</button></a>
+                <a href="{% url 'account_login' %}?next={{compete.getLink}}#mainframe"><button class="display-button positive" data-icon="login">{% trans "Login to Participate" %}</button></a>
             {% endif %}
             </div>
         {% endif %}

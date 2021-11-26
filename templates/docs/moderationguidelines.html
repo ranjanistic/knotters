@@ -1,7 +1,7 @@
 {% extends 'docs/index.html' %}
 {% load static %}
 
-{% block title %}Moderation Guidelines{% endblock %}
+{% block title %}{% trans "Moderation Guidelines" %}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
@@ -11,8 +11,8 @@
 <div class="w3-row w3-padding">
     <center>
         <div class="material-icons w3-jumbo">widgets</div>
-        <h1>Moderation Guidelines</h1>
-        <h3>How we approve projects, or reject sometimes.</h3>
+        <h1>{% trans "Moderation Guidelines" %}</h1>
+        <h3>{% trans "How we approve content, or reject sometimes." %}</h3>
     </center><br/>
 </div>
 {% endblock %}

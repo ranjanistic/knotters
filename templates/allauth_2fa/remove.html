@@ -5,15 +5,15 @@
 <br/>
 <div class="w3-row w3-padding w3-center">
 <i class="w3-jumbo negative-text">cancel</i>
-<h2>Disable Two-Factor Authentication?</h2>
+<h2>{% trans "Disable" %} {% trans "Two-Factor Authentication" %}?</h2>
 <br/>
-<h5>Are you sure you want to disable two factor authentication on your account?<br/>
-<span class="negative-text">This will potentially weaken your account security.</span></h5>
+<h5>{% trans "Are you sure you want to disable" %} {% trans "two-factor authentication" %} {% trans "on your account" %}?<br/>
+<span class="negative-text">{% trans "This will potentially weaken your account security." %}</span></h5>
 <br/>
   <div class="w3-row w3-padding">
   <form method="post">
     {% csrf_token %}
-    <button type="submit" class="big-button negative" data-icon="delete">Disable 2FA in my account</button>
+    <button type="submit" class="big-button negative" data-icon="delete">{% trans "Disable" %} 2FA</button>
   </form>
   </div>
 </div>

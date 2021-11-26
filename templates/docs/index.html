@@ -4,18 +4,18 @@
 
 
 {% block og_url %}{{ROOT}}{% endblock %}
-{% block og_title %}Docs{% endblock %}
-{% block og_description %}Refer these in case of any legal or moral doubts.{% endblock %}
-{% block og_site_name %}Docs{% endblock %}
+{% block og_title %}{% trans "Docs" %}{% endblock %}
+{% block og_description %}{% trans "Refer these in case of any legal or moral doubts." %}{% endblock %}
+{% block og_site_name %}{% trans "Docs" %}{% endblock %}
 
 {% block tw_url %}{{ROOT}}{% endblock %}
-{% block tw_title %}Docs{% endblock %}
-{% block tw_description %}Refer these in case of any legal or moral doubts.{% endblock %}
-{% block tw_site_name %}Docs{% endblock %}
+{% block tw_title %}{% trans "Docs" %}{% endblock %}
+{% block tw_description %}{% trans "Refer these in case of any legal or moral doubts." %}{% endblock %}
+{% block tw_site_name %}{% trans "Docs" %}{% endblock %}
 
-{% block title %}Docs{% endblock %}
+{% block title %}{% trans "Docs" %}{% endblock %}
 
-{% block nav_text %}Docs{% endblock %}
+{% block nav_text %}{% trans "Docs" %}{% endblock %}
 
 {% block nav_href %}/{% endblock %}
 
@@ -24,36 +24,36 @@
 <div class="w3-row w3-padding w3-animate-zoom">
     <center>
         <img src="{{ICON}}" class="darkimg" data-ext="svg" data-name="self/icon" width="100">
-        <h1>{{APPNAME}} Docs</h1>
-        <h3>Refer these in case of any legal or moral doubts.</h3>
+        <h1>{{APPNAME}} {% trans "Docs" %}</h1>
+        <h3>{% trans "Refer these in case of any legal or moral doubts." %}</h3>
     </center><br/>
     <div class="w3-row">
-        <center><h2>Guidelines</h2></center><br/>
+        <center><h2>{% trans "Guidelines" %}</h2></center><br/>
         <div class="w3-col w3-half w3-padding-small">
-            <a href="{{ROOT}}communityguidelines">
+            <a href="{{URLS.TYPE|params:'communityguidelines'}}">
                 <div class="w3-row pallete active w3-animate-bottom">
-                    <h1 class="w3-padding text-active">Community Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+                    <h1 class="w3-padding text-active">{% trans "Community Guidelines" %}<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <a href="{{ROOT}}moderationguidelines">
+            <a href="{{URLS.TYPE|params:'moderationguidelines' }}">
                 <div class="w3-row pallete accent w3-animate-bottom">
-                    <h1 class="w3-padding text-accent">Moderation Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+                    <h1 class="w3-padding text-accent">{% trans "Moderation Guidelines" %}<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <a href="{{ROOT}}competitionguidelines">
+            <a href="{{URLS.TYPE|params:'competitionguidelines' }}">
                 <div class="w3-row pallete positive w3-animate-bottom">
-                    <h1 class="w3-padding text-positive">Competition Guidelines<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
+                    <h1 class="w3-padding text-positive">{% trans "Competition Guidelines" %}<span class="w3-right w3-jumbo material-icons">arrow_forward</span></h1>
                 </div>
             </a>
         </div>
     </div>
     <br/>
     <div class="w3-row">
-        <center><h2>Legal Docs</h2></center><br/>
+        <center><h2>{% trans "Legal" %} {% trans "Docs" %}</h2></center><br/>
         {% for doc in docs%}
         <div class="w3-col w3-half w3-padding-small">
             <a href="{{doc.getLink}}">
