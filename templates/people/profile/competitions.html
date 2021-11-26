@@ -1,0 +1,21 @@
+{% load custom_tags %}
+<div class="w3-row">
+{% if competitions.count %}
+    {% for compete in competitions %} 
+    <div class="w3-col w3-half w3-padding-small">
+        <div class="w3-row pallete-slab">
+            <img class="w3-round w3-right" width="100" src="{{compete.getBanner}}" />
+            <h6>{{compete.title}}</h6>
+            <strong>{{compete.tagline}}</strong><br/>
+            <a class="w3-right" href="{{compete.getLink}}"><button class="primary small" data-icon="open_in_new">View</button></a>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <br/><br/>
+    <center class="dead-text">
+        <i class="w3-jumbo">hourglass_top</i>
+        <h3>No competitions, yet.</h3>
+    </center>
+{% endif %}
+</div>

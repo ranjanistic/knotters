@@ -1,6 +1,6 @@
 {% load custom_tags %}
 <div class="w3-row">
-{% if results.count or judgements.count %}
+{% if results.count or judgements.count or moderations.count %}
     {% for result in results %} 
     <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
