@@ -43,7 +43,9 @@ media/
 *.pyo
 *.egg-info
 *.egg
-templates/*.py
+templates/**/*.py
 static/*.py
 media/*.py
 *.log
+makemessages
+compilemessages
