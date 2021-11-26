@@ -12,7 +12,7 @@
 {% block nav_style %}accent{% endblock %}
 {% block nav_text_style %}text-accent{% endblock %}
 
-{% block nav_text %}Submit project{% endblock %}
+{% block nav_text %}{% trans "Submit project" %}{% endblock %}
 {% block nav_href %}{{URLS.CREATE}}{% endblock %}
 {% block nav_back_icon %}close{% endblock %}
 {% block nav_auth_links %}{% endblock %} 
@@ -24,7 +24,7 @@
     <h6>Before you create a submission, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
     moderation guidelines</a>.</h6>
 </div>
-<center><strong class="dead-text">Do not fill any personal information at any step.</strong></center>
+<center><strong class="dead-text">{% trans "Do not fill any personal information at any step." %}</strong></center>
     
 <div class="w3-row w3-padding-64 w3-container">
     <div class="w3-col w3-half w3-padding">

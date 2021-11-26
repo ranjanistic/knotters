@@ -5,20 +5,20 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block nav_text %}Forwarding{% endblock %}
+{% block nav_text %}{% trans "Forwarding" %}{% endblock %}
 
 {% block content %}
 <br/>
 <div class="w3-row w3-padding w3-center">
 <br/>
-<h3>We noticed that you were going on to the following link via our platform.<br/>Are you sure you're on the right path?</h3>
+<h3>{% trans "We noticed that you were going on to the following link via our platform." %}<br/>{% trans "Are you sure you're on the right path?" %}</h3>
 <br/>
 <h6 class="dead-text">{{next}}</h6>
 <br/>
-<h5 class="negative-text">It is not a part of our platform.</h5>
+<h5 class="negative-text">{% trans "It is not a part of our platform." %}</h5>
 <br/>
-<a href="{{next}}"><button class="primary" data-icon="fast_forward">Yes, let me go</button></a>
-<a href="{{ROOT}}"><button class="positive" data-icon="cancel">No, take me back!</button></a>
+<a href="{{next}}"><button class="primary" data-icon="fast_forward">{% trans "Yes" %}, {% trans "let me go" %}</button></a>
+<a href="{{ROOT}}"><button class="positive" data-icon="cancel">{% trans "No" %}, {% trans "take me back" %}!</button></a>
 </div>
 <br/>
 {% endblock %}

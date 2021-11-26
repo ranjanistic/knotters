@@ -11,8 +11,8 @@
         <div class="w3-row pallete-slab">
         <a href="{{result.submission.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{result.submission.competition.getBanner}}" /></a>
         <h6>{{result.submission.competition.title}}</h6>
-        <strong>{{result.getRank}} position</strong><br/>
-        <a href="{{result.getCertLink|params:person.getID}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
+        <strong>{{result.getRank}} {% trans "position" %}</strong><br/>
+        <a href="{{result.getCertLink|params:person.getID}}" class="w3-right"><button class="accent small" data-icon="open_in_new">{% trans "Certificate" %}</button></a>
         </div>
     </div>
     {% endfor %}
@@ -21,8 +21,8 @@
         <div class="w3-row pallete-slab">
         <a href="{{judgement.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{judgement.competition.getBanner}}" /></a>
         <h6>{{judgement.competition.title}}</h6>
-        <strong>Judge</strong><br/>
-        <a href="{{judgement.get_cert_link}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
+        <strong>{% trans "Judge" %}</strong><br/>
+        <a href="{{judgement.get_cert_link}}" class="w3-right"><button class="accent small" data-icon="open_in_new">{% trans "Certificate" %}</button></a>
         </div>
     </div>
     {% endfor %}
@@ -31,8 +31,8 @@
         <div class="w3-row pallete-slab">
         <a href="{{moderation.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{moderation.competition.getBanner}}" /></a>
         <h6>{{moderation.competition.title}}</h6>
-        <strong>Moderator</strong><br/>
-        <a href="{{moderation.competition.getModCertLink}}" class="w3-right"><button class="accent small" data-icon="open_in_new">Certificate</button></a>
+        <strong>{% trans "Moderator" %}</strong><br/>
+        <a href="{{moderation.competition.getModCertLink}}" class="w3-right"><button class="accent small" data-icon="open_in_new">{% trans "Certificate" %}</button></a>
         </div>
     </div>
     {% endfor %}
@@ -40,7 +40,7 @@
     <br/><br/>
     <center class="dead-text">
         <i class="w3-jumbo">hourglass_top</i>
-        <h3>No achievements, yet.</h3>
+        <h3>{% trans "No achievements, yet." %}</h3>
     </center>
 {% endif %}
 </div>

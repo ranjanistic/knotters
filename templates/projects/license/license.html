@@ -20,7 +20,7 @@
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}{{license.name}} License{% endblock %}
+{% block nav_text %}{{license.name}} {% trans "License" %}{% endblock %}
 {% block nav_href%}{{URLS.ALLLICENSES}}{% endblock %}
 
 {% block content %}
@@ -53,11 +53,11 @@
 <br/>
     {% if not license.isCustom %}
     {% cache CACHE_MAX license_source %}
-    <center><strong><span class="dead-text">Source:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> </strong></center>
+    <center><strong><span class="dead-text">{% trans "Source" %}:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> </strong></center>
     {% endcache %}
     {% else %}
     {% cache CACHE_MICRO license_source license.id %}
-    <center><strong><span class="dead-text">{% blocktrans %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from {% endblocktrans %}<a target="_blank" href="{{license.creator.getLink}}">creator</a>.</strong></center>
+    <center><strong><span class="dead-text">{% blocktrans with license.creator.getLink as creatorlink %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from <a target="_blank" href="{{creatorlink}}">creator</a>{% endblocktrans %}.</strong></center>
     {% endcache %}
     {% endif %}
 </div>

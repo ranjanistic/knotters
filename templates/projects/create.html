@@ -7,16 +7,16 @@
 {% load custom_tags %}
 
 {% block og_url %}{{URLS.CREATE}}{% endblock %}
-{% block og_title %}Create Project{% endblock %}
-{% block og_site_name %}Create Project{% endblock %}
+{% block og_title %}{% trans "Create Project" %}{% endblock %}
+{% block og_site_name %}{% trans "Create Project" %}{% endblock %}
 
 {% block tw_url %}{{URLS.CREATE}}{% endblock %}
-{% block tw_title %}Create Project{% endblock %}
-{% block tw_site_name %}Create Project{% endblock %}
-{% block title%}Create project{%endblock%}
+{% block tw_title %}{% trans "Create Project" %}{% endblock %}
+{% block tw_site_name %}{% trans "Create Project" %}{% endblock %}
+{% block title%}{% trans "Create project" %}{%endblock%}
 
 {% block nav_extra_links %}
-<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="primary" data-icon="article"><span class="w3-hide-small">Licenses</span></button></a>
+<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="primary" data-icon="article"><span class="w3-hide-small">{% trans "Licenses" %}</span></button></a>
 {% endblock %}
 
 {% block stylesheets %}
@@ -34,12 +34,12 @@
 {% block content %}
 <div class="w3-row w3-padding-small">
     <center>
-    <h1 class="dead-text">A new project is always a good start.</h1>
+    <h1 class="dead-text w3-padding-small">A new project is always a good start.</h1>
     </center>
     <br/>
     <div class="w3-col w3-half w3-padding">
             <div class="pallete primary positive-text">
-                <center><h2>Quick Project</h2></center><br/>
+                <center><h2>{% trans "Quick Project" %}</h2></center><br/>
                 <div class="pallete-slab tertiary">
                     <h4>Instantly start a new project without waiting for someone's approval.</h4><br/>
                     <h6 class="dead-text">&#183;&nbsp;&nbsp;Choose license from publicly available licenses at {{APPNAME}}</h6>
@@ -58,7 +58,7 @@
     </div>
     <div class="w3-col w3-half w3-padding">
             <div class="pallete accent">
-                <center><h2>Verified Project</h2></center><br/>
+                <center><h2>{% trans "Verified Project" %}</h2></center><br/>
                 <div class="pallete-slab primary">
                     <h4>Submit a project to get an approved, verified project with a preset repository at <a href="https://github.com/Knotters">{{APPNAME}}</a>.</h4><br/>
                     <h6 class="dead-text">&#183;&nbsp;&nbsp;Everything of the Quick Project</h6>

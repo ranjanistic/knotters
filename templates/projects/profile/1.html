@@ -12,9 +12,9 @@
 {% if project.suspended %}
     <div class="w3-row w3-center w3-padding">
       <i class="w3-jumbo negative-text">toggle_off</i>
-      <h2>This project is currently suspended.</h2><br/>
-      <h3>This means the project is currently invisible to the world.</h3>
-      <strong>We must have emailed you regarding this action, please check your inbox.</strong>
+      <h2>{% trans "This project is currently suspended." %}</h2><br/>
+      <h3>{% trans "This means the project is currently invisible to the world." %}</h3>
+      <strong>{% trans "We must have emailed you regarding this action, please check your inbox." %}</strong>
     </div>
     <br/><br/><br/>
 {% else %}
