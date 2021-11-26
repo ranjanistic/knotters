@@ -1,5 +1,9 @@
 {% extends 'docs/index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block og_url %}{{doc.getLink}}{% endblock %}

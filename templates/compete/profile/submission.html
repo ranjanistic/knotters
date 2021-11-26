@@ -1,4 +1,9 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
+
 <div class="w3-row">
     {% if request.user.is_authenticated and submission and confirmed %}
     <div class="w3-col w3-half w3-padding-small">

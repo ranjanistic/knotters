@@ -1,8 +1,12 @@
 {% extends 'index.html' %}
 {% load static %}
-{% load socialaccount %}
 {% load i18n %}
 {% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+{% load socialaccount %}
+
 {% block title %}{% trans "Email addresses" %}{% endblock %}
 
 {% block nav_href %}{% url 'account_login' %}{% endblock %}

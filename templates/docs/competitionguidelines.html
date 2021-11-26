@@ -1,11 +1,15 @@
 {% extends 'docs/index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block og_url %}{{URLS.TYPE|params:'competitionguidelines'}}{% endblock %}
 {% block og_title %}{% trans "Competition Guidelines" %}{% endblock %}
 {% block og_description %}{% trans "Before participating in a competition, go through our guidelines." %}{% endblock %}
-{% block og_site_name %}Competition Guidelines{% endblock %}
+{% block og_site_name %}{% trans "Competition Guidelines" %}{% endblock %}
 
 {% block tw_url %}{{URLS.TYPE|params:'competitionguidelines'}}{% endblock %}
 {% block tw_title %}{% trans "Competition Guidelines" %}{% endblock %}

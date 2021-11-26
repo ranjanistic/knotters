@@ -1,19 +1,23 @@
 {% extends 'index.html' %} 
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block meta_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
 {% block og_url %}{{URLS.COMPETE}}{% endblock %}
-{% block og_title %}Competitions{% endblock %}
+{% block og_title %}{% trans "Competitions" %}{% endblock %}
 {% block og_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
-{% block og_site_name %}Competitions{% endblock %}
+{% block og_site_name %}{% trans "Competitions" %}{% endblock %}
 
 {% block tw_url %}{{URLS.COMPETE}}{% endblock %}
-{% block tw_title %}Competitions{% endblock %}
+{% block tw_title %}{% trans "Competitions" %}{% endblock %}
 {% block tw_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
-{% block tw_site_name %}Competitions{% endblock %}
+{% block tw_site_name %}{% trans "Competitions" %}{% endblock %}
 
-{% block title %}Competitions{% endblock %} 
+{% block title %}{% trans "Competitions" %}{% endblock %} 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 

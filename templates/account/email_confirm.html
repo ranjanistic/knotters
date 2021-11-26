@@ -1,7 +1,13 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load account %}
+{% load socialaccount %}
+{% load custom_tags %}
+
 {% block title %}{% trans "Email verification" %}{% endblock %}
 
 {% block nav_href %}{% url 'account_login' %}{% endblock %}

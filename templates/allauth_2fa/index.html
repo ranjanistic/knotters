@@ -1,4 +1,10 @@
 {% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 {% block title %}{% trans "Two-Factor Authentication" %}{% endblock %}
