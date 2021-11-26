@@ -69,7 +69,7 @@ const serviceWorkerRegistration = () => {
                         }
                     });
                 });
-                initializeNotificationState(reg)
+                // initializeNotificationState(reg)
             })
             .catch((err) => console.log("Service worker not registered", err));
 
