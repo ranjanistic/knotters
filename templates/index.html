@@ -133,7 +133,7 @@
         <div style="min-height: 50vh;">
             {% block content %}
             <div class="w3-row">
-                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:100vh"
+                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:80vh"
                     data-html="
                     <div class='w3-col w3-half w3-padding-large'>
                         <br/>
@@ -194,7 +194,7 @@
                 <br/><br/>
                 <a href="{{URLS.LANDING}}">
                 <div class="w3-row">
-                    <h2 class="text-secondary w3-right">Knotters Community</h2>
+                    <h2 class="text-secondary w3-right">Knotters {% trans "Community" %}</h2>
                 </div>
                 <div class="w3-row">
                     <img alt="{{APPNAME}}" class="w3-right darkimg" src="{{ICON}}" width="120" height="120" />
@@ -215,7 +215,7 @@
                     <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" height="18" /></button></a>
                 {% endblock %}
                 <br/><br/>
-                <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} 2021</a>
+                <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} 2021 Knotters</a>
                 </center>
             </div>
         </footer>
