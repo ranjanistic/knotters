@@ -128,7 +128,7 @@ class Competition(models.Model):
 
     @property
     def state(self):
-        return "upcoming" if self.isUpcoming() elif self.isActive() "live" else "history"
+        return "upcoming" if self.isUpcoming() else "live" if self.isActive() else "history"
 
     def startSecondsLeft(self) -> int:
         """
