@@ -56,7 +56,8 @@ STATICFILES_FINDERS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "main.middleware.ExtendedSessionMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+   # "main.middleware.ExtendedSessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
