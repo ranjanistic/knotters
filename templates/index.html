@@ -129,6 +129,15 @@
         </div>
         {% endfor %}
         </div>
+        {% if competition %}
+        <div class="w3-row" style="background:url('{{competition.getBanner}}')" id="view-{{competition.id}}">
+           <div class="pallette">
+            <h4>{{ competition.title }} is {{ competition.state }}</h4>
+             <a href="{{competition.getLink}}"><button class="accent">{% trans "View" %}</button></a>
+              <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
+           </div>
+        </div>
+        {% endif %}
         {% endblock %}
         <div style="min-height: 50vh;">
             {% block content %}
