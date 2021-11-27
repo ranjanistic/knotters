@@ -126,6 +126,10 @@ class Competition(models.Model):
         """
         return self.endAt and self.endAt <= timezone.now()
 
+    @property
+    def state(self):
+        return "upcoming" if self.isUpcoming() elif self.isActive() "live" else "history"
+
     def startSecondsLeft(self) -> int:
         """
         Total seconds left in this competition from the instantaneous time this method is invoked.
