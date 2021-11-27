@@ -157,11 +157,12 @@ class ExtendedSessionMiddleware(SessionMiddleware):
                     try:
                         request.session.save()
                     except UpdateError:
-                        raise SuspiciousOperation(
-                            "The request's session was deleted before the "
-                            "request completed. The user may have logged "
-                            "out in a concurrent request, for example."
-                        )
+                        return response
+                       # raise SuspiciousOperation(
+                         #   "The request's session was deleted before the "
+                         #   "request completed. The user may have logged "
+                         #   "out in a concurrent request, for example."
+                       # )
                     response.set_cookie(
                         settings.SESSION_COOKIE_NAME,
                         request.session.session_key, max_age=max_age,
