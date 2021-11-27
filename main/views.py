@@ -16,7 +16,7 @@ from django.shortcuts import redirect
 from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
 from projects.models import FreeProject, LegalDoc, Project, Snapshot
-from compete.models import Result
+from compete.models import Result, Competition
 from people.models import Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
@@ -49,7 +49,8 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    return renderView(request, Template.INDEX)
+    competition = Competition.objects.filter(endAt__gt=timezone.now()).order_by("-startAt").first()
+    return renderView(request, Template.INDEX, dict(competition=competition))
 
 
 @require_GET
