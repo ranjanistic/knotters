@@ -49,3 +49,5 @@ media/*.py
 *.log
 makemessages
 compilemessages
+knottrans/
+locale/

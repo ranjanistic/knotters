@@ -63,6 +63,7 @@ jobs:
         echo "VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}" >> ${{ secrets.ENVPATH }}
         echo "VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}" >> ${{ secrets.ENVPATH }}
         echo "VAPID_ADMIN_MAIL=${{ secrets.VAPID_ADMIN_MAIL }}" >> ${{ secrets.ENVPATH }}
+        echo "LOCALE_ABS_PATH=${{ secrets.LOCALE_ABS_PATH }}" >> ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
         python manage.py makemigrations --noinput

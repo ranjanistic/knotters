@@ -2,14 +2,17 @@ import environ
 from pathlib import Path
 import os
 
+
 class Environment():
     DEVELOPMENT = 'development'
     TESTING = 'testing'
     PRODUCTION = 'production'
 
+
 env = environ.Env()
 
-environ.Env.read_env(env_file=os.path.join(Path(__file__).resolve().parent.parent, env('ENVPATH')))
+environ.Env.read_env(env_file=os.path.join(
+    Path(__file__).resolve().parent.parent, env('ENVPATH')))
 
 PROJECTKEY = env('PROJECTKEY')
 PUBNAME = env('PUBNAME').strip()
@@ -33,11 +36,12 @@ SERVER_EMAIL = env('SERVER_EMAIL').strip()
 GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
 REDIS_LOCATION = env('REDIS_LOCATION').strip()
 REDIS_PASSWORD = env('REDIS_PASSWORD').strip()
-RECAPTCHA_KEY=env('RECAPTCHA_KEY').strip()
-RECAPTCHA_SECRET=env('RECAPTCHA_SECRET').strip()
-VAPID_PUBLIC_KEY=env('VAPID_PUBLIC_KEY').strip()
-VAPID_PRIVATE_KEY=env('VAPID_PRIVATE_KEY').strip()
-VAPID_ADMIN_MAIL=env('VAPID_ADMIN_MAIL').strip()
+RECAPTCHA_KEY = env('RECAPTCHA_KEY').strip()
+RECAPTCHA_SECRET = env('RECAPTCHA_SECRET').strip()
+VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY').strip()
+VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY').strip()
+VAPID_ADMIN_MAIL = env('VAPID_ADMIN_MAIL').strip()
+LOCALE_ABS_PATH = env('LOCALE_ABS_PATH').strip()
 
 PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
 PUBNAME = None if PUBNAME == 'none' else PUBNAME
@@ -61,8 +65,10 @@ SERVER_EMAIL = None if SERVER_EMAIL == 'none' else SERVER_EMAIL
 GH_HOOK_SECRET = None if GH_HOOK_SECRET == 'none' else GH_HOOK_SECRET
 REDIS_LOCATION = None if REDIS_LOCATION == 'none' else REDIS_LOCATION
 
-REDIS_PORT = None if not REDIS_LOCATION else REDIS_LOCATION.split(':')[len(REDIS_LOCATION.split(':'))-1]
-REDIS_HOST = None if not REDIS_LOCATION else REDIS_LOCATION.split(f":{REDIS_PORT}")[0]
+REDIS_PORT = None if not REDIS_LOCATION else REDIS_LOCATION.split(
+    ':')[len(REDIS_LOCATION.split(':'))-1]
+REDIS_HOST = None if not REDIS_LOCATION else REDIS_LOCATION.split(f":{REDIS_PORT}")[
+    0]
 REDIS_PASSWORD = None if REDIS_PASSWORD == 'none' else REDIS_PASSWORD
 RECAPTCHA_KEY = None if RECAPTCHA_KEY == 'none' else RECAPTCHA_KEY
 RECAPTCHA_SECRET = None if RECAPTCHA_SECRET == 'none' else RECAPTCHA_SECRET
@@ -70,6 +76,7 @@ RECAPTCHA_SECRET = None if RECAPTCHA_SECRET == 'none' else RECAPTCHA_SECRET
 VAPID_PUBLIC_KEY = None if VAPID_PUBLIC_KEY == 'none' else VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY = None if VAPID_PRIVATE_KEY == 'none' else VAPID_PRIVATE_KEY
 VAPID_ADMIN_MAIL = None if VAPID_ADMIN_MAIL == 'none' else VAPID_ADMIN_MAIL
+LOCALE_ABS_PATH = None if LOCALE_ABS_PATH == 'none' else LOCALE_ABS_PATH
 
 ASYNC_CLUSTER = REDIS_PORT and REDIS_HOST
 

@@ -16,7 +16,7 @@ on:
 
 jobs:
   client_view_deploy:
-    runs-on: [self-hosted, deployment]
+    runs-on: [self-hosted,deployment,production]
     strategy:
       max-parallel: 1
       matrix:
