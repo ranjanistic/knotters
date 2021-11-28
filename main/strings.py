@@ -1459,6 +1459,7 @@ BYPASS_DEACTIVATION_PATHS = [
     f"{url.getRoot()}{URL.FAVICON}",
     f"{url.getRoot()}{URL.ROBOTS_TXT}",
     f"{url.getRoot()}{URL.MANIFEST}",
+    f"{url.getRoot()}{URL.STRINGS}",
     f"{url.getRoot()}{URL.SERVICE_WORKER}",
     f"{url.getRoot()}{URL.SWITCH_LANG}setlang/",
     f"{url.getRoot()}{URL.OFFLINE}",
