@@ -94,7 +94,7 @@ py genversion.py
 Use this anytime if you want to have control over client side service worker updates. The above cmdlet will update a version tag on every execution, which is linked directly with the service worker, forcing it to emit an update via web browser.
 
 ```bash
-py manage.py makemessages --ignore=*.txt
+py manage.py makemessages --extension=html,js
 ```
 
 To generate `.po` files for translation.
