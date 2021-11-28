@@ -191,7 +191,7 @@ getElements("modaction").forEach((action)=>{
                 loader(false)
                 if(!data) return 
                 if(data.code===code.OK){
-                    return message('{% trans "Reported" %}. {% trans "We\'ll investigate." %}')
+                    return message(`{% trans "Reported" %}. {% trans "We\'ll investigate." %}`)
                 }
                 error(data.error)
             }
