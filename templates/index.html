@@ -70,21 +70,26 @@
     </head>
     {% endblock %}
     <body>
-        <noscript id="noscript" class="w3-padding negative">
+        <noscript id="noscript" class="w3-row w3-padding negative">
          <div
-           class="pallette primary negative-text w3-center w3-row w3-animate-opacity"
+           class="pallette primary negative-text w3-center w3-row"
          >
-         <h3 class="negative-text">Javascript required</h3>
-          <br />
-           <div class="w3-center">
+         <i class="w3-jumbo material-icons">code_off</i>
+         <h3 class="negative-text">Javascript Disabled</h3>
+           <div class="w3-row w3-center">
             <h6 class="negative-text">Please enable javascript in your browser, allow us to use it, if
-            denied. <br />If your browser doesn't support javascript, try a
+            denied.<br />If your browser doesn't support javascript, try a
             <a
               target="_blank"
               rel="noreferrer"
               href="https://google.com/search?q=modern+browsers"
               >modern browser</a
               >.</h6>
+             <a href="https://www.google.com/search?q=enable+javascript" 
+                target="_blank"
+                rel="noreferrer">
+              <button class="positive">Enable JS</button>
+             </a>
             </div>
          </div>
         </noscript>
