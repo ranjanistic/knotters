@@ -197,18 +197,19 @@
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">{% trans "Contact us" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
-                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Beta" %}</a><br/>
+                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
+                <br/><br/>                
+                <button class="primary navigator-share-action" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}" data-icon="share">{% trans "Share" %}</button>
                 <br/><br/>
                 <a href="{{URLS.LANDING}}">
                 <div class="w3-row">
-                    <h2 class="text-secondary w3-right">Knotters {% trans "Community" %}</h2>
+                    <h2 class="text-secondary w3-right">{{APPNAME}} {% trans "Community" %}</h2>
                 </div>
                 <div class="w3-row">
                     <img alt="{{APPNAME}}" class="w3-right darkimg" src="{{ICON}}" width="120" height="120" />
                 </div>
-                
                 </a>
             </div>
             <div class="w3-row w3-center">
