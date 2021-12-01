@@ -109,6 +109,7 @@ class Message():
     TOPICS_UPDATED = _("Topics updated.")
     MAX_TAGS_ACHEIVED = _("Maximum tags limit reached.")
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
+    LOGIN_REQUIRED = _("Please login to continue.")
 
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
