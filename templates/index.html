@@ -8,7 +8,7 @@
 {% load custom_tags %}
 
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="{{LANGUAGE_CODE}}" class="">
     {% block head %}
     <head>
     
@@ -201,7 +201,7 @@
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>                
-                <button class="primary navigator-share-action" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}" data-icon="share">{% trans "Share" %}</button>
+                <button class="primary w3-right navigator-share-action" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}" data-icon="share">{% trans "Share" %}</button>
                 <br/><br/>
                 <a href="{{URLS.LANDING}}">
                 <div class="w3-row">
