@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from .strings import url, DIVISIONS, PEOPLE, AUTH, Message
+from .strings import url, DIVISIONS, PEOPLE, AUTH
 from . import env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -234,7 +234,7 @@ ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 # LOGIN_URL = 'two_factor:login'
 # LOGIN_REDIRECT_URL = 'two_factor:profile'
-LOGIN_URL = f'{url.getRoot(AUTH)}{url.Auth.LOGIN}?a={Message.LOGIN_REQUIRED}'
+LOGIN_URL = f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
 APPEND_SLASH = not False
