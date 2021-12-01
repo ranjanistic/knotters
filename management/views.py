@@ -352,7 +352,8 @@ def submitCompetition(request) -> HttpResponse:
         endAt = request.POST['compendAt']
         eachTopicMaxPoint = int(request.POST['compeachTopicMaxPoint'])
         max_grouping = int(request.POST['compmaxgrouping'])
-        reg_fee = int(request.POST['compregfee'])
+        reg_fee = int(request.POST.get('compregfee',0))
+        fee_link = str(request.POST.get('compfeelink',""))
         topicIDs = str(request.POST['comptopicIDs']
                        ).strip().strip(',').split(',')
         judgeIDs = str(request.POST['compjudgeIDs']
@@ -383,7 +384,8 @@ def submitCompetition(request) -> HttpResponse:
                 taskDetail and
                 taskSample):
             raise Exception("Invalid details")
-
+        if reg_fee > 0 and not fee_link:
+            raise Exception("Invalid details")
         if Competition.objects.filter(title__iexact=title).exists():
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.COMP_TITLE_EXISTS)
 
@@ -409,7 +411,8 @@ def submitCompetition(request) -> HttpResponse:
             taskDetail=taskDetail,
             taskSample=taskSample,
             max_grouping=max_grouping,
-            reg_fee=reg_fee
+            reg_fee=reg_fee,
+            fee_link=fee_link
         )
         if not compete:
             raise Exception("Competition not created")
