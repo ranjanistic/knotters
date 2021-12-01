@@ -16,7 +16,7 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
 def createCompetition(creator, title, tagline, shortdescription,
                       description, perks, startAt, endAt, eachTopicMaxPoint, topicIDs,
                       judgeIDs, taskSummary, taskDetail, taskSample, max_grouping,
-                      reg_fee
+                      reg_fee, fee_link
                       ) -> Competition:
     compete = None
     try:
@@ -52,6 +52,7 @@ def createCompetition(creator, title, tagline, shortdescription,
             eachTopicMaxPoint=eachTopicMaxPoint,
             max_grouping=max_grouping,
             reg_fee=reg_fee,
+            fee_link=fee_link,
             resultDeclared=False,
         )
         topics = Topic.objects.filter(id__in=topicIDs)
