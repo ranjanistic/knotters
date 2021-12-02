@@ -153,12 +153,21 @@
         {% endfor %}
         </div>
         {% if competition %}
-        <div class="w3-row" style="background:url('{{competition.getBanner}}')" id="view-{{competition.id}}">
-           <div class="pallette">
-            <h4>{{ competition.title }} is {{ competition.state }}</h4>
-             <a href="{{competition.getLink}}"><button class="accent">{% trans "View" %}</button></a>
-              <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
-           </div>
+        <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
+         <div class="w3-col w3-half pallete tertiary">
+          <div class="w3-col w3-half">
+           <h4 class="positive-text">{{competition.title}}</h4>
+           <h6 class="text-tertiary">{{competition.tagline}}</h6>
+          </div>
+          <div class="w3-col w3-half w3-padding">
+           <strong class="w3-right dead-text">{% trans "Begins at" %} {{competition.startAt}}</strong>
+           <strong class="w3-right dead-text">{% trans "Ends at" %} {{competition.endAt}}</strong>
+          </div>
+         </div>
+         <div class="w3-col w3-half w3-padding">
+          <a class="w3-right" href="{{competition.getLink}}" target="_blank"><button class="accent small" data-icon="open_in_new">{% trans "View" %}</button></a>
+          <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
+         </div>
         </div>
         {% endif %}
         {% endblock %}
