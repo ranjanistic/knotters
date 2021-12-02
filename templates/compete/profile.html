@@ -76,8 +76,8 @@
         {% if request.user.is_authenticated and not isJudge and not isMod and not isManager %}
         {% if compete.reg_fee and not compete.isHistory %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">
-          <h4>{% trans "To be eligible for prizes" %},</h4>
-          <div class="razorpay-embed-btn" data-url="https://pages.razorpay.com/pl_IPZ86a6xkiVXuU/view" data-text="Pay Registration Fee" data-color="#F5D702" data-size="medium">
+          <h4>{% trans "To be eligible for prizes here" %},</h4>
+          <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
             <script>
               (function(){
                 var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
@@ -86,6 +86,7 @@
                 rzp && rzp.init && rzp.init()}})();
             </script>
           </div>
+          <h6>{% trans "Do not pay if already paid." %} Read <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>.</h6>
         </div>
         {% endif %}
         {% endif %}
@@ -168,7 +169,7 @@
     - All mentioned prizes & perks for rank holders are the sole resposibility of <a href="{{compete.creator.getLink}}" target="_blank">the manager</a>. 
     Under no circumstances {{APPNAME}} and its administrators must be held accountable for any discrepancies. {{APPNAME}} support team however, may try to help you in such cases, but only if you want their help.<br/>
     - If participating in a group, the rank perk/prize will be awarded to the group as a unit. No distribution of prize among the members of submission will be felicitated by {{APPNAME}}.<br/>
-    - The chance to level up profile by the mentioned XP amount is totally conditional. Actual XP amount most certnainly will vary for every participant, depending upon the points they earn.<br/>
+    - The chance to level up profile by the mentioned XP amount is totally conditional. Actual XP amount most certainly will vary for every participant, depending upon the points they earn.<br/>
     - The submissions made to this competition should follow our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>, and the guidelines mentioned above. In case of guideline conflict, the former shall prevail.<br/>
     - The decision of the jury will be considered final, and the jury, {{APPNAME}} and its administrators shall not be accountable for challenge by any participant under any circumstances regarding the declared results.<br/>
     - Results for this competition will only be declared & available here. Declaration of results could take time, after the competition ends. Participants are advised to not fall for any fake result announcements, and should check the result status on this page only.<br/>

@@ -8,7 +8,7 @@
 {% load custom_tags %}
 
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="{{LANGUAGE_CODE}}" class="">
     {% block head %}
     <head>
     
@@ -70,6 +70,29 @@
     </head>
     {% endblock %}
     <body>
+        <noscript id="noscript" class="w3-row w3-padding negative">
+         <div
+           class="pallette primary negative-text w3-center w3-row"
+         >
+         <i class="w3-jumbo material-icons">code_off</i>
+         <h3 class="negative-text">Javascript Disabled</h3>
+           <div class="w3-row w3-center">
+            <h6 class="negative-text">Please enable javascript in your browser, allow us to use it, if
+            denied.<br />If your browser doesn't support javascript, try a
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://google.com/search?q=modern+browsers"
+              >modern browser</a
+              >.</h6>
+             <a href="https://www.google.com/search?q=enable+javascript" 
+                target="_blank"
+                rel="noreferrer">
+              <button class="positive">Enable JS</button>
+             </a>
+            </div>
+         </div>
+        </noscript>
         <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
@@ -197,18 +220,19 @@
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">{% trans "Contact us" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
-                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Beta" %}</a><br/>
+                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
+                <br/><br/>                
+                <button class="primary w3-right navigator-share-action" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}" data-icon="share">{% trans "Share" %}</button>
                 <br/><br/>
                 <a href="{{URLS.LANDING}}">
                 <div class="w3-row">
-                    <h2 class="text-secondary w3-right">Knotters {% trans "Community" %}</h2>
+                    <h2 class="text-secondary w3-right">{{APPNAME}} {% trans "Community" %}</h2>
                 </div>
                 <div class="w3-row">
                     <img alt="{{APPNAME}}" class="w3-right darkimg" src="{{ICON}}" width="120" height="120" />
                 </div>
-                
                 </a>
             </div>
             <div class="w3-row w3-center">

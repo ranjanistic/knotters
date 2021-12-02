@@ -6,7 +6,6 @@
 # We have a dedicated api for our data provision at: https://api.knotters.org
 
 User-agent: *
-Disallow: {{media}}
 {% for sus in suspended %}
 Disallow: {{sus.getLink}}
 {% endfor %}

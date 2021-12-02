@@ -94,7 +94,13 @@
 </center>
 <br/>
 {% endblock %}
-
+{% block in_scripts %}
+<script>
+ {% if request.GET.next != URLS.ROOT and request.GET.next %}
+  message("Please login to continue")
+ {% endif %}
+</script>
+{% endblock %}
 {% block ext_scripts %}
 <script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
 {% endblock %}
