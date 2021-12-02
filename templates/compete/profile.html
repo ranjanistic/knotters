@@ -52,7 +52,7 @@
   </div>
   {% elif compete.isUpcoming %}
   <div class="w3-row w3-center accent w3-padding">
-    <strong>This competition will accept submissions from the given beginning date, till {{compete.endAt}}</strong>
+    <strong>This competition will accept submissions till {{compete.endAt}} only.</strong>
   </div>
   {% endif %}
   <div class="w3-row w3-padding">
@@ -73,7 +73,7 @@
           <img class="pallete preview-type-image" src="{{compete.get_associate}}" width="80%" />
         </div>
         {% endif %}
-        {% if request.user.is_authenticated and not isJudge and not isMod and not isManager %}
+        {% if not isJudge and not isMod and not isManager %}
         {% if compete.reg_fee and not compete.isHistory %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">
           <h4>{% trans "To be eligible for prizes here" %},</h4>
