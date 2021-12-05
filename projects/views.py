@@ -257,8 +257,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
             raise Exception()
-        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
-        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator,isAdmirer=isAdmirer))
+        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator))
     except Exception as e:
         raise Http404(e)
 
@@ -273,8 +272,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             if project.suspended and not (iscreator or ismoderator):
                 raise Exception()
-            isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
-            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator,isAdmirer=isAdmirer))
+            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
