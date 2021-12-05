@@ -70,7 +70,7 @@
         <br/>
         {% endif %}
         <div class="w3-row w3-padding-small">
-        {% project.totalAdmiration %} admirations
+        {{ project.total_admiration }} admirations
         <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
          {% csrf_token %}
          <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
