@@ -169,7 +169,7 @@ if not env.ISTESTING and env.ASYNC_CLUSTER:
         },
     }
 
-SESSION_ENGINE = "django.contrib.sessions.backends.cached"
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_REBOOT_THRESHOLD = 1
 SESSION_EXTENSION_DAYS = 7
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
