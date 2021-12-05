@@ -262,8 +262,6 @@ class BaseProject(models.Model):
     @property
     def total_admiration(self):
         return self.admirers.count()
-    def isAdmirer(self, profile):
-        return profile in self.admirers.all()
 
 class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
@@ -528,7 +526,6 @@ class Snapshot(models.Model):
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='project_snapshot_creator')
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
     modified_on = models.DateTimeField(auto_now=False, default=timezone.now)
-    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='SnapshotAdmirer', default=[], related_name='snapshot_admirer')
 
     @property
     def get_id(self):
@@ -550,7 +547,6 @@ class Snapshot(models.Model):
     def get_video(self):
         return f"{settings.MEDIA_URL}{str(self.video)}"
 
-
 class ReportedProject(models.Model):
     class Meta:
         unique_together = ('profile', 'baseproject', 'category')
@@ -567,11 +563,3 @@ class ProjectAdmirer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_admirer_profile')
     base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
-
-class SnapshotAdmirer(models.Model):
-    class Meta:
-        unique_together = ('profile', 'snapshot')
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
-    snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='admired_snapshot')
