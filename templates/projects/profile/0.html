@@ -69,6 +69,7 @@
         </div>
         <br/>
         {% endif %}
+
         <div class="w3-row w3-padding-small">
         <strong>{{ project.total_admiration }} admirations</strong>
         <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
@@ -82,12 +83,13 @@
         </form>
         </div>
         <br/>
+
         {% if not iscreator and user.is_authenticated %}
         <div class="w3-row">
             <button class="small tertiary negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
         </div>
         <br />
-        {% endif %}
+		{% endif %}
         {% if project.socialsites.count %}
         <div class="w3-row pallete">
         {% for site in project.socialsites %}
