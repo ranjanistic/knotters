@@ -586,9 +586,10 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def toggleAdmiration(request: WSGIRequest, projID: UUID):
+    project = None
     try:
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID)
         if request.POST['admire'] == "true":
             project.admirers.add(request.user.profile)
         elif request.POST['admire'] == "false":
@@ -596,7 +597,9 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
         return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
-        return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
+        if project:
+            return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
+        raise Http404()
 
 
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
