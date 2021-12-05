@@ -595,10 +595,10 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
             project.admirers.add(request.user.profile)
         elif request.POST['admire'] == False:
             project.admirers.remove(request.user.profile)
-        return respondJson(Code.OK)
+        return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
 
 
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
