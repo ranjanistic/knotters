@@ -591,9 +591,9 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
     try:
         project = BaseProject.objects.get(
             id=projID, creator=request.user.profile)
-        if request.POST['admire'] == True:
+        if request.POST['admire'] == "true":
             project.admirers.add(request.user.profile)
-        elif request.POST['admire'] == False:
+        elif request.POST['admire'] == "false":
             project.admirers.remove(request.user.profile)
         return redirect(project.getProject().getLink())
     except Exception as e:
