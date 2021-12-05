@@ -257,7 +257,8 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
             raise Exception()
-        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator))
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except Exception as e:
         raise Http404(e)
 
@@ -272,7 +273,8 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             if project.suspended and not (iscreator or ismoderator):
                 raise Exception()
-            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
+            isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
@@ -586,9 +588,10 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def toggleAdmiration(request: WSGIRequest, projID: UUID):
+    project = None
     try:
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID)
         if request.POST['admire'] == "true":
             project.admirers.add(request.user.profile)
         elif request.POST['admire'] == "false":
@@ -596,7 +599,9 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
         return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
-        return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
+        if project:
+            return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
+        raise Http404()
 
 
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
