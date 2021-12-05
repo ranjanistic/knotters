@@ -326,7 +326,9 @@
         {% block ext_scripts %}{% endblock %}
 
         <script src="{% static 'scripts/autostart.js' %}"></script>
-        {% block scripts %}{% endblock %}
+        {% block scripts %}
+        <script src="{% static 'scripts/snapshot.js' %}"></script>
+        {% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
 
         {% block messages %}
