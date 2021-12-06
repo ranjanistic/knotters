@@ -10,7 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
-    loadBrowsers()
+    loadBrowsers();
+    loadSnapshotScroller();
 });
 
 window.addEventListener("load", () => {
