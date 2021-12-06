@@ -808,8 +808,11 @@ def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10)
 def snapshot(request: WSGIRequest, projID: UUID, action: str):
     try:
         baseproject = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID)
         if action == Action.CREATE:
+            if request.user.profile != baseproject.creator:
+                if request.user.profile != baseproject.getProject().moderator:
+                    raise Exception()
             text = request.POST.get('snaptext', None)
             image = request.POST.get('snapimage', None)
             video = request.POST.get('snapvideo', None)
@@ -847,7 +850,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
 
         return respondJson(Code.NO)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
 
