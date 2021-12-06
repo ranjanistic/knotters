@@ -1,6 +1,6 @@
 const loadBrowseSnaps = async (excludeIDs=[]) => {
     const viewers = getElements("snapshot-viewer");
-    let viewer = viewers.find(view=>view.innerHTML.trim()=="")
+    let viewer = viewers.find(view=>(view.innerHTML.trim()==""))
     if(!viewer){
        viewer = viewers[viewers.length - 1]
     }
@@ -15,21 +15,19 @@ const loadBrowseSnaps = async (excludeIDs=[]) => {
    return false
 }
 
-const loadSnapshotScroller = () =>{
+const loadSnapshotScroller = async () => {
     const viewers = getElements("snapshot-viewer");
     if(viewers.length){
         let viewedSnaps = []
-        (async()=>{
-            let done = await loadBrowseSnaps();
-            if(done) {
-                viewedSnaps = viewedSnaps.concat(done)
-                window.addEventListener("scroll", async ()=>{
-                    if(done && document.body.scrollTop+document.body.offsetHeight+100 > viewers[0].offsetHeight){
-                        viewedSnaps = viewedSnaps.concat(done)          
-                        done = await loadBrowseSnaps(viewedSnaps);
-                    })
+        let done = await loadBrowseSnaps();
+        if(done) {
+            viewedSnaps = viewedSnaps.concat(done)
+            window.addEventListener("scroll", async ()=>{
+                if(done && (document.body.scrollTop+document.body.offsetHeight+100) > viewers[0].offsetHeight){
+                    viewedSnaps = viewedSnaps.concat(done);    
+                    done = await loadBrowseSnaps(viewedSnaps);
                 }
-            }
-        })();
+            });
+        }
     }
 }
