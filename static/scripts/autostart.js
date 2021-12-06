@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEditors();
     loadCarousels({});
     loadBrowsers();
-    loadSnapshotScroller();
+   // loadSnapshotScroller();
 });
 
 window.addEventListener("load", () => {
