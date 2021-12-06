@@ -17,7 +17,7 @@ def freeProjectCreated(project: FreeProject):
             'url': project.getLink()
         }],
         footer=f"You can visit the link to get started, bring people to contribute to your project, or just start with adding more details to your project!",
-        conclusion="This email was sent because we have received a project from your {PUBNAME} account. If this wasn't you, then please report to us."
+        conclusion=f"This email was sent because we have received a project from your {PUBNAME} account. If this wasn't you, then please report to us."
     )
 
 def freeProjectDeleted(project: FreeProject):
@@ -30,7 +30,7 @@ def freeProjectDeleted(project: FreeProject):
         subject='Project Deleted',
         header=f"This is to inform you that your project - {project.name} ({project.nickname}) - has been deleted on {PUBNAME}, with all its associated data.",
         footer=f"You can always create a new project, whenever you like to start one.",
-        conclusion="This email was sent because a project from your {PUBNAME} account was deleted. If this wasn't you, then please report to us."
+        conclusion=f"This email was sent because a project from your {PUBNAME} account was deleted. If this wasn't you, then please report to us."
     )
 
 def sendProjectSubmissionNotification(project: Project):
@@ -47,7 +47,7 @@ def sendProjectSubmissionNotification(project: Project):
             'url': project.getModLink()
         }],
         footer=f"We'll notify you as soon as the moderator reviews your project submission. Till then, chill out! NOTE: We're lenient.",
-        conclusion="This email was generated because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
+        conclusion=f"This email was generated because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
     )
 
 
@@ -67,7 +67,7 @@ def sendProjectApprovedNotification(project: Project):
             'url': project.getModLink()
         }],
         footer=f"Your project's profile page & other related setup will be available in a few moments. Cheers! The moderator & community at {PUBNAME} will be working together with you on {project.name}.",
-        conclusion="This email was generated because a project submission received from your {PUBNAME} account has been approved. If this is unfamiliar, then please report to us."
+        conclusion=f"This email was generated because a project submission received from your {PUBNAME} account has been approved. If this is unfamiliar, then please report to us."
     )
 
 
@@ -86,5 +86,5 @@ def projectRejectedNotification(project: Project):
             'url': project.getModLink()
         }],
         footer=f"The moderator must have found something unacceptable, but if you think this is a mistake, then you might be able to resubmit the same project for moderation. This is unfortunate.",
-        conclusion="This email was generated we have rejected a project submission received from your {PUBNAME} account. If this is unfamiliar, then please report to us."
+        conclusion=f"This email was generated we have rejected a project submission received from your {PUBNAME} account. If this is unfamiliar, then please report to us."
     )
