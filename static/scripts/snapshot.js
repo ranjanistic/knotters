@@ -1,33 +1,35 @@
-let viewedSnaps = []
-
-const viewers = getElements("snapshot-viewer");
-
-const loadBrowseSnaps = async () => {
+const loadBrowseSnaps = async (excludeIDs=[]) => {
+    const viewers = getElements("snapshot-viewer");
     let viewer = viewers.find(view=>view.innerHTML.trim()=="")
     if(!viewer){
        viewer = viewers[viewers.length - 1]
     }
     let snapdata = await postRequest(setUrlParams(URLS.BROWSER,"project-snapshots"), {
-       excludeIDs: viewedSnaps
+       excludeIDs
     });
     if(!snapdata) return false;
     if(snapdata.code === code.OK && snapdata.snapIDs.length) {
-       viewedSnaps = viewedSnaps.concat(snapdata.snapIDs)
        viewer.innerHTML += snapdata.html
-       return true
+       return excludeIDs.concat(snapdata.snapIDs)
     }
    return false
 }
 
-if(viewers.length){
-    (async()=>{
-        let done = await loadBrowseSnaps();
-        if(done) {
-            window.addEventListener("scroll", async ()=>{
-                if(done && document.body.scrollTop+document.body.offsetHeight+100 > viewers[0].offsetHeight){              
-                    done = await loadBrowseSnaps();
-                })
+const loadSnapshotScroller = () =>{
+    const viewers = getElements("snapshot-viewer");
+    if(viewers.length){
+        let viewedSnaps = []
+        (async()=>{
+            let done = await loadBrowseSnaps();
+            if(done) {
+                viewedSnaps = viewedSnaps.concat(done)
+                window.addEventListener("scroll", async ()=>{
+                    if(done && document.body.scrollTop+document.body.offsetHeight+100 > viewers[0].offsetHeight){
+                        viewedSnaps = viewedSnaps.concat(done)          
+                        done = await loadBrowseSnaps(viewedSnaps);
+                    })
+                }
             }
-        }
-    })();
+        })();
+    }
 }
