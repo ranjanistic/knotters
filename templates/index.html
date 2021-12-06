@@ -293,7 +293,8 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
-        
+        <script src="{% static 'scripts/snapshot.js' %}"></script>
+
         <script>
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
@@ -326,9 +327,7 @@
         {% block ext_scripts %}{% endblock %}
 
         <script src="{% static 'scripts/autostart.js' %}"></script>
-        {% block scripts %}
-        <script src="{% static 'scripts/snapshot.js' %}"></script>
-        {% endblock %}
+        {% block scripts %}{% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
 
         {% block messages %}
