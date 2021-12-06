@@ -10,7 +10,7 @@ const loadBrowseSnaps = async (excludeIDs=[]) => {
     if(!snapdata) return false;
     if(snapdata.code === code.OK && snapdata.snapIDs.length) {
        viewer.innerHTML += snapdata.html
-       return excludeIDs.concat(snapdata.snapIDs)
+       return snapdata.snapIDs
     }
    return false
 }
