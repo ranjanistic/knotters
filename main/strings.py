@@ -78,6 +78,7 @@ class Code():
         METHOD = 'method'
         STATIC = 'static'
         MAIL = 'mail'
+        REST = 'rest'
 
 code = Code()
 
