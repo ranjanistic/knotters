@@ -32,6 +32,8 @@ window.addEventListener("load", () => {
     if(window.location.host.startsWith('beta.')){
         getElements('beta-alert-view').forEach((elem)=>show(elem))
         if (!window.sessionStorage.getItem('beta-alerted')) betaAlert()
+        getElements('hide-beta').forEach((elem)=>hide(elem))
+        
     }
 });
 
