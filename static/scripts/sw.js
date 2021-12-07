@@ -2,7 +2,7 @@ const newUpdateDialog = (newServiceWorker) => {
     if(sessionStorage.getItem(Key.deferupdate)!=1){
         alertify
             .confirm(
-                `Update available`,
+                STRING.update_available,
                 `
                 <img src="${ICON}" width="50" />
                 <h4>A new version of ${APPNAME} is available, with new features & performance improvements.<br/><br/>Shall we update?<h4>
