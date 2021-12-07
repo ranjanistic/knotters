@@ -311,15 +311,16 @@ def browser(request: WSGIRequest, type: str):
         if type == "project-snapshots":
             snaps = []
             excludeIDs = request.POST.get('excludeIDs', [])
+            limit = int(request.POST.get('limit', 10))
             recommended = True
             if request.user.is_authenticated:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:10]
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:limit]
                 recommended = False
                 if len(snaps) < 1:
-                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:10]
+                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
                     recommended = True
             else:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:10]
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
             return respondJson(Code.OK,dict(
                 html=projectsRenderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
                 snapIDs=list(snaps.values_list("id", flat=True)),
