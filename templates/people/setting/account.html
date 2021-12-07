@@ -1,24 +1,29 @@
 {% load socialaccount %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+
 <div id="view-settings">
     <i class="w3-right material-icons edit-action" data-edittarget="settings">edit</i>
     <form class="no-auto">
-    <h2>Account settings</h2>
-    <h4>Email address</h4>
+    <h2>{% trans "Account settings" %}</h2>
+    <h4>{% trans "Email address" %}</h4>
     <input disabled class="wide" type="email" autocomplete="email" placeholder="Email address (verification required)" value="{{request.user.email}}" />
-    <h4>Password</h4>
+    <h4>{% trans "Password" %}</h4>
     {% if request.user.password %}
-    <input disabled class="wide" type="password" autocomplete="current-password" value="Sike! You thought." />
+    <input disabled class="wide" type="password" autocomplete="current-password" value="{% trans "Sike! You thought." %}" />
     {% else %}
     {% endif %}
     </form>
 </div>
 <div id="edit-settings">
-    <h4>Change Email address</h4>
-    <button class="accent" onclick="miniWindow('{% url 'account_email' %}')" data-icon="open_in_new">Email addresses</button>
-    <h4>Password</h4>
-    <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">Change Password</button>
-    <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">Forgot Password</button>
+    <h4>{% trans "Change Email address" %}</h4>
+    <button class="accent" onclick="miniWindow('{% url 'account_email' %}')" data-icon="open_in_new">{% trans "Email addresses" %}</button>
+    <h4>{% trans "Password" %}</h4>
+    <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">{% trans "Change Password" %}</button>
+    <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">{% trans "Forgot Password" %}</button>
     <br/><br/>
-    <button hidden class="w3-right" id="save-edit-settings" data-icon="done">Save</button>
-    <button class="w3-right" id="discard-edit-settings" data-icon="cancel">Cancel</button>
+    <button hidden class="w3-right" id="save-edit-settings" data-icon="done">{% trans "Save" %}</button>
+    <button class="w3-right" id="discard-edit-settings" data-icon="cancel">{% trans "Cancel" %}</button>
 </div>

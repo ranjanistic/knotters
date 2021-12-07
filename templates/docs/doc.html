@@ -1,5 +1,9 @@
 {% extends 'docs/index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block og_url %}{{doc.getLink}}{% endblock %}
@@ -25,15 +29,15 @@
         <div class="material-icons w3-jumbo">{{doc.icon}}</div>
         <h1>{{doc.name}}</h1>
         <h3>{{doc.about|or:''}}</h3>
-        <strong>Effective from {{doc.effectiveDate}}</strong>,
-        <strong>Last updated on {{doc.lastUpdate}}</strong>
+        <strong>{% trans "Effective from" %} {{doc.effectiveDate}}</strong>,
+        <strong>{% trans "Last updated on" %} {{doc.lastUpdate}}</strong>
     </center>
     <br/>
     {{doc.content|safe}}
     <br/>
-    <h4 id="queries">Questions Or Concerns</h4>
+    <h4 id="queries">{% trans "Questions" %} {% trans "or" %} {% trans "Concerns" %}</h4>
     <p>
-    If you have any questions or concerns regarding this, please send us a detailed message at <a href="mailto:{{doc.contactmail|or:CONTACTMAIL}}">{{doc.contactmail|or:CONTACTMAIL}}</a>. We will make every effort to resolve your concerns.
+    {% trans "If you have any questions or concerns regarding this" %}, please send us a detailed message at <a href="mailto:{{doc.contactmail|or:CONTACTMAIL}}">{{doc.contactmail|or:CONTACTMAIL}}</a>. {% trans "We will make every effort to resolve your concerns." %}
     </p>
 </div>
 <br/>

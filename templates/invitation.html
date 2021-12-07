@@ -1,9 +1,13 @@
 {% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
-{% block title %}Invitation{% endblock %}
+{% block title %}{% trans "Invitation" %}{% endblock %}
 
-{% block nav_text %}Invitation{% endblock%}
+{% block nav_text %}{% trans "Invitation" %}{% endblock%}
 
 {% block content %}
 <div class="w3-row w3-padding w3-center">
@@ -11,56 +15,56 @@
 {% if SUBAPPNAME == SUBAPPS.compete %}
     <div class="w3-jumbo material-icons positive-text">groups</div>
     {% if declined %}
-    <h3>You have declined this invitation for participation with</h3>
+    <h3>{% trans "You have declined this invitation for participation with" %}</h3>
     {% for member in submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
         <button class="negative"><img src="{{member.getDP}}" width="25" class="w3-circle" />&nbsp;{{member.user.getName}}</button>
     </a>
     {% endfor %}
-    <h5>in the competition</h5>
+    <h5>{% trans "in the competition" %}</h5>
     <h2><a target="_blank" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
     <br/>
-    <a href="{{ROOT}}"><button class="accent" data-icon="done">Acknowledged</button></a>
+    <a href="{{ROOT}}"><button class="accent" data-icon="done">{% trans "Acknowledged" %}</button></a>
 
     {% elif accepted %}
-    <h3>You have accepted this invitation for participation with<h3>
+    <h3>{% trans "You have accepted this invitation for participation with" %}<h3>
     {% for member in submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
         <button class="accent"><img src="{{member.getDP}}" width="25" class="w3-circle" />&nbsp;{{member.user.getName}}</button>
     </a>
     {% endfor %}
-    <h5>in the competition</h5>
+    <h5>{% trans "in the competition" %}</h5>
     <h2><a target="_blank" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
     <br/>
-    <a href="{{submission.competition.getLink}}"><button type="submit" class="positive" data-icon="celebration">Let's go!</button></a>
+    <a href="{{submission.competition.getLink}}"><button type="submit" class="positive" data-icon="celebration">{% trans "Let's go" %}!</button></a>
     
     {% else %}
-    <h3>You have been invited to participate in the competition </h3>
+    <h3>{% trans "You have been invited to participate in the competition" %}</h3>
     <h2><a target="_blank" href="{{submission.competition.getLink}}">{{submission.competition.title}}</a></h2>
-    <h5>together with</h5>
+    <h5>{% trans "together with" %}</h5>
     {% for member in submission.getMembers %}
     <a target="_blank" href="{{member.getLink}}">
         <button class="accent"><img src="{{member.getDP}}" width="25" class="w3-circle" />&nbsp;{{member.user.getName}}</button>
     </a>
     {% endfor %}
 
-    <h5>on the team.</h5>
+    <h5>{% trans "on the team." %}</h5>
 
     
     <form method="POST" action="{{URLS.INVITEACTION|params:submission.getID|params:request.user.getID|params:'accept'}}">
     {% csrf_token %}
-    <button type="submit" class="positive" data-icon="check">Accept Invitation</button>
+    <button type="submit" class="positive" data-icon="check">{% trans "Accept Invitation" %}</button>
     </form>
     <br/>
     <form method="POST" action="{{URLS.INVITEACTION|params:submission.getID|params:request.user.getID|params:'decline'}}">
     {% csrf_token %}
-    <button type="submit" class="negative" data-icon="cancel">Decline Politely</button>
+    <button type="submit" class="negative" data-icon="cancel">{% trans "Decline Politely" %}</button>
     </form>
     {% endif %}
 {% elif SUBAPPNAME == SUBAPPS.people %}
     <div class="material-icons w3-jumbo positive-text">supervisor_account</div>
 
-    <h1>Invitation for successorship</h1>
+    <h1>{% trans "Invitation for successorship" %}</h1>
 
     <h4><a href="{{predecessor.profile.getLink}}" target="_blank"><img src="{{predecessor.profile.getDP}}" width="30" class="w3-circle" /></a>{{predecessor.getName}} wants you to be the successor of their profile assets on {{APPNAME}}.</h4>
     <br/>
@@ -70,13 +74,13 @@
     <form method="POST" action="{{URLS.SUCCESSORINVITEACTION|params:'accept'}}">
     {% csrf_token %}
     <input hidden name="predID" value="{{predecessor.getID}}" />
-    <button type="submit" class="positive" data-icon="check">Accept successorship</button>
+    <button type="submit" class="positive" data-icon="check">{% trans "Accept successorship" %}</button>
     </form>
     <br/>
     <form method="POST" action="{{URLS.SUCCESSORINVITEACTION|params:'decline'}}">
     {% csrf_token %}
     <input hidden name="predID" value="{{predecessor.getID}}" />
-    <button type="submit" class="negative" data-icon="cancel">Decline successorship</button>
+    <button type="submit" class="negative" data-icon="cancel">{% trans "Decline successorship" %}</button>
     </form>
 </div>
 {% elif SUBAPPNAME == SUBAPPS.projects %}

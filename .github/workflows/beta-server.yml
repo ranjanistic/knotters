@@ -9,8 +9,29 @@ on:
       - "**/*.sh"
       
 jobs:
+  build:
+    runs-on: [self-hosted, beta, building]
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.8]
+
+    steps:
+    - name: Merge changes
+      run: |
+        git pull
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run migrations
+      run: |
+        python3 manage.py makemigrations --noinput
+        python3 manage.py migrate --noinput
+
   deploy:
-    runs-on: [self-hosted, beta]
+    needs: [build]
+    runs-on: [self-hosted, beta, deployment]
     strategy:
       max-parallel: 1
       matrix:
@@ -26,17 +47,6 @@ jobs:
     - name: Merge changes
       run: |
         git pull
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run migrations
-      run: |
-        python3 manage.py makemigrations --noinput
-        python3 manage.py migrate --noinput
-    - name: Compile messages
-      run: |
-        python3 manage.py compilemessages
     - name: Release new version
       run: |
         python3 genversion.py

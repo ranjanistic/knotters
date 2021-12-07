@@ -7,11 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
         getElementsByTag('html')[0].classList.remove('w3-animate-left')
         getElementsByTag('html')[0].classList.add('w3-animate-right')
     }
-    getSnap();
+    // getSnap();
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
     loadBrowsers();
+    loadSnapshotScroller();
 });
 
 const toAdmire = () => {
@@ -38,6 +39,8 @@ window.addEventListener("load", () => {
     if(window.location.host.startsWith('beta.')){
         getElements('beta-alert-view').forEach((elem)=>show(elem))
         if (!window.sessionStorage.getItem('beta-alerted')) betaAlert()
+        getElements('hide-beta').forEach((elem)=>hide(elem))
+        
     }
 });
 

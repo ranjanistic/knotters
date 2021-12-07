@@ -1,12 +1,13 @@
-{% load cache %}
 {% load i18n %}
 {% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% if query %}
 <div class="w3-row tertiary">
     <div class="w3-row" style="padding:12px 4px">
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Results for '{{query}}'</h4>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Results for '{{query}}'{% endblocktrans %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
@@ -29,7 +30,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">search</i>
-                <h3>No results for '{{query}}'</h3>
+                <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
             </center>
             </div>
 			{% endfor %} 
@@ -56,7 +57,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">search</i>
-                <h3>No results for '{{query}}'</h3>
+                <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
             </center>
             </div>
 			{% endfor %} 

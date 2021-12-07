@@ -1,23 +1,27 @@
 {% extends 'index.html' %}
 {% load static %}
-{% load socialaccount %}
 {% load i18n %}
 {% load l10n %}
-{% block title %}Email addresses{% endblock %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+{% load socialaccount %}
 
-{% block nav_href %}{% endblock %}
+{% block title %}{% trans "Email addresses" %}{% endblock %}
+
+{% block nav_href %}{% url 'account_login' %}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}Account email{% endblock %}
+{% block nav_text %}{% trans "Account emails" %}{% endblock %}
 {% block nav_links %}{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
 <br/>
-<h1>Email Addresses</h1>
+<h1>{% trans "Email Addresses" %}</h1>
 {% if user.emailaddress_set.all %}
-<h5>The following email addresses are associated with your {{APPNAME}} account.</h5>
+<h5>{% blocktrans %}The following email addresses are associated with your {{APPNAME}} account.{% endblocktrans %}</h5>
 <br/>
 <form action="{% url 'account_email' %}" class="email_list" method="post">
   {% csrf_token %}
@@ -28,37 +32,37 @@
         <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary %}checked="checked"{% endif %} value="{{emailaddress.email}}"/>
         {{ emailaddress.email }}
         {% if emailaddress.primary %}
-          <i title="Primary email address" class="positive-text">security</i>
+          <i title="{% trans "Primary email address" %}" class="positive-text">security</i>
         {% endif %}
         {% if emailaddress.verified %}
-        <i title="Verified" class="active-text">verified</i>
+        <i title="{% trans "Verified" %}" class="active-text">verified</i>
         {% else %}
-        <i title="Unverified" class="negative-text">error</i>
+        <i title="{% trans "Unverified" %}" class="negative-text">error</i>
         {% endif %}
       </label>
     </div>
     {% endfor %}
     <br/>
-    <h6>Select an email to act.</h6>
+    <h6>{% trans "Select an email to act." %}</h6>
     <div class="w3-row">
       {% for emailaddress in user.emailaddress_set.all %}
         {% if not emailaddress.verified %}
-          <button class="primary" type="submit" name="action_send" data-icon="send">Verify</button>
+          <button class="primary" type="submit" name="action_send" data-icon="send">{% trans "Verify" %}</button>
         {%endif%}
       {% endfor %}
-      <button class="accent" type="submit" name="action_primary" data-icon="mark_email_unread">Make Primary</button>
-      <button class="negative" type="submit" name="action_remove" data-icon="remove_circle">Remove</button>
+      <button class="accent" type="submit" name="action_primary" data-icon="mark_email_unread">{% trans "Make primary" %}</button>
+      <button class="negative" type="submit" name="action_remove" data-icon="remove_circle">{% trans "Remove" %}</button>
     </div>
   </div>
 </form>
 {% else %}
-<h4>You currently do not have any e-mail address set up. You should add an e-mail address so you can receive notifications, reset your password, etc.</h4>
+<h4>{% trans "You currently do not have any e-mail address set up. You should add an e-mail address so you can receive notifications, reset your password, etc." %}</h4>
 <br/>
 {% endif %}
 {% if can_add_email %}
 <br/>
-  <h4>Add new email address.</h4>
-  
+  <h4>{% trans "Add new email address" %}</h4>
+  <strong>{% trans "Verification will be required" %}</strong>
   {% comment %} <form method="post" action="{% url 'account_email' %}" class="add_email">
       {% csrf_token %}
       {{ form.as_p }}
@@ -66,8 +70,8 @@
   </form> {% endcomment %}
   <form method="post" action="{% url 'account_email' %}" class="add_email">
       {% csrf_token %}
-      <input type="email" class="required-field" name="email" placeholder="New email address" required="" id="id_email"><br/><br/>
-      <button class="accent{% comment %} recaptcha-protected-form-action {% endcomment %}" name="action_add" type="submit" data-icon="add" id="add-email-action">Add email</button>
+      <input type="email" class="required-field" name="email" placeholder="{% trans "New email address" %}" required="" id="id_email"><br/><br/>
+      <button class="accent{% comment %} recaptcha-protected-form-action {% endcomment %}" name="action_add" type="submit" data-icon="add" id="add-email-action">{% trans "Add email" %}</button>
   </form>
 {% endif %}
 </div>

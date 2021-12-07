@@ -1,10 +1,16 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
 <div class="w3-row w3-padding-small">
-    <h4 class="dead-text">Summary</h4>
+    <h4 class="dead-text">{% trans "Summary" %}</h4>
     <p>{{compete.taskSummary|safe}}</p>
 
-    <h4 class="dead-text">Detail</h4>
+    <h4 class="dead-text">{% trans "Detail" %}</h4>
     <p>{{compete.taskDetail|safe}}</p>
 
-    <h4 class="dead-text">Sample</h4>
+    <h4 class="dead-text">{% trans "Sample" %}</h4>
     <p>{{compete.taskSample|safe}}</p>
 </div>

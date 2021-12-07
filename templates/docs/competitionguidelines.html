@@ -1,8 +1,24 @@
 {% extends 'docs/index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
 
-{% block title %}Competition Guidelines{% endblock %}
+{% block og_url %}{{URLS.TYPE|params:'competitionguidelines'}}{% endblock %}
+{% block og_title %}{% trans "Competition Guidelines" %}{% endblock %}
+{% block og_description %}{% trans "Before participating in a competition, go through our guidelines." %}{% endblock %}
+{% block og_site_name %}{% trans "Competition Guidelines" %}{% endblock %}
+
+{% block tw_url %}{{URLS.TYPE|params:'competitionguidelines'}}{% endblock %}
+{% block tw_title %}{% trans "Competition Guidelines" %}{% endblock %}
+{% block tw_description %}{% trans "Before participating in a competition, go through our guidelines." %}{% endblock %}
+{% block tw_site_name %}{% trans "Competition Guidelines" %}{% endblock %}
+
+{% block title %}{% trans "Competition Guidelines" %}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
+
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
@@ -11,8 +27,101 @@
 <div class="w3-row w3-padding">
     <center>
         <div class="material-icons w3-jumbo">psychology</div>
-        <h1>Competition Guidelines</h1>
-        <h3></h3>
+        <h1>{% trans "Competition Guidelines" %}</h1>
+        <h3>{% trans "Before participating in a competition, go through the following." %}</h3>
     </center><br/>
+    <div>
+     <h5>{% trans "For participants" %}</h5>
+     
+      <li>
+        Participating in a competition and/or paying fee does not guarantee that your submission will be included in the results as well. There are several reasons for which your submission may get rejected which will be mentioned in this page, keep reading.
+      </li>
+      <li>
+	Some competitions may charge a registration fee for participation. Even though anyone can participate with or without paying any fee, these competitions limit the eligibility for prize to the paying participants only. Certificates are still allotted with or without paying registration fee in these type of competitions.
+        Also, please be assured that your result is NOT affected by your payment status.
+      </li>
+      <li>
+        All successfull payments to {{APPNAME}} via any means for any competition are NON-REFUNDABLE under any circumstances. Please use the only links provided on our platform for such actions, if applicable.
+        {{APPNAME}} and its associates SHALL NOT BE liable in any monetary loss/fraud resulting from your payments outside the scope of this platform.
+      </li>
+      <li>
+        If you're participating in a group and paying your fee as well, then regardless of whether the other members in your group have paid the fee or not, if your group wins, then prize will be given to the group as a whole, and NOT to the individual members separately. Distribution of prize among the members of the same winner group will also NOT be the liability of Knotters and its associates.
+      </li>
+      <li>
+	Most of the competitions require participants to submit a source code based submission. For these kind of submissions, participants are required to submit a valid URL pointing towards the end product or source code repository (whichever is required by a particular competition) owned by the participants only. If in any case our moderators find that your submission is not authentic, your submission will be rejected and won’t be eligible for any certificate or prize.
+      </li>
+      <li>
+	There must be clear description in your submission repository or page about whatever is required by the competition. And of course, the link to your submission should be publicly accessible for the rest of your life. If the repository is hosted on GitHub, then inviting <a href="{{knotbot.getLink}}" target="_blank">Knottersbot</a> as a collaborator on GitHub can help speed up your judgement process.
+      </li>
+      <li>
+	For a repository, the commits made should only be contained in the duration of competition itself. Any commits made before or after the duration of competition will lead your submission to rejection. The commits should contain proper code changes, and not just ‘Added files via upload’ commits. Every commit should be well described about the changes made.
+      </li>
+      <li>
+	When you’re ready to finally submit your submission, make sure it is saved first and verify it. We won’t be responsible for unsaved submissions made by you. Once submitted, you cannot undo anything.
+      </li>
+      <li>
+	We show leniency with participants who submit late, however, late submissions will always be vulnerable to rejection. The late submission window remains open till moderators do their job, and we have no control over it. Regardless, it is encouraged that you submit on time, as late submissions are rejected most of the times.
+      </li>
+      <li>
+	In ultra-rare conditions, un-submitted participation may also get considered for judgement. However, you should always avoid reaching this stage.
+      </li>
+      <li>
+	Results declaration procedure takes at most 15 days, so you should remain patient after competition ends. The declared results should be considered final and not to be questioned (Trust the process). Claiming points (XP) from your results can only be done by you for your profile, don’t depend on us for that. The rejected submissions are not included in results.
+      </li>
+      <li>
+	Certificates are made available shortly after results declaration. The certificate link however, is readily available even without the certificate itself. Your account name is used on the certificate, so make sure it is correct before participating, it cannot be changed after your certificate is generated.
+      </li>
+      <li>
+	The prizes are distributed to the winner(s) under 28 days from results declaration. Winners are reached out personally via email, and are further coordinated towards the prizes.
+      </li>
+      <li>
+	It is encouraged that participants share their submissions on other social sites and tag Knotters with it. (Instagram, Twitter, Facebook, YouTube, etc.)
+      </li>
+     
+
+     <h5>{% trans "For moderators" %}</h5>
+     
+      <li>
+	The moderator of a competition has duty to filter out and reject the submissions which do not follow competition guidelines and therefore are not eligible for judgement.
+      </li>
+      <li>
+	Make sure to go through the competition task and details carefully, and read the competition guidelines for participants to know what every submission is supposed to contain.
+      </li>
+      <li>
+	You’ll see late submissions and un-submitted participations as well. In both these cases you’re free to reject these submissions regardless of the guidelines. Approve them only if deemed necessary.
+      </li>
+      <li>
+	For the submissions which are on time, you should reject only those who don’t follow our guidelines, including the community guidelines (inappropriate content should always be rejected).
+      </li>
+      <li>
+	After filtering out all submissions, and sending them for judgement, your job is done. You’ll receive your certificate as well, with the participants.
+      </li>
+      <li>
+	Your contribution will be recorded and appreciated depending upon the total submissions in the competition (This does NOT mean that approving/rejecting submissions will increase/decrease your XP).
+      </li>
+     
+
+     <h5>{% trans "For judges" %}</h5>
+     
+      <li>
+	Judge of a competition has duty to mark each and every submission approved by the moderator, against the topics of the competition. Your points decide the future of every submission’s result.
+      </li>
+      <li>
+	Make sure to go through the competition task and details carefully, and use your expertise to decide points for each submissions under each topic.
+      </li>
+      <li>
+	Judgement process starts right after the moderator filters out invalid submissions. You’ll be notified when it is ready.
+      </li>
+      <li>
+	After submitting all points of all submissions, your job is done. You’ll receive your certificate as well, with the moderator.
+      </li>
+      <li>
+	Your contribution will be recorded and appreciated depending upon the total submissions in the competition (This does NOT mean that the points you assign to submissions will increase/decrease your XP).
+
+      </li>
+    </div>
+ <br/>
+ You can go through our <a href="{{URLS.TYPE|params:'termsofservice'}}">{% trans "terms of service" %}</a> for general terms.
+ <br/>
 </div>
 {% endblock %}

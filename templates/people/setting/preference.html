@@ -1,7 +1,12 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+
 <div id="view-settings">
     <i class="w3-right material-icons edit-action" data-edittarget="settings">edit</i>
-    <h2>Preference settings</h2>
-    <i title="Notifications">notifications</i>
+    <h2>{% trans "Preference settings" %}</h2>
+    <i title="{% trans "Notifications" %}">notifications</i>
     <label>Newsletter
         <input disabled type="checkbox" {% if setting.newsletter %} checked {% endif %} />
     </label>
@@ -36,7 +41,7 @@
         <input id="privatemail" name="privatemail" type="checkbox" {% if setting.privatemail %} checked {% endif %} />
     </label>
     <br/>
-    <button class="w3-right" id="save-edit-settings" data-icon="done">Save</button>
-    <button class="w3-right" id="discard-edit-settings" data-icon="cancel">Discard</button>
+    <button class="w3-right" id="save-edit-settings" data-icon="done">{% trans "Save" %}</button>
+    <button class="w3-right" id="discard-edit-settings" data-icon="cancel">{% trans "Discard" %}</button>
 </form>
 <br/>

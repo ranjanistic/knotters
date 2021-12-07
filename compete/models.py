@@ -71,6 +71,10 @@ class Competition(models.Model):
         Profile, on_delete=models.PROTECT, related_name='competition_creator')
 
     associate = models.ImageField(upload_to=competeAssociatePath,null=True,blank=True)
+    max_grouping = models.IntegerField(default=5)
+
+    reg_fee = models.IntegerField(default=0)
+    fee_link = models.URLField(max_length=1000, blank=True, null=True)
 
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -123,6 +127,10 @@ class Competition(models.Model):
         Whether the competition is history or not, depending on endAt.
         """
         return self.endAt and self.endAt <= timezone.now()
+
+    @property
+    def state(self):
+        return "upcoming" if self.isUpcoming() else "live" if self.isActive() else "history"
 
     def startSecondsLeft(self) -> int:
         """
@@ -640,7 +648,7 @@ class Submission(models.Model):
         Whether this submission can invite more participants or not, 
         depending on current totalmembers, submission status & competition active status.
         """
-        return (self.totalMembers() < 5) and not self.submitted and self.competition.isActive()
+        return (self.totalMembers() < self.competition.max_grouping) and not self.submitted and self.competition.isActive()
 
     def getRepo(self) -> bool:
         """

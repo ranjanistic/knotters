@@ -1,7 +1,9 @@
 {% extends 'index.html' %}
+{% load static %}
 {% load i18n %}
 {% load l10n %}
-{% load static %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block meta_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
@@ -14,12 +16,12 @@
 {% block tw_title %}The Landing Page{% endblock %}
 {% block tw_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
 
-{% block title %}The Landing Page{%endblock%}
+{% block title %}{% trans "The Landing Page" %}{%endblock%}
 {% block nav_style %}transparent{% endblock %}
 {% block stylesheets %}
 <!-- <link rel="stylesheet" href="{% static 'styles/landing.css' %}"> -->
 {% endblock %}
-{% block nav_text %}Getting Started{% endblock %}
+{% block nav_text %}{% trans "Getting Started" %}{% endblock %}
 {% block content %}
 <div class="w3-row">
     <div class="w3-row w3-center" style="height:100vh">
@@ -29,22 +31,22 @@
         </div>
         <div class="w3-row w3-center w3-animate-bottom">
             <h1>{{APPNAME}}</h1>
-            <h1 class="w3-hide-small w3-jumbo"><b>The landing page</b></h1>
-            <h1 class="w3-hide-large w3-hide-medium"><b>The landing page</b></h1>
-            <h4>Keep scrolling, will ya?</h4>
+            <h1 class="w3-hide-small w3-jumbo"><b>{% trans "The landing page" %}</b></h1>
+            <h1 class="w3-hide-large w3-hide-medium"><b>{% trans "The landing page" %}</b></h1>
+            <h4>{% trans "Keep scrolling, will ya?" %}</h4>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-bottom">
-            <a href="#scrolled"><button class="positive big-button">Scroll</button></a>
+            <a href="#scrolled"><button class="positive big-button">{% trans "Scroll" %}</button></a>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-opacity">
-            <h6>(Please scroll, virtually begging you 😥)</h6>
+            <h6>({% trans "Please scroll, virtually begging you 😥" %})</h6>
         </div>
     </div>
     <br>
     <div class="w3-row w3-padding-large" align='left' id='scrolled'>
-        <h2>Not exactly a landing page<a href="https://en.wikipedia.org/wiki/Landing_page" title="What is a landing page?" target="_blank" rel="noreferrer"><i>open_in_new</i></a></h2>
+        <h2>{% trans "Not exactly a landing page"%}<a href="https://en.wikipedia.org/wiki/Landing_page" title="{% trans "What is a landing page?" %}" target="_blank" rel="noreferrer"><i>open_in_new</i></a></h2>
         <div class="w3-col w3-half">
             <strong class="w3-large">
             <p> 
@@ -237,7 +239,7 @@
     </div>
     <br/>
     <div class="w3-row w3-padding-large">
-        <h1>The moderators</h1>
+        <h1>{% trans "The moderators" %}</h1>
         <h6>
             To review and take action on verified projects submissions, a category of users at Knotters are called the moderators.
             The descision taken by a moderator for a project decides its future. If approved, the project enters our world.
@@ -248,7 +250,7 @@
         </h6>
     </div>
     <div class="w3-row w3-padding-large">
-        <h1>The Licenses</h1>
+        <h1>{% trans "The Licenses" %}</h1>
         <h6>
             Several open source licenses are provided on Knotters by default to choose from for your next project.
             You cannot change the license after a project is live. For quick projects, you can only choose from available licenses
@@ -258,7 +260,7 @@
         <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button accent' data-icon="open_in_new">View licenses</button></a>
     </div>
     <div class="w3-row w3-padding-large">
-        <h1>Your profile</h1>
+        <h1>{% trans "Your profile" %}</h1>
         <h6>
             Just like the profile of your project is its own room on Knotters, your own profile also represents your presence in our community.
             Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself.
@@ -271,7 +273,7 @@
         {% endif %}
     </div>
     <div class="w3-row w3-padding-large">
-        <h1>The Topics</h1>
+        <h1>{% trans "The Topics" %}</h1>
         <h6>
             Our platform is filled with numerous of topics to choose from, for your profile, for your projects, and for the competitions,
             through with you can uniquely select and level up your expertise in the domain of your choice.
@@ -281,7 +283,7 @@
     </div>
     
     <div class="w3-row w3-padding-large">
-        <h1>Everything counts</h1>
+        <h1>{% trans "Everything counts" %}</h1>
         <h6>
             As you'd have read, your level of expertise on Knotters depends on the XP your profile and your topics have.
             Every action you take on Knotters duly contributes to your own visible growth, reflecting in your profile.

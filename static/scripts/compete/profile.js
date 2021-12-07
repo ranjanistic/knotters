@@ -13,12 +13,12 @@ const loadData = async () => {
             getElement("remainingTime").innerHTML = secsToTime(timeleft);
             intv = setInterval(() => {
                 timeleft -= 1;
-                if (timeleft<0) {
+                if (timeleft < 0) {
                     clearInterval(intv);
                     subLoader();
                     loader();
                     window.location.replace(window.location.pathname);
-                    return
+                    return;
                 }
                 const disptime = secsToTime(timeleft);
                 getElement("remainingTime").innerHTML = disptime;
@@ -27,15 +27,15 @@ const loadData = async () => {
                 } catch {}
             }, 1000);
         } else {
-            if(data.startTimeLeft>0){
+            if (data.startTimeLeft > 0) {
                 let timeleft = data.startTimeLeft;
                 setInterval(() => {
                     timeleft -= 1;
-                    if (timeleft<0) {
+                    if (timeleft < 0) {
                         clearInterval(intv);
                         subLoader();
                         window.location.replace(window.location.pathname);
-                        return
+                        return;
                     }
                 }, 1000);
             }
@@ -51,17 +51,18 @@ try {
     };
 } catch {}
 
-const loadTabScript = (attr,tab) => {
+const loadTabScript = (attr, tab) => {
     switch (attr) {
-        case "submission": {
-            if (isActive) {
-                if (compdata.participated) {
-                    getElements("remove-person").forEach((remove) => {
-                        remove.onclick = (_) => {
-                            alertify
-                                .alert(
-                                    `Remove teammate`,
-                                    `
+        case "submission":
+            {
+                if (isActive) {
+                    if (compdata.participated) {
+                        getElements("remove-person").forEach((remove) => {
+                            remove.onclick = (_) => {
+                                alertify
+                                    .alert(
+                                        `Remove teammate`,
+                                        `
                             <div class="w3-row">
                                 <h4>Are you sure you want to <span class="negative-text">remove</span> 
                                 ${remove.getAttribute("data-name")}?</h4>
@@ -74,57 +75,73 @@ const loadTabScript = (attr,tab) => {
                                     <button class="negative">Yes, remove</button>
                                 </form>
                             </div>`
-                                )
-                                .set({ label: "Cancel" });
-                        };
-                    });
-                    try {
-                        getElement("invitepeople").onclick = (_) => {
-                            const inviteDialog = alertify
-                                .alert(
-                                    `Invite teammate`,
-                                    `
+                                    )
+                                    .set({ label: "Cancel" });
+                            };
+                        });
+                        try {
+                            getElement("invitepeople").onclick = (_) => {
+                                const inviteDialog = alertify
+                                    .alert(
+                                        `Invite teammate`,
+                                        `
                             <div class="w3-row">
                                 <h5>Type the email address or Github ID of the person to invite them to participate with you.</h5>
                                 <input class="wide" type="text" required placeholder="Email address or Github ID" id="dialoginviteeID" /><br/>
                                 <span class="negative-text w3-right" id="dialoginviteerr"></span>
                                 <br/>
                                 <button class="active" id="dialoginvite">Invite</button>
-                                <button class="positive" id="sharecompetition">${Icon('share')}Share competition</button>
+                                <button class="positive" id="sharecompetition">${Icon(
+                                    "share"
+                                )}Share competition</button>
                             </div>`
-                                )
-                                .set({ label: "Cancel" });
-                            getElement("dialoginviteerr").innerHTML = "";
-                            getElement('sharecompetition').onclick=_=>{
-                                shareLinkAction(`Competition at ${APPNAME}`, `Checkout this competition at ${APPNAME}, let's participate together. Hurry up! Time is not our friend.\n`, setUrlParams(URLS.COMPID, compID),()=>{
-                                    message(`Invite them from here after they finish signing up on ${APPNAME}.`)
-                                })
-                            }
-                            getElement("dialoginvite").onclick = async () => {
-                                const userID = String(
-                                    getElement("dialoginviteeID").value
-                                ).trim();
-                                const data = await postRequest(
-                                    setUrlParams(URLS.INVITE, compdata.subID),
-                                    { userID }
-                                );
-                                if (data.code === code.OK) {
-                                    inviteDialog.close();
-                                    alertify.success(
-                                        `Invitation email sent successfully to ${userID}`
+                                    )
+                                    .set({ label: "Cancel" });
+                                getElement("dialoginviteerr").innerHTML = "";
+                                getElement("sharecompetition").onclick = (
+                                    _
+                                ) => {
+                                    shareLinkAction(
+                                        `Competition at ${APPNAME}`,
+                                        `Checkout this competition at ${APPNAME}, let's participate together. Hurry up! Time is not our friend.\n`,
+                                        setUrlParams(URLS.COMPID, compID),
+                                        () => {
+                                            message(
+                                                `Invite them from here after they finish signing up on ${APPNAME}.`
+                                            );
+                                        }
                                     );
-                                    tab.click();
-                                } else {
-                                    getElement("dialoginviteerr").innerHTML =
-                                        data.error;
-                                }
+                                };
+                                getElement("dialoginvite").onclick =
+                                    async () => {
+                                        const userID = String(
+                                            getElement("dialoginviteeID").value
+                                        ).trim();
+                                        const data = await postRequest(
+                                            setUrlParams(
+                                                URLS.INVITE,
+                                                compdata.subID
+                                            ),
+                                            { userID }
+                                        );
+                                        if (data.code === code.OK) {
+                                            inviteDialog.close();
+                                            alertify.success(
+                                                `Invitation email sent successfully to ${userID}`
+                                            );
+                                            tab.click();
+                                        } else {
+                                            getElement(
+                                                "dialoginviteerr"
+                                            ).innerHTML = data.error;
+                                        }
+                                    };
                             };
-                        };
-                        getElement("finalsubmit").onclick = (_) => {
-                            const submitDialog = alertify
-                                .confirm(
-                                    `<h4>Final submission</h4>`,
-                                    `
+                            getElement("finalsubmit").onclick = (_) => {
+                                const submitDialog = alertify
+                                    .confirm(
+                                        `<h4>Final submission</h4>`,
+                                        `
                                 <div class="w3-row">
                                     <h3>Are you sure you want to <strong>submit</strong>?</h3>
                                     <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
@@ -133,9 +150,54 @@ const loadTabScript = (attr,tab) => {
                                     <button onclick="miniWindow('${
                                         getElement("submissionurl").value
                                     }', 'Submission')" class="positive">${Icon(
+                                            "open_in_new"
+                                        )}Verify submission</button>
+                                    <br/><br/>
+                                </div>`,
+                                        async () => {
+                                            const data = await postRequest(
+                                                setUrlParams(
+                                                    URLS.SUBMIT,
+                                                    compID,
+                                                    compdata.subID
+                                                )
+                                            );
+                                            if (data.code === code.OK) {
+                                                alertify.success(data.message);
+                                                submitDialog.close();
+                                                tab.click();
+                                            } else {
+                                                alertify.error(data.error);
+                                            }
+                                        },
+                                        () => {
+                                            submitDialog.close();
+                                        }
+                                    )
+                                    .set("labels", {
+                                        ok: "Yes, submit now",
+                                        cancel: "No, wait!",
+                                    });
+                            };
+                        } catch {}
+                    }
+                } else {
+                    try {
+                        getElement("finalsubmit").onclick = (_) => {
+                            const lateSubmitDialog = alertify
+                                .confirm(
+                                    `<h4 class="negative-text">Late submission</h4>`,
+                                    `
+                                <div class="w3-row">
+                                    <h3>Are you sure you want to submit?</h3>
+                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                                    <strong class="negative-text">NOTE: This late submission will affect its judgement.</strong>
+                                    <br/><br/>
+                                    <button onclick="miniWindow('${
+                                        getElement("submissionurl").value
+                                    }', 'Submission')" class="positive">${Icon(
                                         "open_in_new"
                                     )}Verify submission</button>
-                                    <br/><br/>
                                 </div>`,
                                     async () => {
                                         const data = await postRequest(
@@ -147,113 +209,126 @@ const loadTabScript = (attr,tab) => {
                                         );
                                         if (data.code === code.OK) {
                                             alertify.success(data.message);
-                                            submitDialog.close();
+                                            lateSubmitDialog.close();
                                             tab.click();
                                         } else {
                                             alertify.error(data.error);
                                         }
                                     },
                                     () => {
-                                        submitDialog.close();
+                                        lateSubmitDialog.close();
                                     }
                                 )
                                 .set("labels", {
-                                    ok: "Yes, submit now",
-                                    cancel: "No, wait!",
+                                    ok: "Yes, submit now (Late)",
+                                    cancel: "No, not yet (Later)",
                                 });
                         };
                     } catch {}
                 }
-            } else {
-                try {
-                    getElement("finalsubmit").onclick = (_) => {
-                        const lateSubmitDialog = alertify
-                            .confirm(
-                                `<h4 class="negative-text">Late submission</h4>`,
-                                `
-                                <div class="w3-row">
-                                    <h3>Are you sure you want to submit?</h3>
-                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
-                                    <strong class="negative-text">NOTE: This late submission will affect its judgement.</strong>
-                                    <br/><br/>
-                                    <button onclick="miniWindow('${
-                                        getElement("submissionurl").value
-                                    }', 'Submission')" class="positive">${Icon(
-                                    "open_in_new"
-                                )}Verify submission</button>
-                                </div>`,
-                                async () => {
-                                    const data = await postRequest(
-                                        setUrlParams(
-                                            URLS.SUBMIT,
-                                            compID,
-                                            compdata.subID
-                                        )
-                                    );
-                                    if (data.code === code.OK) {
-                                        alertify.success(data.message);
-                                        lateSubmitDialog.close();
-                                        tab.click();
-                                    } else {
-                                        alertify.error(data.error);
-                                    }
-                                },
-                                () => {
-                                    lateSubmitDialog.close();
-                                }
-                            )
-                            .set("labels", {
-                                ok: "Yes, submit now (Late)",
-                                cancel: "No, not yet (Later)",
-                            });
-                    };
-                } catch {}
             }
-        } break;
-        case 'result': {
-            getElements('result-points').forEach((points)=>{
-                const rank = Number(points.getAttribute('data-rank'))
-                const resID = points.getAttribute('data-resultID')
-                points.onclick=async()=>{
-                    const data = await postRequest(setUrlParams(URLS.TOPIC_SCORES,resID))
-                    if(!data) return
-                    if(data.code!==code.OK){
-                        return error(data.error)
+            break;
+        case "result": {
+            getElements("result-points").forEach((points) => {
+                const rank = Number(points.getAttribute("data-rank"));
+                const resID = points.getAttribute("data-resultID");
+                points.onclick = async () => {
+                    const data = await postRequest(
+                        setUrlParams(URLS.TOPIC_SCORES, resID)
+                    );
+                    if (!data) return;
+                    if (data.code !== code.OK) {
+                        return error(data.error);
                     }
-                    let scores = ''
-                    data.topics.forEach((topic)=>{
-                        scores+=`<div class="w3-row pallete-slab" id='${resID}-${topic.id}'>
+                    let scores = "";
+                    data.topics.forEach((topic) => {
+                        scores += `<div class="w3-row pallete-slab" id='${resID}-${topic.id}'>
                             <h6>${topic.name}<span class="w3-right">${topic.score}</span></h6>
                         </div>
-                        `
-                        topic.id,topic.name,topic.score
-                    })
-                    alertify.alert(`Rank Scorecard`,
-                      `<h4>Rank ${numsuffix(rank)} points distribution</h4>
+                        `;
+                        topic.id, topic.name, topic.score;
+                    });
+                    alertify.alert(
+                        `Rank Scorecard`,
+                        `<h4>Rank ${numsuffix(rank)} points distribution</h4>
                        ${scores}
                       `
-                    )
-                }
-            })
+                    );
+                };
+            });
         }
     }
+    try {
+        getElement("finalsubmit").onclick = (_) => {
+            const submitDialog = alertify
+                .confirm(
+                    `<h4>Final submission</h4>`,
+                    `
+            <div class="w3-row">
+                <h3>Are you sure you want to <strong>submit</strong>?</h3>
+                <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                <h4>Everyone in your submission team will be notified.</h4>
+                <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
+                <button onclick="miniWindow('${getElement(
+                    "submissionurl"
+                ).getAttribute(
+                    "data-saved"
+                )}', 'Submission')" class="positive">${Icon(
+                        "open_in_new"
+                    )}Verify submission</button>
+                <br/><br/>
+            </div>`,
+                    async () => {
+                        const data = await postRequest(
+                            setUrlParams(URLS.SUBMIT, compID, compdata.subID)
+                        );
+                        if (data.code === code.OK) {
+                            alertify.success(data.message);
+                            submitDialog.close();
+                            tab.click();
+                        } else {
+                            alertify.error(data.error);
+                        }
+                    },
+                    () => {
+                        submitDialog.close();
+                    }
+                )
+                .set("labels", {
+                    ok: "Yes, submit now",
+                    cancel: "No, wait!",
+                });
+        };
+    } catch {}
 };
 
 initializeTabsView({
     onEachTab: async (tab) =>
-        await getRequest(setUrlParams(URLS.COMPETETABSECTION, compID, tab.getAttribute('data-id'))),
+        await getRequest(
+            setUrlParams(
+                URLS.COMPETETABSECTION,
+                compID,
+                tab.getAttribute("data-id")
+            )
+        ),
     uniqueID: "competetab",
     tabsClass: "side-nav-tab",
     activeTabClass: "active",
-    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id'),tab),
-    tabindex
+    onShowTab: (tab) => loadTabScript(tab.getAttribute("data-id"), tab),
+    tabindex,
 });
 initializeTabsView({
     onEachTab: async (tab) =>
-        await getRequest(setUrlParams(URLS.COMPETETABSECTION, compID, tab.getAttribute('data-id'))),
+        await getRequest(
+            setUrlParams(
+                URLS.COMPETETABSECTION,
+                compID,
+                tab.getAttribute("data-id")
+            )
+        ),
     uniqueID: "competetabsmall",
     tabsClass: "side-nav-tab-small",
     activeTabClass: "active",
-    onShowTab:(tab)=> loadTabScript(tab.getAttribute('data-id'),tab),
-    tabindex
+    onShowTab: (tab) => loadTabScript(tab.getAttribute("data-id"), tab),
+    tabindex,
 });

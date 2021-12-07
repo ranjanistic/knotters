@@ -1,7 +1,9 @@
-{% load cache %}
 {% load i18n %}
 {% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
+
 <div class="w3-row">
 
   {% if self %}
@@ -13,7 +15,7 @@
         <div class="pallete active text-active" style="height:55vh;">
           <center>
           <i title="Visible to everyone">lock_open</i>
-          <h4>Live</h4>
+          <h4>{% trans "Live" %}</h4>
           </center>
 
           <div class="w3-row" style="height:45vh;overflow-y:scroll">
@@ -28,7 +30,7 @@
           <br/>
           <div class="w3-row w3-center">
           <i class="w3-jumbo">sentiment_dissatisfied</i>
-          <h6>No projects live, yet.</h6>
+          <h6>{% trans "No projects live, yet." %}</h6>
           </div>
           {% endfor %}
           </div>
@@ -39,7 +41,7 @@
         <div class="pallete accent text-accent" style="height:55vh;">
           <center>
           <i  title="Private to you">lock</i>
-          <h4 class="text-accent">Under review</h4>
+          <h4 class="text-accent">{% trans "Under review" %}</h4>
           </center>
           <div class="w3-row" style="height:45vh;overflow-y:scroll">
           {% for project in moderation %}
@@ -55,7 +57,7 @@
           <a href="{{URLS.PROJECTS}}create" class="text-accent">
             <i class="w3-jumbo">add_circle</i>
           </a>
-          <h6>Create</h6>
+          <h6>{% trans "Create" %}</h6>
           </div>
           {% endfor %}
           </div>
@@ -66,7 +68,7 @@
         <div class="pallete negative text-negative" style="height:55vh">
           <center>
           <i  title="Private to you">lock</i>
-          <h4 class="text-negative">Rejected</h4>
+          <h4 class="text-negative">{% trans "Rejected" %}</h4>
           </center>
           <div class="w3-row" style="height:45vh;overflow-y:scroll">
           {% for project in rejected %}
@@ -80,7 +82,7 @@
           <br/>
           <div class="w3-row w3-center">
           <i class="w3-jumbo">sentiment_very_satisfied</i>
-          <h6>None rejected!</h6>
+          <h6>{% trans "None rejected!" %}</h6>
           </div>
           {% endfor %}
           </div>
@@ -96,14 +98,14 @@
 			<img class="w3-circle w3-right" width="30" src="{{project.getDP}}" />
 			<h6>{{project.name}}</h6>
 			<span>{% if project.nickname %}{{project.nickname}}{% else %}{{project.reponame}}{% endif %}</span>
-			<a href="{{project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+			<a href="{{project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">{% trans "View" %}</button></a>
         	</div>
         </div>
       {% empty %}
         <br/><br/>
             <center class="dead-text">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>No projects, yet.</h3>
+                <h3>{% trans "No projects, yet." %}</h3>
             </center>
       {% endfor %}
   {% endif  %}

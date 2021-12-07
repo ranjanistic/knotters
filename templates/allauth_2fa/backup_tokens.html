@@ -1,13 +1,23 @@
 {% extends 'allauth_2fa/index.html' %}
 {% load i18n %}
-{% block nav_back_onclick %}window.close(){% endblock%}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
 {% block nav_links %}{% endblock %}
 {% block content %}
 <br/>
 <div class="w3-row w3-center w3-padding">
 <i class="w3-jumbo negative-text">vpn_key</i>
-<h1>2FA Backup Tokens</h1>
-<h5>{% if backup_tokens %}Your account recovery tokens, in case you lose access to your two factor token device.{% else %}Generate your recovery tokens, in case you lose access to your two factor device.{% endif %}</h5>
+<h1>2FA {% trans "Backup Tokens" %}</h1>
+<h5>
+{% if backup_tokens %}
+  {% trans "Your account recovery tokens, in case you lose access to your two factor token device." %}
+{% else %}
+  {% trans "Generate your recovery tokens, in case you lose access to your two factor device." %}
+{% endif %}
+</h5>
 <br/>
 {% if backup_tokens %}
   {% if reveal_tokens %}
@@ -17,24 +27,24 @@
       {% endfor %}
       </div>
       <br/>
-      <h5 class="negative-text">Save these tokens at a secure place. Losing these can lock you out of your account!</h5>
+      <h5 class="negative-text">{% trans "Save these tokens at a secure place. Losing these can lock you out of your account!" %}</h5>
   {% else %}
-    Backup tokens have been generated and hidden. You can get them from your account settings view.
+    {% trans "Backup tokens have been generated and hidden. You can get them from your account settings view." %}
   {% endif %}
 {% else %}
 {% endif %}
 <br/>
 {% if backup_tokens %}
-<a href="/"><button class="accent" onclick="window.close()" data-icon="verified">I have saved them</button></a>
+<a href="/"><button class="accent" onclick="window.close()" data-icon="verified">{% trans "I have saved them" %}</button></a>
 {% endif %}
 
 <form method="post">
   {% csrf_token %}
-  <button class="positive big-button" type="submit" data-icon="add">Generate{% if backup_tokens %} new{% endif %} recovery tokens</button>
+  <button class="positive big-button" type="submit" data-icon="add">{% trans "Generate" %}{% if backup_tokens %} {% trans "new" %}{% endif %} {% trans "recovery tokens" %}</button>
 </form>
 <br/>
 <a href="{% url 'two-factor-remove' %}?previous={% url 'two-factor-backup-tokens' %}">
-  <button type="button" class="negative" data-icon="remove_circle">Disable 2FA</button>
+  <button type="button" class="negative" data-icon="remove_circle">{% trans "Disable" %} 2FA</button>
 </a>
 </div>
 <br/>

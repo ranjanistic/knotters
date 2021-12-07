@@ -1,28 +1,33 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
 {% load socialaccount %}
 
-{% block title %}Inactive{% endblock %}
+{% block title %}{% trans "Inactive" %}{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}Account Inactive{% endblock %}
+{% block nav_text %}{% trans "Account Inactive" %}{% endblock %}
 
 {% block nav_links %}
-<a href="/"><button class="secondary"><i class="material-icons">home</i>Knotters</button></a>
+<a href="/"><button class="secondary" data-icon="nome">{{APPNAME}}</button></a>
 {% if request.user.is_authenticated %}
-  <a href="/"><button class="positive"><i class="material-icons">person</i>{{request.user.first_name|capfirst}}</button>
+  <a href="/"><button class="positive" data-icon="person">{{request.user.first_name|capfirst}}</button>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding w3-center">
 <br/>
-	<div class="w3-padding"><i class="material-icons w3-jumbo">not_interested</i></div>
-	<h1>This account is inactive.</h1>
+	<div class="w3-padding w3-jumbo material-icons">not_interested</div>
+	<h1>{% trans "This account is inactive." %}</h1>
     <br/>
-    <a href="/"><button class="positive" type="button" data-icon="home">Return home</button></a>
+    <a href="/"><button class="positive" type="button" data-icon="home">{% trans "Return home" %}</button></a>
     <br/><br/>
 </div>
 {% endblock %}

@@ -1,11 +1,13 @@
-{% load cache %}
 {% load i18n %}
 {% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
+
 {% if count %}
 <div class="w3-row tertiary">
     <div class="w3-row" style="padding:16px 4px">
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Recommended for you</h4>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Recommended for you" %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
@@ -26,7 +28,7 @@
             <div class="w3-padding w3-col">
             <center class="dead-text w3-padding">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>No projects yet. Yours could be the first!</h3>
+                <h3>{% trans "No projects yet." %} {% trans "Yours could be the first!" %}</h3>
             </center>
             </div>
 			{% endfor %} 
@@ -51,7 +53,7 @@
             <div class="w3-padding w3-col">
             <center class="dead-text w3-padding">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>No projects yet. Yours could be the first!</h3>
+                <h3>{% trans "No projects yet." %} {% trans "Yours could be the first!" %}</h3>
             </center>
             </div>
 			{% endfor %} 

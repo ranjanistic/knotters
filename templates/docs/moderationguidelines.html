@@ -1,7 +1,22 @@
 {% extends 'docs/index.html' %}
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
 
-{% block title %}Moderation Guidelines{% endblock %}
+{% block og_url %}{{URLS.TYPE|params:'moderationguidelines'}}{% endblock %}
+{% block og_title %}{% trans "Moderation Guidelines" %}{% endblock %}
+{% block og_description %}{% trans "How we approve content, or reject sometimes." %}{% endblock %}
+{% block og_site_name %}{% trans "Moderation Guidelines" %}{% endblock %}
+
+{% block tw_url %}{{URLS.TYPE|params:'moderationguidelines'}}{% endblock %}
+{% block tw_title %}{% trans "Moderation Guidelines" %}{% endblock %}
+{% block tw_description %}{% trans "How we approve content, or reject sometimes." %}{% endblock %}
+{% block tw_site_name %}{% trans "Moderation Guidelines" %}{% endblock %}
+
+{% block title %}{% trans "Moderation Guidelines" %}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
@@ -11,8 +26,21 @@
 <div class="w3-row w3-padding">
     <center>
         <div class="material-icons w3-jumbo">widgets</div>
-        <h1>Moderation Guidelines</h1>
-        <h3>How we approve projects, or reject sometimes.</h3>
+        <h1>{% trans "Moderation Guidelines" %}</h1>
+        <h3>{% trans "How we approve content, or reject sometimes." %}</h3>
     </center><br/>
+    <div class="w3-row">
+       <h5>For creators</h5>
+       <li>
+          Verified Projects on our platform focus on overall effect they cause to their surroundings, the people who contribute to them, and those who create them.
+          You should, before submitting a project for verification, be very clear and focused regarding the need of your project.
+       </li>
+        <h5>{% trans "For moderators" %}</h5>
+        <li>
+          Verified Projects on our platform focus on overall effect they cause to their surroundings, the people who contribute to them, and those who moderate them.
+          You should, before approving/rejecting a project from verification, be very clear, neutral, thoughtful and understanding regarding the idea of project, and the message of the creator.
+       </li>
+    </div>
 </div>
+<br/><br/>
 {% endblock %}

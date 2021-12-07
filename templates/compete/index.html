@@ -1,19 +1,23 @@
 {% extends 'index.html' %} 
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block meta_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
 {% block og_url %}{{URLS.COMPETE}}{% endblock %}
-{% block og_title %}Competitions{% endblock %}
+{% block og_title %}{% trans "Competitions" %}{% endblock %}
 {% block og_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
-{% block og_site_name %}Competitions{% endblock %}
+{% block og_site_name %}{% trans "Competitions" %}{% endblock %}
 
 {% block tw_url %}{{URLS.COMPETE}}{% endblock %}
-{% block tw_title %}Competitions{% endblock %}
+{% block tw_title %}{% trans "Competitions" %}{% endblock %}
 {% block tw_description %}Time to time mass challenges, targeted primarily on real world problems. And for you to level up with enthusiasm.{% endblock %}
-{% block tw_site_name %}Competitions{% endblock %}
+{% block tw_site_name %}{% trans "Competitions" %}{% endblock %}
 
-{% block title %}Competitions{% endblock %} 
+{% block title %}{% trans "Competitions" %}{% endblock %} 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
@@ -22,9 +26,9 @@
 {% block nav_text %}Competitions{% endblock %}
 
 {% block nav_extra_links %}
-<a href="{{URLS.CERT_INDEX}}"><button title="Certification" class="primary" data-icon="badge"><span class="w3-hide-small">Certification</span></button></a>
+<a href="{{URLS.CERT_INDEX}}"><button title="{% trans "Certification" %}" class="primary" data-icon="badge"><span class="w3-hide-small">{% trans "Certification" %}</span></button></a>
 {% if request.user.profile.is_manager %}
-<a href="{{URLS.Management.CREATE_COMP}}"><button title="Create competition" class="active" data-icon="add"><span class="w3-hide-small">Create</span></button></a>
+<a href="{{URLS.Management.CREATE_COMP}}"><button title="{% trans "Create competition" %}" class="active" data-icon="add"><span class="w3-hide-small">{% trans "Create" %}</span></button></a>
 {% endif %}
 {% endblock %}
 
@@ -36,7 +40,7 @@
   <div class='input-dropdown-box' id='compete-input-dropdown'></div>
 
   <div class='w3-row w3-padding'>
-  <h1>Competitions</h1>
+  <h1>{% trans "Competitions" %}</h1>
   </div>
   <br/>
   <div class='w3-row w3-padding'>
@@ -47,11 +51,11 @@
   <div class='w3-row w3-padding'>
     <a href='{{URLS.LANDING}}'>
       <button class='positive display-button' data-icon='flight_land'>
-        Learn More
+        {% trans "Learn More" %}
       </button>
     </a>
     <button class='display-button accent' id='close-compete-intro-banner' data-icon='flight_takeoff'>
-        I'm ready
+        {% trans "I'm ready" %}
     </button>
   </div>">
 </div>
@@ -59,13 +63,13 @@
 <div class="w3-row tertiary" id="mainframe" style="min-height:50vh">
   	<div class="w3-row w3-center">
       <button id="active" class="compete-nav-tab display-button href" data-href="#mainframe" data-icon="stream">
-        <span class="w3-hide-small">Active</span>
+        <span class="w3-hide-small">{% trans "Active" %}</span>
       </button>
       <button id="upcoming" class="compete-nav-tab display-button href" data-href="#mainframe" data-icon="hourglass_top">
-        <span class="w3-hide-small">Upcoming</span>
+        <span class="w3-hide-small">{% trans "Upcoming" %}</span>
       </button>
       <button id="history" class="compete-nav-tab display-button href" data-href="#mainframe" data-icon="hourglass_bottom">
-        <span class="w3-hide-small">History</span>
+        <span class="w3-hide-small">{% trans "History" %}</span>
       </button>
   	</div>
     <div id="tabview" class="w3-row-padding w3-padding-16"></div>
@@ -73,5 +77,5 @@
 {% endblock %} 
 
 {% block scripts %}
-<script  src="{% static 'scripts/compete/index.js' %}"  type="text/javascript"></script>
+<script src="{% static 'scripts/compete/index.js' %}"  type="text/javascript"></script>
 {% endblock %}

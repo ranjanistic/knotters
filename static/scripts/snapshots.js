@@ -1,4 +1,4 @@
-let dataJson, data, IDs=[],callTime=3;
+let dataJson, data, IDs=[],callTime=0,IDlength=0;
 const getSnapshot = async () => {
     url = setUrlParams(URLS.BROWSER, "project-snapshots");
     if (callTime==3) {
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const handleIntersect = (entries) => {
     if (entries[0].isIntersecting) {
-        callTime += 3;
+        // callTime += IDlength;
         console.log("Intersecting callTime=>", callTime);
         getSnap();
     }
@@ -57,23 +57,30 @@ const handleIntersect = (entries) => {
 
 const getSnap = async () => {
     url = setUrlParams(URLS.BROWSER, "project-snapshots");
-    if (callTime==3) {
+    if (callTime==0) {
         dataJson = await postRequest(url);
-        data = dataJson.html;   
+        data = dataJson.html;
+        IDlength = dataJson.snapIDs.length - 1;
+        callTime = IDlength;
     } else {
         dataJson = await postRequest(url, { excludeIDs: IDs });
-        data=+dataJson.html;
-        console.log("dataJSON=>",dataJson)
+        data = +dataJson.html;
+        IDlength=dataJson.snapIDs.length;
+        callTime += IDlength;
+        // console.log("dataCallTime=>",callTime)
     }
     IDs = IDs.concat(dataJson.snapIDs);
+    console.log("Snapshot data id=>", IDs);
     
-    // console.log("Snapshot data=>", data);
     if (!data) {
-        console.log("Snapshot Error")
-    } else {
+        callTime = -1;
+        console.log("Snapshot Error");
+        return;
+    } else {     
         let main = document.getElementById("browser-snapshots");
         main.innerHTML=data;
         const ids = [...document.querySelectorAll("#browser-snapshots [id]")].map(({id})=>id);
+        console.log("Snapshot Data=>",callTime);
         let options = {
             root: null,
             rootMargins: "0px",

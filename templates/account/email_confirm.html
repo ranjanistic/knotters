@@ -1,14 +1,20 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load account %}
-{% block title %}Email confirm{% endblock %}
+{% load socialaccount %}
+{% load custom_tags %}
+
+{% block title %}{% trans "Email verification" %}{% endblock %}
 
 {% block nav_href %}{% url 'account_login' %}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_text %}Email verification{% endblock %}
+{% block nav_text %}{% trans "Email verification" %}{% endblock %}
 {% block nav_noauth %}{% endblock %}
 {% block nav_auth_links %}{% endblock %}
 
@@ -20,7 +26,7 @@
   {% else %}
   <div class="material-icons w3-jumbo negative-text">block</div>
   {% endif %}
-  <h1>Confirm email address</h1>
+  <h1>{% trans "Confirm email address" %}</h1>
   
   {% if confirmation %}
   <h4>
@@ -32,14 +38,14 @@
   <br/>
   <form method="POST" action="{% url 'account_confirm_email' confirmation.key %}">
     {% csrf_token %}
-    <button class="positive" type="submit" data-icon="verified">Yes, that's me</button>
-    <a href="/"><button type="button" class="negative" data-icon="cancel">No, I didn't do that</button></a>
+    <button class="positive" type="submit" data-icon="verified">{% trans "Yes, that's me" %}</button>
+    <a href="/"><button type="button" class="negative" data-icon="cancel">{% trans "No, I didn't do that" %}</button></a>
   </form>
 
   {% else %}
   {% url 'account_email' as email_url %}
-  <h4 class="negative-text">This email confirmation link has expired, or is invalid.</h4><br/>
-  <a href="{{ email_url }}"><button class="accent" data-icon="restart_alt">Resend Email</button></a>
+  <h4 class="negative-text">{% trans "This email confirmation link has expired, or is invalid." %}</h4><br/>
+  <a href="{{ email_url }}"><button class="accent" data-icon="restart_alt">{% trans "Resend Email" %}</button></a>
   {% endif %}
 </div>
 <br/>

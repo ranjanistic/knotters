@@ -257,7 +257,8 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
             raise Exception()
-        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isFollower=False))
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except Exception as e:
         raise Http404(e)
 
@@ -272,7 +273,8 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             if project.suspended and not (iscreator or ismoderator):
                 raise Exception()
-            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator))
+            isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
@@ -586,17 +588,20 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def toggleAdmiration(request: WSGIRequest, projID: UUID):
+    project = None
     try:
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
-        if request.POST['admire'] == True:
+            id=projID)
+        if request.POST['admire'] == "true":
             project.admirers.add(request.user.profile)
-        elif request.POST['admire'] == False:
+        elif request.POST['admire'] == "false":
             project.admirers.remove(request.user.profile)
-        return respondJson(Code.OK)
+        return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if project:
+            return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
+        raise Http404()
 
 
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
@@ -803,8 +808,11 @@ def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10)
 def snapshot(request: WSGIRequest, projID: UUID, action: str):
     try:
         baseproject = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID)
         if action == Action.CREATE:
+            if request.user.profile != baseproject.creator:
+                if request.user.profile != baseproject.getProject().moderator:
+                    raise Exception()
             text = request.POST.get('snaptext', None)
             image = request.POST.get('snapimage', None)
             video = request.POST.get('snapvideo', None)
@@ -842,7 +850,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
 
         return respondJson(Code.NO)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
 

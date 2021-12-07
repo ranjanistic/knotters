@@ -3,9 +3,15 @@
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
         <meta name="theme-color" content="#ffffff" id="themecolor" />
-        <meta name="description" content="Solving problems together." />
+        <meta
+            name="description"
+            content="Solving problems together. Be a part of Knotters community and explore what everyone&#x27;s involved into."
+        />
 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="Knotters" />
@@ -15,7 +21,7 @@
         <meta
             name="image"
             property="og:image"
-            content="https://knotters.org/static/graphics/self/1024/icon-circle.png"
+            content="https://knotters.org/static/graphics/self/1024/icon.png"
         />
         <meta property="og:type" content="social" />
         <meta property="og:url" content="https://knotters.org" />
@@ -64,7 +70,11 @@
             rel="apple-touch-startup-image"
             href="/static/graphics/self/1024/icon-circle.png"
         />
-        <link rel="icon" href="/static/graphics/self/32/icon.png" />
+        <link
+            rel="icon"
+            href="/static/graphics/self/64/icon-circle.png"
+            class="darkimg"
+        />
 
         <link rel="stylesheet" href="/static/styles/w3.css" />
         <link rel="stylesheet" href="/static/fonts/Poppins.css" />
@@ -82,30 +92,58 @@
         <link rel="stylesheet" href="/static/styles/browser.css" />
 
         <link rel="manifest" href="/manifest.json" />
-
         <title>404 Not found &#183; Knotters</title>
     </head>
 
     <body>
+        <div
+            class="w3-row w3-center secondary pointer beta-alert-view"
+            onclick="betaAlert()"
+            hidden
+        >
+            This is Knotters Beta. Click here to learn more.
+        </div>
+
         <nav class="w3-row primary w3-animate-top">
             <a
+                style="padding: 8px"
                 href="/"
-                class="w3-left w3-padding w3-animate-left previous-navigation-button"
+                class="w3-left w3-animate-left previous-navigation-button"
             >
                 <span hidden>Knotters</span>
+
                 <img
                     alt="Knotters"
                     src="/static/graphics/self/icon.svg"
+                    onclick="window.close()"
                     class="darkimg"
-                    data-ext="svg"
-                    data-name="self/icon"
                     width="40"
                     height="40"
                 />
-            </a>
-            <span class="w3-left"><h3 class="text-primary">404</h3></span>
 
-            <span class="w3-right w3-row w3-padding w3-animate-right">
+                <button
+                    hidden
+                    class="primary previous-navigation-button"
+                    data-icon="arrow_back"
+                    onclick="window.close()"
+                ></button>
+            </a>
+            <span class="w3-left w3-hide-small"
+                ><h3 class="text-primary">404</h3></span
+            >
+
+            <span
+                class="w3-right w3-animate-right"
+                style="padding: 8px 8px 10px 0px"
+            >
+                <button
+                    aria-label="App update available"
+                    class="negative"
+                    data-icon="update"
+                    title="Update available"
+                    id="new-update-action"
+                    hidden
+                ></button>
                 <button
                     aria-label="Theme switch"
                     class="secondary themeswitch"
@@ -139,11 +177,13 @@
                         class="accent"
                         data-icon="groups"
                     >
-                        <span class="w3-hide-small">People</span>
+                        <span class="w3-hide-small">Community</span>
                     </button></a
                 >
             </span>
         </nav>
+
+        <div class="w3-row"></div>
 
         <div style="min-height: 50vh">
             <div class="w3-row w3-padding w3-center tertiary">
@@ -176,11 +216,360 @@
         <footer class="w3-row secondary w3-padding w3-animate-bottom">
             <br /><br />
             <div class="w3-col w3-half primary-text w3-padding">
+                <form action="/i18n/setlang/" method="POST">
+                    <input
+                        type="hidden"
+                        name="csrfmiddlewaretoken"
+                        value="PrFTm4CGvQaV9TsAXepDS91UYkwms4YcRN2RYCdjsWNWcyiNMiTIcybJ0y4MyJxG"
+                    />
+                    <select
+                        name="language"
+                        class="selectLanguage"
+                        id="language"
+                        onchange="this.form.submit()"
+                    >
+                        <option class="optionLanguage" value="af">
+                            Afrikaans
+                        </option>
+
+                        <option class="optionLanguage" value="ar">عربي</option>
+
+                        <option class="optionLanguage" value="ast">
+                            Asturian
+                        </option>
+
+                        <option class="optionLanguage" value="az">
+                            Azərbaycanca
+                        </option>
+
+                        <option class="optionLanguage" value="bg">
+                            български
+                        </option>
+
+                        <option class="optionLanguage" value="be">
+                            Беларуская
+                        </option>
+
+                        <option class="optionLanguage" value="bn">বাংলা</option>
+
+                        <option class="optionLanguage" value="br">
+                            Breton
+                        </option>
+
+                        <option class="optionLanguage" value="bs">
+                            Bosanski
+                        </option>
+
+                        <option class="optionLanguage" value="ca">
+                            Català
+                        </option>
+
+                        <option class="optionLanguage" value="cs">
+                            čeština
+                        </option>
+
+                        <option class="optionLanguage" value="cy">
+                            Cymraeg
+                        </option>
+
+                        <option class="optionLanguage" value="da">dansk</option>
+
+                        <option class="optionLanguage" value="de">
+                            Deutsch
+                        </option>
+
+                        <option class="optionLanguage" value="dsb">
+                            Lower Sorbian
+                        </option>
+
+                        <option class="optionLanguage" value="el">
+                            Ελληνικά
+                        </option>
+
+                        <option
+                            class="optionLanguage"
+                            value="en"
+                            selected="selected"
+                        >
+                            English
+                        </option>
+
+                        <option class="optionLanguage" value="en-au">
+                            Australian English
+                        </option>
+
+                        <option class="optionLanguage" value="en-gb">
+                            British English
+                        </option>
+
+                        <option class="optionLanguage" value="eo">
+                            Esperanto
+                        </option>
+
+                        <option class="optionLanguage" value="es">
+                            Español
+                        </option>
+
+                        <option class="optionLanguage" value="es-ar">
+                            Argentinian Spanish
+                        </option>
+
+                        <option class="optionLanguage" value="es-co">
+                            Colombian Spanish
+                        </option>
+
+                        <option class="optionLanguage" value="es-mx">
+                            Mexican Spanish
+                        </option>
+
+                        <option class="optionLanguage" value="es-ni">
+                            Nicaraguan Spanish
+                        </option>
+
+                        <option class="optionLanguage" value="es-ve">
+                            Venezuelan Spanish
+                        </option>
+
+                        <option class="optionLanguage" value="et">
+                            Eestlane
+                        </option>
+
+                        <option class="optionLanguage" value="eu">
+                            Euskara
+                        </option>
+
+                        <option class="optionLanguage" value="fa">فارسی</option>
+
+                        <option class="optionLanguage" value="fi">
+                            Suomalainen
+                        </option>
+
+                        <option class="optionLanguage" value="fr">
+                            français
+                        </option>
+
+                        <option class="optionLanguage" value="fy">Frysk</option>
+
+                        <option class="optionLanguage" value="ga">
+                            Gaeilge
+                        </option>
+
+                        <option class="optionLanguage" value="gd">
+                            Gàidhlig na h-Alba
+                        </option>
+
+                        <option class="optionLanguage" value="gl">
+                            Galego
+                        </option>
+
+                        <option class="optionLanguage" value="he">
+                            Hebrew
+                        </option>
+
+                        <option class="optionLanguage" value="hi">हिंदी</option>
+
+                        <option class="optionLanguage" value="hr">
+                            Hrvatski
+                        </option>
+
+                        <option class="optionLanguage" value="hsb">
+                            Upper Sorbian
+                        </option>
+
+                        <option class="optionLanguage" value="hu">
+                            Magyar
+                        </option>
+
+                        <option class="optionLanguage" value="hy">
+                            հայերեն
+                        </option>
+
+                        <option class="optionLanguage" value="ia">
+                            Interlingua
+                        </option>
+
+                        <option class="optionLanguage" value="id">
+                            bahasa Indonesia
+                        </option>
+
+                        <option class="optionLanguage" value="io">Ido</option>
+
+                        <option class="optionLanguage" value="is">
+                            Íslensku
+                        </option>
+
+                        <option class="optionLanguage" value="it">
+                            italiano
+                        </option>
+
+                        <option class="optionLanguage" value="ja">日本</option>
+
+                        <option class="optionLanguage" value="ka">
+                            ქართული
+                        </option>
+
+                        <option class="optionLanguage" value="kab">
+                            Kabyle
+                        </option>
+
+                        <option class="optionLanguage" value="kk">
+                            Қазақша
+                        </option>
+
+                        <option class="optionLanguage" value="km">ខ្មែរ</option>
+
+                        <option class="optionLanguage" value="kn">ಕನ್ನಡ</option>
+
+                        <option class="optionLanguage" value="ko">
+                            한국인
+                        </option>
+
+                        <option class="optionLanguage" value="lb">
+                            Lëtzebuergesch
+                        </option>
+
+                        <option class="optionLanguage" value="lt">
+                            Lietuvių
+                        </option>
+
+                        <option class="optionLanguage" value="lv">
+                            Latvietis
+                        </option>
+
+                        <option class="optionLanguage" value="mk">
+                            Македонски
+                        </option>
+
+                        <option class="optionLanguage" value="ml">
+                            മലയാളം
+                        </option>
+
+                        <option class="optionLanguage" value="mn">
+                            Монгол
+                        </option>
+
+                        <option class="optionLanguage" value="mr">मराठी</option>
+
+                        <option class="optionLanguage" value="my">ဗမာ</option>
+
+                        <option class="optionLanguage" value="nb">
+                            Norwegian Bokmål
+                        </option>
+
+                        <option class="optionLanguage" value="ne">
+                            नेपाली
+                        </option>
+
+                        <option class="optionLanguage" value="nl">
+                            Nederlands
+                        </option>
+
+                        <option class="optionLanguage" value="nn">
+                            Norwegian Nynorsk
+                        </option>
+
+                        <option class="optionLanguage" value="os">
+                            Ossetic
+                        </option>
+
+                        <option class="optionLanguage" value="pa">
+                            ਪੰਜਾਬੀ
+                        </option>
+
+                        <option class="optionLanguage" value="pl">
+                            Polskie
+                        </option>
+
+                        <option class="optionLanguage" value="pt">
+                            português
+                        </option>
+
+                        <option class="optionLanguage" value="pt-br">
+                            Brazilian Portuguese
+                        </option>
+
+                        <option class="optionLanguage" value="ro">
+                            Română
+                        </option>
+
+                        <option class="optionLanguage" value="ru">
+                            русский
+                        </option>
+
+                        <option class="optionLanguage" value="sk">
+                            Slovenský
+                        </option>
+
+                        <option class="optionLanguage" value="sl">
+                            Slovenščina
+                        </option>
+
+                        <option class="optionLanguage" value="sq">
+                            Shqiptare
+                        </option>
+
+                        <option class="optionLanguage" value="sr">
+                            Српски
+                        </option>
+
+                        <option class="optionLanguage" value="sr-latn">
+                            Serbian Latin
+                        </option>
+
+                        <option class="optionLanguage" value="sv">
+                            svenska
+                        </option>
+
+                        <option class="optionLanguage" value="sw">
+                            Kiswahili
+                        </option>
+
+                        <option class="optionLanguage" value="ta">தமிழ்</option>
+
+                        <option class="optionLanguage" value="te">
+                            తెలుగు
+                        </option>
+
+                        <option class="optionLanguage" value="th">ไทย</option>
+
+                        <option class="optionLanguage" value="tr">Türk</option>
+
+                        <option class="optionLanguage" value="tt">Tatar</option>
+
+                        <option class="optionLanguage" value="udm">
+                            Udmurt
+                        </option>
+
+                        <option class="optionLanguage" value="uk">
+                            Українська
+                        </option>
+
+                        <option class="optionLanguage" value="ur">اردو</option>
+
+                        <option class="optionLanguage" value="uz">
+                            O&#x27;zbek
+                        </option>
+
+                        <option class="optionLanguage" value="vi">
+                            Tiếng Việt
+                        </option>
+
+                        <option class="optionLanguage" value="zh-hans">
+                            Simplified Chinese
+                        </option>
+
+                        <option class="optionLanguage" value="zh-hant">
+                            Traditional Chinese
+                        </option>
+                    </select>
+                </form>
                 <a href="/press" class="text-secondary w3-animate-left" hidden
                     >For the press</a
                 ><br />
-                <a href="/?report=1" class="text-secondary w3-animate-left"
-                    >Report &amp; Feedback</a
+                <span
+                    class="text-secondary w3-animate-left pointer"
+                    onclick="reportFeedbackView()"
+                    >Report &amp; Feedback</span
                 ><br />
                 <a href="/docs/" class="text-secondary w3-animate-left"
                     >Docs &amp; statements</a
@@ -195,10 +584,36 @@
                     class="text-secondary w3-animate-left"
                     >Privacy Policy</a
                 ><br />
+
+                <a href="/management/" class="text-secondary w3-animate-left"
+                    >Management</a
+                ><br />
+
+                <a
+                    href="mailto:contact@knotters.org"
+                    target="_blank"
+                    class="text-secondary w3-animate-left"
+                    >Contact us</a
+                ><br />
+                <a href="/landing/" class="text-secondary w3-animate-left"
+                    >The Landing Page</a
+                ><br />
+                <a
+                    href="https://api.knotters.org/"
+                    target="_blank"
+                    class="text-secondary w3-animate-left"
+                    >Knotters API</a
+                ><br />
+                <a
+                    href="https://beta.knotters.org/"
+                    target="_blank"
+                    class="text-secondary w3-animate-left"
+                    >Knotters Beta</a
+                ><br />
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br /><br />
-                <a href="/">
+                <a href="/landing/">
                     <div class="w3-row">
                         <h2 class="text-secondary w3-right">
                             Knotters Community
@@ -209,24 +624,27 @@
                             alt="Knotters"
                             class="w3-right darkimg"
                             src="/static/graphics/self/icon.svg"
-                            data-ext="svg"
-                            data-name="self/icon"
                             width="120"
                             height="120"
                         />
                     </div>
                 </a>
             </div>
-            <div class="w3-row">
-                <br />
+            <div class="w3-row w3-center">
+                <a
+                    href="https://www.digitalocean.com/?refcode=ebf3fb45c9e2&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"
+                    ><img
+                        src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg"
+                        alt="DigitalOcean Referral Badge"
+                        target="_blank"
+                /></a>
                 <center>
-                    <a href="mailto:contact@knotters.org"
-                        ><span hidden>contact@knotters.org</span
-                        ><button aria-label="Contact us" class="primary">
-                            <i class="material-icons">mail</i>
-                        </button></a
-                    >
-                    <a target="_blank" href="https://github.com/Knotters"
+                    <br />
+
+                    <a
+                        href="https://github.com/Knotters"
+                        target="_blank"
+                        rel="noreferrer"
                         ><span hidden>Github</span
                         ><button
                             aria-label="Github"
@@ -235,14 +653,15 @@
                             <img
                                 alt="Github"
                                 class="darkimg"
-                                data-ext="png"
-                                data-name="thirdparty/github"
-                                src="/static/graphics/thirdparty/github-dark.png"
+                                src="/static/graphics/thirdparty/github.png"
                                 width="20"
-                                height="22"
+                                height="20"
                             /></button
                     ></a>
-                    <a target="_blank" href="https://twitter.com/knottersdotorg"
+                    <a
+                        href="https://twitter.com/knottersdotorg"
+                        target="_blank"
+                        rel="noreferrer"
                         ><span hidden>Twitter</span
                         ><button
                             aria-label="Twitter"
@@ -252,12 +671,13 @@
                                 alt="Twitter"
                                 src="/static/graphics/thirdparty/twitter.png"
                                 width="22"
-                                height="24"
+                                height="22"
                             /></button
                     ></a>
                     <a
-                        target="_blank"
                         href="https://instagram.com/knottersdotorg"
+                        target="_blank"
+                        rel="noreferrer"
                         ><span hidden>Instagram</span
                         ><button
                             aria-label="Instagram"
@@ -266,16 +686,15 @@
                             <img
                                 alt="Instagram"
                                 class="darkimg"
-                                data-ext="png"
-                                data-name="thirdparty/instagram"
                                 src="/static/graphics/thirdparty/instagram.png"
                                 width="18"
-                                height="20"
+                                height="18"
                             /></button
                     ></a>
                     <a
-                        target="_blank"
                         href="https://facebook.com/knottersdotorg"
+                        target="_blank"
+                        rel="noreferrer"
                         ><span hidden>Facebook</span
                         ><button
                             aria-label="Facebook"
@@ -285,10 +704,13 @@
                                 alt="Facebook"
                                 src="/static/graphics/thirdparty/facebook.png"
                                 width="18"
-                                height="20"
+                                height="18"
                             /></button
                     ></a>
-                    <a target="_blank" href="https://discord.gg/qZ3TdVHsma"
+                    <a
+                        href="https://discord.gg/qZ3TdVHsma"
+                        target="_blank"
+                        rel="noreferrer"
                         ><span hidden>Discord</span
                         ><button
                             aria-label="Discord"
@@ -298,12 +720,13 @@
                                 alt="Discord"
                                 src="/static/graphics/thirdparty/discord.png"
                                 width="18"
-                                height="22"
+                                height="20"
                             /></button
                     ></a>
                     <a
-                        target="_blank"
                         href="https://linkedin.com/company/knottersdotorg"
+                        target="_blank"
+                        rel="noreferrer"
                         ><span hidden>Linkedin</span
                         ><button
                             aria-label="Linkedin"
@@ -313,7 +736,7 @@
                                 alt="Linkedin"
                                 src="/static/graphics/thirdparty/linkedin.png"
                                 width="20"
-                                height="20"
+                                height="18"
                             /></button
                     ></a>
 
@@ -331,20 +754,28 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
+        <div class="preview-image-modal" id="image-previewer">
+            <img src="" id="preivew-image-src" />
+        </div>
 
+        <script src="/strings.js"></script>
+        <script src="/static/scripts/sw.js"></script>
         <script src="/static/alertify/alertify.min.js"></script>
         <script src="/static/cropper/cropper.min.js"></script>
         <script src="/static/chartjs/chart.min.js"></script>
         <script src="/static/swiper/swiper-bundle.min.js"></script>
         <script src="/static/scripts/index.js"></script>
         <script src="/static/scripts/theme.js"></script>
+
         <script>
+            const SITE = "https://knotters.org";
             const csrfmiddlewaretoken =
-                    "L5nF56tgrsSvhTk0F2O4KN3LCYHhemgPJKvbVD76DEHQQpX3PImpdaGOvpMNoHM5",
-                authenticated = "False" == "True";
+                    "PrFTm4CGvQaV9TsAXepDS91UYkwms4YcRN2RYCdjsWNWcyiNMiTIcybJ0y4MyJxG",
+                authenticated = "True" == "True";
+            const activeuser = authenticated && "True" == "True";
             const ROOT = "/";
             const APPNAME = "Knotters";
-            const VERSION = "v--16";
+            const VERSION = "2.4.9";
             const SUBAPPSLIST = [
                 "projects",
                 "people",
@@ -355,10 +786,17 @@
             const SUBAPPNAME = "";
             const dialog = alertify;
             const ICON = "/static/graphics/self/icon.svg";
+            const RECAPTCHA_KEY = "6Lc-y0gcAAAAAL9sAZ00TZ6NWSb9iu4x29wle0Wr";
+            const VAPID_KEY =
+                "BKoFq8TtGRgy7nPsFH1R3joZJRv4BkZwmmoAAxI3Ouw8YRymyoIebrQBjWDVzeBHsF7s16tGrztZzcX2si91AQ0";
             if ("") {
                 error("");
-            } else if ("") {
+            }
+            if ("") {
                 message("");
+            }
+            if ("") {
+                success("");
             }
             if ("" === "1") {
                 reportFeedbackView();
@@ -369,6 +807,8 @@
                 ROBOTS_TXT: "/robots.txt",
                 MANIFEST: "/manifest.json",
                 SERVICE_WORKER: "/service-worker.js",
+                STRINGS: "/strings.js",
+                SWITCH_LANG: "/i18n/",
                 OFFLINE: "/off408",
                 ROOT: "/",
                 AUTH: "/auth/",
@@ -378,30 +818,51 @@
                 PEOPLE: "/people/",
                 MODERATION: "/moderation/",
                 MANAGEMENT: "/management/",
+                FAME_WALL: "/wall-of-fame/",
                 REDIRECTOR: "/redirector/",
                 DOCTYPE: "/docs/*",
                 LANDINGS: "/landing/",
-                LANDING: "/landing",
+                LANDING: "/landing/",
                 APPLANDING: "/*/landing",
                 BROWSER: "/browser/*",
+                VERIFY_CAPTCHA: "/captcha/verify",
+                BASE_GITHUB_EVENTS: "/github-events/*/*",
                 Projects: {
-                    ALLLICENSES: "/projects/licenses",
-                    LICENSE: "/projects/licenses/*",
-                    LICENSES: "/projects/alllicenses",
-                    ADDLICENSE: "/projects/addlicense",
+                    ALLLICENSES: "/projects/licenses/",
+                    LICENSE: "/projects/licenses/*/",
+                    LICENSES: "/projects/license/all/",
+                    ADDLICENSE: "/projects/license/add/",
+                    LICENSE_SEARCH: "/projects/license/search/",
                     CREATEVALIDATEFIELD: "/projects/create/validate/*",
-                    CREATE: "/projects/create",
-                    SUBMIT: "/projects/submit",
-                    TRASH: "/projects/trash/*",
+                    CREATE: "/projects/create/",
+                    CREATE_FREE: "/projects/create/0/",
+                    CREATE_MOD: "/projects/create/1/",
+                    SUBMIT_FREE: "/projects/submit/0/",
+                    SUBMIT_MOD: "/projects/submit/1/",
+                    SUBMIT: "/projects/submit/1/",
+                    TRASH: "/projects/trash/*/",
+                    PROFILE_FREE: "/projects/profile/*",
+                    PROFILE_MOD: "/projects/profile/*",
                     PROFILE: "/projects/profile/*",
-                    PROFILEEDIT: "/projects/profile/edit/*/*",
-                    TOPICSEARCH: "/projects/topics/search/*",
-                    TOPICSUPDATE: "/projects/topics/update/*",
-                    TAGSEARCH: "/projects/tags/search/*",
-                    TAGSUPDATE: "/projects/tags/update/*",
-                    LIVEDATA: "/projects/livedata/*",
+                    PROFILEEDIT: "/projects/profile/edit/*/*/",
+                    MANAGE_ASSETS: "/projects/assets/*/*",
+                    TOPICSEARCH: "/projects/topics/search/*/",
+                    TOPICSUPDATE: "/projects/topics/update/*/",
+                    TAGSEARCH: "/projects/tags/search/*/",
+                    TAGSUPDATE: "/projects/tags/update/*/",
+                    USER_GH_REPOS: "/projects/github/user/repos",
+                    LINK_FREE_REPO: "/projects/github/user/repos/link",
+                    UNLINK_FREE_REPO: "/projects/github/user/repos/unlink",
+                    LIVEDATA: "/projects/livedata/*/",
                     GITHUB_EVENTS: "/projects/github-events/*/*/*",
-                    NEWBIES: "/projects/newbies",
+                    GITHUB_EVENTS_FREE: "/projects/github-events-0/*/*",
+                    NEWBIES: "/projects/newbies/",
+                    BROWSE_SEARCH: "/projects/browse/search/",
+                    SNAPSHOTS: "/projects/snapshots/*/*/*/",
+                    SNAPSHOT: "/projects/snapshot/*/*/",
+                    REPORT_CATEGORIES: "/projects/report/categories",
+                    REPORT_PROJECT: "/projects/reportproject/",
+                    TOGGLE_ADMIRATION: "/projects/admiration/*/",
                 },
                 People: {
                     PROFILE: "/people/profile/*",
@@ -419,8 +880,13 @@
                     SUCCESSORINVITEACTION:
                         "/people/invitation/successor/action/*",
                     ZOMBIE: "/people/zombie/*",
+                    BLOCK_USER: "/people/blockuser/",
+                    UNBLOCK_USER: "/people/unblockuser/",
+                    REPORT_CATEGORIES: "/people/report/categories",
+                    REPORT_USER: "/people/reportuser/",
                     NEWBIES: "/people/newbies",
                     GITHUB_EVENTS: "/people/github-events/*/*",
+                    BROWSE_SEARCH: "/people/browse/search",
                 },
                 Compete: {
                     COMPID: "/compete/*",
@@ -436,12 +902,15 @@
                     SUBMIT: "/compete/submit/*/*",
                     SUBMITPOINTS: "/compete/submissionpoints/*",
                     DECLARERESULTS: "/compete/declareresults/*",
+                    TOPIC_SCORES: "/compete/scores/*/",
                     CLAIMXP: "/compete/claimxp/*/*",
                     GENERATE_CERTS: "/compete/generatecertificate/*",
                     CERT_INDEX: "/compete/certificate/",
                     CERT_VERIFY: "/compete/certificate/verify",
                     CERTIFICATE: "/compete/certificate/*/*",
                     CERTDOWNLOAD: "/compete/certificate/download/*/*",
+                    APPR_CERTIFICATE: "/compete/appcertificate/*/*",
+                    APPR_CERTDOWNLOAD: "/compete/appcertificate/download/*/*",
                 },
                 Moderation: {
                     MODID: "/moderation/*",
@@ -449,6 +918,8 @@
                     ACTION: "/moderation/action/*",
                     REAPPLY: "/moderation/reapply/*",
                     APPROVECOMPETE: "/moderation/compete/*",
+                    REPORT_CATEGORIES: "/moderation/report/categories/",
+                    REPORT_MODERATION: "/moderation/reportmoderation/",
                 },
                 Management: {
                     COMPETITIONS: "/management/competitions",
@@ -458,17 +929,22 @@
                     TOPICSEARCH: "/management/topicsearch",
                     JUDGESEARCH: "/management/judgesearch",
                     MODSEARCH: "/management/moderatorsearch",
-                    REPORT_FEED: "/management/report-feedback",
-                    REPORTS: "/management/report-feedback/reports",
+                    ELGIBLE_MODSEARCH: "/management/moderatorsearch/eligible",
                     CREATE_REPORT: "/management/report-feedback/reports/create",
-                    REPORT: "/management/report-feedback/reports/*",
-                    FEEDBACKS: "/management/report-feedback/feedbacks",
                     CREATE_FEED: "/management/report-feedback/feedbacks/create",
-                    FEEDBACK: "/management/report-feedback/feedbacks/*",
+                    REPORT_FEED: "/management/report-feedback",
+                    REPORT_FEED_TYPE: "/management/report-feedback/*",
+                    REPORT_FEED_TYPEID: "/management/report-feedback/*/*",
                     COMMUNITY: "/management/community",
                     MODERATORS: "/management/community/moderators",
+                    REMOVE_MODERATOR: "/management/community/moderators/remove",
+                    ADD_MODERATOR: "/management/community/moderators/add",
                     LABELS: "/management/community/labels",
+                    LABEL_TYPE: "/management/community/labels/*",
                     LABEL: "/management/community/labels/*/*",
+                    LABEL_CREATE: "/management/community/labels/*/create",
+                    LABEL_UPDATE: "/management/community/labels/*/*/update",
+                    LABEL_DELETE: "/management/community/labels/*/*/delete",
                     LABEL_TOPICS: "/management/community/labels/topics",
                     LABEL_CATEGORYS: "/management/community/labels/categories",
                 },
@@ -493,11 +969,13 @@
                 },
             });
         </script>
-        <script src="/static/scripts/sw.js"></script>
+
         <script src="/static/scripts/autostart.js"></script>
+
+        <script async src="/static/html2canvas.min.js"></script>
 
         <script></script>
 
-        <script async src="/static/html2canvas.min.js"></script>
+        <script></script>
     </body>
 </html>

@@ -4,6 +4,7 @@
 {% load i18n %} 
 {% load l10n %}
 {% load tz %}
+{% load cache %}
 {% load account %} 
 {% load socialaccount %}
 {% load custom_tags %}
@@ -33,15 +34,15 @@
 
 {% block nav_auth_user %}
   {% if user.is_authenticated and user == person %}
-    <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">Logout</span></button></a>
+    <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">{% trans "Logout" %}</span></button></a>
   {% elif user.is_authenticated %}
     <a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.profile.getName}}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" />&nbsp;{{user.profile.getFName}}</button></a>
   {% else %}
       {% block nav_auth_login %}
-      <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent" data-icon="login"><span class="w3-hide-small">Login</span></button></a>
+      <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent" data-icon="login"><span class="w3-hide-small">{% trans "Login" %}</span></button></a>
       {% endblock %}
       {% block nav_auth_signup %}
-      <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="positive" data-icon="person_add"><span class="w3-hide-small">Join</span></button></a>
+      <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="positive" data-icon="person_add"><span class="w3-hide-small">{% trans "Join" %}</span></button></a>
       {% endblock %}
   {% endif %}
 {% endblock %}
@@ -52,14 +53,14 @@
     <br/>
     <div class="w3-row w3-center w3-padding">
       <i class="w3-jumbo negative-text">toggle_off</i>
-      <h2>Your account is currently deactived.</h2><br/>
-      <h3>This means your profile is currently not visible to anyone in the world.</h3>
+      <h2>{% trans "Your account is currently deactived." %}</h2><br/>
+      <h3>{% trans "This means your profile is currently not visible to anyone in the world." %}</h3>
       {% if user.profile.suspended %}
-      <strong>Your profile is currently suspended. We must have emailed you regarding this, please check your inbox.</strong>
+      <strong>{% trans "Your profile is currently suspended. We must have emailed you regarding this, please check your inbox." %}</strong>
       {% else %}
-      <h5>If you have changed your mind, then you can reactivate your account.</h5>
-      <button class="big-button positive" data-icon="restart_alt" id="reactivateaccount">Re-activate my account</button><br/><br/>
-      <strong>You'll have to login again after reactivating.</strong>
+      <h5>{% trans "If you have changed your mind, then you can reactivate your account." %}</h5>
+      <button class="big-button positive" data-icon="restart_alt" id="reactivateaccount">{% trans "Re-activate my account" %}</button><br/><br/>
+      <strong>{% trans "You'll have to login again after reactivating." %}</strong>
       {% endif %}
     </div>
     <br/>
@@ -73,15 +74,19 @@
           <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
-            <h5 class="{% if person.profile.is_verified %}name align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %} <i class="positive-text w3-large">check_circle</i>{% endif %}</h5>
-            {% if person.profile.is_moderator %}<span class="w3-tiny w3-tag w3-round-xxlarge w3-border accent" style="margin-bottom:10px">MOD</span><br/>{% endif %}
+            <h5 class="{% if person.profile.is_verified %}align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+            {% if person.profile.is_moderator %}<strong class="w3-tiny w3-round w3-tag accent" style="margin-bottom:5px">MOD</strong><br/>{% endif %}
             <span>{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
           {% if user.is_authenticated and user == person %}
-            <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
+            <i class="edit-action w3-right" data-edittarget="pallete">edit</i>
           {% endif %}
-          <i class="w3-left material-icons pointer {% if person.profile.is_moderator %}text-accent{% endif%}" onclick="shareLinkAction('{{ person.getName }}', '{{ person.profile.getBio }}', '{{site}}{{person.profile.getLink}}')">share</i>
+          <i class="w3-left pointer navigator-share-action" 
+          data-title="{{ person.getName }}"
+          data-text="{{ person.profile.getBio|or:'Checkout this profile!' }}"
+          data-url="{{ person.profile.getLink }}"
+          >share</i>
           </div>
         </div>
 
@@ -115,7 +120,7 @@
         {% elif user.is_authenticated and user == person %}
           <a href="{{URLS.Auth.GITHUB}}login/?process=connect&next={{URLS.REDIRECTOR}}?n={{user.profile.getLink}}">
           <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
-            &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> Knotters <i class="material-icons">open_in_new</i>
+            &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> {{APPNAME}} <i class="material-icons">open_in_new</i>
           </button>
           </a>
         {% endif %}
@@ -124,17 +129,17 @@
 
         {% if self %}
         <div class="w3-row pallete">
-          <p><b>Email ID</b> <span>{{ person.email }}</span></p>
-          <p><b>Date joined</b> <span>{{ person.date_joined }}</span></p>
-          <p><b>Last login</b> <span> {{ person.last_login }}</span></p>
+          <p><b>{% trans "Email ID" %}</b> <span>{{ person.email }}</span></p>
+          <p><b>{% trans "Date joined" %}</b> <span>{{ person.date_joined }}</span></p>
+          <p><b>{% trans "Last login" %}</b> <span> {{ person.last_login }}</span></p>
         </div>
         <br />
         {% endif %}
 
 		{% if not self and user.is_authenticated %}
         <div class="w3-row">
-        <button class="small tertiary negative-text" data-icon="block" id='block-account'>Block</button>
-        <button class="small tertiary negative-text" data-icon="report" id='report-account'>Report</button>
+        <button class="small tertiary negative-text" data-icon="block" id='block-account'>{% trans "Block" %}</button>
+        <button class="small tertiary negative-text" data-icon="report" id='report-account'>{% trans "Report" %}</button>
         </div>
         <br />
 		{% endif %}
@@ -142,13 +147,21 @@
       <div class="w3-col w3-container m8 l9 ">
         <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
           <div class="w3-row w3-center w3-animate-top">
-            <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">Overview</span></button>
-            <button title="Personal projects" id="projects" class="nav-tab" data-icon="widgets"><span class="w3-hide-small">Projects</span></button>
-            <button title="Acheivements" id="acheivements" class="nav-tab" data-icon="emoji_events"><span class="w3-hide-small">Acheivements</span></button>
-            <button hidden id="contribution" class="nav-tab" data-icon="group_work"><span class="w3-hide-small">Contribution</span></button>
-            <button hidden id="activity" class="nav-tab" data-icon="history"><span class="w3-hide-small">Activity</span></button>
+            {% if not person.profile.is_manager %}
+            <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">{% trans "Overview" %}</span></button>
+            {% endif %}
+            <button title="Personal projects" id="projects" class="nav-tab" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button>
+            {% if not person.profile.is_manager %}
+            <button title="Acheivements" id="acheivements" class="nav-tab" data-icon="emoji_events"><span class="w3-hide-small">{% trans "Acheivements" %}</span></button>
+            {% endif %}
+            {% if person.profile.is_manager %}
+            <button title="Competitions" id="competitions" class="nav-tab" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button>
+            {% endif %}
+            
+            {% comment %} <button hidden id="contribution" class="nav-tab" data-icon="group_work"><span class="w3-hide-small">Contribution</span></button> {% endcomment %}
+            <button hidden id="activity" class="nav-tab" data-icon="history"><span class="w3-hide-small">{% trans "Activity" %}</span></button>
             {% if person.profile.is_moderator %}
-            <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">Moderation</span></button>
+            <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
             {% endif %}
           </div>
           <br/>
@@ -159,14 +172,14 @@
         <br/>
         <div class="w3-row pallete w3-animate-right" id="setts">
           <div class="w3-row w3-padding">
-          <i class="w3-right w3-spin">settings</i><h3>Settings</h3>
+          <i class="w3-right w3-spin">settings</i><h3>{% trans "Settings" %}</h3>
           </div>
           <div class="w3-row w3-padding-small">
-            <button id="account" class="set-tab" data-icon="manage_accounts"><span class="w3-hide-small">Account</span></button>
-            <button id="preference" class="set-tab" data-icon="settings"><span class="w3-hide-small">Preference</span></button>
-            <button id="security" class="set-tab" data-icon="shield"><span class="w3-hide-small">Security</span></button>
+            <button id="account" class="set-tab" data-icon="manage_accounts"><span class="w3-hide-small">{% trans "Account" %}</span></button>
+            <button id="preference" class="set-tab" data-icon="settings"><span class="w3-hide-small">{% trans "Preference" %}</span></button>
+            <button id="security" class="set-tab" data-icon="shield"><span class="w3-hide-small">{% trans "Security" %}</span></button>
             {% if user.is_authenticated and user.is_moderator %}
-              <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">Moderation</span></button>
+              <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
             {% endif %}
             <hr />
             <div id="stabview"></div>
@@ -194,7 +207,7 @@
         activate: true
       });
       if(data.code===code.OK){
-        success("Your account has been reactivated")
+        success(`{% trans "Your account has been reactivated" %}`)
         return await logOut()
       }
       subLoader(false)
@@ -208,12 +221,12 @@
 		alertify.confirm(
 			`<h3>Block {{person.profile.getName}}?</h3>`,
 			`<h6>Are you sure you want to ${NegativeText('block {{person.profile.getName}}')}? You both will be invisible to each other on ${APPNAME}, including all associated activities.
-			<br/>You can unblock them anytime from your profile's privacy settings.
+			<br/>{% trans "You can unblock them anytime from your profile's privacy settings." %}
 			</h6>`,
 			()=>{},
 			async()=>{
 				loader()
-        message('Blocking...')
+        message('{% trans "Blocking" %}...')
 				const data = await postRequest(URLS.BLOCK_USER,{
 					userID: '{{person.get_id}}'
 				})
@@ -248,7 +261,7 @@
 			()=>{},
 			async()=>{
 				loader()
-        message('Reporting...')
+        message('{% trans "Reporting" %}...')
 				const data = await postRequest(URLS.REPORT_USER,{
 					userID: '{{person.get_id}}',
           report: getElement('report-category').value,
@@ -260,7 +273,7 @@
 				}
 				error(data.error)
 			}
-		).set('labels', {cancel:`${Icon('report')} Report {{person.profile.getFName}}`, ok:'No, go back'}).set('closable', false)
+		).set('labels', {cancel:`${Icon('report')} Report {{person.profile.getFName}}`, ok:'{% trans "No" %}, {% trans "go back" %}'}).set('closable', false)
 	}
   }
 </script>

@@ -243,3 +243,19 @@ self.addEventListener("message", (event) => {
         self.skipWaiting();
     }
 });
+
+self.addEventListener('push', function (event) {
+    //https://developer.mozilla.org/en-US/docs/Web/API/PushMessageData.
+    const eventInfo = event.data.text();
+    // const data = JSON.parse(eventInfo);
+    console.log(eventInfo)
+    const head = 'New Notification 🕺🕺';
+    const body = 'This is default content. Your notification didn\'t have one 🙄🙄';
+
+    event.waitUntil(
+        self.registration.showNotification(head, {
+            body: body,
+            icon: '{{SITE|safe}}{{ICON|safe}}'
+        })
+    );
+});

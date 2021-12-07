@@ -1,5 +1,4 @@
 {% extends 'projects/profile.html' %}
-{% debug %}
 {% load static %}
 {% load i18n %}
 {% load l10n %}
@@ -13,9 +12,9 @@
 {% if project.suspended %}
     <div class="w3-row w3-center w3-padding">
       <i class="w3-jumbo negative-text">toggle_off</i>
-      <h2>This project is currently suspended.</h2><br/>
-      <h3>This means the project is currently invisible to the world.</h3>
-      <strong>We must have emailed you regarding this action, please check your inbox.</strong>
+      <h2>{% trans "This project is currently suspended." %}</h2><br/>
+      <h3>{% trans "This means the project is currently invisible to the world." %}</h3>
+      <strong>{% trans "We must have emailed you regarding this action, please check your inbox." %}</strong>
     </div>
     <br/><br/><br/>
 {% else %}
@@ -24,14 +23,18 @@
             <div class="pallete" style="padding:0" id="view-pallete">
                 <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
                 <div class="w3-row w3-center w3-padding-small">
-                <h5 class="align name">{{project.name}} <i class="positive-text w3-large">check_circle</i></h5>
+                <h5 class="align">{{project.name}}&nbsp;<i class="positive-text w3-large">verified</i></h5>
                 <center>{{project.description}}</center>
                 </div>
                 <div class="w3-row w3-padding-small">
                     {% if user.is_authenticated and user.profile == project.creator %}
                     <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
                     {% endif %}
-                    <i class="w3-left material-icons pointer" onclick="shareLinkAction('{{project.name}}', '{{project.description}}', '{{site}}{{project.getLink}}')">share</i>
+                    <i class="w3-left pointer navigator-share-action" 
+                        data-title="{{project.name}}"
+                        data-text="{{project.description|or:'Checkout this verified project!'}}"
+                        data-url="{{project.getLink}}"
+                    >share</i>
                 </div>
             </div>
             {% if iscreator %}
@@ -62,6 +65,19 @@
             <a target="_blank" rel="noreferrer" href="{{project.getRepoLink}}">
                 <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.reponame}}</button>
             </a>
+        </div>
+        <br/>
+        <div class="w3-row w3-padding-small">
+        <strong>{{ project.total_admiration }} admirations</strong>
+        <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
+         {% csrf_token %}
+         <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+        {% if isAdmirer %}
+         <button type="submit" class="w3-right small tertiary negative-text" data-icon="remove_circle">{% trans "Disadmire" %}</button>
+        {% else %}
+          <button type="submit" class="w3-right small positive" data-icon="add_circle">{% trans "Admire" %}</button>
+        {% endif %}
+        </form>
         </div>
         <br/>
         {% if not iscreator and user.is_authenticated %}
@@ -207,7 +223,7 @@
             <br/>
             <div class="w3-row pallete no-pad">
                 <center><h5 class="w3-padding">Snapshots</h5>
-                {% if iscreator %}
+                {% if iscreator or ismoderator %}
                 <div class="w3-row" id="view-snapshot">
                     <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
                     <hr/>
@@ -255,6 +271,7 @@ const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
 {% if not project.suspended %}
 if(!selfProject){
+    if(authenticated){
     getElement('report-project').onclick=async()=>{
         const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
         if(!data) return
@@ -288,6 +305,7 @@ if(!selfProject){
                 error(data.error)
             }
         ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
+    }
     }
 }
 {% endif %}

@@ -1,5 +1,9 @@
 {% extends 'compete/index.html' %} 
 {% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 {% block meta_description %}{{ compete.shortdescription }}{% endblock %}
@@ -48,44 +52,64 @@
   </div>
   {% elif compete.isUpcoming %}
   <div class="w3-row w3-center accent w3-padding">
-    <strong>This competition will accept submissions from the given beginning date, till {{compete.endAt}}</strong>
+    <strong>This competition will accept submissions till {{compete.endAt}} only.</strong>
   </div>
   {% endif %}
   <div class="w3-row w3-padding">
     <br/>
     <div class="w3-row">
       <div class="w3-col w3-twothird w3-left w3-padding">
-        <div class="w3-col {% if compete.associate %}w3-half{% endif %}">
+        <div class="w3-col {% if compete.associate or compete.reg_fee %}w3-half{% endif %}">
         <h2>{{compete.title}}</h2>
         <h4>{{compete.tagline}}</h4>
-        <strong>{{compete.shortdescription}}</strong><br/>
+        <strong>{{compete.shortdescription}}
+        </strong>
+        <br/><br/>
+        <button class="small navigator-share-action accent" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}">{% trans "Share" %}</button>
         </div>
         {% if compete.associate %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">
-          <h4>In association with </h4>
+          <h4>{% trans "In association with" %}</h4>
           <img class="pallete preview-type-image" src="{{compete.get_associate}}" width="80%" />
         </div>
+        {% endif %}
+        {% if not isJudge and not isMod and not isManager %}
+        {% if compete.reg_fee and not compete.isHistory %}
+        <div class="w3-col w3-half w3-center dead-text w3-padding">
+          <h4>{% trans "To be eligible for prizes here" %},</h4>
+          <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
+            <script>
+              (function(){
+                var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
+                if(x){ var s=d.createElement('script'); s.defer=!0;s.id='razorpay-embed-btn-js';
+                s.src='https://cdn.razorpay.com/static/embed_btn/bundle.js';d.body.appendChild(s);} else{var rzp=window['__rzp__'];
+                rzp && rzp.init && rzp.init()}})();
+            </script>
+          </div>
+          <h6>{% trans "Do not pay if already paid." %} Read <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>.</h6>
+        </div>
+        {% endif %}
         {% endif %}
       </div>
       <div class="w3-col w3-third w3-center w3-padding">
       <br/>
         {% if compete.isActive %}
         <div class="pallete pointer" id="reload-time">
-          <h6>Remaining</h6>
+          <h6>{% trans "Remaining" %}</h6>
           <h1 id="remainingTime"><div class="loader"></div></h1>
-          <h6>To submit</h6>
+          <h6>{% trans "To submit" %}</h6>
         </div>
         {% elif compete.isHistory %}
         <div class="pallete secondary">
-          <h6 class="text-secondary">Competition ended</h6>
+          <h6 class="text-secondary">{% trans "Competition" %} {% trans "ended" %}</h6>
           <h1 class="text-secondary">{{compete.endAt}}</h1>
-          <h6 class="text-secondary">{% if compete.resultDeclared %}Archived{% else %}Results Awaited{% endif %}</h6>
+          <h6 class="text-secondary">{% if compete.resultDeclared %}{% trans "Archived" %}{% else %}{% trans "Results Awaited" %}{% endif %}</h6>
         </div>
         {% elif compete.isUpcoming %}
         <div class="pallete accent">
-          <h6>Begins at</h6>
+          <h6>{% trans "Begins at" %}</h6>
           <h1>{{compete.startAt}}</h1>
-          <h6>Upcoming</h6>
+          <h6>{% trans "Upcoming" %}</h6>
         </div>
         {% endif %}
       </div>
@@ -95,22 +119,23 @@
         <br/>
         <center>
         <i class="w3-jumbo">lock</i>
-        <h3>Stay Tuned!</h3>
-        <h4>Full details will be shown<br/>once the competition begins.</h4>
+        <h3>{% trans "Stay Tuned!" %}</h3>
+        <h4>{% trans "Full details will be shown, once the competition begins." %}</h4>
+        <h5>In the meantime, go through our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}</a>.</h5>
         </center>
         <br/>
       {% else %}
     <div class="w3-row pallete" id="mainframe">
       <div class="w3-col w3-quarter">
         <div class="w3-bar-block w3-hide-small" id="sidebar">
-          <button class="w3-bar-item side-nav-tab" id="overview" data-id="overview" data-icon="toc">Overview</button>
+          <button class="w3-bar-item side-nav-tab" id="overview" data-id="overview" data-icon="toc">{% trans "Overview" %}</button>
           <button class="w3-bar-item side-nav-tab" id="task" data-id="task" data-icon="code">Task</button>
-          <button class="w3-bar-item side-nav-tab" id="guidelines" data-id="guidelines" data-icon="rule">Guidelines</button>
+          <button class="w3-bar-item side-nav-tab" id="guidelines" data-id="guidelines" data-icon="rule">{% trans "Guidelines" %}</button>
           {% if not isJudge and not isMod and not isManager %}
-          <button class="w3-bar-item side-nav-tab" id="submission" data-id="submission" data-icon="send">Submission</button>
+          <button class="w3-bar-item side-nav-tab" id="submission" data-id="submission" data-icon="send">{% trans "Submission" %}</button>
           {% endif %}
           {% if compete.isHistory %}
-          <button class="w3-bar-item side-nav-tab" id="result" data-id="result" data-icon="leaderboard">Results</button>
+          <button class="w3-bar-item side-nav-tab" id="result" data-id="result" data-icon="leaderboard">{% trans "Results" %}</button>
           {% endif %}
         </div>
         <div class="w3-center w3-hide-large w3-hide-medium">
@@ -144,7 +169,7 @@
     - All mentioned prizes & perks for rank holders are the sole resposibility of <a href="{{compete.creator.getLink}}" target="_blank">the manager</a>. 
     Under no circumstances {{APPNAME}} and its administrators must be held accountable for any discrepancies. {{APPNAME}} support team however, may try to help you in such cases, but only if you want their help.<br/>
     - If participating in a group, the rank perk/prize will be awarded to the group as a unit. No distribution of prize among the members of submission will be felicitated by {{APPNAME}}.<br/>
-    - The chance to level up profile by the mentioned XP amount is totally conditional. Actual XP amount most certnainly will vary for every participant, depending upon the points they earn.<br/>
+    - The chance to level up profile by the mentioned XP amount is totally conditional. Actual XP amount most certainly will vary for every participant, depending upon the points they earn.<br/>
     - The submissions made to this competition should follow our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>, and the guidelines mentioned above. In case of guideline conflict, the former shall prevail.<br/>
     - The decision of the jury will be considered final, and the jury, {{APPNAME}} and its administrators shall not be accountable for challenge by any participant under any circumstances regarding the declared results.<br/>
     - Results for this competition will only be declared & available here. Declaration of results could take time, after the competition ends. Participants are advised to not fall for any fake result announcements, and should check the result status on this page only.<br/>

@@ -1,3 +1,9 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
 {% for snap in snaps %}
 <div class="w3-row tertiary" style="width:100%;margin-bottom:30px" id='a{{snap.get_id}}'>
     <br/>

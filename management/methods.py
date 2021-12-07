@@ -15,7 +15,8 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
 
 def createCompetition(creator, title, tagline, shortdescription,
                       description, perks, startAt, endAt, eachTopicMaxPoint, topicIDs,
-                      judgeIDs, taskSummary, taskDetail, taskSample
+                      judgeIDs, taskSummary, taskDetail, taskSample, max_grouping,
+                      reg_fee, fee_link
                       ) -> Competition:
     compete = None
     try:
@@ -26,9 +27,13 @@ def createCompetition(creator, title, tagline, shortdescription,
             raise Exception(f"invalid perks {perks}")
         if startAt >= endAt:
             raise Exception(f"invalid timings")
-        if eachTopicMaxPoint < 0:
+        if eachTopicMaxPoint < 1:
             raise Exception(f"invalid eachTopicMaxPoint")
-        
+        if max_grouping < 1:
+            raise Exception(f"invalid max_grouping")
+        if reg_fee < 0:
+            raise Exception(f"invalid reg_fee")
+
         taskSummary = taskSummary.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
         taskDetail = taskDetail.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
         taskSample = taskSample.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
@@ -45,6 +50,9 @@ def createCompetition(creator, title, tagline, shortdescription,
             startAt=startAt,
             endAt=endAt,
             eachTopicMaxPoint=eachTopicMaxPoint,
+            max_grouping=max_grouping,
+            reg_fee=reg_fee,
+            fee_link=fee_link,
             resultDeclared=False,
         )
         topics = Topic.objects.filter(id__in=topicIDs)
@@ -73,6 +81,7 @@ def createCompetition(creator, title, tagline, shortdescription,
         Perk.objects.bulk_create(perkobjs)
         return compete
     except Exception as e:
+        print("here")
         errorLog(e)
         if compete:
             compete.delete()

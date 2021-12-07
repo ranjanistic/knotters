@@ -3,18 +3,17 @@
 {% load l10n %}
 {% load tz %}
 {% load cache %}
-{% load socialaccount %}
 {% load account %}
+{% load socialaccount %}
 {% load custom_tags %}
-{% comment %} {% load compress %} {% endcomment %}
+
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="{{LANGUAGE_CODE}}" class="">
     {% block head %}
     <head>
     
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      {% comment %}  <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% endcomment %}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
         <meta name="description" content="{% block meta_description %}{{DESCRIPTION}}{% endblock %}" />
@@ -49,7 +48,7 @@
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.png' %}" />
         <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.png' %}{% endblock %}" class="darkimg">
-        {% comment %} {% compress css %} {% endcomment %}
+
         <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -65,12 +64,35 @@
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
         <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
         {% block stylesheets %}{% endblock %}
-        {% comment %} {% endcompress %} {% endcomment %}
+
         <link rel="manifest" href="{{MANIFESTURL}}" />
         <title>{% block title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}</title>
     </head>
     {% endblock %}
     <body>
+        <noscript id="noscript" class="w3-row w3-padding negative">
+         <div
+           class="pallette primary negative-text w3-center w3-row"
+         >
+         <i class="w3-jumbo material-icons">code_off</i>
+         <h3 class="negative-text">Javascript Disabled</h3>
+           <div class="w3-row w3-center">
+            <h6 class="negative-text">Please enable javascript in your browser, allow us to use it, if
+            denied.<br />If your browser doesn't support javascript, try a
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://google.com/search?q=modern+browsers"
+              >modern browser</a
+              >.</h6>
+             <a href="https://www.google.com/search?q=enable+javascript" 
+                target="_blank"
+                rel="noreferrer">
+              <button class="positive">Enable JS</button>
+             </a>
+            </div>
+         </div>
+        </noscript>
         <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
@@ -98,7 +120,7 @@
                     {% block nav_noauth %}
                         {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">{% trans "People" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_extra_links %}{% endblock %}
                     {% endblock %}
                     {% block nav_extra_links %}{% endblock %}
@@ -130,11 +152,29 @@
         </div>
         {% endfor %}
         </div>
+        {% if competition %}
+        <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
+         <div class="w3-col w3-half pallete tertiary">
+          <div class="w3-col w3-half">
+           <h4 class="positive-text">{{competition.title}}</h4>
+           <h6 class="text-tertiary">{{competition.tagline}}</h6>
+          </div>
+          <div class="w3-col w3-half w3-padding">
+           <strong class="w3-right dead-text">{% trans "Begins at" %} {{competition.startAt}}</strong>
+           <strong class="w3-right dead-text">{% trans "Ends at" %} {{competition.endAt}}</strong>
+          </div>
+         </div>
+         <div class="w3-col w3-half w3-padding">
+          <a class="w3-right" href="{{competition.getLink}}" target="_blank"><button class="accent small" data-icon="open_in_new">{% trans "View" %}</button></a>
+          <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
+         </div>
+        </div>
+        {% endif %}
         {% endblock %}
         <div style="min-height: 50vh;">
             {% block content %}
             <div class="w3-row">
-                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:100vh"
+                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:80vh"
                     data-html="
                     <div class='w3-col w3-half w3-padding-large'>
                         <br/>
@@ -150,16 +190,24 @@
                     </div>"
                 >
                 </div>
-                <div class="w3-row browser-snap" data-type="browser-snapshots" id="browser-snapshots">
-                
+                <div class="w3-row browser-snap" data-type="browser-snapshots" id="browser-snapshots"></div>
+                <div class="w3-row snapshot-viewer" id="snap-view-1">
                 </div>
                 <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
                 </div>
+                <div class="w3-row snapshot-viewer" id="snap-view-2">
+                </div>
                 <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
+                </div>
+                <div class="w3-row snapshot-viewer" id="snap-view-3">
                 </div>
                 <div class="w3-row browser-view" data-type="new-profiles" id='newbie-profiles-view'>
                 </div>
+                <div class="w3-row snapshot-viewer" id="snap-view-4">
+                </div>
                 <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
+                </div>
+                <div class="w3-row snapshot-viewer" id="snap-view-5">
                 </div>
                 <div class="w3-row w3-padding w3-center dead-text">
                   <div class="material-icons w3-jumbo">{% trans done %}</div>
@@ -192,18 +240,19 @@
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">{% trans "Contact us" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
-                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Beta" %}</a><br/>
+                <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
+                <br/><br/>                
+                <button class="primary w3-right navigator-share-action" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}" data-icon="share">{% trans "Share" %}</button>
                 <br/><br/>
                 <a href="{{URLS.LANDING}}">
                 <div class="w3-row">
-                    <h2 class="text-secondary w3-right">Knotters Community</h2>
+                    <h2 class="text-secondary w3-right">{{APPNAME}} {% trans "Community" %}</h2>
                 </div>
                 <div class="w3-row">
                     <img alt="{{APPNAME}}" class="w3-right darkimg" src="{{ICON}}" width="120" height="120" />
                 </div>
-                
                 </a>
             </div>
             <div class="w3-row w3-center">
@@ -219,7 +268,7 @@
                     <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" height="18" /></button></a>
                 {% endblock %}
                 <br/><br/>
-                <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} 2021</a>
+                <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} 2021 Knotters</a>
                 </center>
             </div>
         </footer>
@@ -236,7 +285,7 @@
             <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
-        {% comment %} {% compress js %} {% endcomment %}
+
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
@@ -245,8 +294,13 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
+<<<<<<< HEAD
         <script src="{% static 'scripts/snapshots.js' %}"></script>
         {% comment %} {% endcompress %} {% endcomment %}
+=======
+        <script src="{% static 'scripts/snapshot.js' %}"></script>
+
+>>>>>>> ac27b8ca351c64e55ad1482d60984d7741176b49
         <script>
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
@@ -257,8 +311,9 @@
             const SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}};
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
-            const ICON = "{{ICON}}"
-            const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}"
+            const ICON = "{{ICON}}";
+            const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
+            const VAPID_KEY = "{{VAPID_KEY}}";
             if("{{request.GET.e}}") {
                 error("{{request.GET.e}}");
             } 
@@ -269,18 +324,17 @@
                 success("{{request.GET.s}}");
             }
             if("{{request.GET.report}}"==="1"){
-                reportFeedbackView()   
+                reportFeedbackView()
             }
             const URLS = Object.freeze({{URLS|or:'{}'|safe}})
         </script>
+
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
 
-        {% comment %} {% compress js %} {% endcomment %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
-        {% comment %} {% endcompress %} {% endcomment %}
 
         {% block messages %}
         <script>

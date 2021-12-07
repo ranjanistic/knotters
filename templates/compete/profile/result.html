@@ -1,27 +1,31 @@
 {% load cache %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
 
 <div class="w3-row w3-padding">
 {% if results.count %}
     {% if selfInvaildSubmission %}
         <center class="negative-text">
-        <i title="Private to you">lock</i><br/>
+        <i title="{% trans "Private to you" %}">lock</i><br/>
         <strong>
-        You submission was marked invalid in this competition. <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}">Learn more</a></strong>
+        {% trans "Your submission was marked invalid in this competition."%} <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}">{% trans "Learn more" %}</a></strong>
         </center>
     {% else %}
         <div class="w3-row w3-center">
         {% if request.user.is_authenticated and selfresult %}
             <a href="{{selfresult.getCertLink|params:request.user.getID}}">
-                <button class="positive" data-icon="open_in_new">Your certificate</button>
+                <button class="positive" data-icon="open_in_new">{% trans "Your certificate" %}</button>
             </a>
             {% if request.user.profile not in selfresult.xpclaimers.all %}
             <form method="POST" action="{{selfresult.getClaimXPLink}}">
                 {% csrf_token %}
-                <button type="submit" class="positive" data-icon="grade" title="Earned points will be incremented as XP to your profile.">Claim XP</button>
+                <button type="submit" class="positive" data-icon="grade" title="{% trans "Earned points will be incremented as XP to your profile." %}">{% trans "Claim XP" %}</button>
             </form>
             {% else %}
-            <button class="accent" onclick="message('You have claimed {{selfresult.points}} XP of your result!')" title="You have already claimed {{selfresult.points}} XP of your result" data-icon="add">{{selfresult.points}} XP earned</button>
+            <button class="accent" onclick="message('You have claimed {{selfresult.points}} XP of your result!')" title="You have already claimed {{selfresult.points}} XP of your result" data-icon="add">{{selfresult.points}} {% trans "XP earned" %}</button>
             {% endif %}
         {% endif %}
         </div>
@@ -29,18 +33,18 @@
     <div class="w3-row w3-padding w3-hide-small">
         <div class="w3-col w3-quarter">
             <div class="w3-col w3-half">
-            <h5>Rank</h5>
+            <h5>{% trans "Rank" %}</h5>
             </div>
             <div class="w3-col w3-half">
-            <h5>Score</h5>
+            <h5>{% trans "Score" %}</h5>
             </div>
         </div>
         <div class="w3-col w3-threequarter">
             <div class="w3-col w3-threequarter">
-            <h5>Members</h5>
+            <h5>{% trans "Members" %}</h5>
             </div>
             <div class="w3-col w3-quarter w3-center">
-            <h5>Submission</h5>
+            <h5>{% trans "Submission" %}</h5>
             </div>
         </div>
     </div>
@@ -55,7 +59,7 @@
             </button>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <button class="small primary result-points" id="result-points-{{selfresult.get_id}}" data-rank='{{selfresult.rank}}' data-resultID='{{selfresult.get_id}}'>{{selfresult.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
+            <button class="small primary result-points" id="result-points-{{selfresult.get_id}}" data-rank='{{selfresult.rank}}' data-resultID='{{selfresult.get_id}}'>{{selfresult.points}} <span class="w3-hide-large w3-hide-medium">{% trans "points" %}</span></button>
         </div>
     </div>
     <div class="w3-col m9">
@@ -77,7 +81,7 @@
     {% else %}
     href="{% url 'account_login' %}?next={{compete.getLink}}"
     {% endif %}
-    ><button class="w3-right small primary" data-icon="open_in_new">View</button>
+    ><button class="w3-right small primary" data-icon="open_in_new">{% trans "View" %}</button>
     </a>
     </div>
     </div>
@@ -99,7 +103,7 @@
             </button>
         </div>
         <div class="w3-col w3-half w3-padding-small">
-            <button class="small primary result-points" id="result-points-{{result.get_id}}" data-rank='{{result.rank}}' data-resultID='{{result.get_id}}'>{{result.points}} <span class="w3-hide-large w3-hide-medium">points</span></button>
+            <button class="small primary result-points" id="result-points-{{result.get_id}}" data-rank='{{result.rank}}' data-resultID='{{result.get_id}}'>{{result.points}} <span class="w3-hide-large w3-hide-medium">{% trans "points" %}</span></button>
         </div>
     </div>
     <div class="w3-col m9">
@@ -133,11 +137,11 @@
     <br/><br/>
     <center>
     <div class="w3-jumbo material-icons">lock</div>
-    <h1>No results disclosed.</h1>
-    <h4 class="dead-text">Results will be declared soon, here only.</h4>
+    <h1>{% trans "No results disclosed." %}</h1>
+    <h4 class="dead-text">{% trans "Results will be declared soon"%}, {% trans "here only." %}</h4>
     <input type="checkbox" id="notify-results" hidden />
     <label for="notify-results" hidden>
-        <span>Notify me when declared.</span>
+        <span>{% trans "Notify me when declared." %}</span>
     </label>
     </center>
 {% endif %}

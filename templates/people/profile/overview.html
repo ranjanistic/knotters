@@ -1,5 +1,8 @@
-{% load custom_tags %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
 {% load cache %}
+{% load custom_tags %}
 
 {% with profile=person.profile%}
 <div class="w3-row w3-padding-small">
@@ -14,12 +17,12 @@
                 </div>
             {% empty %}
                 {% if self %}
-                    <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">Add topics</button>
+                    <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">{% trans "Add topics" %}</button>
                 {% else %}
                     <br/>
                     <div class="dead-text">
                         <i class="w3-jumbo">hourglass_top</i>
-                        <h3>No topics yet.</h3>
+                        <h3>{% trans "No topics yet." %}</h3>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -28,7 +31,7 @@
             {% if self %}
             <div id="edit-profiletopics">
                 <br/>
-                <strong class="dead-text">Total 5 topics allowed</strong>
+                <strong class="dead-text">{% trans "Total 5 topics allowed" %}</strong>
                 <form action="{{URLS.TOPICSUPDATE}}" method="POST">
                     {% csrf_token %}
                     <input class="wide" placeholder="Search topics" id="topic-search-input" />
@@ -41,8 +44,8 @@
                     <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
                     <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
                     <br/>
-                    <button id="save-edit-profiletopics">Save</button>
-                    <button id="discard-edit-profiletopics">Cancel</button>
+                    <button id="save-edit-profiletopics">{% trans "Save" %}</button>
+                    <button id="discard-edit-profiletopics">{% trans "Cancel" %}</button>
                 </form>
             </div>
             {% endif %}
@@ -53,12 +56,12 @@
                     <br/><br/>
                     <center class="dead-text">
                         <i class="w3-jumbo">hourglass_top</i>
-                        <h2>Graph depends on topics.</h2>
-                        <h4>Add topics in your profile to enable graph.</h4>
+                        <h2>{% trans "Graph depends on topics." %}</h2>
+                        <h4>{% trans "Add topics in your profile to enable graph." %}</h4>
                     </center>
                     {% else %}
                     <img src="{{ICON}}" style="opacity: 0.1;" width="300" />
-                    <h3 class="dead-text">No topics for graph, yet.</h3>
+                    <h3 class="dead-text">{% trans "No topics for graph, yet." %}</h3>
                 {% endif %}
             {% else %}
             <canvas id="myChart" class="chart-view" data-type="radar" width="400" height="400"></canvas>

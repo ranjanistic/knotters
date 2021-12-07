@@ -12,7 +12,7 @@ from .utils import root, docroot, authroot, getRandomStr, getLegalName, getLegal
 from compete.methods import *
 
 
-@tag(Code.Test.VIEW)
+@tag(Code.Test.VIEW,Code.Test.REST)
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
@@ -134,7 +134,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponseBadRequest.status_code)
 
 
-@tag(Code.Test.VIEW)
+@tag(Code.Test.VIEW,Code.Test.REST)
 class TestViewsAuth(TestCase):
     @classmethod
     def setUpTestData(self) -> None:

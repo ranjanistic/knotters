@@ -1,3 +1,9 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
 <br/>
 <div class="w3-row w3-padding">
 {% for comp in upcoming %}
@@ -8,17 +14,17 @@
         <h6 class="text-tertiary">{{comp.tagline}}</h6>
         </div>
         <div class="w3-col w3-half w3-padding">
-        <strong class="w3-right dead-text">Begins at {{comp.startAt}}</strong>
-        <strong class="w3-right dead-text">Ends at {{comp.endAt}}</strong>
+        <strong class="w3-right dead-text">{% trans "Begins at" %} {{comp.startAt}}</strong>
+        <strong class="w3-right dead-text">{% trans "Ends at" %} {{comp.endAt}}</strong>
         </div>
     </div>
     <div class="w3-col w3-half w3-padding">
-        <a class="w3-right" href="{{comp.getLink}}"><button class="accent" data-icon="visibility">View</button></a>
+        <a class="w3-right" href="{{comp.getLink}}"><button class="accent" data-icon="visibility">{% trans "View" %}</button></a>
     </div>
 </div>
 <br/>
 
 {% empty %}
-<center><h3>No upcoming competitions.</h3></center>
+<center><h3>{% trans "No upcoming competitions." %}</h3></center>
 {% endfor %}
 </div>

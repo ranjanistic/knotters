@@ -61,6 +61,11 @@
                 Use association
             </label>
             <br/><strong>Association image should be different from your banner.</strong>
+            <br/>
+            <h6 class="text-tertiary">Registration fee for prize eligibility (₹)
+                <input class="primary create-compete-input" title="Registration fee for prize" required placeholder="Min 0" type="number" min="0" max="90000" value="0" name="compregfee" id="compregfee">
+                <br/>   <input class="primary" title="Fee payment link" placeholder="Payment link (if fee)" type="url" maxlength="1000" value="" name="compfeelink" id="compfeelink">
+            </h6>
         </div>
         </div>
         <div class="w3-col w3-third w3-center w3-padding">
@@ -124,9 +129,12 @@
                     <h6>The maximum points each judge can appoint to each submission for each topic
                         <input class="create-compete-input" title="Max points for each topic" required placeholder="Max 100" type="number" min="10" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint">
                     </h6>
+                    <h6>Maximum number of members allowed in one submission group
+                        <input class="create-compete-input" title="Max members in a group" required placeholder="Min 1" type="number" min="1" max="100" name="compmaxgrouping" id="compmaxgrouping">
+                    </h6>
                 </center>
                 <div class="w3-row" id="perkDetails">
-                    <center><h4>Rank perks</h4></center>
+                    <center><h4>Rank prizes</h4></center>
                     
                     <div class="w3-col w3-third w3-padding-small w3-center">
                         <div class="pallete accent">

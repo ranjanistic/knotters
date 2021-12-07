@@ -154,29 +154,32 @@ def generateCertificate(certname:str, certID, username, compname, abouttext, ass
         certimage.save(os.path.join(settings.MEDIA_ROOT, certpathimg))
     return certpath
 
+def prepareNameForCertificate(name, fname, lname):
+    if len(name) > 30:
+        name = fname.capitalize()
+        lastnames = lname.split(" ")
+        i = 1
+        for last in lastnames:
+            if str(last).strip():
+                if i == len(lastnames):
+                    if len(f"{name} {last}") < 31:
+                        name = f"{name} {last.capitalize()}"
+                    else:
+                        name = f"{name} {str(last[0]).upper()}."
+                else:
+                    name = f"{name} {str(last[0]).upper()}."
+            i+=1
+    if len(name) > 30:
+        name = name[:(30-len(name))]
+    return name
+
 def generateParticipantCertificate(profile:Profile,result:Result, certID: UUID) -> str:
     """
     Generates certificate for profile's result, and returns generated path.
     """
     try:
-        name = profile.getName()
-        if len(name) > 30:
-            name = profile.getFName().capitalize()
-            lastnames = profile.getLName().split(" ")
-            i = 1
-            for last in lastnames:
-                if str(last).strip():
-                    if i == len(lastnames):
-                        if len(f"{name} {last}") < 31:
-                            name = f"{name} {last.capitalize()}"
-                        else:
-                            name = f"{name} {str(last[0]).upper()}. "
-                    else:
-                        name = f"{name} {str(last[0]).upper()}. "
-                i+=1
-        if len(name) > 30:
-            name = name[:(30-len(name))]
-        
+        name = prepareNameForCertificate(profile.getName(),profile.getFName(),profile.getLName())
+
         comp = result.competition.title
         if len(comp) > 39:
             comp = comp[:(39-len(comp))]
@@ -199,23 +202,7 @@ def generateJudgeCertificate(judge:Profile,competition:Competition, certID: UUID
     Generates certificate for competition's judge, and returns generated path.
     """
     try:
-        name = judge.getName()
-        if len(name) > 30:
-            name = judge.getFName().capitalize()
-            lastnames = judge.getLName().split(" ")
-            i = 1
-            for last in lastnames:
-                if str(last).strip():
-                    if i == len(lastnames):
-                        if len(f"{name} {last}") < 31:
-                            name = f"{name} {last.capitalize()}"
-                        else:
-                            name = f"{name} {str(last[0]).upper()}. "
-                    else:
-                        name = f"{name} {str(last[0]).upper()}. "
-                i+=1
-        if len(name) > 30:
-            name = name[:(30-len(name))]
+        name = prepareNameForCertificate(judge.getName(),judge.getFName(),judge.getLName())
         
         comp = competition.title
         if len(comp) > 39:
@@ -240,24 +227,8 @@ def generateModCertificate(competition:Competition, certID: UUID) -> str:
     """
     try:
         mod = competition.moderator
-        name = mod.getName()
-        if len(name) > 30:
-            name = mod.getFName().capitalize()
-            lastnames = mod.getLName().split(" ")
-            i = 1
-            for last in lastnames:
-                if str(last).strip():
-                    if i == len(lastnames):
-                        if len(f"{name} {last}") < 31:
-                            name = f"{name} {last.capitalize()}"
-                        else:
-                            name = f"{name} {str(last[0]).upper()}. "
-                    else:
-                        name = f"{name} {str(last[0]).upper()}. "
-                i+=1
-        if len(name) > 30:
-            name = name[:(30-len(name))]
-        
+        name = prepareNameForCertificate(mod.getName(),mod.getFName(),mod.getLName())
+
         comp = competition.title
         if len(comp) > 39:
             comp = comp[:(39-len(comp))]
