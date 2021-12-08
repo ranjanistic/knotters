@@ -20,8 +20,8 @@
             <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
         {% endif %}
         
-        <div class="w3-row" style="padding:10px 16px">
-            <a href="{{snap.base_project.getLink}}" class="w3-left" title="{{snap.base_project.nickname}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="30" /> &nbsp;<b>{{snap.base_project.nickname}}</b></a>
+        <div class="w3-row w3-padding-small">
+            <a href="{{snap.base_project.getLink}}" class="w3-left" title="{{snap.base_project.nickname}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="40" /> &nbsp;<b>{{snap.base_project.name}}</b></a>
             <button class="w3-right small primary" data-icon="share">Share</button>
             <button class="w3-right small primary" data-snapid="{{snap.get_id}}" data-icon="star">Save</button>
             {% if snap.creator == request.user.profile %}
