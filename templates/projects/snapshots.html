@@ -22,13 +22,13 @@
         
         <div class="w3-row w3-padding">
             <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.nickname}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="40" /> &nbsp;<b>{{snap.base_project.name}}</b></a>
-            <span class="w3-padding">
+            <div class="w3-padding">
             <button class="w3-right small primary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}">Share</button>
             <button class="w3-right small primary" data-snapid="{{snap.get_id}}" data-icon="star">Save</button>
             {% if snap.creator == request.user.profile %}
             <button class="w3-right small"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i></button>   
             {% endif %}
-            </span>
+            </div>
         </div>
     {% comment %} </div> {% endcomment %}
 </div>
