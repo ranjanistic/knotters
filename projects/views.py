@@ -13,7 +13,7 @@ from django.conf import settings
 from main.bots import Github
 # from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
-from main.decorators import require_JSON_body, github_only, normal_profile_required
+from main.decorators import require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
@@ -404,6 +404,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
@@ -480,6 +481,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
