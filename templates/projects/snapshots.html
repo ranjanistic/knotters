@@ -5,21 +5,28 @@
 {% load custom_tags %}
 
 {% for snap in snaps %}
-<div class="w3-row tertiary" style="width:100%;margin-bottom:30px" id='a{{snap.get_id}}'>
-    <br/>
-    <div class="w3-row w3-padding-small">
-    <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
-    <strong>{{snap.text}}</strong><br/>
-    <span class='dead-text'>{{snap.created_on}}</span>
-    </div>
-    <br/>
-    {% if snap.image %}
-        <img src="{{snap.get_image}}" width="100%" style="margin:10px 0" class="snapshot-image preview-type-image" />
-    {% elif snap.video %}
-        <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
-    {% endif %}
-    {% if snap.creator == request.user.profile %}
-    <i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i>
-    {% endif %}
+<div class="w3-col w3-twothird s11 l8 tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='a{{snap.get_id}}'>
+    {% comment %} <div class="w3-col "> {% endcomment %}
+        <br/>
+        <div class="w3-row w3-padding">
+        <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
+        <strong>{{snap.text}}</strong><br/>
+        <span class='dead-text'>{{snap.created_on}}</span>
+        </div>
+        <br/>
+        {% if snap.image %}
+            <img src="{{snap.get_image}}" width="100%" style="margin:10px 0" class="snapshot-image preview-type-image" />
+        {% elif snap.video %}
+            <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
+        {% endif %}
+        {% if snap.creator == request.user.profile %}
+        <div class="w3-right-align" style="padding:10px 16px">
+            <a href="{{snap.creator.getLink}}" class="w3-left" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.creator.getDP}}" width="30" /> &nbsp;<b>Prjoect Name</b></a>
+            <button class="snapshot-btn"><i class="share-snapshot pointer " style="padding:4px 6px;" data-snapid="{{snap.get_id}}">share</i>Share</button>
+            <button class="snapshot-btn"><i class="share-snapshot pointer " style="padding:4px 6px;" data-snapid="{{snap.get_id}}">star</i>Save</button>
+            <button class="snapshot-btn"><i class="delete-snapshot pointer negative-text" style="padding:4px 6px;" data-snapid="{{snap.get_id}}">delete</i></button>
+        </div>
+        {% endif %}
+    {% comment %} </div> {% endcomment %}
 </div>
 {% endfor %}

@@ -190,24 +190,23 @@
                     </div>"
                 >
                 </div>
-                <div class="w3-row browser-snap" data-type="browser-snapshots" id="browser-snapshots"></div>
-                <div class="w3-row snapshot-viewer" id="snap-view-1">
+                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-1">
                 </div>
                 <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
                 </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-2">
+                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-2">
                 </div>
                 <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
                 </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-3">
+                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-3">
                 </div>
                 <div class="w3-row browser-view" data-type="new-profiles" id='newbie-profiles-view'>
                 </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-4">
+                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-4">
                 </div>
                 <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
                 </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-5">
+                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-5">
                 </div>
                 <div class="w3-row w3-padding w3-center dead-text">
                   <div class="material-icons w3-jumbo">{% trans done %}</div>
@@ -294,13 +293,8 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
-<<<<<<< HEAD
-        <script src="{% static 'scripts/snapshots.js' %}"></script>
-        {% comment %} {% endcompress %} {% endcomment %}
-=======
         <script src="{% static 'scripts/snapshot.js' %}"></script>
 
->>>>>>> ac27b8ca351c64e55ad1482d60984d7741176b49
         <script>
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';

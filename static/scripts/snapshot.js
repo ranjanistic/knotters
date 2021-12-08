@@ -9,7 +9,7 @@ const loadBrowseSnaps = async (excludeIDs=[]) => {
     });
     if(!snapdata) return false;
     if(snapdata.code === code.OK && snapdata.snapIDs.length) {
-       viewer.innerHTML += snapdata.html
+       setHtmlContent(viewer,viewer.innerHTML+snapdata.html)
        return snapdata.snapIDs
     }
    return false
@@ -22,12 +22,21 @@ const loadSnapshotScroller = async () => {
         let done = await loadBrowseSnaps();
         if(done) {
             viewedSnaps = viewedSnaps.concat(done)
-            window.addEventListener("scroll", async ()=>{
-                if(done && (document.body.scrollTop+document.body.offsetHeight+100) > viewers[0].offsetHeight){
+            let options = {
+                root: null,
+                rootMargins: "0px",
+                threshold: 0.5
+            };
+            const observer = new IntersectionObserver(async (entries)=>{
+                if (entries[0].isIntersecting && done) {
                     viewedSnaps = viewedSnaps.concat(done);    
                     done = await loadBrowseSnaps(viewedSnaps);
+                    console.log("Snapshot");
                 }
-            });
+            }, options);
+            observer.observe(document.querySelector(`#a${viewedSnaps[viewedSnaps.length-1].replaceAll('-','')}`));
         }
     }
 }
+
+
