@@ -311,7 +311,7 @@ def browser(request: WSGIRequest, type: str):
         if type == "project-snapshots":
             snaps = []
             excludeIDs = request.POST.get('excludeIDs', [])
-            limit = int(request.POST.get('limit', 10))
+            limit = int(request.POST.get('limit', 5))
             recommended = True
             if request.user.is_authenticated:
                 snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:limit]
