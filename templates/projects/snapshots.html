@@ -22,9 +22,9 @@
         {% if snap.creator == request.user.profile %}
         <div class="w3-right-align" style="padding:10px 16px">
             <a href="{{snap.creator.getLink}}" class="w3-left" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.creator.getDP}}" width="30" /> &nbsp;<b>Prjoect Name</b></a>
-            <button class="snapshot-btn"><i class="share-snapshot pointer " style="padding:4px 6px;" data-snapid="{{snap.get_id}}">share</i>Share</button>
-            <button class="snapshot-btn"><i class="share-snapshot pointer " style="padding:4px 6px;" data-snapid="{{snap.get_id}}">star</i>Save</button>
-            <button class="snapshot-btn"><i class="delete-snapshot pointer negative-text" style="padding:4px 6px;" data-snapid="{{snap.get_id}}">delete</i></button>
+            <button class="snapshot-btn"><i class="share-snapshot pointer " style="padding:1px 6px;" data-snapid="{{snap.get_id}}">share</i>Share</button>
+            <button class="snapshot-btn"><i class="share-snapshot pointer " style="padding:1px 6px;" data-snapid="{{snap.get_id}}">star</i>Save</button>
+            <button class="snapshot-btn"><i class="delete-snapshot pointer negative-text" style="padding:1px 6px;" data-snapid="{{snap.get_id}}">delete</i></button>
         </div>
         {% endif %}
     {% comment %} </div> {% endcomment %}

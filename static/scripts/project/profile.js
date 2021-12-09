@@ -155,6 +155,7 @@ if (selfProject) {
             selectedClass: "negative",
             deselectedClass: "primary negative-text",
             onSelect: (btn) => {
+                console.log("Tag Selected");
                 if (!getElement("removetagIDs").value.includes(btn.id))
                     getElement("removetagIDs").value += getElement(
                         "removetagIDs"

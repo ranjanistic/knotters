@@ -526,6 +526,7 @@ const initializeMultiSelector = ({
     onDeselect = async (candidate) => true,
     uniqueID = String(Math.random()),
 }) => {
+    // console.log("Input Edit Text ==> ",document.getElementsByClassName(candidateClass))
     const candidates = getElements(candidateClass);
     let selectedlist = [],
         deselectedList = candidates;
