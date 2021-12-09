@@ -560,6 +560,15 @@ class ReportedProject(models.Model):
     baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
     category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')
 
+class ReportedSnapshot(models.Model):
+    class Meta:
+        unique_together = ('profile', 'snapshot', 'category')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_reporter_profile')
+    snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='reported_snapshot')
+    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_snapshot_category')
+
 class ProjectAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'base_project')
