@@ -921,6 +921,12 @@ class Template():
     def invitation(self):
         return f'{self.INVITATION}.html'
 
+    SNAPSHOTS = 'snapshots'
+
+    @property
+    def snapshots(self):
+        return f'{self.SNAPSHOTS}.html'
+
     class Auth():
         DIRNAME = 'account'
 
