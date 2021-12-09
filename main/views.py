@@ -22,9 +22,8 @@ from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH, ISPRODUCTION
-from .methods import addMethodToAsyncQueue, errorLog, renderData, renderView, respondJson, verify_captcha
+from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, verify_captcha, renderString
 from .decorators import dev_only, github_only, require_JSON_body, decode_JSON
-from .methods import renderView, getDeepFilePaths
 from .mailers import featureRelease
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
 
@@ -322,7 +321,7 @@ def browser(request: WSGIRequest, type: str):
             else:
                 snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
             return respondJson(Code.OK,dict(
-                html=projectsRenderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
+                html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
                 snapIDs=list(snaps.values_list("id", flat=True)),
                 recommended=recommended
             )) 
