@@ -35,5 +35,6 @@ urlpatterns = [
     path(URL.Projects.BROWSE_SEARCH, browseSearch),
     path(URL.Projects.SNAPSHOTS, snapshots),
     path(URL.Projects.SNAPSHOT, snapshot),
-    path(URL.Projects.TOGGLE_ADMIRATION, toggleAdmiration)
+    path(URL.Projects.TOGGLE_ADMIRATION, toggleAdmiration),
+    path(URL.Projects.TOGGLE_SNAP_ADMIRATION, toggleSnapAdmiration)
 ]

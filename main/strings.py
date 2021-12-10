@@ -775,6 +775,7 @@ class URL():
         REPORT_PROJECT = 'reportproject/'        
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
+        TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -920,6 +921,12 @@ class Template():
     @property
     def invitation(self):
         return f'{self.INVITATION}.html'
+
+    SNAPSHOTS = 'snapshots'
+
+    @property
+    def snapshots(self):
+        return f'{self.SNAPSHOTS}.html'
 
     class Auth():
         DIRNAME = 'account'
