@@ -84,7 +84,7 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        sudo git pull --depth=20
+        sudo git pull --depth=100
     - name: Release new version
       run: |
         python genversion.py
