@@ -95,7 +95,7 @@
         </noscript>
         <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
-        <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
+        <nav style="width:100%;display:block;position:sticky;transition:top 0.3s;" class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             {% block nav_title %}
             <a
                 style="padding:8px"
@@ -284,7 +284,18 @@
             <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
-
+        <script>
+            var prevScrollpos = window.pageYOffset;
+            window.onscroll = ()=> {
+            var currentScrollPos = window.pageYOffset;
+            if (prevScrollpos > currentScrollPos) {
+                document.getElementById("navbar").style.top = "0";
+            } else {
+                document.getElementById("navbar").style.top = "-64px";
+            }
+            prevScrollpos = currentScrollPos;
+            }
+        </script>
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>

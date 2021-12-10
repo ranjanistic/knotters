@@ -6,6 +6,8 @@ const loadBrowseSnaps = async (excludeIDs=[]) => {
     }
     let snapdata = await postRequest(setUrlParams(URLS.BROWSER,"project-snapshots"), {
        excludeIDs
+    }, {
+        limit:10
     });
     if(!snapdata) return false;
     if(snapdata.code === code.OK && snapdata.snapIDs.length) {
