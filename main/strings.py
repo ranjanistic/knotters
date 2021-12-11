@@ -324,7 +324,7 @@ class URL():
     VERIFY_CAPTCHA = 'captcha/verify'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
-
+    SNAPSHOT = 'snapshot/<str:snapID>/'
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
         Returns root path of given sub application name.
