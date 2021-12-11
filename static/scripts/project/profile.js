@@ -1,3 +1,4 @@
+
 if (selfProject) {
     getElement("uploadprojectimage").onchange = (e) => {
         handleCropImageUpload(
@@ -10,6 +11,8 @@ if (selfProject) {
             }
         );
     };
+
+    
 
     const loadExistingTopics = () => {
         initializeMultiSelector({
@@ -148,7 +151,7 @@ if (selfProject) {
         }
     };
     loadExistingTopics();
-
+    
     const loadExistingTags = () => {
         initializeMultiSelector({
             candidateClass: "tag-existing",

@@ -21,7 +21,7 @@
         {% endif %}
         </div>
         <div class="w3-row w3-padding w3-border-top w3-margin-top">
-            <p class="w3-tooltip w3-right w3-hide-large" style="display: inline;margin:0;cursor:pointer;">
+            <span class="w3-tooltip w3-right w3-hide-large" style="display: inline;margin:0;cursor:pointer;">
                 <span class="w3-tag w3-text tooltiptext">
                     <button class="w3-right small primary" style="box-shadow:none;" data-snapid="{{snap.get_id}}" data-icon="star">Save</button>
                     <button class="w3-right small primary navigator-share-action" style="box-shadow:none;" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}">Share</button>
@@ -30,7 +30,7 @@
                     {% endif %}
                 </span>
                 <span class="material-icons">more_horiz</span>
-            </p>
+            </span>
             {% if snap.creator == request.user.profile %}
             <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i></button>   
             {% endif %}

@@ -14,16 +14,39 @@
     {% endif %}
     <div class="w3-row w3-padding w3-border-top w3-margin-top">
         <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.nickname}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="40" /> &nbsp;<b>{{snap.base_project.name}}</b></a>
-        <p class="w3-tooltip w3-right w3-hide-large" style="display: inline;margin:0;cursor:pointer;">
-            <span class="w3-tag w3-text tooltiptext">
-                <button class="w3-right small primary" style="box-shadow:none;" data-snapid="{{snap.get_id}}" data-icon="star">Save</button>
-                <button class="w3-right small primary navigator-share-action" style="box-shadow:none;" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}">Share</button>
-                {% if snap.creator == request.user.profile %}
-                <button class="w3-right small" style="box-shadow:none;"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i>Delete</button>   
-                {% endif %}
-            </span>
-            <span class="material-icons">more_horiz</span>
-        </p>
+        <span class="w3-tooltip w3-right" style="display: inline;margin:0;cursor:pointer;z-index:9999;">
+            <div id="id01" class="w3-modal" style="padding:0;z-index:9999;align-items:center">
+                <div class="snapshot-modal-content w3-hide-medium w3-hide-large">
+                    <div class="w3-container">
+                        <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span><br/>    
+                        <div class="w3-border-bottom w3-border-white align" style="justify-content:space-evenly;">
+                            <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}"></button>share</div>
+                            <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snap.get_id}}" data-icon="star"></button>save</div>
+                            {% if snap.creator == request.user.profile %}
+                            <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i></button>delete</div>
+                            {% endif %}
+                        </div>
+                        <p>Some button.</p>
+                        <p>Some button.</p>
+                        <p>Some button.</p>
+                        <p>Some button.</p>
+                    </div>
+                </div>
+                <div class="snapshot-modal-content-large w3-hide-small">
+                    <div class="w3-container">
+                        <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span><br/>
+                        <div class="align" style="flex-direction: column;align-items:flex-start">
+                            <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}"></button>&nbsp;&nbsp;share</div>
+                            <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snap.get_id}}" data-icon="star"></button>&nbsp;&nbsp;save</div>
+                            {% if snap.creator == request.user.profile %}
+                            <div class="align negative-text" style="margin:15px 0;"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i></button>&nbsp;&nbsp;delete</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span onclick="document.getElementById('id01').style.display='flex'" class="w3-right material-icons">more_horiz</span>
+        </span>
         {% if snap.creator == request.user.profile %}
         <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i></button>   
         {% endif %}

@@ -496,13 +496,11 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             return redirect(project.getLink())
 
         if removetagIDs:
-            removetagIDs = removetagIDs.strip(',').split(',')
             ProjectTag.objects.filter(
                 project=project, tag__id__in=removetagIDs).delete()
 
         currentcount = ProjectTag.objects.filter(project=project).count()
         if addtagIDs:
-            addtagIDs = addtagIDs.strip(',').split(',')
             if len(addtagIDs) < 1:
                 return redirect(project.getLink())
             if currentcount + len(addtagIDs) > 5:
@@ -515,7 +513,6 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
         if addtags:
             if currentcount < 5:
-                addtags = addtags.strip(',').split(',')
                 if (currentcount + len(addtags)) <= 5:
                     for addtag in addtags:
                         tag = addTagToDatabase(addtag)

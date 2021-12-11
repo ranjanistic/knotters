@@ -95,7 +95,7 @@
         </noscript>
         <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
-        <nav style="width:100%;display:block;position:sticky;transition:top 0.3s;" class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
+        <nav style="width:100%;display:block;position:sticky;transition:top 0.3s;z-index:999;" class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             {% block nav_title %}
             <a
                 style="padding:8px"
