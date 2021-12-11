@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 <div class="w3-row w3-padding-small">
-    <center><h4>{% blocktrans %}All participants must adhere to our <a onclick="miniWindow(`{{ URLS.Docs.TYPE|params:'competitionguidelines' }}`)" class="positive-text">competition guidelines</a>, and then the following.{% endblocktrans %}</h4></center>
+    <center><h4>{% blocktrans with DOCTYPE=URLS.Docs.TYPE|params:'competitionguidelines' %}All participants must adhere to our <a onclick="miniWindow(`{{ DOCTYPE }}`)">competition guidelines</a>, <br/>and then the following.{% endblocktrans %}</h4></center>
     <br/>
     <h4 class="dead-text">{% trans "What to submit" %}</h4>
     <p>{% trans "Your submission should be a valid URL with all the neccessary content required by the task of this competition." %} {% trans "Make sure that your provided URL is publicly available all the time after submission." %}

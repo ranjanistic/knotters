@@ -16,7 +16,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
-        <meta name="description" content="{% block meta_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta name="description" content="{% block meta_description %}{{DESCRIPTION|safe}}{% endblock %}" />
         
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="{{APPNAME}}" />
@@ -27,11 +27,11 @@
         <meta property="og:type" content="social" />
         <meta property="og:url" content="{{SITE}}{% block og_url %}{% endblock %}" />
         <meta property="og:title" content="{% block og_title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}" />
-        <meta property="og:description" content="{% block og_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta property="og:description" content="{% block og_description %}{{DESCRIPTION|safe}}{% endblock %}" />
         <meta property="og:site_name" content="{% block og_site_name %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}" />
 
         <meta name="twitter:title" content="{% block tw_title %}{{APPNAME}}{% endblock %}" />
-        <meta name="twitter:description" content="{% block tw_description %}{{DESCRIPTION}}{% endblock %}" />
+        <meta name="twitter:description" content="{% block tw_description %}{{DESCRIPTION|safe}}{% endblock %}" />
         <meta name="twitter:image" content="{% block tw_image_url_full %}{{SITE}}{% block tw_image_url %}/static/graphics/self/2500x1000/banner-bg.png{% endblock %}{% endblock %}" />
         <meta name="twitter:site" content="@knottersdotorg" />
         <meta name="twitter:creator" content="@ranjanistic" />
@@ -264,7 +264,9 @@
                     <a href="https://instagram.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Instagram</span><button aria-label="Instagram"  class="primary w3-animate-zoom"><img alt="Instagram" class="darkimg" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" height="18" /></button></a>
                     <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="18" /></button></a>
                     <a href="https://discord.gg/qZ3TdVHsma" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.png' %}" width="18" height="20" /></button></a>
-                    <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="20" height="18" /></button></a>
+                    <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="21" height="18" /></button></a>
+                    <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" target="_blank" rel="noreferrer"><span hidden>YouTube</span><button aria-label="YouTube"  class="primary w3-animate-zoom"><img alt="YouTube" src="{% static 'graphics/thirdparty/youtube.png' %}" width="26" height="18" /></button></a>
+                    
                 {% endblock %}
                 <br/><br/>
                 <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} 2021 Knotters</a>
@@ -309,7 +311,7 @@
         <script>
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{user.is_authenticated}}" == 'True';
-            const activeuser = authenticated && "{{user.profile.is_active}}" == 'True'
+            const activeuser = authenticated && "{{user.profile.is_active}}" == 'True';
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";

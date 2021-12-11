@@ -10,12 +10,7 @@ _`py` (python), `pip` (python package manager) - these cmdlets may vary dependin
 
 - Python 3.x, pip 21.x
 - MongoDB connection string
-
-Conditionally,
-
 - A running redis server
-
-This is required by a parallel qcluster. While the server can work without it, it depends on the cluster for particular resource eating tasks, like emailing, filesystem bulk I/O, asynchronous server requests, etc.
 
 ### Initial setup
 
@@ -74,7 +69,7 @@ py manage.py migrate
 
 ### Server
 
-If you have a redis server running, then a qcluster can be started in a separate process,
+A qcluster can be started in a separate process,
 which runs in parallel with the main server process.
 
 ```bash
