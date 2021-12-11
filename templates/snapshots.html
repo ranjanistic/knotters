@@ -1,5 +1,5 @@
 {% for snap in snaps %}
-<div class="w3-col w3-twothird s11 l8 tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='{{snap.get_id}}'>
+<div class="w3-col w3-twothird s11 l8 tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='snap-{{snap.get_id}}'>
     <br/>
     <div class="w3-row w3-padding-small">
     <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>

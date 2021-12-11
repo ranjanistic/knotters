@@ -548,8 +548,8 @@ button.small > i {
 }
 .snapshot-modal-content-large{
     width: max-content;
-    color: #fff;
-    background: #262626;
+    color: var(--primary-text);
+    background: var(--primary) !important;
     right: 0%;
     position: fixed;
     border-radius: 10px 0 0 10px;

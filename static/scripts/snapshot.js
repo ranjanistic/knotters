@@ -5,13 +5,11 @@ const loadBrowseSnaps = async (excludeIDs=[]) => {
        viewer = viewers[viewers.length - 1]
     }
     let snapdata = await postRequest(setUrlParams(URLS.BROWSER,"project-snapshots"), {
-       excludeIDs
-    }, {
-        limit:10
+        excludeIDs,
     });
     if(!snapdata) return false;
     if(snapdata.code === code.OK && snapdata.snapIDs.length) {
-       setHtmlContent(viewer,viewer.innerHTML+snapdata.html)
+        setHtmlContent(viewer, viewer.innerHTML + snapdata.html);
        return snapdata.snapIDs
     }
    return false
@@ -36,7 +34,7 @@ const loadSnapshotScroller = async () => {
                     console.log("Snapshot");
                 }
             }, options);
-            observer.observe(document.querySelector(`#a${viewedSnaps[viewedSnaps.length-1].replaceAll('-','')}`));
+            observer.observe(document.querySelector(`#snap-${viewedSnaps[viewedSnaps.length-1].replaceAll('-','')}`));
         }
     }
 }

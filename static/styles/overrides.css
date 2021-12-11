@@ -1,3 +1,6 @@
+.ajs-modal,.ajs-top, .ajs-dimmer , .alertify {
+    z-index: 99999 !important;
+}
 .ajs-header{
     border-radius: 12px 12px 0 0 !important;
     border-bottom: 0 !important;
@@ -62,6 +65,7 @@
     text-align: left !important;
     border-radius: 4px !important;
     box-shadow: 4px 4px 15px 5px #0f0f0f27;
+    z-index:999999 !important;
 }
 .ajs-message.ajs-error {
     background-color: var(--negative) !important;

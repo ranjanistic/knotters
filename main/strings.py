@@ -1305,6 +1305,12 @@ class Template():
         def browse_recommended(self):
             return f'{self.DIRNAME}/{self.BROWSE_RECOMMENDED}.html'
 
+        BROWSE_TRENDING = 'browse/trending'
+
+        @property
+        def browse_trending(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
+
         BROWSE_SEARCH = 'browse/search'
 
         @property

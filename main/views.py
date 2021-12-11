@@ -393,6 +393,7 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
+            else : return HttpResponse()
             projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
                             0:10], FreeProject.objects.filter(Q(suspended=False), authquery, query)[0:10]))
             if len(projects) < 1:
@@ -403,8 +404,17 @@ def browser(request: WSGIRequest, type: str):
             # TODO
             return HttpResponseBadRequest()
         elif type == "trending-projects":
-            # TODO
-            return HttpResponseBadRequest()
+            query = Q()
+            authquery = query
+            if request.user.is_authenticated:
+                query = Q(topics__in=request.user.profile.getTopics())
+                authquery = ~Q(creator=request.user.profile)
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
+                            0:10], FreeProject.objects.filter(Q(suspended=False), authquery, query)[0:10]))
+            if len(projects) < 1:
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
+                                0:10], FreeProject.objects.filter(Q(suspended=False), authquery)[0:10]))
+            return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == "trending-profiles":
             # TODO
             return HttpResponseBadRequest()
