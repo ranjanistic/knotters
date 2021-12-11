@@ -400,7 +400,7 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            else : return HttpResponse()
+            
             projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
                             0:10], FreeProject.objects.filter(Q(suspended=False), authquery, query)[0:10]))
             if len(projects) < 1:
