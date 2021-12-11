@@ -115,6 +115,12 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+def snapshot(request: WSGIRequest, snapID):
+    try:
+        snapshot = Snapshot.objects.get(id=snapID)
+        return renderView(request, Template.SNAPSHOTS, dict(snaps=[snapshot]))
+    except:
+        raise Http404()
 
 @csrf_exempt
 @github_only
