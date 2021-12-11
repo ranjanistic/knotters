@@ -324,7 +324,7 @@ class URL():
     VERIFY_CAPTCHA = 'captcha/verify'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
-    SNAPSHOT = 'snapshot/<str:snapID>/'
+    VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
         Returns root path of given sub application name.
@@ -927,6 +927,12 @@ class Template():
     @property
     def snapshots(self):
         return f'{self.SNAPSHOTS}.html'
+
+    VIEW_SNAPSHOT = 'view_snapshot'
+
+    @property
+    def view_snapshot(self):
+        return f'{self.VIEW_SNAPSHOT}.html'
 
     class Auth():
         DIRNAME = 'account'

@@ -1,0 +1,78 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
+{% block og_url %}{{URLS.LANDING}}{% endblock %}
+{% block og_title %}The Landing Page{% endblock %}
+{% block og_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
+{% block og_site_name %}The Landing Page{% endblock %}
+
+{% block tw_url %}{{URLS.LANDING}}{% endblock %}
+{% block tw_title %}The Landing Page{% endblock %}
+{% block tw_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
+
+{% block title %}{%endblock%}
+{% block content %}
+<div class="w3-row align">
+    <div class="w3-col w3-twothird s11 l8 tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='{{snapshot.get_id}}'>
+        <br/>
+        <div class="w3-row w3-padding-small">
+        <a href="{{snapshot.creator.getLink}}" title="{{snapshot.creator.getName}}"><img alt="{{snapshot.creator.getName}}" class="w3-right w3-circle" src="{{snapshot.creator.getDP}}" width="40" /></a>
+        <strong>{{snapshot.text}}</strong><br/>
+        <span class='dead-text'>{{snapshot.created_on}}</span>
+        </div>
+        <br/>
+        {% if snapshot.image %}
+            <img src="{{snapshot.get_image}}" width="100%" class="snapshot-image preview-type-image" />
+        {% elif snapshot.video %}
+            <video src="{{snapshot.get_image}}" width="100%" class="preview-type-video"></video>
+        {% endif %}
+        <div class="w3-row w3-padding w3-margin-top">
+            <a href="{{snapshot.base_project.getLink}}" title="{{snapshot.base_project.nickname}}"><img alt="{{snapshot.creator.getName}}" class=" w3-circle" src="{{snapshot.base_project.getDP}}" width="40" /> &nbsp;<b>{{snapshot.base_project.name}}</b></a>
+            <span class="w3-tooltip w3-right" style="display: inline;margin:0;cursor:pointer;z-index:9999;">
+                <div id="id01" class="w3-modal" style="padding:0;z-index:9999;align-items:center">
+                    <div class="snapshot-modal-content w3-hide-medium w3-hide-large">
+                        <div class="w3-container">
+                            <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span><br/>    
+                            <div class=" align" style="justify-content:space-evenly;">
+                                <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="{{snapshot.base_project.name}}" data-text="{{snapshot.text}}" data-url="{{snapshot.base_project.getLink}}"></button>share</div>
+                                <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snapshot.get_id}}" data-icon="star"></button>save</div>
+                                {% if snapshot.creator == request.user.profile %}
+                                <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snapshot.get_id}}">delete</i></button>delete</div>
+                                {% endif %}
+                            </div>
+                            <p>Some button.</p>
+                            <p>Some button.</p>
+                            <p>Some button.</p>
+                            <p>Some button.</p>
+                        </div>
+                    </div>
+                    <div class="snapshot-modal-content-large w3-hide-small">
+                        <div class="w3-container">
+                            <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span><br/>
+                            <div class="align" style="flex-direction: column;align-items:flex-start">
+                                <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="{{snapshot.base_project.name}}" data-text="{{snapshot.text}}" data-url="{{snapshot.base_project.getLink}}"></button>&nbsp;&nbsp;share</div>
+                                <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snapshot.get_id}}" data-icon="star"></button>&nbsp;&nbsp;save</div>
+                                {% if snapshot.creator == request.user.profile %}
+                                <div class="align negative-text" style="margin:15px 0;"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snapshot.get_id}}">delete</i></button>&nbsp;&nbsp;delete</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <span onclick="document.getElementById('id01').style.display='flex'" class="w3-right material-icons">more_horiz</span>
+            </span>
+            {% if snapshot.creator == request.user.profile %}
+            <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium"><i class="delete-snapshot pointer negative-text" data-snapid="{{snapshot.get_id}}">delete</i></button>   
+            {% endif %}
+            <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary navigator-share-action" data-icon="share" data-title="{{snapshot.base_project.name}}" data-text="{{snapshot.text}}" data-url="{{snapshot.base_project.getLink}}">Share</button>
+            <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary" data-snapid="{{snapshot.get_id}}" data-icon="star">Save</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

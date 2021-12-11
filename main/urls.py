@@ -50,7 +50,7 @@ urlpatterns = [
     path(URL.FAME_WALL, fameWall),
     path(URL.BROWSER, browser),
     path(URL.BASE_GITHUB_EVENTS, githubEventsListener),
-    path(URL.SNAPSHOT, snapshot),
+    path(URL.VIEW_SNAPSHOT, snapshot),
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),
