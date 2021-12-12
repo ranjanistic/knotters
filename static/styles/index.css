@@ -543,14 +543,16 @@ button.small > i {
     object-fit:scale-down;
 }
 .snapshot-btn{
+ height:inherit;
  border-radius:0 !important;
  box-shadow:none !important;
- padding: 2px 18px !important;
+ padding: 0px 16px !important;
  background-color: var(--tertiary) !important;
  box-shadow:none !important;
  font-size:14px;
 }
 .w3-modal{
+    padding-top: 0 !important;
     animation-name: fadeIn;
     animation-duration: 0.4s;
 }
@@ -561,27 +563,25 @@ button.small > i {
 .snapshot-modal-content{
     width: 100%;
     background:var(--tertiary);
-    bottom: 0%;
+    bottom: -100%;
     position: fixed;
     border-radius: 10px 10px 0 0;
-    animation:slideIn 0.4s;
+    transition: all 0.3s ease-out;
 }
-@keyframes slideIn {
-    from {bottom: -100%; opacity: 0}
-    to {bottom: 0%; opacity: 1}
+.bottom-snap{
+    bottom:0%;
 }
 
 .snapshot-modal-content-large{
-    width: max-content;
+    width: max-content; 
     background:var(--tertiary);
-    right: 0%;
+    right: -100%;
     position: fixed;
     border-radius: 10px 0 0 10px;
-    animation:slideRight 0.4s;
+    transition: all 0.3s ease-out;
 }
-@keyframes slideRight {
-    from {right: -100%; opacity: 0}
-    to {right: 0%; opacity: 1}
+.right-snap{
+    right:0%;
 }
 
 .snapshot-modal-btn{
