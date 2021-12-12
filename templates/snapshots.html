@@ -22,7 +22,7 @@
                             <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}"></button>Share</div>
                             <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snap.get_id}}" data-icon="thumb_up_off_alt"></button>Admire</div>
                             {% if snap.creator == request.user.profile %}
-                            <div class="align negative-text" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}"><span class="material-icons-outlined">report_problem</span></i></button>Report</div>
+                            <div class="align negative-text" style="flex-direction:column;margin:15px 0;" onclick="reportFeedbackView()"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}"><span class="material-icons-outlined">report_problem</span></i></button>Report</div>
                             {% endif %}
                         </div>
                     </div>
@@ -33,7 +33,7 @@
                             <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}"></button>&nbsp;&nbsp;Share</div>
                             <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snap.get_id}}" data-icon="thumb_up_off_alt"></button>&nbsp;&nbsp;Admire</div>
                             {% if snap.creator == request.user.profile %}
-                            <div class="align negative-text" style="margin:15px 0;"><button class="snapshot-modal-btn w3-border-red negative-text"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}"><span class="material-icons-outlined">report_problem</span></i></button>&nbsp;&nbsp;Report</div>
+                            <div class="align negative-text" style="margin:15px 0;" onclick="reportFeedbackView()"><button class="snapshot-modal-btn w3-border-red negative-text"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}"><span class="material-icons-outlined">report_problem</span></i></button>&nbsp;&nbsp;Report</div>
                             {% endif %}
                         </div>
                     </div>
@@ -42,7 +42,7 @@
             <span onclick="showSnapshotMoreBtn()" style="padding-top:4px;z-index:0;" id="more-btn-mob" class="w3-right material-icons">more_horiz</span>
         </span>
         {% if snap.creator == request.user.profile %}
-        <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">report_problem</i></button>   
+        <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium" onclick="reportFeedbackView()"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">report_problem</i></button>   
         {% endif %}
         <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}">Share</button>
         <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary" data-snapid="{{snap.get_id}}" data-icon="thumb_up_off_alt">Admire</button>
