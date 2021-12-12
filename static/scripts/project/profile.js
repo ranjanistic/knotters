@@ -331,7 +331,8 @@ if (selfProject) {
         }
     };
     loadExistingTags();
-
+}
+if(ismoderator || selfProject) {
     getElement("snap-file").onchange = (e) => {
         handleCropImageUpload(
             e,

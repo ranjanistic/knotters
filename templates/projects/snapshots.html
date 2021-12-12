@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 {% for snap in snaps %}
-<div class="w3-col  tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='a{{snap.get_id}}'>
+<div class="w3-col  tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='snap-{{snap.get_id}}'>
         <br/>
         <div class="w3-row w3-padding">
         <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
@@ -24,7 +24,7 @@
             <span class="w3-tooltip w3-right w3-hide-large" style="display: inline;margin:0;cursor:pointer;">
                 <span class="w3-tag w3-text tooltiptext">
                     <button class="w3-right small primary" style="box-shadow:none;" data-snapid="{{snap.get_id}}" data-icon="star">Save</button>
-                    <button class="w3-right small primary navigator-share-action" style="box-shadow:none;" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}">Share</button>
+                    <button class="w3-right small primary navigator-share-action" style="box-shadow:none;" data-icon="share" data-title="A snapshot of {{snapshot.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">Share</button>
                     {% if snap.creator == request.user.profile %}
                     <button class="w3-right small" style="box-shadow:none;"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i>Delete</button>   
                     {% endif %}
@@ -34,7 +34,7 @@
             {% if snap.creator == request.user.profile %}
             <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">delete</i></button>   
             {% endif %}
-            <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary navigator-share-action" data-icon="share" data-title="{{snap.base_project.name}}" data-text="{{snap.text}}" data-url="{{snap.base_project.getLink}}">Share</button>
+            <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary navigator-share-action" data-icon="share" data-title="A snapshot of {{snapshot.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">Share</button>
             <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary" data-snapid="{{snap.get_id}}" data-icon="star">Save</button>
         </div>
 </div>

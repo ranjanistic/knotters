@@ -298,6 +298,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
+                setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])
         )))

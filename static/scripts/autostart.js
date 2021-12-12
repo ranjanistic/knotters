@@ -7,12 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
         getElementsByTag('html')[0].classList.remove('w3-animate-left')
         getElementsByTag('html')[0].classList.add('w3-animate-right')
     }
-    // getSnap();
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadCarousels({});
+    loadSnapshotScroller();
     loadBrowsers();
-   loadSnapshotScroller();
 });
 
 const toAdmire = () => {
@@ -28,7 +27,6 @@ window.addEventListener("load", () => {
     });
     loadReporters();
     loadBrowserSwiper()
-    subLoader(false);
     window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
     serviceWorkerRegistration();
     if(localStorage.getItem(Key.futureMessage)){
@@ -42,6 +40,7 @@ window.addEventListener("load", () => {
         getElements('hide-beta').forEach((elem)=>hide(elem))
         
     }
+    subLoader(false);
 });
 
 addEventListener('keydown',(e)=>{

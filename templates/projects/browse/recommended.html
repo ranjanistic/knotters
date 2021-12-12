@@ -17,7 +17,7 @@
                     <div class="pallete w3-center no-pad">
                         <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                         <div class="w3-row w3-padding">
-                            <h5>{{ project.name }}</h5>
+                            <h5>{{ project.name|truncatechars:18 }}</h5>
                             <span>{{ project.description|truncatechars:45 }}</span>
                         </div>
                         <br/>
@@ -42,7 +42,7 @@
                     <div class="pallete pallete_i w3-center">
                         <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                         <div class="w3-row w3-padding">
-                            <h5>{{ project.name }}</h5>
+                            <h5>{{ project.name|truncatechars:18 }}</h5>
                             <span>{{ project.description|truncatechars:45 }}</span>
                         </div>
                         <br/>

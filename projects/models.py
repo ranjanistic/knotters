@@ -551,6 +551,9 @@ class Snapshot(models.Model):
     def get_video(self):
         return f"{settings.MEDIA_URL}{str(self.video)}"
 
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot()}{url.view_snapshot(snapID=self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
 class ReportedProject(models.Model):
     class Meta:
         unique_together = ('profile', 'baseproject', 'category')

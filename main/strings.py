@@ -325,6 +325,10 @@ class URL():
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
+
+    def view_snapshot(self, snapID):
+        return setPathParams(self.VIEW_SNAPSHOT, snapID)
+
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
         Returns root path of given sub application name.
