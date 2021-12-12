@@ -1,11 +1,11 @@
 {% load custom_tags %}
 {% for snap in snaps %}
-<div class="w3-col w3-twothird s11 l8 tertiary pallete-slab" style="border-radius:10px;margin: 20px; auto" id='snap-{{snap.get_id}}'>
+<div class="w3-col w3-twothird s11 l8 tertiary pallete-slab" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snap.get_id}}'>
         <br/>
-        <div class="w3-row w3-padding-small">
-        <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
+        <div class="w3-row w3-padding">
+        <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="50" /></a>
         <span class="text-tertiary text-medium">{{snap.text|truncatechars:950}}</span><br/>
-        <span class='dead-text'>{{snap.created_on}}</span>
+        <span class='dead-text'>{{snap.created_on}}</span><a href="{{snap.getLink}}" target="_blank"><i class="material-icons w3-small">open_in_new</i></a>
         </div>
         <br/>
         <div class="w3-row">
@@ -16,7 +16,7 @@
         {% endif %}
         </div>
         <br/>
-        <div class="w3-row">
+        <div class="w3-row w3-padding">
             <div class="w3-col l4 m4 s4">
                 <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.name}}">
                 <button class="primary">
@@ -36,7 +36,7 @@
                      class="primary"
                      {% endif %}
                         id="snap-admire-{{snap.get_id}}">
-                        <i class="text-big">thumb_up_off_alt</i><span class="w3-hide-small">Admire</span>
+                        <i class="material-icons text-big">volunteer_activism</i><span class="w3-hide-small">Admire</span>
                     </button>
                 </div>
                 <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">
@@ -47,6 +47,7 @@
                 </div>
             </div>
         </div>
+        <br/>
     </div>
 </div>
 <div id="id01" class="w3-modal">
@@ -54,7 +55,7 @@
         <div class="w3-row w3-center">
             <div class="w3-col l6 m6 s6">
                 {% if snap.creator == request.user.profile %}
-                    <button class="big-button" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
+                    <button class="big-button primary" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
                         Delete
                     </button>
@@ -62,7 +63,7 @@
                 </div>
                 <div class="w3-col l6 m6 s6">
                 {% if request.user.is_authenticated %}
-                    <button class="big-button" onclick="reportSnap('{{snap.get_id}}')">
+                    <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
                         Report
                     </button>
@@ -76,7 +77,7 @@
         <div class="w3-row w3-center">
             <div class="w3-col l6 m6 s6">
                 {% if snap.creator == request.user.profile %}
-                    <button class="big-button" onclick="">
+                    <button class="big-button primary" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
                         Delete
                     </button>
@@ -84,7 +85,7 @@
                 </div>
                 <div class="w3-col l6 m6 s6">
                 {% if request.user.is_authenticated %}
-                    <button class="big-button" onclick="">
+                    <button class="big-button primary" onclick="reportSnap('{{snapshot.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
                         Report
                     </button>
