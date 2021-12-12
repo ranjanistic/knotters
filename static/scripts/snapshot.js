@@ -5,7 +5,7 @@ const loadBrowseSnaps = async (excludeIDs=[]) => {
        viewer = viewers[viewers.length - 1]
     }
     let snapdata = await postRequest(setUrlParams(URLS.BROWSER,"project-snapshots"), {
-        excludeIDs,
+        excludeIDs
     });
     if(!snapdata) return false;
     if(snapdata.code === code.OK && snapdata.snapIDs.length) {
@@ -43,8 +43,8 @@ const showSnapshotMoreBtn = () => {
     document.getElementById('id01').style.display = 'flex';
 }
 
-window.onclick = (event) => {
+window.addEventListener('click', (event) => {
     if (event.target == document.getElementById('id01')) {
         document.getElementById('id01').style.display = "none";
     }
-}
+});

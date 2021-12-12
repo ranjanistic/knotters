@@ -5,27 +5,30 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row active">
+<div class="w3-row primary">
     <div class="w3-row" style="padding:16px 4px">
     <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">{% trans "More" %}</button></a>
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Latest Competitions" %}</h4>
     </div>
-    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
+    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser-wide">
         <div class="swiper-wrapper swiper-wrap">
             {% for competition in competitions %}
-                <div class="" style="width:70vw !important;">
-                    <a href="{{competition.getLink}}">
+                <div class="swiper-slide" style="width:10vw !important;">
+                    <a href="{{competition.getLink}}">                    
                         <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
-                        <div class="w3-col w3-half pallete tertiary">
-                        <div class="w3-col w3-half">
-                        <h4 class="positive-text">{{competition.title}}</h4>
-                        <h6 class="text-tertiary">{{competition.tagline}}</h6>
-                        </div>
-                        <div class="w3-col w3-half w3-padding">
-                        <strong class="w3-right dead-text">{% trans "Begins at" %} {{competition.startAt}}</strong>
-                        <strong class="w3-right dead-text">{% trans "Ends at" %} {{competition.endAt}}</strong>
-                        </div>
-                        </div>
+                            <div class="w3-col w3-half pallete tertiary">
+                                <div class="w3-col">
+                                    <h4 class="">{{competition.title}}</h4>
+                                    <h6 class="dead-text">{{competition.tagline}}</h6>
+                                </div>
+                                <div class="w3-col w3-half w3-padding">
+                                    <strong class="w3-right dead-text">{% trans "Begin at" %} {{competition.startAt}}</strong>
+                                    <strong class="w3-right dead-text">{% trans "End at" %} {{competition.endAt}}</strong>
+                                </div>
+                            </div>
+                            <div class="w3-col w3-half">
+                                haha
+                            </div>
                         </div>
                     </a>
                 </div>
@@ -44,22 +47,20 @@
             {% for competition in competitions %}
                 <div class="w3-col w3-padding">
                     <a href="{{competition.getLink}}">
-                        <div class="" style="width:88vw !important;">
-                    <a href="{{competition.getLink}}">
+                    <div class="" style="width:80vw !important;">
                         <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
-                        <div class="w3-col w3-half pallete tertiary">
-                        <div class="w3-col w3-half">
-                        <h4 class="positive-text">{{competition.title}}</h4>
-                        <h6 class="text-tertiary">{{competition.tagline}}</h6>
+                            <div class="w3-col w3-half pallete tertiary">
+                                <div class="w3-col ">
+                                    <h4 class="">{{competition.title}}</h4>
+                                    <h6 class="dead-text">{{competition.tagline}}</h6>
+                                </div>
+                                <div class="w3-col w3-half w3-padding">
+                                    <strong class="w3-right dead-text">{% trans "Begin at" %} {{competition.startAt}}</strong>
+                                    <strong class="w3-right dead-text">{% trans "End at" %} {{competition.endAt}}</strong>
+                                </div>
+                            </div>
                         </div>
-                        <div class="w3-col w3-half w3-padding">
-                        <strong class="w3-right dead-text">{% trans "Begins at" %} {{competition.startAt}}</strong>
-                        <strong class="w3-right dead-text">{% trans "Ends at" %} {{competition.endAt}}</strong>
-                        </div>
-                        </div>
-                        </div>
-                    </a>
-                </div>
+                    </div>
                     </a>
                 </div>
             {% empty %}
