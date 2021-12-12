@@ -553,7 +553,9 @@ button.small > i {
     bottom: 0%;
     position: fixed;
     border-radius: 10px 10px 0 0;
-    animation:slideIn 0.4s;
+    /* animation:slideIn 0.4s; */
+    /* opacity: 0; */
+    transition: bottom 0.3s ease-out;
 }
 @keyframes slideIn {
     from {bottom: -100%; opacity: 0}
