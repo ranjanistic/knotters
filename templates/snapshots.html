@@ -26,7 +26,10 @@
                 </a>
             </div>
             <div class="w3-col l8 m8 s8 w3-center">
-                <div class="w3-col l4 m4 s4" onclick="admireSnap('{{snap.get_id}}')">
+                {% if not request.user.is_authenticated %}
+                <a href="{{URLS.Auth.LOGIN}}?next={{snap.getLink}}">
+                {% endif %}
+                <div class="w3-col l4 m4 s4" {% if request.user.is_authenticated %}onclick="admireSnap('{{snap.get_id}}')"{% endif %}>
                     <button
                     {% if request.user.profile in snap.admirers.all %}
                      data-admires="1"
@@ -39,6 +42,9 @@
                         <i class="material-icons text-big">volunteer_activism</i><span class="w3-hide-small">Admire</span>
                     </button>
                 </div>
+                {% if not request.user.is_authenticated %}
+                </a>
+                {% endif %}
                 <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">
                     <button class="accent" id="snap-share-{{snap.get_id}}"><i class="text-big">share</i><span class="w3-hide-small">Share</span></button>
                 </div>
@@ -85,7 +91,7 @@
                 </div>
                 <div class="w3-col l6 m6 s6">
                 {% if request.user.is_authenticated %}
-                    <button class="big-button primary" onclick="reportSnap('{{snapshot.get_id}}')">
+                    <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
                         Report
                     </button>

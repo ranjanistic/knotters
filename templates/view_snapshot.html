@@ -56,7 +56,10 @@
                 </a>
             </div>
             <div class="w3-col l8 m8 s8 w3-center">
-                <div class="w3-col l4 m4 s4" onclick="admireSnap('{{snapshot.get_id}}')">
+                {% if not request.user.is_authenticated %}
+                <a href="{{URLS.Auth.LOGIN}}?next={{snapshot.getLink}}">
+                {% endif %}
+                <div class="w3-col l4 m4 s4" {% if request.user.is_authenticated %}onclick="admireSnap('{{snapshot.get_id}}')"{% endif %}>
                     <button
                     {% if request.user.profile in snapshot.admirers.all %}
                      data-admires="1"
@@ -69,6 +72,9 @@
                         <i class="text-big">volunteer_activism</i><span class="w3-hide-small">Admire</span>
                     </button>
                 </div>
+                {% if not request.user.is_authenticated %}
+                </a>
+                {% endif %}
                 <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snapshot.base_project.name}} project!" data-text="{{snapshot.text}}" data-url="{{snapshot.getLink}}">
                     <button class="accent" id="snap-share-{{snapshot.get_id}}"><i class="text-big">share</i><span class="w3-hide-small">Share</span></button>
                 </div>
