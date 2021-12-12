@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEditors();
     loadCarousels({});
     loadBrowsers();
-   // loadSnapshotScroller();
+   loadSnapshotScroller();
 });
 
 const toAdmire = () => {

@@ -431,6 +431,9 @@ def browser(request: WSGIRequest, type: str):
         elif type == "highest-month-xp-profiles":
             # TODO
             return HttpResponseBadRequest()
+        elif type == "latest-competitions":
+            competitions=Competition.objects.filter().order_by("-startAt")[:10]
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         else:
             return HttpResponseBadRequest()
     except Exception as e:

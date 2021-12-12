@@ -39,4 +39,12 @@ const loadSnapshotScroller = async () => {
     }
 }
 
+const showSnapshotMoreBtn = () => {
+    document.getElementById('id01').style.display = 'flex';
+}
 
+window.onclick = (event) => {
+    if (event.target == document.getElementById('id01')) {
+        document.getElementById('id01').style.display = "none";
+    }
+}

@@ -1143,6 +1143,11 @@ class Template():
         def browse_recent_winners(self):
             return f'{self.DIRNAME}/{self.BROWSE_RECENT_WINNERS}.html'
 
+        BROWSE_LATEST_COMP = "browse/latest-competitions"
+        @property
+        def browse_latest_comp(self):
+            return f'{self.DIRNAME}/{self.BROWSE_LATEST_COMP}.html'
+
     compete = Compete()
 
     class People():

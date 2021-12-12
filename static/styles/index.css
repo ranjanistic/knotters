@@ -538,32 +538,54 @@ button.small > i {
  box-shadow:none !important;
  font-size:14px;
 }
+.w3-modal{
+    animation-name: fadeIn;
+    animation-duration: 0.4s;
+}
+@keyframes fadeIn {
+    from {opacity: 0} 
+    to {opacity: 1}
+}
 .snapshot-modal-content{
     width: 100%;
-    color: #fff;
-    background: #262626;
+    background:var(--tertiary);
     bottom: 0%;
     position: fixed;
     border-radius: 10px 10px 0 0;
+    animation:slideIn 0.4s;
 }
+@keyframes slideIn {
+    from {bottom: -100%; opacity: 0}
+    to {bottom: 0%; opacity: 1}
+}
+
 .snapshot-modal-content-large{
     width: max-content;
-    color: var(--primary-text);
-    background: var(--primary) !important;
+    background:var(--tertiary);
     right: 0%;
     position: fixed;
     border-radius: 10px 0 0 10px;
+    animation:slideRight 0.4s;
 }
+@keyframes slideRight {
+    from {right: -100%; opacity: 0}
+    to {right: 0%; opacity: 1}
+}
+
 .snapshot-modal-btn{
     width:40px;
     height:40px;
     border-radius:50% !important;
     box-shadow:none !important;
     padding: 0px !important;
-    background-color: #262626 !important;
-    border: 1px solid #FFF;
+    background-color: var(--primary) !important;
+    border: 1px solid var(--primary-text);
+    color: var(--primary-text);
     box-shadow:none !important;
     font-size:14px;
+}
+.snapshot-viewer{
+    flex-direction:column !important;
 }
 .tooltiptext {
     display: flex;
@@ -582,6 +604,14 @@ button.small > i {
 }
 .w3-tooltip:hover .w3-text {
     display: flex !important;
+}
+.latest-competition{
+    width:70vw !important;
+}
+@media (max-width:800px) {
+    .latest-competition{
+        width:95vw;
+    }
 }
 @media (max-width:599px) {
     .snapshot-btn{

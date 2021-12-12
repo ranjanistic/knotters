@@ -169,6 +169,7 @@
           <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
          </div>
         </div>
+        <br/>
         {% endif %}
         {% endblock %}
         <div style="min-height: 50vh;">
@@ -190,28 +191,45 @@
                     </div>"
                 >
                 </div>
-                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-1">
-                </div>
-                <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
-                </div>
-                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-2">
-                </div>
-                <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
-                </div>
-                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-3">
-                </div>
-                <div class="w3-row browser-view" data-type="trending-projects" id='newbie-profiles-view'>
-                </div>
-                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-4">
-                </div>
-                <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
-                </div>
-                <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-5">
-                </div>
-                <div class="w3-row w3-padding w3-center dead-text">
-                  <div class="material-icons w3-jumbo">{% trans done %}</div>
-                  <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
-                  <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
+                <div class="w3-row">
+                    <div class="w3-row align snapshot-viewer" id="snap-view-1">
+                    </div>
+                    <br/>
+                    <div class="w3-row browser-view" data-type="latest-competitions" id='latest-competitions-view'>
+                    </div>
+                    <br/>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-2">
+                    </div>
+                    <br/>
+                    <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
+                    </div>
+                    <br/>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                    </div>
+                    <br/>
+                    <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
+                    </div>
+                    <br/>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-4">
+                    </div>
+                    <br/>
+                    <div class="w3-row browser-view" data-type="trending-projects" id='trending-projects-view'>
+                    </div>
+                    <br/>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-5">
+                    </div>
+                    <br/>
+                    <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
+                    </div>
+                    <br/>
+                    <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-6">
+                    </div>
+                    <br/>
+                    <div class="w3-row w3-padding w3-center dead-text">
+                    <div class="material-icons w3-jumbo">done</div>
+                    <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
+                    <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
+                    </div>
                 </div>
             </div>
             {% endblock %}
