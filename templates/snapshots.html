@@ -1,11 +1,6 @@
-{% load i18n %}
-{% load l10n %}
-{% load tz %}
-{% load cache %}
 {% load custom_tags %}
-
 {% for snap in snaps %}
-<div class="w3-col tertiary pallete-slab" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snap.get_id}}'>
+<div class="w3-col w3-twothird s11 l8 tertiary pallete-slab" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snap.get_id}}'>
         <br/>
         <div class="w3-row w3-padding">
         <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="50" /></a>
@@ -21,14 +16,22 @@
         {% endif %}
         </div>
         <br/>
-        <div class="w3-row">
+        <div class="w3-row w3-padding">
+            <div class="w3-col l4 m4 s4">
+                <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.name}}">
+                <button class="primary">
+                <img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="30" />
+                <span class="w3-hide-small">&nbsp;{{snap.base_project.name}}</span>
+                </button>
+                </a>
+            </div>
             <div class="w3-col l8 m8 s8 w3-center">
                 {% if not request.user.is_authenticated %}
                 <a href="{{URLS.Auth.LOGIN}}?next={{snap.getLink}}">
                 {% endif %}
                 <div class="w3-col l4 m4 s4" {% if request.user.is_authenticated %}onclick="admireSnap('{{snap.get_id}}')"{% endif %}>
                     <button
-                    {% if request.user.is_authenticated and request.user.profile in snap.admirers.all %}
+                    {% if request.user.profile in snap.admirers.all %}
                      data-admires="1"
                      class="positive" 
                      {% else %}
@@ -36,21 +39,21 @@
                      class="primary"
                      {% endif %}
                         id="snap-admire-{{snap.get_id}}">
-                        <i class="material-icons text-big">volunteer_activism</i>
+                        <i class="material-icons text-big">volunteer_activism</i><span class="w3-hide-small">Admire</span>
                     </button>
                 </div>
                 {% if not request.user.is_authenticated %}
                 </a>
                 {% endif %}
                 <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">
-                    <button class="accent" id="snap-share-{{snap.get_id}}"><i class="material-icons text-big">share</i></button>
+                    <button class="accent" id="snap-share-{{snap.get_id}}"><i class="text-big">share</i><span class="w3-hide-small">Share</span></button>
                 </div>
-                <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn()">
-                    <button class="tertiary" id="snap-more-{{snap.get_id}}"><i class="material-icons text-big">more_horiz</i></button>
+                <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn()" data-target="#id01">
+                    <button class="tertiary" id="snap-more-{{snap.get_id}}"><i class="text-big">more_horiz</i><span class="w3-hide-small">More</span></button>
                 </div>
             </div>
         </div>
-            <br/>
+        <br/>
     </div>
 </div>
 <div id="id01" class="w3-modal align" style="display: none">
@@ -98,4 +101,5 @@
         </div>
     </div>
 </div>
+
 {% endfor %}

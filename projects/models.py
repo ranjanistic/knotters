@@ -530,6 +530,7 @@ class Snapshot(models.Model):
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
     modified_on = models.DateTimeField(auto_now=False, default=timezone.now)
     admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='SnapshotAdmirer', default=[], related_name='snapshot_admirer')
+    suspended = models.BooleanField(default=False)
 
     @property
     def get_id(self):
@@ -550,6 +551,13 @@ class Snapshot(models.Model):
     @property
     def get_video(self):
         return f"{settings.MEDIA_URL}{str(self.video)}"
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot()}{url.view_snapshot(snapID=self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    def is_admirer(self, profile):
+        return SnapshotAdmirer.objects.filter(snapshot=self, profile=profile).exists()
+
 
 class ReportedProject(models.Model):
     class Meta:

@@ -294,6 +294,7 @@ class URL():
     STRINGS = 'strings.js'
     SWITCH_LANG = 'i18n/'
     OFFLINE = 'off408'
+    BRANDING = 'branding/'
     ROOT = '/'
     AUTH = f"{AUTH}/"
     DOCS = f'{DOCS}/'
@@ -324,6 +325,10 @@ class URL():
     VERIFY_CAPTCHA = 'captcha/verify'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
+    VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
+
+    def view_snapshot(self, snapID):
+        return setPathParams(self.VIEW_SNAPSHOT, snapID)
 
     def getRoot(self, fromApp: str = '', withslash=True) -> str:
         """
@@ -773,8 +778,10 @@ class URL():
 
         REPORT_CATEGORIES = 'report/categories'
         REPORT_PROJECT = 'reportproject/'        
+        REPORT_SNAPSHOT = 'reportsnapshot/'        
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
+        TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -897,6 +904,12 @@ class Template():
     def offline(self):
         return f'{self.OFFLINE}.html'
 
+    BRANDING = 'branding'
+
+    @property
+    def branding(self):
+        return f'{self.BRANDING}.html'
+
     FORWARD = 'forward'
 
     @property
@@ -920,6 +933,18 @@ class Template():
     @property
     def invitation(self):
         return f'{self.INVITATION}.html'
+
+    SNAPSHOTS = 'snapshots'
+
+    @property
+    def snapshots(self):
+        return f'{self.SNAPSHOTS}.html'
+
+    VIEW_SNAPSHOT = 'view_snapshot'
+
+    @property
+    def view_snapshot(self):
+        return f'{self.VIEW_SNAPSHOT}.html'
 
     class Auth():
         DIRNAME = 'account'
@@ -1130,6 +1155,11 @@ class Template():
         def browse_recent_winners(self):
             return f'{self.DIRNAME}/{self.BROWSE_RECENT_WINNERS}.html'
 
+        BROWSE_LATEST_COMP = "browse/latest-competitions"
+        @property
+        def browse_latest_comp(self):
+            return f'{self.DIRNAME}/{self.BROWSE_LATEST_COMP}.html'
+
     compete = Compete()
 
     class People():
@@ -1297,6 +1327,12 @@ class Template():
         @property
         def browse_recommended(self):
             return f'{self.DIRNAME}/{self.BROWSE_RECOMMENDED}.html'
+
+        BROWSE_TRENDING = 'browse/trending'
+
+        @property
+        def browse_trending(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
 
         BROWSE_SEARCH = 'browse/search'
 

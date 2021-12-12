@@ -73,9 +73,9 @@
          {% csrf_token %}
          <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
         {% if isAdmirer %}
-         <button type="submit" class="w3-right small tertiary negative-text" data-icon="remove_circle">{% trans "Disadmire" %}</button>
+         <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
         {% else %}
-          <button type="submit" class="w3-right small positive" data-icon="add_circle">{% trans "Admire" %}</button>
+          <button type="submit" class="w3-right small positive" data-icon="volunteer_activism">{% trans "Admire" %}</button>
         {% endif %}
         </form>
         </div>

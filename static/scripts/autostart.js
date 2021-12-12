@@ -9,9 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadGlobalEventListeners();
     loadGlobalEditors();
+    loadSnapshotScroller();
     loadCarousels({});
     loadBrowsers();
-   // loadSnapshotScroller();
 });
 
 window.addEventListener("load", () => {
@@ -22,7 +22,6 @@ window.addEventListener("load", () => {
     });
     loadReporters();
     loadBrowserSwiper()
-    subLoader(false);
     window.history.pushState('object or string', document.title, window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/,''))
     serviceWorkerRegistration();
     if(localStorage.getItem(Key.futureMessage)){
@@ -36,6 +35,7 @@ window.addEventListener("load", () => {
         getElements('hide-beta').forEach((elem)=>hide(elem))
         
     }
+    subLoader(false);
 });
 
 addEventListener('keydown',(e)=>{

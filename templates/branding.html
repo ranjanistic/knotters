@@ -1,0 +1,62 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load static %}
+{% load cache %}
+{% load tz %}
+{% load custom_tags %}
+
+{% block meta_description %}Learn when and how you can use our logo and other brand elements in your work.{% endblock %}
+{% block og_url %}{{URLS.LANDING}}{% endblock %}
+{% block og_title %}Branding{% endblock %}
+{% block og_description %}Learn when and how you can use our logo and other brand elements in your work.{% endblock %}
+{% block og_site_name %}Branding{% endblock %}
+
+{% block tw_url %}{{URLS.LANDING}}{% endblock %}
+{% block tw_title %}Branding{% endblock %}
+{% block tw_description %}Learn when and how you can use our logo and other brand elements in your work.{% endblock %}
+    
+{% block title %}Branding{% endblock %}
+
+{% block nav_text %}
+Brand Resources
+{% endblock %}
+
+{% block content %}
+<br/>
+<div class="w3-row">
+    <div class="w3-row w3-center w3-padding">
+        <img src="{{ICON}}" width="100" class="darkimg" />
+        <h1>{{APPNAME}} Brand Resources</h1>
+        <h3>Learn when and how you can use our logo and our other brand elements in your work.</h3>
+    </div>
+    <div class="w3-row w3-center w3-padding">
+        <a href="https://knotters.org/publicraw/zip/knotters-branding-assets-copyright-2021.zip" download><button class="big-button positive" data-icon="file_download">Download {{APPNAME}} assets</button></a>
+    </div>
+    <div class="w3-row w3-padding">
+      <strong class="text-medium">
+        <br/><br/> + The zipped file contains our assets in form of banner and logo.
+        <br/><br/> + You may use our logo and banner in your work, but please do not use the logo or banner to endorse your own work which has no relation with {{APPNAME}}.
+        <br/><br/> + Both the logo and banner are trademarks of knotters.org.
+        <br/><br/> + Only the links pointing to knotters.org are allowed to be used with the logo and banner wherever you utilize them.
+        <br/><br/> + DO NOT make any changes or modifications to the assets (For example - DO NOT change the color to adjust to your environment).
+        <br/><br/> + We have provided our logo and banner with and without a background, therefore, you should not feel the need to change the background color of the logo or banner.
+        <br/><br/> + DO NOT distort, resize, reshape, strech, shrink, crop or otherwise alter the logo or banner in anyway which changes its original form.
+        <br/><br/> + The assets contain most of the sizes that you may need to use in your work.
+        <br/><br/> + Always use the original size of the logo and banner though whichever size you use from the assets.
+        <br/><br/> + We have provided both light and dark variants of the logo and banner, you may use any of the variants without modification.
+        <br/><br/> + Wherever you plan to use our assets, please make sure that the asset is used in a way that is consistent with the brand, and should always infer that it is a brand element of knotters.org only.
+        <br/><br/> + Your use of the assets should not give the impression that you associate/partner with knotters.org, unless permitted explicitly by knotters.org.
+      </strong>
+    </div>
+    <br/>
+    <div class="w3-row w3-center w3-padding">
+        <h3>In short, use our assets only to show the presence of {{APPNAME}}.</h3>
+    </div>
+    <div class="w3-row w3-center w3-padding">
+        <a href="https://knotters.org/publicraw/zip/knotters-branding-assets-copyright-2021.zip" download><button class="big-button positive" data-icon="file_download">Download {{APPNAME}} assets</button></a>
+    </div>
+</div>
+<br/>
+<br/>
+{% endblock %}

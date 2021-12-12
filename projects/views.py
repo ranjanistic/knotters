@@ -13,7 +13,7 @@ from django.conf import settings
 from main.bots import Github
 # from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
-from main.decorators import require_JSON_body, github_only, normal_profile_required
+from main.decorators import require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
@@ -238,8 +238,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
 @require_JSON_body
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = BaseProject.objects.get(id=projID, creator=request.user.profile,
-                                          creator__is_active=True, creator__suspended=False, creator__is_zombie=False)
+        project = BaseProject.objects.get(id=projID, creator=request.user.profile, trashed=False, suspended=False)
         project.getProject().moveToTrash()
         if request.headers.get('X-KNOT-REQ-SCRIPT', False):
             return respondJson(Code.OK)
@@ -292,7 +291,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = BaseProject.objects.get(
-            id=projectID, creator=request.user.profile)
+            id=projectID, creator=request.user.profile, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projectID} project not found')
@@ -334,7 +333,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 @require_JSON_body
 def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
-        project = Project.objects.get(id=projID, creator=request.user.profile)
+        project = Project.objects.get(id=projID, creator=request.user.profile, trashed=False, suspended=False)
         if action == Action.ADD:
             name = str(request.POST['filename']).strip()
             file = base64ToFile(request.POST['filedata'])
@@ -404,13 +403,14 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID, creator=request.user.profile, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
@@ -480,6 +480,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
@@ -487,7 +488,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtags = request.POST.get('addtags', None)
         removetagIDs = request.POST.get('removetagIDs', None)
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID, creator=request.user.profile, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
@@ -495,13 +496,11 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             return redirect(project.getLink())
 
         if removetagIDs:
-            removetagIDs = removetagIDs.strip(',').split(',')
             ProjectTag.objects.filter(
                 project=project, tag__id__in=removetagIDs).delete()
 
         currentcount = ProjectTag.objects.filter(project=project).count()
         if addtagIDs:
-            addtagIDs = addtagIDs.strip(',').split(',')
             if len(addtagIDs) < 1:
                 return redirect(project.getLink())
             if currentcount + len(addtagIDs) > 5:
@@ -514,7 +513,6 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
         if addtags:
             if currentcount < 5:
-                addtags = addtags.strip(',').split(',')
                 if (currentcount + len(addtags)) <= 5:
                     for addtag in addtags:
                         tag = addTagToDatabase(addtag)
@@ -551,7 +549,7 @@ def linkFreeGithubRepo(request):
     try:
         repoID = int(request.POST['repoID'])
         project = FreeProject.objects.get(
-            id=request.POST['projectID'], creator=request.user.profile)
+            id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         if FreeRepository.objects.filter(free_project=project).exists():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         ghuser = Github.get_user(request.user.profile.ghID)
@@ -571,7 +569,7 @@ def linkFreeGithubRepo(request):
 def unlinkFreeGithubRepo(request: WSGIRequest):
     try:
         project = FreeProject.objects.get(
-            id=request.POST['projectID'], creator=request.user.profile)
+            id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         freerepo = FreeRepository.objects.get(free_project=project)
         ghuser = Github.get_user(request.user.profile.ghID)
         repo = Github.get_repo(int(freerepo.repo_id))
@@ -585,16 +583,16 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
 
 
 @normal_profile_required
-@require_JSON_body
+@decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def toggleAdmiration(request: WSGIRequest, projID: UUID):
     project = None
     try:
         project = BaseProject.objects.get(
-            id=projID)
-        if request.POST['admire'] == "true":
+            id=projID, trashed=False, suspended=False)
+        if ["true", True].__contains__(request.POST['admire']):
             project.admirers.add(request.user.profile)
-        elif request.POST['admire'] == "false":
+        elif ["false", False].__contains__(request.POST['admire']):
             project.admirers.remove(request.user.profile)
         return redirect(project.getProject().getLink())
     except Exception as e:
@@ -603,10 +601,25 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
         raise Http404()
 
+@normal_profile_required
+@require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID):
+    snap = None
+    try:
+        snap = Snapshot.objects.get(
+            id=snapID, base_project__trashed=False, base_project__suspended=False)
+        if ["true", True].__contains__(request.POST['admire']):
+            snap.admirers.add(request.user.profile)
+        elif ["false", False].__contains__(request.POST['admire']):
+            snap.admirers.remove(request.user.profile)
+        return respondJson(Code.OK)
+    except:
+        return respondJson(Code.NO)
 
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = Project.objects.get(id=projID, status=Code.APPROVED)
+        project = Project.objects.get(id=projID, status=Code.APPROVED, trashed=False, suspended=False)
         data = cache.get(f"project_livedata_json_{projID}")
         if not data:
             contributors, languages = getProjectLiveData(project)
@@ -662,7 +675,7 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
         owner_ghID = request.POST["repository"]["owner"]["login"]
         hookID = request.POST['hookID']
         try:
-            project = Project.objects.get(id=projID, reponame=reponame)
+            project = Project.objects.get(id=projID, reponame=reponame, trashed=False, suspended=False)
             if owner_ghID != PUBNAME:
                 return HttpResponseBadRequest('Invalid owner')
         except Exception as e:
@@ -775,12 +788,13 @@ def licenseSearch(request: WSGIRequest):
 
 
 def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10):
+    # In Project Snapshot view
     try:
         if end < 1:
             end = 10
 
         snaps = Snapshot.objects.filter(
-            base_project__id=projID).order_by('-created_on')[start:end]
+            base_project__id=projID, base_project__trashed=False, base_project__suspended=False).order_by('-created_on')[start:end]
         if request.method == 'GET':
             return rendererstr(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps))
         if request.method == 'POST':
@@ -808,7 +822,7 @@ def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10)
 def snapshot(request: WSGIRequest, projID: UUID, action: str):
     try:
         baseproject = BaseProject.objects.get(
-            id=projID)
+            id=projID, trashed=False, suspended=False)
         if action == Action.CREATE:
             if request.user.profile != baseproject.creator:
                 if request.user.profile != baseproject.getProject().moderator:
@@ -872,9 +886,24 @@ def reportProject(request: WSGIRequest):
     try:
         report = request.POST['report']
         projectID = request.POST['projectID']
-        baseproject = BaseProject.objects.get(id=projectID)
+        baseproject = BaseProject.objects.get(id=projectID, trashed=False, suspended=False)
         category = ReportCategory.objects.get(id=report)
         request.user.profile.reportProject(baseproject, category)
+        return respondJson(Code.OK)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO)
+
+@normal_profile_required
+@require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+def reportSnapshot(request: WSGIRequest):
+    try:
+        report = request.POST['report']
+        snapID = request.POST['snapID']
+        snapshot = Snapshot.objects.get(id=snapID, suspended=False)
+        category = ReportCategory.objects.get(id=report)
+        request.user.profile.reportSnapshot(snapshot, category)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)

@@ -95,7 +95,7 @@
         </noscript>
         <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
-        <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top">
+        <nav style="width:100%;display:block;position:sticky;transition:top 0.3s;z-index:999;" class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             {% block nav_title %}
             <a
                 style="padding:8px"
@@ -169,6 +169,7 @@
           <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
          </div>
         </div>
+        <br/>
         {% endif %}
         {% endblock %}
         <div style="min-height: 50vh;">
@@ -190,28 +191,34 @@
                     </div>"
                 >
                 </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-1">
-                </div>
-                <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
-                </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-2">
-                </div>
-                <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
-                </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-3">
-                </div>
-                <div class="w3-row browser-view" data-type="new-profiles" id='newbie-profiles-view'>
-                </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-4">
-                </div>
-                <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
-                </div>
-                <div class="w3-row snapshot-viewer" id="snap-view-5">
-                </div>
-                <div class="w3-row w3-padding w3-center dead-text">
-                  <div class="material-icons w3-jumbo">done</div>
-                  <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
-                  <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
+                <div class="w3-row">
+                    <div class="w3-row align snapshot-viewer" id="snap-view-1">
+                    </div>
+                    <div class="w3-row browser-view" data-type="latest-competitions" id='latest-competitions-view'>
+                    </div>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-2">
+                    </div>
+                    <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
+                    </div>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                    </div>
+                    <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
+                    </div>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-4">
+                    </div>
+                    <div class="w3-row browser-view" data-type="trending-projects" id='trending-projects-view'>
+                    </div>
+                    <div class="w3-row align snapshot-viewer" id="snap-view-5">
+                    </div>
+                    <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
+                    </div>
+                    <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-6">
+                    </div>
+                    <div class="w3-row w3-padding w3-center dead-text">
+                        <div class="material-icons w3-jumbo">done</div>
+                        <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
+                        <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
+                    </div>
                 </div>
             </div>
             {% endblock %}
@@ -228,7 +235,7 @@
                     {% endfor %}
                     </select>
                 </form>
-                <a href="/press" class="text-secondary w3-animate-left" hidden>For the press</a><br/>
+                <a href="/press" class="text-secondary w3-animate-left" hidden>{% trans "For the press" %}</a><br/>
                 <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">{% trans "Report" %} &amp; {% trans "Feedback" %}</span><br/>
                 <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
@@ -240,6 +247,7 @@
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
                 <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
+                <a href="{{URLS.BRANDING}}" class="text-secondary w3-animate-left">{% trans "Brand Resources" %}</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>                
@@ -286,7 +294,18 @@
             <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
-
+        <script>
+            var prevScrollpos = window.pageYOffset;
+            window.onscroll = ()=> {
+            var currentScrollPos = window.pageYOffset;
+            if (prevScrollpos > currentScrollPos) {
+                document.getElementById("navbar").style.top = "0";
+            } else {
+                document.getElementById("navbar").style.top = "-64px";
+            }
+            prevScrollpos = currentScrollPos;
+            }
+        </script>
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
@@ -295,6 +314,7 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
+        <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
 
         <script>

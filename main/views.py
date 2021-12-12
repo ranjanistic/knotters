@@ -22,9 +22,8 @@ from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH, ISPRODUCTION
-from .methods import addMethodToAsyncQueue, errorLog, renderData, renderView, respondJson, verify_captcha
+from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, verify_captcha, renderString
 from .decorators import dev_only, github_only, require_JSON_body, decode_JSON
-from .methods import renderView, getDeepFilePaths
 from .mailers import featureRelease
 from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
 
@@ -33,6 +32,10 @@ from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, 
 @cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
+
+@require_GET
+def branding(request: WSGIRequest) -> HttpResponse:
+    return renderView(request, Template.BRANDING)
 
 
 @require_GET
@@ -116,6 +119,13 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+def snapshot(request: WSGIRequest, snapID):
+    try:
+        snapshot = Snapshot.objects.get(id=snapID)
+        return renderView(request, Template.VIEW_SNAPSHOT, dict(snapshot=snapshot))
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 @csrf_exempt
 @github_only
@@ -292,6 +302,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
+                setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
+                setPathParams(f"/{URL.BRANDING}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])
         )))
@@ -311,17 +323,19 @@ def browser(request: WSGIRequest, type: str):
         if type == "project-snapshots":
             snaps = []
             excludeIDs = request.POST.get('excludeIDs', [])
+            limit = int(request.POST.get('limit', 5))
             recommended = True
             if request.user.is_authenticated:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:10]
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:limit]
                 recommended = False
                 if len(snaps) < 1:
-                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:10]
+                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
                     recommended = True
             else:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:10]
+                return respondJson(Code.OK,dict(snapIDs=[]))
+                # snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
             return respondJson(Code.OK,dict(
-                html=projectsRenderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
+                html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
                 snapIDs=list(snaps.values_list("id", flat=True)),
                 recommended=recommended
             )) 
@@ -393,6 +407,7 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
+            
             projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
                             0:10], FreeProject.objects.filter(Q(suspended=False), authquery, query)[0:10]))
             if len(projects) < 1:
@@ -403,8 +418,17 @@ def browser(request: WSGIRequest, type: str):
             # TODO
             return HttpResponseBadRequest()
         elif type == "trending-projects":
-            # TODO
-            return HttpResponseBadRequest()
+            query = Q()
+            authquery = query
+            if request.user.is_authenticated:
+                query = Q(topics__in=request.user.profile.getTopics())
+                authquery = ~Q(creator=request.user.profile)
+            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
+                            0:10], FreeProject.objects.filter(Q(suspended=False), authquery, query)[0:10]))
+            if len(projects) < 1:
+                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
+                                0:10], FreeProject.objects.filter(Q(suspended=False), authquery)[0:10]))
+            return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == "trending-profiles":
             # TODO
             return HttpResponseBadRequest()
@@ -414,6 +438,9 @@ def browser(request: WSGIRequest, type: str):
         elif type == "highest-month-xp-profiles":
             # TODO
             return HttpResponseBadRequest()
+        elif type == "latest-competitions":
+            competitions=Competition.objects.filter().order_by("-startAt")[:10]
+            return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         else:
             return HttpResponseBadRequest()
     except Exception as e:

@@ -1,0 +1,75 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% if count %}
+<div class="w3-row primary">
+    <div class="w3-row" style="padding:16px 4px">
+    <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">{% trans "More" %}</button></a>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Latest Competitions" %}</h4>
+    </div>
+    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser-wide">
+        <div class="swiper-wrapper swiper-wrap">
+            {% for competition in competitions %}
+                <div class="swiper-slide" style="width:10vw !important;">
+                    <a href="{{competition.getLink}}">                    
+                        <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
+                            <div class="w3-col w3-half pallete tertiary">
+                                <div class="w3-col">
+                                    <h4 class="">{{competition.title}}</h4>
+                                    <h6 class="dead-text">{{competition.tagline}}</h6>
+                                </div>
+                                <div class="w3-col w3-half w3-padding">
+                                    <strong class="w3-right dead-text">{% trans "Begin at" %} {{competition.startAt}}</strong>
+                                    <strong class="w3-right dead-text">{% trans "End at" %} {{competition.endAt}}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>{% trans "No results yet." %}</h3>
+            </center>
+            </div>
+			{% endfor %} 
+        </div>
+    </div>
+    <div class="w3-hide-large w3-row">
+        <div class="swiper-wrap_i">
+            {% for competition in competitions %}
+                <div class="w3-col w3-padding">
+                    <a href="{{competition.getLink}}">
+                    <div class="" style="width:80vw !important;">
+                        <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
+                            <div class="w3-col w3-half pallete tertiary">
+                                <div class="w3-col ">
+                                    <h4 class="">{{competition.title}}</h4>
+                                    <h6 class="dead-text">{{competition.tagline}}</h6>
+                                </div>
+                                <div class="w3-col w3-half w3-padding">
+                                    <strong class="w3-right dead-text">{% trans "Begin at" %} {{competition.startAt}}</strong>
+                                    <strong class="w3-right dead-text">{% trans "End at" %} {{competition.endAt}}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </a>
+                </div>
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>{% trans "No results yet." %}</h3>
+            </center>
+            </div>
+			{% endfor %} 
+        </div>
+    </div>
+    <br/>
+</div>
+{% endif %}

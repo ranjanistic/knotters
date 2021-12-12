@@ -60,6 +60,7 @@
             </div>
             {% endif %}
         </div>
+        
         <br/>
         {% if project.has_linked_repo %}
         <div class="w3-row w3-padding-small">
@@ -76,9 +77,9 @@
          {% csrf_token %}
          <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
         {% if isAdmirer %}
-         <button type="submit" class="w3-right small tertiary negative-text" data-icon="remove_circle">{% trans "Disadmire" %}</button>
+         <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
         {% else %}
-          <button type="submit" class="w3-right small positive" data-icon="add_circle">{% trans "Admire" %}</button>
+          <button type="submit" class="w3-right small positive" data-icon="volunteer_activism">{% trans "Admire" %}</button>
         {% endif %}
         </form>
         </div>
@@ -283,10 +284,9 @@
 
 {% block in_scripts %}
 <script>
-
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
-
+const ismoderator = false;
 {% if not project.suspended %}
 if (selfProject){
     getElement('add_assets').onclick=()=>{
@@ -383,7 +383,7 @@ getElement('save-edit-snapshot').onclick=(e)=>{
 if(!selfProject){
     if(authenticated){
     getElement('report-project').onclick=async()=>{
-        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+        const data = await getRequest(URLS.REPORT_CATEGORIES)
         if(!data) return
         if(data.code!==code.OK){
             return error(data.error)

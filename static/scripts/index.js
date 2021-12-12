@@ -106,62 +106,6 @@ const loadErrorHTML = (
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
-const loadBrowserSwiper = (_) => {
-    loadCarousels({
-        container: "swiper-browser",
-        freeMode: true,
-        breakpoints: {
-            1024: {
-                slidesPerView: 4,
-                spaceBetween: 15,
-            },
-            768: {
-                slidesPerView: 3,
-                spaceBetween: 10,
-            },
-            920: {
-                slidesPerView: 4,
-                spaceBetween: 10,
-            },
-            640: {
-                slidesPerView: 4,
-                spaceBetween: 10,
-            },
-        },
-    });
-};
-
-const loadBrowsers = () => {
-    Promise.all(
-        getElements("browser-view").map(async (view) => {
-            let method = async () => {
-                setHtmlContent(view, loaderHTML(`${view.id}-loader`));
-                const data = await getRequest(
-                    setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
-                );
-                if (!data) {
-                    setHtmlContent(
-                        view,
-                        loadErrorHTML(`${view.id}-load-retry`)
-                    );
-                    getElement(`${view.id}-load-retry`).onclick = (_) =>
-                        method();
-                    return;
-                }
-                setHtmlContent(view, data, loadBrowserSwiper);
-                loadBrowserSwiper();
-            };
-            await method();
-        })
-    )
-        .then(() => {
-            loadBrowserSwiper();
-        })
-        .catch((e) => {
-            console.warn(e);
-        });
-};
-
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;
     loadGlobalEventListeners();
@@ -194,9 +138,7 @@ const loadGlobalEventListeners = () => {
             view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message(
-                    STRING.re_introduction
-                );
+                message(STRING.re_introduction);
                 hide(view);
             });
         }
@@ -290,11 +232,15 @@ const loadGlobalEventListeners = () => {
         });
     });
 
-    getElements("navigator-share-action").forEach((share)=>{
-        share.addEventListener("click", ()=>{
-            shareLinkAction(share.getAttribute("data-title"), share.getAttribute("data-text"), share.getAttribute("data-url"));
-        })
-    })
+    getElements("navigator-share-action").forEach((share) => {
+        share.addEventListener("click", () => {
+            shareLinkAction(
+                share.getAttribute("data-title"),
+                share.getAttribute("data-text"),
+                share.getAttribute("data-url")
+            );
+        });
+    });
 };
 
 const copyToClipboard = (text) => {
@@ -503,6 +449,7 @@ const initializeMultiSelector = ({
     onDeselect = async (candidate) => true,
     uniqueID = String(Math.random()),
 }) => {
+    // console.log("Input Edit Text ==> ",document.getElementsByClassName(candidateClass).value)
     const candidates = getElements(candidateClass);
     let selectedlist = [],
         deselectedList = candidates;
@@ -559,9 +506,9 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
         const data = await response.text();
         subLoader(false);
         try {
-            return JSON.parse(data)
+            return JSON.parse(data);
         } catch {
-            return data
+            return data;
         }
     } catch (e) {
         error("Something went wrong, try that again?");
@@ -584,8 +531,13 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
         });
         const data = await response.text();
         subLoader(false);
-        return data;
+        try {
+            return JSON.parse(data);
+        } catch {
+            return data;
+        }
     } catch (e) {
+        error("Something went wrong, try that again?");
         subLoader(false);
         return false;
     }
@@ -692,7 +644,6 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        console.debug(e);
                         error(
                             `Something went wrong. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );
@@ -1330,4 +1281,53 @@ const betaAlert = () => {
                 cancel: "Stay in Knotters Beta",
             });
     }
+};
+
+const violationReportDialog = async (
+    reportURL = "",
+    reportTargetData = {},
+    reportTarget = "",
+    reportCatURL = ""
+) => {
+    const data = await getRequest(reportCatURL || URLS.REPORT_CATEGORIES);
+    if (!data) return false;
+    if (data.code !== code.OK) {
+        error(data.error);
+        return false;
+    }
+    let options = "";
+    data.reports.forEach((rep) => {
+        options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
+    });
+    alertify
+        .confirm(
+            `<h3>Report ${reportTarget}</h3>`,
+            `
+                <select class="text-medium wide" id='violation-report-category' required>
+                ${options}
+                </select>
+            `,
+            () => {},
+            async () => {
+                loader();
+                message("Reporting...");
+                const data = await postRequest(reportURL, {
+                    report: getElement("violation-report-category").value,
+                    ...reportTargetData,
+                });
+                loader(false);
+                if (!data) return;
+                if (data.code === code.OK) {
+                    return message(
+                        `Reported${" " + reportTarget}. We\'ll investigate.`
+                    );
+                }
+                error(data.error);
+            }
+        )
+        .set("labels", {
+            cancel: `${Icon("report")} Report ${reportTarget}`,
+            ok: "No, go back ",
+        })
+        .set("closable", false);
 };

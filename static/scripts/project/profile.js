@@ -1,3 +1,4 @@
+
 if (selfProject) {
     getElement("uploadprojectimage").onchange = (e) => {
         handleCropImageUpload(
@@ -10,6 +11,8 @@ if (selfProject) {
             }
         );
     };
+
+    
 
     const loadExistingTopics = () => {
         initializeMultiSelector({
@@ -148,13 +151,14 @@ if (selfProject) {
         }
     };
     loadExistingTopics();
-
+    
     const loadExistingTags = () => {
         initializeMultiSelector({
             candidateClass: "tag-existing",
             selectedClass: "negative",
             deselectedClass: "primary negative-text",
             onSelect: (btn) => {
+                console.log("Tag Selected");
                 if (!getElement("removetagIDs").value.includes(btn.id))
                     getElement("removetagIDs").value += getElement(
                         "removetagIDs"
@@ -410,7 +414,7 @@ const loadLiveData = async () => {
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {
-        const data = JSON.parse(await getRequest(setUrlParams(URLS.LIVEDATA, projectID)))
+        const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID))
         if (!data || data.code !== code.OK) {
             setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
             setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
