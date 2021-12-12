@@ -1,52 +1,98 @@
-
+{% load custom_tags %}
 {% for snap in snaps %}
-<div class="w3-col w3-twothird s11 l8 tertiary" style="border-radius:10px;margin: 40px; auto" id='snap-{{snap.get_id}}'>
-    <br/>
-    <div class="w3-row w3-padding-small">
-    <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
-    <strong>{{snap.text}}</strong><br/>
-    <span class='dead-text'>{{snap.created_on}}</span>
-    </div>
-    <br/>
-    {% if snap.image %}
-        <img src="{{snap.get_image}}" width="100%" class="snapshot-image preview-type-image" />
-    {% elif snap.video %}
-        <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
-    {% endif %}
-    <div class="w3-row w3-padding w3-margin-top">
-        <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.name}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="40" /> &nbsp;<b>{{snap.base_project.name}}</b></a>
-        <span class="w3-tooltip w3-right" style="display: inline;margin:0;cursor:pointer;">
-            <div id="id01" class="w3-modal" style="padding:0;z-index:9999;align-items:center">
-                <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snapshot-modal-content">
-                    <div class="w3-container">
-                        <div class="align" style="justify-content:space-evenly;">
-                            <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}"></button>Share</div>
-                            <div class="align" style="flex-direction:column;margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snap.get_id}}" data-icon="thumb_up_off_alt"></button>Admire</div>
-                            {% if snap.creator == request.user.profile %}
-                            <div class="align negative-text" style="flex-direction:column;margin:15px 0;" onclick="reportFeedbackView()"><button class="snapshot-modal-btn w3-border-red"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}"><span class="material-icons-outlined">report_problem</span></i></button>Report</div>
-                            {% endif %}
-                        </div>
-                    </div>
+<div class="w3-col w3-twothird s11 l8 tertiary pallete-slab" style="border-radius:10px;margin: 20px; auto" id='snap-{{snap.get_id}}'>
+        <br/>
+        <div class="w3-row w3-padding-small">
+        <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="40" /></a>
+        <span class="text-tertiary text-medium">{{snap.text|truncatechars:950}}</span><br/>
+        <span class='dead-text'>{{snap.created_on}}</span>
+        </div>
+        <br/>
+        <div class="w3-row">
+        {% if snap.image %}
+            <img src="{{snap.get_image}}" width="100%" class="snapshot-image preview-type-image" />
+        {% elif snap.video %}
+            <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
+        {% endif %}
+        </div>
+        <br/>
+        <div class="w3-row">
+            <div class="w3-col l4 m4 s4">
+                <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.name}}">
+                <button class="primary">
+                <img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="30" />
+                <span class="w3-hide-small">&nbsp;{{snap.base_project.name}}</span>
+                </button>
+                </a>
+            </div>
+            <div class="w3-col l8 m8 s8 w3-center">
+                <div class="w3-col l4 m4 s4" onclick="admireSnap('{{snap.get_id}}')">
+                    <button
+                    {% if request.user.profile in snap.admirers.all %}
+                     data-admires="1"
+                     class="positive" 
+                     {% else %}
+                     data-admires="0"
+                     class="primary"
+                     {% endif %}
+                        id="snap-admire-{{snap.get_id}}">
+                        <i class="text-big">thumb_up_off_alt</i><span class="w3-hide-small">Admire</span>
+                    </button>
                 </div>
-                <div class="snapshot-modal-content-large w3-hide-small">
-                    <div class="w3-container">
-                        <div class="align" style="flex-direction: column;align-items:flex-start">
-                            <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}"></button>&nbsp;&nbsp;Share</div>
-                            <div class="align" style="margin:15px 0;"><button class="snapshot-modal-btn secondary" data-snapid="{{snap.get_id}}" data-icon="thumb_up_off_alt"></button>&nbsp;&nbsp;Admire</div>
-                            {% if snap.creator == request.user.profile %}
-                            <div class="align negative-text" style="margin:15px 0;" onclick="reportFeedbackView()"><button class="snapshot-modal-btn w3-border-red negative-text"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}"><span class="material-icons-outlined">report_problem</span></i></button>&nbsp;&nbsp;Report</div>
-                            {% endif %}
-                        </div>
-                    </div>
+                <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">
+                    <button class="accent" id="snap-share-{{snap.get_id}}"><i class="text-big">share</i><span class="w3-hide-small">Share</span></button>
+                </div>
+                <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn()" data-target="#id01">
+                    <button class="tertiary" id="snap-more-{{snap.get_id}}"><i class="text-big">more_horiz</i><span class="w3-hide-small">More</span></button>
                 </div>
             </div>
-            <span onclick="showSnapshotMoreBtn()" style="padding-top:4px;z-index:0;" id="more-btn-mob" class="w3-right material-icons">more_horiz</span>
-        </span>
-        {% if snap.creator == request.user.profile %}
-        <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium" onclick="reportFeedbackView()"><i class="delete-snapshot pointer negative-text" data-snapid="{{snap.get_id}}">report_problem</i></button>   
-        {% endif %}
-        <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">Share</button>
-        <button class="w3-right snapshot-btn w3-hide-small w3-hide-medium primary" data-snapid="{{snap.get_id}}" data-icon="thumb_up_off_alt">Admire</button>
+        </div>
     </div>
 </div>
+<div id="id01" class="w3-modal align" style="display: none">
+    <div class="snapshot-modal-content w3-hide-medium w3-hide-large">
+        <div class="w3-row w3-center">
+            <div class="w3-col l6 m6 s6">
+                {% if snap.creator == request.user.profile %}
+                    <button class="big-button" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
+                        Delete
+                    </button>
+                {% endif %}
+            </div>
+            <div class="w3-col l6 m6 s6">
+            {% if request.user.is_authenticated %}
+                <button class="big-button" onclick="reportSnap('{{snap.get_id}}')">
+                    <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
+                    Report
+                </button>
+            {% endif %}
+            </div>
+        </div>
+        <br/>
+    </div>
+    <div class="snapshot-modal-content-large w3-hide-small">
+        <div class="w3-row w3-center align" style="flex-direction: column; width:168px;">
+            <div class="w3-col l12 m12">
+                {% if snap.creator == request.user.profile %}
+                    <button class="big-button" onclick="">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
+                        Delete
+                    </button>
+                {% endif %}
+                </div>
+                <div class="w3-col l12 m12">
+                {% if request.user.is_authenticated %}
+                    <button class="big-button" onclick="">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
+                        Report
+                    </button>
+                {% endif %}
+                </div>
+            </div>
+            <br/>
+        </div>
+    </div>
+</div>
+
 {% endfor %}

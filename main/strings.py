@@ -777,6 +777,7 @@ class URL():
 
         REPORT_CATEGORIES = 'report/categories'
         REPORT_PROJECT = 'reportproject/'        
+        REPORT_SNAPSHOT = 'reportsnapshot/'        
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
         TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'

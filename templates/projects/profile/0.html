@@ -287,9 +287,6 @@
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 {% if not project.suspended %}
-let tag=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
-        tag:"[]",removeIDs:"[]",
-    });
 if (selfProject){
     getElement('add_assets').onclick=()=>{
 
@@ -385,7 +382,7 @@ getElement('save-edit-snapshot').onclick=(e)=>{
 if(!selfProject){
     if(authenticated){
     getElement('report-project').onclick=async()=>{
-        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+        const data = await getRequest(URLS.REPORT_CATEGORIES)
         if(!data) return
         if(data.code!==code.OK){
             return error(data.error)

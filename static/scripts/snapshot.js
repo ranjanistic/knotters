@@ -31,16 +31,15 @@ const loadSnapshotScroller = async () => {
                 if (entries[0].isIntersecting && done) {
                     viewedSnaps = viewedSnaps.concat(done);    
                     done = await loadBrowseSnaps(viewedSnaps);
-                    console.log("Snapshot");
                 }
             }, options);
             observer.observe(document.querySelector(`#snap-${viewedSnaps[viewedSnaps.length-1].replaceAll('-','')}`));
         }
     }
 }
-
 const showSnapshotMoreBtn = () => {
     document.getElementById('id01').style.display = 'flex';
+    document.getElementById('id01').classList.add("active-snap");
 }
 
 window.addEventListener('click', (event) => {
@@ -48,3 +47,40 @@ window.addEventListener('click', (event) => {
         document.getElementById('id01').style.display = "none";
     }
 });
+
+const admireSnap = async (snapID) => {
+    if(!snapID) return
+    const admire = getElement(`snap-admire-${snapID}`).getAttribute("data-admires") == "0"
+    const data = await postRequest(setUrlParams(URLS.Projects?URLS.Projects.TOGGLE_SNAP_ADMIRATION:URLS.TOGGLE_SNAP_ADMIRATION, snapID), {
+        admire
+    })
+    if (data.code !== code.OK){
+        return error(data.error)
+    }
+    getElement(`snap-admire-${snapID}`).setAttribute("data-admires", admire?1:0)
+    getElement(`snap-admire-${snapID}`).classList[admire?'add':'remove']('positive')
+    getElement(`snap-admire-${snapID}`).classList[admire?'remove':'add']('primary')
+}
+
+const reportSnap = async (snapID) => await violationReportDialog(URLS.Projects?URLS.Projects.REPORT_SNAPSHOT:URLS.REPORT_SNAPSHOT, { snapID }, "Snapshot", URLS.Projects?URLS.Projects.REPORT_CATEGORIES:URLS.REPORT_CATEGORIES)
+
+const deleteSnap = (snapID,projectID) => {
+    if(!snapID || !projectID) return
+    alertify.confirm('Delete snapshot',
+    "Are you sure you want to delete the snapshot?",
+    ()=>{},
+    ()=>{
+        postRequest(
+            setUrlParams(URLS.Projects?URLS.Projects.SNAPSHOT:URLS.SNAPSHOT, projectID, "remove"), {
+                snapid:snapID,snapID
+            }
+        ).then((data) => {
+            if (data.code === code.OK) {
+                hideElement(`snap-${snapID}`)
+                message(data.message);
+            } else {
+                error(data.error);
+            }
+        });
+    }).set('labels', {ok:'No, go back', cancel:'Yes, delete'}).set('closable', false);
+}

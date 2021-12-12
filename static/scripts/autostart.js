@@ -9,15 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadGlobalEventListeners();
     loadGlobalEditors();
-    loadCarousels({});
     loadSnapshotScroller();
+    loadCarousels({});
     loadBrowsers();
 });
-
-const toAdmire = () => {
-    const elem = document.getElementById("follow-button");
-    
-}
 
 window.addEventListener("load", () => {
     getElements('previous-navigation-button').forEach(btn => {

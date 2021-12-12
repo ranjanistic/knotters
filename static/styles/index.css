@@ -195,6 +195,18 @@ h6 {
     color: var(--dead-text) !important;
 }
 
+.text-medium {
+    font-size: 20px !important;
+}
+
+.text-large {
+    font-size: 24px !important;
+}
+
+.text-big {
+    font-size: 28px !important;
+}
+
 nav {
     padding: 4px;
 }
@@ -540,6 +552,7 @@ button.small > i {
  font-size:14px;
 }
 .w3-modal{
+    padding-top: 0 !important;
     animation-name: fadeIn;
     animation-duration: 0.4s;
 }
@@ -554,8 +567,8 @@ button.small > i {
     position: fixed;
     border-radius: 10px 10px 0 0;
     /* animation:slideIn 0.4s; */
-    opacity: 0;
-    transition: opacity 0.3s ease-out, bottom 0.3s ease-out;
+    /* opacity: 0; */
+    transition: bottom 0.3s ease-out;
 }
 @keyframes slideIn {
     from {bottom: -100%; opacity: 0}
@@ -563,7 +576,7 @@ button.small > i {
 }
 
 .snapshot-modal-content-large{
-    width: max-content;
+    width: max-content; 
     background:var(--tertiary);
     right: 0%;
     position: fixed;
