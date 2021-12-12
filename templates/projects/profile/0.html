@@ -286,6 +286,7 @@
 <script>
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
+const ismoderator = false;
 {% if not project.suspended %}
 if (selfProject){
     getElement('add_assets').onclick=()=>{
