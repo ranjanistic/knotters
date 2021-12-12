@@ -12,9 +12,9 @@
     {% elif snap.video %}
         <video src="{{snap.get_image}}" width="100%" class="preview-type-video"></video>
     {% endif %}
-    <div class="w3-row w3-padding w3-margin-top">
-        <a href="{{snap.base_project.getLink}}" title="{{snap.base_project.nickname}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="40" /> &nbsp;<b>{{snap.base_project.name}}</b></a>
-        <span class="w3-tooltip w3-right" style="display: inline;margin:0;cursor:pointer;z-index:9999;">
+    <div class="w3-row w3-margin-top" style="height: 50px;padding:0 16px;">
+        <div style="display: inline-block;"><a class="align" href="{{snap.base_project.getLink}}" title="{{snap.base_project.nickname}}"><img alt="{{snap.creator.getName}}" class=" w3-circle" src="{{snap.base_project.getDP}}" width="40" /> &nbsp;<b>{{snap.base_project.name}}</b></a></div>
+        <span class="w3-tooltip w3-right snapshot-btn align" style="display: flex;margin:0;cursor:pointer;z-index:9999;">
             <div id="id01" class="w3-modal" style="padding:0;z-index:9999;align-items:center">
                 <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snapshot-modal-content">
                     <div class="w3-container">
