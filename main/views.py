@@ -332,7 +332,8 @@ def browser(request: WSGIRequest, type: str):
                     snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
                     recommended = True
             else:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
+                return respondJson(Code.OK,dict(snapIDs=[]))
+                # snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
             return respondJson(Code.OK,dict(
                 html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
                 snapIDs=list(snaps.values_list("id", flat=True)),
