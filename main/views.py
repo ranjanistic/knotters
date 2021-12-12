@@ -33,6 +33,10 @@ from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, 
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
 
+@require_GET
+def branding(request: WSGIRequest) -> HttpResponse:
+    return renderView(request, Template.BRANDING)
+
 
 @require_GET
 @dev_only
@@ -299,6 +303,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
+                setPathParams(f"/{URL.BRANDING}"),
                 setPathParams(f"/{URL.BROWSER}"),
             ])
         )))

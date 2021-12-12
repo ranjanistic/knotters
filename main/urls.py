@@ -36,9 +36,9 @@ urlpatterns = [
     path(URL.AUTH, include('allauth.urls')),
     path('webpush/', include('webpush.urls')),
     path(URL.INDEX, index),
-    path(URL.APPLANDING, applanding),
     path(URL.LANDING, landing),
     path(URL.OFFLINE, offline),
+    path(URL.BRANDING, branding),
     path(URL.PROJECTS, include(f'{PROJECTS}.urls')),
     path(URL.COMPETE, include(f'{COMPETE}.urls')),
     path(URL.PEOPLE, include(f'{PEOPLE}.urls')),
@@ -54,6 +54,7 @@ urlpatterns = [
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),
+    path(URL.APPLANDING, applanding),
 ]
 
 if not ISPRODUCTION:

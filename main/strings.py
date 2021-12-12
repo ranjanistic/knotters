@@ -294,6 +294,7 @@ class URL():
     STRINGS = 'strings.js'
     SWITCH_LANG = 'i18n/'
     OFFLINE = 'off408'
+    BRANDING = 'branding/'
     ROOT = '/'
     AUTH = f"{AUTH}/"
     DOCS = f'{DOCS}/'
@@ -902,6 +903,12 @@ class Template():
     @property
     def offline(self):
         return f'{self.OFFLINE}.html'
+
+    BRANDING = 'branding'
+
+    @property
+    def branding(self):
+        return f'{self.BRANDING}.html'
 
     FORWARD = 'forward'
 
