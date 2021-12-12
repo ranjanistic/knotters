@@ -644,7 +644,6 @@ const handleCropImageUpload = (
                         getElement(previewImgID).src = croppedB64;
                         onCropped(croppedB64);
                     } catch (e) {
-                        console.debug(e);
                         error(
                             `Something went wrong. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
                         );

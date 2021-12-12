@@ -39,7 +39,6 @@ const loadSnapshotScroller = async () => {
 }
 const showSnapshotMoreBtn = () => {
     document.getElementById('id01').style.display = 'flex';
-    document.getElementById('id01').classList.add("active-snap");
 }
 
 window.addEventListener('click', (event) => {
