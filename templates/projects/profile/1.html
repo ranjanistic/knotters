@@ -269,6 +269,7 @@
 <script>
 const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
+const ismoderator = "{{ismoderator}}"==='True';
 {% if not project.suspended %}
 if(!selfProject){
     if(authenticated){
