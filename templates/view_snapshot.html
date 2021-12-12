@@ -17,6 +17,13 @@
 {% block tw_description %}A snapshot of {{snapshot.base_project.name}}. {{snapshot.text}}{% endblock %}
 
 {% block title %}Snapshot of {{snapshot.base_project.name}}{%endblock%}
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block nav_href %}{{snapshot.base_project.getLink}}{% endblock %}
+{% block nav_text %}Snapshot{% endblock %}
+
 {% block content %}
 <div class="w3-row align">
     <div class="w3-col w3-twothird s11 l8 tertiary" style="border-radius:10px;margin: auto auto 50px auto;" id='{{snapshot.get_id}}'>
