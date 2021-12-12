@@ -39,11 +39,19 @@ const loadSnapshotScroller = async () => {
 }
 const showSnapshotMoreBtn = () => {
     document.getElementById('id01').style.display = 'flex';
+    setTimeout(() => {
+        document.getElementById('snap-laptop').classList.add('right-snap');
+        document.getElementById('snap-mob').classList.add('bottom-snap');
+    }, 300);
 }
 
 window.addEventListener('click', (event) => {
     if (event.target == document.getElementById('id01')) {
-        document.getElementById('id01').style.display = "none";
+        document.getElementById('snap-laptop').classList.remove('right-snap');
+        document.getElementById('snap-mob').classList.remove('bottom-snap');
+        setTimeout(() => {
+            document.getElementById('id01').style.display = "none";
+        }, 300);
     }
 });
 

@@ -57,7 +57,7 @@
     </div>
 </div>
 <div id="id01" class="w3-modal align" style="display: none">
-    <div class="snapshot-modal-content w3-hide-medium w3-hide-large">
+    <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snap-mob">
         <div class="w3-row w3-center">
             <div class="w3-col l6 m6 s6 w3-margin-bottom">
                 {% if snap.creator == request.user.profile %}
@@ -78,7 +78,7 @@
         </div>
     </div>
     <br/>
-    <div class="snapshot-modal-content-large w3-hide-small">
+    <div class="snapshot-modal-content-large w3-hide-small" id="snap-laptop">
         <div class="w3-row w3-center align" style="flex-direction: column; width:168px;">
             <div class="w3-col l12 m12">
                 {% if snap.creator == request.user.profile %}
