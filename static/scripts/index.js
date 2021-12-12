@@ -138,9 +138,7 @@ const loadGlobalEventListeners = () => {
             view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message(
-                    STRING.re_introduction
-                );
+                message(STRING.re_introduction);
                 hide(view);
             });
         }
@@ -234,11 +232,15 @@ const loadGlobalEventListeners = () => {
         });
     });
 
-    getElements("navigator-share-action").forEach((share)=>{
-        share.addEventListener("click", ()=>{
-            shareLinkAction(share.getAttribute("data-title"), share.getAttribute("data-text"), share.getAttribute("data-url"));
-        })
-    })
+    getElements("navigator-share-action").forEach((share) => {
+        share.addEventListener("click", () => {
+            shareLinkAction(
+                share.getAttribute("data-title"),
+                share.getAttribute("data-text"),
+                share.getAttribute("data-url")
+            );
+        });
+    });
 };
 
 const copyToClipboard = (text) => {
@@ -504,9 +506,9 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
         const data = await response.text();
         subLoader(false);
         try {
-            return JSON.parse(data)
+            return JSON.parse(data);
         } catch {
-            return data
+            return data;
         }
     } catch (e) {
         error("Something went wrong, try that again?");
@@ -529,8 +531,13 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
         });
         const data = await response.text();
         subLoader(false);
-        return data;
+        try {
+            return JSON.parse(data);
+        } catch {
+            return data;
+        }
     } catch (e) {
+        error("Something went wrong, try that again?");
         subLoader(false);
         return false;
     }
@@ -984,7 +991,6 @@ const loadReporters = () => {
     });
 };
 
-
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
 
@@ -1276,4 +1282,53 @@ const betaAlert = () => {
                 cancel: "Stay in Knotters Beta",
             });
     }
+};
+
+const violationReportDialog = async (
+    reportURL = "",
+    reportTargetData = {},
+    reportTarget = "",
+    reportCatURL = ""
+) => {
+    const data = await getRequest(reportCatURL || URLS.REPORT_CATEGORIES);
+    if (!data) return false;
+    if (data.code !== code.OK) {
+        error(data.error);
+        return false;
+    }
+    let options = "";
+    data.reports.forEach((rep) => {
+        options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
+    });
+    alertify
+        .confirm(
+            `<h3>Report ${reportTarget}</h3>`,
+            `
+                <select class="text-medium wide" id='violation-report-category' required>
+                ${options}
+                </select>
+            `,
+            () => {},
+            async () => {
+                loader();
+                message("Reporting...");
+                const data = await postRequest(reportURL, {
+                    report: getElement("violation-report-category").value,
+                    ...reportTargetData,
+                });
+                loader(false);
+                if (!data) return;
+                if (data.code === code.OK) {
+                    return message(
+                        `Reported${" " + reportTarget}. We\'ll investigate.`
+                    );
+                }
+                error(data.error);
+            }
+        )
+        .set("labels", {
+            cancel: `${Icon("report")} Report ${reportTarget}`,
+            ok: "No, go back ",
+        })
+        .set("closable", false);
 };

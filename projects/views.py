@@ -893,3 +893,18 @@ def reportProject(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
+
+@normal_profile_required
+@require_JSON_body
+@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+def reportSnapshot(request: WSGIRequest):
+    try:
+        report = request.POST['report']
+        snapID = request.POST['snapID']
+        snapshot = Snapshot.objects.get(id=snapID, suspended=False)
+        category = ReportCategory.objects.get(id=report)
+        request.user.profile.reportSnapshot(snapshot, category)
+        return respondJson(Code.OK)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO)

@@ -195,6 +195,18 @@ h6 {
     color: var(--dead-text) !important;
 }
 
+.text-medium {
+    font-size: 20px !important;
+}
+
+.text-large {
+    font-size: 24px !important;
+}
+
+.text-big {
+    font-size: 28px !important;
+}
+
 nav {
     padding: 4px;
 }

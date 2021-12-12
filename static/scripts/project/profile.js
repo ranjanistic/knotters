@@ -414,7 +414,7 @@ const loadLiveData = async () => {
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {
-        const data = JSON.parse(await getRequest(setUrlParams(URLS.LIVEDATA, projectID)))
+        const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID))
         if (!data || data.code !== code.OK) {
             setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
             setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));

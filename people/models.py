@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from main.bots import Github
 from management.models import ReportCategory
-from projects.models import ReportedProject
+from projects.models import ReportedProject, ReportedSnapshot
 from moderation.models import ReportedModeration
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -466,6 +466,9 @@ class Profile(models.Model):
         return report
 
     def reportProject(self, baseproject, category):
+        """
+        Because the report is liability of the reporting user, that's why this and other report methods reside in Profile class.
+        """
         report, _ = ReportedProject.objects.get_or_create(baseproject=baseproject, profile=self, category=category, defaults=dict(
             baseproject=baseproject, profile=self, category=category
         ))
@@ -474,6 +477,12 @@ class Profile(models.Model):
     def reportModeration(self, moderation, category):
         report, _ = ReportedModeration.objects.get_or_create(moderation=moderation, profile=self, category=category, defaults=dict(
             moderation=moderation, profile=self, category=category
+        ))
+        return report
+
+    def reportSnapshot(self, snapshot, category):
+        report, _ = ReportedSnapshot.objects.get_or_create(snapshot=snapshot, profile=self, category=category, defaults=dict(
+            snapshot=snapshot, profile=self, category=category
         ))
         return report
 

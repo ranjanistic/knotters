@@ -32,6 +32,7 @@ urlpatterns = [
     # path(URL.Projects.GITHUB_EVENTS_FREE, githubEventsListenerFree),
     path(URL.Projects.REPORT_CATEGORIES, reportCategories),
     path(URL.Projects.REPORT_PROJECT, reportProject),
+    path(URL.Projects.REPORT_SNAPSHOT, reportSnapshot),
     path(URL.Projects.BROWSE_SEARCH, browseSearch),
     path(URL.Projects.SNAPSHOTS, snapshots),
     path(URL.Projects.SNAPSHOT, snapshot),
