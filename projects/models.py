@@ -242,16 +242,14 @@ class BaseProject(models.Model):
         return Project.objects.filter(id=self.id,status=Code.APPROVED).exists()
 
     def getProject(self,onlyApproved=False):
+        project = None
         try:
             project = FreeProject.objects.get(id=self.id)
         except:
             project = Project.objects.get(id=self.id)
-            if not onlyApproved:
-                return project
-            else:
-                if project.isApproved(): return project
-            return Project.objects.get(id=self.id)
-        return project or None
+            if onlyApproved and not project.isApproved():
+                return None
+        return project
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         project = self.getProject()
@@ -261,7 +259,10 @@ class BaseProject(models.Model):
   
     @property
     def nickname(self):
-        return self.getProject().nickname
+        project = self.getProject()
+        if project.verified:
+            return project.reponame
+        return project.nickname
 
     @property
     def total_admiration(self):
