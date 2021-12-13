@@ -25,6 +25,8 @@
 <br/>
 
 {% empty %}
-<center><h3>{% trans "No active competitions." %}</h3></center>
+<center><h3>{% trans "No active competitions." %}</h3>
+<h5><a onclick="getElement('upcoming').click()">See upcoming competitions</a></h5>
+</center>
 {% endfor %}
 </div>
