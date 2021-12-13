@@ -361,13 +361,13 @@ class TestViews(TestCase):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, status=Code.APPROVED, reponame=getProjRepo(), category=self.category, license=self.license)
         resp = self.client.post(follow=True, path=root(url.projects.tagsUpdate(project.getID())), data={
-                                'addtagIDs': str()})
+                                'addtagIDs': []})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
         tags = Tag.objects.bulk_create(getTestTagsInst(4))
-        addTagIDs = ''
+        addTagIDs = []
         for tag in tags:
-            addTagIDs = f"{addTagIDs},{tag.getID()}"
+            addTagIDs.append(tag.getID())
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True, path=root(url.projects.tagsUpdate(project.getID())), data={
                                 'addtagIDs': addTagIDs})
