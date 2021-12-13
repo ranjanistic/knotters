@@ -133,7 +133,7 @@
       </div>
       <br/>
       <div class="w3-row w3-center">
-      {% for perk in compete.getPerks %}
+        {% for perk in compete.getPerks %}
         <div class="w3-col w3-third w3-padding-small w3-center">
             <div class="pallete accent">
                 <i class="w3-jumbo ">
@@ -143,7 +143,16 @@
                 <h6 class="pallete">{% if perk.name %}{{perk.name}}{% else %}{{perk}}{% endif %}</h6>
             </div>
         </div>
-      {% endfor %}
+        {% endfor %}
+        <div class="w3-col w3-third w3-padding-small w3-center">
+            <div class="pallete accent">
+                <i class="w3-jumbo ">
+                  card_giftcard
+                </i>
+                <h1>{{compete.getPerks.count|add:"1"|numsuffix}}+</h1>
+                <h6 class="pallete">E-Certificate + XP</h6>
+            </div>
+        </div>
       </div>
       <br/>
       
