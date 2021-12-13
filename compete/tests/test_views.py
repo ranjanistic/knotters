@@ -580,6 +580,7 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
+        Competition.objects.exclude(creator=self.mguser.profile).exclude(creator=self.bot.profile).delete()
         Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
         User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
@@ -701,6 +702,7 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
+        Competition.objects.exclude(creator=self.mguser.profile).exclude(creator=self.bot.profile).delete()
         Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
         User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
@@ -818,10 +820,12 @@ class TestViews(TestCase):
         self.assertEqual(resp.context['request'].GET['a'], Message.RESULT_DECLARING)
         self.assertEqual(Result.objects.filter(competition=self.comp).count(), self.comp.totalValidSubmissions())
 
+    @tag('asff')
     def test_claimXP(self):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
+        Competition.objects.exclude(creator=self.mguser.profile).exclude(creator=self.bot.profile).delete()
         Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
         User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 
@@ -965,6 +969,7 @@ class TestViews(TestCase):
         self.comp.judges.remove(self.judgeprofile)
         Submission.objects.filter(competition=self.comp).delete()
         Moderation.objects.filter(competition=self.comp).delete()
+        Competition.objects.exclude(creator=self.mguser.profile).exclude(creator=self.bot.profile).delete()
         Profile.objects.exclude(user=self.mguser).exclude(user=self.bot).delete()
         User.objects.exclude(email=self.mgemail).exclude(id=self.bot.id).delete()
 

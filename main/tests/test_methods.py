@@ -7,7 +7,7 @@ from main.methods import *
 from .utils import B64
 
 
-@tag(Code.Test.METHOD)
+@tag(Code.Test.METHOD,Code.Test.REST)
 class MainMethodsTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
