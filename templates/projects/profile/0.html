@@ -77,9 +77,9 @@
          {% csrf_token %}
          <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
         {% if isAdmirer %}
-         <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
+         <button type="submit" class="w3-right small tertiary negative-text" data-icon="remove_circle">{% trans "Disadmire" %}</button>
         {% else %}
-          <button type="submit" class="w3-right small positive" data-icon="volunteer_activism">{% trans "Admire" %}</button>
+          <button type="submit" class="w3-right small positive" data-icon="add_circle">{% trans "Admire" %}</button>
         {% endif %}
         </form>
         </div>
@@ -166,7 +166,7 @@
                 {% if iscreator %}
                 <div id="edit-projecttags">
                     <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
-                    <form action="{{URLS.TAGSUPDATE|params:project.getID}}" method="POST">
+                    <form id="edit-tag-inputs">
                         {% csrf_token %}
                         <input class="wide" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
                         <div class="w3-row w3-padding" id="topics-viewer">
@@ -286,9 +286,21 @@
 <script>
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
-const ismoderator = false;
 {% if not project.suspended %}
 if (selfProject){
+
+    getElement('save-edit-projecttags').onclick= async ()=> {
+        var elements = document.getElementById("edit-tag-inputs").elements;
+        var obj ={};
+        for(var i = 0 ; i < elements.length ; i++){
+            var item = elements.item(i);
+            obj[item.name] = item.value;
+        }
+        await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+        });
+    }
+
     getElement('add_assets').onclick=()=>{
 
     }
@@ -383,7 +395,7 @@ getElement('save-edit-snapshot').onclick=(e)=>{
 if(!selfProject){
     if(authenticated){
     getElement('report-project').onclick=async()=>{
-        const data = await getRequest(URLS.REPORT_CATEGORIES)
+        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
         if(!data) return
         if(data.code!==code.OK){
             return error(data.error)

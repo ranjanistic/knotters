@@ -90,6 +90,7 @@
                 </div>
                 <div class="w3-col l12 m12">
                 {% if request.user.is_authenticated %}
+                {{request.user.is_authenticated}}
                     <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
                         Report

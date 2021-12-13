@@ -42,7 +42,7 @@ const showSnapshotMoreBtn = () => {
     setTimeout(() => {
         document.getElementById('snap-laptop').classList.add('right-snap');
         document.getElementById('snap-mob').classList.add('bottom-snap');
-    }, 300);
+    }, 50);
 }
 
 window.addEventListener('click', (event) => {
@@ -51,7 +51,7 @@ window.addEventListener('click', (event) => {
         document.getElementById('snap-mob').classList.remove('bottom-snap');
         setTimeout(() => {
             document.getElementById('id01').style.display = "none";
-        }, 300);
+        }, 100);
     }
 });
 

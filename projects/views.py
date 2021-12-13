@@ -492,7 +492,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-        if not addtagIDs and not removetagIDs and not (addtagIDs.strip() or removetagIDs.strip()):
+        if not addtagIDs and not removetagIDs:
             return redirect(project.getLink())
 
         if removetagIDs:
