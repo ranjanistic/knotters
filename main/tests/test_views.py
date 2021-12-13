@@ -83,7 +83,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.landing)
 
-    def test_applanding(self):
+    def _test_applanding(self):
         resp = self.client.get(follow=True, path=root(
             url.applanding(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
