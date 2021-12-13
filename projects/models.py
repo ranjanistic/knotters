@@ -258,7 +258,7 @@ class BaseProject(models.Model):
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
   
     @property
-    def nickname(self):
+    def get_nickname(self):
         project = self.getProject()
         if project.verified:
             return project.reponame
