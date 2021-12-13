@@ -326,11 +326,11 @@ def browser(request: WSGIRequest, type: str):
             limit = int(request.POST.get('limit', 5))
             recommended = True
             if request.user.is_authenticated:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False).order_by("-created_on")[:limit]
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__admirers=request.user.profile,base_project__suspended=False,base_project__trashed=False).order_by("created_on")[:limit]
                 recommended = False
-                if len(snaps) < 1:
-                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
-                    recommended = True
+                # if len(snaps) < 1:
+                #    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
+                #    recommended = True
             else:
                 return respondJson(Code.OK,dict(snapIDs=[]))
                 # snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
