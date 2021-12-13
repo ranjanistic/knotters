@@ -124,17 +124,46 @@
      <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" target="_blank" rel="noreferrer"><span hidden>YouTube</span><button aria-label="YouTube"  class="primary w3-animate-zoom"><img alt="YouTube" src="{% static 'graphics/thirdparty/youtube.png' %}" width="26" height="18" />&nbsp;Knotters Community</button></a>
      <a href="https://discord.gg/qZ3TdVHsma" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.png' %}" width="18" height="20" />&nbsp;Knotters</button></a>            
     </div>
-   <br/><br/>
-      {% if compete.isUpcoming %}
-        <br/>
-        <center>
+    <br/><br/>
+    {% if compete.isUpcoming %}
+      <div class="w3-row w3-center">
+        {% for topic in compete.getTopics %}
+        <button class="secondary">{{topic.name}}</button>
+        {% endfor %}
+      </div>
+      <br/>
+      <div class="w3-row w3-center">
+        {% for perk in compete.getPerks %}
+        <div class="w3-col w3-third w3-padding-small w3-center">
+            <div class="pallete accent">
+                <i class="w3-jumbo ">
+                {% if forloop.counter == 1%}emoji_events{% elif forloop.counter == 2%}military_tech{% elif forloop.counter == 3%}celebration{% else %}card_giftcard{% endif %}
+                </i>
+                <h1>{{forloop.counter|numsuffix}}</h1>
+                <h6 class="pallete">{% if perk.name %}{{perk.name}}{% else %}{{perk}}{% endif %}</h6>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="w3-col w3-third w3-padding-small w3-center">
+            <div class="pallete accent">
+                <i class="w3-jumbo ">
+                  card_giftcard
+                </i>
+                <h1>{{compete.getPerks.count|add:"1"|numsuffix}}+</h1>
+                <h6 class="pallete">E-Certificate + XP</h6>
+            </div>
+        </div>
+      </div>
+      <br/>
+      
+      <div class="w3-row w3-center">
         <i class="w3-jumbo">lock</i>
         <h3>{% trans "Stay Tuned!" %}</h3>
         <h4>{% trans "Full details will be shown" %}, <br/>{% trans "once the competition begins." %}</h4>
         <h5>In the meantime, go through <br/>our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}</a>.</h5>
-        </center>
-        <br/>
-      {% else %}
+      </div>
+      <br/>
+    {% else %}
     <div class="w3-row pallete" id="mainframe">
       <div class="w3-col w3-quarter">
         <div class="w3-bar-block w3-hide-small" id="sidebar">
