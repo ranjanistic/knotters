@@ -258,7 +258,11 @@ class BaseProject(models.Model):
         if project.verified:
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=project.reponame)}{url.getMessageQuery(alert,error,success)}"
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
-    
+  
+    @property
+    def nickname(self):
+        return self.getProject().nickname
+
     @property
     def total_admiration(self):
         return self.admirers.count()
