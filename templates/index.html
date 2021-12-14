@@ -175,19 +175,27 @@
         <div style="min-height: 50vh;">
             {% block content %}
             <div class="w3-row">
-                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:80vh"
+                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:80vh;"
                     data-html="
-                    <div class='w3-col w3-half w3-padding-large'>
-                        <br/>
-                        <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
-                        <h1 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
-                        <br/>
-                        <h3>{% trans "Ready to takeoff? Virtually ofcourse." %}</h3>
-                        <a href='{{URLS.LANDING}}'><button class='display-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
-                        <button class='display-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
-                    </div>
-                    <div class='w3-col w3-half'>
-                        <img src='{{ICON}}' width='80%' class='darkimg' />
+                    <br/>
+                    <div class='w3-row'>
+                        <div class='w3-col w3-half w3-padding-large'>
+                            <div class='w3-row'>
+                                <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
+                                <h1 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Welcome to {{APPNAME}}{% endblocktrans %}</h1>
+                                <br/>
+                                <h4>{% trans "Ready to takeoff? Virtually ofcourse." %}</h4>
+                            </div>
+                            <div class='w3-row'>
+                                <a href='{{URLS.LANDING}}'><button class='display-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
+                                <button class='display-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
+                            </div>
+                            <br/>
+                            <span class='text-medium dead-text'>Click I'm ready to hide this.</span>
+                        </div>
+                        <div class='w3-col w3-half'>
+                            <img src='{{ICON}}' width='70%' class='darkimg' />
+                        </div>
                     </div>"
                 >
                 </div>
@@ -196,11 +204,52 @@
                     </div>
                     <div class="w3-row browser-view" data-type="latest-competitions" id='latest-competitions-view'>
                     </div>
+                    <div class="w3-row w3-padding-large first-time-view" id='projects-admire-banner' style="height:70vh"
+                        data-html="
+                        <br/>
+                        <div class='w3-row'>
+                            <div class='w3-col w3-half'>
+                                <img src='{{ICON}}' width='50%' class='darkimg' />
+                            </div>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='w3-row'>
+                                    <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
+                                    <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
+                                    <br/>
+                                    <h4>{% trans "Snapshots are waiting for you, admire some projects for them!" %}</h4>
+                                </div>
+                                <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
+                                <button class='big-button accent' id='close-projects-admire-banner' data-icon='done'>{% trans "Got it!" %}</button>
+                                <br/><br/>
+                                <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
+                            </div>
+                        </div>"
+                    >
+                    </div>
                     <div class="w3-row align snapshot-viewer" id="snap-view-2">
                     </div>
                     <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
                     </div>
                     <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                    </div>
+                    <div class="w3-row w3-padding-large first-time-view" id='compete-participate-banner' style="height:60vh;"
+                        data-html="
+                        <br/>
+                        <div class='w3-row w3-center'>
+                            <div class='w3-col w3-padding-large'>
+                                <div class='w3-row'>
+                                    <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Participate{% endblocktrans %}</h2>
+                                    <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Participate{% endblocktrans %}</h2>
+                                    <br/>
+                                    <h4>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</h4>
+                                </div>
+                                <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
+                                <button class='big-button positive' id='close-compete-participate-banner' data-icon='done'>{% trans "Got it!" %}</button>
+                                <br/><br/>
+                                <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
+                            </div>
+                        </div>"
+                    >
                     </div>
                     <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
                     </div>

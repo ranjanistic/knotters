@@ -242,23 +242,28 @@ class BaseProject(models.Model):
         return Project.objects.filter(id=self.id,status=Code.APPROVED).exists()
 
     def getProject(self,onlyApproved=False):
+        project = None
         try:
             project = FreeProject.objects.get(id=self.id)
         except:
             project = Project.objects.get(id=self.id)
-            if not onlyApproved:
-                return project
-            else:
-                if project.isApproved(): return project
-            return Project.objects.get(id=self.id)
-        return project or None
+            if onlyApproved and not project.isApproved():
+                return None
+        return project
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         project = self.getProject()
         if project.verified:
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=project.reponame)}{url.getMessageQuery(alert,error,success)}"
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
-    
+  
+    @property
+    def get_nickname(self):
+        project = self.getProject()
+        if project.verified:
+            return project.reponame
+        return project.nickname
+
     @property
     def total_admiration(self):
         return self.admirers.count()

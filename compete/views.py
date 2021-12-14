@@ -393,6 +393,9 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
         subtopicpoints = SubmissionTopicPoint.objects.bulk_create(
             topicpointsList)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{submissionsJudgedAlert.__name__}", competition, request.user.profile)
+            
         judgeXP = len(submissions)//(len(topics)+1)
         for topic in topics:
             profiletopic, created = ProfileTopic.objects.get_or_create(
@@ -408,8 +411,6 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
             if not created:
                 profiletopic.increasePoints(by=judgeXP)
         request.user.profile.increaseXP(by=judgeXP)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{submissionsJudgedAlert.__name__}", competition, request.user.profile)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)

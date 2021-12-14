@@ -7,6 +7,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from django.utils import timezone
 from management.models import ReportCategory
+from people.models import ProfileTopic
 from projects.methods import setupApprovedProject
 from projects.mailers import projectRejectedNotification
 from compete.mailers import submissionsModeratedAlert
@@ -168,12 +169,32 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
         for sub in submissions:
             if not sub['valid']:
                 invalidSubIDs.append(sub['subID'])
-        Submission.objects.filter(id__in=invalidSubIDs).update(valid=False)
+        competition = mod.competition
+        Submission.objects.filter(competition=competition,id__in=invalidSubIDs).update(valid=False)
         mod.status = Code.APPROVED
         mod.resolved = True
         mod.save()
         addMethodToAsyncQueue(
-            f"{COMPETE}.mailers.{submissionsModeratedAlert.__name__}", mod.competition)
+            f"{COMPETE}.mailers.{submissionsModeratedAlert.__name__}", competition)
+        
+        totalsubs = competition.totalSubmissions()
+        topics = competition.getTopics()
+        
+        modXP = (totalsubs//(len(topics)+1))//2
+        for topic in topics:
+            profiletopic, created = ProfileTopic.objects.get_or_create(
+                profile=request.user.profile,
+                topic=topic,
+                defaults=dict(
+                    profile=request.user.profile,
+                    topic=topic,
+                    trashed=True,
+                    points=modXP
+                )
+            )
+            if not created:
+                profiletopic.increasePoints(by=modXP)
+        request.user.profile.increaseXP(by=modXP)
         return respondJson(Code.OK)
     except:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
