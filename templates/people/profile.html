@@ -104,7 +104,7 @@
               <input type="text" hidden id="profileImageData" name="profilepic" value="" />
               <div class="w3-row w3-padding">
                 <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{user.getName}}" name="displayname" /><br/><br/>
-                <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="120" name="profilebio" >{{ user.profile.getBio }}</textarea><br/>
+                <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="300" name="profilebio" >{{ user.profile.getBio }}</textarea><br/>
               </div>
               <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
               <button id="discard-edit-pallete"><i class="material-icons">cancel</i>Discard</button>

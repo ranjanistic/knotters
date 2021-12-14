@@ -49,8 +49,8 @@ def filterBio(string: str) -> str:
     :string: Assuming this to be user profile bio, operations will take place.
     """
     bio = str(string)
-    if len(bio) > 120:
-        bio = bio[:(120-len(bio))]
+    if len(bio) > 300:
+        bio = bio[:(300-len(bio))]
         return filterBio(bio)
     return bio
 
