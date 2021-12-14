@@ -45,7 +45,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
         elif section == Compete.HISTORY:
             try:
                 history = Competition.objects.filter(
-                    endAt__lte=now).order_by('-endAt')
+                    endAt__lte=now, hidden=False).order_by('-endAt')
             except:
                 history = list()
             data[Compete.HISTORY] = history
