@@ -89,43 +89,43 @@
 <div id="id01" class="w3-modal align" style="display: none">
     <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snap-mob">
         <div class="w3-row w3-center">
+            {% if snapshot.creator == request.user.profile %}
             <div class="w3-col l6 m6 s6 w3-margin-bottom">
-                {% if snapshot.creator == request.user.profile %}
                     <button class="big-button primary" onclick="deleteSnap('{{snapshot.get_id}}', '{{snapshot.base_project.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snapshot.get_id}}">delete</i>
                         Delete
                     </button>
-                {% endif %}
             </div>
+            {% endif %}
+            {% if request.user.is_authenticated and snapshot.creator != request.user.profile %}
             <div class="w3-col l6 m6 s6">
-                {% if request.user.is_authenticated %}
                     <button class="big-button primary" onclick="reportSnap('{{snapshot.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snapshot.get_id}}">report</i>
                         Report
                     </button>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
     <br/>
     <div class="snapshot-modal-content-large w3-hide-small" id="snap-laptop">
         <div class="w3-row w3-center align" style="flex-direction: column; width:168px;">
-            <div class="w3-col l12 m12">
                 {% if snapshot.creator == request.user.profile %}
+                <div class="w3-col l12 m12">
                     <button class="big-button primary" onclick="deleteSnap('{{snapshot.get_id}}', '{{snapshot.base_project.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snapshot.get_id}}">delete</i>
                         Delete
                     </button>
-                {% endif %}
                 </div>
+                {% endif %}
+                {% if request.user.is_authenticated and snapshot.creator != request.user.profile %}
                 <div class="w3-col l12 m12">
-                {% if request.user.is_authenticated %}
                     <button class="big-button primary" onclick="reportSnap('{{snapshot.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snapshot.get_id}}">report</i>
                         Report
                     </button>
-                {% endif %}
                 </div>
+                {% endif %}
             </div>
             <br/>
         </div>

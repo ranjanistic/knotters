@@ -570,12 +570,12 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
                     show(viewer);
                 }
             };
-            save.onclick = (_) => {
+            save.addEventListener('click', () => {
                 onSave(() => {
                     hide(editor);
                     show(viewer);
                 });
-            };
+            })
         };
     });
 };
