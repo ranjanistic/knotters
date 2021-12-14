@@ -6,7 +6,7 @@ from main.mailers import *
 
 
 
-@tag(Code.Test.MAIL)
+@tag(Code.Test.MAIL,Code.Test.REST)
 class TestMailers(TestCase):
     def test_getEmailHtmlBody(self):
         html, body = getEmailHtmlBody(getRandomStr(),getRandomStr(),getRandomStr(),getTestFName(),conclusion=getRandomStr())

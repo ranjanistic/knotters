@@ -492,8 +492,8 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-        if not addtagIDs and not removetagIDs and not (addtagIDs.strip() or removetagIDs.strip()):
-            return redirect(project.getLink())
+        if not addtagIDs and not removetagIDs:
+            return respondJson(Code.NO)
 
         if removetagIDs:
             ProjectTag.objects.filter(
@@ -502,9 +502,9 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         currentcount = ProjectTag.objects.filter(project=project).count()
         if addtagIDs:
             if len(addtagIDs) < 1:
-                return redirect(project.getLink())
+                return respondJson(Code.NO)
             if currentcount + len(addtagIDs) > 5:
-                return redirect(project.getLink(error=Message.MAX_TAGS_ACHEIVED))
+                return respondJson(Code.NO,error=Message.MAX_TAGS_ACHEIVED)
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
                 for topic in project.getTopics():
@@ -521,10 +521,10 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                             topic.tags.add(tag)
                 currentcount = currentcount + len(addtags)
 
-        return redirect(project.getLink(success=Message.TAGS_UPDATED))
+        return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise respondJson(Code.NO)
 
 
 @normal_profile_required
