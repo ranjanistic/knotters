@@ -47,7 +47,7 @@
     {% if user.emailaddress_set.all.count > 1 %}
     <h6>{% trans "Select an email to act." %}</h6>
     <div class="w3-row">
-      <button class="accent" type="submit" name="action_primary" data-icon="mark_email_unread">{% trans "Make primary" %}</button>
+      <button class="accent" type="submit" name="action_primary" data-icon="security">{% trans "Make primary" %}</button>
       <button class="negative" type="submit" name="action_remove" data-icon="remove_circle">{% trans "Remove" %}</button>
     </div>
     {% endif %}
