@@ -784,6 +784,17 @@ label > input[type="checkbox"] {
     padding: 0 !important;
 }
 
+.comp-banner{
+    min-height:200px;
+}
+
+@media screen and (min-width: 768px){
+    .comp-banner{
+        background-size:100% 100% !important;
+        background-repeat:no-repeat !important;
+    }
+}
+
 .vertical-align{
     display:flex;
     justify-content: center;
