@@ -439,7 +439,7 @@ def browser(request: WSGIRequest, type: str):
             # TODO
             return HttpResponseBadRequest()
         elif type == "latest-competitions":
-            competitions=Competition.objects.filter().order_by("-startAt")[:10]
+            competitions=Competition.objects.filter(hidden=False).order_by("-startAt")[:10]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         else:
             return HttpResponseBadRequest()
