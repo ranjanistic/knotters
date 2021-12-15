@@ -39,7 +39,7 @@ class PeopleMethodsTest(TestCase):
 
     def test_filterBio(self):
         self.assertIsInstance(filterBio(getTestBio()+getTestBio()), str)
-        self.assertFalse(len(filterBio(getTestBio()+getTestBio())) > 120)
+        self.assertFalse(len(filterBio(getTestBio()+getTestBio())) > 300)
 
     def test_getProfileSectionData(self):
         defdata = dict(self=True, person=self.user)
