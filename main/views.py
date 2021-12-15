@@ -441,6 +441,9 @@ def browser(request: WSGIRequest, type: str):
         elif type == "latest-competitions":
             competitions=Competition.objects.filter(hidden=False).order_by("-startAt")[:10]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
+        elif type == "trending-mentors":
+            mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
+            return HttpResponse(competeRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors))))
         else:
             return HttpResponseBadRequest()
     except Exception as e:

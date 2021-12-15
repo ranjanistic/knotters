@@ -280,6 +280,8 @@ class Project(BaseProject):
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
 
+    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, related_name='verified_project_mentor',null=True, blank=True)
+
     verified = True
 
     def sub_save(self):

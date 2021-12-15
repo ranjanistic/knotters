@@ -198,6 +198,7 @@ class Profile(models.Model):
     successor_confirmed = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
     is_moderator = models.BooleanField(default=False)
+    is_mentor = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
