@@ -328,12 +328,8 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).order_by("-created_on")[:limit]
                 recommended = False
-                # if len(snaps) < 1:
-                #    snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
-                #    recommended = True
             else:
                 return respondJson(Code.OK,dict(snapIDs=[]))
-                # snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(base_project__suspended=False).order_by("-created_on")[:limit]
             return respondJson(Code.OK,dict(
                 html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
                 snapIDs=list(snaps.values_list("id", flat=True)),
@@ -441,8 +437,11 @@ def browser(request: WSGIRequest, type: str):
         elif type == "latest-competitions":
             competitions=Competition.objects.filter(hidden=False).order_by("-startAt")[:10]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
+        elif type == "trending-mentors":
+            mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
+            return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404(e)

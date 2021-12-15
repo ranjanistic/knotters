@@ -1,0 +1,66 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% if count %}
+<div class="w3-row accent">
+    <div class="w3-row" style="padding:16px 4px">
+    <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending mentors" %}</h4>
+    </div>
+    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
+        <div class="swiper-wrapper swiper-wrap">
+            {% for mentor in mentors %}
+            <div class="swiper-slide">
+                <a href="{{mentor.getLink}}">
+                <div class="pallete w3-center no-pad">
+                    <img class="primary" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
+                    <div class="w3-row w3-padding">
+                        <h5>{{ mentor.getName }}</h5>
+                        <strong class="w3-tiny w3-round w3-tag active" style="margin-bottom:5px">MNT</strong><br/>
+                        <span>{{ mentor.getBio|or:mentor.getXP|truncatechars:45 }}</span>
+                    </div>
+                    <br/>
+                </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>{% trans "No mentors yet. You're the first one!" %}</h3>
+            </center>
+            </div>
+			{% endfor %} 
+        </div>
+    </div>
+    <div class="w3-hide-large  w3-row">
+        <div class="swiper-wrap_i">
+            {% for mentor in mentors %}
+            <div class="w3-col">
+                <a href="{{mentor.getLink}}">
+                <div class="pallete pallete_i w3-center">
+                    <img class="primary" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
+                    <div class="w3-row w3-padding">
+                        <h5>{{ mentor.getName }}</h5>
+                        <span>{{ mentor.getBio|or:mentor.getXP|truncatechars:45 }}</span>
+                    </div>
+                    <br/>
+                </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">hourglass_top</i>
+                <h3>{% trans "No mentors yet. You're the first one!" %}</h3>
+            </center>
+            </div>
+			{% endfor %} 
+        </div>
+    </div>
+    <br />
+</div>
+{% endif %}
