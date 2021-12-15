@@ -88,9 +88,11 @@ const message = (msg = "") => {
     alertify.message(msg);
 };
 
-const error = (msg = "Something went wrong, try that again?") => {
-    alertify.set("notifier", "position", "bottom-right");
-    alertify.error(msg);
+const error = (msg = STRING.default_error_message, force = false) => {
+    if (msg !== STRING.default_error_message || force){
+        alertify.set("notifier", "position", "bottom-right");
+        alertify.error(msg);
+    }
 };
 
 const success = (msg = "Success") => {
@@ -511,7 +513,7 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
             return data;
         }
     } catch (e) {
-        error("Something went wrong, try that again?");
+        error(STRING.default_error_message, true);
         subLoader(false);
         return false;
     }
@@ -537,7 +539,7 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
             return data;
         }
     } catch (e) {
-        error("Something went wrong, try that again?");
+        error(STRING.default_error_message, true);
         subLoader(false);
         return false;
     }
@@ -570,12 +572,12 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
                     show(viewer);
                 }
             };
-            save.addEventListener('click', () => {
+            save.addEventListener("click", () => {
                 onSave(() => {
                     hide(editor);
                     show(viewer);
                 });
-            })
+            });
         };
     });
 };
@@ -1311,9 +1313,12 @@ const violationReportDialog = async (
             async () => {
                 loader();
                 message("Reporting...");
-                const data = await postRequest(reportURL, {
-                    report: getElement("violation-report-category").value,
-                    ...reportTargetData,
+                const data = await postRequest2({path:reportURL, 
+                    data:{
+                        report: getElement("violation-report-category").value,
+                        ...reportTargetData,
+                    },
+                    retainCache: true,
                 });
                 loader(false);
                 if (!data) return;
