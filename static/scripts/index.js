@@ -135,7 +135,7 @@ const loadGlobalEventListeners = () => {
         if (localStorage.getItem(`first-intro-${view.id}`) == 1) {
             hide(view);
         } else {
-            view.innerHTML = view.getAttribute("data-html");
+            if(!view.innerHTML.trim()) view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
                 message(STRING.re_introduction);
