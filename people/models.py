@@ -620,7 +620,7 @@ class DisplayMentor(models.Model):
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def __str__(self):
-        return self.name or self.profile or self.id
+        return self.name or self.get_name or str(self.id)
     
     @property
     def get_id(self):
