@@ -1201,6 +1201,12 @@ class Template():
         @property
         def trending_mentors(self):
             return f'{self.DIRNAME}/{self.BROWSE_TRENDING_MENTORS}.html'
+       
+        BROWSE_DISPLAY_MENTORS = 'browse/display-mentors'
+
+        @property
+        def display_mentors(self):
+            return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
 
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
