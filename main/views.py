@@ -17,7 +17,7 @@ from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
 from projects.models import FreeProject, LegalDoc, Project, Snapshot
 from compete.models import Result, Competition
-from people.models import Profile
+from people.models import DisplayMentor, Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
@@ -441,8 +441,8 @@ def browser(request: WSGIRequest, type: str):
             mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
         elif type == "display-mentors":
-            mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")
-            return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(mentors=mentors, count=len(mentors)))
+            dmentors=DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
+            return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:

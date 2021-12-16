@@ -238,6 +238,10 @@ class BaseProject(models.Model):
         return FreeProject.objects.filter(id=self.id).exists()
 
     @property
+    def is_verified(self):
+        return not self.is_free
+
+    @property
     def is_approved(self):
         return Project.objects.filter(id=self.id,status=Code.APPROVED).exists()
 

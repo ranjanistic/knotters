@@ -178,7 +178,6 @@ def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
 
-
 def defaultImagePath() -> str:
     return f"{APPNAME}/default.png"
 
@@ -270,6 +269,19 @@ class Profile(models.Model):
 
     def getSubtitle(self) -> str:
         return self.bio if self.bio else self.ghID if self.ghID else ''
+    
+    @property
+    def has_labels(self):
+        return self.is_moderator or self.is_mentor
+
+    def get_labels(self):
+        labels = []
+        if self.is_moderator:
+            labels.append(dict(name='MOD', theme='accent'))
+        if self.is_mentor:
+            labels.append(dict(name='MNT', theme='active'))
+        return labels
+        
 
     @property
     def ghID(self) -> str:
@@ -590,3 +602,51 @@ class ReportedUser(models.Model):
         User, on_delete=models.CASCADE, related_name='reported_user')
     category = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_user_category')
+
+def displayMentorImagePath(instance, filename) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/displaymentors/{str(instance.get_id)}.{fileparts[len(fileparts)-1]}"
+
+class DisplayMentor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='display_mentor_profile',null=True, blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    about = models.CharField(max_length=500, null=True, blank=True)
+    picture = models.ImageField(
+        upload_to=displayMentorImagePath, default=defaultImagePath, null=True, blank=True)
+    website = models.URLField(max_length=500,null=True, blank=True)
+    hidden = models.BooleanField(default=False)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def __str__(self):
+        return self.name
+    
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_DP(self):
+        if self.profile:
+            return self.profile.getDP()
+        dp = str(self.picture)
+        return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
+
+    @property
+    def get_name(self):
+        if self.profile:
+            return self.profile.getName()
+        return self.name
+
+    @property
+    def get_about(self):
+        if self.profile:
+            return self.profile.getBio()
+        return self.about
+
+    @property
+    def get_link(self):
+        if self.profile:
+            return self.profile.getLink()
+        return self.website
