@@ -85,7 +85,7 @@
     font-family: var(--head-font) !important;
     font-weight: normal !important;
 }
-.ajs-ok{
+.ajs-ok,.swal2-confirm {
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
 }

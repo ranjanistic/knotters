@@ -17,7 +17,7 @@ from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
 from projects.models import FreeProject, LegalDoc, Project, Snapshot
 from compete.models import Result, Competition
-from people.models import Profile
+from people.models import DisplayMentor, Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
@@ -119,6 +119,7 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+@require_GET
 def snapshot(request: WSGIRequest, snapID):
     try:
         snapshot = Snapshot.objects.get(id=snapID)
@@ -326,7 +327,7 @@ def browser(request: WSGIRequest, type: str):
             limit = int(request.POST.get('limit', 5))
             recommended = True
             if request.user.is_authenticated:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).order_by("-created_on")[:limit]
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).distinct().order_by("-created_on")[:limit]
                 recommended = False
             else:
                 return respondJson(Code.OK,dict(snapIDs=[]))
@@ -440,6 +441,9 @@ def browser(request: WSGIRequest, type: str):
         elif type == "trending-mentors":
             mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
+        elif type == "display-mentors":
+            dmentors=DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
+            return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:

@@ -98,8 +98,8 @@ const Toast = Swal.mixin({
 })
   
 const message = (msg = "") => {
-    alertify.set("notifier", "position", "top-left");
-    alertify.message(msg);
+    // alertify.set("notifier", "position", "top-left");
+    // alertify.message(msg);
     Toast.fire({
         icon: 'info',
         title: msg
