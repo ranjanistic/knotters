@@ -785,7 +785,7 @@ label > input[type="checkbox"] {
 }
 
 .comp-banner{
-    min-height:200px;
+    min-height:200px !important;
 }
 
 @media screen and (min-width: 768px){

@@ -227,11 +227,13 @@
                         </div>"
                     >
                     </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-2">
-                    </div>
-                    <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                    <div class="w3-row">
+                        <div class="w3-row align snapshot-viewer" id="snap-view-2">
+                        </div>
+                        <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                        </div>
                     </div>
                     <div class="w3-row w3-padding-large first-time-view" id='compete-participate-banner' style="height:60vh;"
                         data-html="
@@ -252,17 +254,19 @@
                         </div>"
                     >
                     </div>
-                    <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-4">
-                    </div>
-                    <div class="w3-row browser-view" data-type="trending-projects" id='trending-projects-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-5">
-                    </div>
-                    <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-6">
+                    <div class="w3-row">
+                        <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-4">
+                        </div>
+                        <div class="w3-row browser-view" data-type="trending-projects" id='trending-projects-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-5">
+                        </div>
+                        <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-6">
+                        </div>
                     </div>
                     <div class="w3-row w3-padding w3-center dead-text">
                         <div class="material-icons w3-jumbo">done</div>
@@ -360,6 +364,7 @@
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
+        <script src="{% static 'sweetalert2/min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>

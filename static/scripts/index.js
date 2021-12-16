@@ -1055,6 +1055,32 @@ const reportFeedback = async ({
 };
 
 const reportFeedbackView = (report = 0) => {
+    // Swal.fire(
+    //     'Good job!',
+    //     'You clicked the button!',
+    //     'success'
+    //   )
+    Swal.fire({
+        title: 'Login Form',
+        html: `<input type="text" id="login" class="swal2-input" placeholder="Username">
+        <input type="password" id="password" class="swal2-input" placeholder="Password">`,
+        confirmButtonText: 'Sign in',
+        focusConfirm: false,
+        preConfirm: () => {
+          const login = Swal.getPopup().querySelector('#login').value
+          const password = Swal.getPopup().querySelector('#password').value
+          if (!login || !password) {
+            Swal.showValidationMessage(`Please enter login and password`)
+          }
+          return { login: login, password: password }
+        }
+      }).then((result) => {
+        Swal.fire(`
+          Login: ${result.value.login}
+          Password: ${result.value.password}
+        `.trim())
+      })
+      
     let isReport = false;
     const dial = alertify;
     dial.confirm().set({
@@ -1289,6 +1315,7 @@ const violationReportDialog = async (
     reportTarget = "",
     reportCatURL = ""
 ) => {
+    console.log("opID==>", reportTargetData);
     const data = await getRequest(reportCatURL || URLS.REPORT_CATEGORIES);
     if (!data) return false;
     if (data.code !== code.OK) {
@@ -1299,35 +1326,64 @@ const violationReportDialog = async (
     data.reports.forEach((rep) => {
         options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
     });
-    alertify
-        .confirm(
-            `<h3>Report ${reportTarget}</h3>`,
-            `
-                <select class="text-medium wide" id='violation-report-category' required>
+    console.log("op==>",options);
+    await Swal.fire({
+        title: `<h3>Report ${reportTarget}</h3>`,
+        html:`<select class="text-medium wide" id='violation-report-category' required>
                 ${options}
-                </select>
-            `,
-            () => {},
-            async () => {
-                loader();
-                message("Reporting...");
-                const data = await postRequest(reportURL, {
-                    report: getElement("violation-report-category").value,
-                    ...reportTargetData,
-                });
-                loader(false);
-                if (!data) return;
-                if (data.code === code.OK) {
-                    return message(
-                        `Reported${" " + reportTarget}. We\'ll investigate.`
-                    );
-                }
-                error(data.error);
+            </select>`,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
+        cancelButtonText:'No, go back',
+        preConfirm: async () => {
+            console.log("op==>", document.getElementById('violation-report-category').value);
+            loader();
+            message("Reporting...");
+            const data = await postRequest(reportURL, {
+                report: getElement("violation-report-category").value,
+                ...reportTargetData,
+            });
+            loader(false);
+            if (!data) return;
+            if (data.code === code.OK) {
+                return message(
+                    `Reported${" " + reportTarget}. We\'ll investigate.`
+                );
             }
-        )
-        .set("labels", {
-            cancel: `${Icon("report")} Report ${reportTarget}`,
-            ok: "No, go back ",
-        })
-        .set("closable", false);
+            error(data.error);
+        },
+      })
+      
+    // alertify
+    //     .confirm(
+    //         `<h3>Report ${reportTarget}</h3>`,
+    //         `
+    //             <select class="text-medium wide" id='violation-report-category' required>
+    //             ${options}
+    //             </select>
+    //         `,
+    //         () => {},
+    //         async () => {
+    //             loader();
+    //             message("Reporting...");
+    //             const data = await postRequest(reportURL, {
+    //                 report: getElement("violation-report-category").value,
+    //                 ...reportTargetData,
+    //             });
+    //             loader(false);
+    //             if (!data) return;
+    //             if (data.code === code.OK) {
+    //                 return message(
+    //                     `Reported${" " + reportTarget}. We\'ll investigate.`
+    //                 );
+    //             }
+    //             error(data.error);
+    //         }
+    //     )
+    //     .set("labels", {
+    //         cancel: `${Icon("report")} Report ${reportTarget}`,
+    //         ok: "No, go back ",
+    //     })
+    //     .set("closable", false);
 };

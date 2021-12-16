@@ -89,7 +89,7 @@
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
 }
-.ajs-cancel{
+.ajs-cancel,.swal2-cancel{
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
