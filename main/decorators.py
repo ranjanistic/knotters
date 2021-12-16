@@ -146,3 +146,39 @@ def github_only(function):
         else:
             return function(request, *args, **kwargs)
     return wrap
+
+@decDec(csrf_exempt)
+def github_remote_only(function):
+    """
+    For not-owned by Knotters repositories
+    """
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if ISPRODUCTION:
+            whitelist = requests.get(
+                f'{settings.GITHUB_API_URL}/meta').json()['hooks']
+            real_ip = u'{}'.format(request.META.get('HTTP_X_REAL_IP'))
+            if not real_ip or real_ip == 'None':
+                return HttpResponseForbidden('Permission denied 0')
+            client_ip_address = ip_address(real_ip)
+            for valid_ip in whitelist:
+                if client_ip_address in ip_network(valid_ip):
+                    break
+            else:
+                return HttpResponseForbidden('Permission denied 1')
+
+            try:
+                request.POST = dict(**request.POST, **json.loads(
+                    unquote(request.body.decode(Code.UTF_8)).split('payload=')[1]))
+                ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
+                if ghevent == Event.PING:
+                    return HttpResponse(Code.OK)
+                hookID = request.META.get('HTTP_X_GITHUB_DELIVERY', None)
+                request.POST = dict(**request.POST,ghevent=ghevent,hookID=hookID)
+                return function(request, *args, **kwargs)
+            except Exception as e:
+                errorLog(e)
+                return HttpResponseBadRequest('Couldn\'t load request body properly.')
+        else:
+            return function(request, *args, **kwargs)
+    return wrap

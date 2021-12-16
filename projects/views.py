@@ -13,14 +13,14 @@ from django.conf import settings
 from main.bots import Github
 # from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
-from main.decorators import require_JSON_body, github_only, normal_profile_required, decode_JSON
+from main.decorators import github_remote_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import Action, Code, Event, Message, URL, Template
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectTag, ProjectTopic, Snapshot, Tag, Category
+from .models import BaseProject, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData, uniqueTag
 from .apps import APPNAME
@@ -247,6 +247,29 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404()
 
+@normal_profile_required
+@require_JSON_body
+def transferProjectOwnership(request: WSGIRequest, projID: UUID) -> HttpResponse:
+    try:
+        project = BaseProject.objects.get(id=projID, creator=request.user.profile, trashed=False, suspended=False)
+        newOwnerEmail = request.POST.get('newOwnerEmail', None)
+        if not newOwnerEmail:
+            return respondJson(Code.NO)
+        newOwnerEmail = str(newOwnerEmail).strip()
+        if project.creator.getEmail() == newOwnerEmail:
+            return respondJson(Code.NO)
+        newowner = Profile.objects.filter(user__email=newOwnerEmail, suspended=False, is_active=True, to_be_zombie=False).first()
+        if not newowner:
+            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+        if not project.is_verified:
+            project.creator = newowner
+            project.save()
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
 
 @require_GET
 def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
@@ -321,7 +344,19 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
             except Exception as e:
                 errorLog(e)
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
-        elif section == "metadata":
+        elif section == "sociallinks":
+            sociallinks = []
+            for key in request.POST.keys():
+                if str(key).startswith('sociallink'):
+                    link = str(request.POST[key]).strip()
+                    if link:
+                        sociallinks.append(link)
+            ProjectSocial.objects.filter(project=project).delete()
+            if len(sociallinks) > 1:
+                projectSocials = []
+                for link in sociallinks:
+                    projectSocials.append(ProjectSocial(project=project, link=link))
+                ProjectSocial.objects.bulk_create(projectSocials)
             return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
     except Exception as e:
@@ -535,7 +570,8 @@ def userGithubRepos(request):
         repos = ghuser.get_repos('public')
         data = []
         for repo in repos:
-            data.append({'name': repo.name, 'id': repo.id})
+            taken = FreeRepository.objects.filter(repo_id=repo.id).exists()
+            data.append({'name': repo.name, 'id': repo.id, 'taken': taken})
         return respondJson(Code.OK, dict(repos=data))
     except Exception as e:
         errorLog(e)
@@ -637,30 +673,96 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
         raise Http404()
 
 
-# # SHA secret won't allow this hook.
-# @csrf_exempt
-# @github_only
-# def githubEventsListenerFree(request:WSGIRequest,type: str, projID:UUID) -> HttpResponse:
-#     if type != Code.HOOK:
-#         return HttpResponseBadRequest('Invaild link type')
-#     event = request.POST['ghevent']
-#     if event != Event.PUSH:
-#         HttpResponse('Unsupported event')
-#     reponame = request.POST["repository"]["name"]
-#     owner_ghID = request.POST["repository"]["owner"]["login"]
-#     pusher = request.POST['pusher']
-#     try:
-#         project = FreeProject.objects.get(id=projID,repolinked=True,nickname=reponame)
-#         if owner_ghID != project.creator.ghID:
-#             return HttpResponseBadRequest('Invalid owner')
-#     except Exception as e:
-#         errorLog(f"HOOK: {e}")
-#         return HttpResponse(Code.NO)
-#     committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(user__email=pusher['email'])),is_active=True,to_be_zombie=False).first()
-#     if committer:
-#         committer.increaseXP(by=2)
-#         project.creator.increaseXP(by=2)
-#     return HttpResponse(Code.OK)
+@csrf_exempt
+@github_remote_only
+def githubEventsListenerFree(request:WSGIRequest,type: str, projID:UUID) -> HttpResponse:
+    raise Http404()
+    try:
+        if type != Code.HOOK:
+            return HttpResponseBadRequest('Invaild link type')
+        event = request.POST['ghevent']
+        reponame = request.POST["repository"]["name"]
+        owner_ghID = request.POST["repository"]["owner"]["login"]
+        hookID = request.POST['hookID']
+        try:
+            project = Project.objects.get(id=projID, reponame=reponame, trashed=False, suspended=False)
+            if owner_ghID != PUBNAME:
+                return HttpResponseBadRequest('Invalid owner')
+        except Exception as e:
+            errorLog(f"HOOK: {e}")
+            return HttpResponse(Code.NO)
+        hookrecord, _ = ProjectHookRecord.objects.get_or_create(hookID=hookID, defaults=dict(
+            success=False,
+            project=project,
+        ))
+        if hookrecord.success:
+            return HttpResponse(Code.NO)
+        if event == Event.PUSH:
+            pusher = request.POST['pusher']
+            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(
+                user__email=pusher['email'])), is_active=True, to_be_zombie=False).first()
+            if committer:
+                committer.increaseXP(by=2)
+                project.creator.increaseXP(by=2)
+                project.moderator.increaseXP(by=2)
+        elif event == Event.PR:
+            pr = request.POST.get('pull_request', None)
+            if pr:
+                action = request.POST.get('action', None)
+                pr_creator_ghID = pr['user']['login']
+                if action == 'opened':
+                    pr_creator = Profile.objects.filter(
+                        githubID=pr_creator_ghID, is_active=True).first()
+                    if pr_creator:
+                        pr_creator.increaseXP(by=5)
+                elif action == 'closed':
+                    pr_creator = Profile.objects.filter(
+                        githubID=pr_creator_ghID, is_active=True).first()
+                    if pr['merged']:
+                        if pr_creator:
+                            pr_creator.increaseXP(by=10)
+                        project.creator.increaseXP(by=5)
+                        project.moderator.increaseXP(by=5)
+                    else:
+                        if pr_creator:
+                            pr_creator.decreaseXP(by=2)
+                elif action == 'reopened':
+                    pr_creator = Profile.objects.filter(
+                        githubID=pr_creator_ghID, is_active=True).first()
+                    if pr_creator:
+                        pr_creator.increaseXP(by=2)
+                elif action == 'review_requested':
+                    pr_reviewer = Profile.objects.filter(
+                        githubID=pr['requested_reviewer']['login'], is_active=True).first()
+                    if pr_reviewer:
+                        pr_reviewer.increaseXP(by=5)
+                elif action == 'review_request_removed':
+                    pr_reviewer = Profile.objects.filter(
+                        githubID=pr['requested_reviewer']['login'], is_active=True).first()
+                    if pr_reviewer:
+                        pr_reviewer.decreaseXP(by=5)
+                else:
+                    return HttpResponseBadRequest(event)
+            else:
+                return HttpResponseBadRequest(event)
+        elif event == Event.STAR:
+            action = request.POST.get('action', None)
+            if action == 'created':
+                project.creator.increaseXP(by=2)
+                project.moderator.increaseXP(by=2)
+            elif action == 'deleted':
+                project.creator.decreaseXP(by=2)
+                project.moderator.decreaseXP(by=2)
+            else:
+                return HttpResponseBadRequest(event)
+        else:
+            return HttpResponseBadRequest(event)
+        hookrecord.success = True
+        hookrecord.save()
+        return HttpResponse(Code.OK)
+    except Exception as e:
+        errorLog(f"GH-EVENT: {e}")
+        raise Http404()
 
 @csrf_exempt
 @github_only
