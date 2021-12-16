@@ -18,8 +18,10 @@
                 <div class="pallete w3-center no-pad">
                     <img class="primary" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
                     <div class="w3-row w3-padding">
-                        <h5>{{ mentor.getName }}</h5>
-                        <strong class="w3-tiny w3-round w3-tag active" style="margin-bottom:5px">MNT</strong><br/>
+                        <h5 style="{% if mentor.has_labels %}margin:4px{% endif %}" class="{% if mentor.is_verified %}align{% endif %}">{{ mentor.getName }}{% if mentor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        {% for label in mentor.get_labels %}
+                            <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
+                        {% endfor %}{% if mentor.has_labels %}<br/>{% endif %}
                         <span>{{ mentor.getBio|or:mentor.getXP|truncatechars:45 }}</span>
                     </div>
                     <br/>
@@ -44,7 +46,10 @@
                 <div class="pallete pallete_i w3-center">
                     <img class="primary" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
                     <div class="w3-row w3-padding">
-                        <h5>{{ mentor.getName }}</h5>
+                         <h5 style="{% if mentor.has_labels %}margin:4px{% endif %}" class="{% if mentor.is_verified %}align{% endif %}">{{ mentor.getName }}{% if mentor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        {% for label in mentor.get_labels %}
+                            <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
+                        {% endfor %}{% if mentor.has_labels %}<br/>{% endif %}
                         <span>{{ mentor.getBio|or:mentor.getXP|truncatechars:45 }}</span>
                     </div>
                     <br/>
