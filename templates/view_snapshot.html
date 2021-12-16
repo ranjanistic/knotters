@@ -84,7 +84,7 @@
             </div>
         </div>
         <br/>
-        <div id="snap-modal-{{snapshot.get_id}}" class="w3-modal align" style="display: none">
+        <div id="snap-modal-{{snapshot.get_id}}" class="w3-modal align" onclick="closeSnapshotMoreBtn('{{snapshot.get_id}}',event)" style="display: none">
             <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snap-mob-{{snapshot.get_id}}">
                 <div class="w3-row w3-center">
                     {% if snapshot.creator == request.user.profile %}

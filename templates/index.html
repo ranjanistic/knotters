@@ -95,7 +95,7 @@
         </noscript>
         <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
-        <nav style="width:100%;display:block;position:sticky;transition:top 0.3s;z-index:999;" class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
+        <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             {% block nav_title %}
             <a
                 style="padding:8px"
@@ -228,6 +228,8 @@
                     >
                     </div>
                     <div class="w3-row">
+                        <div class="w3-row browser-view" data-type="trending-mentors" id='trending-mentors-view'>
+                        </div>
                         <div class="w3-row align snapshot-viewer" id="snap-view-2">
                         </div>
                         <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
@@ -345,22 +347,10 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
-        <div class="preview-image-modal" id="image-previewer">
+        <div class="preview-image-modal w3-padding-small" id="image-previewer">
             <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
-        <script>
-            var prevScrollpos = window.pageYOffset;
-            window.onscroll = ()=> {
-            var currentScrollPos = window.pageYOffset;
-            if (prevScrollpos > currentScrollPos) {
-                document.getElementById("navbar").style.top = "0";
-            } else {
-                document.getElementById("navbar").style.top = "-64px";
-            }
-            prevScrollpos = currentScrollPos;
-            }
-        </script>
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
@@ -370,6 +360,8 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
+        <script src="{% static 'scripts/request.js' %}"></script>
+        <script src="{% static 'scripts/device.js' %}"></script>
         <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
 

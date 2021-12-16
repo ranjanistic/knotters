@@ -75,7 +75,9 @@
           
           <div class="w3-row w3-padding">
             <h5 class="{% if person.profile.is_verified %}align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-            {% if person.profile.is_moderator %}<strong class="w3-tiny w3-round w3-tag accent" style="margin-bottom:5px">MOD</strong><br/>{% endif %}
+            {% if person.profile.is_moderator %}<strong class="w3-tiny w3-round w3-tag accent" style="margin-bottom:5px">MOD</strong>{% endif %}
+            {% if person.profile.is_mentor %}<strong class="w3-tiny w3-round w3-tag active" style="margin-bottom:5px">MNT</strong>{% endif %}
+            {% if person.profile.is_moderator or person.profile.is_mentor %}<br/>{% endif %}
             <span>{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
@@ -129,7 +131,7 @@
 
         {% if self %}
         <div class="w3-row pallete">
-          <strong>This is currently private to you only.</strong>
+          <strong class="dead-text">This is currently private to you only.</strong>
           <p><b>{% trans "Email ID" %}</b> <span>{{ person.email }}</span></p>
           <p><b>{% trans "Date joined" %}</b> <span>{{ person.date_joined }}</span></p>
           <p><b>{% trans "Last login" %}</b> <span> {{ person.last_login }}</span></p>
@@ -151,6 +153,9 @@
             {% if not person.profile.is_manager %}
             <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">{% trans "Overview" %}</span></button>
             {% endif %}
+            {% if person.profile.is_mentor %}
+            <button title="Mentorship" id="mentorship" class="nav-tab" data-icon="supervisor_account"><span class="w3-hide-small">{% trans "Mentorship" %}</span></button>
+            {% endif %}
             <button title="Personal projects" id="projects" class="nav-tab" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button>
             {% if not person.profile.is_manager %}
             <button title="Acheivements" id="acheivements" class="nav-tab" data-icon="emoji_events"><span class="w3-hide-small">{% trans "Acheivements" %}</span></button>
@@ -158,9 +163,6 @@
             {% if person.profile.is_manager %}
             <button title="Competitions" id="competitions" class="nav-tab" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button>
             {% endif %}
-            
-            {% comment %} <button hidden id="contribution" class="nav-tab" data-icon="group_work"><span class="w3-hide-small">Contribution</span></button> {% endcomment %}
-            <button hidden id="activity" class="nav-tab" data-icon="history"><span class="w3-hide-small">{% trans "Activity" %}</span></button>
             {% if person.profile.is_moderator %}
             <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
             {% endif %}
@@ -179,7 +181,7 @@
             <button id="account" class="set-tab" data-icon="manage_accounts"><span class="w3-hide-small">{% trans "Account" %}</span></button>
             <button id="preference" class="set-tab" data-icon="settings"><span class="w3-hide-small">{% trans "Preference" %}</span></button>
             <button id="security" class="set-tab" data-icon="shield"><span class="w3-hide-small">{% trans "Security" %}</span></button>
-            {% if user.is_authenticated and user.is_moderator %}
+            {% if user.is_authenticated and user.is_moderator and False %}
               <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
             {% endif %}
             <hr />
@@ -242,7 +244,7 @@
 		).set('labels', {cancel:`${Icon('block')} Block {{person.profile.getFName}}`, ok:'No, go back'}).set('closable', false)
 	}
 	getElement('report-account').onclick=async()=>{
-    const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+    const data = await getRequest(URLS.REPORT_CATEGORIES)
     if(!data) return message('Block instead?')
     if(data.code!==code.OK){
       error(data.error)

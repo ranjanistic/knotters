@@ -192,12 +192,13 @@ class Profile(models.Model):
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
     githubID = models.CharField(
         max_length=40, null=True, default=None, blank=True)
-    bio = models.CharField(max_length=300, blank=True, null=True)
+    bio = models.CharField(max_length=350, blank=True, null=True)
     successor = models.ForeignKey('User', null=True, blank=True, related_name='successor_profile',
                                   on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     successor_confirmed = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
     is_moderator = models.BooleanField(default=False)
+    is_mentor = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')

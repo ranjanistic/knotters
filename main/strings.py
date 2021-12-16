@@ -68,6 +68,7 @@ class Code():
     FEEDBACKS = 'feedbacks'
 
     COMPETITIONS = 'competitions'
+    MENTORSHIPS = 'mentorships'
     RESULTS = "results"
     JUDGEMENTS = 'judgements'
     MODERATIONS = 'moderations'
@@ -253,6 +254,7 @@ class Profile():
     ACTIVITY = "activity"
     MODERATION = "moderation"
     COMPETITIONS = "competitions"
+    MENTORSHIP = "mentorship"
 
     class Setting():
         ACCOUNT = "account"
@@ -1193,6 +1195,12 @@ class Template():
         @property
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+
+        BROWSE_TRENDING_MENTORS = 'browse/trending-mentors'
+
+        @property
+        def trending_mentors(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TRENDING_MENTORS}.html'
 
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 

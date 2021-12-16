@@ -165,7 +165,7 @@ getElements("modaction").forEach((action)=>{
 })
 {% endif %}
     getElement('report-moderation').onclick=async()=>{
-        const data = JSON.parse(await getRequest(URLS.REPORT_CATEGORIES))
+        const data = await getRequest(URLS.REPORT_CATEGORIES)
         if(!data) return
         if(data.code!==code.OK){
             return error(data.error)

@@ -81,6 +81,64 @@ const loadTabScript = (attr, tab) => {
                         });
                         try {
                             getElement("invitepeople").onclick = (_) => {
+                                // await Swal.fire({
+                                //     title: `<h4>Invite teammate</h4>`,
+                                //     html:`<div class="w3-row">
+                                    //     <h5>Type the email address or Github ID of the person to invite them to participate with you.</h5>
+                                    //     <input class="wide" type="text" required placeholder="Email address or Github ID" id="dialoginviteeID" /><br/>
+                                    //     <span class="negative-text w3-right" id="dialoginviteerr"></span>
+                                    //     <br/>
+                                    //     <button class="active" id="dialoginvite">Invite</button>
+                                    //     <button class="positive" id="sharecompetition">${Icon(
+                                    //         "share"
+                                    //     )}Share competition</button>
+                                    // </div>`,
+                                //     focusConfirm: false,
+                                //     showCancelButton: true,
+                                //     confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
+                                //     cancelButtonText:'No, go back',
+                                //     preConfirm: async () => {
+                                //         getElement("dialoginviteerr").innerHTML = "";
+                                        // getElement("sharecompetition").onclick = (
+                                        //     _
+                                        // ) => {
+                                        //     shareLinkAction(
+                                        //         `Competition at ${APPNAME}`,
+                                        //         `Checkout this competition at ${APPNAME}, let's participate together. Hurry up! Time is not our friend.\n`,
+                                        //         setUrlParams(URLS.COMPID, compID),
+                                        //         () => {
+                                        //             message(
+                                        //                 `Invite them from here after they finish signing up on ${APPNAME}.`
+                                        //             );
+                                        //         }
+                                        //     );
+                                        // };
+                                        // getElement("dialoginvite").onclick =
+                                        //     async () => {
+                                        //         const userID = String(
+                                        //             getElement("dialoginviteeID").value
+                                        //         ).trim();
+                                        //         const data = await postRequest(
+                                        //             setUrlParams(
+                                        //                 URLS.INVITE,
+                                        //                 compdata.subID
+                                        //             ),
+                                        //             { userID }
+                                        //         );
+                                        //         if (data.code === code.OK) {
+                                        //             inviteDialog.close();
+                                        //             alertify.success(
+                                        //                 `Invitation email sent successfully to ${userID}`
+                                        //             );
+                                        //             tab.click();
+                                        //         } else {
+                                        //             getElement(
+                                        //                 "dialoginviteerr"
+                                        //             ).innerHTML = data.error;
+                                        //         }
+                                        //     };
+                                //     },
+                                //   })
                                 const inviteDialog = alertify
                                     .alert(
                                         `Invite teammate`,
@@ -138,6 +196,71 @@ const loadTabScript = (attr, tab) => {
                                     };
                             };
                             getElement("finalsubmit").onclick = (_) => {
+                                await Swal.fire({
+                                    title: `<h3>Report ${reportTarget}</h3>`,
+                                    html:`<select class="text-medium wide" id='violation-report-category' required>
+                                            ${options}
+                                        </select>`,
+                                    focusConfirm: false,
+                                    showCancelButton: true,
+                                    confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
+                                    cancelButtonText:'No, go back',
+                                    preConfirm: async () => {
+                                        console.log("op==>", document.getElementById('violation-report-category').value);
+                                        loader();
+                                        message("Reporting...");
+                                        const data = await postRequest2({path:reportURL, 
+                                            data:{
+                                                report: getElement("violation-report-category").value,
+                                                ...reportTargetData,
+                                            },
+                                            retainCache: true,
+                                        });
+                                        loader(false);
+                                        if (!data) return;
+                                        if (data.code === code.OK) {
+                                            return message(
+                                                `Reported${" " + reportTarget}. We\'ll investigate.`
+                                            );
+                                        }
+                                        error(data.error);
+                                    },
+                                })
+                                // await Swal.fire({
+                                //     title: `<h4>Final submission</h4>`,
+                                //     html:`<div class="w3-row">
+                                //         <h3>Are you sure you want to <strong>submit</strong>?</h3>
+                                //         <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                                //         <h4>Everyone in your submission team will be notified.</h4>
+                                //         <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
+                                //         <button onclick="miniWindow('${
+                                //             getElement("submissionurl").value
+                                //         }', 'Submission')" class="positive">${Icon(
+                                //                 "open_in_new"
+                                //             )}Verify submission</button>
+                                //         <br/><br/>
+                                //     </div>`,
+                                //     focusConfirm: false,
+                                //     showCancelButton: true,
+                                //     confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
+                                //     cancelButtonText:'No, go back',
+                                //     preConfirm: async () => {
+                                //         const data = await postRequest(
+                                //             setUrlParams(
+                                //                 URLS.SUBMIT,
+                                //                 compID,
+                                //                 compdata.subID
+                                //             )
+                                //         );
+                                //         if (data.code === code.OK) {
+                                //             alertify.success(data.message);
+                                //             submitDialog.close();
+                                //             tab.click();
+                                //         } else {
+                                //             alertify.error(data.error);
+                                //         }
+                                //     },
+                                //   })
                                 const submitDialog = alertify
                                     .confirm(
                                         `<h4>Final submission</h4>`,

@@ -75,7 +75,7 @@ class Competition(models.Model):
 
     reg_fee = models.IntegerField(default=0)
     fee_link = models.URLField(max_length=1000, blank=True, null=True)
-
+    hidden = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 

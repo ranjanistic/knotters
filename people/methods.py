@@ -70,7 +70,7 @@ def addTopicToDatabase(topic: str) -> Topic:
     return topicObj
 
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
-                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS, profileString.COMPETITIONS ]
+                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS, profileString.COMPETITIONS,profileString.MENTORSHIP ]
 
 SETTING_SECTIONS = [profileString.setting.ACCOUNT,
                     profileString.setting.PREFERENCE,profileString.setting.SECURITY]
@@ -111,6 +111,9 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
     elif section == profileString.COMPETITIONS:
         if profile.is_manager:
             data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile)
+    elif section == profileString.MENTORSHIP:
+        if profile.is_mentor:
+            data[Code.MENTORSHIPS] = Project.objects.filter(mentor=profile)
     else: return False
     return data
 

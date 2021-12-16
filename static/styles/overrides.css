@@ -52,7 +52,7 @@
 .ajs-content > h4{
     color: var(--primary-text) !important;
 }
-.ajs-message {
+.ajs-message,.swal2-icon-info {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;
     border: 0 !important;
@@ -67,7 +67,7 @@
     box-shadow: 4px 4px 15px 5px #0f0f0f27;
     z-index:999999 !important;
 }
-.ajs-message.ajs-error {
+.ajs-message.ajs-error,.swal2-icon-error {
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
@@ -75,7 +75,7 @@
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
-.ajs-message.ajs-success {
+.ajs-message.ajs-success,.swal2-icon-success {
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
 }
