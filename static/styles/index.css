@@ -353,7 +353,7 @@ h6.text-negative {
 .pallete_i {
     width: 300px;
     min-height: 400px;
-    height: 420px;
+    max-height: 440px;
     margin: 0 10px;
     padding: 0;
 }
