@@ -119,6 +119,7 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+@require_GET
 def snapshot(request: WSGIRequest, snapID):
     try:
         snapshot = Snapshot.objects.get(id=snapID)
@@ -326,7 +327,7 @@ def browser(request: WSGIRequest, type: str):
             limit = int(request.POST.get('limit', 5))
             recommended = True
             if request.user.is_authenticated:
-                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).order_by("-created_on")[:limit]
+                snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).distinct().order_by("-created_on")[:limit]
                 recommended = False
             else:
                 return respondJson(Code.OK,dict(snapIDs=[]))
