@@ -299,9 +299,12 @@ class Profile(models.Model):
             
             ghUser = cache.get(f"gh_user_data_{data.uid}")
             if not ghUser:
-                ghUser = Github.get_user_by_id(int(data.uid))
-                cache.set(f"gh_user_data_{data.uid}",
-                          ghUser, settings.CACHE_SHORT)
+                try:
+                    ghUser = Github.get_user_by_id(int(data.uid))
+                    cache.set(f"gh_user_data_{data.uid}",
+                            ghUser, settings.CACHE_SHORT)
+                except:
+                    return data.extra_data['login']
             ghID = ghUser.login
             if ghID:
                 if ghID != self.githubID:

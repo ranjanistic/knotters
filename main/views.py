@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
+from main.settings import CACHE_MIN, CACHE_SHORT
 from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
 from projects.models import FreeProject, LegalDoc, Project, Snapshot
@@ -25,7 +26,7 @@ from .env import ADMINPATH, ISPRODUCTION
 from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, verify_captcha, renderString
 from .decorators import dev_only, github_only, require_JSON_body, decode_JSON
 from .mailers import featureRelease
-from .strings import Code, URL, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
+from .strings import Code, URL, Message, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
 
 
 @require_GET
@@ -322,20 +323,25 @@ class Strings(TemplateView):
 def browser(request: WSGIRequest, type: str):
     try:
         if type == "project-snapshots":
-            snaps = []
             excludeIDs = request.POST.get('excludeIDs', [])
             limit = int(request.POST.get('limit', 5))
-            recommended = True
             if request.user.is_authenticated:
                 snaps = Snapshot.objects.exclude(id__in=excludeIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).distinct().order_by("-created_on")[:limit]
-                recommended = False
+                snapIDs = list(snaps.values_list("id", flat=True))
+                # cachedIDs = cache.get(f"browse_projects_snapshots_ids_{request.user.id}")
+                # if snapIDs == cachedIDs:
+                #     data = cache.get(f"browse_projects_snapshots_data_{request.user.id}")
+                # else:
+                data = dict(
+                    html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
+                    snapIDs=snapIDs,
+                    recommended=False
+                )
+                    # cache.set(f"browse_projects_snapshots_ids_{request.user.id}", snapIDs, CACHE_SHORT)
+                    # cache.set(f"browse_projects_snapshots_data_{request.user.id}", data, CACHE_SHORT)
+                return respondJson(Code.OK, data)
             else:
                 return respondJson(Code.OK,dict(snapIDs=[]))
-            return respondJson(Code.OK,dict(
-                html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
-                snapIDs=list(snaps.values_list("id", flat=True)),
-                recommended=recommended
-            )) 
         elif type == "new-profiles":
             excludeIDs = []
             if request.user.is_authenticated:
@@ -447,5 +453,6 @@ def browser(request: WSGIRequest, type: str):
         else:
             return HttpResponseBadRequest()
     except Exception as e:
-        errorLog(e)
+        if request.method == "POST":
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
