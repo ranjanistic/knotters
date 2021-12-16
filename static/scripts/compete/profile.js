@@ -195,7 +195,7 @@ const loadTabScript = (attr, tab) => {
                                         }
                                     };
                             };
-                            getElement("finalsubmit").onclick = (_) => {
+                            getElement("finalsubmit").onclick = async (_) => {
                                 await Swal.fire({
                                     title: `<h3>Report ${reportTarget}</h3>`,
                                     html:`<select class="text-medium wide" id='violation-report-category' required>
