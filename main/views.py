@@ -440,6 +440,9 @@ def browser(request: WSGIRequest, type: str):
         elif type == "trending-mentors":
             mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
+        elif type == "display-mentors":
+            mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")
+            return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(mentors=mentors, count=len(mentors)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:
