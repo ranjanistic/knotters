@@ -604,3 +604,20 @@ class SnapshotAdmirer(models.Model):
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
     snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='admired_snapshot')
 
+
+class FileExtension(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    extension = models.CharField(max_length=50, unique=True)
+    description = models.CharField(max_length=500, null=True, blank=True)
+    topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[], related_name='file_extension_topics')
+
+    def getTags(self):
+        tags = []
+        for topic in self.topics.all():
+            tags = tags + list(topic.getTags())
+        return tags
+
+class TopicFileExtension(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
+    file_extension = models.ForeignKey(FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')

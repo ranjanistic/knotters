@@ -5,13 +5,37 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row tertiary">
+<div class="w3-row tertiary" style="background-image: url('/static/graphics/self/icon.svg');">
     <div class="w3-row" style="padding:16px 4px">
-    <h2 class="w3-center">{% trans "Backed by the Greatest" %}</h2>
+    <h2 class="w3-center pallete">{% trans "Backed by the Greatest" %}</h2>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
             {% for dmentor in dmentors %}
+            <div class="swiper-slide">
+                <a href="{{get_link|or:URLS.PEOPLE}}" target="_blank">
+                <div class="pallete w3-center no-pad">
+                    <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />
+                    <div class="w3-row w3-padding">
+                        <h3>{{ dmentor.get_name }}</h3>
+                        <span>{{ dmentor.get_about }}</span>
+                    </div>
+                    <br/>
+                </div>
+                </a>
+            </div>
+            <div class="swiper-slide">
+                <a href="{{get_link|or:URLS.PEOPLE}}" target="_blank">
+                <div class="pallete w3-center no-pad">
+                    <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />
+                    <div class="w3-row w3-padding">
+                        <h3>{{ dmentor.get_name }}</h3>
+                        <span>{{ dmentor.get_about }}</span>
+                    </div>
+                    <br/>
+                </div>
+                </a>
+            </div>
             <div class="swiper-slide">
                 <a href="{{get_link|or:URLS.PEOPLE}}" target="_blank">
                 <div class="pallete w3-center no-pad">

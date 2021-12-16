@@ -5,12 +5,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
+from allauth.socialaccount.providers.github.provider import GitHubProvider
+from allauth.socialaccount.models import SocialAccount
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.conf import settings
 from main.bots import Github
+from allauth.account.models import EmailAddress
 # from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
 from main.decorators import github_remote_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
@@ -20,7 +23,7 @@ from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, Snapshot, Tag, Category
+from .models import BaseProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData, uniqueTag
 from .apps import APPNAME
@@ -238,7 +241,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
 @require_JSON_body
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = BaseProject.objects.get(id=projID, creator=request.user.profile, trashed=False, suspended=False)
+        project = BaseProject.objects.get(
+            id=projID, creator=request.user.profile, trashed=False, suspended=False)
         project.getProject().moveToTrash()
         if request.headers.get('X-KNOT-REQ-SCRIPT', False):
             return respondJson(Code.OK)
@@ -247,18 +251,21 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404()
 
+
 @normal_profile_required
 @require_JSON_body
 def transferProjectOwnership(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = BaseProject.objects.get(id=projID, creator=request.user.profile, trashed=False, suspended=False)
+        project = BaseProject.objects.get(
+            id=projID, creator=request.user.profile, trashed=False, suspended=False)
         newOwnerEmail = request.POST.get('newOwnerEmail', None)
         if not newOwnerEmail:
             return respondJson(Code.NO)
         newOwnerEmail = str(newOwnerEmail).strip()
         if project.creator.getEmail() == newOwnerEmail:
             return respondJson(Code.NO)
-        newowner = Profile.objects.filter(user__email=newOwnerEmail, suspended=False, is_active=True, to_be_zombie=False).first()
+        newowner = Profile.objects.filter(
+            user__email=newOwnerEmail, suspended=False, is_active=True, to_be_zombie=False).first()
         if not newowner:
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         if not project.is_verified:
@@ -279,7 +286,8 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
             raise Exception()
-        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(
+            request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except Exception as e:
         raise Http404(e)
@@ -295,7 +303,8 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             if project.suspended and not (iscreator or ismoderator):
                 raise Exception()
-            isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+            isAdmirer = request.user.is_authenticated and project.isAdmirer(
+                request.user.profile)
             return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
         else:
             if request.user.is_authenticated:
@@ -355,7 +364,8 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
             if len(sociallinks) > 1:
                 projectSocials = []
                 for link in sociallinks:
-                    projectSocials.append(ProjectSocial(project=project, link=link))
+                    projectSocials.append(
+                        ProjectSocial(project=project, link=link))
                 ProjectSocial.objects.bulk_create(projectSocials)
             return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
@@ -368,7 +378,8 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 @require_JSON_body
 def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
-        project = Project.objects.get(id=projID, creator=request.user.profile, trashed=False, suspended=False)
+        project = Project.objects.get(
+            id=projID, creator=request.user.profile, trashed=False, suspended=False)
         if action == Action.ADD:
             name = str(request.POST['filename']).strip()
             file = base64ToFile(request.POST['filedata'])
@@ -539,7 +550,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             if len(addtagIDs) < 1:
                 return respondJson(Code.NO)
             if currentcount + len(addtagIDs) > 5:
-                return respondJson(Code.NO,error=Message.MAX_TAGS_ACHEIVED)
+                return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
                 for topic in project.getTopics():
@@ -637,6 +648,7 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
         raise Http404()
 
+
 @normal_profile_required
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
@@ -653,9 +665,11 @@ def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID):
     except:
         return respondJson(Code.NO)
 
+
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = Project.objects.get(id=projID, status=Code.APPROVED, trashed=False, suspended=False)
+        project = Project.objects.get(
+            id=projID, status=Code.APPROVED, trashed=False, suspended=False)
         data = cache.get(f"project_livedata_json_{projID}")
         if not data:
             contributors, languages = getProjectLiveData(project)
@@ -675,7 +689,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 @csrf_exempt
 @github_remote_only
-def githubEventsListenerFree(request:WSGIRequest,type: str, projID:UUID) -> HttpResponse:
+def githubEventsListenerFree(request: WSGIRequest, type: str, projID: UUID) -> HttpResponse:
     raise Http404()
     try:
         if type != Code.HOOK:
@@ -685,7 +699,8 @@ def githubEventsListenerFree(request:WSGIRequest,type: str, projID:UUID) -> Http
         owner_ghID = request.POST["repository"]["owner"]["login"]
         hookID = request.POST['hookID']
         try:
-            project = Project.objects.get(id=projID, reponame=reponame, trashed=False, suspended=False)
+            project = Project.objects.get(
+                id=projID, reponame=reponame, trashed=False, suspended=False)
             if owner_ghID != PUBNAME:
                 return HttpResponseBadRequest('Invalid owner')
         except Exception as e:
@@ -764,6 +779,7 @@ def githubEventsListenerFree(request:WSGIRequest,type: str, projID:UUID) -> Http
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
 
+
 @csrf_exempt
 @github_only
 def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UUID) -> HttpResponse:
@@ -777,7 +793,8 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
         owner_ghID = request.POST["repository"]["owner"]["login"]
         hookID = request.POST['hookID']
         try:
-            project = Project.objects.get(id=projID, reponame=reponame, trashed=False, suspended=False)
+            project = Project.objects.get(
+                id=projID, reponame=reponame, trashed=False, suspended=False)
             if owner_ghID != PUBNAME:
                 return HttpResponseBadRequest('Invalid owner')
         except Exception as e:
@@ -790,13 +807,50 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
         if hookrecord.success:
             return HttpResponse(Code.NO)
         if event == Event.PUSH:
-            pusher = request.POST['pusher']
-            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(
-                user__email=pusher['email'])), is_active=True, to_be_zombie=False).first()
-            if committer:
-                committer.increaseXP(by=2)
-                project.creator.increaseXP(by=2)
-                project.moderator.increaseXP(by=2)
+            commits = request.POST["commits"]
+            committers = {}
+            un_committers = []
+            for commit in commits:
+                commit_author_ghID = commit["author"]["username"]
+                commit_author_email = commit["author"]["email"]
+                if not un_committers.__contains__(commit_author_ghID):
+                    commit_committer = committers.get(commit_author_ghID, None)
+                    if not commit_committer:
+                        commit_committer = Profile.objects.filter(Q(Q(githubID=commit_author_ghID) | Q(
+                            user__email=commit_author_email)), is_active=True, suspended=False, to_be_zombie=False).first()
+                        if not commit_committer:
+                            emailaddr = EmailAddress.objects.filter(
+                                email=commit_author_email, verified=True).first()
+                            if not emailaddr:
+                                un_committers.append(commit_author_ghID)
+                                continue
+                            else:
+                                commit_committer = emailaddr.user.profile
+                            committers[commit_author_ghID] = commit_committer
+                        else:
+                            committers[commit_author_ghID] = commit_committer
+                    added = commit["added"]
+                    removed = commit["removed"]
+                    modified = commit["modified"]
+                    changed = added + removed + modified
+                    extensions = {}
+                    for change in changed:
+                        parts = change.split('.')
+                        ext = parts[len(parts)-1]
+                        fileext = extensions.get(ext, None)
+                        if not fileext:
+                            fileext, created = FileExtension.objects.get_or_create(
+                                extension=ext, defaults=dict(extension=ext))
+                            extensions[ext] = fileext
+                            if created:
+                                fileext.topics.set(project.topics.all())
+                        for topic in fileext.topics.all():
+                            commit_committer.increaseTopicPoints(
+                                by=1, topic=topic)
+            project.creator.increaseXP(
+                by=(((len(commits)//len(committers))//2) or 1))
+            project.moderator.increaseXP(
+                by=(((len(commits)//len(committers))//3) or 1))
         elif event == Event.PR:
             pr = request.POST.get('pull_request', None)
             if pr:
@@ -948,7 +1002,8 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
             return redirect(baseproject.getProject().getLink(alert=Message.SNAP_CREATED))
 
         id = request.POST['snapid']
-        snapshot = Snapshot.objects.get(id=id, base_project=baseproject, creator=request.user.profile)
+        snapshot = Snapshot.objects.get(
+            id=id, base_project=baseproject, creator=request.user.profile)
         if action == Action.UPDATE:
             text = request.POST.get('snaptext', None)
             image = request.POST.get('snapimage', None)
@@ -958,7 +1013,6 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
             snapshot.text = text
             snapshot.save()
             return respondJson(Code.OK, message=Message.SNAP_UPDATED)
-
 
         if action == Action.REMOVE:
             snapshot.delete()
@@ -988,13 +1042,15 @@ def reportProject(request: WSGIRequest):
     try:
         report = request.POST['report']
         projectID = request.POST['projectID']
-        baseproject = BaseProject.objects.get(id=projectID, trashed=False, suspended=False)
+        baseproject = BaseProject.objects.get(
+            id=projectID, trashed=False, suspended=False)
         category = ReportCategory.objects.get(id=report)
         request.user.profile.reportProject(baseproject, category)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
+
 
 @normal_profile_required
 @require_JSON_body

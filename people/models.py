@@ -388,6 +388,21 @@ class Profile(models.Model):
         self.save()
         return self.xp
 
+    def increaseTopicPoints(self, topic, by: int = 0) -> int:
+        proftop, created = ProfileTopic.objects.get_or_create(
+            profile=self, topic=topic, defaults=dict(
+                profile=self,
+                topic=topic,
+                trashed=True,
+                points=by,
+            )
+        )
+        if created:
+            return by
+        return proftop.increasePoints(by)
+        
+
+
     def xpTarget(self):
         xp = self.xp
         strxp = str(xp)
