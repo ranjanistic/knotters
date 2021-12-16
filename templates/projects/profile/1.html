@@ -210,14 +210,12 @@
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row">
                 <div class="pallete">
-                    {% cache CACHE_LONG project_profile_description project.get_id|add:LANGUAGE_CODE %}
                     <center><h5>Description</h5><hr/></center>
                     <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}</button></a><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="25"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
-                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}"  width="20"/>&nbsp;{{project.moderator.getName}}</button></a><br/><br/>
+                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
-                    {% endcache %}
                 </div>
             </div>
             <br/>
@@ -241,8 +239,8 @@
                                 <h5>Add image</h5>
                             </label>
                         </div>
-                        <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">Submit snapshot</button>
-                        <button class="small negative" type='button' id="discard-edit-snapshot" data-icon="close">Discard</button>
+                        <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">{% trans "Publish snapshot" %}</button>
+                        <button class="small negative" type='button' id="discard-edit-snapshot" data-icon="close">{% trans "Discard" %}</button>
                     </form>
                     <hr/>
                 </div>
