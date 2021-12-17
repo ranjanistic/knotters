@@ -21,34 +21,34 @@
         <meta
             name="image"
             property="og:image"
-            content="http://127.0.0.1:8000/static/graphics/self/1024/icon.png"
+            content="https://knotters.org/static/graphics/self/1024/icon.png"
         />
         <meta property="og:type" content="social" />
-        <meta property="og:url" content="http://127.0.0.1:8000" />
-        <meta property="og:title" content="Home &#183; Knotters" />
+        <meta property="og:url" content="https://knotters.org" />
+        <meta property="og:title" content="403 Forbidden &#183; Knotters" />
         <meta
             property="og:description"
-            content="Solving problems together. Be a part of Knotters community and explore what everyone's involved into."
+            content="This part of our application is currently not allowed for you. Try again later."
         />
-        <meta property="og:site_name" content="Home &#183; Knotters" />
+        <meta property="og:site_name" content="403 &#183; Knotters" />
 
-        <meta name="twitter:title" content="Knotters" />
+        <meta name="twitter:title" content="403 Forbidden" />
         <meta
             name="twitter:description"
-            content="Solving problems together. Be a part of Knotters community and explore what everyone's involved into."
+            content="This part of our application is currently not allowed for you. Try again later."
         />
         <meta
             name="twitter:image"
-            content="http://127.0.0.1:8000/static/graphics/self/2500x1000/banner-bg.png"
+            content="https://knotters.org/static/graphics/self/2500x1000/banner-bg.png"
         />
         <meta name="twitter:site" content="@knottersdotorg" />
         <meta name="twitter:creator" content="@ranjanistic" />
-        <meta name="twitter:url" content="http://127.0.0.1:8000" />
+        <meta name="twitter:url" content="https://knotters.org" />
         <meta name="twitter:card" content="summary_large_image" />
 
         <meta
             name="linkedin:card"
-            content="http://127.0.0.1:8000/static/graphics/self/2500x1000/banner-bg.png"
+            content="https://knotters.org/static/graphics/self/2500x1000/banner-bg.png"
         />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -92,7 +92,7 @@
         <link rel="stylesheet" href="/static/styles/browser.css" />
 
         <link rel="manifest" href="/manifest.json" />
-        <title>Forbidden &#183; Knotters</title>
+        <title>403 Forbidden &#183; Knotters</title>
     </head>
 
     <body>
@@ -127,7 +127,7 @@
             onclick="betaAlert()"
             hidden
         >
-            This is Knotters Beta. Click here to learn more.
+            This is Knotters. Click here to learn more.
         </div>
 
         <nav class="w3-row primary w3-animate-top" id="navbar">
@@ -215,7 +215,7 @@
             <div class="w3-row w3-padding w3-center tertiary">
                 <br />
                 <div class="w3-padding">
-                    <i class="material-icons w3-jumbo">pan_tool</i>
+                    <i class="material-icons w3-jumbo">error</i>
                 </div>
                 <h1>403</h1>
                 <div class="w3-col w3-quarter w3-padding"></div>
@@ -246,11 +246,7 @@
             <br /><br />
             <div class="w3-col w3-half primary-text w3-padding">
                 <form action="/i18n/setlang/" method="POST">
-                    <input
-                        type="hidden"
-                        name="csrfmiddlewaretoken"
-                        value=""
-                    />
+                    <input type="hidden" name="csrfmiddlewaretoken" value="" />
                     <select
                         name="language"
                         class="selectLanguage"
@@ -633,7 +629,7 @@
                     >Knotters API</a
                 ><br />
                 <a
-                    href="https://beta.knotters.org/"
+                    href="https://knotters.org/"
                     target="_blank"
                     class="text-secondary w3-animate-left"
                     >Beta program</a
@@ -645,7 +641,7 @@
                     class="primary w3-right navigator-share-action"
                     data-title="Knotters"
                     data-text="Checkout this page at Knotters"
-                    data-url="/template/403"
+                    data-url="/alsdkfj"
                     data-icon="share"
                 >
                     Share
@@ -746,7 +742,7 @@
                             /></button
                     ></a>
                     <a
-                        href="https://discord.gg/qZ3TdVHsma"
+                        href="https://discord.gg/F7vZ9fYkhe"
                         target="_blank"
                         rel="noreferrer"
                         ><span hidden>Discord</span
@@ -808,30 +804,34 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
-        <div class="preview-image-modal" id="image-previewer">
+        <div class="preview-image-modal w3-padding-small" id="image-previewer">
             <img src="" id="preivew-image-src" />
         </div>
 
         <script src="/strings.js"></script>
         <script src="/static/scripts/sw.js"></script>
         <script src="/static/alertify/alertify.min.js"></script>
+        <script src="/static/sweetalert2/min.js"></script>
         <script src="/static/cropper/cropper.min.js"></script>
         <script src="/static/chartjs/chart.min.js"></script>
         <script src="/static/swiper/swiper-bundle.min.js"></script>
         <script src="/static/scripts/index.js"></script>
         <script src="/static/scripts/theme.js"></script>
+        <script src="/static/scripts/loadlerts.js"></script>
+        <script src="/static/scripts/request.js"></script>
+        <script src="/static/scripts/reporter.js"></script>
+        <script src="/static/scripts/device.js"></script>
         <script src="/static/scripts/browser.js"></script>
         <script src="/static/scripts/snapshot.js"></script>
 
         <script>
-            const SITE = "http://127.0.0.1:8000";
-            const csrfmiddlewaretoken =
-                    "",
-                authenticated = false;
-            const activeuser = false;
+            const SITE = "https://knotters.org";
+            const csrfmiddlewaretoken = "",
+                authenticated = "False" == "True";
+            const activeuser = authenticated && "" == "True";
             const ROOT = "/";
             const APPNAME = "Knotters";
-            const VERSION = "2.5.3";
+            const VERSION = "1.3.0";
             const SUBAPPSLIST = [
                 "projects",
                 "people",
@@ -842,9 +842,8 @@
             const SUBAPPNAME = "";
             const dialog = alertify;
             const ICON = "/static/graphics/self/icon.svg";
-            const RECAPTCHA_KEY = "6Lc-y0gcAAAAAL9sAZ00TZ6NWSb9iu4x29wle0Wr";
-            const VAPID_KEY =
-                "BKoFq8TtGRgy7nPsFH1R3joZJRv4BkZwmmoAAxI3Ouw8YRymyoIebrQBjWDVzeBHsF7s16tGrztZzcX2si91AQ0";
+            const RECAPTCHA_KEY = "6Le3lbwcAAAAAHUdIEHQ1Q2BassNNdxWePHFZFJl";
+            const VAPID_KEY = "None";
             if ("") {
                 error("");
             }
