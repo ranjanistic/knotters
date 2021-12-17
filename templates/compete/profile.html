@@ -74,21 +74,32 @@
         </div>
         {% endif %}
         {% if not isJudge and not isMod and not isManager %}
-        {% if compete.reg_fee and compete.isActive %}
-        <div class="w3-col w3-half w3-center dead-text w3-padding">
-          <h4>{% trans "To be eligible for prizes here" %},</h4>
-          <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
-            <script>
-              (function(){
-                var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
-                if(x){ var s=d.createElement('script'); s.defer=!0;s.id='razorpay-embed-btn-js';
-                s.src='https://cdn.razorpay.com/static/embed_btn/bundle.js';d.body.appendChild(s);} else{var rzp=window['__rzp__'];
-                rzp && rzp.init && rzp.init()}})();
-            </script>
+          {% if compete.reg_fee and compete.isActive %}
+          <div class="w3-col w3-half w3-center dead-text w3-padding">
+            <h4>{% trans "To be eligible for prizes here" %},</h4>
+            <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
+              <script>
+                (function(){
+                  var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
+                  if(x){ var s=d.createElement('script'); s.defer=!0;s.id='razorpay-embed-btn-js';
+                  s.src='https://cdn.razorpay.com/static/embed_btn/bundle.js';d.body.appendChild(s);} else{var rzp=window['__rzp__'];
+                  rzp && rzp.init && rzp.init()}})();
+              </script>
+            </div>
+            <h6>{% trans "Do not pay if already paid." %} Read <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>.</h6>
           </div>
-          <h6>{% trans "Do not pay if already paid." %} Read <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>.</h6>
-        </div>
-        {% endif %}
+          {% endif %}
+          {% if compete.isUpcoming %}
+            <div class="w3-col w3-half w3-center w3-padding">
+            {% if not request.user.is_authenticated %}
+              <h3>In order to participate</h3>
+              <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
+            {% else %}
+              <h6>You'll be able to participate when <br/>this competition begins.<br/>In the meantime, checkout</h6>
+              <a href="https://discord.gg/F7vZ9fYkhe" target="_blank"><button class="positive big-button" data-icon="open_in_new">Knotters on Discord</button></a>
+            {%  endif %}
+            </div>
+          {% endif %}
         {% endif %}
       </div>
       <div class="w3-col w3-third w3-center w3-padding">
@@ -122,7 +133,7 @@
      <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="18" />&nbsp;knottersdotorg</button></a>
      <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>LinkedIn</span><button aria-label="LinkedIn"  class="primary w3-animate-zoom"><img alt="LinkedIn" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="21" height="18" />&nbsp;knottersdotorg</button></a>
      <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" target="_blank" rel="noreferrer"><span hidden>YouTube</span><button aria-label="YouTube"  class="primary w3-animate-zoom"><img alt="YouTube" src="{% static 'graphics/thirdparty/youtube.png' %}" width="26" height="18" />&nbsp;Knotters Community</button></a>
-     <a href="https://discord.gg/qZ3TdVHsma" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.png' %}" width="18" height="20" />&nbsp;Knotters</button></a>            
+     <a href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.png' %}" width="18" height="20" />&nbsp;Knotters</button></a>            
     </div>
     <br/><br/>
     {% if compete.isUpcoming %}
@@ -160,7 +171,11 @@
         <i class="w3-jumbo">lock</i>
         <h3>{% trans "Stay Tuned!" %}</h3>
         <h4>{% trans "Full details will be shown" %} {% trans "and" %} {% trans "you'll be able to participate" %}, <br/>{% trans "once the competition begins." %}</h4>
-        <h5>In the meantime, go through <br/>our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}</a>.</h5>
+        <h5>In the meantime, go through <br/>our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}<i>open_in_new</i></a>.</h5>
+        {% if not request.user.is_authenticated %}
+        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
+        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="accent big-button" data-icon="login">Login as existing</button></a>
+        {% endif %}
       </div>
       <br/>
     {% else %}
@@ -202,7 +217,7 @@
     <br/>
   </div>
   {% if not compete.isUpcoming %}
-  <div class="w3-row w3-padding" id="notice">
+  <div class="w3-row w3-padding text-medium" id="notice">
     <strong>
     <center>*NOTICE</center><br/>
     - All mentioned prizes & perks for rank holders are the sole resposibility of <a href="{{compete.creator.getLink}}" target="_blank">the manager</a>.
