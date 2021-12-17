@@ -294,6 +294,7 @@
                     </select>
                 </form>
                 <a href="/press" class="text-secondary w3-animate-left" hidden>{% trans "For the press" %}</a><br/>
+                <span class="text-secondary w3-animate-left pointer" onclick="troubleShootingInfo()">{% trans "Troubleshooting" %}</span><br/>
                 <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">{% trans "Report" %} &amp; {% trans "Feedback" %}</span><br/>
                 <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
@@ -356,7 +357,7 @@
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
-        <script src="{% static 'sweetalert2/min.js' %}"></script>
+        <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>

@@ -107,7 +107,7 @@ const loadGlobalEventListeners = () => {
             if(!view.innerHTML.trim()) view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message(STRING.re_introduction);
+                message(STRING.re_introduction, (t)=>{t.onclick=_=>window.location.href=URLS.LANDING});
                 hide(view);
             });
         }
@@ -1066,26 +1066,6 @@ const getNumberSuffix = (value) => {
 };
 
 const numsuffix = (number) => `${number}${getNumberSuffix(number)}`;
-const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
-    alertify
-        .alert(
-            "Github ID Required",
-            `<div class="w3-row w3-padding">
-    <h4>Your Github identity must be linked with Knotters for this action.</h4>
-    <br/>
-    <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
-        <button type="button" class="secondary"><img src="/static/graphics/thirdparty/github-dark.png" width="20" />
-        &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
-        </button>
-    </a>
-    </div>`,
-            () => {
-                oncancel();
-            }
-        )
-        .set("closable", false)
-        .set("label", "Cancel");
-};
 
 const restartIntros = () => {
     Object.keys(localStorage).forEach((key) => {
@@ -1094,37 +1074,3 @@ const restartIntros = () => {
         }
     });
 };
-
-const betaAlert = () => {
-    if (window.location.host.startsWith("beta.") || 1) {
-        alertify
-            .confirm(
-                "<h6>This is Knotters Beta</h6>",
-                `<h5>Welcome to Knotters Beta, the pre-stable version of Knotters.
-                New features become available here before Knotters.<br/>
-                You'll have to create an account here separately from Knotters. None of the information at Knotters will be made available here.<br/>
-                By continuing, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
-            </h5>
-            <h5>
-                You can go to the stable Knotters (knotters.org) if you're here by mistake.
-            </h5>
-            `,
-                () => {
-                    window.location.href = window.location.href.replace(
-                        "//beta.",
-                        "//"
-                    );
-                },
-                () => {
-                    window.sessionStorage.setItem("beta-alerted", 1);
-                    message("Remember, you're using Knotters Beta.");
-                }
-            )
-            .set("closable", false)
-            .set("labels", {
-                ok: "Go to Knotters",
-                cancel: "Stay in Knotters Beta",
-            });
-    }
-};
-

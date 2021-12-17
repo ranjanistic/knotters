@@ -49,6 +49,26 @@ const reportFeedbackView = () => {
         denyButtonText: 'Send Report',
         cancelButtonText: 'Cancel',
         focusConfirm: false,
+        preConfirm: () => {
+            const summary = String(
+                getElement("report-feed-summary").value
+            ).trim();
+            if (!summary) {
+                error("Short description required");
+                return false;
+            }
+            return true
+        },
+        preDeny: () => {
+            const summary = String(
+                getElement("report-feed-summary").value
+            ).trim();
+            if (!summary) {
+                error("Short description required");
+                return false;
+            }
+            return true
+        }
     }).then(async(result) => {
         if(result.isDismissed) return;
         let data = {};
