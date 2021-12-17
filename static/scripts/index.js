@@ -53,14 +53,6 @@ const visibleElement = (id, show = true) => {
 
 const visible = (element, show = true) => visibleElement(element.id, show);
 
-const loader = (show = true) => visibleElement("viewloader", show);
-const subLoader = (show = true) => visibleElement("subloader", show);
-subLoader(true);
-const loaders = (show = true) => {
-    loader(show);
-    subLoader(show);
-};
-
 const openSpinner = (id = "loader") => showElement(id);
 
 const hideSpinner = (id = "loader") => {
@@ -82,29 +74,6 @@ const miniWindow = (url, name = APPNAME) =>
 const newTab = (url) => {
     window.open(setUrlQueries(url, { miniwin: 1 }));
 };
-
-const message = (msg = "") => {
-    alertify.set("notifier", "position", "top-left");
-    alertify.message(msg);
-};
-
-const error = (msg = "Something went wrong, try that again?") => {
-    alertify.set("notifier", "position", "bottom-right");
-    alertify.error(msg);
-};
-
-const success = (msg = "Success") => {
-    alertify.set("notifier", "position", "top-right");
-    alertify.success(msg);
-};
-
-const loaderHTML = (loaderID = "loader") =>
-    `<span class="w3-padding-small"><div class="loader" id="${loaderID}"></div></span>`;
-const loadErrorHTML = (
-    retryID = "retryload"
-) => `<div class="w3-center w3-padding-32">
-<i class="negative-text material-icons w3-jumbo">error</i>
-<h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;
@@ -138,7 +107,7 @@ const loadGlobalEventListeners = () => {
             if(!view.innerHTML.trim()) view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message(STRING.re_introduction);
+                message(STRING.re_introduction, (t)=>{t.onclick=_=>window.location.href=URLS.LANDING});
                 hide(view);
             });
         }
@@ -511,7 +480,7 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
             return data;
         }
     } catch (e) {
-        error("Something went wrong, try that again?");
+        error(STRING.default_error_message, true);
         subLoader(false);
         return false;
     }
@@ -537,7 +506,7 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
             return data;
         }
     } catch (e) {
-        error("Something went wrong, try that again?");
+        error(STRING.default_error_message, true);
         subLoader(false);
         return false;
     }
@@ -570,12 +539,12 @@ const loadGlobalEditors = (onSave = (done) => done(), onDiscard) => {
                     show(viewer);
                 }
             };
-            save.addEventListener('click', () => {
+            save.addEventListener("click", () => {
                 onSave(() => {
                     hide(editor);
                     show(viewer);
                 });
-            })
+            });
         };
     });
 };
@@ -981,14 +950,6 @@ const handleInputDropdowns = ({
     });
 };
 
-const loadReporters = () => {
-    getElements("report-button").forEach((report) => {
-        report.type = "button";
-        report.onclick = (_) => {
-            reportFeedbackView();
-        };
-    });
-};
 
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
@@ -1021,122 +982,6 @@ const secsToTime = (secs) => {
     }:${minrem >= 10 ? minrem : `0${minrem}`}:${
         secrem >= 10 ? secrem : `0${secrem}`
     }`;
-};
-
-const reportFeedback = async ({
-    isReport = true,
-    email = "",
-    category = "",
-    summary = "",
-    detail = "",
-}) => {
-    const data = await postRequest(
-        isReport
-            ? URLS.CREATE_REPORT || URLS.Management.CREATE_REPORT
-            : URLS.CREATE_FEED || URLS.Management.CREATE_FEED,
-        {
-            email,
-            category,
-            summary,
-            detail,
-        }
-    );
-    if (!data) return false;
-    if (data.code === code.OK) {
-        success(
-            `${
-                isReport ? "Report" : "Feedback"
-            } received and will be looked into.`
-        );
-        return true;
-    }
-    error(data.error);
-    return false;
-};
-
-const reportFeedbackView = (report = 0) => {
-    let isReport = false;
-    const dial = alertify;
-    dial.confirm().set({
-        onshow: () =>
-            initializeTabsView({
-                tabsClass: "report-feed-tab",
-                uniqueID: "reportFeed",
-                viewID: false,
-                onEachTab: (tab) => {
-                    isReport = tab.id === "report";
-                    getElements("report-feed-view").forEach((view) => {
-                        visible(view, `${tab.id}-view` === view.id);
-                    });
-                },
-                tabindex: report,
-            }),
-    });
-    dial.confirm(
-        `Report or Feedback`,
-        `
-        <div class="w3-row w3-center">
-            <button class="report-feed-tab" id="report">${Icon(
-                "flag"
-            )} Report</button>
-            <button class="report-feed-tab" id="feedback">${Icon(
-                "feedback"
-            )} Feedback</button>
-        </div>
-        <br/>
-        <div class="w3-row w3-center">
-            <h6>Your identity will remain private.</h6>
-            <input class="wide" type="email" autocomplete="email" id="report-feed-email" placeholder="Your email address (optional)" /><br/><br/>
-            <div class="w3-row w3-center report-feed-view" id="report-view">
-                <textarea class="wide" rows="3" id="report-feed-summary" placeholder="Short description" ></textarea><br/><br/>
-                <textarea class="wide" rows="5" id="report-feed-detail" placeholder="Explain everything here in detail" ></textarea>
-            </div>
-            <div class="w3-row report-feed-view" id="feedback-view">
-                <textarea class="wide" rows="6" id="report-feed-feed-detail" placeholder="Please describe your feedback" ></textarea>
-            </div>
-        </div>
-        `,
-        async () => {
-            let data = {};
-            if (isReport) {
-                const summary = String(
-                    getElement("report-feed-summary").value
-                ).trim();
-                if (!summary) {
-                    error("Short description required");
-                    return false;
-                }
-                data["summary"] = summary;
-                data["detail"] = String(
-                    getElement("report-feed-detail").value
-                ).trim();
-            } else {
-                const detail = String(
-                    getElement("report-feed-feed-detail").value
-                ).trim();
-                if (!detail) {
-                    error("Feedback description required");
-                    return false;
-                }
-                data["detail"] = detail;
-            }
-            loader();
-            data["isReport"] = isReport;
-            data["email"] = String(
-                getElement("report-feed-email").value
-            ).trim();
-            message(`Submitting ${isReport ? "report" : "feedback"}...`);
-            await reportFeedback(data);
-            loader(false);
-        },
-        () => {}
-    )
-        .set("labels", {
-            ok: "Submit",
-            cancel: "Discard",
-        })
-        .set("closable", false)
-        .set("transition", "flipx");
 };
 
 const previewImageDialog = (src) => {
@@ -1221,26 +1066,6 @@ const getNumberSuffix = (value) => {
 };
 
 const numsuffix = (number) => `${number}${getNumberSuffix(number)}`;
-const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
-    alertify
-        .alert(
-            "Github ID Required",
-            `<div class="w3-row w3-padding">
-    <h4>Your Github identity must be linked with Knotters for this action.</h4>
-    <br/>
-    <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
-        <button type="button" class="secondary"><img src="/static/graphics/thirdparty/github-dark.png" width="20" />
-        &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
-        </button>
-    </a>
-    </div>`,
-            () => {
-                oncancel();
-            }
-        )
-        .set("closable", false)
-        .set("label", "Cancel");
-};
 
 const restartIntros = () => {
     Object.keys(localStorage).forEach((key) => {
@@ -1248,86 +1073,4 @@ const restartIntros = () => {
             localStorage.removeItem(key);
         }
     });
-};
-
-const betaAlert = () => {
-    if (window.location.host.startsWith("beta.") || 1) {
-        alertify
-            .confirm(
-                "<h6>This is Knotters Beta</h6>",
-                `<h5>Welcome to Knotters Beta, the pre-stable version of Knotters.
-                New features become available here before Knotters.<br/>
-                You'll have to create an account here separately from Knotters. None of the information at Knotters will be made available here.<br/>
-                By continuing, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
-            </h5>
-            <h5>
-                You can go to the stable Knotters (knotters.org) if you're here by mistake.
-            </h5>
-            `,
-                () => {
-                    window.location.href = window.location.href.replace(
-                        "//beta.",
-                        "//"
-                    );
-                },
-                () => {
-                    window.sessionStorage.setItem("beta-alerted", 1);
-                    message("Remember, you're using Knotters Beta.");
-                }
-            )
-            .set("closable", false)
-            .set("labels", {
-                ok: "Go to Knotters",
-                cancel: "Stay in Knotters Beta",
-            });
-    }
-};
-
-const violationReportDialog = async (
-    reportURL = "",
-    reportTargetData = {},
-    reportTarget = "",
-    reportCatURL = ""
-) => {
-    const data = await getRequest(reportCatURL || URLS.REPORT_CATEGORIES);
-    if (!data) return false;
-    if (data.code !== code.OK) {
-        error(data.error);
-        return false;
-    }
-    let options = "";
-    data.reports.forEach((rep) => {
-        options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
-    });
-    alertify
-        .confirm(
-            `<h3>Report ${reportTarget}</h3>`,
-            `
-                <select class="text-medium wide" id='violation-report-category' required>
-                ${options}
-                </select>
-            `,
-            () => {},
-            async () => {
-                loader();
-                message("Reporting...");
-                const data = await postRequest(reportURL, {
-                    report: getElement("violation-report-category").value,
-                    ...reportTargetData,
-                });
-                loader(false);
-                if (!data) return;
-                if (data.code === code.OK) {
-                    return message(
-                        `Reported${" " + reportTarget}. We\'ll investigate.`
-                    );
-                }
-                error(data.error);
-            }
-        )
-        .set("labels", {
-            cancel: `${Icon("report")} Report ${reportTarget}`,
-            ok: "No, go back ",
-        })
-        .set("closable", false);
 };

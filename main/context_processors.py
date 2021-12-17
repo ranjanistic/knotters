@@ -24,6 +24,7 @@ def Global(request):
         SUBAPPS=dict(),
         SUBAPPSLIST=[],
         ICON=f"{settings.STATIC_URL}graphics/self/icon.svg",
+        ICON_DARK=f"{settings.STATIC_URL}graphics/self/icon-dark.svg",
         BANNER=f"{settings.STATIC_URL}graphics/self/banner.svg",
         SERVICE_WORKER=f"/{URL.SERVICE_WORKER}",
         MANIFESTURL=f"/{URL.MANIFEST}",

@@ -31,14 +31,17 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
 self.addEventListener("activate", (event) => {
     event.waitUntil(
         caches.keys().then(async (keys) => {
-            const prom = Promise.all(
-                keys.map((key) => caches.delete(key))
-            ).then(() => {
-                return caches.open(staticCacheName).then((cache) => {
-                    return cache.addAll(assets);
+            return await Promise.all(
+                keys.map(async(key) => {
+                    return await caches.delete(key)
+                })
+            ).then(async() => {
+                return await caches.open(staticCacheName).then(async(cache) => {
+                    return await Promise.all(assets.map(async(asset)=>{ 
+                        return await cache.add(asset)
+                    }))
                 });
             });
-            return prom;
         })
     );
 });
@@ -55,10 +58,10 @@ self.addEventListener("fetch", async (event) => {
                 .then(async (FetchRes) => {
                     if (FetchRes.status < 300) {
                         if (
-                            recacheList.some((recachepath) =>
+                            (recacheList.some((recachepath) =>
                                 testAsteriskPathRegex(recachepath, path)
                             ) ||
-                            event.request.method === "POST"
+                            event.request.method === "POST") && event.request.headers.get("X-KNOT-RETAIN-CACHE") !== "true"
                         ) {
                             await caches.delete(dynamicCacheName);
                         }
@@ -69,7 +72,7 @@ self.addEventListener("fetch", async (event) => {
                             noOfflineList.some((noOfflinePath) =>
                                 testAsteriskPathRegex(noOfflinePath, path)
                             );
-                        if (!ignore && event.request.method !== "POST") {
+                        if ((!ignore && event.request.method !== "POST") || event.request.headers.get("X-KNOT-ALLOW-CACHE") === "true") {
                             return caches
                                 .open(dynamicCacheName)
                                 .then((cache) => {
@@ -173,13 +176,13 @@ self.addEventListener("fetch", async (event) => {
                                 return FetchRes;
                             }
                             if (
-                                recacheList.some((recachepath) =>
+                                (recacheList.some((recachepath) =>
                                     testAsteriskPathRegex(
                                               recachepath,
                                               path
                                           )
                                 ) ||
-                                event.request.method === "POST"
+                                event.request.method === "POST") && event.request.headers.get("X-KNOT-RETAIN-CACHE") !== "true"
                             ) {
                                 await caches.delete(dynamicCacheName);
                             }
@@ -196,7 +199,7 @@ self.addEventListener("fetch", async (event) => {
                                               path
                                           )
                                 );
-                            if (!ignore && event.request.method !== "POST") {
+                            if ((!ignore && event.request.method !== "POST") || event.request.headers.get("X-KNOT-ALLOW-CACHE") === "true") {
                                 return caches
                                     .open(dynamicCacheName)
                                     .then((cache) => {
@@ -249,8 +252,8 @@ self.addEventListener('push', function (event) {
     const eventInfo = event.data.text();
     // const data = JSON.parse(eventInfo);
     console.log(eventInfo)
-    const head = 'New Notification 🕺🕺';
-    const body = 'This is default content. Your notification didn\'t have one 🙄🙄';
+    const head = 'Welcome to {{APPNAME}}';
+    const body = 'Ready to takeoff? Virtually ofcourse.';
 
     event.waitUntil(
         self.registration.showNotification(head, {
@@ -259,3 +262,7 @@ self.addEventListener('push', function (event) {
         })
     );
 });
+
+self.addEventListener("cache", (event) => {
+  console.log("cache",event)
+})

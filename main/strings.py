@@ -295,6 +295,7 @@ class URL():
     SERVICE_WORKER = 'service-worker.js'
     STRINGS = 'strings.js'
     SWITCH_LANG = 'i18n/'
+    VERSION_TXT = 'version.txt'
     OFFLINE = 'off408'
     BRANDING = 'branding/'
     ROOT = '/'
@@ -892,6 +893,7 @@ class Template():
     ROBOTS_TXT = "robots.txt"
     SW_JS = "service-worker.js"
     STRINGS = "strings.js"
+    VERSION = "version.txt"
     MANIFEST_JSON = "manifest.json"
 
     INDEX = 'index'

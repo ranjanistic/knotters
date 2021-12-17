@@ -1,93 +1,137 @@
-const loadBrowseSnaps = async (excludeIDs=[]) => {
+const loadBrowseSnaps = async (excludeIDs = []) => {
     const viewers = getElements("snapshot-viewer");
-    let viewer = viewers.find(view=>(view.innerHTML.trim()==""))
-    if(!viewer){
-       viewer = viewers[viewers.length - 1]
+    let viewer = viewers.find((view) => view.innerHTML.trim() == "");
+    if (!viewer) {
+        viewer = viewers[viewers.length - 1];
     }
-    let snapdata = await postRequest(setUrlParams(URLS.BROWSER,"project-snapshots"), {
-        excludeIDs
+    const snapdata = await postRequest2({
+        path: setUrlParams(URLS.BROWSER, "project-snapshots"),
+        data: { excludeIDs },
+        retainCache: true,
+        allowCache: true,
     });
-    if(!snapdata) return false;
-    if(snapdata.code === code.OK && snapdata.snapIDs.length) {
+    if (!snapdata) return false;
+    if (snapdata.code === code.OK && snapdata.snapIDs.length) {
         setHtmlContent(viewer, viewer.innerHTML + snapdata.html);
-       return snapdata.snapIDs
+        return snapdata.snapIDs;
     }
-   return false
-}
+    return false;
+};
 
 const loadSnapshotScroller = async () => {
     const viewers = getElements("snapshot-viewer");
-    if(viewers.length){
-        let viewedSnaps = []
+    if (viewers.length) {
+        let viewedSnaps = [];
         let done = await loadBrowseSnaps();
-        if(done) {
-            viewedSnaps = viewedSnaps.concat(done)
+        if (done) {
+            viewedSnaps = viewedSnaps.concat(done);
             let options = {
                 root: null,
                 rootMargins: "0px",
-                threshold: 0.5
+                threshold: 0.5,
             };
-            const observer = new IntersectionObserver(async (entries)=>{
+            const observer = new IntersectionObserver(async (entries) => {
                 if (entries[0].isIntersecting && done) {
-                    viewedSnaps = viewedSnaps.concat(done);    
+                    viewedSnaps = viewedSnaps.concat(done);
                     done = await loadBrowseSnaps(viewedSnaps);
                 }
             }, options);
-            observer.observe(document.querySelector(`#snap-${viewedSnaps[viewedSnaps.length-1].replaceAll('-','')}`));
+            observer.observe(
+                document.querySelector(
+                    `#snap-${viewedSnaps[viewedSnaps.length - 1].replaceAll(
+                        "-",
+                        ""
+                    )}`
+                )
+            );
         }
     }
 }
-const showSnapshotMoreBtn = () => {
-    document.getElementById('id01').style.display = 'flex';
+const showSnapshotMoreBtn = (id) => {
+    document.getElementById("snap-modal-"+id).style.display = 'flex';
     setTimeout(() => {
-        document.getElementById('snap-laptop').classList.add('right-snap');
-        document.getElementById('snap-mob').classList.add('bottom-snap');
+        document.getElementById('snap-laptop-'+id).classList.add('right-snap');
+        document.getElementById('snap-mob-'+id).classList.add('bottom-snap');
     }, 50);
 }
-
-window.addEventListener('click', (event) => {
-    if (event.target == document.getElementById('id01')) {
-        document.getElementById('snap-laptop').classList.remove('right-snap');
-        document.getElementById('snap-mob').classList.remove('bottom-snap');
+const closeSnapshotMoreBtn = (id, event) => {
+    if (event.target == document.getElementById('snap-modal-' + id)) {
+        document.getElementById('snap-laptop-' + id).classList.remove('right-snap');
+        document.getElementById('snap-mob-' + id).classList.remove('bottom-snap');
         setTimeout(() => {
-            document.getElementById('id01').style.display = "none";
-        }, 100);
+            document.getElementById('snap-modal-' + id).style.display = "none";
+        })
     }
-});
+}
 
 const admireSnap = async (snapID) => {
-    if(!snapID) return
-    const admire = getElement(`snap-admire-${snapID}`).getAttribute("data-admires") == "0"
-    const data = await postRequest(setUrlParams(URLS.Projects?URLS.Projects.TOGGLE_SNAP_ADMIRATION:URLS.TOGGLE_SNAP_ADMIRATION, snapID), {
-        admire
-    })
-    if (data.code !== code.OK){
-        return error(data.error)
+    if (!snapID) return;
+    const admire =
+        getElement(`snap-admire-${snapID}`).getAttribute("data-admires") == "0";
+    const data = await postRequest2({
+        path: setUrlParams(
+            URLS.Projects
+                ? URLS.Projects.TOGGLE_SNAP_ADMIRATION
+                : URLS.TOGGLE_SNAP_ADMIRATION,
+            snapID
+        ),
+        data: {
+            admire,
+        },
+        retainCache: true,
+    });
+    if (data.code !== code.OK) {
+        return error(data.error);
     }
-    getElement(`snap-admire-${snapID}`).setAttribute("data-admires", admire?1:0)
-    getElement(`snap-admire-${snapID}`).classList[admire?'add':'remove']('positive')
-    getElement(`snap-admire-${snapID}`).classList[admire?'remove':'add']('primary')
-}
+    getElement(`snap-admire-${snapID}`).setAttribute(
+        "data-admires",
+        admire ? 1 : 0
+    );
+    getElement(`snap-admire-${snapID}`).classList[admire ? "add" : "remove"](
+        "positive"
+    );
+    getElement(`snap-admire-${snapID}`).classList[admire ? "remove" : "add"](
+        "primary"
+    );
+};
 
-const reportSnap = async (snapID) => await violationReportDialog(URLS.Projects?URLS.Projects.REPORT_SNAPSHOT:URLS.REPORT_SNAPSHOT, { snapID }, "Snapshot", URLS.Projects?URLS.Projects.REPORT_CATEGORIES:URLS.REPORT_CATEGORIES)
+const reportSnap = async (snapID) =>
+    await violationReportDialog(
+        URLS.Projects ? URLS.Projects.REPORT_SNAPSHOT : URLS.REPORT_SNAPSHOT,
+        { snapID },
+        "Snapshot",
+        URLS.Projects ? URLS.Projects.REPORT_CATEGORIES : URLS.REPORT_CATEGORIES
+    );
 
-const deleteSnap = (snapID,projectID) => {
-    if(!snapID || !projectID) return
-    alertify.confirm('Delete snapshot',
-    "Are you sure you want to delete the snapshot?",
-    ()=>{},
-    ()=>{
-        postRequest(
-            setUrlParams(URLS.Projects?URLS.Projects.SNAPSHOT:URLS.SNAPSHOT, projectID, "remove"), {
-                snapid:snapID,snapID
+const deleteSnap = (snapID, projectID) => {
+    if (!snapID || !projectID) return;
+    alertify
+        .confirm(
+            "Delete snapshot",
+            "Are you sure you want to delete the snapshot?",
+            () => {},
+            () => {
+                postRequest2({
+                    path:setUrlParams(
+                        URLS.Projects ? URLS.Projects.SNAPSHOT : URLS.SNAPSHOT,
+                        projectID,
+                        "remove"
+                    ),
+                    data:{
+                        snapid: snapID,
+                        snapID,
+                    },
+                    retainCache: true,
+                }).then((data) => {
+                    if (data.code === code.OK) {
+                        hideElement(`snap-${snapID}`);
+                        message(data.message);
+                    } else {
+                        error(data.error);
+                    }
+                });
             }
-        ).then((data) => {
-            if (data.code === code.OK) {
-                hideElement(`snap-${snapID}`)
-                message(data.message);
-            } else {
-                error(data.error);
-            }
-        });
-    }).set('labels', {ok:'No, go back', cancel:'Yes, delete'}).set('closable', false);
-}
+        )
+        .set("labels", { ok: "No, go back", cancel: "Yes, delete" })
+        .set("closable", false);
+};

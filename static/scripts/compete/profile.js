@@ -80,43 +80,38 @@ const loadTabScript = (attr, tab) => {
                             };
                         });
                         try {
-                            getElement("invitepeople").onclick = (_) => {
-                                const inviteDialog = alertify
-                                    .alert(
-                                        `Invite teammate`,
-                                        `
-                            <div class="w3-row">
-                                <h5>Type the email address or Github ID of the person to invite them to participate with you.</h5>
-                                <input class="wide" type="text" required placeholder="Email address or Github ID" id="dialoginviteeID" /><br/>
-                                <span class="negative-text w3-right" id="dialoginviteerr"></span>
-                                <br/>
-                                <button class="active" id="dialoginvite">Invite</button>
-                                <button class="positive" id="sharecompetition">${Icon(
-                                    "share"
-                                )}Share competition</button>
-                            </div>`
-                                    )
-                                    .set({ label: "Cancel" });
-                                getElement("dialoginviteerr").innerHTML = "";
-                                getElement("sharecompetition").onclick = (
-                                    _
-                                ) => {
-                                    shareLinkAction(
-                                        `Competition at ${APPNAME}`,
-                                        `Checkout this competition at ${APPNAME}, let's participate together. Hurry up! Time is not our friend.\n`,
-                                        setUrlParams(URLS.COMPID, compID),
-                                        () => {
-                                            message(
-                                                `Invite them from here after they finish signing up on ${APPNAME}.`
-                                            );
-                                        }
-                                    );
-                                };
-                                getElement("dialoginvite").onclick =
-                                    async () => {
+                            getElement("invitepeople").onclick = async (_) => {                        
+                                await Swal.fire({
+                                    title: 'Invite teammate',
+                                    html: `
+                                    <div class="w3-row">
+                                        <h5>Type the email address or Github ID of the person to invite them to participate with you.</h5>
+                                        <input class="wide" type="text" required placeholder="Email address or Github ID" id="dialoginviteeID" /><br/>
+                                        <span class="negative-text w3-right" id="dialoginviteerr"></span>
+                                    </div>
+                                    `,
+                                    showCancelButton: true,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Send Invitation',
+                                    cancelButtonText: 'Cancel',
+                                    preConfirm : async () => {
                                         const userID = String(
                                             getElement("dialoginviteeID").value
                                         ).trim();
+                                        if (!userID) {
+                                            getElement("dialoginviteerr").innerHTML = "Please enter a valid ID";
+                                            return false
+                                        }
+                                        return true
+                                    }
+                                }).then(async(result)=> {
+                                    if(result.isConfirmed){
+                                        const userID = String(
+                                            getElement("dialoginviteeID").value
+                                        ).trim();
+                                        if (!userID) {
+                                            getElement("dialoginviteerr").innerHTML = "Please enter a valid ID";
+                                        }
                                         const data = await postRequest(
                                             setUrlParams(
                                                 URLS.INVITE,
@@ -125,81 +120,57 @@ const loadTabScript = (attr, tab) => {
                                             { userID }
                                         );
                                         if (data.code === code.OK) {
-                                            inviteDialog.close();
-                                            alertify.success(
+                                            success(
                                                 `Invitation email sent successfully to ${userID}`
                                             );
                                             tab.click();
                                         } else {
-                                            getElement(
-                                                "dialoginviteerr"
-                                            ).innerHTML = data.error;
+                                            getElement("dialoginviteerr").innerHTML = data.error;
                                         }
-                                    };
+                                    }
+                                })
                             };
-                            getElement("finalsubmit").onclick = (_) => {
-                                const submitDialog = alertify
-                                    .confirm(
-                                        `<h4>Final submission</h4>`,
-                                        `
-                                <div class="w3-row">
-                                    <h3>Are you sure you want to <strong>submit</strong>?</h3>
-                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
-                                    <h4>Everyone in your submission team will be notified.</h4>
-                                    <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
-                                    <button onclick="miniWindow('${
-                                        getElement("submissionurl").value
-                                    }', 'Submission')" class="positive">${Icon(
-                                            "open_in_new"
-                                        )}Verify submission</button>
-                                    <br/><br/>
-                                </div>`,
-                                        async () => {
-                                            const data = await postRequest(
-                                                setUrlParams(
-                                                    URLS.SUBMIT,
-                                                    compID,
-                                                    compdata.subID
-                                                )
-                                            );
-                                            if (data.code === code.OK) {
-                                                alertify.success(data.message);
-                                                submitDialog.close();
-                                                tab.click();
-                                            } else {
-                                                alertify.error(data.error);
-                                            }
-                                        },
-                                        () => {
-                                            submitDialog.close();
+                            getElement("finalsubmit").onclick = async (_) => {
+                                await Swal.fire({
+                                    title: 'Final submission',
+                                    html: `
+                                    <div class="w3-row">
+                                        <h3>Are you sure you want to <strong>submit</strong>?</h3>
+                                        <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                                        <h4>Everyone in your submission team will be notified.</h4>
+                                        <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
+                                        <br/><br/>
+                                    </div>
+                                    `,
+                                    showCancelButton: true,
+                                    showConfirmButton: true,
+                                    showDenyButton: true,
+                                    confirmButtonText: 'Verify submission',
+                                    cancelButtonText: 'No, not yet',
+                                    denyButtonText: 'Yes, submit now',
+                                    focusConfirm: false,
+                                }).then(async(result)=> {
+                                    if(result.isDismissed){
+                                        message('Not submitted yet')
+                                    } else if (result.isConfirmed) {
+                                        const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                                        if(!suburl){
+                                            error('No submission URL saved!')
+                                            return
                                         }
-                                    )
-                                    .set("labels", {
-                                        ok: "Yes, submit now",
-                                        cancel: "No, wait!",
-                                    });
-                            };
-                        } catch {}
-                    }
-                } else {
-                    try {
-                        getElement("finalsubmit").onclick = (_) => {
-                            const lateSubmitDialog = alertify
-                                .confirm(
-                                    `<h4 class="negative-text">Late submission</h4>`,
-                                    `
-                                <div class="w3-row">
-                                    <h3>Are you sure you want to submit?</h3>
-                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
-                                    <strong class="negative-text">NOTE: This late submission will affect its judgement.</strong>
-                                    <br/><br/>
-                                    <button onclick="miniWindow('${
-                                        getElement("submissionurl").value
-                                    }', 'Submission')" class="positive">${Icon(
-                                        "open_in_new"
-                                    )}Verify submission</button>
-                                </div>`,
-                                    async () => {
+                                        miniWindow(suburl, 'Submission')
+                                        return false
+                                    } else if(result.isDenied){
+                                        const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                                        const nsuburl = getElement("submissionurl").value.trim();
+                                        if(!suburl){
+                                            error('No submission URL saved!')
+                                            return
+                                        }
+                                        if (suburl != nsuburl){
+                                            error('Submission URL changed, save before submitting!')
+                                            return false
+                                        }
                                         const data = await postRequest(
                                             setUrlParams(
                                                 URLS.SUBMIT,
@@ -208,21 +179,74 @@ const loadTabScript = (attr, tab) => {
                                             )
                                         );
                                         if (data.code === code.OK) {
-                                            alertify.success(data.message);
-                                            lateSubmitDialog.close();
+                                            success(data.message);
                                             tab.click();
                                         } else {
-                                            alertify.error(data.error);
+                                            error(data.error);
                                         }
-                                    },
-                                    () => {
-                                        lateSubmitDialog.close();
                                     }
-                                )
-                                .set("labels", {
-                                    ok: "Yes, submit now (Late)",
-                                    cancel: "No, not yet (Later)",
-                                });
+                                })
+                            };
+                        } catch {}
+                    }
+                } else {
+                    try {
+                        getElement("finalsubmit").onclick = async (_) => {
+                            await Swal.fire({
+                                title: '<span class="negative-text">Late submission</span>',
+                                html: `
+                                <div class="w3-row">
+                                    <h3>Are you sure you want to <strong>submit</strong>?</h3>
+                                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                                    <h4>Everyone in your submission team will be notified.</h4>
+                                    <strong class="negative-text">NOTE: This late submission will affect its judgement.</strong>
+                                    <br/><br/>
+                                </div>
+                                `,
+                                showCancelButton: true,
+                                showConfirmButton: true,
+                                showDenyButton: true,
+                                confirmButtonText: 'Verify submission',
+                                cancelButtonText: 'No, not yet (later)',
+                                denyButtonText: 'Yes, submit now (late)',
+                                focusConfirm: false,
+                            }).then(async(result)=> {
+                                if(result.isDismissed){
+                                    message('Not submitted yet')
+                                } else if (result.isConfirmed) {
+                                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                                    if(!suburl){
+                                        error('No submission URL saved!')
+                                        return
+                                    }
+                                    miniWindow(suburl, 'Submission')
+                                    return false
+                                } else if(result.isDenied){
+                                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                                    const nsuburl = getElement("submissionurl").value.trim();
+                                    if(!suburl){
+                                        error('No submission URL saved!')
+                                        return
+                                    }
+                                    if (suburl != nsuburl){
+                                        error('Submission URL changed, save before submitting!')
+                                        return false
+                                    }
+                                    const data = await postRequest(
+                                        setUrlParams(
+                                            URLS.SUBMIT,
+                                            compID,
+                                            compdata.subID
+                                        )
+                                    );
+                                    if (data.code === code.OK) {
+                                        success(data.message);
+                                        tab.click();
+                                    } else {
+                                        error(data.error);
+                                    }
+                                }
+                            })
                         };
                     } catch {}
                 }
@@ -259,45 +283,62 @@ const loadTabScript = (attr, tab) => {
         }
     }
     try {
-        getElement("finalsubmit").onclick = (_) => {
-            const submitDialog = alertify
-                .confirm(
-                    `<h4>Final submission</h4>`,
-                    `
-            <div class="w3-row">
-                <h3>Are you sure you want to <strong>submit</strong>?</h3>
-                <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
-                <h4>Everyone in your submission team will be notified.</h4>
-                <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
-                <button onclick="miniWindow('${getElement(
-                    "submissionurl"
-                ).getAttribute(
-                    "data-saved"
-                )}', 'Submission')" class="positive">${Icon(
-                        "open_in_new"
-                    )}Verify submission</button>
-                <br/><br/>
-            </div>`,
-                    async () => {
-                        const data = await postRequest(
-                            setUrlParams(URLS.SUBMIT, compID, compdata.subID)
-                        );
-                        if (data.code === code.OK) {
-                            alertify.success(data.message);
-                            submitDialog.close();
-                            tab.click();
-                        } else {
-                            alertify.error(data.error);
-                        }
-                    },
-                    () => {
-                        submitDialog.close();
+        getElement("finalsubmit").onclick = async (_) => {
+            await Swal.fire({
+                title: 'Final submission',
+                html: `
+                <div class="w3-row">
+                    <h3>Are you sure you want to <strong>submit</strong>?</h3>
+                    <h6>This action is <span class="negative-text">irreversible</span>, which means once you submit, you submit it permanently on behalf of everyone in your submission team.</h6>
+                    <h4>Everyone in your submission team will be notified.</h4>
+                    <strong>Time Left: <span id="finalTimeLeft">---</span></strong><br/><br/>
+                    <br/><br/>
+                </div>
+                `,
+                showCancelButton: true,
+                showConfirmButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Verify submission',
+                cancelButtonText: 'Cancel',
+                denyButtonText: 'Final Submit',
+                focusConfirm: false,
+            }).then(async(result)=> {
+                if(result.isDismissed){
+                    message('Not submitted yet')
+                } else if (result.isConfirmed) {
+                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                    if(!suburl){
+                        error('No submission URL saved!')
+                        return
                     }
-                )
-                .set("labels", {
-                    ok: "Yes, submit now",
-                    cancel: "No, wait!",
-                });
+                    miniWindow(suburl, 'Submission')
+                    return false
+                } else if(result.isDenied){
+                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                    const nsuburl = getElement("submissionurl").value.trim();
+                    if(!suburl){
+                        error('No submission URL saved!')
+                        return
+                    }
+                    if (suburl != nsuburl){
+                        error('Submission URL changed, save before submitting!')
+                        return false
+                    }
+                    const data = await postRequest(
+                        setUrlParams(
+                            URLS.SUBMIT,
+                            compID,
+                            compdata.subID
+                        )
+                    );
+                    if (data.code === code.OK) {
+                        success(data.message);
+                        tab.click();
+                    } else {
+                        error(data.error);
+                    }
+                }
+            })
         };
     } catch {}
 };

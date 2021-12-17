@@ -127,7 +127,7 @@
             onclick="betaAlert()"
             hidden
         >
-            This is Knotters Beta. Click here to learn more.
+            This is Knotters Click here to learn more.
         </div>
 
         <nav class="w3-row primary w3-animate-top" id="navbar">
@@ -246,7 +246,7 @@
                     <input
                         type="hidden"
                         name="csrfmiddlewaretoken"
-                        value="V0PVIvJy8kStvBDdrQqSg9ihRzUnspOFTuKxzdLBi1THhdPLXkhWgEKNYU5IyiwD"
+                        value="miUVBZKTYBiPOWiwJtCN4Jqhqnyc79WV3mdVQZj0HUbtu75QSKJHit2nsYti0cY8"
                     />
                     <select
                         name="language"
@@ -630,7 +630,7 @@
                     >Knotters API</a
                 ><br />
                 <a
-                    href="https://beta.knotters.org/"
+                    href="https://knotters.org/"
                     target="_blank"
                     class="text-secondary w3-animate-left"
                     >Beta program</a
@@ -642,7 +642,7 @@
                     class="primary w3-right navigator-share-action"
                     data-title="Knotters"
                     data-text="Checkout this page at Knotters"
-                    data-url="/500"
+                    data-url="/alsdkfj"
                     data-icon="share"
                 >
                     Share
@@ -743,7 +743,7 @@
                             /></button
                     ></a>
                     <a
-                        href="https://discord.gg/qZ3TdVHsma"
+                        href="https://discord.gg/F7vZ9fYkhe"
                         target="_blank"
                         rel="noreferrer"
                         ><span hidden>Discord</span
@@ -805,30 +805,35 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
-        <div class="preview-image-modal" id="image-previewer">
+        <div class="preview-image-modal w3-padding-small" id="image-previewer">
             <img src="" id="preivew-image-src" />
         </div>
 
         <script src="/strings.js"></script>
         <script src="/static/scripts/sw.js"></script>
         <script src="/static/alertify/alertify.min.js"></script>
+        <script src="/static/sweetalert2/min.js"></script>
         <script src="/static/cropper/cropper.min.js"></script>
         <script src="/static/chartjs/chart.min.js"></script>
         <script src="/static/swiper/swiper-bundle.min.js"></script>
         <script src="/static/scripts/index.js"></script>
         <script src="/static/scripts/theme.js"></script>
+        <script src="/static/scripts/loadlerts.js"></script>
+        <script src="/static/scripts/request.js"></script>
+        <script src="/static/scripts/reporter.js"></script>
+        <script src="/static/scripts/device.js"></script>
         <script src="/static/scripts/browser.js"></script>
         <script src="/static/scripts/snapshot.js"></script>
 
         <script>
             const SITE = "https://knotters.org";
             const csrfmiddlewaretoken =
-                    "",
-                authenticated = false;
-            const activeuser = authenticated && false;
+                    "miUVBZKTYBiPOWiwJtCN4Jqhqnyc79WV3mdVQZj0HUbtu75QSKJHit2nsYti0cY8",
+                authenticated = "False" == "True";
+            const activeuser = authenticated && "" == "True";
             const ROOT = "/";
             const APPNAME = "Knotters";
-            const VERSION = "1.8.3";
+            const VERSION = "1.3.0";
             const SUBAPPSLIST = [
                 "projects",
                 "people",
@@ -839,9 +844,8 @@
             const SUBAPPNAME = "";
             const dialog = alertify;
             const ICON = "/static/graphics/self/icon.svg";
-            const RECAPTCHA_KEY = "";
-            const VAPID_KEY =
-                "";
+            const RECAPTCHA_KEY = "6Le3lbwcAAAAAHUdIEHQ1Q2BassNNdxWePHFZFJl";
+            const VAPID_KEY = "None";
             if ("") {
                 error("");
             }

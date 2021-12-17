@@ -113,7 +113,7 @@
             <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
-            <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px">
+            <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px; text-align:right">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
@@ -227,15 +227,17 @@
                         </div>"
                     >
                     </div>
-                    <div class="w3-row browser-view" data-type="display-mentors" id='display-mentors-view'>
-                    </div>
-                    <div class="w3-row browser-view" data-type="trending-mentors" id='trending-mentors-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-2">
-                    </div>
-                    <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                    <div class="w3-row">
+                        <div class="w3-row browser-view" data-type="display-mentors" id='display-mentors-view'>
+                        </div>
+                        <div class="w3-row browser-view" data-type="trending-mentors" id='trending-mentors-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-2">
+                        </div>
+                        <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                        </div>
                     </div>
                     <div class="w3-row w3-padding-large first-time-view" id='compete-participate-banner' style="height:60vh;"
                         data-html="
@@ -256,17 +258,19 @@
                         </div>"
                     >
                     </div>
-                    <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-4">
-                    </div>
-                    <div class="w3-row browser-view" data-type="trending-projects" id='trending-projects-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" id="snap-view-5">
-                    </div>
-                    <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
-                    </div>
-                    <div class="w3-row align snapshot-viewer" style="flex-direction: column;" id="snap-view-6">
+                    <div class="w3-row">
+                        <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-4">
+                        </div>
+                        <div class="w3-row browser-view" data-type="trending-projects" id='trending-projects-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-5">
+                        </div>
+                        <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
+                        </div>
+                        <div class="w3-row align snapshot-viewer" id="snap-view-6">
+                        </div>
                     </div>
                     <div class="w3-row w3-padding w3-center dead-text">
                         <div class="material-icons w3-jumbo">done</div>
@@ -290,6 +294,7 @@
                     </select>
                 </form>
                 <a href="/press" class="text-secondary w3-animate-left" hidden>{% trans "For the press" %}</a><br/>
+                <span class="text-secondary w3-animate-left pointer" onclick="troubleShootingInfo()">{% trans "Troubleshooting" %}</span><br/>
                 <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">{% trans "Report" %} &amp; {% trans "Feedback" %}</span><br/>
                 <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
@@ -345,18 +350,23 @@
         <div class="linear-loader" id="subloader">
             <div class="loading-animation"></div>
         </div>
-        <div class="preview-image-modal" id="image-previewer">
+        <div class="preview-image-modal w3-padding-small" id="image-previewer">
             <img src=""  id="preivew-image-src"/>
         </div>
         {% endblock %}
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
+        <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
+        <script src="{% static 'scripts/loadlerts.js' %}"></script>
+        <script src="{% static 'scripts/request.js' %}"></script>
+        <script src="{% static 'scripts/reporter.js' %}"></script>
+        <script src="{% static 'scripts/device.js' %}"></script>
         <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
 
@@ -371,6 +381,7 @@
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
             const ICON = "{{ICON}}";
+            const ICON_DARK = "{{ICON_DARK}}";
             const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
             const VAPID_KEY = "{{VAPID_KEY}}";
             if("{{request.GET.e}}") {
