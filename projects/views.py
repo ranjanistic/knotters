@@ -839,11 +839,10 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                         ext = parts[len(parts)-1]
                         fileext = extensions.get(ext, None)
                         if not fileext:
-                            fileext, created = FileExtension.objects.get_or_create(
+                            fileext, _ = FileExtension.objects.get_or_create(
                                 extension__iexact=ext, defaults=dict(extension=ext))
                             extensions[ext] = fileext
-                            if created:
-                                fileext.topics.set(project.topics.all())
+                            fileext.topics.set(project.topics.all())
                         for topic in fileext.topics.all():
                             commit_committer.increaseTopicPoints(
                                 by=1, topic=topic)
