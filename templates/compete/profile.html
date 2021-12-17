@@ -171,7 +171,11 @@
         <i class="w3-jumbo">lock</i>
         <h3>{% trans "Stay Tuned!" %}</h3>
         <h4>{% trans "Full details will be shown" %} {% trans "and" %} {% trans "you'll be able to participate" %}, <br/>{% trans "once the competition begins." %}</h4>
-        <h5>In the meantime, go through <br/>our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}</a>.</h5>
+        <h5>In the meantime, go through <br/>our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}<i>open_in_new</i></a>.</h5>
+        {% if not request.user.is_authenticated %}
+        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
+        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="accent big-button" data-icon="login">Login as existing</button></a>
+        {% endif %}
       </div>
       <br/>
     {% else %}
@@ -213,7 +217,7 @@
     <br/>
   </div>
   {% if not compete.isUpcoming %}
-  <div class="w3-row w3-padding" id="notice">
+  <div class="w3-row w3-padding text-medium" id="notice">
     <strong>
     <center>*NOTICE</center><br/>
     - All mentioned prizes & perks for rank holders are the sole resposibility of <a href="{{compete.creator.getLink}}" target="_blank">the manager</a>.
