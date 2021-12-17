@@ -840,7 +840,7 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                         fileext = extensions.get(ext, None)
                         if not fileext:
                             fileext, created = FileExtension.objects.get_or_create(
-                                extension=ext, defaults=dict(extension=ext))
+                                extension__iexact=ext, defaults=dict(extension=ext))
                             extensions[ext] = fileext
                             if created:
                                 fileext.topics.set(project.topics.all())
@@ -866,7 +866,7 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                         githubID=pr_creator_ghID, is_active=True).first()
                     if pr['merged']:
                         if pr_creator:
-                            pr_creator.increaseXP(by=10)
+                            pr_creator.increaseXP(by=5)
                         project.creator.increaseXP(by=5)
                         project.moderator.increaseXP(by=5)
                     else:
@@ -886,7 +886,7 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                     pr_reviewer = Profile.objects.filter(
                         githubID=pr['requested_reviewer']['login'], is_active=True).first()
                     if pr_reviewer:
-                        pr_reviewer.decreaseXP(by=5)
+                        pr_reviewer.decreaseXP(by=3)
                 else:
                     return HttpResponseBadRequest(event)
             else:
