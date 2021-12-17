@@ -102,7 +102,8 @@ const message = (msg = "") => {
     // alertify.message(msg);
     Toast.fire({
         icon: 'info',
-        title: msg
+        title: msg,
+        timer: Math.max(msg.length * 50, 3000)
     })
 };
   
@@ -112,7 +113,8 @@ const error = (msg = STRING.default_error_message, force = false) => {
         // alertify.error(msg);
         Toast.fire({
             icon: 'error',
-            title: msg
+            title: msg,
+            timer: Math.max(msg.length * 50, 3000)
         })
     }
 };
@@ -122,7 +124,8 @@ const error = (msg = STRING.default_error_message, force = false) => {
     //   alertify.success(msg);
       Toast.fire({
           icon: 'success',
-          title: msg
+          title: msg,
+          timer: Math.max(msg.length * 50, 3000)
       })
 };
 
@@ -1009,14 +1012,6 @@ const handleInputDropdowns = ({
     });
 };
 
-const loadReporters = () => {
-    getElements("report-button").forEach((report) => {
-        report.type = "button";
-        report.onclick = (_) => {
-            reportFeedbackView();
-        };
-    });
-};
 
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
@@ -1049,148 +1044,6 @@ const secsToTime = (secs) => {
     }:${minrem >= 10 ? minrem : `0${minrem}`}:${
         secrem >= 10 ? secrem : `0${secrem}`
     }`;
-};
-
-const reportFeedback = async ({
-    isReport = true,
-    email = "",
-    category = "",
-    summary = "",
-    detail = "",
-}) => {
-    const data = await postRequest(
-        isReport
-            ? URLS.CREATE_REPORT || URLS.Management.CREATE_REPORT
-            : URLS.CREATE_FEED || URLS.Management.CREATE_FEED,
-        {
-            email,
-            category,
-            summary,
-            detail,
-        }
-    );
-    if (!data) return false;
-    if (data.code === code.OK) {
-        success(
-            `${
-                isReport ? "Report" : "Feedback"
-            } received and will be looked into.`
-        );
-        return true;
-    }
-    error(data.error);
-    return false;
-};
-
-const reportFeedbackView = (report = 0) => {
-    // Swal.fire(
-    //     'Good job!',
-    //     'You clicked the button!',
-    //     'success'
-    //   )
-    Swal.fire({
-        title: 'Login Form',
-        html: `<input type="text" id="login" class="swal2-input" placeholder="Username">
-        <input type="password" id="password" class="swal2-input" placeholder="Password">`,
-        confirmButtonText: 'Sign in',
-        focusConfirm: false,
-        preConfirm: () => {
-          const login = Swal.getPopup().querySelector('#login').value
-          const password = Swal.getPopup().querySelector('#password').value
-          if (!login || !password) {
-            Swal.showValidationMessage(`Please enter login and password`)
-          }
-          return { login: login, password: password }
-        }
-      }).then((result) => {
-        Swal.fire(`
-          Login: ${result.value.login}
-          Password: ${result.value.password}
-        `.trim())
-      })
-      
-    let isReport = false;
-    const dial = alertify;
-    dial.confirm().set({
-        onshow: () =>
-            initializeTabsView({
-                tabsClass: "report-feed-tab",
-                uniqueID: "reportFeed",
-                viewID: false,
-                onEachTab: (tab) => {
-                    isReport = tab.id === "report";
-                    getElements("report-feed-view").forEach((view) => {
-                        visible(view, `${tab.id}-view` === view.id);
-                    });
-                },
-                tabindex: report,
-            }),
-    });
-    dial.confirm(
-        `Report or Feedback`,
-        `
-        <div class="w3-row w3-center">
-            <button class="report-feed-tab" id="report">${Icon(
-                "flag"
-            )} Report</button>
-            <button class="report-feed-tab" id="feedback">${Icon(
-                "feedback"
-            )} Feedback</button>
-        </div>
-        <br/>
-        <div class="w3-row w3-center">
-            <h6>Your identity will remain private.</h6>
-            <input class="wide" type="email" autocomplete="email" id="report-feed-email" placeholder="Your email address (optional)" /><br/><br/>
-            <div class="w3-row w3-center report-feed-view" id="report-view">
-                <textarea class="wide" rows="3" id="report-feed-summary" placeholder="Short description" ></textarea><br/><br/>
-                <textarea class="wide" rows="5" id="report-feed-detail" placeholder="Explain everything here in detail" ></textarea>
-            </div>
-            <div class="w3-row report-feed-view" id="feedback-view">
-                <textarea class="wide" rows="6" id="report-feed-feed-detail" placeholder="Please describe your feedback" ></textarea>
-            </div>
-        </div>
-        `,
-        async () => {
-            let data = {};
-            if (isReport) {
-                const summary = String(
-                    getElement("report-feed-summary").value
-                ).trim();
-                if (!summary) {
-                    error("Short description required");
-                    return false;
-                }
-                data["summary"] = summary;
-                data["detail"] = String(
-                    getElement("report-feed-detail").value
-                ).trim();
-            } else {
-                const detail = String(
-                    getElement("report-feed-feed-detail").value
-                ).trim();
-                if (!detail) {
-                    error("Feedback description required");
-                    return false;
-                }
-                data["detail"] = detail;
-            }
-            loader();
-            data["isReport"] = isReport;
-            data["email"] = String(
-                getElement("report-feed-email").value
-            ).trim();
-            message(`Submitting ${isReport ? "report" : "feedback"}...`);
-            await reportFeedback(data);
-            loader(false);
-        },
-        () => {}
-    )
-        .set("labels", {
-            ok: "Submit",
-            cancel: "Discard",
-        })
-        .set("closable", false)
-        .set("transition", "flipx");
 };
 
 const previewImageDialog = (src) => {
@@ -1337,84 +1190,3 @@ const betaAlert = () => {
     }
 };
 
-const violationReportDialog = async (
-    reportURL = "",
-    reportTargetData = {},
-    reportTarget = "",
-    reportCatURL = ""
-) => {
-    console.log("opID==>", reportTargetData);
-    const data = await getRequest(reportCatURL || URLS.REPORT_CATEGORIES);
-    if (!data) return false;
-    if (data.code !== code.OK) {
-        error(data.error);
-        return false;
-    }
-    let options = "";
-    data.reports.forEach((rep) => {
-        options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
-    });
-    console.log("op==>",options);
-    await Swal.fire({
-        title: `<h3>Report ${reportTarget}</h3>`,
-        html:`<select class="text-medium wide" id='violation-report-category' required>
-                ${options}
-            </select>`,
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
-        cancelButtonText:'No, go back',
-        preConfirm: async () => {
-            console.log("op==>", document.getElementById('violation-report-category').value);
-            loader();
-            message("Reporting...");
-            const data = await postRequest2({path:reportURL, 
-                data:{
-                    report: getElement("violation-report-category").value,
-                    ...reportTargetData,
-                },
-                retainCache: true,
-            });
-            loader(false);
-            if (!data) return;
-            if (data.code === code.OK) {
-                return message(
-                    `Reported${" " + reportTarget}. We\'ll investigate.`
-                );
-            }
-            error(data.error);
-        },
-      })
-      
-    // alertify
-    //     .confirm(
-    //         `<h3>Report ${reportTarget}</h3>`,
-    //         `
-    //             <select class="text-medium wide" id='violation-report-category' required>
-    //             ${options}
-    //             </select>
-    //         `,
-    //         () => {},
-    //         async () => {
-    //             loader();
-    //             message("Reporting...");
-    //             const data = await postRequest(reportURL, {
-    //                 report: getElement("violation-report-category").value,
-    //                 ...reportTargetData,
-    //             });
-    //             loader(false);
-    //             if (!data) return;
-    //             if (data.code === code.OK) {
-    //                 return message(
-    //                     `Reported${" " + reportTarget}. We\'ll investigate.`
-    //                 );
-    //             }
-    //             error(data.error);
-    //         }
-    //     )
-    //     .set("labels", {
-    //         cancel: `${Icon("report")} Report ${reportTarget}`,
-    //         ok: "No, go back ",
-    //     })
-    //     .set("closable", false);
-};

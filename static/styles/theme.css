@@ -17,6 +17,7 @@
     --head-font: "Poppins", sans-serif;
     --body-font: "Questrial", sans-serif;
     --delay: 0.3s;
+    --button-radius: 22px;
 }
 
 [data-theme="dark"] {

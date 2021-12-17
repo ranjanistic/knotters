@@ -1,4 +1,4 @@
-.ajs-modal,.ajs-top, .ajs-dimmer , .alertify {
+.ajs-modal,.ajs-top, .ajs-dimmer , .alertify, .swal2-modal {
     z-index: 99999 !important;
 }
 .ajs-header{
@@ -38,18 +38,17 @@
 }
 
 .ajs-body,
-.ajs-dialog {
+.ajs-dialog, .swal2-modal {
     background-color: var(--primary) !important;
     border-radius: 12px !important;
     color: var(--primary-text);
 }
 
-
-.ajs-content{
-    color: var(--primary-text);
+.ajs-content, .swal2-modal > .swal2-title {
+    color: var(--primary-text) !important;
 }
 
-.ajs-content > h4{
+.ajs-content > h4, .swal2-modal > h3 {
     color: var(--primary-text) !important;
 }
 .ajs-message,.swal2-icon-info {
@@ -65,7 +64,7 @@
     text-align: left !important;
     border-radius: 4px !important;
     box-shadow: 4px 4px 15px 5px #0f0f0f27;
-    z-index:999999 !important;
+    z-index:999999999 !important;
 }
 .ajs-message.ajs-error,.swal2-icon-error {
     background-color: var(--negative) !important;
@@ -85,11 +84,70 @@
     font-family: var(--head-font) !important;
     font-weight: normal !important;
 }
-.ajs-ok,.swal2-confirm {
+.swal2-styled{
+    transition: var(--delay) !important;
+}
+.swal2-styled:hover{
+    background-image: none !important;
+}
+.swal2-confirm:hover,
+.swal2-deny:hover,
+.swal2-cancel:hover {
+    padding: 4px 12px !important;
+    border-radius: var(--button-radius) !important;
+    margin: 1px 2px !important;
+    font-family: var(--head-font) !important;
+    outline: none !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    transition: var(--delay) !important;
+    outline: none !important;
+    border: 0 !important;
+    box-shadow: 2px 1px 12px 1px #0000001f !important;
+    overflow-wrap: anywhere !important;
+    /* word-break: break-all !important; */
+    -webkit-hyphens: auto !important;
+    -ms-hyphens: auto !important;
+    hyphens: auto !important
+}
+.ajs-ok,.swal2-confirm{
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
+    border-radius: var(--button-radius) !important;
 }
-.ajs-cancel,.swal2-cancel{
+.ajs-cancel,.swal2-deny{
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
+    border-radius: var(--button-radius) !important;
+}
+.swal2-cancel{
+    background-color: var(--tertiary) !important;
+    color: var(--tertiary-text) !important;
+    border-radius: var(--button-radius) !important;
+}
+
+.swal2-confirm:hover,
+.swal2-deny:hover,
+.swal2-cancel:hover {
+    outline: none !important;
+    padding: 4px 18px !important;
+    border: 0 !important;
+}
+.swal2-confirm:active,
+.swal2-deny:active,
+.swal2-cancel:active  {
+    outline: none !important;
+    opacity: 0.6 !important;
+    box-shadow: 0 0 0 0 #00000000 !important;
+    border: 0 !important;
+}
+
+
+.swal2-icon > .swal2-title {
+    font-size: 20px !important;
+    font-family: var(--body-font) !important;
+}
+
+.swal2-success > .swal2-title {
+    color: var(--positive-text) !important;
 }
