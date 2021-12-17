@@ -611,6 +611,9 @@ class FileExtension(models.Model):
     description = models.CharField(max_length=500, null=True, blank=True)
     topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[], related_name='file_extension_topics')
 
+    def __str__(self):
+        return self.extension
+        
     def getTags(self):
         tags = []
         for topic in self.topics.all():

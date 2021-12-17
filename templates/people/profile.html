@@ -120,12 +120,6 @@
         <div class="w3-row w3-padding-small">
         {% if person.profile.has_ghID %}
           <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.ghID}}</button></a>
-        {% elif user.is_authenticated and user == person %}
-          <a href="{{URLS.Auth.GITHUB}}login/?process=connect&next={{URLS.REDIRECTOR}}?n={{user.profile.getLink}}">
-          <button type="button" class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />
-            &nbsp;+ <img src="{% static 'graphics/self/icon.svg' %}" width="22" /> {{APPNAME}} <i class="material-icons">open_in_new</i>
-          </button>
-          </a>
         {% endif %}
         </div>
         <br />
