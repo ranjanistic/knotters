@@ -53,12 +53,14 @@ const setTheme = (themevalue = theme.light) => {
 };
 
 if (!localStorage.getItem(theme.key)) {
+  sessionStorage.setItem('device-theme',1)
    if (window.matchMedia && window.matchMedia(`(prefers-color-scheme: ${theme.dark})`).matches) {
      localStorage.setItem(theme.key, theme.dark);
    } else {
      localStorage.setItem(theme.key, theme.light);
    }
-    
+} else {
+    sessionStorage.setItem('device-theme', 0)
 }
 
 setTheme(localStorage.getItem(theme.key));
