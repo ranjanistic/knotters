@@ -279,51 +279,53 @@ const selfProject = "{{iscreator}}"==='True';
 const ismoderator = "{{ismoderator}}"==='True';
 {% if not project.suspended %}
 if(!selfProject){
-    
     if(authenticated){
-    getElement('save-edit-projecttags').onclick= async ()=> {
-        var obj = getFormData("edit-tag-inputs");
-        var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
-            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-        });
-        if (resp.code===code.OK)
-            return window.location.reload()
-        error(resp.error)
-    }
-    getElement('report-project').onclick=async()=>{
-        const data = await getRequest(URLS.REPORT_CATEGORIES)
-        if(!data) return
-        if(data.code!==code.OK){
-            return error(data.error)
-        }
-        let options=''
-        data.reports.forEach((rep)=>{
-            options+=`<option value='${rep.id}'>${rep.name}</option>`
-        })
-        alertify.confirm(
-            `<h3>Report {{project.nickname}}</h3>`,
-            `
-            <select id='report-category' required>
-            ${options}
-            </select>
-            `,
-            ()=>{},
-            async()=>{
-                loader()
-                message('Reporting...')
-                const data = await postRequest(URLS.REPORT_PROJECT,{
-                    projectID: '{{project.get_id}}',
-                    report: getElement('report-category').value,
-                })
-                loader(false)
-                if(!data) return 
-                if(data.code===code.OK){
-                    return message("Reported {{project.nickname}}. We'll investigate.")
-                }
-                error(data.error)
+        getElement('report-project').onclick=async()=>{
+            const data = await getRequest(URLS.REPORT_CATEGORIES)
+            if(!data) return
+            if(data.code!==code.OK){
+                return error(data.error)
             }
-        ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
+            let options=''
+            data.reports.forEach((rep)=>{
+                options+=`<option value='${rep.id}'>${rep.name}</option>`
+            })
+            alertify.confirm(
+                `<h3>Report {{project.nickname}}</h3>`,
+                `
+                <select id='report-category' required>
+                ${options}
+                </select>
+                `,
+                ()=>{},
+                async()=>{
+                    loader()
+                    message('Reporting...')
+                    const data = await postRequest(URLS.REPORT_PROJECT,{
+                        projectID: '{{project.get_id}}',
+                        report: getElement('report-category').value,
+                    })
+                    loader(false)
+                    if(!data) return 
+                    if(data.code===code.OK){
+                        return message("Reported {{project.nickname}}. We'll investigate.")
+                    }
+                    error(data.error)
+                }
+            ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
+        }
     }
+} else {
+    if (!ismoderator){
+        getElement('save-edit-projecttags').onclick= async ()=> {
+            var obj = getFormData("edit-tag-inputs");
+            var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+                addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+            });
+            if (resp.code===code.OK)
+                return window.location.reload()
+            error(resp.error)
+        }
     }
 }
 {% endif %}
