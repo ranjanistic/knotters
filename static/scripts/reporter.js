@@ -91,20 +91,26 @@ const violationReportDialog = async (
         options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
     });
     await Swal.fire({
-        title: `<h3>Report ${reportTarget}</h3>`,
-        html:`<select class="text-medium wide" id='violation-report-category' required>
+        title: `Report ${reportTarget}`,
+        html:`
+        <select class="text-medium wide" id='violation-report-category' required>
                 ${options}
-            </select>`,
+            </select>
+        `,
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
         cancelButtonText:'No, go back',
-        preConfirm: async () => {
+        preConfirm: () => {
+            return getElement("violation-report-category").value
+        }
+    }).then(async(result)=>{
+        if(result.isConfirmed) {
             loader();
             message("Reporting...");
             const data = await postRequest2({path:reportURL, 
                 data:{
-                    report: getElement("violation-report-category").value,
+                    report: result.value,
                     ...reportTargetData,
                 },
                 retainCache: true,
@@ -117,40 +123,8 @@ const violationReportDialog = async (
                 );
             }
             error(data.error);
-        },
-      })
-      
-    // alertify
-    //     .confirm(
-    //         `<h3>Report ${reportTarget}</h3>`,
-    //         `
-    //             <select class="text-medium wide" id='violation-report-category' required>
-    //             ${options}
-    //             </select>
-    //         `,
-    //         () => {},
-    //         async () => {
-    //             loader();
-    //             message("Reporting...");
-    //             const data = await postRequest(reportURL, {
-    //                 report: getElement("violation-report-category").value,
-    //                 ...reportTargetData,
-    //             });
-    //             loader(false);
-    //             if (!data) return;
-    //             if (data.code === code.OK) {
-    //                 return message(
-    //                     `Reported${" " + reportTarget}. We\'ll investigate.`
-    //                 );
-    //             }
-    //             error(data.error);
-    //         }
-    //     )
-    //     .set("labels", {
-    //         cancel: `${Icon("report")} Report ${reportTarget}`,
-    //         ok: "No, go back ",
-    //     })
-    //     .set("closable", false);
+        }
+    })
 };
 
 const loadReporters = () => {

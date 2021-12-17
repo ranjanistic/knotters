@@ -51,7 +51,7 @@
 .ajs-content > h4, .swal2-modal > h3 {
     color: var(--primary-text) !important;
 }
-.ajs-message,.swal2-icon-info {
+.ajs-message,.swal2-icon-info, .swal2-toast {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;
     border: 0 !important;

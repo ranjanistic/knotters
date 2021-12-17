@@ -53,14 +53,6 @@ const visibleElement = (id, show = true) => {
 
 const visible = (element, show = true) => visibleElement(element.id, show);
 
-const loader = (show = true) => visibleElement("viewloader", show);
-const subLoader = (show = true) => visibleElement("subloader", show);
-subLoader(true);
-const loaders = (show = true) => {
-    loader(show);
-    subLoader(show);
-};
-
 const openSpinner = (id = "loader") => showElement(id);
 
 const hideSpinner = (id = "loader") => {
@@ -82,60 +74,6 @@ const miniWindow = (url, name = APPNAME) =>
 const newTab = (url) => {
     window.open(setUrlQueries(url, { miniwin: 1 }));
 };
-
-
-const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    iconColor:'#45443e7a',
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-})
-  
-const message = (msg = "") => {
-    // alertify.set("notifier", "position", "top-left");
-    // alertify.message(msg);
-    Toast.fire({
-        icon: 'info',
-        title: msg,
-        timer: Math.max(msg.length * 50, 3000)
-    })
-};
-  
-const error = (msg = STRING.default_error_message, force = false) => {
-    if (msg !== STRING.default_error_message || force){
-        // alertify.set("notifier", "position", "bottom-right");
-        // alertify.error(msg);
-        Toast.fire({
-            icon: 'error',
-            title: msg,
-            timer: Math.max(msg.length * 50, 3000)
-        })
-    }
-};
-  
-  const success = (msg = "Success") => {
-    //   alertify.set("notifier", "position", "top-right");
-    //   alertify.success(msg);
-      Toast.fire({
-          icon: 'success',
-          title: msg,
-          timer: Math.max(msg.length * 50, 3000)
-      })
-};
-
-const loaderHTML = (loaderID = "loader") =>
-    `<span class="w3-padding-small"><div class="loader" id="${loaderID}"></div></span>`;
-const loadErrorHTML = (
-    retryID = "retryload"
-) => `<div class="w3-center w3-padding-32">
-<i class="negative-text material-icons w3-jumbo">error</i>
-<h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
 
 const setHtmlContent = (element, content = "", afterset = () => {}) => {
     element.innerHTML = content;

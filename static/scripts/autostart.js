@@ -71,5 +71,3 @@ addEventListener("keydown", (e) => {
         __prevScrollpos__ = currentScrollPos;
     });
 })();
-
-reportFeedbackView()
