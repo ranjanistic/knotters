@@ -1,15 +1,15 @@
 const loader = (show = true) => {
-    if(show){
-        getElements('swal2-container').forEach((e)=>e.style.zIndex = 1060)
+    if (show) {
+        getElements("swal2-container").forEach((e) => (e.style.zIndex = 1060));
     }
-    visibleElement("viewloader", show)
+    visibleElement("viewloader", show);
 };
 const subLoader = (show = true) => {
-    if(show){
-        getElements('swal2-container').forEach((e)=>e.style.zIndex = 1060)
+    if (show) {
+        getElements("swal2-container").forEach((e) => (e.style.zIndex = 1060));
     }
     visibleElement("subloader", show);
-}
+};
 subLoader(true);
 
 const loaders = (show = true) => {
@@ -20,60 +20,66 @@ const loaders = (show = true) => {
 const message = (msg = "") => {
     Swal.mixin({
         toast: true,
-        position: 'top-start',
+        position: "bottom-start",
         showConfirmButton: false,
-        iconColor: '#000',
+        iconColor: "#000",
         timer: Math.max(msg.split(" ").length * 400, 3000),
         timerProgressBar: true,
         didOpen: (toast) => {
-          toast.addEventListener('mouseenter', Swal.stopTimer)
-          toast.addEventListener('mouseleave', Swal.resumeTimer)
-          getElements('swal2-container').forEach((e)=>e.style.zIndex = 999999999)
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+            getElements("swal2-container").forEach(
+                (e) => (e.style.zIndex = 999999999)
+            );
         },
     }).fire({
-        icon: 'info',
+        icon: "info",
         title: msg,
-    })
+    });
 };
-  
+
 const error = (msg = STRING.default_error_message, force = false) => {
-    if (msg !== STRING.default_error_message || force){
+    if (msg !== STRING.default_error_message || force) {
         Swal.mixin({
             toast: true,
-            position: 'bottom-end',
+            position: "bottom-end",
             showConfirmButton: false,
-            iconColor: '#000',
+            iconColor: "#000",
             timer: Math.max(msg.split(" ").length * 400, 3000),
             timerProgressBar: true,
             didOpen: (toast) => {
-              toast.addEventListener('mouseenter', Swal.stopTimer)
-              toast.addEventListener('mouseleave', Swal.resumeTimer)
-              getElements('swal2-container').forEach((e)=>e.style.zIndex = 999999999)
+                toast.addEventListener("mouseenter", Swal.stopTimer);
+                toast.addEventListener("mouseleave", Swal.resumeTimer);
+                getElements("swal2-container").forEach(
+                    (e) => (e.style.zIndex = 999999999)
+                );
             },
         }).fire({
-            icon: 'error',
-            title: msg,
-        })
+            icon: "error",
+            title: msg || STRING.default_error_message,
+        });
     }
 };
-  
-  const success = (msg = "Success") => {
+
+const success = (msg = "Success") => {
     Swal.mixin({
         toast: true,
-        position: 'top-end',
+        position: "top-end",
         showConfirmButton: false,
-        iconColor: '#fff',
+        iconColor: "#fff",
         timer: Math.max(msg.split(" ").length * 400, 3000),
         timerProgressBar: true,
         didOpen: (toast) => {
-          toast.addEventListener('mouseenter', Swal.stopTimer)
-          toast.addEventListener('mouseleave', Swal.resumeTimer)
-          getElements('swal2-container').forEach((e)=>e.style.zIndex = 999999999)
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+            getElements("swal2-container").forEach(
+                (e) => (e.style.zIndex = 999999999)
+            );
         },
     }).fire({
-        icon: 'success',
+        icon: "success",
         title: msg,
-    })
+    });
 };
 
 const loaderHTML = (loaderID = "loader") =>

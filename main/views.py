@@ -260,6 +260,7 @@ class ServiceWorker(TemplateView):
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.ROBOTS_TXT}",
+                f"/{URL.VERSION_TXT}",
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.AUTH}*",
                 f"/{URL.MODERATION}*",
@@ -314,6 +315,14 @@ class ServiceWorker(TemplateView):
 class Strings(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.STRINGS
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+class Version(TemplateView):
+    content_type = Code.TEXT_PLAIN
+    template_name = Template.VERSION
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

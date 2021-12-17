@@ -31,14 +31,17 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
 self.addEventListener("activate", (event) => {
     event.waitUntil(
         caches.keys().then(async (keys) => {
-            const prom = Promise.all(
-                keys.map((key) => caches.delete(key))
-            ).then(() => {
-                return caches.open(staticCacheName).then((cache) => {
-                    return cache.addAll(assets);
+            return await Promise.all(
+                keys.map(async(key) => {
+                    return await caches.delete(key)
+                })
+            ).then(async() => {
+                return await caches.open(staticCacheName).then(async(cache) => {
+                    return await Promise.all(assets.map(async(asset)=>{ 
+                        return await cache.add(asset)
+                    }))
                 });
             });
-            return prom;
         })
     );
 });

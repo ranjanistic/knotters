@@ -113,7 +113,7 @@
             <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
-            <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px">
+            <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px; text-align:right">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
@@ -380,6 +380,7 @@
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const dialog = alertify;
             const ICON = "{{ICON}}";
+            const ICON_DARK = "{{ICON_DARK}}";
             const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
             const VAPID_KEY = "{{VAPID_KEY}}";
             if("{{request.GET.e}}") {
