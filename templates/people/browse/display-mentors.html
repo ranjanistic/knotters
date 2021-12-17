@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row tertiary" style="background-image: url('/static/graphics/self/icon.svg');">
+<div class="w3-row tertiary" style="background-image: url('{{ICON}}');">
     <div class="w3-row" style="padding:16px 4px">
     <h2 class="w3-center pallete">{% trans "Backed by the Greatest" %}</h2>
     </div>
@@ -13,7 +13,7 @@
         <div class="swiper-wrapper swiper-wrap">
             {% for dmentor in dmentors %}
             <div class="swiper-slide">
-                <a href="{{get_link|or:URLS.PEOPLE}}" target="_blank">
+                <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"{% endif %}>
                 <div class="pallete w3-center no-pad">
                     <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />
                     <div class="w3-row w3-padding">
@@ -31,7 +31,7 @@
         <div class="swiper-wrap_i">
             {% for dmentor in dmentors %}
             <div class="w3-col">
-                <a href="{{get_link}}" target="_blank">
+                <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"{% endif %}>
                 <div class="pallete pallete_i w3-center" style="max-height:540px;height:auto;">
                     <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />
                     <div class="w3-row w3-padding">
