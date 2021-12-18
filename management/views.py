@@ -274,7 +274,7 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
             Q(
                 Q(user__emailaddress__verified=True, is_active=True,
-                  suspended=False, to_be_zombie=False),
+                  suspended=False, to_be_zombie=False, is_mentor=True),
                 Q(user__email__startswith=query)
                 | Q(user__first_name__startswith=query)
                 | Q(githubID__startswith=query)

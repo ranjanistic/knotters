@@ -13,16 +13,6 @@ from management.models import HookRecord, ReportCategory
 from .apps import APPNAME
 
 
-def projectImagePath(instance, filename):
-    fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
-
-
-
-def defaultImagePath():
-    return f"{APPNAME}/default.png"
-
-
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
@@ -149,7 +139,7 @@ class License(models.Model):
 
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 def defaultImagePath():
     return f"{APPNAME}/default.png"
@@ -191,7 +181,7 @@ class BaseProject(models.Model):
     def save(self, *args, **kwargs):
         try:
             previous = BaseProject.objects.get(id=self.id)
-            if not [self.image,defaultImagePath()].__contains__(previous.image):
+            if not (previous.image in [self.image,defaultImagePath()]):
                 previous.image.delete(False)
         except:
             pass

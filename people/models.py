@@ -176,7 +176,7 @@ class TopicTag(models.Model):
 
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getUserID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 def defaultImagePath() -> str:
     return f"{APPNAME}/default.png"
@@ -219,6 +219,8 @@ class Profile(models.Model):
         'User', through='BlockedUser', default=[], related_name='blocked_users')
     reportlist = models.ManyToManyField(
         'User', through='ReportedUser', default=[], related_name='reported_users')
+
+    on_boarded = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email

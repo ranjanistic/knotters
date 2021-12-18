@@ -588,7 +588,10 @@ const handleCropImageUpload = (
     ratio = 1 / 1
 ) => {
     const file = Array.from(event.target.files)[0];
-    if (file) loader();
+    if (file){
+        loader();
+        message('Loading image...')
+    }
     const reader = new FileReader();
     reader.onload = (_) => {
         const base64String = reader.result;

@@ -40,7 +40,6 @@ def require_JSON_body(function):
             request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)))
             return function(request, *args, **kwargs)
         except Exception as e:
-            errorLog(e)
             if request.method == 'POST':
                 return function(request, *args, **kwargs)
             return HttpResponseNotAllowed(permitted_methods=['POST'])

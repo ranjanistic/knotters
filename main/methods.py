@@ -174,7 +174,6 @@ def base64ToImageFile(base64Data: base64) -> File:
             return False
         return ContentFile(base64.b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
     except Exception as e:
-        errorLog(e)
         return None
 
 def base64ToFile(base64Data: base64) -> File:

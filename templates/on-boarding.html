@@ -1,0 +1,244 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Getting started on {{APPNAME}}{% endblock %}
+{% block og_url %}{{request.path}}{% endblock %}
+{% block og_title %}Get started{% endblock %}
+{% block og_description %}Getting started on {{APPNAME}}{% endblock %}
+{% block og_site_name %}Get started{% endblock %}
+
+
+{% block tw_url %}{{request.path}}{% endblock %}
+{% block tw_title %}Get started{% endblock %}
+{% block tw_description %}Getting started on {{APPNAME}}{% endblock %}
+
+{% block title %}Get started{% endblock %}
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block nav_text %}Get Started{% endblock %}
+
+{% block nav_noauth %}
+{% endblock %}
+
+{% block content %}
+<div class="w3-row w3-padding">
+    <div class="w3-row w3-center on-boarding-view" id="1">
+        <div class="w3-row w3-center">
+            <h1>Let's set you up.</h1>
+        </div>
+        <br/>
+        <div class="w3-row align w3-hide-small xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="200" style="border:4px solid var(--dead-text)" alt="{{APPNAME}}"/>
+            <i class="dead-text w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="200" style="border:4px solid var(--dead-text)" alt="{{request.user.getName}}"/>
+        </div>
+        <div class="w3-row align w3-hide-medium w3-hide-large" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="100" style="border:4px solid var(--dead-text)" alt="{{APPNAME}}"/>
+            <i class="dead-text w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="100" style="border:4px solid var(--dead-text)" alt="{{request.user.getName}}"/>
+        </div>
+        <br/><br/>
+        <div class="text-big"><strong>In a few moments, you'll be ready to begin your journey at {{APPNAME}}.</strong></div>
+        <div class="w3-row w3-center w3-padding xyz-in" xyz="fade back down duration-10 left-100%">
+            <button onclick="moveBoarding(1)" class="big-button positive" data-icon="arrow_forward">Get Started</button>
+        </div>
+    </div>
+    <div class="w3-row on-boarding-view" id="2">
+        <div class="w3-row align" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="50" alt="{{APPNAME}}" />
+            <i class="dead-text xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="50" alt="{{request.user.getName}}" />
+        </div>
+        <br/>
+        <center><strong class="text-big">Most of the times here you'll be jumping around these</strong></center>
+        <br/>
+        <div class="w3-row w3-center">
+            <div class="w3-col w3-third w3-padding">
+                <div class="pallete positive text-positive">
+                        <h3>Projects</h3>
+                        <div class="pallete-slab primary">
+                            <strong class="text-medium">
+                                Community projects,<br/>open for everyone, to everyone.<br/>
+                                Contribute to existing ideas, <br/>or submit your own to make it real<br/>together with everyone.
+                            </strong>
+                        </div>
+                        <a href="{{URLS.PROJECTS}}" target="_blank"><button class="primary" data-icon="widgets">Browse projects</button></a>
+                </div>
+            </div>
+            <div class="w3-col w3-third w3-padding">
+                <div class="pallete active text-active">
+                        <h3>Competitions</h3>
+                        <div class="pallete-slab primary">
+                            <strong class="text-medium">
+                                Time to time mass challenges,<br/> targeted primarily on <br/>real world problems.<br/>And for you to level up with enthusiasm.
+                            </strong>
+                        </div>
+                        <a href="{{URLS.COMPETE}}" target="_blank"><button class="primary active-text" data-icon="psychology">Browse competitions</button></a>
+                </div>
+            </div>
+            <div class="w3-col w3-third w3-padding">
+                <div class="pallete accent text-accent">
+                        <h3>Community</h3>
+                        <div class="pallete-slab primary">
+                            <strong class="text-medium">
+                                Meet the people you <br/>share this platform with.<br/>
+	                            Who knows maybe you'd find<br/> an interesting project in a not-so-strange profile?
+                            </strong>
+                        </div>
+                        <a href="{{URLS.PEOPLE}}" target="_blank"><button class="primary accent-text" data-icon="psychology">Browse community</button></a>
+                </div>
+            </div>
+        </div>
+        <div class="w3-row w3-center " xyz="fade back down duration-10">
+            <button onclick="moveBoarding(2, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(2)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="3">
+        <center><strong class="text-big">Tell us a bit more about yourself</strong></center>
+        <br/>
+        <div class="w3-row w3-padding">
+            <div class="w3-col w3-quarter"><br/>
+            </div>
+            <div class="w3-col w3-half w3-padding">
+                <form method="POST" action="{{URLS.People.PROFILEEDIT|params:'pallete'}}">
+                    {% csrf_token %}
+                    <input type="text" hidden name="profilepic" id="profile-pic-data" />
+                    <input type="text" name="next" value="{{request.path}}" hidden />
+                    <div class="w3-row">
+                        <div class="w3-col w3-half w3-center">
+                            <img class="pallete preview-type-image" src="{{request.user.profile.getDP}}" width="200" id="profile-pic-output" />
+                            <br/><br/>
+                            <button class="primary small" type="button" data-icon="upload">
+                                <label for="profile-pic-upload" class="w3-small">
+                                    Change picture
+                                </label>
+                            </button>
+                            <br/><br/>
+                        </div>
+                        <div class="w3-col w3-half">
+                            <strong>Did we get your name correct?<br/>
+                            <input type="text" class="wide" name="displayname" autocomplete="name" required maxlength="70" placeholder="Your name" value="{{request.user.getName}}" />
+                            <br/><br/>
+                            Tell us about yourself a bit.<br/>
+                            <textarea type="text" name="profilebio" class="wide" rows="3" required maxlength="300" autocomplete="name" placeholder="Your bio, max 50 words.">{{request.user.profile.getBio}}</textarea>
+                            </strong>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="w3-row w3-center">
+                        You can change these details anytime.<br/><br/>
+                        <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
+                        <button class="accent small" onclick="futuremessage('Changes saved')" type="submit" data-icon="done">Save changes</button>
+                    </div>
+                </form>
+            </div>
+            <div class="w3-col w3-quarter">
+                <input type="file" id="profile-pic-upload" hidden accept="image/png, image/jpg, image/jpeg" />
+            </div>
+        </div>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(3, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(3)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="4">
+        <center><strong class="text-big">Which topics interest you? Pick at most 5.</strong></center>
+        <br/>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(4, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(4)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Okay, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="5">
+        <center><strong class="text-big">Admire some projects to browse their snapshots.</strong></center>
+        <br/>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(5, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(5)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="6">
+        <div class="w3-row w3-center">
+            <i class="w3-jumbo positive-text">done_all</i>
+            <h1>There, all caught up.</h1>
+        </div>
+        <br/>
+        <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="200" alt="{{APPNAME}}" />
+            <i class="positive-text w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="200" alt="{{request.user.getName}}" />
+        </div>
+        <div class="w3-row align w3-hide-medium w3-hide-large" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{APPNAME}}" />
+            <i class="positive-text w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{request.user.getName}}" />
+        </div>
+        <br/><br/>
+        <div class="text-big w3-center"><strong>Now you are ready to start your journey at {{APPANAME}}</strong></div>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(6, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button id="on-boarding-finish" class="big-button positive xyz-in" data-icon="done" xyz="right-100%">Let's go!</button>
+        </div>
+        <br/><br/>
+    </div>
+    <br/>
+    <div class="w3-center dead-text" id='on-boarding-step-display'>
+        1/5
+    </div>
+</div>
+{% endblock %}
+
+{% block in_scripts %}
+<script>
+    const moveBoarding = (current, step = 1) => {
+        sessionStorage.setItem('on-boarding-step', current+step-1)
+        getElements("on-boarding-view").forEach((view)=>{
+            visible(view,((view.id != current) && (view.id == (current + step))))
+        })
+        getElement('on-boarding-step-display').innerHTML = `${current+step}/${getElements("on-boarding-view").length}`
+        window.scrollTo(0,0)
+    }
+    moveBoarding(Number(sessionStorage.getItem('on-boarding-step')||0))
+    getElement('on-boarding-finish').onclick=_=>{
+        postRequest2({
+            path:URLS.ON_BOARDING_UPDATE,
+            data: {
+                onboarded: true
+            }
+        }).then((res)=>{
+            if(res.code === code.OK){
+                window.location.href=URLS.ROOT
+            } else {
+                error(res.error)
+            }
+        })
+    }
+    getElement("profile-pic-upload").onchange = (e) => {
+        handleCropImageUpload(
+            e,
+            "profile-pic-data",
+            "profile-pic-output",
+            () => {
+            }
+        );
+    };
+</script>
+{% endblock %}
+
+{% block footer %}
+<div class="w3-row w3-center w3-bottom">
+<a href="{{URLS.LANDING}}" target="_blank"><img class="w3-left darkimg" src="{{ICON}}" width="25" /></a>
+</div>
+{% endblock %}

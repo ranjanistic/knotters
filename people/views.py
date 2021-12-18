@@ -7,7 +7,7 @@ from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
-from main.decorators import github_only, require_JSON_body, normal_profile_required
+from main.decorators import decode_JSON, github_only, require_JSON_body, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
 from main.env import BOTMAIL
 from main.strings import Action, Code, Event, Message, Template
@@ -83,9 +83,11 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     try:
         profile = Profile.objects.get(user=request.user)
+        nextlink = request.POST.get('next', None)
         if section == 'pallete':
             userchanged = False
             profilechanged = False
@@ -115,14 +117,13 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                     profile.user.save()
                 if profilechanged:
                     profile.save()
-                    return redirect(profile.getLink(success=Message.PROFILE_UPDATED))
-                return redirect(profile.getLink())
+                    return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
+                return redirect(nextlink or profile.getLink())
             except Exception as e:
-                return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
+                return redirect(nextlink or profile.getLink(error=Message.ERROR_OCCURRED))
         else:
             raise Exception()
     except Exception as e:
-        print(e)
         return HttpResponseForbidden()
 
 

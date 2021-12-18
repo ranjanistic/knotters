@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 from datetime import timedelta
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
 from django.db.models import Q
@@ -23,8 +23,8 @@ from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
 from .env import ADMINPATH, ISPRODUCTION
-from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, verify_captcha, renderString
-from .decorators import dev_only, github_only, require_JSON_body, decode_JSON
+from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
+from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON
 from .mailers import featureRelease
 from .strings import Code, URL, Message, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
 
@@ -53,19 +53,44 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
+    if request.user.is_authenticated and not request.user.profile.on_boarded:
+        return respondRedirect(path=URL.ON_BOARDING)
     competition = Competition.objects.filter(endAt__gt=timezone.now()).order_by("-startAt").first()
     return renderView(request, Template.INDEX, dict(competition=competition))
 
 
 @require_GET
 def redirector(request: WSGIRequest) -> HttpResponse:
-    next = request.GET.get('n', '/')
-    next = '/' if str(next).strip() == '' or not next or next == 'None' else next
-    if next.startswith("/"):
-        return redirect(next)
-    else:
-        return renderView(request, Template.FORWARD, dict(next=next))
+    try:
+        next = request.GET.get('n', '/')
+        next = '/' if str(next).strip() == '' or not next or next == 'None' else next
+        if next.startswith("/"):
+            return redirect(next)
+        else:
+            return renderView(request, Template.FORWARD, dict(next=next))
+    except:
+        return redirect(URL.INDEX)
 
+@normal_profile_required
+@require_GET
+def on_boarding(request:WSGIRequest) -> HttpResponse:
+    try:
+        return renderView(request, Template.ON_BOARDING)
+    except Exception as e:
+        raise Http404(e)
+
+@normal_profile_required
+@require_POST
+@decode_JSON
+def on_boarding_update(request:WSGIRequest) -> HttpResponse:
+    try:
+        on_boarded = request.POST.get('onboarded', False)
+        request.user.profile.on_boarded = on_boarded == True
+        request.user.profile.save()
+        return respondJson(Code.OK)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
 
 @require_GET
 def docIndex(request: WSGIRequest) -> HttpResponse:
@@ -249,6 +274,7 @@ class ServiceWorker(TemplateView):
             OFFLINE=f"/{URL.OFFLINE}",
             assets=json.dumps(assets),
             noOfflineList=json.dumps([
+                setPathParams(f"/{URL.ON_BOARDING}"),
                 setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.COMPETETABSECTION}"),
                 setPathParams(f"/{URL.COMPETE}{URL.Compete.INDEXTAB}"),
