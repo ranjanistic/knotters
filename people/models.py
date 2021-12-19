@@ -425,7 +425,10 @@ class Profile(models.Model):
 
     @property
     def getTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=False).values_list('topic', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points').values_list('topic__id', flat=True)
+        def hexize(topUUID):
+            return topUUID.hex
+        return list(map(hexize,topIDs))
 
     def getTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
@@ -442,7 +445,10 @@ class Profile(models.Model):
 
     @property
     def getTrashedTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True).values_list('topic', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self, trashed=True).order_by('-points').values_list('topic__id', flat=True)
+        def hexize(topUUID):
+            return topUUID.hex
+        return list(map(hexize,topIDs))
 
     def getTrashedTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
@@ -452,39 +458,38 @@ class Profile(models.Model):
         return topics
 
     def getTrashedTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True)
+        return ProfileTopic.objects.filter(profile=self, trashed=True).order_by('-points')
 
     def totalTrashedTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True).count()
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def getTrahedTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
-        topics = []
-        for proftop in proftops:
-            topics.append(proftop.topic)
-        return topics
+        return self.getTrashedTopics()
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def getTrahedTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True)
+        return self.getTrashedTopicsData()
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def totalTrahedTopics(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True).count()
+        return self.totalTrashedTopics()
 
     @property
     def getAllTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self).values_list('topic', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self).order_by('-points').values_list('topic__id', flat=True)
+        def hexize(topUUID):
+            return topUUID.hex
+        return list(map(hexize,topIDs))
 
     def getAllTopics(self):
         return self.topics.all()
 
     def getAllTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self)
+        return ProfileTopic.objects.filter(profile=self).order_by('-points')
 
     def totalAllTopics(self):
-        return ProfileTopic.objects.filter(profile=self).count()
+        return self.topics.count()
 
     def isBlocked(self, user: User) -> bool:
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()

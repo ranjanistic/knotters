@@ -159,11 +159,15 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
             excluding.append(topic.id)
 
     topics = Topic.objects.exclude(id__in=excluding).filter(
-        Q(name__istartswith=query) | Q(name__iexact=query))[0:5]
+        Q(name__istartswith=query)
+        | Q(name__iendswith=query)
+        | Q(name__iexact=query)
+        | Q(name__icontains=query)
+    )[0:5]
     topicslist = []
     for topic in topics:
         topicslist.append(dict(
-            id=topic.getID(),
+            id=topic.get_id,
             name=topic.name
         ))
 

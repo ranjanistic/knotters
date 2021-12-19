@@ -21,6 +21,7 @@
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
+{% block nav_back_icon %}pause{% endblock %}
 
 {% block nav_text %}Get Started{% endblock %}
 
@@ -31,7 +32,7 @@
 <div class="w3-row w3-padding">
     <div class="w3-row w3-center on-boarding-view" id="1">
         <div class="w3-row w3-center">
-            <h1>Let's set you up.</h1>
+            <h1>Let's set you up. Quickly.</h1>
         </div>
         <br/>
         <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
@@ -159,25 +160,64 @@
         <br/>
         <div class="w3-row">
             <div class="w3-col w3-half w3-center w3-padding">
-                <h3>Your visible topics</h3>
-                {% for topicdata in request.user.profile.getTopicsData %}
-                    <button class="big-button accent">{{topicdata.topic}} +{{topicdata.get_points}}</button>
-                {% empty %}
-                    <i class="w3-jumbo dead-text">add</i>
-                    <h4 class="dead-text">
-                        No topics yet.<br/>You can make at most 5 topics visible.
-                    </h4>
-                {% endfor %}
+                <div class="w3-row">
+                    <h3>Your visible topics</h3>
+                    <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh">
+                        {% for topicdata in request.user.profile.getTopicsData %}
+                            <button class="big-button accent draggable-topic" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                        {% empty %}
+                            <div id="no-visible-topics-view">
+                            <i class="w3-jumbo dead-text">drag_indicator</i>
+                            <h4 class="dead-text">
+                                No topics yet.<br/>
+                            </h4>
+                            <h6 class="dead-text">
+                                Drag and drop a topic here to add. Maximum 5 visible topics allowed.
+                            </h6>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <br/>
+                <div class="w3-row">
+                    <div class="w3-row">
+                        <h4>Search topics to add</h4>
+                        <strong>Drag and drop to edit your visible topics.</strong><br/>
+                        <input class="wide" type="text" placeholder="Start typing to search" id="search-topics-input" />
+                    </div>
+                    
+                </div>
             </div>
             <div class="w3-col w3-half w3-center w3-padding">
-                <h3>Your hidden talents</h3>
+                <div class="w3-row">
+                    <h3>Your hidden talents</h3>
+                    {% if request.user.profile.totalTrashedTopics %}
+                    <strong>Drag and drop to edit your visible topics.</strong>
+                    {% endif %}
+                </div>
+                <div class="w3-row">
                 {% for topicdata in request.user.profile.getTrashedTopicsData %}
-                    <button class="big-button secondary">{{topicdata.topic}} +{{topicdata.get_points}}</button>
-                    <button class="big-button secondary">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                    <button id="editable-topic" data-topicID="{{topicdata.topic.get_id}}" class="big-button secondary hidden-topic draggable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
                 {% empty %}
+                    <i class="w3-jumbo dead-text">psychology</i>
+                        <h4 class="dead-text">
+                            None that we know of.
+                        </h4>
+                        <h6 class="dead-text">
+                            Don't worry, you are new here. Keep doing thigs, we'll automatically find your hidden talents soon.
+                        </h6>
                 {% endfor %}
+                </div>
+                <br/>
+                <div class="w3-row topics-search-results" id="topic-search-results-view">
+                </div>
             </div>
         </div>
+        <br/>
+        <center><strong>
+        The +N on each topic represent your XP (experience count) in them.
+        <br/>Don't worry if they are low, they'll increase overtime depending upon your activity on {{APPNAME}}.
+        </strong></center>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
             <button onclick="moveBoarding(4, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button onclick="moveBoarding(4)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Okay, next</button>
@@ -436,11 +476,104 @@
         );
         
     }
+
+    getElement('search-topics-input').oninput =async(e)=>{
+        const query = String(e.target.value).trim()
+        const view = getElement('topic-search-results-view')
+        if(!query) return setHtmlContent(view, '')
+        const data = await postRequest2({
+            path: URLS.People.TOPICSEARCH,
+            data: {
+                query
+            },
+            retainCache:true
+        })
+        if(!data) return
+        if(data.code!==code.OK) return error(data.error)
+        let topicsdata = ''
+        data.topics.forEach((topic)=>{
+            topicsdata+=`<button id="editable-topic" data-topicID="${topic.id}" class="big-button positive draggable-topic">${topic.name} + 0</button>`
+        })
+        setHtmlContent(view, topicsdata||'No topics found')
+    }
+    let visibleTopicIDs = [];
+    {% for topid in request.user.profile.getTopicIds %}
+        visibleTopicIDs.push('{{topid}}');
+    {% endfor %}
+    interact('.visible-topics-zone').dropzone({
+        accept: '#editable-topic',
+        overlap: 0.5,
+
+        ondropactivate: function (event) {
+            var dropzoneElement = event.target
+            dropzoneElement.classList.add('pallete-slab')
+        },
+        ondragenter: function (event) {
+            var draggableElement = event.relatedTarget
+            var dropzoneElement = event.target
+            message('Release to drop!')
+        },
+        ondragleave: function (event) {
+            var draggableElement = event.relatedTarget
+            var dropzoneElement = event.target
+            dropzoneElement.classList.remove('pallete-slab')
+            draggableElement.classList.remove('accent', 'negative')
+            draggableElement.classList.add('secondary')
+            
+            if(getElement('no-visible-topics-view')){
+                getElement('no-visible-topics-view').style.opacity = 0
+            }
+            const topicid = draggableElement.getAttribute('data-topicID')
+            visibleTopicIDs = visibleTopicIDs.filter((topid)=>topicid!=topid)
+        },
+        ondrop: function (event) {
+            var draggableElement = event.relatedTarget
+            if(visibleTopicIDs.length===5){
+                error('Maximum visble topics limit reached')
+                draggableElement.classList.remove('secondary','positive')
+                draggableElement.classList.add('negative')
+            } else {
+                draggableElement.classList.remove('secondary','positive')
+                draggableElement.classList.add('accent')
+                if(getElement('no-visible-topics-view')){
+                    getElement('no-visible-topics-view').style.opacity = 0
+                }
+                const topicid = draggableElement.getAttribute('data-topicID')
+                visibleTopicIDs.push(topicid)
+            }
+        },
+        ondropdeactivate: function (event) {
+            var dropzoneElement = event.target
+            dropzoneElement.classList.remove('pallete-slab')
+        }
+    })
+    function dragMoveListener (event) {
+        var target = event.target
+        var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+        var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+        target.setAttribute('data-x', x)
+        target.setAttribute('data-y', y)
+    }
+
+    window.dragMoveListener = dragMoveListener
+    interact('.draggable-topic').draggable({
+        inertia: true,
+        modifiers: [
+            interact.modifiers.restrictRect({
+                restriction: 'none',
+                endOnly: true
+            })
+        ],
+        autoScroll: true,
+        // dragMoveListener from the dragging demo above
+        listeners: { move: dragMoveListener }
+    })
 </script>
 {% endblock %}
 
 {% block footer %}
-<div class="w3-row w3-center w3-bottom">
-<a href="{{URLS.LANDING}}" target="_blank"><img class="w3-left darkimg" src="{{ICON}}" width="25" /></a>
+<div class="w3-row w3-center">
+<a href="{{URLS.LANDING}}" target="_blank"><img class="w3-left darkimg" src="{{ICON}}" width="50" /></a>
 </div>
 {% endblock %}
