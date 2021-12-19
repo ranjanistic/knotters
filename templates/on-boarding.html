@@ -162,6 +162,7 @@
             <div class="w3-col w3-half w3-center w3-padding">
                 <div class="w3-row">
                     <h3>Your visible topics</h3>
+                    <strong>Maximum 5 visible topics allowed</strong>
                     <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh">
                         {% for topicdata in request.user.profile.getTopicsData %}
                             <button class="big-button accent draggable-topic" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
@@ -214,8 +215,14 @@
             </div>
         </div>
         <br/>
+        <div class="w3-row w3-center">
+            You can change these details anytime.<br/>
+            <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
+            <button class="accent small" onclick="saveVisibleTopics()" type="submit" data-icon="done">Save changes</button>
+        </div>
+        <br/>
         <center><strong>
-        The +N on each topic represent your XP (experience count) in them.
+        The +N on each topic represents your XP (experience count) in them.
         <br/>Don't worry if they are low, they'll increase overtime depending upon your activity on {{APPNAME}}.
         </strong></center>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
@@ -480,11 +487,11 @@
     getElement('search-topics-input').oninput =async(e)=>{
         const query = String(e.target.value).trim()
         const view = getElement('topic-search-results-view')
-        if(!query) return setHtmlContent(view, '')
+        if(!query) return
         const data = await postRequest2({
             path: URLS.People.TOPICSEARCH,
             data: {
-                query
+                query,excludeProfileAllTopics:true
             },
             retainCache:true
         })
@@ -496,6 +503,7 @@
         })
         setHtmlContent(view, topicsdata||'No topics found')
     }
+    
     let visibleTopicIDs = [];
     {% for topid in request.user.profile.getTopicIds %}
         visibleTopicIDs.push('{{topid}}');
@@ -517,7 +525,7 @@
             var draggableElement = event.relatedTarget
             var dropzoneElement = event.target
             dropzoneElement.classList.remove('pallete-slab')
-            draggableElement.classList.remove('accent', 'negative')
+            draggableElement.classList.remove('accent', 'negative','positive')
             draggableElement.classList.add('secondary')
             
             if(getElement('no-visible-topics-view')){
@@ -528,18 +536,19 @@
         },
         ondrop: function (event) {
             var draggableElement = event.relatedTarget
-            if(visibleTopicIDs.length===5){
+            const topicid = draggableElement.getAttribute('data-topicID')
+            if(visibleTopicIDs.length===5 && !visibleTopicIDs.includes(topicid)){
                 error('Maximum visble topics limit reached')
                 draggableElement.classList.remove('secondary','positive')
                 draggableElement.classList.add('negative')
             } else {
-                draggableElement.classList.remove('secondary','positive')
+                draggableElement.classList.remove('secondary','positive','negative')
                 draggableElement.classList.add('accent')
                 if(getElement('no-visible-topics-view')){
                     getElement('no-visible-topics-view').style.opacity = 0
-                }
-                const topicid = draggableElement.getAttribute('data-topicID')
-                visibleTopicIDs.push(topicid)
+                }    
+                if(!visibleTopicIDs.includes(topicid))
+                    visibleTopicIDs.push(topicid)
             }
         },
         ondropdeactivate: function (event) {
@@ -569,6 +578,20 @@
         // dragMoveListener from the dragging demo above
         listeners: { move: dragMoveListener }
     })
+    const saveVisibleTopics=async()=>{
+        const data = await postRequest2({
+            path:URLS.People.TOPICSUPDATE,
+            data: {
+                visibleTopicIDs
+            }
+        })
+        if(!data) return
+        if(data.code===code.OK) {
+            futuremessage('Changes saved!')
+            return window.location.reload()
+        }
+        error(data.error)
+    }
 </script>
 {% endblock %}
 

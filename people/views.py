@@ -151,13 +151,16 @@ def accountprefs(request: WSGIRequest) -> HttpResponse:
 @require_JSON_body
 def topicsSearch(request: WSGIRequest) -> JsonResponse:
     query = request.POST.get('query', None)
+    excludeProfileTopics = request.POST.get('excludeProfileTopics', True)
+    excludeProfileAllTopics = request.POST.get('excludeProfileAllTopics', False)
     if not query:
         return respondJson(Code.NO)
     excluding = []
     if request.user.is_authenticated:
-        for topic in request.user.profile.getTopics():
-            excluding.append(topic.id)
-
+        if excludeProfileAllTopics:
+            excluding = excluding + request.user.profile.getAllTopicIds
+        elif excludeProfileTopics:
+            excluding = excluding + request.user.profile.getTopicIds
     topics = Topic.objects.exclude(id__in=excluding).filter(
         Q(name__istartswith=query)
         | Q(name__iendswith=query)
@@ -178,20 +181,27 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 def topicsUpdate(request: WSGIRequest) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
-        if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
-            return redirect(request.user.profile.getLink())
+        visibleTopicIDs = request.POST.get('visibleTopicIDs', None)
+        if not addtopicIDs and not removetopicIDs and not visibleTopicIDs:
+            if request.POST.get('JSON_BODY', False):
+                return respondJson(Code.NO)
+            if not (addtopicIDs.strip() or removetopicIDs.strip()):
+                return redirect(request.user.profile.getLink())
 
         if removetopicIDs:
-            removetopicIDs = removetopicIDs.strip(',').split(',')
+            if not request.POST.get('JSON_BODY', False):
+                removetopicIDs = removetopicIDs.strip(',').split(',')
             ProfileTopic.objects.filter(
                 profile=request.user.profile, topic__id__in=removetopicIDs).update(trashed=True)
 
         if addtopicIDs:
-            addtopicIDs = addtopicIDs.strip(',').split(',')
+            if not request.POST.get('JSON_BODY', False):
+                addtopicIDs = addtopicIDs.strip(',').split(',')
             proftops = ProfileTopic.objects.filter(
                 profile=request.user.profile)
             currentcount = proftops.filter(trashed=False).count()
@@ -203,10 +213,21 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             if request.user.profile.totalTopics() != newcount:
                 for topic in Topic.objects.filter(id__in=addtopicIDs):
                     request.user.profile.topics.add(topic)
+        print(visibleTopicIDs)
+        if visibleTopicIDs and len(visibleTopicIDs) > 0:
+            if len(visibleTopicIDs)>5: return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+            for topic in Topic.objects.filter(id__in=visibleTopicIDs):
+                request.user.profile.topics.add(topic)
+            ProfileTopic.objects.filter(profile=request.user.profile).exclude(topic__id__in=visibleTopicIDs).update(trashed=True)
+            ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=visibleTopicIDs).update(trashed=False)
 
+        if request.POST.get('JSON_BODY', False):
+            return respondJson(Code.OK)
         return redirect(request.user.profile.getLink())
     except Exception as e:
         errorLog(e)
+        if request.POST.get('JSON_BODY', False):
+            return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
         raise Http404()
 
 
