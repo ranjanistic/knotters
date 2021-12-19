@@ -203,15 +203,16 @@ class JsonEncoder(DjangoJSONEncoder):
 
 
 def errorLog(error):
-    try:
-        if not ISTESTING:
+    if not ISTESTING:
+        try:
             with open(os.path.join(os.path.join(settings.BASE_DIR, '_logs_'), 'errors.txt'), 'a') as log_file:
                 log_file.write(f"\n{timezone.now()}\n{error}")
-            if ISDEVELOPMENT:
-                print(error)
-    except Exception as e:
-        print('Error in logging: ', e)
-        print('\nTo be logged: ', error)
+        except Exception as e:
+            print('Error in logging: ', e)
+            if not ISDEVELOPMENT:
+                print('Log: ', error)
+        if ISDEVELOPMENT:
+            raise Exception(error)
 
 
 def getNumberSuffix(value: int) -> str:

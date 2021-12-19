@@ -6,8 +6,9 @@ from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
 from main.bots import Github
+from main.methods import errorLog
 from management.models import ReportCategory
-from projects.models import ReportedProject, ReportedSnapshot
+from projects.models import BaseProject, ReportedProject, ReportedSnapshot
 from moderation.models import ReportedModeration
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -477,11 +478,7 @@ class Profile(models.Model):
         return ProfileTopic.objects.filter(profile=self).values_list('topic', flat=True)
 
     def getAllTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self)
-        topics = []
-        for proftop in proftops:
-            topics.append(proftop.topic)
-        return topics
+        return self.topics.all()
 
     def getAllTopicsData(self):
         return ProfileTopic.objects.filter(profile=self)
@@ -546,6 +543,27 @@ class Profile(models.Model):
         return profiles
 
 
+    @property
+    def tags(self) -> list:
+        return self.topics.values_list('tags',flat=True).distinct()
+    
+    def recommended_projects(self, atleast=3, atmost=4):
+        def approved_only(project):
+            return project.is_approved
+        try:
+            constquery = Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles)
+            query = Q(topics__in=self.topics.all())
+            projects = BaseProject.objects.filter(~constquery,query).order_by('-admirers').distinct()
+            projects = list(set(list(filter(approved_only,projects))))
+            if len(projects) < atleast:
+                projects = BaseProject.objects.filter(~constquery).order_by('-admirers').distinct()
+                projects = list(set(list(filter(approved_only,projects))))
+            return projects[:atmost]
+        except Exception as e:
+            errorLog(e)
+            return []
+
+
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(
@@ -598,6 +616,13 @@ class ProfileTopic(models.Model):
         self.points = points
         self.save()
         return self.points
+    
+    def get_points(self, raw=False):
+        if raw: return self.points or 0
+        if self.points or 0 < 10**3: return self.points or 0
+        if self.points < 10**6: return f"{self.points//(10**3)}k"
+        if self.points < 10**9: return f"{self.points//(10**6)}M"
+        return 
 
 
 class BlockedUser(models.Model):

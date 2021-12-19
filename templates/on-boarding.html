@@ -34,7 +34,7 @@
             <h1>Let's set you up.</h1>
         </div>
         <br/>
-        <div class="w3-row align w3-hide-small xyz="fade back down duration-10 big-100%">
+        <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
             <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="200" style="border:4px solid var(--dead-text)" alt="{{APPNAME}}"/>
             <i class="dead-text w3-jumbo xyz-in">link</i>
             <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="200" style="border:4px solid var(--dead-text)" alt="{{request.user.getName}}"/>
@@ -152,17 +152,63 @@
         <br/><br/>
     </div>
     <div class="w3-row on-boarding-view" id="4">
-        <center><strong class="text-big">Which topics interest you? Pick at most 5.</strong></center>
+        <div class="w3-row w3-center">
+            <h2>Which topics interest you?</h2>
+            <strong class="text-big">Topics represent your talents, skills, interests or even profession.</strong>
+        </div>
         <br/>
+        <div class="w3-row">
+            <div class="w3-col w3-half w3-center w3-padding">
+                <h3>Your visible topics</h3>
+                {% for topicdata in request.user.profile.getTopicsData %}
+                    <button class="big-button accent">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                {% empty %}
+                    <i class="w3-jumbo dead-text">add</i>
+                    <h4 class="dead-text">
+                        No topics yet.<br/>You can make at most 5 topics visible.
+                    </h4>
+                {% endfor %}
+            </div>
+            <div class="w3-col w3-half w3-center w3-padding">
+                <h3>Your hidden talents</h3>
+                {% for topicdata in request.user.profile.getTrashedTopicsData %}
+                    <button class="big-button secondary">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                    <button class="big-button secondary">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                {% empty %}
+                {% endfor %}
+            </div>
+        </div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
             <button onclick="moveBoarding(4, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button onclick="moveBoarding(4)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Okay, next</button>
         </div>
         <br/><br/>
     </div>
-    <div class="w3-row on-boarding-view" id="5">
-        <center><strong class="text-big">Admire some projects to browse their snapshots.</strong></center>
+    <div class="w3-row on-boarding-view w3-center" id="5">
+        <h2>Don't just follow. Admire. </h2>
+        <strong class="text-medium">Admire some projects to get their latest snapshots.</strong>
         <br/>
+        <div class="w3-row">
+            {% for project in request.user.profile.recommended_projects %}
+            <div class="w3-col w3-quarter w3-padding">
+                <div class="pallete no-pad w3-center">
+                    <a onclick="miniWindow('{{project.getLink}}')">
+                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" />
+                    </a>
+                    <div class="w3-row w3-padding">
+                        <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        <span>{{ project.description|truncatechars:25 }}</span>
+                        <br/><br/>
+                        <button onclick="onboardAdmireProject('{{project.get_id}}')" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism">Admire</button>
+                    </div>
+                    <br/>
+                </div>
+                
+            </div>
+            {% endfor %}
+        </div>
+        <br/>
+        <strong>Snapshots are the moments during the lifetime of a project.</strong>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
             <button onclick="moveBoarding(5, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button onclick="moveBoarding(5)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
@@ -171,8 +217,126 @@
     </div>
     <div class="w3-row on-boarding-view" id="6">
         <div class="w3-row w3-center">
+            <h1>Competitions</h1>
+            <strong class="text-medium">We conduct and host competitions involving your topics. Your participate in them to level up and contribute.</strong>
+        </div>
+        <br/>
+        <div class="w3-row">
+                A new competition goes LIVE => People participate, including you => Moderator moderates, Judges judge =>
+                => Result declaration & certificate allotment => Your claim your profile and topic XPs =>
+                    Winner gets prizes => Winner submission gets converted into verified project =>
+                You contiribute in it
+        </div>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(6, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(6)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+    </div>
+    <div class="w3-row on-boarding-view" id="7">
+        <div class="w3-row w3-center">
+            <h1>Not everything can be explained here.</h1>
+            <strong class="text-medium">We do not like the idea of spoonfeeding our community.
+            <br/>Therefore, you should explore rest of the things yourself to understand better.</strong>
+        </div>
+        <br/>
+        <div class="w3-row">
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{URLS.LANDING}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>The Landing Page</h3>
+                    <strong>The page about everything here, in detail.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{URLS.PROJECTS}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Projects</h3>
+                    <strong>Create, browse, admire more quick and verified projects.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{URLS.COMPETE}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Competitions</h3>
+                    <strong>Browse live, upcoming or archived competitions, historical endevours.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{URLS.PEOPLE}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Community</h3>
+                    <strong>See profiles of our beloved moderators, our respected mentors, and creative people like you.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{request.user.profile.getLink}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Your profile</h3>
+                    <strong>Have a look at how you look to people who look at you.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer">
+                <div class="pallete-slab positive-text">
+                    <h3>Our Discord Server</h3>
+                    <strong>Discord is where our community communicates currently (alliteration!).</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{URLS.DOCS}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Docs & Statements</h3>
+                    <strong>Guidelines, white papers, and legal statements from us.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a onclick="troubleShootingInfo()">
+                <div class="pallete-slab positive-text">
+                    <h3>Troubleshooting</h3>
+                    <strong>A small guide to resolve any problems, at your end.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a onclick="miniWindow('https://api.knotters.org/', 'API')">
+                <div class="pallete-slab positive-text">
+                    <h3>Knotters API</h3> 
+                    <strong>The under-construction API of {{APPNAME}}. Opening this in browser won't be of any use currently.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding">
+                <a onclick="miniWindow('https://api.knotters.org/', 'API')">
+                <div class="pallete-slab">
+                    <h3>Our social channels</h3> 
+                    <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" src="{% static 'graphics/thirdparty/github.png' %}" width="20" height="20"/></button></a>
+                    <a href="https://twitter.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Twitter</span><button aria-label="Twitter"  class="primary w3-animate-zoom"><img alt="Twitter" src="{% static 'graphics/thirdparty/twitter.png' %}" width="22"  height="22"/></button></a>
+                    <a href="https://instagram.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Instagram</span><button aria-label="Instagram"  class="primary w3-animate-zoom"><img alt="Instagram" class="darkimg" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" height="18" /></button></a>
+                    <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="18" /></button></a>
+                    <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="21" height="18" /></button></a>
+                    <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" target="_blank" rel="noreferrer"><span hidden>YouTube</span><button aria-label="YouTube"  class="primary w3-animate-zoom"><img alt="YouTube" src="{% static 'graphics/thirdparty/youtube.png' %}" width="26" height="18" /></button></a>
+                </div>
+                </a>
+            </div>
+        </div>
+        <br/>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(7, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(7)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+    </div>
+    <div class="w3-row on-boarding-view" id="8">
+        <div class="w3-row w3-center">
             <i class="w3-jumbo positive-text">done_all</i>
             <h1>There, all caught up.</h1>
+            <strong class="text-medium">This was just a headstart. There's a lot more waiting to be explored by you.</strong>
         </div>
         <br/>
         <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
@@ -186,9 +350,9 @@
             <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{request.user.getName}}" />
         </div>
         <br/><br/>
-        <div class="text-big w3-center"><strong>Now you are ready to start your journey at {{APPANAME}}</strong></div>
+        <div class="text-big w3-center"><strong>Now you are ready to start your journey at {{APPNAME}}</strong></div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(6, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(8, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button id="on-boarding-finish" class="big-button positive xyz-in" data-icon="done" xyz="right-100%">Let's go!</button>
         </div>
         <br/><br/>
@@ -216,7 +380,8 @@
             path:URLS.ON_BOARDING_UPDATE,
             data: {
                 onboarded: true
-            }
+            },
+            retainCache: true
         }).then((res)=>{
             if(res.code === code.OK){
                 window.location.href=URLS.ROOT
@@ -234,6 +399,43 @@
             }
         );
     };
+    const onboardAdmireProject = async(projectID)=>{
+        if(!projectID) return
+        const admirebutton = getElement(`on-board-project-admire-${projectID}`)
+        const admire = admirebutton.getAttribute("data-admires") == "0";
+        const data = await postRequest2({
+            path: setUrlParams(
+                URLS.Projects
+                    ? URLS.Projects.TOGGLE_ADMIRATION
+                    : URLS.TOGGLE_ADMIRATION,
+                projectID
+            ),
+            data: {
+                admire,
+            },
+            retainCache: true,
+        });
+        if (data.code !== code.OK) {
+            return error(data.error);
+        }
+        if(admire){
+            message("Admired. Now you'll get to see the latest snapshots of this project on your homepage.")
+        } else {
+            message("Disadmired. You won't get to see the latest snapshots of this project on your homepage.")
+        }
+        
+        admirebutton.setAttribute(
+            "data-admires",
+            admire ? 1 : 0
+        );
+        admirebutton.classList[admire ? "add" : "remove"](
+            "positive"
+        );
+        admirebutton.classList[admire ? "remove" : "add"](
+            "primary"
+        );
+        
+    }
 </script>
 {% endblock %}
 

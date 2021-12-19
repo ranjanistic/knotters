@@ -233,7 +233,7 @@ class BaseProject(models.Model):
 
     @property
     def is_approved(self):
-        return Project.objects.filter(id=self.id,status=Code.APPROVED).exists()
+        return Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or self.is_free
 
     def getProject(self,onlyApproved=False):
         project = None
@@ -307,15 +307,21 @@ class Project(BaseProject):
                 data = cache.get(f"gh_repo_data_{self.repo_id}")
                 if data:
                     return data.html_url
-                data = Github.get_repo(int(self.repo_id))
-                cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-                return data.html_url
+                try:
+                    data = Github.get_repo(int(self.repo_id))
+                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                    return data.html_url
+                except:
+                    return self.reponame
             else:
-                data = GithubKnotters.get_repo(self.reponame)
-                self.repo_id = data.id
-                self.save()
-                cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-                return data.html_url
+                try:
+                    data = GithubKnotters.get_repo(self.reponame)
+                    self.repo_id = data.id
+                    self.save()
+                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                    return data.html_url
+                except:
+                    return self.reponame
         except Exception as e:
             errorLog(e)
             return None

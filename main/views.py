@@ -77,6 +77,7 @@ def on_boarding(request:WSGIRequest) -> HttpResponse:
     try:
         return renderView(request, Template.ON_BOARDING)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 @normal_profile_required
