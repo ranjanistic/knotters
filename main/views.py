@@ -26,7 +26,7 @@ from .env import ADMINPATH, ISPRODUCTION
 from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
 from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON
 from .mailers import featureRelease
-from .strings import Code, URL, Message, setPathParams, Template, DOCS, COMPETE, PEOPLE, PROJECTS, Event
+from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS, Event
 
 
 @require_GET
@@ -358,7 +358,7 @@ class Version(TemplateView):
 @decode_JSON
 def browser(request: WSGIRequest, type: str):
     try:
-        if type == "project-snapshots":
+        if type == Browse.PROJECT_SNAPSHOTS:
             excludeIDs = request.POST.get('excludeIDs', [])
             limit = int(request.POST.get('limit', 5))
             if request.user.is_authenticated:
@@ -378,7 +378,7 @@ def browser(request: WSGIRequest, type: str):
                 return respondJson(Code.OK, data)
             else:
                 return respondJson(Code.OK,dict(snapIDs=[]))
-        elif type == "new-profiles":
+        elif type == Browse.NEW_PROFILES:
             excludeIDs = []
             if request.user.is_authenticated:
                 profiles = cache.get(
@@ -415,7 +415,7 @@ def browser(request: WSGIRequest, type: str):
                     cache.set(
                         f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
-        elif type == "new-projects":
+        elif type == Browse.NEW_PROJECTS:
             projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
                 timezone.now()+timedelta(days=-15)), suspended=False).order_by('-approvedOn', '-createdOn')[0:5]
             projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
@@ -432,7 +432,7 @@ def browser(request: WSGIRequest, type: str):
                     timezone.now()+timedelta(days=-60)), suspended=False).order_by('-createdOn')[0:((10-len(projects)) or 1)]))
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
-        elif type == "recent-winners":
+        elif type == Browse.RECENT_WINNERS:
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
             if not results:
                 results = Result.objects.filter(competition__resultDeclared=True, competition__startAt__gte=(
@@ -440,7 +440,7 @@ def browser(request: WSGIRequest, type: str):
                 cache.set(
                     f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
-        elif type == "recommended-projects":
+        elif type == Browse.RECOMMENDED_PROJECTS:
             query = Q()
             authquery = query
             if request.user.is_authenticated:
@@ -453,10 +453,10 @@ def browser(request: WSGIRequest, type: str):
                 projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
                                 0:10], FreeProject.objects.filter(Q(suspended=False), authquery)[0:10]))
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
-        elif type == "trending-topics":
+        elif type == Browse.TRENDING_TOPICS:
             # TODO
             return HttpResponseBadRequest()
-        elif type == "trending-projects":
+        elif type == Browse.TRENDING_PROJECTS:
             query = Q()
             authquery = query
             if request.user.is_authenticated:
@@ -468,27 +468,31 @@ def browser(request: WSGIRequest, type: str):
                 projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
                                 0:10], FreeProject.objects.filter(Q(suspended=False), authquery)[0:10]))
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
-        elif type == "trending-profiles":
+        elif type == Browse.TRENDING_PROFILES:
             # TODO
             return HttpResponseBadRequest()
-        elif type == "newly-moderated":
+        elif type == Browse.NEWLY_MODERATED:
             # TODO
             return HttpResponseBadRequest()
-        elif type == "highest-month-xp-profiles":
+        elif type == Browse.HIGHEST_MONTH_XP_PROFILES:
             # TODO
             return HttpResponseBadRequest()
-        elif type == "latest-competitions":
+        elif type == Browse.LATEST_COMPETITIONS:
             competitions=Competition.objects.filter(hidden=False).order_by("-startAt")[:10]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
-        elif type == "trending-mentors":
-            mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
+        elif type == Browse.TRENDING_MENTORS:
+            mentors=Profile.objects.filter(is_mentor=False,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
-        elif type == "display-mentors":
+        elif type == Browse.TRENDING_MODERATORS:
+            moderators=Profile.objects.filter(is_moderator=True,is_active=True,to_be_zombie=False).order_by("-xp")[:10]
+            
+            return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MODS, dict(moderators=moderators, count=len(moderators)))
+        elif type == Browse.DISPLAY_MENTORS:
             dmentors=DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
             return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
         else:
             return HttpResponseBadRequest()
     except Exception as e:
-        if request.method == "POST":
+        if request.POST.get('JSON_BODY', False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)

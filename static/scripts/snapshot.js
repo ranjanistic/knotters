@@ -5,7 +5,7 @@ const loadBrowseSnaps = async (excludeIDs = []) => {
         viewer = viewers[viewers.length - 1];
     }
     const snapdata = await postRequest2({
-        path: setUrlParams(URLS.BROWSER, "project-snapshots"),
+        path: setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS),
         data: { excludeIDs },
         retainCache: true,
         allowCache: true,

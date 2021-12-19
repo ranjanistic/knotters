@@ -17,7 +17,6 @@
 {% block tw_description %}This page is a story, telling the story of this page itself. Are you interested in our story?{% endblock %}
 
 {% block title %}{% trans "The Landing Page" %}{%endblock%}
-{% block nav_style %}transparent{% endblock %}
 {% block stylesheets %}
 <!-- <link rel="stylesheet" href="{% static 'styles/landing.css' %}"> -->
 {% endblock %}
@@ -33,7 +32,9 @@
             <h1>{{APPNAME}}</h1>
             <h1 class="w3-hide-small w3-jumbo"><b>{% trans "The landing page" %}</b></h1>
             <h1 class="w3-hide-large w3-hide-medium"><b>{% trans "The landing page" %}</b></h1>
-            <h4>{% trans "Keep scrolling, will ya?" %}</h4>
+            <strong class="text-medium">
+                {% trans "Keep scrolling, will ya?" %}
+                </strong>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-bottom">
@@ -41,11 +42,22 @@
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-opacity">
-            <h6>({% trans "Please scroll, virtually begging you 😥" %})</h6>
+            <h6>({% trans "Please scroll, virtually begging you😥" %})</h6>
         </div>
     </div>
     <br>
-    <div class="w3-row w3-padding-large" align='left' id='scrolled'>
+    <div class="w3-row w3-padding-large" align='center' id='scrolled'>
+        {% if not request.user.is_authenticated %}
+            <strong class="text-big">It is highly recommended that you create an account or login first, then proceed.</strong><br/>
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
+        {% elif not request.user.profile.on_boarded %}
+            <strong class="text-big">It is highly recommended that you go through on-boarding first.</strong><br/>
+            <a href="{{URLS.ON_BOARDING}}?next={{request.path}}"><button class="big-button positive" data-icon="play_arrow">Continue to on-boarding</button></a>
+        {% endif %}
+    </div>
+    <br/>
+    <div class="w3-row w3-padding-large" align='left'>
         <h2>{% trans "Not exactly a landing page"%}<a href="https://en.wikipedia.org/wiki/Landing_page" title="{% trans "What is a landing page?" %}" target="_blank" rel="noreferrer"><i>open_in_new</i></a></h2>
         <div class="w3-col w3-half">
             <strong class="w3-large">
@@ -161,19 +173,19 @@
             </h3>
             <div class="w3-row">
                 <h1><span class="accent">Quick Project</span></h1>
-                <h4>
+                <strong class="text-medium">
                     As the name goes, a quick project can be created quickly, without waiting for anyone's approval.
                     This is the fastest way to start a new project here. Any kind of project can be created under this category.
-                </h4>
+                </strong>
                 <br/>
                 <h1><span class="accent">Verified Project</span></h1>
-                <h4>
+                <strong class="text-medium">
                     A project under this category will have its own Github repository under {{APPNAME}} organization,
                     and much more. But to fall under this category, your project has to undergo a review procedure
                     (Moderators are there for that, we'll discuss them later).
                     Currently recommended for coding based projects only.
-                </h4>
-                <br/>
+                </strong>
+                <br/><br/>
                 <h4>
                     And it doesn't end here
                 </h4>
@@ -192,7 +204,7 @@
     <br/>
     <div class="w3-row w3-padding-large">
         <div class="w3-row">
-            <h1 class="w3-jumbo"><span class="accent">The Competitions</span></h1>
+            <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span></h1>
             <strong class="w3-large">
                 <p>
                     We conduct and host competitions in which anyone - even your pet 🐶 - can participate. Robot🤖 participants are still not allowed. Sorry <a onclick="miniWindow('{{URLS.ROBOTS_TXT}}')">robots</a>!<br/>
@@ -203,26 +215,27 @@
             </h3>
             <div class="w3-row">
                 <h1><span class="active">Flex-able certificate</span></h1>
-                <h4>
+                <strong class="text-medium">
                     You'll earn a flex-able certificate upon successfull participation in any active competition at Knotters.
                     Just make your submissions follow our <a onclick="newTab('{{URLS.Docs.TYPE|params:'competitionguidelines'}}')">competition guidelines</a>.
                     The certificates you earn here are immortal, and can be shared anywhere.<br/>
                     We also provide appreciation certificates to judges and moderators as well.
-                </h4>
+                </strong>
                 <br/>
                 <h1><span class="active">Profile +XP</span></h1>
-                <h4>
+                <strong class="text-medium">
                     If you would've had noticed <a href="#creativity-xp">this</a>, we mentioned someting about +100XP in creativity. The XP here indicates
                     the experience count, points, like in video games, and just like we earned +100 in creativity, you can also earn massive amount
                     of XPs from our competitions for its topics (We'll discuss 'XP' soon).
-                </h4>
+                </strong>
                 <br/>
                 <h1><span class="active">Submission to Project</span></h1>
-                <h4>
+                <strong class="text-medium">
                     After a competion ends, which is right after results declaration, we convert the winner's submission into a verified project on Knotters,
-                    without any need to undergo our review procedure, so that it opens up to further contribution.
-                </h4>
-                <br/>
+                    without any need to undergo our review procedure, so that it opens up to further contribution. The moderator of competition becomes the moderator 
+                    of this verified project too, and one of the judges become mentor of the project.
+                </strong>
+                <br/><br/>
                 <h4>
                     And it doesn't end here
                 </h4>
@@ -239,33 +252,43 @@
     </div>
     <br/>
     <div class="w3-row w3-padding-large">
-        <h1>{% trans "The moderators" %}</h1>
-        <h6>
+        <h1>{% trans "The Moderators" %} <strong class="w3-small w3-round w3-tag accent">MOD</strong></h1>
+        <strong class="text-medium">
             To review and take action on verified projects submissions, a category of users at Knotters are called the moderators.
             The descision taken by a moderator for a project decides its future. If approved, the project enters our world.
             If rejected, then the creator gets a few chances to resubmit the same for review to a different moderator.
             No creator or moderator knows each other during review process. The project assigned to a moderator is assigned 
             according to their area of expertise, which is interpreted from their overall contribution record on Knotters.
             The moderator helps a project reach new heights if approved. Moderator is like a project mentor.
-        </h6>
+        </strong><br/>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>{% trans "The Mentors" %} <strong class="w3-small w3-round w3-tag active">MNT</strong></h1>
+        <strong class="text-medium">
+            Mentors are the people who, during peacetime, guide projects through their knowledge and expertise in the domain of concerned project.
+            By 'during peacetime', we meant when they are not involved in any competitions. So yeah you can infer that they have a role in competitions too.
+            Actually, a crutial one. Mentors of our platform are the only ones with the required expertise to be eligble to be a judge of competition.
+            Mentors too have XPs, topics and growth on this platform, just like the moderators have, just like everyone has.
+            Currently we have limited mentorship to verified projects only.
+        </strong><br/>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>{% trans "The Licenses" %}</h1>
-        <h6>
+        <strong class="text-medium">
             Several open source licenses are provided on Knotters by default to choose from for your next project.
             You cannot change the license after a project is live. For quick projects, you can only choose from available licenses
             (which are enough in numbers). For verified projects, you can add your own license if the default ones doesn't suit you.
             If you don't understand licenses and their importance, you can go with the default selected license for your projects.
-        </h6>
+        </strong><br/>
         <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button accent' data-icon="open_in_new">View licenses</button></a>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>{% trans "Your profile" %}</h1>
-        <h6>
+        <strong class="text-medium">
             Just like the profile of your project is its own room on Knotters, your own profile also represents your presence in our community.
             Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself.
             You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.
-        </h6>
+        </strong><br/>
         {% if request.user.is_authenticated %}
         <a onclick="newTab('{{request.user.profile.getLink}}')"><button class='big-button accent'><img src="{{request.user.profile.getDP}}" class="w3-circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
         {% else %}
@@ -274,28 +297,28 @@
     </div>
     <div class="w3-row w3-padding-large">
         <h1>{% trans "The Topics" %}</h1>
-        <h6>
+        <strong class="text-medium">
             Our platform is filled with numerous of topics to choose from, for your profile, for your projects, and for the competitions,
             through with you can uniquely select and level up your expertise in the domain of your choice.
             The topics have indiviual XP points for everyone on Knotters, which can be increased via various sources, the major source being participation 
             in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
-        </h6>
+        </strong><br/>
     </div>
     
     <div class="w3-row w3-padding-large">
         <h1>{% trans "Everything counts" %}</h1>
-        <h6>
+        <strong class="text-medium">
             As you'd have read, your level of expertise on Knotters depends on the XP your profile and your topics have.
             Every action you take on Knotters duly contributes to your own visible growth, reflecting in your profile.
             You can contribute to the projects of your choice, and depending on the associated topics of that particular project,
             your own XP will increase for those topics. This was just one of the various ways through which your XPs can be controlled, 
             and for most of the part, you don't need to care about the ways. Focus on the work you do here, or just play around the
             different segments of this platform, and we'll take care of your growth reflection.
-        </h6>
+        </strong><br/>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Level up</h1>
-        <h6>
+        <strong class="text-medium">
             If you've read about how a moderator gets projects to review, then you could probably interpret the importance of 
             XP of topics for a moderator. As the submitted projects have a category, the associated topics with that particular
             category play an important role in assignment of a moderator.
@@ -304,26 +327,26 @@
             They perform superlative tasks, govern their approved project's growth, and also moderate submissions of competitions as well!<br/>
             You can, if you want to, become a moderator too. It is a selective process, and depending upon your performance and
             experience at Knotters, we'll reach out to you for the opportunity.
-        </h6>
+        </strong><br/>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Wall of Fame</h1>
-        <h6>
+        <strong class="text-medium">
             Yes, you read that right. We have a dedicated wall of fame at Knotters! For those who are unfamiliar with this kind of wall,
             it showcases the acheivers of historical significance at one place. Winners of competitions take the most of the area in 
             that wall, but there's space for the top contributors of every era too. Aim for that wall, and you could achieve 
             most out of this community along the way.
-        </h6>
+        </strong><br/>
         <a onclick="newTab('{{URLS.FAME_WALL}}')"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Top activities & highlights</h1>
-        <h6>
+        <strong class="text-medium">
             On the top of everything, most of the sections on this platform will regularly higlight projects, people,
             and several categories of recommendations for you to never stop exploring. By showing you relevant profiles at Knotters 
             we intend to provide you sources of inspiration, exposure to what other people do here, 
             and increase the possibilities for you to find the next suitable project that you'd like to start contributing in.
-        </h6>
+        </strong>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Tips & Tricks</h1>
@@ -334,7 +357,7 @@
     </div>
     <div class="w3-row w3-padding-large">
         <h1>The 'why' of everything</h1>
-        <h6>
+        <strong class="text-medium">
             So far you've come, assuming not scrolled all the way down here, you must've got an idea of Knotters,
             and what the existence of this platform intends to bring in the world of open collaboration through your browser.
             If not, then don't worry, follow your instincts, move around and explore the different sections of Knotters.
@@ -342,186 +365,17 @@
             exposure to new kinds of skillsets favouring your own personal growth, by doing a simple thing - get started.
             <br/>
             Are you ready?
-        </h6>
+        </strong>
     </div>
     <div class="w3-row w3-padding-large" align='center'>
         <a href="{{URLS.ROOT}}"><button class="display-button positive" data-icon='flight_takeoff'>I'm ready</button></a>
         <button class="display-button accent" data-icon="share" onclick="shareLinkAction('The Landing Page', 'The Landing Page of {{APPNAME}}', '{{URLS.LANDING}}')">Share this</button>
     </div>
     <br/>
-    {% comment %} 
-    <div class="w3-row accent w3-padding">
-        <h1>The community</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Contribution guide</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Moderation guide</h1>
-    </div>
-    <div class="w3-row accent w3-padding">
-        <h1>Competition guide</h1>
-    </div>
-    
-    <div class="w3-row s3-center primary w3-padding ">
-        <h2 class="land_f">Guide</h2>
-    </div>
-    <br/>
-    <div class="landing_features">
-        <h2 class="land_f">Features</h2>
-        <p class="f_detail">Record or rewind any change to your code to keep you and your team in sync. Host it all for
-            free with unlimited public and private repositories.</p>
-        <div class="w3-row">
-            <div class="w3-col w3-third w3-padding"><div class=" land_feature_card pallete positive">
-                <h2>Become Moderators</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third w3-padding"><div class="land_feature_card1 pallete positive">
-                <h2>Project</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third  w3-padding"><div class="pallete land_feature_card2 positive">
-                <h2>Winner Perks</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third w3-padding"><div class=" land_feature_card pallete positive">
-                <h2>Managers</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third w3-padding"><div class="land_feature_card1 pallete positive">
-                <h2>Your Skills</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third  w3-padding"><div class="pallete land_feature_card2 positive">
-                <h2>Competitions</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third w3-padding"><div class=" land_feature_card pallete positive">
-                <h2>Achievements</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third w3-padding"><div class="land_feature_card1 pallete positive">
-                <h2>Sharable Id</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-            <div class="w3-col w3-third  w3-padding"><div class="pallete land_feature_card2 positive">
-                <h2>Profile</h2>
-                <p>lorem ipsum dolor sit amet, con lorem ipsum dolor sit amet, conlorem ipsum dolor sit amet, conlorem
-                    ipsum dolor sit amet, con</p>
-            </div></div>
-        </div>
-    </div>
-
-    <div class="w3-row l_padding verticalAlign">
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <h2>Contribution</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-                imagine.Any contribution to a code base, including those that you make to the project that you may be working on right now, aims to improve the code base, be it based on new exciting features or hands-on refactoring to lower technical debt.</h6>
-        </div>
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}"  width="80%" alt="Img" />
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign rc">
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}"  width="80%" alt="Img" />
-        </div>
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <h2>Why Open Source</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign">
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <h2>Everything Count</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}"  width="80%" alt="Img" />
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign rc">
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}"  width="80%" alt="Img" />
-        </div>
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <h2>Wall Of Fame</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign">
-        <div class="w3-col w3-half w3-padding w3-center">
-            <h2>Top Contribution</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-        <div class="w3-col w3-half w3-padding w3-center">
-            <img class="" src="{% static 'graphics/contribute.jpg' %}" width="80%" alt="Img" />
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign rc">
-        <div class="w3-col w3-half w3-padding">
-            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}"  width="80%" alt="Img" />
-        </div>
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <h2>Moderation</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign">
-        <div class="w3-col w3-half w3-padding ">
-            <h2>Competition</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-        <div class="w3-col w3-half w3-padding w3-center">
-            <img class="" src="{% static 'graphics/contribute.jpg' %}" width="80%" alt="Img" />
-        </div>
-    </div>
-    <div class="w3-row l_padding verticalAlign rc">
-        <div class="w3-col w3-half w3-padding w3-cente">
-            <img class="c_img" src="{% static 'graphics/contribute.jpg' %}"  width="80%" alt="Img" />
-        </div>
-        <div class="w3-col w3-half w3-padding ">
-            <h2>Moderator</h2>
-            <h6>Contributing can be a rewarding way to learn, teach, and build experience in just about any skill you can
-        </div>
-    </div>
-    {% endcomment %}
-
-    
 </div>
 {% endblock %}
 {% block in_scripts %}
 <script>
     restartIntros()
-    {% comment %} const selectTab = (id) => {
-      const cs = document.getElementsByClassName("g_active")[0];
-      cs.classList.remove("g_active");
-      if(id==='g_contribution'){
-            document.getElementById('g_contribution').classList.add("g_active");
-            document.getElementById('g_con_text').style.display='block';
-        console.log("id2",id);
-            document.getElementById('g_mod_text').style.display='none';
-        console.log("id3",id);
-            document.getElementById('g_comp_text').style.display='none';
-        } else if(id === 'g_moderation') {
-            document.getElementById('g_moderation').classList.add("g_active");
-            document.getElementById('g_con_text').style.display='none';
-            document.getElementById('g_mod_text').style.display='block';
-            document.getElementById('g_comp_text').style.display='none';
-        } else{
-            document.getElementById('g_competition').classList.add("g_active");
-            document.getElementById('g_con_text').style.display='none';
-            document.getElementById('g_mod_text').style.display='none';
-            document.getElementById('g_comp_text').style.display='block';
-        }
-      } {% endcomment %}
 </script>
 {% endblock %}

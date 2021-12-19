@@ -5,24 +5,24 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row accent">
+<div class="w3-row active">
     <div class="w3-row" style="padding:16px 4px">
     <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending mentors" %}&nbsp;<strong class="w3-small w3-round w3-tag active">MNT</strong></h4>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending moderators" %}&nbsp;<strong class="w3-small w3-round w3-tag accent">MOD</strong></h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
-            {% for mentor in mentors %}
+            {% for moderator in moderators %}
             <div class="swiper-slide">
-                <a href="{{mentor.getLink}}">
+                <a href="{{moderator.getLink}}">
                 <div class="pallete w3-center no-pad">
-                    <img class="primary" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
+                    <img class="primary" src="{{ moderator.getDP }}" alt="{{ moderator.name }}" />
                     <div class="w3-row w3-padding">
-                        <h5 style="{% if mentor.has_labels %}margin:4px{% endif %}" class="{% if mentor.is_verified %}align{% endif %}">{{ mentor.getName }}{% if mentor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in mentor.get_labels %}
+                        <h5 style="{% if moderator.has_labels %}margin:4px{% endif %}" class="{% if moderator.is_verified %}align{% endif %}">{{ moderator.getName }}{% if moderator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        {% for label in moderator.get_labels %}
                             <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
-                        {% endfor %}{% if mentor.has_labels %}<br/>{% endif %}
-                        <span>{{ mentor.getBio|or:mentor.getXP|truncatechars:45 }}</span>
+                        {% endfor %}{% if moderator.has_labels %}<br/>{% endif %}
+                        <span>{{ moderator.getBio|or:moderator.getXP|truncatechars:45 }}</span>
                     </div>
                     <br/>
                 </div>
@@ -32,7 +32,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No mentors yet. You're the first one!" %}</h3>
+                <h3>{% trans "No moderators yet. You're the first one!" %}</h3>
             </center>
             </div>
 			{% endfor %} 
@@ -40,17 +40,17 @@
     </div>
     <div class="w3-hide-large  w3-row">
         <div class="swiper-wrap_i">
-            {% for mentor in mentors %}
+            {% for moderator in moderators %}
             <div class="w3-col">
-                <a href="{{mentor.getLink}}">
+                <a href="{{moderator.getLink}}">
                 <div class="pallete pallete_i w3-center">
-                    <img class="primary" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
+                    <img class="primary" src="{{ moderator.getDP }}" alt="{{ moderator.name }}" />
                     <div class="w3-row w3-padding">
-                         <h5 style="{% if mentor.has_labels %}margin:4px{% endif %}" class="{% if mentor.is_verified %}align{% endif %}">{{ mentor.getName }}{% if mentor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in mentor.get_labels %}
+                         <h5 style="{% if moderator.has_labels %}margin:4px{% endif %}" class="{% if moderator.is_verified %}align{% endif %}">{{ moderator.getName }}{% if moderator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        {% for label in moderator.get_labels %}
                             <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
-                        {% endfor %}{% if mentor.has_labels %}<br/>{% endif %}
-                        <span>{{ mentor.getBio|or:mentor.getXP|truncatechars:45 }}</span>
+                        {% endfor %}{% if moderator.has_labels %}<br/>{% endif %}
+                        <span>{{ moderator.getBio|or:moderator.getXP|truncatechars:45 }}</span>
                     </div>
                     <br/>
                 </div>
@@ -60,7 +60,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No mentors yet. You're the first one!" %}</h3>
+                <h3>{% trans "No moderators yet!" %}</h3>
             </center>
             </div>
 			{% endfor %} 

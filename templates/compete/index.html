@@ -36,29 +36,28 @@
 <div class="w3-row w3-padding welcome-row first-time-view" id='compete-intro-banner'
   data-html="
   <br/><br/>
-  <div class='dropdown-box' id='compete-dropdown'></div>
-  <div class='input-dropdown-box' id='compete-input-dropdown'></div>
-
   <div class='w3-row w3-padding'>
-  <h1>{% trans "Competitions" %}</h1>
+  <h1 class='w3-hide-small'>{% trans "Competitions" %}</h1>
+  <h2 class='w3-hide-medium w3-hide-large'>{% trans "Competitions" %}</h2>
   </div>
   <br/>
   <div class='w3-row w3-padding'>
-  <h4>
-    Time to time mass challenges, targeted primarily on real world problems.<br/>And for you to level up with enthusiasm.
-  </h4>
+  <strong class='text-medium'>
+    Time to time mass challenges, <br/>targeted primarily on real world problems.<br/>And for you to level up with enthusiasm.
+  </strong>
   </div>
   <div class='w3-row w3-padding'>
     <a href='{{URLS.LANDING}}'>
-      <button class='positive display-button' data-icon='flight_land'>
+      <button class='positive big-button' data-icon='flight_land'>
         {% trans "Learn More" %}
       </button>
     </a>
-    <button class='display-button accent' id='close-compete-intro-banner' data-icon='flight_takeoff'>
+    <button class='big-button accent' id='close-compete-intro-banner' data-icon='flight_takeoff'>
         {% trans "I'm ready" %}
     </button>
   </div>">
 </div>
+<br/>
 <div class="w3-row tertiary" id="mainframe" style="min-height:50vh">
     <div class="w3-row browser-view" data-type="latest-competitions" id='latest-competitions-view'>
     </div>

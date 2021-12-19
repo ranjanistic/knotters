@@ -1,0 +1,35 @@
+{% extends 'docs/index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block og_url %}{{request.path}}{% endblock %}
+{% block og_title %}{% trans "Open Source Licenses" %}{% endblock %}
+{% block og_description %}{% trans "The open source libraries which are being utilized for smooth functioning of this platform." %}{% endblock %}
+{% block og_site_name %}{% trans "Open Source Licenses" %}{% endblock %}
+
+{% block tw_url %}{{request.path}}{% endblock %}
+{% block tw_title %}{% trans "Open Source Licenses" %}{% endblock %}
+{% block tw_description %}{% trans "The open source libraries which are being utilized for smooth functioning of this platform." %}{% endblock %}
+{% block tw_site_name %}{% trans "Open Source Licenses" %}{% endblock %}
+
+{% block title %}{% trans "Open Source Licenses" %}{% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block content %}
+<div class="w3-row w3-padding">
+    <center>
+        <div class="material-icons w3-jumbo">code</div>
+        <h1>{% trans "Open Source Licenses" %}</h1>
+        <h3>{% trans "The open source libraries which are being utilized for smooth functioning of this platform." %}</h3>
+    </center><br/>
+    <div class="w3-padding">
+    </div>
+</div>
+
+{% endblock %}

@@ -3,7 +3,7 @@ from django.conf import settings
 from people.models import Profile
 from .methods import renderData
 from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
-from .strings import DIVISIONS, URL
+from .strings import DIVISIONS, URL,Browse
 
 
 def Global(request):
@@ -39,7 +39,8 @@ def Global(request):
         CACHE_ETERNAL=settings.CACHE_ETERNAL,
         alerts=[],
         knotbot=knotbot,
-        VAPID_KEY=settings.VAPID_PUBLIC_KEY
+        VAPID_KEY=settings.VAPID_PUBLIC_KEY,
+        BROWSE=Browse.getAllKeys()
     )
 
     for div in DIVISIONS:
