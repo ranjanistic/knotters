@@ -568,6 +568,14 @@ class Profile(models.Model):
             errorLog(e)
             return []
 
+    def recommended_topics(self, atleast=1, atmost=5):
+        try:
+            topics = Topic.objects.exclude(id__in=self.topics.getAllTopicIds)[:atmost]
+            return topics
+        except Exception as e:
+            errorLog(e)
+            return []
+
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
