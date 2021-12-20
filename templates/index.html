@@ -309,7 +309,7 @@
             <div class="w3-col w3-half w3-padding">
             <form action="{% url "set_language" %}" method="POST">
                 {% csrf_token %}
-                <select name="language" class="selectLanguage" id="language" onchange="this.form.submit()">
+                <select name="language" class="selectLanguage" id="language_lite_footer" onchange="this.form.submit()">
                 {% for language in LANGUAGES %}
                     <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                 {% endfor %}
