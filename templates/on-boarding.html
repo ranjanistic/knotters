@@ -30,8 +30,8 @@
 
 {% block content %}
 <div class="w3-row w3-padding">
-    <div class="w3-row w3-center on-boarding-view" id="1">
-        <div class="w3-row w3-center">
+    <div class="w3-row w3-center on-boarding-view" id="1" hidden>
+        <div class="w3-row w3-center xyz-in" xyz="fade back up duration-5 big-100%">
             <h1>Let's set you up. Quickly.</h1>
         </div>
         <br/>
@@ -46,12 +46,12 @@
             <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="100" style="border:4px solid var(--dead-text)" alt="{{request.user.getName}}"/>
         </div>
         <br/><br/>
-        <div class="text-big"><strong>In a few moments, you'll be ready to begin your journey at {{APPNAME}}.</strong></div>
+        <div class="text-big"><strong class="">In a few moments, you'll be ready to begin your journey at {{APPNAME}}.</strong></div>
         <div class="w3-row w3-center w3-padding xyz-in" xyz="fade back down duration-10 left-100%">
             <button onclick="moveBoarding(1)" class="big-button positive" data-icon="arrow_forward">Get Started</button>
         </div>
     </div>
-    <div class="w3-row on-boarding-view" id="2">
+    <div class="w3-row on-boarding-view" id="2" hidden>
         <div class="w3-row align" xyz="fade back down duration-10 big-100%">
             <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="50" alt="{{APPNAME}}" />
             <i class="dead-text xyz-in">link</i>
@@ -60,9 +60,9 @@
         <br/>
         <center><strong class="text-big">Most of the times here you'll be jumping around these</strong></center>
         <br/>
-        <div class="w3-row w3-center">
-            <div class="w3-col w3-third w3-padding">
-                <div class="pallete positive text-positive">
+        <div class="w3-row w3-center" xyz="fade right-100%">
+            <div class="w3-col w3-third w3-padding" >
+                <div class="pallete positive text-positive xyz-in">
                         <h3>Projects</h3>
                         <div class="pallete-slab primary">
                             <strong class="text-medium">
@@ -74,7 +74,7 @@
                 </div>
             </div>
             <div class="w3-col w3-third w3-padding">
-                <div class="pallete active text-active">
+                <div class="pallete active text-active xyz-in">
                         <h3>Competitions</h3>
                         <div class="pallete-slab primary">
                             <strong class="text-medium">
@@ -85,7 +85,7 @@
                 </div>
             </div>
             <div class="w3-col w3-third w3-padding">
-                <div class="pallete accent text-accent">
+                <div class="pallete accent text-accent xyz-in">
                         <h3>Community</h3>
                         <div class="pallete-slab primary">
                             <strong class="text-medium">
@@ -103,7 +103,7 @@
         </div>
         <br/><br/>
     </div>
-    <div class="w3-row on-boarding-view" id="3">
+    <div class="w3-row on-boarding-view" id="3" hidden>
         <center><strong class="text-big">Tell us a bit more about yourself</strong></center>
         <br/>
         <div class="w3-row w3-padding">
@@ -115,7 +115,7 @@
                     <input type="text" hidden name="profilepic" id="profile-pic-data" />
                     <input type="text" name="next" value="{{request.path}}" hidden />
                     <div class="w3-row">
-                        <div class="w3-col w3-half w3-center">
+                        <div class="w3-col w3-half w3-center xyz-in" xyz="fade right-100%">
                             <img class="pallete preview-type-image" src="{{request.user.profile.getDP}}" width="200" id="profile-pic-output" />
                             <br/><br/>
                             <button class="primary small" type="button" data-icon="upload">
@@ -125,7 +125,7 @@
                             </button>
                             <br/><br/>
                         </div>
-                        <div class="w3-col w3-half">
+                        <div class="w3-col w3-half xyz-in" xyz="fade left-100%">
                             <strong>Did we get your name correct?<br/>
                             <input type="text" class="wide" name="displayname" autocomplete="name" required maxlength="70" placeholder="Your name" value="{{request.user.getName}}" />
                             <br/><br/>
@@ -152,7 +152,7 @@
         </div>
         <br/><br/>
     </div>
-    <div class="w3-row on-boarding-view" id="4">
+    <div class="w3-row on-boarding-view" id="4" hidden>
         <div class="w3-row w3-center">
             <h2>Which topics interest you?</h2>
             <strong class="text-big">Topics represent your talents, skills, interests or even profession.</strong>
@@ -163,9 +163,9 @@
                 <div class="w3-row">
                     <h3>Your visible topics</h3>
                     <strong>Maximum 5 visible topics allowed</strong>
-                    <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh">
+                    <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh" xyz="stagger-5 narrow-100%">
                         {% for topicdata in request.user.profile.getTopicsData %}
-                            <button class="big-button accent draggable-topic" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                            <button class="big-button accent draggable-topic xyz-in" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
                         {% empty %}
                             <div id="no-visible-topics-view">
                             <i class="w3-jumbo dead-text">drag_indicator</i>
@@ -194,10 +194,11 @@
                     <strong>Drag and drop to edit your visible topics.</strong>
                     {% endif %}
                 </div>
-                <div class="w3-row">
+                <div class="w3-row" xyz="stagger-5 narrow-100%">
                 {% for topicdata in request.user.profile.getTrashedTopicsData %}
-                    <button id="editable-topic" data-topicID="{{topicdata.topic.get_id}}" class="big-button secondary hidden-topic draggable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                    <button id="editable-topic" data-topicID="{{topicdata.topic.get_id}}" class="big-button secondary hidden-topic draggable-topic xyz-in">{{topicdata.topic}} +{{topicdata.get_points}}</button>
                 {% empty %}
+                    <div id="no-hidden-topics-view">
                     <i class="w3-jumbo dead-text">psychology</i>
                         <h4 class="dead-text">
                             None that we know of.
@@ -205,12 +206,13 @@
                         <h6 class="dead-text">
                             Don't worry, you must be new here. Keep doing thigs, we'll automatically find your hidden talents soon.
                         </h6>
+                    </div>
                 {% endfor %}
                 </div>
                 <br/>
-                <div class="w3-row topics-search-results" id="topic-search-results-view">
+                <div class="w3-row topics-search-results" id="topic-search-results-view" xyz="stagger-5 narrow-100%">
                    {% for topic in request.user.profile.recommended_topics %}
-                    <button id="editable-topic" data-topicID="{{topic.get_id}}" class="big-button positive draggable-topic">{{topic.name}} +0</button>
+                    <button id="editable-topic" data-topicID="{{topic.get_id}}" class="big-button positive draggable-topic xyz-in">{{topic.name}} +0</button>
                    {% endfor %}
                 </div>
             </div>
@@ -232,14 +234,15 @@
         </div>
         <br/><br/>
     </div>
-    <div class="w3-row on-boarding-view w3-center" id="5">
+    <div class="w3-row on-boarding-view w3-center" id="5" hidden>
         <h2>Don't just follow. Admire.</h2>
         <strong class="text-medium">Admire some projects to get their latest snapshots.</strong>
         <br/>
-        <div class="w3-row w3-padding">
+
+        <div class="w3-row w3-padding" xyz="fade front-3 flip-down-50% duration-10 stagger-5">
             {% for project in request.user.profile.recommended_projects %}
-            <div class="w3-col w3-quarter w3-padding">
-                <div class="pallete no-pad w3-center">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete no-pad w3-center ">
                     <a onclick="miniWindow('{{project.getLink}}')">
                         <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" />
                     </a>
@@ -263,32 +266,103 @@
         </div>
         <br/><br/>
     </div>
-    <div class="w3-row on-boarding-view" id="6">
+    <div class="w3-row on-boarding-view" id="6" hidden>
         <div class="w3-row w3-center">
             <h1>Competitions</h1>
-            <strong class="text-medium">We conduct and host competitions involving your topics. Your participate in them to level up and contribute.</strong>
+            <strong class="text-medium">We conduct and host competitions involving your topics,<br/> targeted on real world problems.</strong>
+            <h4 class="dead-text">The following steps take place in lifecycle of a competition here.</h4>
         </div>
         <br/>
-        <div class="w3-row">
-                A new competition goes LIVE => People participate, including you => Moderator moderates, Judges judge =>
-                => Result declaration & certificate allotment => Your claim your profile and topic XPs =>
-                    Winner gets prizes => Winner submission gets converted into verified project =>
-                You contiribute in it
+        <div class="w3-row" xyz="fade front-3 flip-down-50% duration-15 stagger-20">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab active">
+                    <h3>A new competition gets scheduled</h3>
+                    <strong>By a manager, containing topics. Visible to everyone for sharing.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab accent">
+                    <h3>The competition goes LIVE</h3>
+                    <strong>At the time scheduled by manager. We update on our social channels.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                
+                <div class="pallete-slab tertiary">
+                    <h3>People participate, including you</h3>
+                    <strong>Except the moderator and judges, and manager themselves.</strong>
+                </div>
+                
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab primary positive-text">
+                    <h3>Participants Submit Submissions</h3>
+                    <strong>Team limit may differ for every competition.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab active">
+                    <h3>The Competition goes HISTORY</h3>
+                    <strong>At the time scheduled by the manger. Late submission window remains open.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab accent">
+                    <h3>Moderator moderates submissions</h3>
+                    <strong>To filter out submissions which don't follow all guidelines.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab tertiary">
+                    <h3>Judges judge submissions</h3>
+                    <strong>And assign points to them against the competition topics.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab primary positive-text">
+                    <h3>Result Declaration Happens</h3>
+                    <strong>And the valid submissions with points get placed in rank list.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab active">
+                    <h3>Certificates and XPs collection</h3>
+                    <strong>Participants Claim XPs, and their certificate link becomes active.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab accent">
+                    <h3>Prize Allotment happens</h3>
+                    <strong>Winners are contacted for prize after some days from results declaration.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab tertiary">
+                    <h3>Submission to Verified Project</h3>
+                    <strong>Winner's submission gets converted into verified project at {{APPNAME}}.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab primary positive-text">
+                    <h3>Contribution Continues</h3>
+                    <strong>The competition becomes immortal as verified project, and thus opens up to further development.</strong>
+                </div>
+            </div>
         </div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
             <button onclick="moveBoarding(6, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button onclick="moveBoarding(6)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
         </div>
     </div>
-    <div class="w3-row on-boarding-view" id="7">
+    <div class="w3-row on-boarding-view" id="7" hidden>
         <div class="w3-row w3-center">
             <h1>Not everything can be explained here.</h1>
             <strong class="text-medium">We do not like the idea of spoonfeeding our community.
             <br/>Therefore, you should explore rest of the things yourself to understand better.</strong>
         </div>
         <br/>
-        <div class="w3-row">
-            <div class="w3-col w3-quarter w3-padding">
+        <div class="w3-row" xyz="fade front-3 flip-down-50% duration-10 stagger-5">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.LANDING}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>The Landing Page</h3>
@@ -296,7 +370,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.PROJECTS}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Projects</h3>
@@ -304,7 +378,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.COMPETE}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Competitions</h3>
@@ -312,7 +386,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.PEOPLE}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Community</h3>
@@ -320,7 +394,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{request.user.profile.getLink}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Your profile</h3>
@@ -328,7 +402,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer">
                 <div class="pallete-slab positive-text">
                     <h3>Our Discord Server</h3>
@@ -336,7 +410,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.DOCS}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Docs & Statements</h3>
@@ -344,7 +418,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a onclick="troubleShootingInfo()">
                 <div class="pallete-slab positive-text">
                     <h3>Troubleshooting</h3>
@@ -352,7 +426,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a onclick="miniWindow('https://api.knotters.org/', 'API')">
                 <div class="pallete-slab positive-text">
                     <h3>Knotters API</h3> 
@@ -360,7 +434,7 @@
                 </div>
                 </a>
             </div>
-            <div class="w3-col w3-quarter w3-padding">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a onclick="miniWindow('https://api.knotters.org/', 'API')">
                 <div class="pallete-slab">
                     <h3>Our social channels</h3>
@@ -382,24 +456,24 @@
         </div>
     </div>
     <div class="w3-row on-boarding-view" id="8">
-        <div class="w3-row w3-center">
-            <i class="w3-jumbo positive-text">done_all</i>
+        <div class="w3-row w3-center" xyz="fade down-100% back-5">
+            <i class="w3-jumbo positive-text xyz-in">done_all</i>
             <h1>There, all caught up.</h1>
             <strong class="text-medium">This was just a headstart. There's a lot more waiting to be explored by you.</strong>
         </div>
         <br/>
         <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
             <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="200" alt="{{APPNAME}}" />
-            <i class="positive-text w3-jumbo xyz-in">link</i>
+            <i class="positive-text material-icons w3-jumbo xyz-in">link</i>
             <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="200" alt="{{request.user.getName}}" />
         </div>
         <div class="w3-row align w3-hide-medium w3-hide-large" xyz="fade back down duration-10 big-100%">
             <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{APPNAME}}" />
-            <i class="positive-text w3-jumbo xyz-in">link</i>
+            <i class="positive-text material-icons w3-jumbo xyz-in">link</i>
             <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{request.user.getName}}" />
         </div>
         <br/><br/>
-        <div class="text-big w3-center"><strong>Now you are ready to start your journey at {{APPNAME}}</strong></div>
+        <div class="text-big w3-center"><strong>Now you are ready to<br/>start your journey at {{APPNAME}}.</strong></div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
             <button onclick="moveBoarding(8, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button id="on-boarding-finish" class="big-button positive xyz-in" data-icon="done" xyz="right-100%">Let's go!</button>
