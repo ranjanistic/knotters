@@ -174,7 +174,6 @@ def base64ToImageFile(base64Data: base64) -> File:
             return False
         return ContentFile(base64.b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
     except Exception as e:
-        errorLog(e)
         return None
 
 def base64ToFile(base64Data: base64) -> File:
@@ -193,26 +192,19 @@ class JsonEncoder(DjangoJSONEncoder):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
 
-
-# def classAttrsToDict(className, appendCondition) -> dict:
-#     data = dict()
-#     for key in className.__dict__:
-#         if not (str(key).startswith('__') and str(key).endswith('__')):
-#             if appendCondition(key, className.__dict__.get(key)):
-#                 data[key] = className.__dict__.get(key)
-#     return data
-
-
-def errorLog(error):
-    try:
-        if not ISTESTING:
+def errorLog(error, raiseErr=True):
+    if not ISTESTING:
+        try:
             with open(os.path.join(os.path.join(settings.BASE_DIR, '_logs_'), 'errors.txt'), 'a') as log_file:
                 log_file.write(f"\n{timezone.now()}\n{error}")
-            if ISDEVELOPMENT:
-                print(error)
-    except Exception as e:
-        print('Error in logging: ', e)
-        print('\nTo be logged: ', error)
+        except Exception as e:
+            print('Error in logging: ', e)
+            if not ISDEVELOPMENT:
+                print('Log: ', error)
+        if ISDEVELOPMENT:
+            if raiseErr:
+                raise Exception(error)
+            else: print(error)
 
 
 def getNumberSuffix(value: int) -> str:

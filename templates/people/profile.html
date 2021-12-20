@@ -215,64 +215,15 @@
   }catch{}
 
   if (!selfProfile && activeuser){
-	getElement('block-account').onclick=_=>{
-		alertify.confirm(
-			`<h3>Block {{person.profile.getName}}?</h3>`,
-			`<h6>Are you sure you want to ${NegativeText('block {{person.profile.getName}}')}? You both will be invisible to each other on ${APPNAME}, including all associated activities.
-			<br/>{% trans "You can unblock them anytime from your profile's privacy settings." %}
-			</h6>`,
-			()=>{},
-			async()=>{
-				loader()
-        message('{% trans "Blocking" %}...')
-				const data = await postRequest(URLS.BLOCK_USER,{
-					userID: '{{person.get_id}}'
-				})
-				if(!data) return loader(false)
-				if(data.code===code.OK){
-					futuremessage('Blocked {{person.profile.getName}}.')
-					return window.location.replace(ROOT)
-				}
-				loader(false)
-				error(data.error)
-			}
-		).set('labels', {cancel:`${Icon('block')} Block {{person.profile.getFName}}`, ok:'No, go back'}).set('closable', false)
-	}
-	getElement('report-account').onclick=async()=>{
-    const data = await getRequest(URLS.REPORT_CATEGORIES)
-    if(!data) return message('Block instead?')
-    if(data.code!==code.OK){
-      error(data.error)
-      return message('Block instead?')
+    getElement('block-account').onclick=async()=>{
+      blockUserView({userID, username:'{{person.profile.getName}}', userDP: '{{person.profile.getDP}}'})
     }
-    let options=''
-    data.reports.forEach((rep)=>{
-      options+=`<option value='${rep.id}'>${rep.name}</option>`
-    })
-		alertify.confirm(
-			`<h3>Report {{person.profile.getName}}</h3>`,
-			`
-        <select id='report-category' required>
-          ${options}
-        </select>
-      `,
-			()=>{},
-			async()=>{
-				loader()
-        message('{% trans "Reporting" %}...')
-				const data = await postRequest(URLS.REPORT_USER,{
-					userID: '{{person.get_id}}',
-          report: getElement('report-category').value,
-				})
-        loader(false)
-				if(!data) return 
-				if(data.code===code.OK){
-					return message("Reported {{person.profile.getName}}. We'll investigate.")
-				}
-				error(data.error)
-			}
-		).set('labels', {cancel:`${Icon('report')} Report {{person.profile.getFName}}`, ok:'{% trans "No" %}, {% trans "go back" %}'}).set('closable', false)
-	}
+    getElement('report-account').onclick=async()=>{
+      await violationReportDialog(URLS.REPORT_USER,{
+        userID: '{{person.get_id}}',
+      }, '{{person.profile.getName}}',URLS.REPORT_CATEGORIES)
+      
+    }
   }
 </script>
 {% endblock %} 

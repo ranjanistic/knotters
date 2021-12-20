@@ -5,7 +5,7 @@ const loadBrowseSnaps = async (excludeIDs = []) => {
         viewer = viewers[viewers.length - 1];
     }
     const snapdata = await postRequest2({
-        path: setUrlParams(URLS.BROWSER, "project-snapshots"),
+        path: setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS),
         data: { excludeIDs },
         retainCache: true,
         allowCache: true,
@@ -47,19 +47,20 @@ const loadSnapshotScroller = async () => {
         }
     }
 }
-const showSnapshotMoreBtn = (id) => {
-    document.getElementById("snap-modal-"+id).style.display = 'flex';
+const showSnapshotMoreBtn = (snapID) => {
+    getElement(`snap-modal-${snapID}`).style.display = 'flex';
     setTimeout(() => {
-        document.getElementById('snap-laptop-'+id).classList.add('right-snap');
-        document.getElementById('snap-mob-'+id).classList.add('bottom-snap');
+        getElement(`snap-laptop-${snapID}`).classList.add('right-snap');
+        getElement(`snap-mob-${snapID}`).classList.add('bottom-snap');
     }, 50);
 }
-const closeSnapshotMoreBtn = (id, event) => {
-    if (event.target == document.getElementById('snap-modal-' + id)) {
-        document.getElementById('snap-laptop-' + id).classList.remove('right-snap');
-        document.getElementById('snap-mob-' + id).classList.remove('bottom-snap');
+const closeSnapshotMoreBtn = (snapID, event) => {
+    const snapmodal = getElement(`snap-modal-${snapID}`)
+    if (event.target == snapmodal) {
+        getElement(`snap-laptop-${snapID}`).classList.remove('right-snap');
+        getElement(`snap-mob-${snapID}`).classList.remove('bottom-snap');
         setTimeout(() => {
-            document.getElementById('snap-modal-' + id).style.display = "none";
+            snapmodal.style.display = "none";
         })
     }
 }
@@ -105,33 +106,34 @@ const reportSnap = async (snapID) =>
 
 const deleteSnap = (snapID, projectID) => {
     if (!snapID || !projectID) return;
-    alertify
-        .confirm(
-            "Delete snapshot",
-            "Are you sure you want to delete the snapshot?",
-            () => {},
-            () => {
-                postRequest2({
-                    path:setUrlParams(
-                        URLS.Projects ? URLS.Projects.SNAPSHOT : URLS.SNAPSHOT,
-                        projectID,
-                        "remove"
-                    ),
-                    data:{
-                        snapid: snapID,
-                        snapID,
-                    },
-                    retainCache: true,
-                }).then((data) => {
-                    if (data.code === code.OK) {
-                        hideElement(`snap-${snapID}`);
-                        message(data.message);
-                    } else {
-                        error(data.error);
-                    }
-                });
-            }
-        )
-        .set("labels", { ok: "No, go back", cancel: "Yes, delete" })
-        .set("closable", false);
+    Swal.fire({
+        title: `Delete snapshot`,
+        html: `Are you sure you want to delete the snapshot?`,
+        showDenyButton: true,
+        denyButtonText: 'Yes, delete',
+        confirmButtonText: 'No, wait!',
+    }).then((res)=>{
+        if(res.isDenied){
+            postRequest2({
+                path:setUrlParams(
+                    URLS.Projects ? URLS.Projects.SNAPSHOT : URLS.SNAPSHOT,
+                    projectID,
+                    "remove"
+                ),
+                data:{
+                    snapid: snapID,
+                    snapID,
+                },
+                retainCache: true,
+            }).then((data) => {
+                if (data.code === code.OK) {
+                    hideElement(`snap-${snapID}`);
+                    message(data.message);
+                    closeSnapshotMoreBtn(snapID, {target:getElement(`snap-modal-${snapID}`)});
+                } else {
+                    error(data.error);
+                }
+            });
+        }
+    })
 };

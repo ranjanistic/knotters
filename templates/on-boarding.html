@@ -1,0 +1,680 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Getting started on {{APPNAME}}{% endblock %}
+{% block og_url %}{{request.path}}{% endblock %}
+{% block og_title %}Get started{% endblock %}
+{% block og_description %}Getting started on {{APPNAME}}{% endblock %}
+{% block og_site_name %}Get started{% endblock %}
+
+
+{% block tw_url %}{{request.path}}{% endblock %}
+{% block tw_title %}Get started{% endblock %}
+{% block tw_description %}Getting started on {{APPNAME}}{% endblock %}
+
+{% block title %}Get started{% endblock %}
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+{% block nav_back_icon %}pause{% endblock %}
+
+{% block nav_text %}Get Started{% endblock %}
+
+{% block nav_noauth %}
+{% endblock %}
+
+{% block content %}
+<div class="w3-row w3-padding">
+    <div class="w3-row w3-center on-boarding-view" id="1" hidden>
+        <div class="w3-row w3-center xyz-in" xyz="fade back up duration-5 big-100%">
+            <h1>Let's set you up. Quickly.</h1>
+        </div>
+        <br/>
+        <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="200" style="border:4px solid var(--dead-text)" alt="{{APPNAME}}"/>
+            <i class="dead-text w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="200" style="border:4px solid var(--dead-text)" alt="{{request.user.getName}}"/>
+        </div>
+        <div class="w3-row align w3-hide-medium w3-hide-large" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="100" style="border:4px solid var(--dead-text)" alt="{{APPNAME}}"/>
+            <i class="dead-text w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="100" style="border:4px solid var(--dead-text)" alt="{{request.user.getName}}"/>
+        </div>
+        <br/><br/>
+        <div class="text-big"><strong class="">In a few moments, you'll be ready to begin your journey at {{APPNAME}}.</strong></div>
+        <div class="w3-row w3-center w3-padding xyz-in" xyz="fade back down duration-10 left-100%">
+            <button onclick="moveBoarding(1)" class="big-button positive" data-icon="arrow_forward">Get Started</button>
+        </div>
+    </div>
+    <div class="w3-row on-boarding-view" id="2" hidden>
+        <div class="w3-row align" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" width="50" alt="{{APPNAME}}" />
+            <i class="dead-text xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" width="50" alt="{{request.user.getName}}" />
+        </div>
+        <br/>
+        <center><strong class="text-big">Most of the times here you'll be jumping around these</strong></center>
+        <br/>
+        <div class="w3-row w3-center" xyz="fade right-100%">
+            <div class="w3-col w3-third w3-padding" >
+                <div class="pallete positive text-positive xyz-in">
+                        <h3>Projects</h3>
+                        <div class="pallete-slab primary">
+                            <strong class="text-medium">
+                                Community projects,<br/>open for everyone, to everyone.<br/>
+                                Contribute to existing ideas, <br/>or submit your own to make it real<br/>together with everyone.
+                            </strong>
+                        </div>
+                        <a href="{{URLS.PROJECTS}}" target="_blank"><button class="primary" data-icon="widgets">Browse projects</button></a>
+                </div>
+            </div>
+            <div class="w3-col w3-third w3-padding">
+                <div class="pallete active text-active xyz-in">
+                        <h3>Competitions</h3>
+                        <div class="pallete-slab primary">
+                            <strong class="text-medium">
+                                Time to time mass challenges,<br/> targeted primarily on <br/>real world problems.<br/>And for you to level up with enthusiasm.
+                            </strong>
+                        </div>
+                        <a href="{{URLS.COMPETE}}" target="_blank"><button class="primary active-text" data-icon="psychology">Browse competitions</button></a>
+                </div>
+            </div>
+            <div class="w3-col w3-third w3-padding">
+                <div class="pallete accent text-accent xyz-in">
+                        <h3>Community</h3>
+                        <div class="pallete-slab primary">
+                            <strong class="text-medium">
+                                Meet the people you <br/>share this platform with.<br/>
+	                            Who knows maybe you'd find<br/> an interesting project in a not-so-strange profile?
+                            </strong>
+                        </div>
+                        <a href="{{URLS.PEOPLE}}" target="_blank"><button class="primary accent-text" data-icon="psychology">Browse community</button></a>
+                </div>
+            </div>
+        </div>
+        <div class="w3-row w3-center " xyz="fade back down duration-10">
+            <button onclick="moveBoarding(2, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(2)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Okay, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="3" hidden>
+        <center><strong class="text-big">Tell us a bit more about yourself</strong></center>
+        <br/>
+        <div class="w3-row w3-padding">
+            <div class="w3-col w3-quarter"><br/>
+            </div>
+            <div class="w3-col w3-half w3-padding">
+                <form method="POST" action="{{URLS.People.PROFILEEDIT|params:'pallete'}}">
+                    {% csrf_token %}
+                    <input type="text" hidden name="profilepic" id="profile-pic-data" />
+                    <input type="text" name="next" value="{{request.path}}" hidden />
+                    <div class="w3-row">
+                        <div class="w3-col w3-half w3-center xyz-in" xyz="fade right-100%">
+                            <img class="pallete preview-type-image" src="{{request.user.profile.getDP}}" width="200" id="profile-pic-output" />
+                            <br/><br/>
+                            <button class="primary small" type="button" data-icon="upload">
+                                <label for="profile-pic-upload" class="w3-small">
+                                    Change picture
+                                </label>
+                            </button>
+                            <br/><br/>
+                        </div>
+                        <div class="w3-col w3-half xyz-in" xyz="fade left-100%">
+                            <strong>Did we get your name correct?<br/>
+                            <input type="text" class="wide" name="displayname" autocomplete="name" required maxlength="70" placeholder="Your name" value="{{request.user.getName}}" />
+                            <br/><br/>
+                            Tell us about yourself a bit.<br/>
+                            <textarea type="text" name="profilebio" class="wide" rows="3" required maxlength="300" autocomplete="name" placeholder="Your bio, max 50 words.">{{request.user.profile.getBio}}</textarea>
+                            </strong>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="w3-row w3-center">
+                        You can change these details anytime.<br/><br/>
+                        <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
+                        <button class="accent small" onclick="futuremessage('Changes saved')" type="submit" data-icon="done">Save changes</button>
+                    </div>
+                </form>
+            </div>
+            <div class="w3-col w3-quarter">
+                <input type="file" id="profile-pic-upload" hidden accept="image/png, image/jpg, image/jpeg" />
+            </div>
+        </div>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(3, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(3)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="4" hidden>
+        <div class="w3-row w3-center">
+            <h2>Which topics interest you?</h2>
+            <strong class="text-big">Topics represent your talents, skills, interests or even profession.</strong>
+        </div>
+        <br/>
+        <div class="w3-row">
+            <div class="w3-col w3-half w3-center w3-padding">
+                <div class="w3-row">
+                    <h3>Your visible topics</h3>
+                    <strong>Maximum 5 visible topics allowed</strong>
+                    <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh" xyz="stagger-5 narrow-100%">
+                        {% for topicdata in request.user.profile.getTopicsData %}
+                            <button class="big-button accent draggable-topic xyz-in" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                        {% empty %}
+                            <div id="no-visible-topics-view">
+                            <i class="w3-jumbo dead-text">drag_indicator</i>
+                            <h4 class="dead-text">
+                                No topics yet.<br/>
+                            </h4>
+                            <h6 class="dead-text">
+                                Drag and drop a topic here to add. Maximum 5 visible topics allowed.
+                            </h6>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <br/>
+                <div class="w3-row">
+                    <div class="w3-row">
+                        <h4>Search topics to add</h4>
+                        <input class="wide" type="text" placeholder="Start typing to search" id="search-topics-input" />
+                    </div>                    
+                </div>
+            </div>
+            <div class="w3-col w3-half w3-center w3-padding">
+                <div class="w3-row">
+                    <h3>Your hidden talents</h3>
+                    {% if request.user.profile.totalTrashedTopics %}
+                    <strong>Drag and drop to edit your visible topics.</strong>
+                    {% endif %}
+                </div>
+                <div class="w3-row" xyz="stagger-5 narrow-100%">
+                {% for topicdata in request.user.profile.getTrashedTopicsData %}
+                    <button id="editable-topic" data-topicID="{{topicdata.topic.get_id}}" class="big-button secondary hidden-topic draggable-topic xyz-in">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                {% empty %}
+                    <div id="no-hidden-topics-view">
+                    <i class="w3-jumbo dead-text">psychology</i>
+                        <h4 class="dead-text">
+                            None that we know of.
+                        </h4>
+                        <h6 class="dead-text">
+                            Don't worry, you must be new here. Keep doing thigs, we'll automatically find your hidden talents soon.
+                        </h6>
+                    </div>
+                {% endfor %}
+                </div>
+                <br/>
+                <div class="w3-row topics-search-results" id="topic-search-results-view" xyz="stagger-5 narrow-100%">
+                   {% for topic in request.user.profile.recommended_topics %}
+                    <button id="editable-topic" data-topicID="{{topic.get_id}}" class="big-button positive draggable-topic xyz-in">{{topic.name}} +0</button>
+                   {% endfor %}
+                </div>
+            </div>
+        </div>
+        <br/>
+        <div class="w3-row w3-center">
+            You can change these details anytime.<br/>
+            <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
+            <button class="accent small" onclick="saveVisibleTopics()" type="submit" data-icon="done">Save changes</button>
+        </div>
+        <br/>
+        <center><strong>
+        The +N on each topic represents your XP (experience count) in them.
+        <br/>Don't worry if they are low, they'll increase overtime depending upon your activity on {{APPNAME}}.
+        </strong></center>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(4, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(4)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view w3-center" id="5" hidden>
+        <h2>Don't just follow. Admire.</h2>
+        <strong class="text-medium">Admire some projects to get their latest snapshots.</strong>
+        <br/>
+
+        <div class="w3-row w3-padding" xyz="fade front-3 flip-down-50% duration-10 stagger-5">
+            {% for project in request.user.profile.recommended_projects %}
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete no-pad w3-center ">
+                    <a onclick="miniWindow('{{project.getLink}}')">
+                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" />
+                    </a>
+                    <div class="w3-row w3-padding">
+                        <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        <span>{{ project.description|truncatechars:25 }}</span>
+                        <br/><br/>
+                        <button onclick="onboardAdmireProject('{{project.get_id}}')" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism">Admire</button>
+                    </div>
+                    <br/>
+                </div>
+                
+            </div>
+            {% endfor %}
+        </div>
+        <br/>
+        <strong>Snapshots are the moments during the lifetime of a project.</strong>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(5, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(5)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+        </div>
+        <br/><br/>
+    </div>
+    <div class="w3-row on-boarding-view" id="6" hidden>
+        <div class="w3-row w3-center">
+            <h1>Competitions</h1>
+            <strong class="text-medium">We conduct and host competitions involving your topics,<br/> targeted on real world problems.</strong>
+            <h4 class="dead-text">The following steps take place in lifecycle of a competition here.</h4>
+        </div>
+        <br/>
+        <div class="w3-row" xyz="fade front-3 flip-down-50% duration-15 stagger-20">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab active">
+                    <h3>A new competition gets scheduled</h3>
+                    <strong>By a manager, containing topics. Visible to everyone for sharing.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab accent">
+                    <h3>The competition goes LIVE</h3>
+                    <strong>At the time scheduled by manager. We update on our social channels.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                
+                <div class="pallete-slab tertiary">
+                    <h3>People participate, including you</h3>
+                    <strong>Except the moderator and judges, and manager themselves.</strong>
+                </div>
+                
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab primary positive-text">
+                    <h3>Participants Submit Submissions</h3>
+                    <strong>Team limit may differ for every competition.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab active">
+                    <h3>The Competition goes HISTORY</h3>
+                    <strong>At the time scheduled by the manger. Late submission window remains open.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab accent">
+                    <h3>Moderator moderates submissions</h3>
+                    <strong>To filter out submissions which don't follow all guidelines.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab tertiary">
+                    <h3>Judges judge submissions</h3>
+                    <strong>And assign points to them against the competition topics.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab primary positive-text">
+                    <h3>Result Declaration Happens</h3>
+                    <strong>And the valid submissions with points get placed in rank list.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab active">
+                    <h3>Certificates and XPs collection</h3>
+                    <strong>Participants Claim XPs, and their certificate link becomes active.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab accent">
+                    <h3>Prize Allotment happens</h3>
+                    <strong>Winners are contacted for prize after some days from results declaration.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab tertiary">
+                    <h3>Submission to Verified Project</h3>
+                    <strong>Winner's submission gets converted into verified project at {{APPNAME}}.</strong>
+                </div>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <div class="pallete-slab primary positive-text">
+                    <h3>Contribution Continues</h3>
+                    <strong>The competition becomes immortal as verified project, and thus opens up to further development.</strong>
+                </div>
+            </div>
+        </div>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(6, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(6)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
+        </div>
+    </div>
+    <div class="w3-row on-boarding-view" id="7" hidden>
+        <div class="w3-row w3-center">
+            <h1>Not everything can be explained here.</h1>
+            <strong class="text-medium">We do not like the idea of spoonfeeding our community.
+            <br/>Therefore, you should explore rest of the things yourself to understand better.</strong>
+        </div>
+        <br/>
+        <div class="w3-row" xyz="fade front-3 flip-down-50% duration-10 stagger-5">
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.LANDING}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>The Landing Page</h3>
+                    <strong>The page about everything here, in detail.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.PROJECTS}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Projects</h3>
+                    <strong>Create, browse, admire more quick and verified projects.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.COMPETE}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Competitions</h3>
+                    <strong>Browse live, upcoming or archived competitions, historical endevours.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.PEOPLE}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Community</h3>
+                    <strong>See profiles of our beloved moderators, our respected mentors, and creative people like you.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{request.user.profile.getLink}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Your profile</h3>
+                    <strong>Have a look at how you look to people who look at you.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer">
+                <div class="pallete-slab positive-text">
+                    <h3>Our Discord Server</h3>
+                    <strong>Discord is where our community communicates currently (alliteration!).</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.DOCS}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Docs & Statements</h3>
+                    <strong>Guidelines, white papers, and legal statements from us.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a onclick="troubleShootingInfo()">
+                <div class="pallete-slab positive-text">
+                    <h3>Troubleshooting</h3>
+                    <strong>A small guide to resolve any problems, at your end.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a onclick="miniWindow('https://api.knotters.org/', 'API')">
+                <div class="pallete-slab positive-text">
+                    <h3>Knotters API</h3> 
+                    <strong>The under-construction API of {{APPNAME}}. Opening this in browser won't be of any use currently.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a onclick="miniWindow('https://api.knotters.org/', 'API')">
+                <div class="pallete-slab">
+                    <h3>Our social channels</h3>
+                    <a href="https://wa.me/919311797944" target="_blank" rel="noreferrer"><span hidden>WhatsApp</span><button aria-label="WhatsApp"  class="primary w3-animate-zoom"><img alt="WhatsApp" src="{% static 'graphics/thirdparty/whatsapp.png' %}" width="30" height="23" /></button></a>
+                    <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" src="{% static 'graphics/thirdparty/github.png' %}" width="20" height="20"/></button></a>
+                    <a href="https://twitter.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Twitter</span><button aria-label="Twitter"  class="primary w3-animate-zoom"><img alt="Twitter" src="{% static 'graphics/thirdparty/twitter.png' %}" width="22"  height="22"/></button></a>
+                    <a href="https://instagram.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Instagram</span><button aria-label="Instagram"  class="primary w3-animate-zoom"><img alt="Instagram" class="darkimg" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" height="18" /></button></a>
+                    <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="18" /></button></a>
+                    <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="21" height="18" /></button></a>
+                    <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" target="_blank" rel="noreferrer"><span hidden>YouTube</span><button aria-label="YouTube"  class="primary w3-animate-zoom"><img alt="YouTube" src="{% static 'graphics/thirdparty/youtube.png' %}" width="26" height="18" /></button></a>
+                </div>
+                </a>
+            </div>
+        </div>
+        <br/>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(7, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button onclick="moveBoarding(7)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
+        </div>
+    </div>
+    <div class="w3-row on-boarding-view" id="8">
+        <div class="w3-row w3-center" xyz="fade down-100% back-5">
+            <i class="w3-jumbo positive-text xyz-in">done_all</i>
+            <h1>There, all caught up.</h1>
+            <strong class="text-medium">This was just a headstart. There's a lot more waiting to be explored by you.</strong>
+        </div>
+        <br/>
+        <div class="w3-row align w3-hide-small" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="200" alt="{{APPNAME}}" />
+            <i class="positive-text material-icons w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="200" alt="{{request.user.getName}}" />
+        </div>
+        <div class="w3-row align w3-hide-medium w3-hide-large" xyz="fade back down duration-10 big-100%">
+            <img src="{{ICON}}" class="darkimg w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{APPNAME}}" />
+            <i class="positive-text material-icons w3-jumbo xyz-in">link</i>
+            <img src="{{request.user.profile.getDP}}" class="w3-card w3-circle xyz-in preview-type-image" style="border:4px solid var(--positive)" width="100" alt="{{request.user.getName}}" />
+        </div>
+        <br/><br/>
+        <div class="text-big w3-center"><strong>Now you are ready to<br/>start your journey at {{APPNAME}}.</strong></div>
+        <div class="w3-row w3-center" xyz="fade back down duration-10">
+            <button onclick="moveBoarding(8, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button id="on-boarding-finish" class="big-button positive xyz-in" data-icon="done" xyz="right-100%">Let's go!</button>
+        </div>
+        <br/><br/>
+    </div>
+    <br/>
+    <div class="w3-center dead-text" id='on-boarding-step-display'>
+        1/5
+    </div>
+</div>
+<br/><br/>
+{% endblock %}
+
+{% block in_scripts %}
+<script>
+    const moveBoarding = (current, step = 1) => {
+        sessionStorage.setItem('on-boarding-step', current+step-1)
+        getElements("on-boarding-view").forEach((view)=>{
+            visible(view,((view.id != current) && (view.id == (current + step))))
+        })
+        getElement('on-boarding-step-display').innerHTML = `${current+step}/${getElements("on-boarding-view").length}`
+        window.scrollTo(0,0)
+    }
+    moveBoarding(Number(sessionStorage.getItem('on-boarding-step')||0))
+    getElement('on-boarding-finish').onclick=_=>{
+        loader()
+        postRequest2({
+            path:URLS.ON_BOARDING_UPDATE,
+            data: {
+                onboarded: true
+            }
+        }).then((res)=>{
+            if(res.code === code.OK){
+                window.location.href=("{{request.GET.next}}"||URLS.ROOT)
+            } else {
+                loader(false)
+                error(res.error)
+            }
+        })
+    }
+    getElement("profile-pic-upload").onchange = (e) => {
+        handleCropImageUpload(
+            e,
+            "profile-pic-data",
+            "profile-pic-output",
+            () => {
+            }
+        );
+    };
+    const onboardAdmireProject = async(projectID)=>{
+        if(!projectID) return
+        const admirebutton = getElement(`on-board-project-admire-${projectID}`)
+        const admire = admirebutton.getAttribute("data-admires") == "0";
+        const data = await postRequest2({
+            path: setUrlParams(
+                URLS.Projects
+                    ? URLS.Projects.TOGGLE_ADMIRATION
+                    : URLS.TOGGLE_ADMIRATION,
+                projectID
+            ),
+            data: {
+                admire,
+            },
+            retainCache: true,
+        });
+        if (data.code !== code.OK) {
+            return error(data.error);
+        }
+        if(admire){
+            message("Admired. Now you'll get to see the latest snapshots of this project on your homepage.")
+        } else {
+            message("Disadmired. You won't get to see the latest snapshots of this project on your homepage.")
+        }
+        
+        admirebutton.setAttribute(
+            "data-admires",
+            admire ? 1 : 0
+        );
+        admirebutton.classList[admire ? "add" : "remove"](
+            "positive"
+        );
+        admirebutton.classList[admire ? "remove" : "add"](
+            "primary"
+        );
+        
+    }
+
+    getElement('search-topics-input').oninput =async(e)=>{
+        const query = String(e.target.value).trim()
+        const view = getElement('topic-search-results-view')
+        if(!query) return
+        const data = await postRequest2({
+            path: URLS.People.TOPICSEARCH,
+            data: {
+                query,excludeProfileAllTopics:true
+            },
+            retainCache:true
+        })
+        if(!data) return
+        if(data.code!==code.OK) return error(data.error)
+        let topicsdata = ''
+        data.topics.forEach((topic)=>{
+            topicsdata+=`<button id="editable-topic" data-topicID="${topic.id}" class="big-button positive draggable-topic">${topic.name} + 0</button>`
+        })
+        setHtmlContent(view, topicsdata||'No topics found')
+    }
+    
+    let visibleTopicIDs = [];
+    {% for topid in request.user.profile.getTopicIds %}
+        visibleTopicIDs.push('{{topid}}');
+    {% endfor %}
+    interact('.visible-topics-zone').dropzone({
+        accept: '#editable-topic',
+        overlap: 0.75,
+        ondragactivate: (e)=>{
+            console.log(e)
+        },
+        ondropactivate: function (event) {
+            var dropzoneElement = event.target
+            dropzoneElement.classList.add('tertiary')
+        },
+        ondragenter: function (event) {
+            var draggableElement = event.relatedTarget
+            var dropzoneElement = event.target
+            message('Release to drop!')
+        },
+        ondragleave: function (event) {
+            var draggableElement = event.relatedTarget
+            var dropzoneElement = event.target
+            dropzoneElement.classList.remove('tertiary')
+            draggableElement.classList.remove('accent', 'negative','positive')
+            draggableElement.classList.add('secondary')
+            
+            if(getElement('no-visible-topics-view')){
+                getElement('no-visible-topics-view').style.opacity = 0
+            }
+            const topicid = draggableElement.getAttribute('data-topicID')
+            visibleTopicIDs = visibleTopicIDs.filter((topid)=>topicid!=topid)
+        },
+        ondrop: function (event) {
+            var draggableElement = event.relatedTarget
+            const topicid = draggableElement.getAttribute('data-topicID')
+            if(visibleTopicIDs.length===5 && !visibleTopicIDs.includes(topicid)){
+                error('Maximum visble topics limit reached')
+                draggableElement.classList.remove('secondary','positive')
+                draggableElement.classList.add('negative')
+            } else {
+                draggableElement.classList.remove('secondary','positive','negative')
+                draggableElement.classList.add('accent')
+                if(getElement('no-visible-topics-view')){
+                    getElement('no-visible-topics-view').style.opacity = 0
+                }    
+                if(!visibleTopicIDs.includes(topicid))
+                    visibleTopicIDs.push(topicid)
+            }
+        },
+        ondropdeactivate: function (event) {
+            var dropzoneElement = event.target
+            dropzoneElement.classList.remove('tertiary')
+        }
+    })
+    function dragMoveListener (event) {
+        var target = event.target
+        var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+        var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+        target.style.transition = 'transform 0ms ease-in-out';
+        target.setAttribute('data-x', x)
+        target.setAttribute('data-y', y)
+    }
+
+    window.dragMoveListener = dragMoveListener
+    interact('.draggable-topic').draggable({
+        inertia: true,
+        modifiers: [
+            interact.modifiers.restrictRect({
+                restriction: 'none',
+                endOnly: true
+            })
+        ],
+        autoScroll: true,
+        // dragMoveListener from the dragging demo above
+        listeners: { move: dragMoveListener }
+    })
+    const saveVisibleTopics=async()=>{
+        const data = await postRequest2({
+            path:URLS.People.TOPICSUPDATE,
+            data: {
+                visibleTopicIDs
+            }
+        })
+        if(!data) return
+        if(data.code===code.OK) {
+            futuremessage('Changes saved!')
+            return window.location.reload()
+        }
+        error(data.error)
+    }
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+{% block show_lite_footer %}{% endblock %}

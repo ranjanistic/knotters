@@ -6,8 +6,9 @@ from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
 from main.bots import Github
+from main.methods import errorLog
 from management.models import ReportCategory
-from projects.models import ReportedProject, ReportedSnapshot
+from projects.models import BaseProject, ReportedProject, ReportedSnapshot
 from moderation.models import ReportedModeration
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -176,7 +177,7 @@ class TopicTag(models.Model):
 
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getID())}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getUserID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 def defaultImagePath() -> str:
     return f"{APPNAME}/default.png"
@@ -219,6 +220,8 @@ class Profile(models.Model):
         'User', through='BlockedUser', default=[], related_name='blocked_users')
     reportlist = models.ManyToManyField(
         'User', through='ReportedUser', default=[], related_name='reported_users')
+
+    on_boarded = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -422,7 +425,10 @@ class Profile(models.Model):
 
     @property
     def getTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=False).values_list('topic', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points').values_list('topic__id', flat=True)
+        def hexize(topUUID):
+            return topUUID.hex
+        return list(map(hexize,topIDs))
 
     def getTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
@@ -439,7 +445,10 @@ class Profile(models.Model):
 
     @property
     def getTrashedTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True).values_list('topic', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self, trashed=True).order_by('-points').values_list('topic__id', flat=True)
+        def hexize(topUUID):
+            return topUUID.hex
+        return list(map(hexize,topIDs))
 
     def getTrashedTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
@@ -449,43 +458,38 @@ class Profile(models.Model):
         return topics
 
     def getTrashedTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True)
+        return ProfileTopic.objects.filter(profile=self, trashed=True).order_by('-points')
 
     def totalTrashedTopics(self):
         return ProfileTopic.objects.filter(profile=self, trashed=True).count()
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def getTrahedTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
-        topics = []
-        for proftop in proftops:
-            topics.append(proftop.topic)
-        return topics
+        return self.getTrashedTopics()
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def getTrahedTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True)
+        return self.getTrashedTopicsData()
 
     @deprecated(reason="Typo", action="Use the proper spelled one")
     def totalTrahedTopics(self):
-        return ProfileTopic.objects.filter(profile=self, trashed=True).count()
+        return self.totalTrashedTopics()
 
     @property
     def getAllTopicIds(self):
-        return ProfileTopic.objects.filter(profile=self).values_list('topic', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self).order_by('-points').values_list('topic__id', flat=True)
+        def hexize(topUUID):
+            return topUUID.hex
+        return list(map(hexize,topIDs))
 
     def getAllTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self)
-        topics = []
-        for proftop in proftops:
-            topics.append(proftop.topic)
-        return topics
+        return self.topics.all()
 
     def getAllTopicsData(self):
-        return ProfileTopic.objects.filter(profile=self)
+        return ProfileTopic.objects.filter(profile=self).order_by('-points')
 
     def totalAllTopics(self):
-        return ProfileTopic.objects.filter(profile=self).count()
+        return self.topics.count()
 
     def isBlocked(self, user: User) -> bool:
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()
@@ -543,6 +547,42 @@ class Profile(models.Model):
                 profiles.append(block.blockeduser.profile)
         return profiles
 
+    def filterBlockedProfiles(self,profiles) -> list:
+        filteredProfiles = []
+        for profile in profiles:
+            if not self.isBlocked(profile.user):
+                filteredProfiles.append(profile)
+        return filteredProfiles
+
+
+    @property
+    def tags(self) -> list:
+        return self.topics.values_list('tags',flat=True).distinct()
+    
+    def recommended_projects(self, atleast=3, atmost=4):
+        def approved_only(project):
+            return project.is_approved
+        try:
+            constquery = Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles)
+            query = Q(topics__in=self.topics.all())
+            projects = BaseProject.objects.filter(~constquery,query).order_by('-admirers').distinct()
+            projects = list(set(list(filter(approved_only,projects))))
+            if len(projects) < atleast:
+                projects = BaseProject.objects.filter(~constquery).order_by('-admirers').distinct()
+                projects = list(set(list(filter(approved_only,projects))))
+            return projects[:atmost]
+        except Exception as e:
+            errorLog(e)
+            return []
+
+    def recommended_topics(self, atleast=1, atmost=5):
+        try:
+            topics = Topic.objects.exclude(id__in=self.getAllTopicIds)[:atmost]
+            return topics
+        except Exception as e:
+            errorLog(e)
+            return []
+
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -596,6 +636,13 @@ class ProfileTopic(models.Model):
         self.points = points
         self.save()
         return self.points
+    
+    def get_points(self, raw=False):
+        if raw: return self.points or 0
+        if self.points or 0 < 10**3: return self.points or 0
+        if self.points < 10**6: return f"{self.points//(10**3)}k"
+        if self.points < 10**9: return f"{self.points//(10**6)}M"
+        return 
 
 
 class BlockedUser(models.Model):

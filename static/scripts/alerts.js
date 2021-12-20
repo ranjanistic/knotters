@@ -124,24 +124,22 @@ const betaAlert = () => {
 };
 
 const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
-    alertify
-        .alert(
-            "Github ID Required",
-            `<div class="w3-row w3-padding">
-                <h4>Your Github identity must be linked with Knotters for this action.</h4>
-                <br/>
-                <a href="${URLS.Auth.GITHUB}login/?process=connect&next=${URLS.REDIRECTOR}?n=${next}">
-                    <button type="button" class="secondary"><img src="/static/graphics/thirdparty/github-dark.png" width="20" />
-                    &nbsp;+ <img src="${ICON}" width="22" /> ${APPNAME} <i class="material-icons">open_in_new</i>
-                    </button>
-                </a>
-                </div>`,
-            () => {
-                oncancel();
-            }
-        )
-        .set("closable", false)
-        .set("label", "Cancel");
+    Swal.fire({
+        title: "Github ID Required",
+        html:`<div class="w3-row w3-padding">
+        <h4>Your Github identity must be linked with Knotters for this action.</h4>
+        </div>`,
+        imageUrl: '/static/graphics/thirdparty/github.png',
+        confirmButtonText: `${Icon('open_in_new')}Link Github Account`,
+        cancelButtonText: "Leave it",
+        showCancelButton: true,
+    }).then((res)=>{
+        if(res.isConfirmed){
+            return window.location.href=setUrlQueries(`${URLS.Auth.GITHUB}login/`,{process:'connect',next:setUrlQueries(URLS.REDIRECTOR, {n:next})})
+        } else {
+            oncancel()
+        }
+    })
 };
 
 const troubleShootingInfo =()=>{
@@ -177,4 +175,39 @@ const troubleShootingInfo =()=>{
             })
         }
     })
+}
+
+const blockUserView = ({
+    userID ='',
+    username = '',
+    userDP = null,
+}) => {
+    Swal.fire({
+        title:`Block ${username}?`,
+        imageUrl: userDP,
+        imageWidth: 100,
+        html:`<h6>Are you sure you want to ${NegativeText(`block ${username}`)}?
+        <br/>You both will be invisible to each other on ${APPNAME},<br/>including all associated activities.
+        <br/>You can unblock them anytime from your profile's privacy settings.
+        </h6>`,
+        showDenyButton: true,
+        confirmButtonText: 'No, wait!',
+        denyButtonText: 'Yes, block!'
+    }).then(async(res)=>{
+        if(res.isDenied){
+            loader()
+            message('Blocking...')
+            const data = await postRequest(URLS.People?URLS.People.BLOCK_USER:URLS.BLOCK_USER,{
+                userID
+            })
+            if(!data) return loader(false)
+            if(data.code===code.OK){
+                futuremessage(`Blocked ${username}.`)
+                return window.location.replace(ROOT)
+            }
+            loader(false)
+            error(data.error)
+        }
+    })
+    
 }

@@ -290,6 +290,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
             request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 
@@ -314,6 +315,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
+        print(e)
         return profileFree(request, reponame)
 
 
@@ -637,13 +639,17 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
     try:
         project = BaseProject.objects.get(
             id=projID, trashed=False, suspended=False)
-        if ["true", True].__contains__(request.POST['admire']):
+        if request.POST['admire'] in  ["true", True]:
             project.admirers.add(request.user.profile)
-        elif ["false", False].__contains__(request.POST['admire']):
+        elif request.POST['admire'] in ["false", False]:
             project.admirers.remove(request.user.profile)
+        if request.POST.get('JSON_BODY',False):
+            return respondJson(Code.OK)
         return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
+        if request.POST.get('JSON_BODY', False):
+            return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
         if project:
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
         raise Http404()
@@ -1019,7 +1025,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
 
         return respondJson(Code.NO)
     except Exception as e:
-        errorLog(e)
+        errorLog(e, False)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
 

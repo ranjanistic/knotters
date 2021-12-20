@@ -3,7 +3,7 @@ from django.conf import settings
 from people.models import Profile
 from .methods import renderData
 from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
-from .strings import DIVISIONS, URL
+from .strings import DIVISIONS, URL,Browse
 
 
 def Global(request):
@@ -25,6 +25,7 @@ def Global(request):
         SUBAPPSLIST=[],
         ICON=f"{settings.STATIC_URL}graphics/self/icon.svg",
         ICON_DARK=f"{settings.STATIC_URL}graphics/self/icon-dark.svg",
+        ICON_SHADOW=f"{settings.STATIC_URL}graphics/self/icon-shadow.svg",
         BANNER=f"{settings.STATIC_URL}graphics/self/banner.svg",
         SERVICE_WORKER=f"/{URL.SERVICE_WORKER}",
         MANIFESTURL=f"/{URL.MANIFEST}",
@@ -38,7 +39,8 @@ def Global(request):
         CACHE_ETERNAL=settings.CACHE_ETERNAL,
         alerts=[],
         knotbot=knotbot,
-        VAPID_KEY=settings.VAPID_PUBLIC_KEY
+        VAPID_KEY=settings.VAPID_PUBLIC_KEY,
+        BROWSE=Browse.getAllKeys()
     )
 
     for div in DIVISIONS:

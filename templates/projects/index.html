@@ -46,18 +46,18 @@
   </div>
   <br/>
   <div class='w3-row w3-padding'>
-  <h4>
+  <strong class='text-medium'>
     Community projects, open for everyone, to everyone.<br/>
     Contribute to existing ideas, or submit your own to make it real together with everyone.
-  </h4>
+  </strong>
   </div>
   <div class='w3-row w3-padding'>
     <a href='{{URLS.LANDING}}'>
-      <button class='positive display-button' data-icon='flight_land'>
+      <button class='positive big-button' data-icon='flight_land'>
         {% trans "Learn More" %}
       </button>
     </a>
-    <button class='display-button accent' id='close-projects-intro-banner' data-icon='flight_takeoff'>
+    <button class='big-button accent' id='close-projects-intro-banner' data-icon='flight_takeoff'>
       {% trans "I'm ready" %}
     </button>
   </div>">
@@ -76,9 +76,9 @@
   </div>
 	<div class="w3-row search-view" data-search-type="projects" id='browse-search-view'>
   </div>
-  <div class="w3-row browser-view" data-type="recommended-projects" id='recommended-projects-view'>
+  <div class="w3-row browser-view" data-type="{{BROWSE.RECOMMENDED_PROJECTS}}" id='{{BROWSE.RECOMMENDED_PROJECTS}}-view'>
   </div>
-  <div class="w3-row browser-view" data-type="new-projects" id='newbie-projects-view'>
+  <div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROJECTS}}" id='{{BROWSE.NEW_PROJECTS}}-view'>
   </div>
   <br/>
   <div class="w3-row align snapshot-viewer" id="snap-view-1">

@@ -130,7 +130,7 @@ class ProfileAttributeTest(TestCase):
         self.setting = ProfileSetting.objects.get(profile=self.profile)
         self.emailaddress = EmailAddress.objects.create(
             user=self.user, email=self.user.email, verified=True)
-
+    
     def test_profile_methods(self):
         self.assertEqual(self.profile.getID(), self.profile.id.hex)
         self.assertEqual(self.profile.__str__(), self.profile.getEmail())
@@ -154,7 +154,7 @@ class ProfileAttributeTest(TestCase):
         self.assertTrue(self.profile.getSuccessorInviteLink().endswith(
             self.profile.getUserID()))
         self.assertTrue(profileImagePath(
-            self.profile, getTestDP()).__contains__(self.profile.getID()))
+            self.profile, getTestDP()).__contains__(self.profile.getUserID()))
         self.profile.picture = profileImagePath(self.profile, getTestDP())
         self.profile.save()
         self.profile.picture = defaultImagePath()

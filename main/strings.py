@@ -245,7 +245,6 @@ class Moderation():
 
 moderation = Moderation()
 
-
 class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
@@ -286,6 +285,26 @@ class Compete():
 profile = Profile()
 compete = Compete()
 
+class Browse():
+    PROJECT_SNAPSHOTS = "project-snapshots"
+    NEW_PROFILES = "new-profiles"
+    NEW_PROJECTS = "new-projects"
+    RECENT_WINNERS = "recent-winners"
+    RECOMMENDED_PROJECTS = "recommended-projects"
+    TRENDING_TOPICS = "trending-topics"
+    TRENDING_PROJECTS = "trending-projects"
+    TRENDING_PROFILES = "trending-profiles"
+    NEWLY_MODERATED = "newly-moderated"
+    HIGHEST_MONTH_XP_PROFILES = "highest-month-xp-profiles"
+    LATEST_COMPETITIONS = "latest-competitions"
+    TRENDING_MENTORS = "trending-mentors"
+    TRENDING_MODERATORS = "trending-moderators"
+    DISPLAY_MENTORS = "display-mentors"
+
+    def getAllKeys():
+        def cond(key, value):
+            return str(key).isupper()
+        return classAttrsToDict(Browse,cond)
 
 class URL():
     INDEX = ''
@@ -312,13 +331,14 @@ class URL():
     def redirector(self, to='/'):
         return f"{self.REDIRECTOR}?n={to}"
 
-    DOCTYPE = 'docs/<str:type>'
-    LANDINGS = 'landing/'
-    LANDING = 'landing/'
     APPLANDING = '<str:subapp>/landing'
 
     def applanding(self, subapp):
         return setPathParams(self.APPLANDING, subapp)
+
+    DOCTYPE = 'docs/<str:type>'
+    LANDINGS = 'landing/'
+    LANDING = 'landing/'
 
     BROWSER = 'browser/<str:type>'
 
@@ -329,6 +349,9 @@ class URL():
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
+
+    ON_BOARDING = 'on-boarding/'
+    ON_BOARDING_UPDATE = 'on-boarding/update'
 
     def view_snapshot(self, snapID):
         return setPathParams(self.VIEW_SNAPSHOT, snapID)
@@ -920,6 +943,12 @@ class Template():
     def forward(self):
         return f'{self.FORWARD}.html'
 
+    ON_BOARDING = 'on-boarding'
+
+    @property
+    def on_boarding(self):
+        return f'{self.ON_BOARDING}.html'
+
     LANDING = 'landing'
 
     @property
@@ -1203,6 +1232,12 @@ class Template():
         @property
         def trending_mentors(self):
             return f'{self.DIRNAME}/{self.BROWSE_TRENDING_MENTORS}.html'
+
+        BROWSE_TRENDING_MODS = 'browse/trending-moderators'
+
+        @property
+        def trending_mods(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TRENDING_MODS}.html'
        
         BROWSE_DISPLAY_MENTORS = 'browse/display-mentors'
 

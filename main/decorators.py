@@ -37,10 +37,9 @@ def require_JSON_body(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)))
+            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)),JSON_BODY=True)
             return function(request, *args, **kwargs)
         except Exception as e:
-            errorLog(e)
             if request.method == 'POST':
                 return function(request, *args, **kwargs)
             return HttpResponseNotAllowed(permitted_methods=['POST'])
@@ -50,7 +49,7 @@ def decode_JSON(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)))
+            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)),JSON_BODY=True)
             return function(request, *args, **kwargs)
         except Exception as e:
             pass

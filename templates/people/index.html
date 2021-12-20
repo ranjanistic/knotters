@@ -33,19 +33,19 @@
   <h1>{% trans "Community" %}</h1>
   <br/>
   <div class='w3-row w3-padding'>
-  <h4>
+  <strong class='text-medium'>
     Meet the people you share this platform with.<br/>
 	Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.
-  </h4>
+  </strong>
   </div>
   <div class='w3-row'>
     <a href='{{URLS.LANDING}}'>
-      <button class='positive display-button' data-icon='flight_land'>
+      <button class='positive big-button' data-icon='flight_land'>
         {% trans "Learn More" %}
       </button>
     </a>
   
-    <button class='display-button accent' id='close-people-intro-banner' data-icon='flight_takeoff'>
+    <button class='big-button accent' id='close-people-intro-banner' data-icon='flight_takeoff'>
       {% trans "I'm ready" %}
     </button>
   </div>">
@@ -64,11 +64,30 @@
   </div>
 	<div class="w3-row search-view" data-search-type="profiles" id='browse-search-view'>
   </div>
-  <div class="w3-row browser-view" data-type="recent-winners" id='recent-winners-view'>
+  <div class="w3-row browser-view" data-type="{{BROWSE.RECENT_WINNERS}}" id='{{BROWSE.RECENT_WINNERS}}-view'>
   </div>
-  <div class="w3-row browser-view" data-type="trending-mentors" id='trending-mentors-view'>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_MENTORS}}" id='{{BROWSE.TRENDING_MENTORS}}-view'>
   </div>
-	<div class="w3-row browser-view" data-type="new-profiles" id='newbie-profiles-view'>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_MODERATORS}}" id='{{BROWSE.TRENDING_MODERATORS}}-view'>
+  </div>
+	<div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROFILES}}" id='{{BROWSE.NEW_PROFILES}}-view'>
+  </div>
+  <div class="w3-row w3-padding-large first-time-view" id='community-framework-banner' style="height:60vh;"
+      data-html="
+      <br/>
+      <div class='w3-row w3-center'>
+          <div class='w3-col w3-padding-large'>
+              <div class='w3-row'>
+                  <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Frameworks{% endblocktrans %}</h2>
+                  <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Frameworks{% endblocktrans %}</h2>
+                  <br/>
+                  <strong class='text-medium'>{% blocktrans %}Community frameworks, a new way to help everyone grow on {{APPNAME}}.{% endblocktrans %}</strong>
+              </div>
+              <button class='big-button primary' id='close-community-framework-banner' data-icon='pending'>{% trans "Coming soon" %}</button>
+              <br/><br/>
+          </div>
+      </div>"
+  >
   </div>
   <div class="w3-row w3-padding w3-center dead-text">
     <div class="material-icons w3-jumbo">done</div>

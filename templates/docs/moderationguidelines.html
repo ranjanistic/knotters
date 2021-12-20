@@ -6,12 +6,12 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block og_url %}{{URLS.TYPE|params:'moderationguidelines'}}{% endblock %}
+{% block og_url %}{{request.path}}{% endblock %}
 {% block og_title %}{% trans "Project Guidelines" %}{% endblock %}
 {% block og_description %}{% trans "How we approve verified projects, or reject sometimes." %}{% endblock %}
 {% block og_site_name %}{% trans "Project Guidelines" %}{% endblock %}
 
-{% block tw_url %}{{URLS.TYPE|params:'moderationguidelines'}}{% endblock %}
+{% block tw_url %}{{request.path}}{% endblock %}
 {% block tw_title %}{% trans "Project Guidelines" %}{% endblock %}
 {% block tw_description %}{% trans "How we approve verified projects, or reject sometimes." %}{% endblock %}
 {% block tw_site_name %}{% trans "Project Guidelines" %}{% endblock %}

@@ -23,13 +23,13 @@
 
 {% block content %}
 <br/><br/>
-<div class="w3-row w3-padding w3-center">
-    {% cache CACHE_LONG certificate_verification_header LANGUAGE_CODE %}
-        <h1>{% trans "Certificate verification" %}</h1>
-        <h5>{% trans "If you have a certificate issued by us, then it should display a 32-digit ID at its bottom left." %}<br/>
-        {% trans "To verify the authenticity of the certificate, type that ID in following input." %}</h5>
-        <br/><br/>
-    {% endcache %}
+<div class="w3-row w3-padding">
+    <div class="w3-row w3-center">
+    <i class="w3-jumbo">qr_code</i>
+    <h1>{% trans "Certificate verification" %}</h1>
+    <strong class="text-medium">{% trans "If you have a certificate issued by us, then it should display a 32-digit ID at its bottom left." %}<br/>
+    {% trans "To verify the authenticity of the certificate, type that ID in following input." %}</strong>
+    <br/><br/>
     <form method="POST" action="{{URLS.CERT_VERIFY}}">
         {% csrf_token %}
         <input type="text" required class="big-input wide" maxlength="32" value="{{request.GET.certID}}" name="certID" placeholder="{% trans "Enter the 32-digit certificate ID" %}" />
@@ -37,13 +37,15 @@
         <button class="big-button positive" data-icon="search">{% trans "Verify Certificate" %}</button>
         <br/><br/>
     </form>
+    <strong class="text-medium align">You can also scan the&nbsp;<i>qr_code</i>&nbsp;QR code on top-left of the certificate to verify it.</strong>
+    </div>
     <br/>
-    {% cache CACHE_LONG certificate_verification_footer LANGUAGE_CODE %}
-    <strong>Each and every certificate issued by {{APPNAME}} contains a QR code at top left and unique 32-digit ID at its bottom left.</strong><br/>
-    <strong>{% trans "If a certificate shared with you doesn't have an ID or QR code, or it has but isn't being found here, it could possibly be invalid." %}</strong><br/>
-    <strong>{% trans "If you think someone is issuing fake certificates on behalf of us" %}, {% trans "then please" %} <a class="negative-text" onclick="reportFeedbackView()">{% trans "report it" %}</a> {% trans "to us." %}</strong><br/>
-    <strong>{% trans "If your certificate doesn't have an ID, or it has but isn't being found here" %}, {% trans "then you may" %} <a href="mailto:{{CONTACTMAIL}}">{% trans "contact us" %}</a>.</strong><br/>
-    {% endcache %}
+    <div class="w3-row w3-padding ">
+    <span class="text-medium">+ Each and every certificate issued by {{APPNAME}} contains a QR code at top left and unique 32-digit ID at its bottom left.</s><br/>
+    <span class="text-medium">+ {% trans "If a certificate shared with you doesn't have an ID or QR code, or it has but isn't being found here, it should be considered invalid." %}</s><br/>
+    <span class="text-medium">+ {% trans "If you think someone is issuing fake certificates on behalf of us" %}, {% trans "then please" %} <a class="negative-text" onclick="reportFeedbackView()">{% trans "report it" %}</a> {% trans "to us." %}</s><br/>
+    <span class="text-medium">+ {% trans "If your own certificate issued by us doesn't have ID and QR code, or it has but isn't being found here" %}, {% trans "then you may" %} <a href="mailto:{{CONTACTMAIL}}">{% trans "contact us" %}</a>.</s><br/>
+    </div>
 </div>
 <br/>
 {% endblock %}

@@ -37,6 +37,8 @@ urlpatterns = [
     path(URL.AUTH, include('allauth.urls')),
     path('webpush/', include('webpush.urls')),
     path(URL.INDEX, index),
+    path(URL.ON_BOARDING, on_boarding),
+    path(URL.ON_BOARDING_UPDATE, on_boarding_update),
     path(URL.LANDING, landing),
     path(URL.OFFLINE, offline),
     path(URL.BRANDING, branding),
