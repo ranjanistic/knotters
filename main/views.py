@@ -482,12 +482,12 @@ def browser(request: WSGIRequest, type: str):
             competitions=Competition.objects.filter(hidden=False).order_by("-startAt")[:limit]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         elif type == Browse.TRENDING_MENTORS:
-            mentors=Profile.objects.filter(is_mentor=False,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
+            mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
             if request.user.is_authenticated:
                 mentors = request.user.profile.filterBlockedProfiles(mentors)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
         elif type == Browse.TRENDING_MODERATORS:
-            moderators=Profile.objects.filter(is_moderator=True,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
+            moderators=Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
             if request.user.is_authenticated:
                 moderators = request.user.profile.filterBlockedProfiles(moderators)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MODS, dict(moderators=moderators, count=len(moderators)))
