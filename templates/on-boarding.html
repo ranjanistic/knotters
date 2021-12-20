@@ -185,8 +185,7 @@
                         <h4>Search topics to add</h4>
                         <strong>Drag and drop to edit your visible topics.</strong><br/>
                         <input class="wide" type="text" placeholder="Start typing to search" id="search-topics-input" />
-                    </div>
-                    
+                    </div>                    
                 </div>
             </div>
             <div class="w3-col w3-half w3-center w3-padding">
@@ -211,6 +210,9 @@
                 </div>
                 <br/>
                 <div class="w3-row topics-search-results" id="topic-search-results-view">
+                   {% for topic in suggested_topics %}
+                    <button id="editable-topic" data-topicID="{{topic.get_id}}" class="big-button positive draggable-topic">{{topic.name}} +0</button>
+                   {% endfor %}
                 </div>
             </div>
         </div>
