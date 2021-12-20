@@ -34,8 +34,8 @@
                 <br/>
                 <input type="text" hidden id="projectimagedata" name="projectimage" value="" />
                 <div class="w3-row w3-padding">
-                    <input type="text" class="create-project-input" autocomplete="organization-title" autocapitalize placeholder="Project name" required name="projectname" /><br/><br/>
-                    <textarea required placeholder="About project" class="create-project-input wide" name="projectabout" ></textarea><br/>
+                    <input type="text" maxlength="70" class="create-project-input" autocomplete="organization-title" autocapitalize placeholder="Project name" required name="projectname" /><br/><br/>
+                    <textarea required maxlength="300" placeholder="About project in a sentence or two." class="create-project-input wide" name="projectabout" ></textarea><br/>
                 </div>
             </div>
         </div>
@@ -105,10 +105,11 @@
 <script>
     getElement('addSocialLinkButton').onclick=_=>{
         const parent=getElement('social-links');
+        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
         const linkNumber=parent.childElementCount+1;
         const newChild=document.createElement('div');
         newChild.innerHTML = `
-            <input class="create-project-input wide" type="url" placeholder="Link to any other site" name="sociallink${linkNumber}" id=${linkNumber} /><br/><br/>
+            <input class="create-project-input wide" type="url" placeholder="Link to any relevant site" name="sociallink${linkNumber}" id=${linkNumber} /><br/><br/>
         `;
         parent.insertBefore(newChild,parent.childNodes[0]);
     }
