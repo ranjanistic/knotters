@@ -9,14 +9,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q,Max
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
 from main.settings import CACHE_MIN, CACHE_SHORT
 from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
-from projects.models import FreeProject, LegalDoc, Project, Snapshot
+from projects.models import BaseProject, FreeProject, LegalDoc, Project, Snapshot
 from compete.models import Result, Competition
 from people.models import DisplayMentor, Profile
 from people.methods import rendererstr as peopleRendererstr
@@ -358,6 +358,9 @@ class Version(TemplateView):
 @decode_JSON
 def browser(request: WSGIRequest, type: str):
     try:
+        def approved_only(project):
+            return project.is_approved
+
         limit = int(request.POST.get('limit', request.GET.get('limit', 10)))
         if type == Browse.PROJECT_SNAPSHOTS:
             excludeIDs = request.POST.get('excludeIDs', [])
@@ -416,23 +419,14 @@ def browser(request: WSGIRequest, type: str):
                     cache.set(
                         f"new_profiles_suggestion_{request.LANGUAGE_CODE}", profiles, settings.CACHE_LONG)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
-        elif type == Browse.NEW_PROJECTS:
-            projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                timezone.now()+timedelta(days=-15)), suspended=False).order_by('-approvedOn', '-createdOn')[:5]
-            projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                timezone.now()+timedelta(days=-15)), suspended=False).order_by('-createdOn')[:((limit-len(projects)) or 1)]))
-            if len(projects) < 5:
-                projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                    timezone.now()+timedelta(days=-30)), suspended=False).order_by('-approvedOn', '-createdOn')[:5]
-                projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-30)), suspended=False).order_by('-createdOn')[:((limit-len(projects)) or 1)]))
-            if len(projects) < 10:
-                projects = Project.objects.filter(status=Code.APPROVED, approvedOn__gte=(
-                    timezone.now()+timedelta(days=-60)), suspended=False).order_by('-approvedOn', '-createdOn')[:5]
-                projects = list(chain(projects, FreeProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-60)), suspended=False).order_by('-createdOn')[:((limit-len(projects)) or 1)]))
 
+        elif type == Browse.NEW_PROJECTS:
+            projects = BaseProject.objects.filter(createdOn__gte=(
+                timezone.now()+timedelta(days=-30)), suspended=False).order_by('-createdOn')[:limit]
+
+            projects = list(set(list(filter(approved_only,projects))))
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
+
         elif type == Browse.RECENT_WINNERS:
             results = cache.get(f"recent_winners_{request.LANGUAGE_CODE}")
             if not results:
@@ -441,6 +435,7 @@ def browser(request: WSGIRequest, type: str):
                 cache.set(
                     f"recent_winners_{request.LANGUAGE_CODE}", results, settings.CACHE_LONG)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
+
         elif type == Browse.RECOMMENDED_PROJECTS:
             query = Q()
             authquery = query
@@ -448,11 +443,13 @@ def browser(request: WSGIRequest, type: str):
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
             
-            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
-                            :limit], FreeProject.objects.filter(Q(suspended=False), authquery, query)[:limit]))
-            if len(projects) < 1:
-                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
-                                :limit], FreeProject.objects.filter(Q(suspended=False), authquery)[:limit]))
+            projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery, query)[:limit]
+            projects = list(set(list(filter(approved_only,projects))))
+            
+            if len(projects) < 3:
+                projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery)[:limit]
+                projects = list(set(list(filter(approved_only,projects))))
+            
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_TOPICS:
             # TODO
@@ -463,11 +460,14 @@ def browser(request: WSGIRequest, type: str):
             if request.user.is_authenticated:
                 query = Q(topics__in=request.user.profile.getTopics())
                 authquery = ~Q(creator=request.user.profile)
-            projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery, query)[
-                            :limit], FreeProject.objects.filter(Q(suspended=False), authquery, query)[:limit]))
-            if len(projects) < 1:
-                projects = list(chain(Project.objects.filter(Q(status=Code.APPROVED, suspended=False), authquery)[
-                                :limit], FreeProject.objects.filter(Q(suspended=False), authquery)[:limit]))
+
+            projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery, query)[:limit]
+            projects = list(set(list(filter(approved_only,projects))))
+
+            if len(projects) < 3:
+                projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery)[:limit]
+                projects = list(set(list(filter(approved_only,projects))))
+    
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
             # TODO
@@ -499,4 +499,5 @@ def browser(request: WSGIRequest, type: str):
     except Exception as e:
         if request.POST.get('JSON_BODY', False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        print(e)
         raise Http404(e)

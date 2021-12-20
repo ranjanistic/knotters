@@ -49,7 +49,7 @@
     <div class="w3-row w3-padding-large" align='center' id='scrolled'>
         {% if not request.user.is_authenticated %}
             <strong class="text-big">It is highly recommended that you create an account or login first, then proceed.</strong><br/>
-            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
+            <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
             <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
         {% elif not request.user.profile.on_boarded %}
             <strong class="text-big">It is highly recommended that you go through on-boarding first.</strong><br/>
@@ -299,7 +299,7 @@
         <h1>{% trans "The Topics" %}</h1>
         <strong class="text-medium">
             Our platform is filled with numerous of topics to choose from, for your profile, for your projects, and for the competitions,
-            through with you can uniquely select and level up your expertise in the domain of your choice.
+            through which you can uniquely select and level up your expertise in the domain of your choice.
             The topics have indiviual XP points for everyone on Knotters, which can be increased via various sources, the major source being participation 
             in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
         </strong><br/>
