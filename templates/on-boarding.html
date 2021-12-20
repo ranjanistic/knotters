@@ -500,16 +500,17 @@
     }
     moveBoarding(Number(sessionStorage.getItem('on-boarding-step')||0))
     getElement('on-boarding-finish').onclick=_=>{
+        loader()
         postRequest2({
             path:URLS.ON_BOARDING_UPDATE,
             data: {
                 onboarded: true
-            },
-            retainCache: true
+            }
         }).then((res)=>{
             if(res.code === code.OK){
                 window.location.href=("{{request.GET.next}}"||URLS.ROOT)
             } else {
+                loader(false)
                 error(res.error)
             }
         })
