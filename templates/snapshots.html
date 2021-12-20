@@ -98,14 +98,14 @@
                     </button>
                 </div>
             {% endif %}
-            {% comment %} {% if request.user.is_authenticated and snap.creator != request.user.profile %} {% endcomment %}
+            {% if request.user.is_authenticated and snap.creator != request.user.profile %}
                 <div class="w3-col l12 m12 w3-center">
                     <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
                         Report
                     </button>
                 </div>
-            {% comment %} {% endif %} {% endcomment %}
+            {% endif %}
             {% if not request.user.is_authenticated %}
             <div class="w3-col l12 m12 w3-center" >
                 <a href="{{URLS.Auth.LOGIN}}?next={{snap.getLink}}">
