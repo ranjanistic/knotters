@@ -1025,7 +1025,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
 
         return respondJson(Code.NO)
     except Exception as e:
-        errorLog(e)
+        errorLog(e, False)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
 

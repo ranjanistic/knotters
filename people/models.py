@@ -547,6 +547,13 @@ class Profile(models.Model):
                 profiles.append(block.blockeduser.profile)
         return profiles
 
+    def filterBlockedProfiles(self,profiles) -> list:
+        filteredProfiles = []
+        for profile in profiles:
+            if not self.isBlocked(profile.user):
+                filteredProfiles.append(profile)
+        return filteredProfiles
+
 
     @property
     def tags(self) -> list:

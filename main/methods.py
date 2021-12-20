@@ -192,17 +192,7 @@ class JsonEncoder(DjangoJSONEncoder):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
 
-
-# def classAttrsToDict(className, appendCondition) -> dict:
-#     data = dict()
-#     for key in className.__dict__:
-#         if not (str(key).startswith('__') and str(key).endswith('__')):
-#             if appendCondition(key, className.__dict__.get(key)):
-#                 data[key] = className.__dict__.get(key)
-#     return data
-
-
-def errorLog(error):
+def errorLog(error, raiseErr=True):
     if not ISTESTING:
         try:
             with open(os.path.join(os.path.join(settings.BASE_DIR, '_logs_'), 'errors.txt'), 'a') as log_file:
@@ -212,7 +202,9 @@ def errorLog(error):
             if not ISDEVELOPMENT:
                 print('Log: ', error)
         if ISDEVELOPMENT:
-            raise Exception(error)
+            if raiseErr:
+                raise Exception(error)
+            else: print(error)
 
 
 def getNumberSuffix(value: int) -> str:

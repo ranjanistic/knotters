@@ -480,8 +480,10 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
             return data;
         }
     } catch (e) {
-        error(STRING.default_error_message, true);
         subLoader(false);
+        if(!navigator.onLine){
+            error(STRING.network_error_message);
+        } else error(STRING.default_error_message, true);
         return false;
     }
 };
@@ -506,8 +508,10 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
             return data;
         }
     } catch (e) {
-        error(STRING.default_error_message, true);
         subLoader(false);
+        if(!navigator.onLine){
+            error(STRING.network_error_message);
+        } else error(STRING.default_error_message, true);
         return false;
     }
 };
@@ -595,46 +599,49 @@ const handleCropImageUpload = (
     const reader = new FileReader();
     reader.onload = (_) => {
         const base64String = reader.result;
-
-        alertify
-            .confirm(
-                "Crop Image",
-                `<div class="w3-row w3-center">
-					<img src="${base64String}" style="max-width:100%" id="tempprofileimageoutput" />
-				</div>`,
-                () => {
-                    try {
-                        const croppedB64 = cropImage
+        let cropImage;
+        Swal.fire({
+            title: `Crop Image`,
+            html: `<div class="w3-row w3-center">
+                <img src="${base64String}" style="max-width:100%" id="tempprofileimageoutput" />
+                </div>`,
+            showDenyButton: true,
+            denyButtonText: 'Cancel',
+            confirmButtonText: 'Confirm',
+            didOpen: () => {
+                cropImage = new Cropper(getElement("tempprofileimageoutput"), {
+                    ...(ratio !== true ? { aspectRatio: ratio } : {}),
+                    viewMode: 1,
+                    responsive: true,
+                    center: true,
+                });
+                loader(false);
+            },
+            preConfirm: (x)=> {
+                try{
+                    const croppedB64 = cropImage
                             .getCroppedCanvas()
                             .toDataURL("image/png");
                         if (String(croppedB64).length / 1024 / 1024 >= 10) {
-                            return error(
+                            error(
                                 "Image too large. Preferred size < 10 MB"
                             );
+                            return false
                         }
                         getElement(dataOutElemID).value = croppedB64;
                         getElement(previewImgID).src = croppedB64;
-                        onCropped(croppedB64);
-                    } catch (e) {
-                        error(
-                            `Something went wrong. <br/><button class="small primary" onclick="window.location.reload();">Reload</button>`
-                        );
-                    }
-                },
-                () => {}
-            )
-            .set("closable", false)
-            .set("labels", {
-                ok: "Confirm",
-                cancel: "Cancel",
-            });
-        const cropImage = new Cropper(getElement("tempprofileimageoutput"), {
-            ...(ratio !== true ? { aspectRatio: ratio } : {}),
-            viewMode: 1,
-            responsive: true,
-            center: true,
-        });
-        loader(false);
+                        return croppedB64;
+                } catch(e) {
+                    error('',true);
+                    return false
+                }
+            }
+        }).then((res)=>{
+            if(res.isConfirmed){
+                console.log(res)
+                onCropped(res.value)
+            }
+        })  
     };
     if (file) {
         reader.readAsDataURL(file);

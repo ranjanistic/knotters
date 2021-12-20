@@ -45,69 +45,69 @@
                 <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">
                     <button class="accent" id="snap-share-{{snap.get_id}}"><i class="material-icons text-big">share</i></button>
                 </div>
-                <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn()">
+                <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn('{{snap.get_id}}')">
                     <button class="tertiary" id="snap-more-{{snap.get_id}}"><i class="material-icons text-big">more_horiz</i></button>
                 </div>
             </div>
         </div>
-            <br/>
+        <br/>
     </div>
 </div>
-<div id="id01" class="w3-modal align" style="display: none">
-    <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snap-mob">
-        <div class="w3-row w3-center">
-                {% if snap.creator == request.user.profile %}
-                    <div class="w3-col l6 m6 s6 w3-center w3-margin-bottom">
-                        <button class="big-button primary" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
-                            <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
-                            Delete
-                        </button>
-                    </div>
-                {% endif %}
-                {% if request.user.is_authenticated and snap.creator != request.user.profile %}
-                    <div class="w3-col l6 m6 s6 w3-center w3-margin-bottom">
-                            <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
-                                <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
-                                Report
-                            </button>
-                    </div>
-                {% endif %}
-            <div class="w3-col l6 m6 s6 w3-center w3-margin-bottom" >
-                {% if not request.user.is_authenticated %}
-                <a href="{{URLS.Auth.LOGIN}}?next={{snap.getLink}}">
-                    <button  class="big-button primary">
-                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
-                        Login
-                    </button>
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <br/>
-    <div class="snapshot-modal-content-large w3-hide-small" id="snap-laptop">
-        <div class="w3-row w3-center align" style="flex-direction: column; width:168px;">
+<div id="snap-modal-{{snap.get_id}}" class="w3-modal align" onclick="closeSnapshotMoreBtn('{{snap.get_id}}',event)" style="display: none">
+    <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snap-mob-{{snap.get_id}}">
+        <div class="w3-row align">
             {% if snap.creator == request.user.profile %}
-            <div class="w3-col l12 m12">
-                <button class="big-button primary" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
-                    <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
-                    Delete
-                </button>
+            <div class="w3-col l6 m6 s6 w3-center w3-margin-bottom">
+                    <button class="big-button primary" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
+                        Delete
+                    </button>
             </div>
             {% endif %}
             {% if request.user.is_authenticated and snap.creator != request.user.profile %}
-            <div class="w3-col l12 m12">
-                <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
-                    <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
-                    Report
-                </button>
+            <div class="w3-col l6 m6 s6 w3-center w3-margin-bottom">
+                    <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
+                        Report
+                    </button>
             </div>
             {% endif %}
             {% if not request.user.is_authenticated %}
-            <div class="w3-col l12 m12" >
+            <div class="w3-col l6 m6 s6 w3-center w3-margin-bottom" >
                 <a href="{{URLS.Auth.LOGIN}}?next={{snap.getLink}}">
-                    <button  class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
+                    <button  class="big-button primary">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">login</i>
+                        Login
+                    </button>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <br/>
+    <div class="snapshot-modal-content-large w3-hide-small" id="snap-laptop-{{snap.get_id}}">
+        <div class="w3-row w3-center align" style="flex-direction: column; width:168px;">
+            {% if snap.creator == request.user.profile %}
+                <div class="w3-col l12 m12 w3-center">
+                    <button class="big-button primary" onclick="deleteSnap('{{snap.get_id}}', '{{snap.base_project.get_id}}')">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">delete</i>
+                        Delete
+                    </button>
+                </div>
+            {% endif %}
+            {% if request.user.is_authenticated and snap.creator != request.user.profile %}
+                <div class="w3-col l12 m12 w3-center">
+                    <button class="big-button primary" onclick="reportSnap('{{snap.get_id}}')">
                         <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">report</i>
+                        Report
+                    </button>
+                </div>
+            {% endif %}
+            {% if not request.user.is_authenticated %}
+            <div class="w3-col l12 m12 w3-center" >
+                <a href="{{URLS.Auth.LOGIN}}?next={{snap.getLink}}">
+                    <button  class="big-button primary">
+                        <i class="negative-text material-icons" data-snapid="{{snap.get_id}}">login</i>
                         Login
                     </button>
                 </a>
