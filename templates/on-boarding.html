@@ -210,7 +210,7 @@
                 </div>
                 <br/>
                 <div class="w3-row topics-search-results" id="topic-search-results-view">
-                   {% for topic in suggested_topics %}
+                   {% for topic in request.user.profile.recommended_topics %}
                     <button id="editable-topic" data-topicID="{{topic.get_id}}" class="big-button positive draggable-topic">{{topic.name}} +0</button>
                    {% endfor %}
                 </div>
