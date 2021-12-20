@@ -570,7 +570,7 @@ class Profile(models.Model):
 
     def recommended_topics(self, atleast=1, atmost=5):
         try:
-            topics = Topic.objects.exclude(id__in=self.topics.getAllTopicIds)[:atmost]
+            topics = Topic.objects.exclude(id__in=self.getAllTopicIds)[:atmost]
             return topics
         except Exception as e:
             errorLog(e)

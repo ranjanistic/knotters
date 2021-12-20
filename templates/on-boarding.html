@@ -183,7 +183,6 @@
                 <div class="w3-row">
                     <div class="w3-row">
                         <h4>Search topics to add</h4>
-                        <strong>Drag and drop to edit your visible topics.</strong><br/>
                         <input class="wide" type="text" placeholder="Start typing to search" id="search-topics-input" />
                     </div>                    
                 </div>
@@ -514,11 +513,13 @@
     {% endfor %}
     interact('.visible-topics-zone').dropzone({
         accept: '#editable-topic',
-        overlap: 0.5,
-
+        overlap: 0.75,
+        ondragactivate: (e)=>{
+            console.log(e)
+        },
         ondropactivate: function (event) {
             var dropzoneElement = event.target
-            dropzoneElement.classList.add('pallete-slab')
+            dropzoneElement.classList.add('tertiary')
         },
         ondragenter: function (event) {
             var draggableElement = event.relatedTarget
@@ -528,7 +529,7 @@
         ondragleave: function (event) {
             var draggableElement = event.relatedTarget
             var dropzoneElement = event.target
-            dropzoneElement.classList.remove('pallete-slab')
+            dropzoneElement.classList.remove('tertiary')
             draggableElement.classList.remove('accent', 'negative','positive')
             draggableElement.classList.add('secondary')
             
@@ -557,7 +558,7 @@
         },
         ondropdeactivate: function (event) {
             var dropzoneElement = event.target
-            dropzoneElement.classList.remove('pallete-slab')
+            dropzoneElement.classList.remove('tertiary')
         }
     })
     function dragMoveListener (event) {
@@ -565,6 +566,7 @@
         var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
         var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
         target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+        target.style.transition = 'transform 0ms ease-in-out';
         target.setAttribute('data-x', x)
         target.setAttribute('data-y', y)
     }

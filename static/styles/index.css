@@ -807,3 +807,7 @@ label > input[type="checkbox"] {
     justify-content: center;
     align-items: center;
 }
+
+.draggable-topic {
+    touch-action: none;
+}

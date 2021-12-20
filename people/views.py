@@ -64,8 +64,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
                 raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
-        print(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -213,7 +212,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             if request.user.profile.totalTopics() != newcount:
                 for topic in Topic.objects.filter(id__in=addtopicIDs):
                     request.user.profile.topics.add(topic)
-        print(visibleTopicIDs)
+
         if visibleTopicIDs and len(visibleTopicIDs) > 0:
             if len(visibleTopicIDs)>5: return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
             for topic in Topic.objects.filter(id__in=visibleTopicIDs):
