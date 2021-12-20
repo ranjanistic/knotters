@@ -499,5 +499,4 @@ def browser(request: WSGIRequest, type: str):
     except Exception as e:
         if request.POST.get('JSON_BODY', False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        print(e)
         raise Http404(e)
