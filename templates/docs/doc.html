@@ -32,11 +32,12 @@
         <strong>{% trans "Effective from" %} {{doc.effectiveDate}}</strong><br/>
         <strong>{% trans "Last updated on" %} {{doc.lastUpdate}}</strong>
     </center>
-    <br/>
+     <br/>
+    <div class="w3-row text-medium">
     {{doc.content|safe}}
-    <br/>
+    </div>
     <h4 id="queries">{% trans "Questions" %} {% trans "or" %} {% trans "Concerns" %}</h4>
-    <p>
+    <p class="text-medium">
     {% trans "If you have any questions or concerns regarding this" %}, please send us a detailed message at <a href="mailto:{{doc.contactmail|or:CONTACTMAIL}}">{{doc.contactmail|or:CONTACTMAIL}}</a>. {% trans "We will make every effort to resolve your concerns." %}
     </p>
 </div>
