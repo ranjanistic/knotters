@@ -365,7 +365,7 @@
             <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.LANDING}}" target="_blank">
                 <div class="pallete-slab positive-text">
-                    <h3>The Landing Page</h3>
+                    <h3>The Landing Page</h3> <i class="text-medium">arrow_forward</i>
                     <strong>The page about everything here, in detail.</strong>
                 </div>
                 </a>
@@ -664,7 +664,7 @@
             path:URLS.People.TOPICSUPDATE,
             data: {
                 visibleTopicIDs
-            }
+            }, retainCache:true
         })
         if(!data) return
         if(data.code===code.OK) {
