@@ -33,6 +33,7 @@
         <strong>{% trans "Last updated on" %} {{doc.lastUpdate}}</strong>
     </center>
      <br/>
+     <button class="w3-right primary" onclick="window.print()" data-icon="print"></button>
     <div class="w3-row text-medium">
     {{doc.content|safe}}
     </div>
