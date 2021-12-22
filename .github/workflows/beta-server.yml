@@ -50,3 +50,6 @@ jobs:
     - name: Release new version
       run: |
         python3 genversion.py
+    - name: Restart server
+      run: |
+        sudo systemctl restart beta.gunicorn
