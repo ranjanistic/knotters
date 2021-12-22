@@ -61,6 +61,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "main.middleware.XForwardedForMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     'django_otp.middleware.OTPMiddleware',
     'main.middleware.TwoFactorMiddleware',
