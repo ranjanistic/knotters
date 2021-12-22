@@ -20,6 +20,7 @@ on:
       - "genenv.py"
       - "genversion.py"
       - "refresh.py"
+      - "discordbot.py"
 
 jobs:
   testing:

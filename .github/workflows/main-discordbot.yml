@@ -1,0 +1,20 @@
+name: Discordbot CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'discordbot.py'
+
+jobs:
+  deploy:
+    runs-on: [self-hosted,deployment,production]
+
+    steps:
+    - name: Merge changes
+      run: |
+        git pull --depth=100
+    - name: Restart server
+      run: |
+        sudo systemctl restart discord.knottersbot
+    
