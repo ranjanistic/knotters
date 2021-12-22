@@ -865,15 +865,15 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                     pr_creator = Profile.objects.filter(
                         githubID=pr_creator_ghID, is_active=True).first()
                     if pr_creator:
-                        pr_creator.increaseXP(by=5)
+                        pr_creator.increaseXP(by=2)
                 elif action == 'closed':
                     pr_creator = Profile.objects.filter(
                         githubID=pr_creator_ghID, is_active=True).first()
                     if pr['merged']:
                         if pr_creator:
-                            pr_creator.increaseXP(by=5)
-                        project.creator.increaseXP(by=5)
-                        project.moderator.increaseXP(by=5)
+                            pr_creator.increaseXP(by=3)
+                        project.creator.increaseXP(by=2)
+                        project.moderator.increaseXP(by=1)
                     else:
                         if pr_creator:
                             pr_creator.decreaseXP(by=2)
@@ -886,7 +886,7 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                     pr_reviewer = Profile.objects.filter(
                         githubID=pr['requested_reviewer']['login'], is_active=True).first()
                     if pr_reviewer:
-                        pr_reviewer.increaseXP(by=5)
+                        pr_reviewer.increaseXP(by=4)
                 elif action == 'review_request_removed':
                     pr_reviewer = Profile.objects.filter(
                         githubID=pr['requested_reviewer']['login'], is_active=True).first()
@@ -900,10 +900,10 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
             action = request.POST.get('action', None)
             if action == 'created':
                 project.creator.increaseXP(by=2)
-                project.moderator.increaseXP(by=2)
+                project.moderator.increaseXP(by=1)
             elif action == 'deleted':
                 project.creator.decreaseXP(by=2)
-                project.moderator.decreaseXP(by=2)
+                project.moderator.decreaseXP(by=1)
             else:
                 return HttpResponseBadRequest(event)
         else:

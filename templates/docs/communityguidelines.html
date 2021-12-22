@@ -19,5 +19,13 @@
         <h1>{% trans "Community Guidelines" %}</h1>
         <h3>{% trans "Liberty to create & contribute for betterment of each other is the central aspect of our guidelines." %}</h3>
     </center><br/>
+    <button class="w3-right primary" onclick="window.print()" data-icon="print"></button>
+    <div class="text-medium w3-padding">
+     <h5>{% trans "For everyone" %}</h5>
+      <li>
+         Read the <a href="{{URLS.TYPE|params:'legal-faqs'}}">community FAQs</a> for straightforward guidelines.
+       </li><br/>
+    </div>
+    <br/>
 </div>
 {% endblock %}

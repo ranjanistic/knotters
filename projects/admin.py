@@ -103,4 +103,8 @@ admin.site.register(Snapshot)
 admin.site.register(ReportedProject)
 admin.site.register(ProjectAdmirer)
 admin.site.register(FileExtension)
-admin.site.register(TopicFileExtension)
+
+@admin.register(TopicFileExtension)
+class TopicFileExtensionAdmin(admin.ModelAdmin):
+    list_display = ["file_extension", "topic"]
+    list_filter = ["file_extension", "topic"]
