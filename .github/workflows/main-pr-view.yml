@@ -20,9 +20,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        sudo pip install --upgrade pip
         pip install --upgrade pip
-        sudo pip install -r requirements.txt
         pip install -r requirements.txt
     - name: Create Environment
       run: |
@@ -57,11 +55,11 @@ jobs:
         echo "LOCALE_ABS_PATH=${{ secrets.LOCALE_ABS_PATH }}" >> ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
-        python manage.py makemigrations --noinput
-        python manage.py migrate --noinput
+        python3 manage.py makemigrations --noinput
+        python3 manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput --verbosity=1 --keepdb --exclude-tag=model --exclude-tag=method
+        python3 manage.py test --noinput --verbosity=1 --keepdb --exclude-tag=model --exclude-tag=method
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}

@@ -34,9 +34,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        sudo pip install --upgrade pip
         pip install --upgrade pip
-        sudo pip install -r requirements.txt
         pip install -r requirements.txt
     - name: Create Environment
       run: |
@@ -71,11 +69,11 @@ jobs:
         echo "LOCALE_ABS_PATH=${{ secrets.LOCALE_ABS_PATH }}" >> ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
-        python manage.py makemigrations --noinput
-        python manage.py migrate --noinput
+        python3 manage.py makemigrations --noinput
+        python3 manage.py migrate --noinput
     - name: Run tests
       run: |
-        python manage.py test --noinput --verbosity=1 --keepdb --tag=rest
+        python3 manage.py test --noinput --verbosity=1 --keepdb --tag=rest
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}
@@ -99,12 +97,10 @@ jobs:
         sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
     - name: Merge changes
       run: |
-        sudo git pull --depth=100
+        git pull --depth=100
     - name: Install dependencies
       run: |
-        sudo pip install --upgrade pip
         pip install --upgrade pip
-        sudo pip install -r requirements.txt
         pip install -r requirements.txt
     - name: Setup environment
       run: |
@@ -112,8 +108,8 @@ jobs:
         sudo gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
     - name: Run migrations
       run: |
-        python manage.py makemigrations --noinput
-        python manage.py migrate --noinput
+        python3 manage.py makemigrations --noinput
+        python3 manage.py migrate --noinput
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}
@@ -135,4 +131,7 @@ jobs:
         sudo rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
-        sudo git pull --depth=100
+        git pull --depth=100
+    - name: Restart server
+      run: |
+        sudo systemctl restart knotters.gunicorn
