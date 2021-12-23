@@ -133,13 +133,15 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+DB_HOST_API = env.DBLINK
+
 if not DEBUG:
     DATABASES = {
         "default": {
             "ENGINE": "djongo",
             "CLIENT": {
                 "name": env.DBNAME,
-                "host": env.DBLINK,
+                "host": DB_HOST_API,
                 "username": env.DBUSER,
                 "password": env.DBPASS,
                 "authMechanism": "SCRAM-SHA-1",
@@ -153,7 +155,7 @@ else:
             "ENGINE": "djongo",
             "NAME": env.DBNAME,
             "CLIENT": {
-                "host": env.DBLINK,
+                "host": DB_HOST_API,
             },
             "CONN_MAX_AGE": None if env.ISTESTING else 0
         }
@@ -215,10 +217,14 @@ STATIC_URL = env.STATIC_URL
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = env.MEDIA_URL
 
-if DEBUG:
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+if not env.STATIC_ROOT in STATICFILES_DIRS:
+    STATIC_ROOT = env.STATIC_ROOT
+elif DEBUG:
+    STATIC_ROOT = env.STATIC_ROOT
+
 
 CORS_ORIGIN_ALLOW_ALL = False
 
