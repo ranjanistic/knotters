@@ -149,19 +149,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     try:
         if not project.isApproved():
             return False
-
-        created = setupOrgGihtubRepository(project, moderator)
-
-        if not created and ISPRODUCTION:
-            return False
-
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
-
-        # created = setupProjectDiscordChannel(
-        #     project.reponame, project.creator.profile, moderator)
-        # if not created:
-        #     return False
-
+        addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
         return True
     except Exception as e:
         errorLog(e)
@@ -264,37 +252,15 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
 
         ghOrgRepo.create_hook(
             name='web',
-            events=[Event.PUSH],
             config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PUSH,projID=project.get_id)}",
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,projID=project.get_id)}",
                 content_type='form',
                 secret=settings.GH_HOOK_SECRET,
                 insecure_ssl=0,
                 digest=Code.SHA256
             )
         )
-        ghOrgRepo.create_hook(
-            name='web',
-            events=[Event.PR],
-            config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.PR,projID=project.get_id)}",
-                content_type='form',
-                secret=settings.GH_HOOK_SECRET,
-                insecure_ssl=0,
-                digest=Code.SHA256
-            )
-        )
-        ghOrgRepo.create_hook(
-            name='web',
-            events=[Event.STAR],
-            config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,event=Event.STAR,projID=project.get_id)}",
-                content_type='form',
-                secret=settings.GH_HOOK_SECRET,
-                insecure_ssl=0,
-                digest=Code.SHA256
-            )
-        )
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
         return True
     except Exception as e:
         errorLog(e)

@@ -790,7 +790,7 @@ class URL():
         def liveData(self, projectID):
             return setPathParams(self.LIVEDATA, projectID)
 
-        GITHUB_EVENTS = 'github-events/<str:type>/<str:event>/<str:projID>'
+        GITHUB_EVENTS = 'github-events/<str:type>/<str:projID>'
 
         def githubEvents(self, type, event, projID):
             return setPathParams(self.GITHUB_EVENTS, type, event, projID)
