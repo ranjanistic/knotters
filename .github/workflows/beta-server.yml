@@ -19,7 +19,7 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        git pull
+        git pull origin beta
     - name: Install dependencies
       run: |
         pip install --upgrade pip
