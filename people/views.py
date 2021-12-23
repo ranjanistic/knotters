@@ -188,7 +188,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         removetopicIDs = request.POST.get('removetopicIDs', None)
         visibleTopicIDs = request.POST.get('visibleTopicIDs', None)
         addtopics = request.POST.get('addtopics', None)
-        if not addtopicIDs and not removetopicIDs and not visibleTopicIDs and not addtopics:
+        if not (addtopicIDs or removetopicIDs or visibleTopicIDs or addtopics):
             if json_body:
                 return respondJson(Code.NO)
             if not (addtopicIDs.strip() or removetopicIDs.strip()):
@@ -224,7 +224,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             ProfileTopic.objects.filter(profile=request.user.profile).exclude(topic__id__in=visibleTopicIDs).update(trashed=True)
             ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=visibleTopicIDs).update(trashed=False)
 
-        if addtopics or len(addtopics) > 0:
+        if addtopics and len(addtopics) > 0:
             count = ProfileTopic.objects.filter(profile=request.user.profile,trashed=False).count()
             if not json_body:
                 addtopics = addtopics.strip(',').split(',')
