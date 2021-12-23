@@ -25,10 +25,10 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        git pull --depth=100
-    - name: Refresh state
-      run: |
-        python3 refresh.py
+        git pull origin main --depth=100
     - name: Restart server
       run: |
         sudo systemctl restart knotters.gunicorn
+    - name: Clear environment
+      run: |
+        sudo rm -f ${{ secrets.ENVPATH }}

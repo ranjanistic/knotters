@@ -46,10 +46,11 @@ jobs:
         rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
-        git pull
+        git pull origin beta
     - name: Release new version
       run: |
         python3 genversion.py
-    - name: Restart server
+    - name: Restart services
       run: |
         sudo systemctl restart beta.gunicorn
+        sudo systemctl restart beta.cluster0

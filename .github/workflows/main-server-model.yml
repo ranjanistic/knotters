@@ -117,7 +117,12 @@ jobs:
         sudo rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
-        git pull --depth=100
-    - name: Restart server
+        git pull origin main --depth=100
+    - name: Restart services
       run: |
         sudo systemctl restart knotters.gunicorn
+        sudo systemctl restart knotters.cluster0
+        sudo systemctl restart knotters.cluster1
+    - name: Clear environment
+      run: |
+        sudo rm -f ${{ secrets.ENVPATH }}
