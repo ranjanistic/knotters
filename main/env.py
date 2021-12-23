@@ -32,6 +32,7 @@ SITE = env('SITE').strip()
 SENDERTOKEN = env('SENDERTOKEN').strip()
 STATIC_URL = env('STATIC_URL').strip()
 MEDIA_URL = env('MEDIA_URL').strip()
+STATIC_ROOT = env('STATIC_ROOT').strip()
 SERVER_EMAIL = env('SERVER_EMAIL').strip()
 GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
 REDIS_LOCATION = env('REDIS_LOCATION').strip()
@@ -61,6 +62,7 @@ SITE = None if SITE == 'none' else SITE
 SENDERTOKEN = None if SENDERTOKEN == 'none' else SENDERTOKEN
 MEDIA_URL = None if MEDIA_URL == 'none' else MEDIA_URL
 STATIC_URL = None if STATIC_URL == 'none' else STATIC_URL
+STATIC_ROOT = None if STATIC_ROOT == 'none' else STATIC_ROOT
 SERVER_EMAIL = None if SERVER_EMAIL == 'none' else SERVER_EMAIL
 GH_HOOK_SECRET = None if GH_HOOK_SECRET == 'none' else GH_HOOK_SECRET
 REDIS_LOCATION = None if REDIS_LOCATION == 'none' else REDIS_LOCATION

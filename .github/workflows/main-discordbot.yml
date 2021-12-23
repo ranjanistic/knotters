@@ -13,7 +13,7 @@ jobs:
     steps:
     - name: Merge changes
       run: |
-        git pull --depth=100
+        git pull origin main --depth=100
     - name: Restart server
       run: |
         sudo systemctl restart discord.knottersbot
