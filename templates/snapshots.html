@@ -4,7 +4,7 @@
         <br/>
         <div class="w3-row w3-padding">
         <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="50" /></a>
-        <span class="text-tertiary text-medium">{{snap.text|truncatechars:950}}</span><br/>
+        <span class="text-tertiary text-medium">{{snap.text|truncatechars:950|urlize}}</span><br/>
         <span class='dead-text'>{{snap.created_on}}</span><a href="{{snap.getLink}}" target="_blank"><i class="material-icons w3-small">open_in_new</i></a>
         </div>
         <br/>
