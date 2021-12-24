@@ -80,11 +80,11 @@
                 {% if isAdmirer %}
                 <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
                 {% else %}
-                <button type="submit" class="w3-right positive" data-icon="volunteer_activism">{% trans "Admire" %}</button>
+                <button type="submit" class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button>
                 {% endif %}
             </form>
         {% else %}
-            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right positive" data-icon="volunteer_activism">{% trans "Admire" %}</button></a>
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button></a>
         {% endif %}
         </div>
         <br/>
