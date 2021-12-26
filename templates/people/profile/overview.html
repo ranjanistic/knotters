@@ -12,8 +12,8 @@
             <div class="w3-row" id="view-profiletopics">
             {% for topicdata in profile.getTopicsData %}
                 <div class="w3-row pallete-slab w3-padding">
-                    <h5 class=" w3-left topic-name">{{topicdata.topic}}</h5>
-                    <h5 class=" w3-right positive-text"><span class="topic-points">{{topicdata.points|or:'0' }}</span> XP</h5>
+                    <a href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><h5 class=" w3-left topic-name">{{topicdata.topic}}</h5></a>
+                    <button class="accent w3-right" onclick="message('{{topicdata.points|or:'0'}}XP in {{topicdata.topic}}!')"><span class="topic-points">+{{topicdata.points|or:'0' }}</span> XP</button>
                 </div>
             {% empty %}
                 {% if self %}
@@ -32,7 +32,7 @@
             <div id="edit-profiletopics">
                 <br/>
                 <strong class="dead-text">{% trans "Total 5 topics allowed" %}</strong>
-                <form action="{{URLS.TOPICSUPDATE}}" method="POST">
+                <form class="no-auto" action="{{URLS.TOPICSUPDATE}}" method="POST" id="edit-profile-topics-form">
                     {% csrf_token %}
                     <input class="wide" placeholder="Search topics" id="topic-search-input" />
                     <div class="w3-row w3-padding" id="topics-viewer">
@@ -43,6 +43,7 @@
                     </div>
                     <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
                     <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                    <input id="addtopics" name="addtopics" hidden type="text" />
                     <br/>
                     <button id="save-edit-profiletopics">{% trans "Save" %}</button>
                     <button id="discard-edit-profiletopics">{% trans "Cancel" %}</button>

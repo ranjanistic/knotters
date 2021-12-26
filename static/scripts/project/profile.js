@@ -29,16 +29,12 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                let addtopids = getElement("addtopicIDs").value.split(",");
+                let addtopids = getElement("addtopicIDs").value.split(",").filter(x=>x)
                 let addtoplen = addtopids.length;
-                if (addtoplen === 1 && addtopids.includes("")) {
-                    addtoplen = 0;
-                }
-                let remtopids = getElement("removetopicIDs").value.split(",");
+                
+                let remtopids = getElement("removetopicIDs").value.split(",").filter(x=>x);
                 let remtoplen = remtopids.length;
-                if (remtoplen === 1 && remtopids.includes("")) {
-                    remtoplen = 0;
-                }
+                
                 if (
                     getElements("topic-existing").length -
                         remtoplen +
@@ -48,14 +44,7 @@ if (selfProject) {
                     error("Only upto 5 topics allowed");
                     return false;
                 }
-                let ids = getElement("removetopicIDs").value;
-                ids = ids.replaceAll(btn.id, "");
-                if (ids.endsWith(",")) {
-                    ids = ids.split(",");
-                    ids.pop();
-                    ids.join(",");
-                }
-                getElement("removetopicIDs").value = ids;
+                getElement("removetopicIDs").value = getElement("removetopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
                 return true;
             },
         });
@@ -66,16 +55,11 @@ if (selfProject) {
             selectedClass: "positive",
             deselectedClass: "primary",
             onSelect: (btn) => {
-                let addtopids = getElement("addtopicIDs").value.split(",");
+                let addtopids = getElement("addtopicIDs").value.split(",").filter(x=>x);
                 let addtoplen = addtopids.length;
-                if (addtoplen === 1 && addtopids.includes("")) {
-                    addtoplen = 0;
-                }
-                let remtopids = getElement("removetopicIDs").value.split(",");
+                let remtopids = getElement("removetopicIDs").value.split(",").filter(x=>x);
                 let remtoplen = remtopids.length;
-                if (remtoplen === 1 && remtopids.includes("")) {
-                    remtoplen = 0;
-                }
+                
                 if (
                     getElements("topic-existing").length -
                         remtoplen +
@@ -93,14 +77,7 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                let ids = getElement("addtopicIDs").value;
-                ids = ids.replaceAll(btn.id, "");
-                if (ids.endsWith(",")) {
-                    ids = ids.split(",");
-                    ids.pop();
-                    ids.join(",");
-                }
-                getElement("addtopicIDs").value = ids;
+                getElement("addtopicIDs").value = getElement("addtopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
                 return true;
             },
         });
@@ -158,7 +135,6 @@ if (selfProject) {
             selectedClass: "negative",
             deselectedClass: "primary negative-text",
             onSelect: (btn) => {
-                console.log("Tag Selected");
                 if (!getElement("removetagIDs").value.includes(btn.id))
                     getElement("removetagIDs").value += getElement(
                         "removetagIDs"
@@ -168,20 +144,11 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                let addtagids = getElement("addtagIDs").value.split(",");
-                let addtags = getElement("addtags").value.split(",");
+                let addtagids = getElement("addtagIDs").value.split(",").filter(x=>x);
+                let addtags = getElement("addtags").value.split(",").filter(x=>x);
                 let addtaglen = addtagids.length + addtags.length;
-                if (addtaglen === 1 && addtagids.includes("")) {
-                    addtaglen = addtags.length;
-                }
-                if (addtaglen === 1 && addtags.includes("")) {
-                    addtaglen = 0;
-                }
-                let remtagids = getElement("removetagIDs").value.split(",");
+                let remtagids = getElement("removetagIDs").value.split(",").filter(x=>x);
                 let remtaglen = remtagids.length;
-                if (remtaglen === 1 && remtagids.includes("")) {
-                    remtaglen = 0;
-                }
                 if (
                     getElements("tag-existing").length -
                         remtaglen +
@@ -192,15 +159,7 @@ if (selfProject) {
                     return false;
                 }
                 
-                let ids = getElement("removetagIDs").value;
-                ids = ids.replaceAll(btn.id, "");
-                if (ids.endsWith(",")) {
-                    ids = ids.split(",");
-                    ids.pop();
-                    ids.join(",");
-                }
-                getElement("removetagIDs").value = ids;
-                
+                getElement("removetagIDs").value=getElement("removetagIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",")
                 return true;
             },
         });
@@ -211,20 +170,12 @@ if (selfProject) {
             selectedClass: "positive",
             deselectedClass: "primary",
             onSelect: (btn) => {
-                let addtagids = getElement("addtagIDs").value.split(",");
-                let addtags = getElement("addtags").value.split(",");
+                let addtagids = getElement("addtagIDs").value.split(",").filter(x=>x);
+                let addtags = getElement("addtags").value.split(",").filter(x=>x);
                 let addtaglen = addtagids.length + addtags.length;
-                if (addtaglen === 1 && addtagids.includes("")) {
-                    addtaglen = addtags.length;
-                }
-                if (addtaglen === 1 && addtags.includes("")) {
-                    addtaglen = 0;
-                }
-                let remtagids = getElement("removetagIDs").value.split(",");
+                let remtagids = getElement("removetagIDs").value.split(",").filter(x=>x);
                 let remtaglen = remtagids.length;
-                if (remtaglen === 1 && remtagids.includes("")) {
-                    remtaglen = 0;
-                }
+                
                 if (
                     getElements("tag-existing").length -
                         remtaglen +
@@ -251,23 +202,9 @@ if (selfProject) {
             },
             onDeselect: (btn) => {
                 if(!btn.classList.contains('tag-name')){
-                    let ids = getElement("addtagIDs").value;
-                    ids = ids.replaceAll(btn.id, "");
-                    if (ids.endsWith(",")) {
-                        ids = ids.split(",");
-                        ids.pop();
-                        ids.join(",");
-                    }
-                    getElement("addtagIDs").value = ids;
+                    getElement("addtagIDs").value = getElement("addtagIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
                 } else {
-                    let ids = getElement("addtags").value;
-                    ids = ids.replaceAll(btn.id, "");
-                    if (ids.endsWith(",")) {
-                        ids = ids.split(",");
-                        ids.pop();
-                        ids.join(",");
-                    }
-                    getElement("addtags").value = ids;
+                    getElement("addtags").value = getElement("addtags").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
                 }
                 return true;
             },

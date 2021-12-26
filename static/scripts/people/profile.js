@@ -22,15 +22,11 @@ const loadTabScript = (tab) => {
                             selectedClass: "negative",
                             deselectedClass: "primary negative-text",
                             onSelect: (btn) => {
+                                const remtopIDselem = getElement("removetopicIDs")
                                 if (
-                                    !getElement(
-                                        "removetopicIDs"
-                                    ).value.includes(btn.id)
+                                    !remtopIDselem.value.includes(btn.id)
                                 )
-                                    getElement(
-                                        "removetopicIDs"
-                                    ).value += getElement("removetopicIDs")
-                                        .value
+                                remtopIDselem.value += remtopIDselem.value
                                         ? "," + btn.id
                                         : btn.id;
                                 return true;
@@ -38,18 +34,15 @@ const loadTabScript = (tab) => {
                             onDeselect: (btn) => {
                                 let addtopids = getElement(
                                     "addtopicIDs"
-                                ).value.split(",");
-                                let addtoplen = addtopids.length;
-                                if (addtoplen === 1 && addtopids.includes("")) {
-                                    addtoplen = 0;
-                                }
+                                ).value.split(",").filter(x=>x);
+                                let addtops = getElement("addtopics").value.split(",").filter(x=>x);
+                                let addtoplen = addtopids.length + addtops.length;
+                                
                                 let remtopids = getElement(
                                     "removetopicIDs"
-                                ).value.split(",");
+                                ).value.split(",").filter(x=>x);
                                 let remtoplen = remtopids.length;
-                                if (remtoplen === 1 && remtopids.includes("")) {
-                                    remtoplen = 0;
-                                }
+                                
                                 if (
                                     getElements("topic-existing").length -
                                         remtoplen +
@@ -59,14 +52,7 @@ const loadTabScript = (tab) => {
                                     error("Only upto 5 topics allowed");
                                     return false;
                                 }
-                                let ids = getElement("removetopicIDs").value;
-                                ids = ids.replaceAll(btn.id, "");
-                                if (ids.endsWith(",")) {
-                                    ids = ids.split(",");
-                                    ids.pop();
-                                    ids.join(",");
-                                }
-                                getElement("removetopicIDs").value = ids;
+                                getElement("removetopicIDs").value = getElement("removetopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
                                 return true;
                             },
                         });
@@ -79,18 +65,14 @@ const loadTabScript = (tab) => {
                             onSelect: (btn) => {
                                 let addtopids = getElement(
                                     "addtopicIDs"
-                                ).value.split(",");
-                                let addtoplen = addtopids.length;
-                                if (addtoplen === 1 && addtopids.includes("")) {
-                                    addtoplen = 0;
-                                }
+                                ).value.split(",").filter(x=>x);
+                                let addtops = getElement("addtopics").value.split(",").filter(x=>x);
+                                let addtoplen = addtopids.length + addtops.length;
+                                
                                 let remtopids = getElement(
                                     "removetopicIDs"
-                                ).value.split(",");
+                                ).value.split(",").filter(x=>x);
                                 let remtoplen = remtopids.length;
-                                if (remtoplen === 1 && remtopids.includes("")) {
-                                    remtoplen = 0;
-                                }
                                 if (
                                     getElements("topic-existing").length -
                                         remtoplen +
@@ -100,27 +82,27 @@ const loadTabScript = (tab) => {
                                     error("Only upto 5 topics allowed");
                                     return false;
                                 }
-                                if (
-                                    !getElement("addtopicIDs").value.includes(
-                                        btn.id
-                                    )
-                                )
-                                    getElement(
-                                        "addtopicIDs"
-                                    ).value += getElement("addtopicIDs").value
-                                        ? "," + btn.id
-                                        : btn.id;
+                                if(btn.classList.contains('topic-name')){
+                                    if (!getElement("addtopics").value.includes(btn.id))
+                                        getElement("addtopics").value += getElement("addtopics")
+                                            .value
+                                            ? "," + btn.id
+                                            : btn.id;
+                                } else {
+                                    if (!getElement("addtopicIDs").value.includes(btn.id))
+                                        getElement("addtopicIDs").value += getElement("addtopicIDs")
+                                            .value
+                                            ? "," + btn.id
+                                            : btn.id;
+                                }
                                 return true;
                             },
                             onDeselect: (btn) => {
-                                let ids = getElement("addtopicIDs").value;
-                                ids = ids.replaceAll(btn.id, "");
-                                if (ids.endsWith(",")) {
-                                    ids = ids.split(",");
-                                    ids.pop();
-                                    ids.join(",");
+                                if(!btn.classList.contains('topic-name')){
+                                    getElement("addtopicIDs").value = getElement("addtopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                                } else {
+                                    getElement("addtopics").value = getElement("addtopics").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
                                 }
-                                getElement("addtopicIDs").value = ids;
                                 return true;
                             },
                         });
@@ -163,15 +145,36 @@ const loadTabScript = (tab) => {
                                 loadNewTopics();
                                 loadExistingTopics();
                             } else {
-                                getElement(
-                                    "topics-viewer-new"
-                                ).innerHTML = `No topics for '${e.target.value}'`;
+                                buttons.push(
+                                    `<button type="button" class="${
+                                        getElement("addtopics").value.includes(e.target.value)
+                                            ? "positive"
+                                            : "primary"
+                                    } topic-new topic-name" id="${e.target.value}">${Icon("add")}${
+                                        e.target.value
+                                    }</button>`
+                                );
+                                getElement("topics-viewer-new").innerHTML = buttons.join("");
+                                loadNewTopics();
+                                loadExistingTopics();
                             }
                         } else {
                             error(data.error);
                         }
                     };
                     loadExistingTopics();
+                }
+
+                getElement('save-edit-profiletopics').onclick= async ()=> {
+                    const obj = getFormDataById("edit-profile-topics-form");
+                    const resp = await postRequest(setUrlParams(URLS.TOPICSUPDATE), {
+                        addtopicIDs:obj.addtopicIDs.split(',').filter(x=>x),
+                        addtopics:obj.addtopics.split(',').filter(x=>x),
+                        removetopicIDs:obj.removetopicIDs.split(',').filter(x=>x),
+                    });
+                    if (resp.code===code.OK)
+                        return tab.click();
+                    error(resp.error)
                 }
             }
             break;
