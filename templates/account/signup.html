@@ -36,26 +36,22 @@
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/><br/>
-				<a class="w3-row hide-beta" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
-					<button class="primary w3-padding">
-						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
-						{% trans "Continue via Google" %}
-					</button>
-				</a>
-				<br/>
-				<a class="w3-row hide-beta" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
-					<button class="secondary w3-padding">
-						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
-						{% trans "Continue via Github" %}
-					</button>
-				</a>
-				<br/>
-				<a class="w3-row hide-beta" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
-					<button class="tertiary w3-padding">
-						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
-						{% trans "Continue via Discord" %}
-					</button>
-				</a>
+				{% get_providers as socialaccount_providers %}
+				{% for provider in socialaccount_providers %}
+					<br/>
+					{% with next=request.GET.next %}
+						{% with x=URLS.REDIRECTOR|add:"?n="|add:next  %}
+						<a class="w3-row hide-beta" href="{% provider_login_url provider.id method='oauth2' next=x %}">
+							<button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
+								{% with logo="graphics/thirdparty/"|add:provider.id|add:".png" %}
+									<img src="{% static logo %}" width="25" {% if provider.id == 'github' %}class="darkimg-static"{% endif %} />
+									{% trans "Continue via" %} {{provider.name}}
+								{% endwith %}
+							</button>
+						</a>
+						{% endwith %}
+					{% endwith %}
+				{% endfor %}
 				<br/>
 				<h4>{% trans "Already a member?" %}</h4>
 				<a class="w3-row" href="{% url 'account_login' %}?{{redirect_field_name}}={{request.GET.next}}">

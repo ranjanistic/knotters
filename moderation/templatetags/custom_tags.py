@@ -29,3 +29,12 @@ def noprotocol(link):
         link = link.replace('http://','')
     return link
 
+@register.filter(name='getquery')
+def getquery(url,querydata):
+    querykeyvals = querydata.split(',')
+    querystr = ''
+    for keyval in querykeyvals:
+        key,val = keyval.split(':')
+        querystr+=f"{key}={val}&"
+    return f"{url}?{querystr.strip('&')}"
+
