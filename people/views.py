@@ -182,30 +182,34 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
 @require_POST
 @decode_JSON
 def topicsUpdate(request: WSGIRequest) -> HttpResponse:
+    json_body = request.POST.get('JSON_BODY', False)
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
         visibleTopicIDs = request.POST.get('visibleTopicIDs', None)
-        if not addtopicIDs and not removetopicIDs and not visibleTopicIDs:
-            if request.POST.get('JSON_BODY', False):
+        addtopics = request.POST.get('addtopics', None)
+        if not (addtopicIDs or removetopicIDs or visibleTopicIDs or addtopics):
+            if json_body:
                 return respondJson(Code.NO)
             if not (addtopicIDs.strip() or removetopicIDs.strip()):
                 return redirect(request.user.profile.getLink())
 
         if removetopicIDs:
-            if not request.POST.get('JSON_BODY', False):
+            if not json_body:
                 removetopicIDs = removetopicIDs.strip(',').split(',')
             ProfileTopic.objects.filter(
                 profile=request.user.profile, topic__id__in=removetopicIDs).update(trashed=True)
 
         if addtopicIDs:
-            if not request.POST.get('JSON_BODY', False):
+            if not json_body:
                 addtopicIDs = addtopicIDs.strip(',').split(',')
             proftops = ProfileTopic.objects.filter(
                 profile=request.user.profile)
             currentcount = proftops.filter(trashed=False).count()
             if currentcount + len(addtopicIDs) > 5:
-                return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
+                if json_body:
+                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                return redirect(request.user.profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
 
             newcount = currentcount + len(addtopicIDs)
             proftops.filter(topic__id__in=addtopicIDs).update(trashed=False)
@@ -220,12 +224,28 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             ProfileTopic.objects.filter(profile=request.user.profile).exclude(topic__id__in=visibleTopicIDs).update(trashed=True)
             ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=visibleTopicIDs).update(trashed=False)
 
-        if request.POST.get('JSON_BODY', False):
+        if addtopics and len(addtopics) > 0:
+            count = ProfileTopic.objects.filter(profile=request.user.profile,trashed=False).count()
+            if not json_body:
+                addtopics = addtopics.strip(',').split(',')
+            if count + len(addtopics) > 5:
+                if json_body:
+                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                return redirect(request.user.profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
+
+            profiletopics = []
+            for top in addtopics:
+                topic, _ = Topic.objects.get_or_create(name__iexact=top,defaults=dict(name=str(top).capitalize()))
+                profiletopics.append(ProfileTopic(topic=topic,profile=request.user.profile))
+            if len(profiletopics) > 0:
+                ProfileTopic.objects.bulk_create(profiletopics)
+
+        if json_body:
             return respondJson(Code.OK)
         return redirect(request.user.profile.getLink())
     except Exception as e:
         errorLog(e)
-        if request.POST.get('JSON_BODY', False):
+        if json_body:
             return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
         raise Http404()
 

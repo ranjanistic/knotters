@@ -788,13 +788,12 @@ def githubEventsListenerFree(request: WSGIRequest, type: str, projID: UUID) -> H
 
 @csrf_exempt
 @github_only
-def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UUID) -> HttpResponse:
+def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpResponse:
     try:
         if type != Code.HOOK:
             return HttpResponseBadRequest('Invaild link type')
         ghevent = request.POST['ghevent']
-        if ghevent != event:
-            return HttpResponseBadRequest('Event mismatch')
+        
         reponame = request.POST["repository"]["name"]
         owner_ghID = request.POST["repository"]["owner"]["login"]
         hookID = request.POST['hookID']
@@ -812,7 +811,7 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
         ))
         if hookrecord.success:
             return HttpResponse(Code.NO)
-        if event == Event.PUSH:
+        if ghevent == Event.PUSH:
             commits = request.POST["commits"]
             committers = {}
             un_committers = []
@@ -843,20 +842,41 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                     for change in changed:
                         parts = change.split('.')
                         ext = parts[len(parts)-1]
-                        fileext = extensions.get(ext, None)
+                        extdic = extensions.get(ext, {})
+                        fileext = extdic.get('fileext', None)
                         if not fileext:
                             fileext, _ = FileExtension.objects.get_or_create(
                                 extension__iexact=ext, defaults=dict(extension=ext))
-                            extensions[ext] = fileext
+                            extensions[ext] = dict(fileext=fileext,topics=[])
                             fileext.topics.set(project.topics.all())
                         for topic in fileext.topics.all():
-                            commit_committer.increaseTopicPoints(
-                                by=1, topic=topic)
+                            hastopic = False
+                            increase = True
+                            lastxp = 0
+                            tpos = 0
+                            if len(extensions[ext]['topics']) > 0:
+                                for top in extensions[ext]['topics']:
+                                    tpos = tpos + 1
+                                    if top['topic'] == topic:
+                                        hastopic = True
+                                        lastxp = top['xp']
+                                        if lastxp > 9:
+                                            increase = False
+                                        break
+
+                            if increase:
+                                by=1
+                                commit_committer.increaseTopicPoints(
+                                    by=by, topic=topic)
+                                if hastopic:
+                                    extensions[ext]['topics'][tpos]['xp']= lastxp+by
+                                else:
+                                    extensions[ext]['topics'].append(dict(topic=topic,xp=(lastxp+by)))
             project.creator.increaseXP(
                 by=(((len(commits)//len(committers))//2) or 1))
             project.moderator.increaseXP(
                 by=(((len(commits)//len(committers))//3) or 1))
-        elif event == Event.PR:
+        elif ghevent == Event.PR:
             pr = request.POST.get('pull_request', None)
             if pr:
                 action = request.POST.get('action', None)
@@ -893,10 +913,10 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                     if pr_reviewer:
                         pr_reviewer.decreaseXP(by=3)
                 else:
-                    return HttpResponseBadRequest(event)
+                    return HttpResponseBadRequest(ghevent)
             else:
-                return HttpResponseBadRequest(event)
-        elif event == Event.STAR:
+                return HttpResponseBadRequest(ghevent)
+        elif ghevent == Event.STAR:
             action = request.POST.get('action', None)
             if action == 'created':
                 project.creator.increaseXP(by=2)
@@ -905,9 +925,9 @@ def githubEventsListener(request: WSGIRequest, type: str, event: str, projID: UU
                 project.creator.decreaseXP(by=2)
                 project.moderator.decreaseXP(by=1)
             else:
-                return HttpResponseBadRequest(event)
+                return HttpResponseBadRequest(ghevent)
         else:
-            return HttpResponseBadRequest(event)
+            return HttpResponseBadRequest(ghevent)
         hookrecord.success = True
         hookrecord.save()
         return HttpResponse(Code.OK)
