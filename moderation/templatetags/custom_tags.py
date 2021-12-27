@@ -1,4 +1,5 @@
 from django import template
+from urllib.parse import unquote
 from main.methods import getNumberSuffix
 from main.strings import setPathParams
 
@@ -38,3 +39,6 @@ def getquery(url,querydata):
         querystr+=f"{key}={val}&"
     return f"{url}?{querystr.strip('&')}"
 
+@register.filter(name='urldecode')
+def urldecode(value):
+    return unquote(value)
