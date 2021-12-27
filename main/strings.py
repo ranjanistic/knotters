@@ -123,6 +123,7 @@ class Message():
     PROFILE_UPDATED = _("Profile updated, it might take some time for changes to appear.")
     TAGS_UPDATED = _("Tags updated.")
     TOPICS_UPDATED = _("Topics updated.")
+    NO_TOPICS_SELECTED = _("No topics selected")
     MAX_TAGS_ACHEIVED = _("Maximum tags limit reached.")
     NO_TAGS_SELECTED = _("No tags selected")
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")

@@ -398,7 +398,7 @@ def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonRespons
         else:
             return respondJson(Code.NO)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO)
 
 
@@ -446,6 +446,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
+    json_body = request.POST.get("JSON_BODY", False)
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
@@ -454,29 +455,42 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-        if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
-            return redirect(project.getLink())
+
+        if not (addtopicIDs or removetopicIDs):
+            if json_body:
+                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
+            return redirect(project.getLink(error=Message.NO_TOPICS_SELECTED))
+
         if removetopicIDs:
-            removetopicIDs = removetopicIDs.strip(',').split(',')
+            if not json_body:
+                removetopicIDs = removetopicIDs.strip(',').split(',')
             ProjectTopic.objects.filter(
                 project=project, topic__id__in=removetopicIDs).delete()
 
         if addtopicIDs:
-            addtopicIDs = addtopicIDs.strip(',').split(',')
+            if not json_body:
+                addtopicIDs = addtopicIDs.strip(',').split(',')
             if len(addtopicIDs) < 1:
+                if json_body:
+                    return respondJson(Code.NO)
                 return redirect(project.getLink())
             projtops = ProjectTopic.objects.filter(project=project)
             currentcount = projtops.count()
             if currentcount + len(addtopicIDs) > 5:
+                if json_body:
+                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
             for topic in Topic.objects.filter(id__in=addtopicIDs):
                 project.topics.add(topic)
                 for tag in project.getTags:
                     topic.tags.add(tag)
-
+        if json_body:
+            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404()
 
 
@@ -542,12 +556,15 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             return respondJson(Code.NO)
 
         if removetagIDs:
+            if not json_body:
+                removetagIDs = removetagIDs.strip(',').split(",")
             ProjectTag.objects.filter(
                 project=project, tag__id__in=removetagIDs).delete()
 
         currentcount = ProjectTag.objects.filter(project=project).count()
-
         if addtagIDs:
+            if not json_body:
+                addtagIDs = addtagIDs.strip(',').split(",")
             if len(addtagIDs) < 1:
                 if json_body:
                     return respondJson(Code.NO, error=Message.NO_TAGS_SELECTED)
@@ -556,6 +573,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
                 return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
+            
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
                 for topic in project.getTopics():
@@ -563,6 +581,8 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             currentcount = currentcount + len(addtagIDs)
 
         if addtags:
+            if not json_body:
+                addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
                 for addtag in addtags:
                     tag = addTagToDatabase(addtag)

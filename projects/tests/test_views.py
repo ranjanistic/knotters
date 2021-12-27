@@ -357,7 +357,8 @@ class TestViews(TestCase):
         self.assertEqual(json.loads(
             resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
-    def _test_tagsUpdate(self):
+    @tag('tagsup')
+    def test_tagsUpdate(self):
         project = Project.objects.create(name=getProjName(
         ), creator=self.profile, status=Code.APPROVED, reponame=getProjRepo(), category=self.category, license=self.license)
         resp = self.client.post(follow=True, path=root(url.projects.tagsUpdate(project.getID())), data={
@@ -370,7 +371,7 @@ class TestViews(TestCase):
             addTagIDs.append(tag.getID())
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True, path=root(url.projects.tagsUpdate(project.getID())), data={
-                                'addtagIDs': addTagIDs})
+                                'addtagIDs': ",".join(addTagIDs)})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.projects.profile)
         self.assertEqual(project.totalTags(), 4)
