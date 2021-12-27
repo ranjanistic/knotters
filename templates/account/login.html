@@ -37,7 +37,7 @@
 		<div class="w3-row">
 			<div class="w3-col w3-half">
 				<br/>
-				<a hidden class="w3-row hide-beta" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
+				<a class="w3-row hide-beta" href="{{URLS.Auth.GOOGLE}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="primary w3-padding">
 						<img src="{% static 'graphics/thirdparty/google.png' %}" width="25" />
 						{% trans "Continue via Google" %}
