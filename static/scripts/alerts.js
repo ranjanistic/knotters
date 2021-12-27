@@ -246,10 +246,10 @@ const installWebAppInstructions = (show=true) => {
             <br/>
             <div class="w3-row ">
             <div class="w3-col w3-half w3-padding-small">
-            <img src="/static/graphics/info/install-pwa-chrome-win.jpg" title="Chrome on Windows" alt="Chrome on Windows" class="wide preview-type-image w3-card w3-round"  />
+            <img src="/static/graphics/info/install-pwa-chrome-win.webp" title="Chrome on Windows" alt="Chrome on Windows" class="wide preview-type-image w3-card w3-round"  />
                 </div>
                 <div class="w3-col w3-half w3-padding-small">
-                <img src="/static/graphics/info/install-pwa-chrome-android.jpg" title="Chrome on Android" alt="Chrome on Android" class="wide preview-type-image w3-card w3-round" />
+                <img src="/static/graphics/info/install-pwa-chrome-android.webp" title="Chrome on Android" alt="Chrome on Android" class="wide preview-type-image w3-card w3-round" />
                 </div>
             </div>
             <br/>
