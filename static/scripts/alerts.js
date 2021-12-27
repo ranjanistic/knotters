@@ -40,22 +40,28 @@ const message = (msg = "", onOpen=(toast)=>{}) => {
 };
 
 const error = (msg = STRING.default_error_message, force = false) => {
+    const toast  = Swal.mixin({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        iconColor: "#000",
+        timer: Math.max(msg.split(" ").length * 400, 3000),
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+            getElements("swal2-container").forEach(
+                (e) => (e.style.zIndex = 999999999)
+            );
+        },
+    })
     if (msg !== STRING.default_error_message || force) {
-        Swal.mixin({
-            toast: true,
-            position: "bottom-end",
-            showConfirmButton: false,
-            iconColor: "#000",
-            timer: Math.max(msg.split(" ").length * 400, 3000),
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener("mouseenter", Swal.stopTimer);
-                toast.addEventListener("mouseleave", Swal.resumeTimer);
-                getElements("swal2-container").forEach(
-                    (e) => (e.style.zIndex = 999999999)
-                );
-            },
-        }).fire({
+        toast.fire({
+            icon: "error",
+            title: msg || STRING.default_error_message,
+        });
+    } else {
+        toast.fire({
             icon: "error",
             title: msg || STRING.default_error_message,
         });

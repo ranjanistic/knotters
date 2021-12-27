@@ -44,11 +44,23 @@ const setTheme = (themevalue = theme.light) => {
         "data-theme",
         themevalue
     );
-    Array.from(document.getElementsByClassName("darkimg")).forEach((img) => {
+    Array.from(getElements("darkimg")).forEach((img) => {
         const parts = img.tagName.toLowerCase()==='link'?img.href.split('.'):img.src.split('.')
         img.tagName.toLowerCase()==='link'
             ?img.href = String(img.href).replace(window.location.origin,'').replace(`${themevalue === theme.dark ? "" : "-dark"}.${parts[parts.length-1]}`,`${themevalue === theme.light ? "" : "-dark"}.${parts[parts.length-1]}`)
             :img.src = String(img.src).replace(window.location.origin,'').replace(`${themevalue === theme.dark ? "" : "-dark"}.${parts[parts.length-1]}`,`${themevalue === theme.light ? "" : "-dark"}.${parts[parts.length-1]}`)
+    });
+    Array.from(getElements("darkimg-invert")).forEach((img) => {
+        const parts = img.tagName.toLowerCase()==='link'?img.href.split('.'):img.src.split('.')
+        img.tagName.toLowerCase()==='link'
+            ?img.href = String(img.href).replace(window.location.origin,'').replace(`${themevalue === theme.light ? "" : "-dark"}.${parts[parts.length-1]}`,`${themevalue === theme.dark ? "" : "-dark"}.${parts[parts.length-1]}`)
+            :img.src = String(img.src).replace(window.location.origin,'').replace(`${themevalue === theme.light ? "" : "-dark"}.${parts[parts.length-1]}`,`${themevalue === theme.dark ? "" : "-dark"}.${parts[parts.length-1]}`)
+    });
+    Array.from(getElements("darkimg-static")).forEach((img) => {
+        const parts = img.tagName.toLowerCase()==='link'?img.href.split('.'):img.src.split('.')
+        img.tagName.toLowerCase()==='link'
+            ?img.href = String(img.href).replace(window.location.origin,'').replace(`-dark.${parts[parts.length-1]}`,`.${parts[parts.length-1]}`).replace(`.${parts[parts.length-1]}`,`-dark.${parts[parts.length-1]}`)
+            :img.src = String(img.src).replace(window.location.origin,'').replace(`-dark.${parts[parts.length-1]}`,`.${parts[parts.length-1]}`).replace(`.${parts[parts.length-1]}`,`-dark.${parts[parts.length-1]}`)
     });
 };
 

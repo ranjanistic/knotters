@@ -1,12 +1,9 @@
 from uuid import UUID
-from itertools import chain
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.http import JsonResponse
-from allauth.socialaccount.providers.github.provider import GitHubProvider
-from allauth.socialaccount.models import SocialAccount
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
@@ -14,23 +11,21 @@ from django.shortcuts import redirect
 from django.conf import settings
 from main.bots import Github
 from allauth.account.models import EmailAddress
-# from django.views.decorators.cache import cache_page
 from main.env import PUBNAME
 from main.decorators import github_remote_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
-from main.strings import Action, Code, Event, Message, URL, Template
+from main.strings import Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
 from .models import BaseProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, Snapshot, Tag, Category
 from .mailers import sendProjectSubmissionNotification
-from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData, uniqueTag
+from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Projects.INDEX)
 
@@ -51,7 +46,6 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
@@ -60,7 +54,6 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
         raise Http404()
 
 
-# @normal_profile_required
 @require_GET
 def create(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Projects.CREATE)
@@ -315,7 +308,6 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
                     return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
             raise Exception()
     except Exception as e:
-        print(e)
         return profileFree(request, reponame)
 
 
@@ -406,7 +398,7 @@ def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonRespons
         else:
             return respondJson(Code.NO)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO)
 
 
@@ -454,6 +446,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
+    json_body = request.POST.get("JSON_BODY", False)
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
@@ -462,29 +455,42 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-        if not addtopicIDs and not removetopicIDs and not (addtopicIDs.strip() or removetopicIDs.strip()):
-            return redirect(project.getLink())
+
+        if not (addtopicIDs or removetopicIDs):
+            if json_body:
+                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
+            return redirect(project.getLink(error=Message.NO_TOPICS_SELECTED))
+
         if removetopicIDs:
-            removetopicIDs = removetopicIDs.strip(',').split(',')
+            if not json_body:
+                removetopicIDs = removetopicIDs.strip(',').split(',')
             ProjectTopic.objects.filter(
                 project=project, topic__id__in=removetopicIDs).delete()
 
         if addtopicIDs:
-            addtopicIDs = addtopicIDs.strip(',').split(',')
+            if not json_body:
+                addtopicIDs = addtopicIDs.strip(',').split(',')
             if len(addtopicIDs) < 1:
+                if json_body:
+                    return respondJson(Code.NO)
                 return redirect(project.getLink())
             projtops = ProjectTopic.objects.filter(project=project)
             currentcount = projtops.count()
             if currentcount + len(addtopicIDs) > 5:
+                if json_body:
+                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
             for topic in Topic.objects.filter(id__in=addtopicIDs):
                 project.topics.add(topic)
                 for tag in project.getTags:
                     topic.tags.add(tag)
-
+        if json_body:
+            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404()
 
 
@@ -531,6 +537,9 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
+    json_body = request.POST.get('JSON_BODY', False)
+    next = None
+    project = None
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
         addtags = request.POST.get('addtags', None)
@@ -540,19 +549,31 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-        if not addtagIDs and not removetagIDs:
+
+        next = request.POST.get('next', project.getLink())
+
+        if not (addtagIDs or removetagIDs or addtags):
             return respondJson(Code.NO)
 
         if removetagIDs:
+            if not json_body:
+                removetagIDs = removetagIDs.strip(',').split(",")
             ProjectTag.objects.filter(
                 project=project, tag__id__in=removetagIDs).delete()
 
         currentcount = ProjectTag.objects.filter(project=project).count()
         if addtagIDs:
+            if not json_body:
+                addtagIDs = addtagIDs.strip(',').split(",")
             if len(addtagIDs) < 1:
-                return respondJson(Code.NO)
+                if json_body:
+                    return respondJson(Code.NO, error=Message.NO_TAGS_SELECTED)
+                return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
             if currentcount + len(addtagIDs) > 5:
-                return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
+                if json_body:
+                    return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
+                return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
+            
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
                 for topic in project.getTopics():
@@ -560,19 +581,30 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             currentcount = currentcount + len(addtagIDs)
 
         if addtags:
-            if currentcount < 5:
-                if (currentcount + len(addtags)) <= 5:
-                    for addtag in addtags:
-                        tag = addTagToDatabase(addtag)
-                        project.tags.add(tag)
-                        for topic in project.getTopics():
-                            topic.tags.add(tag)
+            if not json_body:
+                addtags = addtags.strip(',').split(",")
+            if (currentcount + len(addtags)) <= 5:
+                for addtag in addtags:
+                    tag = addTagToDatabase(addtag)
+                    project.tags.add(tag)
+                    for topic in project.getTopics():
+                        topic.tags.add(tag)
                 currentcount = currentcount + len(addtags)
+            else:
+                if json_body:
+                    return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
+                return redirect(setURLAlerts(next, error=Message.MAX_TAGS_ACHEIVED))
 
-        return respondJson(Code.OK)
+        if json_body:
+            return respondJson(Code.OK)
+        return redirect(next)
     except Exception as e:
         errorLog(e)
-        raise respondJson(Code.NO)
+        if json_body:
+            return respondJson(Code.NO)
+        if next:
+            return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -939,18 +971,44 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
 @require_GET
 def browseSearch(request: WSGIRequest):
     query = request.GET.get('query', '')
-    projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
-        Q(name__istartswith=query)
-        | Q(name__iendswith=query)
-        | Q(name__iexact=query)
-        | Q(name__icontains=query)
-        | Q(description__icontains=query)
-        | Q(creator__user__first_name__istartswith=query)
-        | Q(creator__user__last_name__istartswith=query)
-        | Q(creator__user__email__istartswith=query)
-        | Q(creator__githubID__istartswith=query)
-        | Q(creator__githubID__iexact=query)
-    ))[0:10]
+    projects = []
+    if query.startswith('tag:'):
+        tag = query.split(':')[1]
+        if tag:
+            projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
+                tags__name__iexact=tag
+            )).distinct()[0:10]
+    elif query.startswith('category:'):
+        category = query.split(':')[1]
+        if category:
+            projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
+                category__name__iexact=category
+            )).distinct()[0:10]
+    elif query.startswith('topic:'):
+        topic = query.split(':')[1]
+        if topic:
+            projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
+                topics__name__iexact=topic
+            )).distinct()[0:10]
+    else:
+        projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
+            Q(name__istartswith=query)
+            | Q(name__iendswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+            | Q(description__icontains=query)
+            | Q(creator__user__first_name__istartswith=query)
+            | Q(creator__user__last_name__istartswith=query)
+            | Q(creator__user__email__istartswith=query)
+            | Q(creator__githubID__istartswith=query)
+            | Q(creator__githubID__iexact=query)
+            | Q(category__name__iexact=query)
+            | Q(topics__name__iexact=query)
+            | Q(tags__name__iexact=query)
+            | Q(category__name__istartswith=query)
+            | Q(topics__name__istartswith=query)
+            | Q(tags__name__istartswith=query)
+        )).distinct()[0:10]
     return rendererstr(request, Template.Projects.BROWSE_SEARCH, dict(projects=projects, query=query))
 
 

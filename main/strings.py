@@ -36,6 +36,20 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRema
         i += 1
     return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
 
+def setURLAlerts(url,alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
+    if error:
+        error = f"{'&' if otherQueries else '?'}e={error}" if message.isValid(
+            error) else ''
+        otherQueries = message.isValid(error)
+    if alert:
+        alert = f"{'&' if otherQueries else '?' }a={alert}" if message.isValid(
+            alert) else ''
+        otherQueries = message.isValid(alert)
+    if success:
+        success = f"{'&' if otherQueries else '?'}s={success}" if message.isValid(
+            success) else ''
+    return f"{url}{error}{alert}{success}"
+
 class Code():
     OK = "OK"
     NO = "NO"
@@ -109,7 +123,9 @@ class Message():
     PROFILE_UPDATED = _("Profile updated, it might take some time for changes to appear.")
     TAGS_UPDATED = _("Tags updated.")
     TOPICS_UPDATED = _("Topics updated.")
+    NO_TOPICS_SELECTED = _("No topics selected")
     MAX_TAGS_ACHEIVED = _("Maximum tags limit reached.")
+    NO_TAGS_SELECTED = _("No tags selected")
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
 

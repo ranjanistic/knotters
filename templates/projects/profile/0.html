@@ -95,13 +95,19 @@
         </div>
         <br />
 		{% endif %}
-        {% if project.socialsites.count %}
+
+        {% if project.socialsites.count or project.url %}
         <div class="w3-row pallete">
+        {% if project.url %}
+            <a target="_blank" rel="noreferrer" href="{{project.url}}"><strong>{{project.url|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
+        {% endif %}
         {% for site in project.socialsites %}
-        <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol}}<i class="w3-small">open_in_new</i></strong></a><br/>
+            <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
         {% endfor %}
         </div>
+        <br/>
         {% endif %}
+
         {% if project.repolink %}
         <div class="w3-row w3-padding-small">
             <a target="_blank" rel="noreferrer" href="{{project.repoLink}}">
@@ -116,11 +122,11 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
-                    <a href="{{URLS.PROJECTS}}?category={{project.category.get_id}}" ><h3>{{project.category.name|capfirst}}</h3></a>
+                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="text-big">{{project.category.name|capfirst}}</strong></a>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <div class="w3-row pallete-slab w3-padding">
-                            <h6 class=" w3-left topic-name">{{topicdata.topic}}</h6>
+                            <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}"><h5 class=" w3-left topic-name">{{topicdata.topic}}</h5></a>
                         </div>
                     {% empty %}
                         {% if iscreator %}
@@ -161,7 +167,7 @@
             <div class="w3-row w3-padding" id="tags">
                 <div id="view-projecttags">
                 {% for tag in project.tags.all %}
-                <a href="/projects?q={{tag}}&type=tag"><button class="positive">#{{tag}}</button></a>
+                <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive">#{{tag}}</button></a>
                 {% empty %}
                     <h5 class="dead-text">{% trans "No tags assigned" %}</h5>
                 {% endfor %}

@@ -247,7 +247,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         errorLog(e)
         if json_body:
             return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
-        raise Http404()
+        raise Http404(e)
 
 
 @login_required
@@ -567,19 +567,29 @@ def browseSearch(request: WSGIRequest):
     excludeIDs = []
     if request.user.is_authenticated:
         excludeIDs = request.user.profile.blockedIDs
-    fname, lname = convertToFLname(query)
-    profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
-        Q(is_active=True, suspended=False, to_be_zombie=False),
-        Q(user__email__istartswith=query)
-        | Q(user__email__icontains=query)
-        | Q(user__first_name__istartswith=fname)
-        | Q(user__first_name__iendswith=fname)
-        | Q(user__last_name__istartswith=(lname or fname))
-        | Q(user__last_name__iendswith=(lname or fname))
-        | Q(githubID__istartswith=query)
-        | Q(githubID__iexact=query)
-        | Q(user__first_name__iexact=query)
-        | Q(user__last_name__iexact=query)
-        | Q(user__last_name__iexact=(lname or fname))
-    ))[0:20]
+    if query.startswith('topic:'):
+        topic = query.split(':')[1]
+        if topic:
+            profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                Q(is_active=True, suspended=False, to_be_zombie=False),
+                Q(topics__name__iexact=topic)
+            ).distinct()[0:10]
+    else:
+        fname, lname = convertToFLname(query)
+        profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
+            Q(is_active=True, suspended=False, to_be_zombie=False),
+            Q(user__email__istartswith=query)
+            | Q(user__email__icontains=query)
+            | Q(user__first_name__istartswith=fname)
+            | Q(user__first_name__iendswith=fname)
+            | Q(user__last_name__istartswith=(lname or fname))
+            | Q(user__last_name__iendswith=(lname or fname))
+            | Q(githubID__istartswith=query)
+            | Q(githubID__iexact=query)
+            | Q(user__first_name__iexact=query)
+            | Q(user__last_name__iexact=query)
+            | Q(user__last_name__iexact=(lname or fname))
+            | Q(topics__name__iexact=query)
+            | Q(topics__name__istartswith=query)
+        )).distinct()[0:10]
     return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
