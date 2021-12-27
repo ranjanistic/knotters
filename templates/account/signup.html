@@ -43,14 +43,14 @@
 					</button>
 				</a>
 				<br/>
-				<a hidden class="w3-row hide-beta" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
+				<a class="w3-row hide-beta" href="{{URLS.Auth.GITHUB}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="secondary w3-padding">
 						<img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="25" />
 						{% trans "Continue via Github" %}
 					</button>
 				</a>
 				<br/>
-				<a hidden class="w3-row hide-beta" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
+				<a class="w3-row hide-beta" href="{{URLS.Auth.DISCORD}}login/?method=oauth2&{{redirect_field_name}}={{URLS.REDIRECTOR}}?n={{request.GET.next}}">
 					<button class="tertiary w3-padding">
 						<img src="{% static 'graphics/thirdparty/discord.png' %}" width="20" />
 						{% trans "Continue via Discord" %}
