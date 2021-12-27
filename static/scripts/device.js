@@ -2,6 +2,16 @@
  * Client device/browser related controls & settings
  */
 
+ window.addEventListener("beforeinstallprompt", (e) => {
+    __appInstallPromptEvent = e;
+});
+
+window.addEventListener('appinstalled', () => {
+    installWebAppInstructions(false);
+    __appInstallPromptEvent = null;
+    success('App installed successfully')
+});
+
 const __clearCacheByPath__ = async (path) => {
     if (!path) return false;
     let cache = await caches.open(STRING.dynamic_cache_name);
@@ -44,46 +54,91 @@ const __clearAllCache__ = async () => {
     await caches.delete(STRING.static_cache_name);
 };
 
-
-const windowScrollState =(enable=true) => {
-
-    var keys = {37: 1, 38: 1, 39: 1, 40: 1};
+const windowScrollState = (enable = true) => {
+    var keys = { 37: 1, 38: 1, 39: 1, 40: 1 };
 
     function preventDefault(e) {
-    e.preventDefault();
+        e.preventDefault();
     }
 
     function preventDefaultForScrollKeys(e) {
-    if (keys[e.keyCode]) {
-        preventDefault(e);
-        return false;
-    }
+        if (keys[e.keyCode]) {
+            preventDefault(e);
+            return false;
+        }
     }
 
-    // modern Chrome requires { passive: false } when adding event
     var supportsPassive = false;
     try {
-    window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
-        get: function () { supportsPassive = true; } 
-    }));
-    } catch(e) {}
+        window.addEventListener(
+            "test",
+            null,
+            Object.defineProperty({}, "passive", {
+                get: function () {
+                    supportsPassive = true;
+                },
+            })
+        );
+    } catch (e) {}
 
     var wheelOpt = supportsPassive ? { passive: false } : false;
-    var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel';
-
-    // call this to Disable
+    var wheelEvent =
+        "onwheel" in document.createElement("div") ? "wheel" : "mousewheel";
+        
     function disableScroll() {
-        window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
+        window.addEventListener("DOMMouseScroll", preventDefault, false); // older FF
         window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
-        window.addEventListener('touchmove', preventDefault, wheelOpt); // mobile
-        window.addEventListener('keydown', preventDefaultForScrollKeys, false);
+        window.addEventListener("touchmove", preventDefault, wheelOpt); // mobile
+        window.addEventListener("keydown", preventDefaultForScrollKeys, false);
     }
 
     function enableScroll() {
-        window.removeEventListener('DOMMouseScroll', preventDefault, false);
-        window.removeEventListener(wheelEvent, preventDefault, wheelOpt); 
-        window.removeEventListener('touchmove', preventDefault, wheelOpt);
-        window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
+        window.removeEventListener("DOMMouseScroll", preventDefault, false);
+        window.removeEventListener(wheelEvent, preventDefault, wheelOpt);
+        window.removeEventListener("touchmove", preventDefault, wheelOpt);
+        window.removeEventListener(
+            "keydown",
+            preventDefaultForScrollKeys,
+            false
+        );
     }
-    enable ? enableScroll(): disableScroll();
+    enable ? enableScroll() : disableScroll();
+};
+
+const isStandaloneMode = (_) =>
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone ||
+    document.referrer.includes("android-app://");
+
+const canInstallPWA = (_) => window.navigator.serviceWorker?true:false;
+
+const refresh = ({
+    fullLoad=false,
+    subload=true
+}) => {
+    if(subload) subLoader(subload)
+    if(fullLoad) loader(fullLoad)
+    window.location.reload();
+}
+
+const refer = ({
+    path = window.location.pathname,
+    query = {}, 
+    fullLoad = false,
+    subload=true
+}) => {
+    if(subload) subLoader(subload)
+    if(fullLoad) loader(fullLoad)
+    window.location.href = setUrlQueries(path, query);
+}
+
+const relocate = ({
+    path = window.location.pathname,
+    query = {}, 
+    fullLoad = false,
+    subload=true
+}) => {
+    if(subload) subLoader(subload)
+    if(fullLoad) loader(fullLoad)
+    window.location.replace(setUrlQueries(path, query));
 }

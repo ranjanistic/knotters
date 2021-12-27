@@ -97,3 +97,5 @@ try:
     from .__refresh__ import REFRESH_STATE
 except:
     REFRESH_STATE = None
+
+ISBETA = HOSTS and HOSTS[0].startswith('beta.')

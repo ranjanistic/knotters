@@ -347,6 +347,7 @@
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">{% trans "Contact us" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="{{URLS.BRANDING}}" class="text-secondary w3-animate-left">{% trans "Brand Resources" %}</a><br/>
+                <a onclick="installWebAppInstructions()" class="text-secondary w3-animate-left">{% trans "Web App Installation" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
                 <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
             </div>
@@ -397,6 +398,7 @@
         </div>
         {% endblock %}
         <script src="{{URLS.STRINGS}}"></script>
+        <script src="{% static 'scripts/globalvars.js' %}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>

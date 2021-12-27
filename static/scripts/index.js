@@ -1,19 +1,5 @@
 "use strict";
 
-const Key = {
-    appUpdated: "app-updated",
-    navigated: "navigated",
-    futureMessage: "future-message",
-    deferupdate: "deferupdate",
-};
-
-const code = {
-    OK: "OK",
-    NO: "NO",
-    LEFT: "left",
-    RIGHT: "right",
-};
-
 const logOut = async (
     afterLogout = (_) => {
         window.location.replace(URLS.ROOT);
@@ -154,7 +140,7 @@ const loadGlobalEventListeners = () => {
     getElements("preview-type-image").forEach((image) => {
         image.classList.add("pointer");
         image.addEventListener("click", (e) => {
-            previewImageDialog(e.target.src);
+            previewImageDialog(e.target.src,e.target.alt, e.target.title);
         });
     });
 
@@ -994,20 +980,6 @@ const secsToTime = (secs) => {
     }`;
 };
 
-const previewImageDialog = (src) => {
-    if (!src) return;
-    getElement("image-previewer").style.display = "flex";
-    getElement("image-previewer").addEventListener("click", (e) => {
-        if (e.target.id !== "preivew-image-src") {
-            e.target.style.display = "none";
-        }
-    });
-    getElement("preivew-image-src").src = src;
-};
-
-const futuremessage = (message = "") => {
-    localStorage.setItem(Key.futureMessage, message);
-};
 
 const radarChartView = (
     chartCanvas,

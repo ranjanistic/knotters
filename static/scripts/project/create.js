@@ -116,7 +116,7 @@ const nextPrev = async (n) => {
     }
 };
 
-const expr = {
+const __validator_str_regex = {
     reg: {
         projectname: /^[a-zA-Z0-9 ]{1,40}$/,
         reponame: /^[a-z\-]{2,15}$/,
@@ -145,10 +145,10 @@ const validateForm = (id) => {
         if (s === currentStep) {
             const validator = (el, e) => {
                 el.value = String(el.value).trim();
-                if (!expr.reg[el.id].test(el.value)) {
+                if (!__validator_str_regex.reg[el.id].test(el.value)) {
                     el.classList.add("invalid");
                     validationError[e + currentStep * 2].innerHTML =
-                        expr.err[el.id];
+                        __validator_str_regex.err[el.id];
                     valid = false;
                 } else {
                     el.classList.remove("invalid");

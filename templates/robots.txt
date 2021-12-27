@@ -1,4 +1,4 @@
-# NOTICE: Collection of data on Knotters via automated means is
+# NOTICE: Collection of data on {{APPNAME}} via automated means is
 # prohibited unless an express written permission from Knotters is granted,
 # and should only be conducted for the limited purpose contained in said
 # permission.
@@ -6,6 +6,9 @@
 # We have a dedicated api for our data provision at: https://api.knotters.org
 
 User-agent: *
+{% if ISBETA %}
+Disallow: /
+{% endif %}
 {% for sus in suspended %}
 Disallow: {{sus.getLink}}
 {% endfor %}

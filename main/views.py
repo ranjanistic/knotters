@@ -1,5 +1,4 @@
 import json
-from itertools import chain
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -9,20 +8,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
-from django.db.models import Q,Max
+from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect
-from main.settings import CACHE_MIN, CACHE_SHORT
 from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
-from projects.models import BaseProject, FreeProject, LegalDoc, Project, Snapshot
+from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
 from people.models import DisplayMentor, Profile
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
-from .env import ADMINPATH, ISPRODUCTION
+from .env import ADMINPATH, ISPRODUCTION, ISBETA
 from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
 from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON
 from .mailers import featureRelease
@@ -190,7 +188,7 @@ class Robots(TemplateView):
         suspended = Profile.objects.filter(
             Q(suspended=True) | Q(is_zombie=True))
         context = dict(**context, media=settings.MEDIA_URL,
-                       suspended=suspended)
+                       suspended=suspended, ISBETA=ISBETA)
         return context
 
 

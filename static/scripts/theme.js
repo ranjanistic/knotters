@@ -1,9 +1,3 @@
-const theme = {
-    key: "theme",
-    light: "light",
-    dark: "dark",
-};
-
 const toggleTheme = () => {
     isLight() ? setDark() : setLight();
 };
@@ -22,15 +16,6 @@ const isDark = () => {
 
 const getTheme = () => {
     return localStorage.getItem(theme.key);
-};
-
-const primarycolor = {
-    [theme.dark]: "#000000",
-    [theme.light]: "#ffffff",
-};
-const accentcolor = {
-    [theme.dark]: "#de9846",
-    [theme.light]: "#f5d702",
 };
 
 const setTheme = (themevalue = theme.light) => {
