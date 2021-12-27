@@ -63,7 +63,7 @@
   </div>">
 </div>
 
-<div class="w3-row">
+<div class="w3-row" id="mainframe">
   <div class="w3-row tertiary w3-padding">
     <div class="w3-col w3-quarter w3-padding-small"></div>
 	  <div class="w3-col w3-half w3-center w3-padding-small">
@@ -109,7 +109,9 @@
       setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
     }
     if("{{request.GET.search}}"){
+      window.location.href="#mainframe";
       getElement("browse-search-input").value="{{request.GET.search}}";
+      showElement("browse-search-actions");
       getElement("browse-search-exec").click()
     }
   }catch(e){

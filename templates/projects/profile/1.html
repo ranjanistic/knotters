@@ -131,12 +131,14 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
-                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="text-big">{{project.category.name|capfirst}}</strong></a>
+                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab positive-text text-big">{{project.category.name|capfirst}}</strong></a>
                     <div class="w3-row" id="view-projecttopics">
-                    {% for topicdata in project.getTopicsData %}
-                        <div class="w3-row pallete-slab w3-padding">
-                            <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}"><h5 class=" w3-left topic-name">{{topicdata.topic}}</h5></a>
-                        </div>
+                    {% for topicdata in project.getTopicsData %}                        
+                        <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
+                            <button class="accent big-button topic-name">
+                            <b>{{topicdata.topic}}</b>
+                            </button>
+                        </a>
                     {% empty %}
                         {% if iscreator %}
                             <button class="accent edit-action w3-padding" data-edittarget="projecttopics" data-icon="add">Add topics</button>
