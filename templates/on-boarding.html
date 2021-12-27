@@ -162,7 +162,7 @@
             <div class="w3-col w3-half w3-center w3-padding">
                 <div class="w3-row">
                     <h3>Your visible topics</h3>
-                    <strong>Maximum 5 visible topics allowed</strong>
+                    <strong>Maximum 5 visible topics allowed. Drop topics here.</strong>
                     <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh" xyz="stagger-5 narrow-100%">
                         {% for topicdata in request.user.profile.getTopicsData %}
                             <button class="big-button accent draggable-topic xyz-in" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
