@@ -74,12 +74,12 @@
         </div>
         {% endif %}
         {% if not isJudge and not isMod and not isManager %}
-           {% if not request.user.is_authenticated %}
+           {% if not request.user.is_authenticated and compete.isActive %}
             <div class="w3-col w3-half w3-center w3-padding">
               <h3>In order to participate</h3>
               <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
             </div>
-           {% elif compete.reg_fee and compete.isActive %}
+          {% elif compete.reg_fee and compete.isActive %}
           <div class="w3-col w3-half w3-center dead-text w3-padding">
             <h4>{% trans "To be eligible for cash prizes here" %},</h4>
             <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
