@@ -40,8 +40,8 @@
 				{% for provider in socialaccount_providers %}
 					<br/>
 					{% with next=request.GET.next %}
-						{% with x=URLS.REDIRECTOR|getquery:"ns:"|add:next %}
-						<a class="w3-row hide-beta" href="{% provider_login_url provider.id method='oauth2' next=x %}">
+						{% with x=URLS.REDIRECTOR|getquery:"n:"|add:next %}
+						<a class="w3-row hide-beta" href="{% provider_login_url provider.id method='oauth2' next=x|urldecode %}">
 							<button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
 								{% with logo="graphics/thirdparty/"|add:provider.id|add:".png" %}
 									<img src="{% static logo %}" width="25" {% if provider.id == 'github' %}class="darkimg-static"{% endif %} />
