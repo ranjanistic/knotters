@@ -165,17 +165,18 @@ const loadTabScript = (tab) => {
                     };
                     loadExistingTopics();
                 }
-
-                getElement('save-edit-profiletopics').onclick= async ()=> {
-                    const obj = getFormDataById("edit-profile-topics-form");
-                    const resp = await postRequest(setUrlParams(URLS.TOPICSUPDATE), {
-                        addtopicIDs:obj.addtopicIDs.split(',').filter(x=>x),
-                        addtopics:obj.addtopics.split(',').filter(x=>x),
-                        removetopicIDs:obj.removetopicIDs.split(',').filter(x=>x),
-                    });
-                    if (resp.code===code.OK)
-                        return tab.click();
-                    error(resp.error)
+                if(selfProfile){
+                    getElement('save-edit-profiletopics').onclick= async ()=> {
+                        const obj = getFormDataById("edit-profile-topics-form");
+                        const resp = await postRequest(setUrlParams(URLS.TOPICSUPDATE), {
+                            addtopicIDs:obj.addtopicIDs.split(',').filter(x=>x),
+                            addtopics:obj.addtopics.split(',').filter(x=>x),
+                            removetopicIDs:obj.removetopicIDs.split(',').filter(x=>x),
+                        });
+                        if (resp.code===code.OK)
+                            return tab.click();
+                        error(resp.error)
+                    }
                 }
             }
             break;
