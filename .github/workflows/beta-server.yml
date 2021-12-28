@@ -49,8 +49,8 @@ jobs:
         git pull origin beta
     - name: Release new version
       run: |
-        python3 genversion.py
-        python3 manage.py collectstatic --noinput
+        ~/Env/beta_knotters/bin/python3 genversion.py
+        ~/Env/beta_knotters/bin/python3 manage.py collectstatic --noinput
     - name: Restart services
       run: |
         sudo systemctl restart beta.gunicorn
