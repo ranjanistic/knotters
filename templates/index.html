@@ -442,7 +442,7 @@
                 success("{{request.GET.s}}");
             }
             if("{{request.GET.report}}"==="1"){
-                reportFeedbackView()
+                reportFeedbackView();
             }
             const URLS = Object.freeze({{URLS|or:'{}'|safe}});
             const BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}});
