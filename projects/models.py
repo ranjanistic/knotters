@@ -229,7 +229,7 @@ class BaseProject(models.Model):
 
     @property
     def is_verified(self):
-        return not self.is_free
+        return not self.is_free and self.is_approved
 
     @property
     def is_approved(self):
