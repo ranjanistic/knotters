@@ -64,6 +64,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
                 raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
+        print(e)
         raise Http404(e)
 
 

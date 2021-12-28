@@ -5,8 +5,8 @@ from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
 
 try:
     if GITHUBBOTTOKEN:
-            Github = GHub(GITHUBBOTTOKEN)
-            GithubKnotters = Github.get_organization(PUBNAME)
+        Github = GHub(GITHUBBOTTOKEN)
+        GithubKnotters = Github.get_organization(PUBNAME)
     else:
         Github = None
         GithubKnotters = None

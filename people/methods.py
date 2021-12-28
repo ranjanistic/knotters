@@ -79,44 +79,60 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
 def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
     if requestUser.is_authenticated and profile.isBlocked(requestUser) or not profile.is_active:
         return None
-    data = dict(
-            self=requestUser == profile.user,
-            person=profile.user
-        )
-    if section == profileString.OVERVIEW:
-        pass
-    elif section == profileString.PROJECTS:
-        if requestUser == profile.user:
-            projects = Project.objects.filter(creator=profile,trashed=False)
-        else:
-            projects = Project.objects.filter(
-                creator=profile, status=Code.APPROVED,trashed=False)
-        data[Code.APPROVED] = list(chain(projects.filter(status=Code.APPROVED),FreeProject.objects.filter(creator=profile,trashed=False)))
-        data[Code.MODERATION] = projects.filter(status=Code.MODERATION)
-        data[Code.REJECTED] = projects.filter(status=Code.REJECTED)
-    elif section == profileString.ACHEIVEMENTS:
-        data[Code.RESULTS] = Result.objects.filter(submission__members=profile)
-        data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile)
-        data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True)
-    elif section == profileString.CONTRIBUTION:
-        pass
-    elif section == profileString.ACTIVITY:
-        pass
-    elif section == profileString.MODERATION:
-        if profile.is_moderator:
-            mods = Moderation.objects.filter(moderator=profile)
-            data[Code.UNRESOLVED] = mods.filter(resolved=False).order_by('-requestOn')
-            data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
-            data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
-    elif section == profileString.COMPETITIONS:
-        if profile.is_manager:
-            data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile)
-    elif section == profileString.MENTORSHIP:
-        if profile.is_mentor:
-            data[Code.MENTORSHIPS] = Project.objects.filter(mentor=profile)
-    else: return False
-    return data
+    try:
+        data = dict(
+                self=requestUser == profile.user,
+                person=profile.user
+            )
+        if section == profileString.OVERVIEW:
+            pass
+        elif section == profileString.PROJECTS:
+            projects = BaseProject.objects.filter(creator=profile,trashed=False).order_by("-createdOn")
+            def approved_only(project):
+                return project.is_approved
+                
+            if requestUser != profile.user:
+                projects = projects.filter(suspended=False)
+                data[Code.APPROVED] = list(filter(approved_only, projects))
+            else:
+                def rejected_only(project):
+                    return project.is_rejected
 
+                def moderation_only(project):
+                    return project.is_pending
+
+                data[Code.APPROVED] = list(filter(approved_only, projects))
+                data[Code.MODERATION] = list(filter(moderation_only, projects))
+                data[Code.REJECTED] = list(filter(rejected_only, projects))
+        elif section == profileString.ACHEIVEMENTS:
+            data[Code.RESULTS] = Result.objects.filter(submission__members=profile).order_by('-rank', '-points')
+            data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile)
+            data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True).order_by('-respondOn')
+        elif section == profileString.CONTRIBUTION:
+            pass
+        elif section == profileString.ACTIVITY:
+            pass
+        elif section == profileString.MODERATION:
+            if profile.is_moderator:
+                mods = Moderation.objects.filter(moderator=profile)
+                data[Code.UNRESOLVED] = mods.filter(resolved=False).order_by('-requestOn')
+                data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
+                data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
+        elif section == profileString.COMPETITIONS:
+            if profile.is_manager:
+                data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile)
+        elif section == profileString.PEOPLE:
+            mgm = profile.management
+            if mgm:
+                data[Code.PEOPLE] = mgm.people.filter(is_active=True,suspended=False,to_be_zombie=False)
+        elif section == profileString.MENTORSHIP:
+            if profile.is_mentor:
+                data[Code.MENTORSHIPS] = Project.objects.filter(mentor=profile)
+        else: return False
+        return data
+    except Exception as e:
+        errorLog(e)
+        return False
 
 def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) -> str:
     if not PROFILE_SECTIONS.__contains__(section):
