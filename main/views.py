@@ -354,6 +354,11 @@ class Manifest(TemplateView):
         assets = getDeepFilePaths(
             'static/graphics/self', appendWhen=appendWhen)
 
+        def attachStaticURL(path: str):
+            return str(path.replace("/static/",settings.STATIC_URL))
+
+        assets = list(map(attachStaticURL, assets))
+
         icons = []
 
         for i in range(len(assets)):
