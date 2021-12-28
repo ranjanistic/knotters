@@ -23,7 +23,7 @@
         <meta name="author" content="{{APPNAME}} Community">
 
         <meta property="og:locale" content="en-US" />
-        <meta name="image" property="og:image" content="{% block og_image_url_full %}{{SITE}}{% block og_image_url %}/static/graphics/self/1024/icon.png{% endblock %}{% endblock %}" />
+        <meta name="image" property="og:image" content="{% block og_image_url_full %}{{SITE}}{% block og_image_url %}{% static 'graphics/self/1024/icon.png' %}{% endblock %}{% endblock %}" />
         <meta property="og:type" content="social" />
         <meta property="og:url" content="{{SITE}}{% block og_url %}{% endblock %}" />
         <meta property="og:title" content="{% block og_title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}" />
@@ -32,13 +32,13 @@
 
         <meta name="twitter:title" content="{% block tw_title %}{{APPNAME}}{% endblock %}" />
         <meta name="twitter:description" content="{% block tw_description %}{{DESCRIPTION|safe}}{% endblock %}" />
-        <meta name="twitter:image" content="{% block tw_image_url_full %}{{SITE}}{% block tw_image_url %}/static/graphics/self/2500x1000/banner-bg.png{% endblock %}{% endblock %}" />
+        <meta name="twitter:image" content="{% block tw_image_url_full %}{{SITE}}{% block tw_image_url %}{% static 'graphics/self/2500x1000/banner-bg.png' %}{% endblock %}{% endblock %}" />
         <meta name="twitter:site" content="@knottersdotorg" />
         <meta name="twitter:creator" content="@ranjanistic" />
         <meta name="twitter:url" content="{{SITE}}{% block tw_url %}{% endblock %}" />
         <meta name="twitter:card" content="{% block tw_card %}summary_large_image{% endblock %}" />
     
-        <meta name="linkedin:card" content="{% block ld_image_url_full %}{{SITE}}{% block ld_image_url %}/static/graphics/self/2500x1000/banner-bg.png{% endblock %}{% endblock %}" />
+        <meta name="linkedin:card" content="{% block ld_image_url_full %}{{SITE}}{% block ld_image_url %}{% static 'graphics/self/2500x1000/banner-bg.png' %}{% endblock %}{% endblock %}" />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
