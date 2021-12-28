@@ -87,6 +87,7 @@ jobs:
     - name: Release new version
       run: |
         python3 genversion.py
+        python3 manage.py collectstatic --noinput
     - name: Restart server
       run: |
         sudo systemctl restart knotters.gunicorn
