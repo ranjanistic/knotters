@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'allauth_2fa',
     "webpush",
-    "django_q"
+    "django_q",
+    # "corsheaders"
 ] + DIVISIONS
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
@@ -56,6 +57,7 @@ STATICFILES_FINDERS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",
     "main.middleware.ExtendedSessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -72,6 +74,10 @@ MIDDLEWARE = [
     "main.middleware.MessageFilterMiddleware",
 ]
 
+# CORS_ALLOWED_ORIGINS = env.CORS_ALLOWED_ORIGINS
+# CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+# CORS_ALLOW_ALL_ORIGINS = DEBUG
+# print(CORS_ALLOWED_ORIGINS)
 ROOT_URLCONF = "main.urls"
 
 BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.STRINGS,

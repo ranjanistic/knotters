@@ -378,8 +378,12 @@ class ServiceWorker(TemplateView):
         def appendWhen(path: str):
             return path.endswith(('.js', '.css', '.map', '.jpg', '.webp', '.woff2', '.svg', '.png', '.jpeg')) and not (path.__contains__('/email/') or path.__contains__('/admin/'))
         assets = getDeepFilePaths(
-            settings.STATIC_URL.strip('/'), appendWhen=appendWhen)
+            "static", appendWhen=appendWhen)
 
+        def attachStaticURL(path: str):
+            return str(path.replace("/static/",settings.STATIC_URL))
+
+        assets = list(map(attachStaticURL, assets))
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
 
@@ -393,12 +397,12 @@ class ServiceWorker(TemplateView):
                 different = True
             else:
                 for old in oldassets:
-                    if not assets.__contains__(old):
+                    if not old in assets:
                         different = True
                         break
                 if not different:
                     for new in assets:
-                        if not oldassets.__contains__(new):
+                        if not new in oldassets:
                             different = True
                             break
 
