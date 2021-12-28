@@ -52,7 +52,9 @@ def setURLAlerts(url,alert: str = '', error: str = '', success: str = '', otherQ
 
 class Code():
     OK = "OK"
+    PONG = "PONG"
     NO = "NO"
+    UNKNOWN_EVENT = "UNKNOWN_EVENT"
     APPROVED = "approved"
     REJECTED = "rejected"
     MODERATION = "moderation"
@@ -108,6 +110,7 @@ class Event():
     TEAMS = 'team'
     CREATED = 'created'
     RELEASE = 'release'
+    MARKETPLACE_PURCHASE = 'marketplace_purchase'
     PUBLISHED = 'published'
 
 # ENVIRONMENTS = [Environment.DEVELOPMENT,
@@ -270,6 +273,7 @@ class Profile():
     MODERATION = "moderation"
     COMPETITIONS = "competitions"
     MENTORSHIP = "mentorship"
+    PEOPLE = "people"
 
     class Setting():
         ACCOUNT = "account"
@@ -363,7 +367,7 @@ class URL():
 
     VERIFY_CAPTCHA = 'captcha/verify'
 
-    BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
+    BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
 
     ON_BOARDING = 'on-boarding/'

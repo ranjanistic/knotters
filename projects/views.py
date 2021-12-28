@@ -283,7 +283,6 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
             request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except Exception as e:
-        errorLog(e)
         raise Http404(e)
 
 
@@ -303,9 +302,9 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
-                    Code.REJECTED, Code.MODERATION], resolved=False).order_by('-respondOn').first()
+                    Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
-                    return redirect(mod.getLink(alert=Message.UNDER_MODERATION))
+                    return redirect(mod.getLink())
             raise Exception()
     except Exception as e:
         return profileFree(request, reponame)
@@ -959,7 +958,7 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
             else:
                 return HttpResponseBadRequest(ghevent)
         else:
-            return HttpResponseBadRequest(ghevent)
+            return HttpResponse(Code.UNKNOWN_EVENT)
         hookrecord.success = True
         hookrecord.save()
         return HttpResponse(Code.OK)

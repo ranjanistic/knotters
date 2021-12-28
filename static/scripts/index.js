@@ -987,6 +987,7 @@ const radarChartView = (
     labelsData = [],
     colorhex = "f5d702"
 ) => {
+    colorhex = colorhex.startsWith('#') ? colorhex.slice(1) : colorhex;
     return new Chart(chartCanvas.getContext("2d"), {
         type: "radar",
         data: {

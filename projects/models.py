@@ -9,7 +9,7 @@ from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
 from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
-from management.models import HookRecord, ReportCategory
+from management.models import HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
 
 
@@ -229,11 +229,19 @@ class BaseProject(models.Model):
 
     @property
     def is_verified(self):
-        return not self.is_free
+        return not self.is_free and self.is_approved
 
     @property
     def is_approved(self):
         return Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or self.is_free
+
+    @property
+    def is_pending(self):
+        return Project.objects.filter(id=self.id,status=Code.MODERATION).exists()
+
+    @property
+    def is_rejected(self):
+        return Project.objects.filter(id=self.id,status=Code.REJECTED).exists()
 
     def getProject(self,onlyApproved=False):
         project = None
@@ -620,3 +628,12 @@ class TopicFileExtension(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
     file_extension = models.ForeignKey(FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
+
+class VerifiedProjectTransferInvitation(Invitation):
+    verified_project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='invitation_verifiedproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_receiver')
+
+    class Meta:
+        unique_together = ('sender', 'receiver', 'verified_project')
+    

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils import timezone
 from people.models import Topic
 from moderation.models import Moderation
+from management.models import Invitation
 from main.strings import url, MANAGEMENT
 from main.methods import errorLog, getNumberSuffix
 from main.env import BOTMAIL
@@ -845,3 +846,10 @@ class AppreciationCertificate(models.Model):
     def getCertificate(self):
         return f"{settings.MEDIA_URL}{str(self.certificate)}"
 
+class SubmissionTeamInvitation(Invitation):
+    sender = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='team_invitation_sender')
+    receiver = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='team_invitation_receiver')
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='invitation_submission')
+
+    class Meta:
+        unique_together = ('sender', 'receiver', 'submission')

@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from main.bots import Github
 from main.methods import errorLog
-from management.models import ReportCategory
+from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
 from projects.models import BaseProject, ReportedProject, ReportedSnapshot
 from moderation.models import ReportedModeration
 from django.contrib.auth.models import PermissionsMixin
@@ -199,7 +199,7 @@ class Profile(models.Model):
         default=False, help_text='Whether the successor is confirmed, if set.')
     is_moderator = models.BooleanField(default=False)
     is_mentor = models.BooleanField(default=False)
-    is_manager = models.BooleanField(default=False)
+    # is_manager = models.BooleanField(default=False)
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -245,6 +245,48 @@ class Profile(models.Model):
         except:
             pass
         super(Profile, self).save(*args, **kwargs)
+
+    @property
+    def is_manager(self):
+        return Management.objects.filter(profile=self).exists()
+
+    @property
+    def management(self):
+        try:
+            return Management.objects.get(profile=self)
+        except:
+            return False
+
+    @property
+    def managements(self):
+        return Management.objects.filter(people=self)
+    
+    def addToManagement(self, mgmID) -> bool:
+        try:
+            mgm = Management.objects.get(id=mgmID)
+            if self.management == mgm:
+                raise Exception(mgm)
+            mgm.people.add(self)
+            return True
+        except:
+            return False
+
+    def removeFromManagement(self, mgmID) -> bool:
+        try:
+            mgm = Management.objects.get(id=mgmID,people=self)
+            mgm.people.remove(self)
+            return True
+        except:
+            return False
+
+    def convertToManagement(self) -> bool:
+        try:
+            if self.is_manager:
+                raise Exception()
+            mgm = Management.objects.create(profile=self)
+            return True
+        except:
+            return False
 
     def isRemoteDp(self) -> bool:
         return str(self.picture).startswith("http")
@@ -715,3 +757,29 @@ class DisplayMentor(models.Model):
         if self.profile:
             return self.profile.getLink()
         return self.website
+
+class ProfileSuccessorInvitation(Invitation):
+    sender = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='successor_invitation_sender')
+    receiver = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='successor_invitation_receiver')
+
+    class Meta:
+        unique_together = ('sender', 'receiver')
+
+class GHMarketPurchase(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name='purchaser_profile',null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    gh_app_plan = models.ForeignKey(GhMarketPlan, on_delete=models.SET_NULL, null=True, blank=True)
+    effective_date = models.DateTimeField(auto_now=False, default=timezone.now)
+    next_billing_date = models.DateTimeField(auto_now=False, default=timezone.now)
+    units_purchased = models.IntegerField(default=1)
+
+    @property
+    def purchase_by(self):
+        return self.profile or self.email
+
+    @property
+    def is_active(self):
+        if self.effective_date <= timezone.now() and self.next_billing_date > timezone.now():
+            return True
+        return False

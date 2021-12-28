@@ -2,6 +2,15 @@ import environ
 from pathlib import Path
 import os
 
+try:
+    from .__version__ import VERSION
+except:
+    VERSION = 'vXXX'
+
+try:
+    from .__refresh__ import REFRESH_STATE
+except:
+    REFRESH_STATE = None
 
 class Environment():
     DEVELOPMENT = 'development'
@@ -43,6 +52,8 @@ VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY').strip()
 VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY').strip()
 VAPID_ADMIN_MAIL = env('VAPID_ADMIN_MAIL').strip()
 LOCALE_ABS_PATH = env('LOCALE_ABS_PATH').strip()
+CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS').split(',')
+
 
 PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
 PUBNAME = None if PUBNAME == 'none' else PUBNAME
@@ -88,14 +99,8 @@ ISDEVELOPMENT = ENV == Environment.DEVELOPMENT
 
 ISTESTING = ENV == Environment.TESTING
 
-try:
-    from .__version__ import VERSION
-except:
-    VERSION = 'vXXX'
-
-try:
-    from .__refresh__ import REFRESH_STATE
-except:
-    REFRESH_STATE = None
-
 ISBETA = HOSTS and HOSTS[0].startswith('beta.')
+
+if ISPRODUCTION:
+    STATIC_ROOT =  f"{STATIC_ROOT}{VERSION}/"
+    STATIC_URL =  f"{STATIC_URL}{VERSION}/"

@@ -41,7 +41,7 @@ def on_user_delete(sender, instance, **kwargs):
     """
     try:
         Profile.objects.filter(id=instance.profile.id).update(to_be_zombie=True,
-            is_zombie=True, githubID=None, is_moderator=False,is_manager=False, is_active=False, zombied_on=timezone.now(), picture=defaultImagePath())
+            is_zombie=True, githubID=None, is_moderator=False, is_active=False, zombied_on=timezone.now(), picture=defaultImagePath())
         if isPictureDeletable(instance.profile.picture):
             instance.profile.picture.delete(save=False)
     except Exception as e:

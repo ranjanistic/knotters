@@ -133,7 +133,7 @@ def github_only(function):
             try:
                 ghevent = request.META.get('HTTP_X_GITHUB_EVENT', Event.PING)
                 if ghevent == Event.PING:
-                    return HttpResponse(Code.OK)
+                    return HttpResponse(Code.PONG)
                 hookID = request.META.get('HTTP_X_GITHUB_DELIVERY', None)
                 request.POST = dict(**request.POST,ghevent=ghevent,hookID=hookID, **json.loads(
                     unquote(request.body.decode(Code.UTF_8)).split('payload=')[1]))

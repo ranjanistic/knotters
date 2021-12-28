@@ -61,6 +61,7 @@ jobs:
         echo "VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}" >> ${{ secrets.ENVPATH }}
         echo "VAPID_ADMIN_MAIL=${{ secrets.VAPID_ADMIN_MAIL }}" >> ${{ secrets.ENVPATH }}
         echo "LOCALE_ABS_PATH=${{ secrets.LOCALE_ABS_PATH }}" >> ${{ secrets.ENVPATH }}
+        echo "CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" >> ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
         python3 manage.py makemigrations --noinput
@@ -86,8 +87,8 @@ jobs:
         git pull origin main --depth=100
     - name: Release new version
       run: |
-        python3 genversion.py
-        python3 manage.py collectstatic --noinput
+        ~/Env/knotters/bin/python3 genversion.py
+        ~/Env/knotters/bin/python3 manage.py collectstatic --noinput
     - name: Restart server
       run: |
         sudo systemctl restart knotters.gunicorn

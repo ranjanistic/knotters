@@ -107,3 +107,91 @@ class ActivityRecord(models.Model):
 
     def __str__(self):
         return self.get_id
+
+class Management(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.OneToOneField(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_profile')
+    people = models.ManyToManyField(f'{PEOPLE}.Profile', related_name='management_people', default=[])
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.createdOn = timezone.now()
+        self.modifiedOn = timezone.now()
+        return super(Management, self).save(*args, **kwargs)
+
+    @property
+    def get_accountid(self):
+        return self.profile.get_userid
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def getLink(self):
+        return self.profile.getLink()
+
+    def __str__(self):
+        return self.profile.getName()
+
+    def getPeople(self):
+        return
+
+class Invitation(models.Model):
+    """
+    Base class for all invitations
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    expiresOn = models.DateTimeField(auto_now=False)
+    resolved = models.BooleanField(default=False)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.createdOn = timezone.now()
+        self.modifiedOn = timezone.now()
+        return super(Invitation, self).save(*args, **kwargs)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def getLink(self):
+        return f"{url.getRoot(APPNAME)}{url.management.invitationID(self.get_id)}"
+
+    def __str__(self):
+        return self.get_id
+
+    @property
+    def is_active(self):
+        return self.expiresOn > timezone.now()
+    
+    def resolve(self):
+        self.resolved = True
+        self.save()
+
+class ManagementInvitation(Invitation):
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_receiver')
+    management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='invitation_management')
+
+    class Meta:
+        unique_together = ('sender', 'receiver', 'management')
+
+
+class GhMarketApp(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    gh_id = models.CharField(max_length=100, unique=True)
+    gh_name = models.CharField(max_length=100, unique=True)
+    gh_url = models.URLField(max_length=200, unique=True)
+
+class GhMarketPlan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    gh_id = models.CharField(max_length=100, unique=True)
+    is_free = models.BooleanField(default=True)
+    gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
+    gh_url = models.URLField(max_length=200, unique=True)
