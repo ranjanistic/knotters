@@ -197,7 +197,11 @@
 {% block in_scripts %}
 <script>
   const userID = "{{ person.getID }}";
-  const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && activeuser:false
+  const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && activeuser:false;
+  const isModerator = authenticated && "{{person.user.profile.is_moderator}}" == 'True';
+  const isMentor = authenticated && "{{person.profile.is_mentor}}" == 'True';
+  const isManager = authenticated && "{{person.profile.is_manager}}" == 'True';
+            
   try{
     getElement("reactivateaccount").onclick=async()=>{
       subLoader()
