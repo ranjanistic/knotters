@@ -198,9 +198,9 @@
 <script>
   const userID = "{{ person.getID }}";
   const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && activeuser:false;
-  const isModerator = authenticated && "{{person.user.profile.is_moderator}}" == 'True';
-  const isMentor = authenticated && "{{person.profile.is_mentor}}" == 'True';
-  const isManager = authenticated && "{{person.profile.is_manager}}" == 'True';
+  const isModerator = "{{person.user.profile.is_moderator}}" == 'True';
+  const isMentor = "{{person.profile.is_mentor}}" == 'True';
+  const isManager = "{{person.profile.is_manager}}" == 'True';
             
   try{
     getElement("reactivateaccount").onclick=async()=>{
