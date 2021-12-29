@@ -198,7 +198,7 @@
 <script>
   const userID = "{{ person.getID }}";
   const selfProfile = authenticated?"{{user.getID}}" === "{{person.getID}}" && activeuser:false;
-  const isModerator = "{{person.user.profile.is_moderator}}" == 'True';
+  const isModerator = "{{person.profile.is_moderator}}" == 'True';
   const isMentor = "{{person.profile.is_mentor}}" == 'True';
   const isManager = "{{person.profile.is_manager}}" == 'True';
             
