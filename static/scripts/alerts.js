@@ -139,7 +139,7 @@ const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
         html: `<div class="w3-row w3-padding">
         <h4>Your Github identity must be linked with Knotters for this action.</h4>
         </div>`,
-        imageUrl: "/static/graphics/thirdparty/github.png",
+        imageUrl: `/static/${VERSION}/graphics/thirdparty/github.png`,
         confirmButtonText: `${Icon("open_in_new")}Link Github Account`,
         cancelButtonText: "Leave it",
         showCancelButton: true,
