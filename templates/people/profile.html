@@ -25,6 +25,7 @@
 {% block tw_site_name %}{{person.getName}}{% endblock %}
 {% block title %}{{person.getName}}{% endblock %}
 
+{% block themecolor %}{% if person.profile.is_moderator %}#f5d702{% elif person.profile.is_mentor %}#12e49d{% else %}#ffffff{% endif %}{% endblock %}
 {% block nav_href %}{{ROOT}}#mainframe{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
