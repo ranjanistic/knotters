@@ -419,9 +419,6 @@
             const SITE = "{{SITE}}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True';
             const activeuser = authenticated && "{{request.user.profile.is_active}}" == 'True';
-            const isModerator = authenticated && "{{request.user.profile.is_moderator}}" == 'True';
-            const isMentor = authenticated && "{{request.user.profile.is_mentor}}" == 'True';
-            const isManager = authenticated && "{{request.user.profile.is_manager}}" == 'True';
             const ROOT = "{{ROOT}}";
             const APPNAME = "{{APPNAME}}";
             const VERSION = "{{VERSION}}";
