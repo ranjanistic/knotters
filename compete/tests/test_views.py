@@ -49,7 +49,7 @@ class TestViews(TestCase):
         self.mguser = User.objects.create_user(
             email=self.mgemail, password=self.mgpassword, first_name=getTestName())
         self.mgprofile = Profile.objects.get(user=self.mguser)
-        self.mgprofile.is_manager = True
+        self.mgprofile.convertToManagement()
         self.mgprofile.save()
         self.comp = Competition.objects.create(title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
