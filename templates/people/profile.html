@@ -25,7 +25,7 @@
 {% block tw_site_name %}{{person.getName}}{% endblock %}
 {% block title %}{{person.getName}}{% endblock %}
 
-{% block themecolor %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}primary{% endif %}{% endblock %}
+{% block themecolor %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}positive{% endif %}{% endblock %}
 {% block nav_href %}{{ROOT}}{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
