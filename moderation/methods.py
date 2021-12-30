@@ -67,7 +67,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
 
     if ignoreModProfileIDs == False:
         raise IllegalModeration()
-    print(ignoreModProfiles)
+
     defaultQuery = Q(is_moderator=True,
                      suspended=False, to_be_zombie=False, is_active=True)
     
@@ -91,7 +91,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
             query = Q(query, id__in=preferModProfileIDs)
 
     availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(query).distinct()
-    print(availableModProfiles,query)
+    
     totalAvailableModProfiles = len(availableModProfiles)
     if totalAvailableModProfiles == 0:
         if preferred:
@@ -163,7 +163,7 @@ def requestModerationForObject(
             preferModProfiles = []
             if type == PROJECTS:
                 preferModProfiles = Profile.objects.exclude(id=mod.moderator.id).filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=object.category.topics).distinct()
-            print(mod.moderator, mod.id)
+            
             newmoderator = getModeratorToAssignModeration(
                 type=type, object=object, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles)
             if not newmoderator:

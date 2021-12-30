@@ -72,7 +72,6 @@ class Moderation(models.Model):
         """
         No response for 3 consecutive days
         """
-        return True
         if self.resolved: return False
         stale_days = 3
         if self.project: stale_days = self.project.stale_days

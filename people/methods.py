@@ -116,7 +116,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         elif section == profileString.MODERATION:
             if profile.is_moderator:
                 mods = Moderation.objects.filter(moderator=profile)
-                data[Code.UNRESOLVED] = mods.filter(resolved=False).order_by('-requestOn')
+                data[Code.UNRESOLVED] = list(filter(lambda m:   m.is_stale, list(mods.filter(resolved=False).order_by('-requestOn'))))
                 data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
                 data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
         elif section == profileString.COMPETITIONS:

@@ -149,13 +149,10 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
             id=modID)
         newmod = None
         if mod.type == PROJECTS:
-            print(newmod)
             if (mod.resolved and mod.status == Code.REJECTED) or mod.is_stale:
-                print(newmod)
                 if mod.is_stale: mod.moderator.decreaseXP(by=2)
                 newmod = requestModerationForObject(
                     mod.project, mod.type, reassignIfRejected=True)
-                print(newmod)
         elif mod.type == PEOPLE:
             newmod = requestModerationForObject(
                 mod.profile, mod.type, reassignIfRejected=True)
@@ -239,5 +236,5 @@ def reportModeration(request: WSGIRequest):
         request.user.profile.reportModeration(moderation, category)
         return respondJson(Code.OK)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO)
