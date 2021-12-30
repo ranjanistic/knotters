@@ -8,8 +8,8 @@ from django.core.cache import cache
 from main.bots import Github
 from main.methods import errorLog
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
-from projects.models import BaseProject, ReportedProject, ReportedSnapshot
-from moderation.models import ReportedModeration
+from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project
+from moderation.models import ReportedModeration, Moderation
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
@@ -279,14 +279,49 @@ class Profile(models.Model):
         except:
             return False
 
-    def convertToManagement(self) -> bool:
+    def convertToManagement(self, force=False) -> bool:
         try:
+            if not self.is_normal:
+                raise Exception()
             if self.is_manager:
+                raise Exception()
+            if force:
+                if self.is_moderator:
+                    done = self.unMakeModerator()
+                    if not done: raise Exception()
+                if self.is_mentor:
+                    done = self.unMakeMentor()
+                    if not done: raise Exception()
+            elif self.is_moderator or self.is_mentor:
                 raise Exception()
             mgm = Management.objects.create(profile=self)
             return True
         except:
             return False
+    
+    def makeModerator(self):
+        self.is_moderator = True
+        self.save()
+        return True
+
+    def unMakeModerator(self):
+        if Moderation.objects.filter(moderator=self,resolved=False).exists():
+            return False
+        self.is_moderator = False
+        self.save()
+        return True
+
+    def makeMentor(self):
+        self.is_mentor = True
+        self.save()
+        return
+
+    def unMakeMentor(self):
+        if Project.objects.filter(mentor=self,trashed=False).exists():
+            return False
+        self.is_mentor = False
+        self.save()
+        return True
 
     def isRemoteDp(self) -> bool:
         return str(self.picture).startswith("http")

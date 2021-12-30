@@ -40,11 +40,11 @@ class Tag(models.Model):
 
     @property
     def totalProjects(self):
-        return Project.objects.filter(tags=self).count()
+        return BaseProject.objects.filter(tags=self).count()
 
     @property
     def getProjects(self):
-        return Project.objects.filter(tags=self)
+        return BaseProject.objects.filter(tags=self)
 
     @property
     def totalCategories(self):
@@ -81,6 +81,21 @@ class Category(models.Model):
         return f"{url.getRoot(MANAGEMENT)}{url.management.label(self.label_type, self.get_id)}"
 
     @property
+    def topicIDs(self):
+        topics = self.getProjects.values_list("topics", flat=True).distinct()
+        return list(filter(lambda x: x != None,topics))
+
+    @property
+    def topics(self):
+        from people.models import Topic
+        return Topic.objects.filter(id__in=self.topicIDs)
+
+    @property
+    def totalTopics(self):
+        from people.models import Topic
+        return Topic.objects.filter(id__in=self.topicIDs).count()
+
+    @property
     def totalTags(self):
         return self.tags.count()
 
@@ -90,15 +105,14 @@ class Category(models.Model):
 
     @property
     def totalProjects(self):
-        return Project.objects.filter(category=self).count()
+        return BaseProject.objects.filter(category=self).count()
 
     @property
     def getProjects(self):
-        return Project.objects.filter(category=self)
+        return BaseProject.objects.filter(category=self)
 
-    @property
-    def getProjectsLimited(self):
-        return Project.objects.filter(category=self)[0:50]
+    def getProjectsLimited(self, limit=50):
+        return BaseProject.objects.filter(category=self)[0:limit]
 
     @property
     def isDeletable(self):
@@ -285,6 +299,8 @@ class Project(BaseProject):
     mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, related_name='verified_project_mentor',null=True, blank=True)
 
     verified = True
+
+    stale_days = 3
 
     def sub_save(self):
         assert len(self.reponame) > 0

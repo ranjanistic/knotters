@@ -43,17 +43,17 @@
         <textarea required name="requestdata" class="wide" rows="4" maxlength="6000" placeholder="{% trans "This is visible to the moderator." %}"
         {% if ismoderator or moderation.resolved %}disabled{% endif %}
         >{{moderation.request}}</textarea>
-        {% if not ismoderator and not moderation.resolved %}
+        {% if not ismoderator and not moderation.resolved and not moderation.is_stale %}
         <button type="submit" class="positive small w3-right" data-icon="send">{% trans "Save" %}</button>
         {% endif %}
         <br/><br/>
         <strong>{% trans "Moderator response" %}</strong>
         <textarea required name="responsedata" class="wide" rows="4" maxlength="8000"
-        {% if not ismoderator or moderation.resolved %}disabled placeholder="{% trans "No response" %}"{% endif %}
+        {% if not ismoderator or moderation.resolved or moderation.is_stale%}disabled placeholder="{% trans "No response" %}"{% endif %}
         {% if ismoderator and not moderation.resolved %}placeholder="{% trans "This is visible to the requestor." %}"{% endif %}
         >{% if moderation.response %}{{moderation.response}}{% endif %}</textarea>
         {% if not ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">{% trans "Report" %}</button><br/>{% endif %}
-        {% if ismoderator and not moderation.resolved %}
+        {% if ismoderator and not moderation.resolved and not moderation.is_stale %}
         <button type="submit" class="positive small w3-right" data-icon="send">{% trans "Save" %}</button>
         {% endif %}
         </form>
@@ -68,6 +68,11 @@
         {% if ismoderator and not moderation.resolved %}
         <i class="w3-jumbo">warning</i>
         <h3 class="text-accent">{% trans "Take Action" %}</h3>
+        {% if moderation.is_stale %}
+            <h4>It is too late now. This moderation remained open to action for 3 days since last activity.</h4>
+            <h5>In future, do not be late in responding as we also notify you before it's too late.</h5>
+            <a href="{{request.user.profile.getLink}}"><button class="primary">Okay</button></a>
+        {% else %}
         <h6>Approving this project will create a repository under {{APPNAME}} organization on GitHub, and will grant the requestor a moderate level
         of access to this project and related services, everywhere. {% trans "Therefore, decide thoughtfully before proceeding." %}</h6>
         <button class="big-button positive modaction" id="approve" data-icon="done">{% trans "Approve" %}</button>
@@ -77,17 +82,23 @@
             <input type="text" hidden value="true" name="skip" />
             <button class="big-button primary" type="submit" id="skip" data-icon="skip_next">{% trans "Skip" %}</button>
         </form>
+        
+        {% endif %}
         {% else %}
             <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
-            <h3 class="text-accent">Action taken</h3>
+            <h3 class="text-accent">Action {% if moderation.resolved %}taken{% endif %}</h3>
             <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}{% trans "Pending" %}{% endif %}</h4>
-            {% if moderation.project.isLive %} 
+            {% if moderation.project.isLive and moderation.resolved %} 
             <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
             {% endif %}
             {% if not ismoderator %}
-                {% if moderation.resolved and moderation.isRejected and not forwarded%}
-                    {% if moderation.project.canRetryModeration %}
+                {% if moderation.resolved and moderation.isRejected and not forwarded or moderation.is_stale %}
+                    {% if moderation.project.canRetryModeration or moderation.is_stale %}
+                        {% if moderation.is_stale and not moderation.isRejected%}
+                        <h2>No activity for a long time.</h2>
+                        {% else %}
                         <h2>{{moderation.project.moderationRetriesLeft}} {% trans "retry left." %}</h2>
+                        {% endif %}
                         <form method="POST" action="{{moderation.reapplyLink}}">
                         {% csrf_token %}
                         <button class="secondary" type="submit" data-icon="refresh">{% trans "Re-apply for moderation" %}</button>

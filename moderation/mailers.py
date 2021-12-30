@@ -1,4 +1,5 @@
 from people.models import Profile
+from main.strings import PROJECTS
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
 from .models import Moderation
@@ -9,12 +10,12 @@ def moderationAssignedAlert(moderation: Moderation) -> bool:
         to=moderation.moderator.getEmail(),
         username=moderation.moderator.getName(),
         subject="New Moderation Assigned",
-        header=f"A new moderation of type '{moderation.type}' has been assigned to you to review. The following link button will take you directly to the moderation view.",
+        header=f"A new {['project', 'competition', 'person'][[PROJECTS, COMPETE, PEOPLE].index(moderation.type)]} moderation has been assigned to you to review. The following link button will take you directly to the moderation view.",
         actions=[{
             'text': 'View moderation',
             'url': moderation.getLink()
         }],
-        footer="Take action only after thoroughly reviewing this moderation.",
+        footer=f"Take action only after thoroughly reviewing this moderation.{f' This moderation might become stale in {moderation.project.stale_days} days if not responded.' if moderation.project else ''}",
         conclusion=f"You received this email because you're a moderator at {PUBNAME}. If this is an error, please report to us."
     )
 

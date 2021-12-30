@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 <div class="w3-row">
-{% if competitions.count %}
+{% if ompetitions.count %}
     {% for compete in competitions %} 
     <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
@@ -21,6 +21,7 @@
     <center class="dead-text">
         <i class="w3-jumbo">hourglass_top</i>
         <h3>{% trans "No competitions, yet." %}</h3>
+        <h6>{{person.profile.getName}} will bring you endeavours soon.</h6>
     </center>
 {% endif %}
 </div>

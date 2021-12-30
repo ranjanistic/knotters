@@ -26,7 +26,7 @@
 {% block title %}{{person.getName}}{% endblock %}
 
 {% block themecolor %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}primary{% endif %}{% endblock %}
-{% block nav_href %}{{ROOT}}#mainframe{% endblock %}
+{% block nav_href %}{{ROOT}}{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
@@ -123,7 +123,7 @@
         <br />
         
         <div class="w3-row w3-padding-small">
-        {% if person.profile.has_ghID %}
+        {% if person.profile.has_ghID and not person.profile.is_manager %}
           <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.ghID}}</button></a>
         {% endif %}
         </div>
@@ -154,7 +154,7 @@
             <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">{% trans "Overview" %}</span></button>
             {% endif %}
             {% if person.profile.is_mentor %}
-            <button title="Mentorship" id="mentorship" class="nav-tab" data-icon="supervisor_account"><span class="w3-hide-small">{% trans "Mentorship" %}</span></button>
+            <button title="Mentorship" id="mentorship" class="nav-tab" data-icon="supervisor_account"><span class="w3-hide-small">{% trans "Mentorships" %}</span></button>
             {% endif %}
             <button title="Personal projects" id="projects" class="nav-tab" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button>
             {% if not person.profile.is_manager %}
@@ -162,6 +162,7 @@
             {% endif %}
             {% if person.profile.is_manager %}
             <button title="Competitions" id="competitions" class="nav-tab" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button>
+            <button title="People" id="people" class="nav-tab" data-icon="group"><span class="w3-hide-small">{% trans "People" %}</span></button>
             {% endif %}
             {% if person.profile.is_moderator %}
             <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">{% trans "Moderation" %}</span></button>

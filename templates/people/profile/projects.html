@@ -22,7 +22,7 @@
           {% for project in approved %}
           <div class="w3-row pallete-slab primary">
             <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
-            <h6>{{ project.name|truncatechars:18 }}</h6>
+            <h6>{{ project.name|truncatechars:20 }}</h6>
             <strong class="align w3-left">{{project.get_nickname}}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</strong>
             <a href="{{project.getLink}}" class="w3-right"><button class="positive small" data-icon="open_in_new"></button></a>
           </div>
@@ -31,6 +31,7 @@
           <div class="w3-row w3-center">
           <i class="w3-jumbo">sentiment_dissatisfied</i>
           <h6>{% trans "No projects live, yet." %}</h6>
+          <strong>{% trans "Don't worry. Keep exploring." %}</strong>
           </div>
           {% endfor %}
           </div>
@@ -106,6 +107,7 @@
             <center class="dead-text">
                 <i class="w3-jumbo">hourglass_top</i>
                 <h3>{% trans "No projects, yet." %}</h3>
+                <h6>Give {{person.profile.getFName}} some time. We know they'll grow soon.</h6>
             </center>
       {% endfor %}
   {% endif  %}

@@ -241,7 +241,7 @@ class Competition(models.Model):
             return self.getLink()
 
     def isAllowedToParticipate(self, profile:Profile) -> bool:
-        return self.creator != profile and self.moderator != profile and not self.isJudge(profile) and profile.getEmail() != BOTMAIL
+        return not (self.creator == profile or self.moderator == profile or self.isJudge(profile) or profile.is_manager or profile.getEmail() == BOTMAIL)
 
     def isNotAllowedToParticipate(self, profile:Profile) -> bool:
         return not self.isAllowedToParticipate(profile)

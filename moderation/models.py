@@ -1,5 +1,7 @@
 from django.db import models
 from uuid import uuid4
+from django.utils import timezone
+from datetime import timedelta
 from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, moderation
 from main.methods import maxLengthInList
 from main.exceptions import IllegalModerationEntity
@@ -64,6 +66,22 @@ class Moderation(models.Model):
 
     def getLink(self, alert: str = '', error: str = '', success: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def is_stale(self):
+        """
+        No response for 3 consecutive days
+        """
+        return True
+        if self.resolved: return False
+        stale_days = 3
+        if self.project: stale_days = self.project.stale_days
+        if not self.respondOn:
+            if timezone.now() > (self.requestOn + timedelta(days=stale_days)):
+                return True
+        elif timezone.now() > (self.respondOn + timedelta(days=stale_days)):
+            return True
+        return False
 
     def reapplyLink(self):
         return f"{url.getRoot(APPNAME)}{url.moderation.reapply(modID=self.getID())}"

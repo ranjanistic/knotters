@@ -25,8 +25,8 @@ def getModelByType(type: str) -> models.Model:
         raise IllegalModerationType()
 
 
-def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: list = list()) -> list:
-    ignoreModProfileIDs = list()
+def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: list = []) -> list:
+    ignoreModProfileIDs = []
     if modType == PROJECTS and isinstance(object, Project):
         ignoreModProfileIDs.append(object.creator.id)
     elif modType == PEOPLE and isinstance(object, Profile):
@@ -41,12 +41,12 @@ def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: li
     else:
         return False
     for ignoreModProfile in extraProfiles:
-        if not ignoreModProfileIDs.__contains__(ignoreModProfile.id):
+        if not (ignoreModProfile.id in ignoreModProfileIDs):
             ignoreModProfileIDs.append(ignoreModProfile.id)
     return ignoreModProfileIDs
 
 
-def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = list(), preferModProfiles: list = list(), onlyModProfiles: list = list()) -> Profile:
+def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], preferModProfiles: list = [], onlyModProfiles: list = [], samplesize=100) -> Profile:
     """
     Implementes round robin algorithm to retreive an available moderator, along with other restrictions.
 
@@ -67,8 +67,8 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
 
     if ignoreModProfileIDs == False:
         raise IllegalModeration()
-
-    defaultQuery = Q(~Q(id__in=ignoreModProfileIDs), is_moderator=True,
+    print(ignoreModProfiles)
+    defaultQuery = Q(is_moderator=True,
                      suspended=False, to_be_zombie=False, is_active=True)
     
     query = defaultQuery
@@ -77,32 +77,47 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     if len(onlyModProfiles) > 0:
         onlyModProfileIDs = []
         for onlyModProfile in onlyModProfiles:
-            if not ignoreModProfileIDs.__contains__(onlyModProfile.id):
+            if not (onlyModProfile.id in ignoreModProfileIDs):
                 onlyModProfileIDs.append(onlyModProfile.id)
-        query = Q(query, id__in=onlyModProfileIDs)
+        if len(onlyModProfileIDs)>0:
+            query = Q(query, id__in=onlyModProfileIDs)
     elif len(preferModProfiles) > 0:
         preferred = True
         preferModProfileIDs = []
         for preferModProfile in preferModProfiles:
-            if not ignoreModProfileIDs.__contains__(preferModProfile.id):
+            if not (preferModProfile.id in ignoreModProfileIDs):
                 preferModProfileIDs.append(preferModProfile.id)
-        query = Q(query, id__in=preferModProfileIDs)
+        if len(preferModProfileIDs) > 0:
+            query = Q(query, id__in=preferModProfileIDs)
 
-    availableModProfiles = Profile.objects.filter(query)
-
+    availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(query).distinct()
+    print(availableModProfiles,query)
     totalAvailableModProfiles = len(availableModProfiles)
     if totalAvailableModProfiles == 0:
         if preferred:
-            availableModProfiles = Profile.objects.filter(defaultQuery)
+            availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(defaultQuery).distinct()
             totalAvailableModProfiles = len(availableModProfiles)
             if totalAvailableModProfiles == 0:
                 return False
         return False
 
     current, _ = LocalStorage.objects.get_or_create(
-        key=Code.MODERATOR, defaults={'value': 0})
+        key=Code.MODERATOR, defaults=dict(value=0))
 
     temp = int(current.value)
+
+    finalAvailableModProfiles = availableModProfiles
+    
+    if object.creator:
+        for modprof in availableModProfiles:
+            if modprof.isBlocked(object.creator.user):
+                finalAvailableModProfiles.remove(modprof)
+
+        totalAvailableModProfiles = len(finalAvailableModProfiles)
+    
+    if totalAvailableModProfiles == 0:
+        errorLog(f"no mods available {object.id}")
+        return False
 
     if temp >= totalAvailableModProfiles:
         temp = 1
@@ -110,7 +125,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         temp += 1
     current.value = temp
     current.save()
-    return availableModProfiles[temp-1]
+    return finalAvailableModProfiles[temp-1]
 
 
 def requestModerationForObject(
@@ -141,12 +156,16 @@ def requestModerationForObject(
         else:
             return False
 
-        mod = Moderation.objects.filter(query).order_by('-respondOn').first()
+        mod = Moderation.objects.filter(query).order_by('-requestOn','-respondOn').first()
         if not mod: raise Exception()
 
-        if (mod.isRejected() and reassignIfRejected) or (mod.isApproved() and reassignIfApproved):
+        if (mod.isRejected() and reassignIfRejected) or (mod.isApproved() and reassignIfApproved) or mod.is_stale:
+            preferModProfiles = []
+            if type == PROJECTS:
+                preferModProfiles = Profile.objects.exclude(id=mod.moderator.id).filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=object.category.topics).distinct()
+            print(mod.moderator, mod.id)
             newmoderator = getModeratorToAssignModeration(
-                type=type, object=object, ignoreModProfiles=[mod.moderator])
+                type=type, object=object, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles)
             if not newmoderator:
                 return False
             requestData = requestData if requestData else mod.request

@@ -58,7 +58,10 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
 
         mod = Moderation.objects.get(id=modID)
         if mod.resolved:
-            raise redirect(mod.getLink(alert=Message.ALREADY_RESOLVED))
+            return redirect(mod.getLink(alert=Message.ALREADY_RESOLVED))
+        if mod.is_stale:
+            raise Exception()
+
         isRequester = mod.isRequestor(request.user.profile)
         isModerator = mod.moderator == request.user.profile
         if not isRequester and not isModerator:
@@ -91,9 +94,13 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
     Moderator action on moderation. (Project, primarily)
     """
+    json_body = request.POST.get("JSON_BODY", False)
+    mod = None
     try:
         mod = Moderation.objects.get(
             id=modID, moderator=request.user.profile, resolved=False)
+        if mod.is_stale:
+            raise Exception()
         skip = request.POST.get('skip', None)
         if skip:
             newmod = getModeratorToAssignModeration(
@@ -102,7 +109,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             mod.save()
             addMethodToAsyncQueue(
                 f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}", mod)
-            return respondRedirect(PEOPLE, '', alert=Message.MODERATION_SKIPPED)
+            return redirect(request.user.profile.getLink(alert=Message.MODERATION_SKIPPED))
         else:
             approve = request.POST.get('approve', None)
             if approve == None:
@@ -124,21 +131,31 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if mod:
+            return redirect(mod.getLink(error=Message.ERROR_OCCURRED))
+        raise Http404()
 
 
 @normal_profile_required
 @require_POST
 def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
     """
-    Re-request for moderation if possible, and if previous one rejected. (Project, primarily)
+    Re-request for moderation if possible, and if rejected or stale. (Project, primarily)
     """
     try:
         mod = Moderation.objects.get(
-            id=modID, resolved=True, status=Code.REJECTED)
+            id=modID)
+        newmod = None
         if mod.type == PROJECTS:
-            newmod = requestModerationForObject(
-                mod.project, mod.type, reassignIfRejected=True)
+            print(newmod)
+            if (mod.resolved and mod.status == Code.REJECTED) or mod.is_stale:
+                print(newmod)
+                if mod.is_stale: mod.moderator.decreaseXP(by=2)
+                newmod = requestModerationForObject(
+                    mod.project, mod.type, reassignIfRejected=True)
+                print(newmod)
         elif mod.type == PEOPLE:
             newmod = requestModerationForObject(
                 mod.profile, mod.type, reassignIfRejected=True)

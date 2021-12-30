@@ -29,6 +29,7 @@
           <div class="w3-row w3-center">
           <i class="w3-jumbo">supervisor_account</i>
           <h6>{% trans "No mentorships, yet." %}</h6>
+          <strong>{% trans "Patience is the key." %}</strong>
           </div>
           {% endfor %}
           </div>
@@ -53,7 +54,8 @@
           <br/>
           <div class="w3-row w3-center">
             <i class="w3-jumbo">pending</i>
-          <h6>{% trans "No mentorship requests, yet." %}</h6>
+            <h6>{% trans "No mentorship requests, yet." %}</h6>
+            <strong>{% trans "Don't worry, you'll get one soon." %}</strong>
           </div>
           {% endfor %}
           </div>
@@ -77,6 +79,7 @@
             <center class="dead-text">
                 <i class="w3-jumbo">hourglass_top</i>
                 <h3>{% trans "No mentorships, yet." %}</h3>
+                <h6>This does not indicate even 0.001% of inexperience in {{person.profile.getFName}}.</h6>
             </center>
       {% endfor %}
   {% endif  %}

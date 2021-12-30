@@ -224,9 +224,9 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", projectobj)
         return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
     except Exception as e:
-        errorLog(e)
         if projectobj:
             projectobj.delete()
+        errorLog(e)
         return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
 
 

@@ -41,6 +41,11 @@
     <center class="dead-text">
         <i class="w3-jumbo">hourglass_top</i>
         <h3>{% trans "No achievements, yet." %}</h3>
+        {% if self %}
+        <h6>It's alright {{person.profile.getFName}}, you don't need to prove yourself to anyone. Take your time.</h6>
+        {% else %}
+        <h6>So what? {{person.profile.getFName}} has hidden talents, just wait and watch.</h6>
+        {% endif %}
     </center>
 {% endif %}
 </div>

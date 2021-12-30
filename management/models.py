@@ -147,6 +147,10 @@ class ManagementPerson(models.Model):
     class Meta:
         unique_together = ('person', 'management')
 
+    def __str__(self):
+        return f"{self.person.getName()} at {self.management}"
+    
+
 class Invitation(models.Model):
     """
     Base class for all invitations

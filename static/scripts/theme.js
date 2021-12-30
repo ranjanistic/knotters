@@ -160,3 +160,10 @@ if(window.matchMedia) {
     });
 }
 
+const isDark = THEME.isDark;
+const toggleTheme = THEME.toggleTheme;
+const setDark = THEME.setDark;
+const setLight = THEME.setLight;
+const isLight =  THEME.isLight;
+const setTheme =  THEME.setTheme;
+const getTheme =  THEME.getTheme;

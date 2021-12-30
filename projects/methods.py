@@ -1,10 +1,11 @@
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
+from django.core.cache import cache
 from django.http.response import HttpResponse
 from people.models import Profile
 from github import NamedUser, Repository
 from main.bots import Github, GithubKnotters
-from main.strings import Code, Event, url
+from main.strings import Code, Event, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
@@ -149,6 +150,10 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
     try:
         if not project.isApproved():
             return False
+        task = cache.get(f'approved_project_setup_{project.id}')
+        if task in [Message.SETTING_APPROVED_PROJECT, Message.SETUP_APPROVED_PROJECT_DONE]:
+            return True
+        cache.set(f'approved_project_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
         addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
         return True
     except Exception as e:
@@ -221,29 +226,30 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             user_push_restrictions=[moderator.ghID],
         )
 
-        invited = inviteMemberToGithubOrg(ghUser)
-        if not invited:
-            return False
+        inviteMemberToGithubOrg(ghUser)
 
-        ghrepoteam = GithubKnotters.create_team(
-            name=f"team-{project.reponame}",
-            repo_names=[ghOrgRepo],
-            permission="push",
-            description=f"{project.name}'s team",
-            privacy='closed'
-        )
-
-        if GithubKnotters.has_in_members(ghMod):
-            ghrepoteam.add_membership(
-                member=ghMod,
-                role="maintainer"
+        try:
+            ghrepoteam = GithubKnotters.create_team(
+                name=f"team-{project.reponame}",
+                repo_names=[ghOrgRepo],
+                permission="push",
+                description=f"{project.name}'s team",
+                privacy='closed'
             )
 
-        if GithubKnotters.has_in_members(ghUser):
-            ghrepoteam.add_membership(
-                member=ghUser,
-                role="member"
-            )
+            if GithubKnotters.has_in_members(ghMod):
+                ghrepoteam.add_membership(
+                    member=ghMod,
+                    role="maintainer"
+                )
+
+            if GithubKnotters.has_in_members(ghUser):
+                ghrepoteam.add_membership(
+                    member=ghUser,
+                    role="member"
+                )
+        except:
+            pass
 
         ghOrgRepo.add_to_collaborators(
             collaborator=moderator.ghID, permission="maintain")
@@ -260,6 +266,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                 digest=Code.SHA256
             )
         )
+        cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
         return True
     except Exception as e:

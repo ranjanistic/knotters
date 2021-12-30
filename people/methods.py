@@ -70,7 +70,8 @@ def addTopicToDatabase(topic: str) -> Topic:
     return topicObj
 
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
-                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,profileString.ACHEIVEMENTS, profileString.COMPETITIONS,profileString.MENTORSHIP ]
+                    profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,
+                    profileString.ACHEIVEMENTS, profileString.COMPETITIONS,profileString.MENTORSHIP,profileString.PEOPLE]
 
 SETTING_SECTIONS = [profileString.setting.ACCOUNT,
                     profileString.setting.PREFERENCE,profileString.setting.SECURITY]

@@ -88,6 +88,7 @@ class Code():
     RESULTS = "results"
     JUDGEMENTS = 'judgements'
     MODERATIONS = 'moderations'
+    PEOPLE = "people"
 
     class Test():
         MODEL = 'model'
@@ -166,6 +167,8 @@ class Message():
     REQ_MESSAGE_SAVED = _("Request message saved")
     RES_MESSAGE_SAVED = _("Response message saved")
     MODERATION_REAPPLIED = _("Re-applied for moderation to another moderator.")
+    SETTING_APPROVED_PROJECT = _("Setting up approved project.")
+    SETUP_APPROVED_PROJECT_DONE = _("Approved project setup done.")
 
     ACCOUNT_PREF_SAVED = _("Account preferences saved.")
     SUCCESSOR_GH_UNLINKED = _('Your successor should have Github profile linked to their account.')
