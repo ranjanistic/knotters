@@ -109,7 +109,7 @@
 
                 <button
                     {% block nav_back_show %}hidden{% endblock %}
-                    class="primary previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" onclick="{% block nav_back_onclick %}window.close(){% endblock %}"></button>
+                    class="{% block nav_back_theme %}primary{% endblock %} previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" onclick="{% block nav_back_onclick %}window.close(){% endblock %}"></button>
             </a>
             <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}

@@ -25,11 +25,13 @@
 {% block tw_site_name %}{{person.getName}}{% endblock %}
 {% block title %}{{person.getName}}{% endblock %}
 
-{% block themecolor %}{% if person.profile.is_moderator %}#f5d702{% elif person.profile.is_mentor %}#12e49d{% else %}#ffffff{% endif %}{% endblock %}
+{% block themecolor %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}primary{% endif %}{% endblock %}
 {% block nav_href %}{{ROOT}}#mainframe{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
+
+{% block nav_back_theme %}{% if not person.profile.is_moderator and not person.profile.is_mentor %}accent{% else %}primary{% endif %}{% endblock %}
 
 {% block nav_text %}{{person.getName}}{% endblock %}   
 {% block nav_style %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}primary{% endif %}{% endblock %}
