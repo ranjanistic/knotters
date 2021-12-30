@@ -8,12 +8,12 @@
 <div class="w3-row w3-padding-small">
     <div class="w3-row">
         <div class="w3-col w3-half w3-center">
-            <h1 class="{% if user.profile.is_mentor %}active{% elif user.profile.is_moderator %}accent{% else %}positive{% endif %}-text">+{{profile.xp|or:'0'}}{% if not self %} XP {% else %}<span class="dead-text w3-large">/{{profile.xpTarget|or:'100'}} XP</span>{% endif %}</h1>
+            <h1 class="{% if profile.is_mentor %}active{% elif profile.is_moderator %}accent{% else %}positive{% endif %}-text">+{{profile.xp|or:'0'}}{% if not self %} XP {% else %}<span class="dead-text w3-large">/{{profile.xpTarget|or:'100'}} XP</span>{% endif %}</h1>
             <div class="w3-row" id="view-profiletopics">
             {% for topicdata in profile.getTopicsData %}
                 <div class="w3-row pallete-slab w3-padding">
                     <a href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><h5 class=" w3-left topic-name">{{topicdata.topic}}</h5></a>
-                    <button class="{% if user.profile.is_mentor %}active{% elif user.profile.is_moderator %}accent{% else %}positive{% endif %} w3-right" onclick="message('{{topicdata.points|or:'0'}}XP in {{topicdata.topic}}!')"><span class="topic-points">+{{topicdata.points|or:'0' }}</span> XP</button>
+                    <button class="{% if profile.is_mentor %}active{% elif profile.is_moderator %}accent{% else %}positive{% endif %} w3-right" onclick="message('{{topicdata.points|or:'0'}}XP in {{topicdata.topic}}!')"><span class="topic-points">+{{topicdata.points|or:'0' }}</span> XP</button>
                 </div>
             {% empty %}
                 {% if self %}

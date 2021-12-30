@@ -111,7 +111,7 @@ class ActivityRecord(models.Model):
 class Management(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_profile')
-    people = models.ManyToManyField(f'{PEOPLE}.Profile', related_name='management_people', default=[])
+    people = models.ManyToManyField(f'{PEOPLE}.Profile', through="ManagementPerson", related_name='management_people', default=[])
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
@@ -137,7 +137,15 @@ class Management(models.Model):
         return self.profile.getName()
 
     def getPeople(self):
-        return
+        return self.people.all()
+
+class ManagementPerson(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    person = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_person_profile')
+    management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='management_person_mgm')
+    
+    class Meta:
+        unique_together = ('person', 'management')
 
 class Invitation(models.Model):
     """

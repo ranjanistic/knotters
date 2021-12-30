@@ -94,7 +94,7 @@
   {% else %}
     {% for project in approved %} 
 		<div class="w3-col w3-half w3-padding-small">
-			<div class="pallete-slab">
+			<div class="w3-row pallete-slab">
 			<img class="w3-circle w3-right" width="30" src="{{project.getDP}}" />
 			<h6>{{ project.name|truncatechars:18 }}</h6>
 			<strong class="align w3-left">{{project.get_nickname}}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</strong>

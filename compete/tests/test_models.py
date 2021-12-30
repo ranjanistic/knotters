@@ -15,8 +15,8 @@ class CompetitionTest(TestCase):
     def test_comp_creation_pass(self):
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.assertIsNotNone(comp.title)
@@ -30,8 +30,8 @@ class CompetitionM2MTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         users = User.objects.bulk_create(getTestUsersInst(3))
@@ -75,8 +75,8 @@ class CompetitionAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mguser.profile)
 
@@ -167,8 +167,8 @@ class CompetitionJudgeAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mguser.profile)
         users = User.objects.bulk_create(getTestUsersInst())
@@ -189,8 +189,8 @@ class CompetitionTopicAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mguser.profile)
         topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
@@ -210,8 +210,8 @@ class SubmissionTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
@@ -288,8 +288,8 @@ class SubmissionM2MTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
@@ -336,8 +336,8 @@ class SubmissionAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
@@ -385,8 +385,8 @@ class SubmissionTopicPointTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
@@ -440,8 +440,8 @@ class SubmissionTopicPointAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
@@ -474,8 +474,8 @@ class ResultTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
@@ -543,8 +543,8 @@ class ResultAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(
-            user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(
             title=getCompTitle(), creator=self.mguser.profile)
         self.topic = Topic.objects.bulk_create(getTestTopicsInst())[0]
