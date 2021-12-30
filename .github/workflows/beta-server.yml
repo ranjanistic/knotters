@@ -51,6 +51,7 @@ jobs:
       run: |
         ~/Env/beta_knotters/bin/python3 genversion.py
         ~/Env/beta_knotters/bin/python3 manage.py collectstatic --noinput
+        ~/Env/beta_knotters/bin/python3 cleanobsoletestatic.py
     - name: Restart services
       run: |
         sudo systemctl restart beta.gunicorn
