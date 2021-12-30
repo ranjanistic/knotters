@@ -64,7 +64,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
                 raise Exception()
         return getProfileSectionHTML(profile, section, request)
     except Exception as e:
-        print(e)
+        errorLog(e)
         raise Http404(e)
 
 
@@ -562,35 +562,82 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
         raise Http404()
 
 
-@require_GET
+@decode_JSON
 def browseSearch(request: WSGIRequest):
-    query = request.GET.get('query', '')
-    excludeIDs = []
-    if request.user.is_authenticated:
-        excludeIDs = request.user.profile.blockedIDs
-    if query.startswith('topic:'):
-        topic = query.split(':')[1]
-        if topic:
-            profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(
-                Q(is_active=True, suspended=False, to_be_zombie=False),
-                Q(topics__name__iexact=topic)
-            ).distinct()[0:10]
-    else:
-        fname, lname = convertToFLname(query)
-        profiles = Profile.objects.exclude(user__id__in=excludeIDs).filter(Q(
-            Q(is_active=True, suspended=False, to_be_zombie=False),
-            Q(user__email__istartswith=query)
-            | Q(user__email__icontains=query)
-            | Q(user__first_name__istartswith=fname)
-            | Q(user__first_name__iendswith=fname)
-            | Q(user__last_name__istartswith=(lname or fname))
-            | Q(user__last_name__iendswith=(lname or fname))
-            | Q(githubID__istartswith=query)
-            | Q(githubID__iexact=query)
-            | Q(user__first_name__iexact=query)
-            | Q(user__last_name__iexact=query)
-            | Q(user__last_name__iexact=(lname or fname))
-            | Q(topics__name__iexact=query)
-            | Q(topics__name__istartswith=query)
-        )).distinct()[0:10]
-    return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
+    json_body = request.POST.get('JSON_BODY', False)
+    try:
+        query = request.GET.get('query', request.POST.get('query', ''))
+        excludeIDs = []
+        if request.user.is_authenticated:
+            excludeIDs = request.user.profile.blockedIDs
+        
+        projects = []
+        specials = ('topic:','type:')
+        pquery = None
+        is_moderator = is_mentor = is_verified = None
+        dbquery = Q()
+
+        if query.startswith(specials):
+            def specquerieslist(q):
+                return [Q(topics__name__iexact=q), Q()]
+            commaparts = query.split(",")
+            for cpart in commaparts:
+                if cpart.strip().lower().startswith(specials):    
+                    special, specialq = cpart.split(':')
+                    if special.strip().lower()=='type':
+                        is_moderator = specialq.strip().lower() == 'moderator' or is_moderator
+                        is_mentor = specialq.strip().lower() == 'mentor' or is_mentor
+                        is_verified = specialq.strip().lower() == 'verified' or is_verified
+                        if is_moderator != None:
+                            dbquery = Q(dbquery, is_moderator=is_moderator)
+                        if is_mentor != None:
+                            dbquery = Q(dbquery, is_mentor=is_mentor)
+                        if is_verified != None:
+                            dbquery = Q(dbquery, is_verified=is_verified)
+                    else:
+                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
+                else:
+                    pquery = cpart.strip()
+                    break
+        else:
+            pquery = query
+        if pquery:
+            fname, lname = convertToFLname(pquery)
+            dbquery = Q(dbquery, Q(
+                Q(user__email__istartswith=pquery)
+                | Q(user__email__icontains=pquery)
+                | Q(user__first_name__istartswith=fname)
+                | Q(user__first_name__iendswith=fname)
+                | Q(user__last_name__istartswith=(lname or fname))
+                | Q(user__last_name__iendswith=(lname or fname))
+                | Q(githubID__istartswith=pquery)
+                | Q(githubID__iexact=pquery)
+                | Q(user__first_name__iexact=pquery)
+                | Q(user__last_name__iexact=pquery)
+                | Q(user__last_name__iexact=(lname or fname))
+                | Q(topics__name__iexact=pquery)
+                | Q(topics__name__istartswith=pquery)
+            ))
+        profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).order_by('user__first_name').distinct()[0:10]
+        
+        if json_body:
+            return respondJson(Code.OK, dict(
+                profiles=list(map(lambda m: dict(
+                    name=m.get_name,
+                    is_verified=m.is_verified,
+                    is_manager=m.is_manager,
+                    is_mentor=m.is_mentor,
+                    is_moderator=m.is_moderator,
+                    url=m.get_abs_link,
+                    bio=m.bio,
+                    imageUrl=m.get_abs_dp
+                ), profiles)),
+                query=query
+            ))
+        return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return Http404(e)
+    

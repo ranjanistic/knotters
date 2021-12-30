@@ -31,11 +31,11 @@
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_back_theme %}{% if not person.profile.is_moderator and not person.profile.is_mentor %}accent{% else %}primary{% endif %}{% endblock %}
+{% block nav_back_theme %}primary{% endblock %}
 
 {% block nav_text %}{{person.getName}}{% endblock %}   
-{% block nav_style %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}primary{% endif %}{% endblock %}
-{% block nav_text_style %}{% if person.profile.is_moderator %}text-accent{% elif person.profile.is_mentor %}text-active{% else %}text-primary{% endif %}{% endblock %}
+{% block nav_style %}{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}positive{% endif %}{% endblock %}
+{% block nav_text_style %}{% if person.profile.is_moderator %}text-accent{% elif person.profile.is_mentor %}text-active{% else %}text-positive{% endif %}{% endblock %}
 
 {% block nav_auth_user %}
   {% if user.is_authenticated and user == person %}
@@ -102,8 +102,8 @@
           <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
             <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" style="opacity:0.5" />
             <input type="file" id="uploadprofilepic" hidden accept="image/png, image/jpg, image/jpeg" />
-            <button class="active" type="button" id="upload-button">
-              <i class="material-icons">image</i>
+            <button class="{% if is_moderator %}accent{% elif is_mentor %}active{% else %}positive{% endif %} small" type="button" id="upload-button">
+              <i class="material-icons">upload</i>
               <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
             </button>
             <br/>

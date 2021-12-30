@@ -30,8 +30,8 @@
           <br/>
           <div class="w3-row w3-center">
           <i class="w3-jumbo">sentiment_dissatisfied</i>
-          <h6>{% trans "No projects live, yet." %}</h6>
-          <strong>{% trans "Don't worry. Keep exploring." %}</strong>
+          <h4>{% trans "No projects live, yet." %}</h4>
+          <h6>{% trans "Don't worry. Keep exploring." %}</h6>
           </div>
           {% endfor %}
           </div>
@@ -58,7 +58,8 @@
           <a href="{{URLS.PROJECTS}}create" class="text-accent">
             <i class="w3-jumbo">add_circle</i>
           </a>
-          <h6>{% trans "Create" %}</h6>
+          <h4>{% trans "Create" %}</h4>
+          <h6>{% trans "Start small. Dream big." %}</h6>
           </div>
           {% endfor %}
           </div>
@@ -66,10 +67,10 @@
       </div>
     
       <div class="w3-col w3-padding-small w3-third swiper-slide">
-        <div class="pallete negative text-negative" style="height:55vh">
+        <div class="pallete tertiary text-tertiary" style="height:55vh">
           <center>
           <i  title="Private to you">lock</i>
-          <h4 class="text-negative">{% trans "Rejected" %}</h4>
+          <h4 class="text-tertiary">{% trans "Rejected" %}</h4>
           </center>
           <div class="w3-row" style="height:45vh;overflow-y:scroll">
           {% for project in rejected %}
@@ -81,10 +82,11 @@
           </div>
           {% empty %}
           <br/>
-          <div class="w3-row w3-center">
+          <center class="dead-text">
           <i class="w3-jumbo">sentiment_very_satisfied</i>
-          <h6>{% trans "None rejected!" %}</h6>
-          </div>
+          <h4>{% trans "None rejected!" %}</h4>
+          <h6>{% trans "This is rare." %}</h6>
+          </center>
           {% endfor %}
           </div>
         </div>

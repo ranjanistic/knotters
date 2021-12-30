@@ -966,49 +966,69 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
 
-
-@require_GET
+@decode_JSON
 def browseSearch(request: WSGIRequest):
-    query = request.GET.get('query', '')
-    projects = []
-    if query.startswith('tag:'):
-        tag = query.split(':')[1]
-        if tag:
-            projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
-                tags__name__iexact=tag
-            )).distinct()[0:10]
-    elif query.startswith('category:'):
-        category = query.split(':')[1]
-        if category:
-            projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
-                category__name__iexact=category
-            )).distinct()[0:10]
-    elif query.startswith('topic:'):
-        topic = query.split(':')[1]
-        if topic:
-            projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
-                topics__name__iexact=topic
-            )).distinct()[0:10]
-    else:
-        projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(Q(
-            Q(name__istartswith=query)
-            | Q(name__iendswith=query)
-            | Q(name__iexact=query)
-            | Q(name__icontains=query)
-            | Q(description__icontains=query)
-            | Q(creator__user__first_name__istartswith=query)
-            | Q(creator__user__last_name__istartswith=query)
-            | Q(creator__user__email__istartswith=query)
-            | Q(creator__githubID__istartswith=query)
-            | Q(creator__githubID__iexact=query)
-            | Q(category__name__iexact=query)
-            | Q(topics__name__iexact=query)
-            | Q(tags__name__iexact=query)
-            | Q(category__name__istartswith=query)
-            | Q(topics__name__istartswith=query)
-            | Q(tags__name__istartswith=query)
-        )).distinct()[0:10]
-    return rendererstr(request, Template.Projects.BROWSE_SEARCH, dict(projects=projects, query=query))
+    json_body = request.POST.get('JSON_BODY', False)
+    try:
+        query = request.GET.get('query', request.POST.get('query', ''))
+        projects = []
+        specials = ('tag:','category:','topic:','type:')
+        verified = None
+        pquery = None
+        dbquery = Q()
+        if query.startswith(specials):
+            def specquerieslist(q):
+                return [Q(tags__name__iexact=q),Q(category__name__iexact=q),Q(topics__name__iexact=q), Q()]
+            commaparts = query.split(",")
+            for cpart in commaparts:
+                if cpart.strip().lower().startswith(specials):    
+                    special, specialq = cpart.split(':')
+                    if special.strip().lower()=='type':
+                        verified = specialq.strip().lower() == 'verified'
+                    else:
+                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
+                else:
+                    pquery = cpart.strip()
+                    break
+        else:
+            pquery = query
+        if pquery:
+            dbquery = Q(dbquery, Q(
+                Q(name__istartswith=pquery)
+                | Q(name__iendswith=pquery)
+                | Q(name__iexact=pquery)
+                | Q(name__icontains=pquery)
+                | Q(description__icontains=pquery)
+                | Q(creator__user__first_name__istartswith=pquery)
+                | Q(creator__user__last_name__istartswith=pquery)
+                | Q(creator__user__email__istartswith=pquery)
+                | Q(creator__githubID__istartswith=pquery)
+                | Q(creator__githubID__iexact=pquery)
+                | Q(category__name__iexact=pquery)
+                | Q(topics__name__iexact=pquery)
+                | Q(tags__name__iexact=pquery)
+                | Q(category__name__istartswith=pquery)
+                | Q(topics__name__istartswith=pquery)
+                | Q(tags__name__istartswith=pquery)
+            ))
+        projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(dbquery).order_by('name').distinct()[0:10]
+        if verified != None:
+            projects = list(filter(lambda m: verified == m.is_verified , list(projects)))
+        if json_body:
+            return respondJson(Code.OK, dict(
+                projects=list(map(lambda m: dict(
+                    name=m.name,nickname=m.get_nickname,is_verified=m.is_verified,
+                    url=m.get_abs_link,description=m.description,
+                    imageUrl=m.get_abs_dp,creator=m.creator.get_name
+                ), projects)),
+                query=query
+            ))
+        return rendererstr(request, Template.Projects.BROWSE_SEARCH, dict(projects=projects, query=query))
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return Http404(e)
 
 
 @require_GET

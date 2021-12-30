@@ -15,7 +15,7 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
     if(testPath.includes('*')) console.warn(testPath, ': includes * while being the testpath')
     if(asteriskPath===testPath) return true;
     const localParamRegex = String(asteriskPath).endsWith("*")
-        ? "[a-zA-Z0-9./\\-_?=&%#]"
+        ? "[a-zA-Z0-9./\\-_?=&%#\:]"
         : paramRegex;
     return RegExp(
         asteriskPath

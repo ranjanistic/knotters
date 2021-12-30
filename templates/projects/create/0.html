@@ -7,13 +7,15 @@
 {% load custom_tags %}
 
 
-{% block themecolor %}#f5d702{% endblock %}
+{% block themecolor %}positive{% endblock %}
 
-{% block nav_style %}accent{% endblock %}
-{% block nav_text_style %}text-accent{% endblock %}
+{% block nav_style %}positive{% endblock %}
+{% block nav_text_style %}text-positive{% endblock %}
 
 {% block nav_href %}{{URLS.CREATE}}{% endblock %}
 {% block nav_text %}{% trans "New" %} {% trans "Quick project" %}{% endblock %}
+
+{% block nav_back_theme %}primary{% endblock %}
 {% block nav_back_icon %}close{% endblock %}
 {% block nav_auth_links %}{% endblock %} 
 {% block nav_noauth %}{% endblock %}

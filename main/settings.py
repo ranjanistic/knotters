@@ -390,6 +390,7 @@ LOCALE_PATHS = (TRANSLATIONS_PROJECT_BASE_DIR,)
 TRANSLATIONS_ADMIN_EXCLUDE_FIELDS = ['get_hint', 'locale_parent_dir', 'domain']
 
 SITE_ID = 1
+SITE = env.SITE
 
 SENDER_API_HEADERS = {
     "Authorization": f"Bearer {env.SENDERTOKEN}",

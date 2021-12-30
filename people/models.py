@@ -326,14 +326,28 @@ class Profile(models.Model):
     def isRemoteDp(self) -> bool:
         return str(self.picture).startswith("http")
 
-    def getDP(self) -> str:
+    @property
+    def get_dp(self) -> str:
         if self.is_zombie:
             return settings.MEDIA_URL + defaultImagePath()
         dp = str(self.picture)
         return dp if self.isRemoteDp() else settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
 
-    def getName(self) -> str:
+    @property
+    def get_abs_dp(self) -> str:
+        if self.get_dp.startswith('http:'):
+            return self.get_dp
+        return f"{settings.SITE}{self.get_dp}"
+        
+    def getDP(self) -> str:
+        return self.get_dp
+
+    @property
+    def get_name(self) -> str:
         return Code.ZOMBIE if self.is_zombie else self.user.getName()
+
+    def getName(self) -> str:
+        return self.get_name
 
     def getFName(self) -> str:
         return Code.ZOMBIE if self.is_zombie else self.user.first_name
@@ -412,6 +426,16 @@ class Profile(models.Model):
     def getGhUrl(self) -> str:
         return self.get_ghLink
 
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_abs_link(self) -> str:
+        if self.get_link.startswith('http:'):
+            return self.get_link
+        return f"{settings.SITE}{self.get_link}"
+        
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
             ghID = self.ghID

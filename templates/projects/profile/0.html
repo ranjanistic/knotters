@@ -6,6 +6,10 @@
 {% load cache %}
 {% load custom_tags %}
 
+{% block nav_style %}positive{% endblock %}
+{% block nav_text_style %}text-positive{% endblock %}
+{% block nav_back_theme %}primary{% endblock %}
+
 {% block content %}
 <div class="w3-row tertiary">
     <br/>
@@ -42,8 +46,8 @@
             <div class="pallete w3-center" id="edit-pallete">
                 <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
                 <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
-                <button class="active" type="button" id="upload-button">
-                <i>image</i>
+                <button class="positive small" type="button" id="upload-button">
+                <i>upload</i>
                 <label id="uploadprojectimagelabel" for="uploadprojectimage">{% trans "Select Image" %}</label>
                 </button>
                 <br/>
@@ -72,7 +76,7 @@
         {% endif %}
 
         <div class="w3-row w3-padding-small">
-        <strong>{{ project.total_admiration }} admirations</strong>
+        <strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
@@ -313,8 +317,10 @@ if (selfProject){
         var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
             addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
         });
-        if (resp.code===code.OK)
+        if (resp.code===code.OK){
+            subLoader()
             return window.location.reload()
+        }
         error(resp.error)
     }
 

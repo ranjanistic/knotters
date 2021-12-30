@@ -208,8 +208,22 @@ class BaseProject(models.Model):
         self.sub_save()
         super(BaseProject, self).save(*args, **kwargs)
 
-    def getDP(self) -> str:
+    @property
+    def get_name(self) -> str:
+        return self.name
+
+    @property
+    def get_dp(self) -> str:
         return f"{settings.MEDIA_URL}{str(self.image)}"
+
+    @property
+    def get_abs_dp(self) -> str:
+        if self.get_dp.startswith('http:'):
+            return self.get_dp
+        return f"{settings.SITE}{self.get_dp}"
+
+    def getDP(self) -> str:
+        return self.get_dp
     
     def getTopics(self) -> list:
         return self.topics.all()
@@ -267,6 +281,16 @@ class BaseProject(models.Model):
                 return None
         return project
 
+    @property
+    def get_link(self) -> str:
+        return self.getLink()
+
+    @property
+    def get_abs_link(self) -> str:
+        if self.get_link.startswith('http:'):
+            return self.get_link
+        return f"{settings.SITE}{self.get_link}"
+  
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         project = self.getProject()
         if project.verified:

@@ -68,12 +68,14 @@
 <div class="w3-row" id="mainframe">
   <div class="w3-row tertiary w3-padding">
     <div class="w3-col w3-quarter w3-padding-small"></div>
+    <form class="no-auto" id="search-projects-form">
 	  <div class="w3-col w3-half w3-center w3-padding-small">
-      <input class="wide primary" placeholder="{% trans "Type to search for projects" %}" id="browse-search-input" />
+      <input class="wide primary" placeholder="{% trans "Type to search for projects" %}. Try > topic:translation, knotters" id="browse-search-input" />
     </div>
 	  <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
     <button class="negative w3-right browse-search-projects" data-icon="close" id="browse-search-clear"></button>
     <button class="positive w3-right browse-search-projects" data-icon="search" id="browse-search-exec"></button>
+    </form>
     </div>
   </div>
 	<div class="w3-row search-view" data-search-type="projects" id='browse-search-view'>
@@ -106,9 +108,12 @@
     getElement("browse-search-exec").onclick=async()=>{
       let query = String(getElement("browse-search-input").value).trim();
       if(!query) return message('{% trans "Type something to search projects" %}')
-      const data = await getRequest(URLS.BROWSE_SEARCH,{query})
+      const data = await getRequest2({path:URLS.BROWSE_SEARCH,data:{query}})
       if(!data) return
       setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
+    }
+    getElement("search-projects-form").onsubmit=(e)=>{
+      getElement("browse-search-exec").click()
     }
     if("{{request.GET.search}}"){
       window.location.href="#mainframe";

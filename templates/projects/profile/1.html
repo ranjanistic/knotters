@@ -6,6 +6,13 @@
 {% load cache %}
 {% load custom_tags %}
 
+
+{% block themecolor %}accent{% endblock %}
+
+{% block nav_style %}accent{% endblock %}
+{% block nav_text_style %}text-accent{% endblock %}
+{% block nav_back_theme %}primary{% endblock %}
+
 {% block content %}
 <div class="w3-row tertiary">
     <br/>
@@ -23,7 +30,7 @@
             <div class="pallete" style="padding:0" id="view-pallete">
                 <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
                 <div class="w3-row w3-center w3-padding-small">
-                <h5 class="align">{{project.name}}&nbsp;<i class="positive-text w3-large">verified</i></h5>
+                <h5 class="align">{{project.name}}&nbsp;<a href="{{URLS.PROJECTS}}?search=type:verified"><i class="positive-text w3-large">verified</i></a></h5>
                 <center>{{project.description}}</center>
                 </div>
                 <div class="w3-row w3-padding-small">
@@ -41,8 +48,8 @@
             <div class="pallete w3-center" id="edit-pallete">
                 <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
                 <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
-                <button class="active" type="button" id="upload-button">
-                <i class="material-icons">image</i>
+                <button class="accent small" type="button" id="upload-button">
+                <i class="material-icons">upload</i>
                 <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
                 </button>
                 <br/>
@@ -68,7 +75,7 @@
         </div>
         <br/>
         <div class="w3-row w3-padding-small">
-        <strong>{{ project.total_admiration }} admirations</strong>
+        <strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
@@ -336,8 +343,10 @@ if(!selfProject){
                 addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
             });
             console.log(resp)
-            if (resp.code===code.OK)
+            if (resp.code===code.OK){
+                subLoader()
                 return window.location.reload()
+            }
             error(resp.error)
         }
     }

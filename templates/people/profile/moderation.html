@@ -38,6 +38,7 @@
                         <center>
                         <i class="w3-jumbo material-icons">hourglass_top</i>
                         <h4>{% trans "Wait for it." %}</h4>
+                        <h6>{% trans "Patience is the key" %}</h6>
                         </center>
                         <br/>
                         {% endfor %}
@@ -70,6 +71,7 @@
                         <center>
                         <i class="w3-jumbo">done</i>
                         <h4>{% trans "All resolved" %}</h4>
+                        <h6>{% trans "Help the ones which are live." %}</h6>
                         </center>
                         <br/>
                         {% endfor %}
@@ -78,7 +80,7 @@
             </div>
 
             <div class="w3-col w3-padding-small swiper-slide">
-                <div class="pallete negative text-negative" style="height:55vh;">
+                <div class="pallete tertiary text-tertiary" style="height:55vh;">
                     <center>
                         <i class="material-icons" title="{% trans "Private to you" %}">lock</i>
                         <h6>{% trans "Rejected" %}</h6>
@@ -101,9 +103,10 @@
                         </div>
                         {% empty %}
                         <br/>
-                        <center>
+                        <center class="dead-text">
                         <i class="w3-jumbo material-icons">hourglass_top</i>
-                        <h4>{% trans "Wait for it." %}</h4>
+                        <h4>{% trans "None rejected." %}</h4>
+                        <h6>{% trans "Cool!" %}</h6>
                         </center>
                         <br/>
                         {% endfor %}
