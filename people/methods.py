@@ -107,7 +107,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                 data[Code.REJECTED] = list(filter(rejected_only, projects))
         elif section == profileString.ACHEIVEMENTS:
             data[Code.RESULTS] = Result.objects.filter(submission__members=profile).order_by('-rank', '-points')
-            data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile)
+            data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile).order_by("-createdOn")
             data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True).order_by('-respondOn')
         elif section == profileString.CONTRIBUTION:
             pass
@@ -121,11 +121,11 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                 data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
         elif section == profileString.COMPETITIONS:
             if profile.is_manager:
-                data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile)
+                data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile).order_by("-createdOn")
         elif section == profileString.PEOPLE:
             mgm = profile.management
             if mgm:
-                data[Code.PEOPLE] = mgm.people.filter(is_active=True,suspended=False,to_be_zombie=False)
+                data[Code.PEOPLE] = mgm.people.filter(is_active=True,suspended=False,to_be_zombie=False).order_by("user__first_name")
         elif section == profileString.MENTORSHIP:
             if profile.is_mentor:
                 data[Code.MENTORSHIPS] = Project.objects.filter(mentor=profile)
