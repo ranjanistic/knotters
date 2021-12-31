@@ -375,7 +375,13 @@ class Profile(models.Model):
         if self.is_mentor:
             labels.append(dict(name='MNT', theme='active'))
         return labels
-        
+    @property
+    def theme(self):
+        if self.is_moderator:
+            return 'accent'
+        if self.is_mentor:
+            return 'active'
+        return "positive"
 
     @property
     def ghID(self) -> str:
