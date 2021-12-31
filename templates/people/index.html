@@ -121,7 +121,6 @@
       getElement("browse-search-exec").click()
     }
     if("{{request.GET.search}}"){
-      window.location.href="#mainframe";
       getElement("browse-search-input").value="{{request.GET.search}}";
       showElement("browse-search-actions");
       getElement("search-people-form").submit()
