@@ -48,7 +48,7 @@ class TestViews(TestCase):
             subapps[div] = div
         self.assertDictEqual(resp.context['SUBAPPS'], subapps)
         self.assertEqual(resp.context['SUBAPPSLIST'], DIVISIONS)
-        self.assertEqual(resp.context['knotbot'], self.bot.profile)
+        # self.assertEqual(resp.context['knotbot'], self.bot.profile)
 
     def test_redirector(self):
         resp = self.client.get(path=root(url.redirector(to=root(url.OFFLINE))))

@@ -56,6 +56,7 @@ class ModerationMethodTest(TestCase):
                         self.profiles[2]]).__contains__(self.profiles[2].id))
         self.assertFalse(getIgnoreModProfileIDs(PEOPLE, self.project))
 
+    @tag('modtest')
     def test_getModeratorToAssignModeration(self):
         with self.assertRaises(IllegalModeration):
             getModeratorToAssignModeration(PROJECTS, self.profile)

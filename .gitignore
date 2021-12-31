@@ -16,6 +16,7 @@ createsuperuser
 migrations
 qcluster
 static/admin
+static/webpush
 py
 *.apk
 nginx_waitress

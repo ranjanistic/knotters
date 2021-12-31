@@ -108,7 +108,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
 
     finalAvailableModProfiles = availableModProfiles
     
-    if object.creator:
+    if isinstance(object, Project):
         for modprof in availableModProfiles:
             if modprof.isBlocked(object.creator.user):
                 finalAvailableModProfiles.remove(modprof)
