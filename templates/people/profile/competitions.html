@@ -21,7 +21,8 @@
     <center class="dead-text">
         <i class="w3-jumbo">hourglass_top</i>
         <h3>{% trans "No competitions, yet." %}</h3>
-        <h6>{{person.profile.getName}} will bring you endeavours soon.</h6>
+        <h6>{{person.profile.getName}} will bring endeavours soon.</h6>
+        <a href="{{URLS.Management.CREATE_COMP}}"><button class="active big-buttton" data-icon="add">Create competition</button></a>
     </center>
 {% endif %}
 </div>
