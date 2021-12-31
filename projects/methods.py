@@ -309,6 +309,7 @@ def getProjectLiveData(project: Project):
         for cont in contribs:
             ghIDs.append(str(cont.login))
         contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
+        contributors = list(filter(lambda c: not c.is_manager, list(contributors)))
         return contributors, languages
     else:
         return [], []
