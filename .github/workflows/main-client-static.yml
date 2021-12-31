@@ -87,7 +87,7 @@ jobs:
       run: |
         ~/Env/knotters/bin/python3 genversion.py
         ~/Env/knotters/bin/python3 manage.py collectstatic --noinput
-        ~/Env/knotters/bin/python3 cleanobsoletestatic.py
+        ~/Env/knotters/bin/python3 manage.py preparestatics /var/www/knotters/errors/
     - name: Restart server
       run: |
         sudo systemctl restart knotters.gunicorn
