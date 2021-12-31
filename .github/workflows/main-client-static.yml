@@ -79,6 +79,10 @@ jobs:
     - name: Merge changes
       run: |
         git pull origin main --depth=100
+    - name: Setup environment
+      run: |
+        sudo rm -f ${{ secrets.ENVPATH }}
+        sudo gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
     - name: Release new version
       run: |
         ~/Env/knotters/bin/python3 genversion.py
