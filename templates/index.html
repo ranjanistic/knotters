@@ -189,9 +189,9 @@
                                 <strong class='text-medium'>{% trans "Ready to takeoff? Virtually ofcourse." %}</strong>
                             </div>
                             <div class='w3-row'>
-                                <a href='{% if request.user.is_authenticated %}{{URLS.ON_BOARDING}}{% else %}{{URLS.LANDING}}{% endif %}'><button class='display-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
+                                <a href='{% if request.user.is_authenticated %}{{URLS.ON_BOARDING}}{% else %}{{URLS.LANDING}}{% endif %}'><button class='big-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
                                 
-                                <button class='display-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
+                                <button class='big-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
                             </div>
                             <br/>
                             <span class='text-medium dead-text'>Click I'm ready to hide this.</span>
