@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load tz %}
+{% load static %}
 {% load account %}
 {% load custom_tags %}
 
@@ -232,7 +233,7 @@
                                 <tr>
                                   <td class="v-text-align" style="padding-right: 0px;padding-left: 0px;" align="center">
                                     <a href="{{site_domain}}" target="_blank">
-                                      <img align="center" border="0" src="{{site_domain}}/static/graphics/self/512/icon.png" alt="{{site_name}}" title="{{site_name}}" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 55%;max-width: 83.6px;"
+                                      <img align="center" border="0" src="{{site_domain}}{% static 'graphics/self/512/icon.png' %}" alt="{{site_name}}" title="{{site_name}}" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 55%;max-width: 83.6px;"
                                         width="83.6" class="v-src-width v-src-max-width" />
                                     </a>
                                   </td>
@@ -411,7 +412,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://github.com/Knotters" title="GitHub" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/github.png" alt="GitHub" title="GitHub" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/github.png' %}" alt="GitHub" title="GitHub" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
@@ -425,7 +426,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://twitter.com/knottersdotorg" title="Twitter" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/twitter.png" alt="Twitter" title="Twitter" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/twitter.png' %}" alt="Twitter" title="Twitter" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
@@ -439,7 +440,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://instagram.com/knottersdotorg" title="Instagram" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/instagram.png" alt="Instagram" title="Instagram" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/instagram.png' %}" alt="Instagram" title="Instagram" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
@@ -453,7 +454,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://facebook.com/knottersdotorg" title="Facebook" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/facebook.png" alt="Facebook" title="Facebook" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/facebook.png' %}" alt="Facebook" title="Facebook" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
@@ -467,7 +468,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" title="YouTube" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/youtube.png" alt="YouTube" title="YouTube" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/youtube.png' %}" alt="YouTube" title="YouTube" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
@@ -481,7 +482,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://linkedin.com/company/knottersdotorg" title="LinkedIn" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/linkedin.png" alt="LinkedIn" title="LinkedIn" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/linkedin.png' %}" alt="LinkedIn" title="LinkedIn" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
@@ -495,7 +496,7 @@
                                       <tr style="vertical-align: top">
                                         <td align="left" valign="middle" style="word-break: break-word;border-collapse: collapse !important;vertical-align: top">
                                           <a href="https://discord.com/invite/qZ3TdVHsma" title="Discord" target="_blank">
-                                            <img src="{{site_domain}}/static/graphics/email/discord.png" alt="Discord" title="Discord" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
+                                            <img src="{{site_domain}}{% static 'graphics/email/discord.png' %}" alt="Discord" title="Discord" width="32" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: block !important;border: none;height: auto;float: none;max-width: 32px !important">
                                           </a>
                                         </td>
                                       </tr>
