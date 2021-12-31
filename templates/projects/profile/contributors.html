@@ -16,11 +16,11 @@
             <strong>{{contributor.getName}}</strong>
         </div>
         <div class="w3-row">
-            {{contributor.ghID}}
+            {{contributor.ghID}}{% if project.moderator.is_verified %}<i class="positive-text">verified</i>{% endif %}
         </div>
     </div>
     <div class="w3-col s4 m2 w3-right"> 
-        <h4 class="text-{{contributor.theme}}">+{{contributor.get_xp}}</h4>
+        <h4 class="{{contributor.theme}}-text w3-right">+{{contributor.get_xp}}</h4>
     </div>
 </div>
 {% endfor %}
