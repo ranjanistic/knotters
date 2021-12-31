@@ -19,6 +19,7 @@ on:
       - "setup.py"
       - "genenv.py"
       - "genversion.py"
+      - "cleanobsoletestatic.py"
       - "refresh.py"
       - "discordbo.py"
 

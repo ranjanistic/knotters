@@ -28,7 +28,8 @@ class ModerationMethodTest(TestCase):
         self.profiles = Profile.objects.bulk_create(profiles)
         self.profile = self.profiles[0]
         self.mguser = User.objects.create_user(email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
-        self.mgprofile = Profile.objects.filter(user=self.mguser).update(is_manager=True)
+        self.mgprofile = self.mguser.profile
+        self.mgprofile.convertToManagement()
         self.competition = Competition.objects.create(title=getCompTitle(),creator=self.mguser.profile)
         self.competition.judges.add(self.profiles[1])
         self.competition.judges.add(self.profiles[2])

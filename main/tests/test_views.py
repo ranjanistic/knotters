@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from django.http.response import HttpResponseBadRequest
 from django.test import TestCase, Client, tag
 import json
@@ -29,6 +30,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.offline)
 
+    @tag('ss')
     def test_index(self):
         resp = self.client.get(follow=True, path=root())
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -38,7 +40,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.context['MANIFESTURL'], f'/{url.MANIFEST}')
         self.assertEqual(resp.context['APPNAME'], PUBNAME)
         self.assertEqual(resp.context['CONTACTMAIL'], BOTMAIL)
-        self.assertIsNotNone(resp.context['DESCRIPTION'],)
+        self.assertIsNotNone(resp.context['DESCRIPTION'])
         self.assertEqual(resp.context['SITE'], SITE)
         self.assertEqual(resp.context['VERSION'], VERSION)
         subapps = dict()
@@ -46,8 +48,7 @@ class TestViews(TestCase):
             subapps[div] = div
         self.assertDictEqual(resp.context['SUBAPPS'], subapps)
         self.assertEqual(resp.context['SUBAPPSLIST'], DIVISIONS)
-        self.assertEqual(
-            resp.context['ICON'], f"{settings.STATIC_URL}graphics/self/icon.svg")
+        self.assertEqual(resp.context['knotbot'], self.bot.profile)
 
     def test_redirector(self):
         resp = self.client.get(path=root(url.redirector(to=root(url.OFFLINE))))
@@ -58,6 +59,12 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.forward)
         self.assertEqual(resp.context['next'], uri)
+
+    def test_onboarding(self):
+        resp = self.client.get(follow=True, path=root(url.ON_BOARDING))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.auth.login)
 
     def test_docIndex(self):
         resp = self.client.get(follow=True, path=root(url.DOCS))
@@ -104,12 +111,16 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.projects.landing)
 
+    @tag(Code.Test.STATIC)
     def test_robots(self):
         resp = self.client.get(follow=True, path=root(url.ROBOTS_TXT))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.TEXT_PLAIN)
         self.assertTemplateUsed(resp, template.ROBOTS_TXT)
+        self.assertIsInstance(resp.context['suspended'],QuerySet)
+        self.assertFalse(resp.context['ISBETA'])
 
+    @tag(Code.Test.STATIC)
     def test_manifest(self):
         resp = self.client.get(follow=True, path=root(url.MANIFEST))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -118,6 +129,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['icons'], list)
         self.assertTrue(len(resp.context['icons']) > 0)
 
+    @tag(Code.Test.STATIC)
     def test_service_worker(self):
         resp = self.client.get(follow=True, path=root(url.SERVICE_WORKER))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
