@@ -118,6 +118,7 @@
       setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
     }
     getElement("search-people-form").onsubmit=(e)=>{
+      e.preventDefault()
       getElement("browse-search-exec").click()
     }
     if("{{request.GET.search}}"){
