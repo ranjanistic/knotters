@@ -88,15 +88,72 @@ class User(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True
 
-    def getName(self) -> str:
+    @property
+    def get_name(self) -> str:
         if self.last_name:
             return f"{self.first_name} {self.last_name}"
         else:
             return self.first_name
 
+    def getName(self) -> str:
+        return self.get_name
+
     def getLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getID())}"
+    
+    def add_phone(self,number,country):
+        number = str(number).strip()
+        if PhoneNumber.objects.filter(number=number,country=country,verified=True).exists():
+            return False
+        primary = False
+        if PhoneNumber.objects.filter(user=self).count() == 0:
+            primary = True
+        return PhoneNumber.objects.get_or_create(user=self,number=number,country=country, defaults=dict(
+            user=self,
+            number=number,
+            country=country,
+            primary=primary,
+            verified=False
+        ))
 
+
+class Country(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200)
+    code = models.CharField(max_length=20)
+    
+class State(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='state_country')
+    name = models.CharField(max_length=200)
+
+class PhoneNumber(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='phone_user')
+    number = models.CharField(max_length=100)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='phone_country')
+    verified = models.BooleanField(default=False)
+    primary = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.get_name
+
+class Address(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='address_user')
+    locality = models.CharField(max_length=200, null=True, blank=True)
+    line_1 = models.CharField(max_length=200, null=True, blank=True)
+    line_2 = models.CharField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=200, null=True, blank=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='phone_country')
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='address_country')
+    zip_code = models.CharField(max_length=100, null=True, blank=True)
+    phone_number = models.ForeignKey(PhoneNumber,on_delete=models.SET_NULL, related_name='address_phone', null=True,blank=True)
+
+    def __str__(self):
+        return self.user.get_name
 
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -199,7 +256,7 @@ class Profile(models.Model):
         default=False, help_text='Whether the successor is confirmed, if set.')
     is_moderator = models.BooleanField(default=False)
     is_mentor = models.BooleanField(default=False)
-    # is_manager = models.BooleanField(default=False)
+    
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -249,6 +306,18 @@ class Profile(models.Model):
     @property
     def is_manager(self):
         return Management.objects.filter(profile=self).exists()
+
+    @property
+    def phone_number(self):
+        if self.user:
+            return PhoneNumber.objects.filter(user=self.user,verified=True,primary=True).first()
+        return None
+
+    @property
+    def phone_numbers(self):
+        if self.user:
+            return PhoneNumber.objects.filter(user=self.user,verified=True)
+        return []
 
     @property
     def management(self):
@@ -705,7 +774,6 @@ class ProfileSetting(models.Model):
 
     def savePreferencesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.ACCOUNTPREFERENCES}"
-
 
 class ProfileTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
