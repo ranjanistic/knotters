@@ -16,7 +16,6 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
-
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING, PUBNAME
 from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH
 
@@ -197,6 +196,7 @@ def errorLog(error, raiseErr=True):
         try:
             with open(os.path.join(os.path.join(settings.BASE_DIR, '_logs_'), 'errors.txt'), 'a') as log_file:
                 log_file.write(f"\n{timezone.now()}\n{error}")
+            addMethodToAsyncQueue(f"main.mailers.sendErrorLog", error)
         except Exception as e:
             print('Error in logging: ', e)
             if not ISDEVELOPMENT:

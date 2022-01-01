@@ -107,7 +107,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                 data[Code.REJECTED] = list(filter(rejected_only, projects))
         elif section == profileString.ACHEIVEMENTS:
             data[Code.RESULTS] = Result.objects.filter(submission__members=profile).order_by('-rank', '-points')
-            data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile).order_by("-createdOn")
+            data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile).order_by("-competition__createdOn")
             data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True).order_by('-respondOn')
         elif section == profileString.CONTRIBUTION:
             pass
