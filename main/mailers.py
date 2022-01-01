@@ -4,7 +4,7 @@ from django.core.mail import EmailMultiAlternatives, send_mass_mail
 from people.models import Profile
 from django.conf import settings
 from .methods import errorLog, addMethodToAsyncQueue
-from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE
+from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE, SERVER_EMAIL
 from .strings import URL
 from django.core.mail.backends.smtp import EmailBackend as EB
 import smtplib
@@ -192,3 +192,6 @@ def downtimeAlert():
         conclusion="You received this alert because you are a member of our community. If this is an error, then please report to us."
     )
     addMethodToAsyncQueue(f'main.mailers.{sendBulkEmails.__name__}', emails,"Scheduled Downtime Alert",html,body)
+
+def sendErrorLog(error):
+    return sendEmail(to=SERVER_EMAIL, subject=f"KnottersERROR LOG", html=error, body=error)
