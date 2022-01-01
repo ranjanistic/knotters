@@ -120,8 +120,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
             return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         submission = Submission.objects.create(competition=competition)
         submission.members.add(request.user.profile)
-        SubmissionParticipant.objects.filter(
-            submission=submission, profile=request.user.profile).update(confirmed=True)
+        SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile).update(confirmed=True,confirmed_on=submission.createdOn)
         request.user.profile.increaseXP(by=5)
         addMethodToAsyncQueue(
             f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
@@ -228,7 +227,7 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
             ), APPNAME))
         elif action == Action.ACCEPT:
             SubmissionParticipant.objects.filter(
-                submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True)
+                submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True,confirmed_on=timezone.now())
             request.user.profile.increaseXP(by=5)
             addMethodToAsyncQueue(
                 f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)

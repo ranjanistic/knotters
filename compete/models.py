@@ -684,6 +684,13 @@ class SubmissionParticipant(models.Model):
     profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     confirmed = models.BooleanField(default=False)
+    confirmed_on = models.DateTimeField(auto_now=False, null=True,blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.confirmed:
+            if SubmissionParticipant.objects.filter(id=self.id,confirmed=False).exists():
+                self.confirmed_on = timezone.now()
+        super(SubmissionParticipant, self).save(*args, **kwargs) # Call the real save() method
 
 
 class SubmissionTopicPoint(models.Model):
