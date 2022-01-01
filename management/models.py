@@ -17,7 +17,7 @@ class Report(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             self.createdOn = timezone.now()
-        self.modifiedOn = timezone.now()
+        self.updatedOn = timezone.now()
         return super(Report, self).save(*args, **kwargs)
 
     @property
@@ -51,7 +51,7 @@ class Feedback(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             self.createdOn = timezone.now()
-        self.modifiedOn = timezone.now()
+        self.updatedOn = timezone.now()
         return super(Feedback, self).save(*args, **kwargs)
 
     @property
@@ -207,3 +207,24 @@ class GhMarketPlan(models.Model):
     is_free = models.BooleanField(default=True)
     gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
     gh_url = models.URLField(max_length=200, unique=True)
+
+class APIKey(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    key = models.CharField(max_length=100, unique=True, help_text="Random string at least 32 chars")
+    name = models.CharField(max_length=100, null=True,blank=True)
+    is_internal = models.BooleanField(default=False)
+    creator = models.ForeignKey(f'{PEOPLE}.Profile', related_name='apikey_creator_profile', on_delete=models.CASCADE)
+    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not str(self.key).startswith("knot_"):
+            self.key = f"knot_{self.key}"
+        if(len(self.key.replace("knot_",''))<32): return False
+        super(APIKey, self).save(*args, **kwargs)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    def __str__(self):
+        return self.name or self.get_id
