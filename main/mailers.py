@@ -38,7 +38,8 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
     if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=[to])
-            msg.attach_alternative(content=html, mimetype="text/html")
+            if html:
+                msg.attach_alternative(content=html, mimetype="text/html")
             msg.send()
             return True
         except Exception as e:
@@ -56,7 +57,8 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
     if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=to)
-            msg.attach_alternative(content=html, mimetype="text/html")
+            if html:
+                msg.attach_alternative(content=html, mimetype="text/html")
             msg.send()
             return True
         except Exception as e:
