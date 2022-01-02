@@ -93,3 +93,6 @@ class PerkAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
+admin.site.register(Event)
+admin.site.register(EventCompetition)

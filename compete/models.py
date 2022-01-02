@@ -26,6 +26,40 @@ def competeAssociatePath(instance, filename):
 def defaultBannerPath():
     return f"{APPNAME}/default.png"
 
+class Event(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, default="")
+    description = models.TextField(default="")
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(default=timezone.now)
+    banner = models.ImageField(upload_to=competeBannerPath, default=defaultBannerPath)
+    primary_color = models.CharField(max_length=7, default="#ffffff")
+    secondary_color = models.CharField(max_length=7, default="#000000")
+    associate = models.ImageField(upload_to=competeAssociatePath, default=defaultBannerPath)
+    is_active = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    creator = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name="event_creator")
+    competitions = models.ManyToManyField('Competition', through="EventCompetition", related_name="event_competitions", default=[])
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    def getID(self):
+        return self.get_id
+
+    def __str__(self):
+        return self.name
+
+class EventCompetition(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="event_competition_eve")
+    competition = models.ForeignKey('Competition', on_delete=models.CASCADE, related_name="event_competition_comp")
+
+    class Meta:
+        unique_together = ('event', 'competition')
 
 class Competition(models.Model):
     """
