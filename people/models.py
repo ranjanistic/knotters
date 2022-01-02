@@ -8,7 +8,7 @@ from django.core.cache import cache
 from main.bots import Github
 from main.methods import errorLog
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
-from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project
+from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot
 from moderation.models import ReportedModeration, Moderation
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -922,3 +922,51 @@ class GHMarketPurchase(models.Model):
         if self.effective_date <= timezone.now() and self.next_billing_date > timezone.now():
             return True
         return False
+
+def frameworkImagePath(instance, filename) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/frameworks/{str(instance.id)}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+
+class Framework(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=500)
+    banner = models.ImageField(upload_to=frameworkImagePath, default=None, null=True, blank=True)
+    primary_color = models.CharField(max_length=10,null=True, blank=True)
+    secondary_color = models.CharField(max_length=10,null=True, blank=True)
+    is_draft = models.BooleanField(default=True)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    trashed = models.BooleanField(default=False)
+    admirers = models.ManyToManyField(Profile, through="FrameworkAdmirer", related_name='admirers', default=[])
+
+    def __str__(self):
+        return self.name
+    
+    @property
+    def get_image(self):
+        return str(self.image)
+
+    @property
+    def total_frames(self):
+        return Frame.objects.filter(framework=self)
+
+    @property
+    def frames(self):
+        return Frame.objects.filter(framework=self)
+
+class Frame(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='frame_framework')
+    title = models.CharField(max_length=100)
+    image = models.ImageField(upload_to=frameworkImagePath, default=None, null=True, blank=True)
+    video = models.FileField(upload_to=frameworkImagePath, default=None,null=True, blank=True)
+    attachment = models.FileField(upload_to=frameworkImagePath, default=None,null=True, blank=True)
+    text = models.CharField(max_length=500)
+    snapshot = models.ForeignKey(Snapshot, related_name='frame_snapshot', on_delete=models.SET_NULL, null=True, blank=True)
+    
+
+class FrameworkAdmirer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='admirer_framework')
+    admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admirer_profile')
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)

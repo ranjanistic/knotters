@@ -7,7 +7,7 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from main.bots import Sender
 from main.methods import errorLog, addMethodToAsyncQueue
-from .models import ProfileSetting, User, Profile, defaultImagePath, isPictureDeletable
+from .models import ProfileSetting, User, Profile, defaultImagePath, isPictureDeletable, Framework, Frame
 from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert, welcomeAlert
 from .methods import getProfileImageBySocialAccount, isPictureSocialImage, getUsernameFromGHSocial
 from .apps import APPNAME
@@ -189,4 +189,31 @@ def before_social_login(request, sociallogin, **kwargs):
         user = User.objects.get(email=sociallogin.user)
         sociallogin.connect(request, user)
     except:
+        pass
+
+
+@receiver(post_delete, sender=Framework)
+def on_framework_delete(sender, instance, **kwargs):
+    """
+    Framework cleanup.
+    """
+    try:
+        if instance.banner:
+            instance.banner.delete(save=False)
+    except Exception as e:
+        pass
+    
+@receiver(post_delete, sender=Frame)
+def on_frame_delete(sender, instance, **kwargs):
+    """
+    Frame cleanup.
+    """
+    try:
+        if instance.image:
+            instance.image.delete(save=False)
+        if instance.video:
+            instance.video.delete(save=False)
+        if instance.attachment:
+            instance.attachment.delete(save=False)
+    except Exception as e:
         pass
