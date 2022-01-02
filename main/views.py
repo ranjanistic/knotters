@@ -22,10 +22,11 @@ from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
-from people.models import DisplayMentor, Profile
+from people.models import DisplayMentor, Profile, GHMarketPurchase
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
 from compete.methods import rendererstr as competeRendererstr
+from .bots import Github
 from .env import ADMINPATH, ISPRODUCTION, ISBETA
 from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
 from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON

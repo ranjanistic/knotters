@@ -121,10 +121,26 @@ class Country(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=20)
+    iso3 = models.CharField(max_length=5)
+    iso2 = models.CharField(max_length=3)
 
     def __str__(self):
         return f"{self.name} ({self.code})"
     
+    def getStates(self):
+        states = cache.get(f'model_country_data_states_{self.id}')
+        if not states:
+            states = State.objects.filter(country=self)
+            cache.set(f'model_country_data_states_{self.id}',states,settings.CACHE_ETERNAL)
+        return states
+
+    def getStatesCount(self):
+        states_count = cache.get(f'model_country_data_states_count_{self.id}')
+        if not states_count:
+            states_count = State.objects.filter(country=self).count()
+            cache.set(f'model_country_data_states_count_{self.id}',states_count,settings.CACHE_ETERNAL)
+        return states_count
+
 class State(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='state_country')
@@ -132,6 +148,7 @@ class State(models.Model):
 
     def __str__(self):
         return self.name
+    
 
 class PhoneNumber(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
