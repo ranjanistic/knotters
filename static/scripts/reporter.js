@@ -29,11 +29,9 @@ const reportFeedback = async ({
     return false;
 };
 
-
-
 const reportFeedbackView = () => {
     Swal.fire({
-        title: 'Report or Feedback',
+        title: "Report or Feedback",
         html: `
         <div class="w3-row w3-center report-feed-view" id="report-view">
             <textarea class="wide" rows="3" id="report-feed-summary" placeholder="Short description" ></textarea><br/><br/>
@@ -45,9 +43,9 @@ const reportFeedbackView = () => {
         showDenyButton: true,
         showCancelButton: true,
         showConfirmButton: true,
-        confirmButtonText: 'Send Feedback',
-        denyButtonText: 'Send Report',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: "Send Feedback",
+        denyButtonText: "Send Report",
+        cancelButtonText: "Cancel",
         focusConfirm: false,
         preConfirm: () => {
             const summary = String(
@@ -57,7 +55,7 @@ const reportFeedbackView = () => {
                 error("Short description required");
                 return false;
             }
-            return true
+            return true;
         },
         preDeny: () => {
             const summary = String(
@@ -67,31 +65,25 @@ const reportFeedbackView = () => {
                 error("Short description required");
                 return false;
             }
-            return true
-        }
-    }).then(async(result) => {
-        if(result.isDismissed) return;
+            return true;
+        },
+    }).then(async (result) => {
+        if (result.isDismissed) return;
         let data = {};
-        const summary = String(
-            getElement("report-feed-summary").value
-        ).trim();
+        const summary = String(getElement("report-feed-summary").value).trim();
         if (!summary) {
             error("Short description required");
             return false;
         }
         data["summary"] = summary;
-        data["detail"] = String(
-            getElement("report-feed-detail").value
-        ).trim();
+        data["detail"] = String(getElement("report-feed-detail").value).trim();
         data["isReport"] = result.isDenied;
-        data["email"] = String(
-            getElement("report-feed-email").value
-        ).trim();
+        data["email"] = String(getElement("report-feed-email").value).trim();
         message(`Submitting ${result.isDenied ? "report" : "feedback"}...`);
         loader();
         await reportFeedback(data);
         loader(false);
-    })
+    });
 };
 
 const violationReportDialog = async (
@@ -112,7 +104,7 @@ const violationReportDialog = async (
     });
     await Swal.fire({
         title: `Report ${reportTarget}`,
-        html:`
+        html: `
         <select class="text-medium wide" id='violation-report-category' required>
                 ${options}
             </select>
@@ -120,16 +112,17 @@ const violationReportDialog = async (
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
-        cancelButtonText:'No, go back',
+        cancelButtonText: "No, go back",
         preConfirm: () => {
-            return getElement("violation-report-category").value
-        }
-    }).then(async(result)=>{
-        if(result.isConfirmed) {
+            return getElement("violation-report-category").value;
+        },
+    }).then(async (result) => {
+        if (result.isConfirmed) {
             loader();
             message("Reporting...");
-            const data = await postRequest2({path:reportURL, 
-                data:{
+            const data = await postRequest2({
+                path: reportURL,
+                data: {
                     report: result.value,
                     ...reportTargetData,
                 },
@@ -144,14 +137,14 @@ const violationReportDialog = async (
             }
             error(data.error);
         }
-    })
+    });
 };
 
 const loadReporters = () => {
     getElements("report-button").forEach((report) => {
         report.type = "button";
-        report.addEventListener('click',()=>{
+        report.addEventListener("click", () => {
             reportFeedbackView();
-        })
+        });
     });
 };

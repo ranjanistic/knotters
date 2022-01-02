@@ -11,13 +11,13 @@ from django.db.models import Q
 from django.conf import settings
 from django.core.cache import cache
 from allauth.account.models import EmailAddress
-from main.decorators import require_JSON_body, normal_profile_required, manager_only
+from main.decorators import decode_JSON, require_JSON_body, normal_profile_required, manager_only
 from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .decorators import judge_only
-from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates
+from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates, rendererstr, rendererstrResponse
 from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
 from .apps import APPNAME
 
@@ -672,3 +672,77 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
     except Exception as e:
         errorLog(e)
         raise Http404()
+
+@decode_JSON
+def browseSearch(request: WSGIRequest):
+    json_body = request.POST.get('JSON_BODY', False)
+    try:
+        query = request.GET.get('query', request.POST.get('query', ''))
+        
+        competitions = []
+        specials = ('topic:','manager:','judge:','status:')
+        pquery = None
+        dbquery = Q()
+
+        if query.startswith(specials):
+            def specquerieslist(q):
+                return [Q(topics__name__iexact=q), Q(creator__user__first_name__istartswith=q), Q(judges__user__first_name__istartswith=q), Q()]
+            commaparts = query.split(",")
+            for cpart in commaparts:
+                if cpart.strip().lower().startswith(specials):    
+                    special, specialq = cpart.split(':')
+                    if special.strip().lower()=='status':
+                        status = specialq.strip().lower()
+                        if status == "active":
+                            dbquery = Q(dbquery, startAt__lte=timezone.now(), endAt__gte=timezone.now())
+                        if status == "history":
+                            dbquery = Q(dbquery, endAt__lt=timezone.now())
+                        if status == "upcoming":
+                            dbquery = Q(dbquery, startAt__gt=timezone.now())
+                    else:
+                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
+                else:
+                    pquery = cpart.strip()
+                    break
+        else:
+            pquery = query
+        if pquery:
+            dbquery = Q(dbquery, Q(
+                Q(title__iexact=pquery)
+                | Q(title__istartswith=pquery)
+                | Q(title__icontains=pquery)
+                | Q(title__istartswith=pquery)
+
+                | Q(tagline__istartswith=pquery)
+                | Q(tagline__icontains=pquery)
+                | Q(tagline__istartswith=pquery)
+
+                | Q(shortdescription__istartswith=pquery)
+                | Q(shortdescription__icontains=pquery)
+                | Q(shortdescription__istartswith=pquery)
+                
+                | Q(topics__name__iexact=pquery)
+                | Q(topics__name__istartswith=pquery)
+            ))
+        competitions = Competition.objects.exclude(hidden=True).filter(dbquery).order_by('title').distinct()[0:10]
+        
+        if json_body:
+            return respondJson(Code.OK, dict(
+                competitions=list(map(lambda c: dict(
+                    title=c.title,
+                    tagline=c.tagline,
+                    shortdescription=c.shortdescription,
+                    manager=c.creator.get_name,
+                    isUpcoming=c.isUpcoming(),
+                    isActive=c.isActive(),
+                    isHistory=c.isHistory(),
+                ), competitions)),
+                query=query
+            ))
+        return rendererstrResponse(request, Template.Compete.BROWSE_SEARCH, dict(competitions=competitions, query=query))
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return Http404(e)
+    

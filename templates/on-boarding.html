@@ -182,7 +182,7 @@
                 <br/>
                 <div class="w3-row">
                     <div class="w3-row">
-                        <h4>Search topics to add</h4>
+                        <h4>Search topics to drag</h4>
                         <input class="wide" type="text" placeholder="Start typing to search" id="search-topics-input" />
                     </div>                    
                 </div>
@@ -191,7 +191,7 @@
                 <div class="w3-row">
                     <h3>Your hidden talents</h3>
                     {% if request.user.profile.totalTrashedTopics %}
-                    <strong>Drag and drop to edit your visible topics.</strong>
+                    <strong>Drag to update your visible topics.</strong>
                     {% endif %}
                 </div>
                 <div class="w3-row" xyz="stagger-5 narrow-100%">
@@ -204,7 +204,7 @@
                             None that we know of.
                         </h4>
                         <h6 class="dead-text">
-                            Don't worry, you must be new here. Keep doing thigs, we'll automatically find your hidden talents soon.
+                            Don't worry, you must be new here. Keep doing thigs, we'll automatically find your hidden talents.
                         </h6>
                     </div>
                 {% endfor %}
@@ -225,7 +225,7 @@
         </div>
         <br/>
         <center><strong>
-        The +N on each topic represents your XP (experience count) in them.
+        The +N on each topic represents your XP in them.
         <br/>Don't worry if they are low, they'll increase overtime depending upon your activity on {{APPNAME}}.
         </strong></center>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
@@ -498,7 +498,7 @@
         getElement('on-boarding-step-display').innerHTML = `${current+step}/${getElements("on-boarding-view").length}`
         window.scrollTo(0,0)
     }
-    moveBoarding(Number(sessionStorage.getItem('on-boarding-step')||0))
+    moveBoarding(Number(sessionStorage.getItem('on-boarding-step') || 0))
     getElement('on-boarding-finish').onclick=_=>{
         loader()
         postRequest2({

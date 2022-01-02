@@ -1,7 +1,7 @@
 const loadBrowserSwiper = () => {
     loadCarousels({
-        container:"swiper-browser",
-        breakpoints:{
+        container: "swiper-browser",
+        breakpoints: {
             1024: {
                 slidesPerView: 4,
                 spaceBetween: 15,
@@ -18,11 +18,11 @@ const loadBrowserSwiper = () => {
                 slidesPerView: 4,
                 spaceBetween: 10,
             },
-        }
-    })
+        },
+    });
     loadCarousels({
-        container:"swiper-browser-wide",
-        breakpoints:{
+        container: "swiper-browser-wide",
+        breakpoints: {
             1024: {
                 slidesPerView: 2,
                 spaceBetween: 50,
@@ -39,8 +39,8 @@ const loadBrowserSwiper = () => {
                 slidesPerView: 2,
                 spaceBetween: 10,
             },
-        }
-    })
+        },
+    });
 };
 
 const loadBrowsers = () => {

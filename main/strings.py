@@ -481,6 +481,8 @@ class URL():
         def indexTab(self, tab):
             return setPathParams(self.INDEXTAB, tab)
 
+        BROWSE_SEARCH = 'browse/search'
+
         COMPETETABSECTION = 'competeTab/<str:compID>/<str:section>'
 
         def competeTabSection(self, compID, section):
@@ -1116,6 +1118,12 @@ class Template():
     class Compete():
         DIRNAME = COMPETE
         INDEX = "index"
+
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
 
         @property
         def index(self):

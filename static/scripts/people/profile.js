@@ -13,7 +13,11 @@ const loadTabScript = (tab) => {
                             : getElements("topic-points").map((top) =>
                                   Number(top.innerHTML)
                               ),
-                              (isMentor?COLOR.active():isModerator?COLOR.accent():COLOR.positive())
+                        isMentor
+                            ? COLOR.active()
+                            : isModerator
+                            ? COLOR.accent()
+                            : COLOR.positive()
                     );
                 });
                 if (selfProfile) {
@@ -23,27 +27,29 @@ const loadTabScript = (tab) => {
                             selectedClass: "negative",
                             deselectedClass: "primary negative-text",
                             onSelect: (btn) => {
-                                const remtopIDselem = getElement("removetopicIDs")
-                                if (
-                                    !remtopIDselem.value.includes(btn.id)
-                                )
-                                remtopIDselem.value += remtopIDselem.value
+                                const remtopIDselem =
+                                    getElement("removetopicIDs");
+                                if (!remtopIDselem.value.includes(btn.id))
+                                    remtopIDselem.value += remtopIDselem.value
                                         ? "," + btn.id
                                         : btn.id;
                                 return true;
                             },
                             onDeselect: (btn) => {
-                                let addtopids = getElement(
-                                    "addtopicIDs"
-                                ).value.split(",").filter(x=>x);
-                                let addtops = getElement("addtopics").value.split(",").filter(x=>x);
-                                let addtoplen = addtopids.length + addtops.length;
-                                
-                                let remtopids = getElement(
-                                    "removetopicIDs"
-                                ).value.split(",").filter(x=>x);
+                                let addtopids = getElement("addtopicIDs")
+                                    .value.split(",")
+                                    .filter((x) => x);
+                                let addtops = getElement("addtopics")
+                                    .value.split(",")
+                                    .filter((x) => x);
+                                let addtoplen =
+                                    addtopids.length + addtops.length;
+
+                                let remtopids = getElement("removetopicIDs")
+                                    .value.split(",")
+                                    .filter((x) => x);
                                 let remtoplen = remtopids.length;
-                                
+
                                 if (
                                     getElements("topic-existing").length -
                                         remtoplen +
@@ -53,7 +59,13 @@ const loadTabScript = (tab) => {
                                     error("Only upto 5 topics allowed");
                                     return false;
                                 }
-                                getElement("removetopicIDs").value = getElement("removetopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                                getElement("removetopicIDs").value = getElement(
+                                    "removetopicIDs"
+                                )
+                                    .value.replaceAll(btn.id, "")
+                                    .split(",")
+                                    .filter((x) => x)
+                                    .join(",");
                                 return true;
                             },
                         });
@@ -64,15 +76,18 @@ const loadTabScript = (tab) => {
                             selectedClass: "positive",
                             deselectedClass: "primary",
                             onSelect: (btn) => {
-                                let addtopids = getElement(
-                                    "addtopicIDs"
-                                ).value.split(",").filter(x=>x);
-                                let addtops = getElement("addtopics").value.split(",").filter(x=>x);
-                                let addtoplen = addtopids.length + addtops.length;
-                                
-                                let remtopids = getElement(
-                                    "removetopicIDs"
-                                ).value.split(",").filter(x=>x);
+                                let addtopids = getElement("addtopicIDs")
+                                    .value.split(",")
+                                    .filter((x) => x);
+                                let addtops = getElement("addtopics")
+                                    .value.split(",")
+                                    .filter((x) => x);
+                                let addtoplen =
+                                    addtopids.length + addtops.length;
+
+                                let remtopids = getElement("removetopicIDs")
+                                    .value.split(",")
+                                    .filter((x) => x);
                                 let remtoplen = remtopids.length;
                                 if (
                                     getElements("topic-existing").length -
@@ -83,26 +98,45 @@ const loadTabScript = (tab) => {
                                     error("Only upto 5 topics allowed");
                                     return false;
                                 }
-                                if(btn.classList.contains('topic-name')){
-                                    if (!getElement("addtopics").value.includes(btn.id))
-                                        getElement("addtopics").value += getElement("addtopics")
-                                            .value
-                                            ? "," + btn.id
-                                            : btn.id;
+                                if (btn.classList.contains("topic-name")) {
+                                    if (
+                                        !getElement("addtopics").value.includes(
+                                            btn.id
+                                        )
+                                    )
+                                        getElement("addtopics").value +=
+                                            getElement("addtopics").value
+                                                ? "," + btn.id
+                                                : btn.id;
                                 } else {
-                                    if (!getElement("addtopicIDs").value.includes(btn.id))
-                                        getElement("addtopicIDs").value += getElement("addtopicIDs")
-                                            .value
-                                            ? "," + btn.id
-                                            : btn.id;
+                                    if (
+                                        !getElement(
+                                            "addtopicIDs"
+                                        ).value.includes(btn.id)
+                                    )
+                                        getElement("addtopicIDs").value +=
+                                            getElement("addtopicIDs").value
+                                                ? "," + btn.id
+                                                : btn.id;
                                 }
                                 return true;
                             },
                             onDeselect: (btn) => {
-                                if(!btn.classList.contains('topic-name')){
-                                    getElement("addtopicIDs").value = getElement("addtopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                                if (!btn.classList.contains("topic-name")) {
+                                    getElement("addtopicIDs").value =
+                                        getElement("addtopicIDs")
+                                            .value.replaceAll(btn.id, "")
+                                            .split(",")
+                                            .filter((x) => x)
+                                            .join(",");
                                 } else {
-                                    getElement("addtopics").value = getElement("addtopics").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                                    getElement("addtopics").value = getElement(
+                                        "addtopics"
+                                    )
+                                        .value.replaceAll(btn.id, "")
+                                        .split(",")
+                                        .filter((x) => x)
+                                        .join(",");
                                 }
                                 return true;
                             },
@@ -120,8 +154,11 @@ const loadTabScript = (tab) => {
                             }
                         }
                         getElement("topics-viewer-new").innerHTML = "";
-                        const data = await postRequest(URLS.TOPICSEARCH, {
-                            query: e.target.value,
+                        const data = await postRequest2({
+                            path: URLS.TOPICSEARCH,
+                            data: {
+                                query: e.target.value,
+                            },
                         });
                         if (!data) return;
                         if (data.code === code.OK) {
@@ -140,22 +177,24 @@ const loadTabScript = (tab) => {
                                 );
                             });
                             if (buttons.length) {
-                                getElement(
-                                    "topics-viewer-new"
-                                ).innerHTML = buttons.join("");
+                                getElement("topics-viewer-new").innerHTML =
+                                    buttons.join("");
                                 loadNewTopics();
                                 loadExistingTopics();
                             } else {
                                 buttons.push(
                                     `<button type="button" class="${
-                                        getElement("addtopics").value.includes(e.target.value)
+                                        getElement("addtopics").value.includes(
+                                            e.target.value
+                                        )
                                             ? "positive"
                                             : "primary"
-                                    } topic-new topic-name" id="${e.target.value}">${Icon("add")}${
+                                    } topic-new topic-name" id="${
                                         e.target.value
-                                    }</button>`
+                                    }">${Icon("add")}${e.target.value}</button>`
                                 );
-                                getElement("topics-viewer-new").innerHTML = buttons.join("");
+                                getElement("topics-viewer-new").innerHTML =
+                                    buttons.join("");
                                 loadNewTopics();
                                 loadExistingTopics();
                             }
@@ -164,19 +203,28 @@ const loadTabScript = (tab) => {
                         }
                     };
                     loadExistingTopics();
-                }
-                if(selfProfile){
-                    getElement('save-edit-profiletopics').onclick= async ()=> {
-                        const obj = getFormDataById("edit-profile-topics-form");
-                        const resp = await postRequest(setUrlParams(URLS.TOPICSUPDATE), {
-                            addtopicIDs:obj.addtopicIDs.split(',').filter(x=>x),
-                            addtopics:obj.addtopics.split(',').filter(x=>x),
-                            removetopicIDs:obj.removetopicIDs.split(',').filter(x=>x),
-                        });
-                        if (resp.code===code.OK)
-                            return tab.click();
-                        error(resp.error)
-                    }
+                    getElement("save-edit-profiletopics").onclick =
+                        async () => {
+                            const obj = getFormDataById(
+                                "edit-profile-topics-form"
+                            );
+                            const resp = await postRequest2({
+                                path: setUrlParams(URLS.TOPICSUPDATE),
+                                data: {
+                                    addtopicIDs: obj.addtopicIDs
+                                        .split(",")
+                                        .filter((x) => x),
+                                    addtopics: obj.addtopics
+                                        .split(",")
+                                        .filter((x) => x),
+                                    removetopicIDs: obj.removetopicIDs
+                                        .split(",")
+                                        .filter((x) => x),
+                                },
+                            });
+                            if (resp.code === code.OK) return tab.click();
+                            error(resp.error);
+                        };
                 }
             }
             break;
@@ -203,12 +251,12 @@ const loadTabScript = (tab) => {
                             async () => {
                                 message("Deactivating account...");
                                 loaders(true);
-                                const data = await postRequest(
-                                    URLS.ACCOUNTACTIVATION,
-                                    {
+                                const data = await postRequest2({
+                                    path: URLS.ACCOUNTACTIVATION,
+                                    data: {
                                         deactivate: true,
-                                    }
-                                );
+                                    },
+                                });
                                 if (data && data.code === code.OK) {
                                     message(
                                         "Your account has been deactivated."
@@ -237,7 +285,7 @@ const loadTabScript = (tab) => {
                     let successorID = "";
                     let useDefault = false;
                     loader();
-                    let sdata = await postRequest(URLS.GETSUCCESSOR);
+                    let sdata = await postRequest2({ path: URLS.GETSUCCESSOR });
                     if (!sdata) return loader(sdata);
                     if (sdata.code === code.OK) {
                         successorSet = true;
@@ -305,12 +353,12 @@ const loadTabScript = (tab) => {
                                 }
                                 message("Preparing for deletion");
                                 loaders();
-                                const data = await postRequest(
-                                    URLS.ACCOUNTDELETE,
-                                    {
+                                const data = await postRequest2({
+                                    path: URLS.ACCOUNTDELETE,
+                                    data: {
                                         confirmed: true,
-                                    }
-                                );
+                                    },
+                                });
                                 if (data.code === code.OK) {
                                     return await logOut();
                                 }
@@ -335,10 +383,13 @@ const loadTabScript = (tab) => {
                     };
 
                     getElement("defaultsuccessor").onchange = async (e) => {
-                        let done = await postRequest(URLS.INVITESUCCESSOR, {
-                            set: e.target.checked,
-                            unset: !e.target.checked,
-                            useDefault: e.target.checked,
+                        let done = await postRequest2({
+                            path: URLS.INVITESUCCESSOR,
+                            data: {
+                                set: e.target.checked,
+                                unset: !e.target.checked,
+                                useDefault: e.target.checked,
+                            },
                         });
                         if (done && done.code === code.OK) {
                             useDefault = e.target.checked;
@@ -355,17 +406,19 @@ const loadTabScript = (tab) => {
                     };
                     getElement("makesuccessor").onclick = async () => {
                         let useDefault = defaultsuccessor.checked;
-                        const successorID = getElement(
-                            "successorID"
-                        ).value.trim();
+                        const successorID =
+                            getElement("successorID").value.trim();
                         if (!successorID && !useDefault)
                             return error(
                                 "Successor email required, or set default successor."
                             );
-                        const data = await postRequest(URLS.INVITESUCCESSOR, {
-                            set: true,
-                            userID: successorID || false,
-                            useDefault,
+                        const data = await postRequest2({
+                            path: URLS.INVITESUCCESSOR,
+                            data: {
+                                set: true,
+                                userID: successorID || false,
+                                useDefault,
+                            },
                         });
                         if (data && data.code === code.OK) {
                             successorSet = true;
@@ -407,10 +460,10 @@ const loadTabScript = (tab) => {
                             <br/>You can block them anytime from their profile.
                             </h6>`,
                                 async () => {
-                                    const data = await postRequest(
-                                        URLS.UNBLOCK_USER,
-                                        { userID }
-                                    );
+                                    const data = await postRequest2({
+                                        path: URLS.UNBLOCK_USER,
+                                        data: { userID },
+                                    });
                                     if (!data) return;
                                     if (data.code === code.OK) {
                                         message(`Unblocked ${username}.`);
@@ -441,8 +494,14 @@ initializeTabsView({
     },
     uniqueID: "profiletab",
     onShowTab: loadTabScript,
-    activeTabClass: isMentor?"active":isModerator?"accent":"positive",
-    inactiveTabClass: "primary " + (isMentor?"text-primary":isModerator?"text-primary":"positive-text"),
+    activeTabClass: isMentor ? "active" : isModerator ? "accent" : "positive",
+    inactiveTabClass:
+        "primary " +
+        (isMentor
+            ? "text-primary"
+            : isModerator
+            ? "text-primary"
+            : "positive-text"),
 });
 
 if (selfProfile) {
@@ -452,8 +511,18 @@ if (selfProfile) {
         },
         uniqueID: "profilestab",
         tabsClass: "set-tab",
-        activeTabClass: isMentor?"active":isModerator?"accent":"positive",
-        inactiveTabClass: "primary " + (isMentor?"text-primary":isModerator?"text-primary":"positive-text"),
+        activeTabClass: isMentor
+            ? "active"
+            : isModerator
+            ? "accent"
+            : "positive",
+        inactiveTabClass:
+            "primary " +
+            (isMentor
+                ? "text-primary"
+                : isModerator
+                ? "text-primary"
+                : "positive-text"),
         viewID: "stabview",
         spinnerID: "sloader",
         onShowTab: loadTabScript,

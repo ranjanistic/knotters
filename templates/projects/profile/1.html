@@ -162,9 +162,9 @@
                     <div id="edit-projecttopics">
                         <br/>
                         <strong class="dead-text">Total 5 topics allowed</strong>
-                        <form action="{{URLS.TOPICSUPDATE|params:project.getID}}" method="POST">
+                        <form class="no-auto" action="{{URLS.TOPICSUPDATE|params:project.getID}}" method="POST" id="edit-project-topics-form">
                             {% csrf_token %}
-                            <input class="wide" placeholder="Search topics" id="topic-search-input" />
+                            <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
                             <div class="w3-row w3-padding" id="topics-viewer">
                                 {% for topic in project.getTopics %}
                                 <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
@@ -173,6 +173,7 @@
                             </div>
                             <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
                             <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                            <input id="addtopics" name="addtopics" hidden type="text" />
                             <br/>
                             <button id="save-edit-projecttopics" data-icon="done">Save</button>
                             <button id="discard-edit-projecttopics" data-icon="close">Cancel</button>

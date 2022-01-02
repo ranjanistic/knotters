@@ -32,8 +32,8 @@
             <input class="wide primary" placeholder="{% trans "Type to search for licenses" %}" id="browse-search-input" />
         </div>
         <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
-            <button class="negative w3-right browse-search-licenses" data-icon="close" id="browse-search-clear"></button>
-            <button class="positive w3-right browse-search-licenses" data-icon="search" id="browse-search-exec"></button>
+            <button type="button" class="negative w3-right browse-search-licenses" data-icon="close" id="browse-search-clear"></button>
+            <button type="button" class="positive w3-right browse-search-licenses" data-icon="search" id="browse-search-exec"></button>
         </div>
         </form>
     </div>
@@ -78,7 +78,7 @@
 <br/>
 
 {% endblock %}
-{% block scripts %}
+{% block in_scripts %}
 <script>
 try{
   getElement("browse-search-clear").onclick=()=>{
@@ -97,6 +97,11 @@ try{
   }
   getElement("search-license-form").onsubmit=(e)=>{
       getElement("browse-search-exec").click();
+  }
+  if("{{request.GET.search}}"){
+    getElement("browse-search-input").value="{{request.GET.search}}";
+    showElement("browse-search-actions");
+    getElement("browse-search-exec").click()
   }
 }catch(e){
   console.log(e)

@@ -57,11 +57,11 @@
     <div class="w3-col w3-quarter w3-padding-small"></div>
     <form class="no-auto" id="search-people-form">
 	  <div class="w3-col w3-half w3-center w3-padding-small">
-      <input class="wide primary" placeholder="{% trans "Type to search for people" %}. Ex. type:mentor, sans" id="browse-search-input" />
+      <input class="wide primary" placeholder="{% trans "Search community as type:mentor, topic:creativity, or anything" %}." id="browse-search-input" />
     </div>
 	  <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
-    <button class="negative w3-right browse-search-profiles" data-icon="close" id="browse-search-clear"></button>
-    <button class="positive w3-right browse-search-profiles" data-icon="search" id="browse-search-exec"></button>
+    <button type="button" class="negative w3-right browse-search-profiles" data-icon="close" id="browse-search-clear"></button>
+    <button type="button" class="positive w3-right browse-search-profiles" data-icon="search" id="browse-search-exec"></button>
     </form>
     </div>
   </div>
@@ -100,7 +100,7 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block in_scripts %}
 <script>
   try{
     getElement("browse-search-clear").onclick=()=>{
@@ -118,10 +118,10 @@
       setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
     }
     getElement("search-people-form").onsubmit=(e)=>{
-      e.preventDefault()
       getElement("browse-search-exec").click()
     }
     if("{{request.GET.search}}"){
+      window.location.href="#mainframe";
       getElement("browse-search-input").value="{{request.GET.search}}";
       showElement("browse-search-actions");
       getElement("search-people-form").submit()

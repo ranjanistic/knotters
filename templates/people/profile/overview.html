@@ -36,7 +36,7 @@
                 <strong class="dead-text">{% trans "Total 5 topics allowed" %}</strong><br/>
                 <form class="no-auto" action="{{URLS.TOPICSUPDATE}}" method="POST" id="edit-profile-topics-form">
                     {% csrf_token %}
-                    <input class="wide" placeholder="Search topics" id="topic-search-input" />
+                    <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
                     <div class="w3-row w3-padding" id="topics-viewer">
                         {% for topic in profile.getTopics %}
                         <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>

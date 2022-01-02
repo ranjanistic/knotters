@@ -232,13 +232,21 @@ const blockUserView = ({ userID = "", username = "", userDP = null }) => {
     });
 };
 
-const installWebAppInstructions = (show=true) => {
+const installWebAppInstructions = (show = true) => {
     const dial = Swal.mixin({
         title: "Web App Support",
         html: `
         <div class="w3-row w3-padding">
             <h5>
-            ${isStandaloneMode()?`You may have already installed ${APPNAME} on your device.`:`${canInstallPWA()?`You might be able to install ${APPNAME} as a web app on your device`:`You may not be able to install ${APPNAME} on your device via your current browser.`}`}
+            ${
+                isStandaloneMode()
+                    ? `You may have already installed ${APPNAME} on your device.`
+                    : `${
+                          canInstallPWA()
+                              ? `You might be able to install ${APPNAME} as a web app on your device`
+                              : `You may not be able to install ${APPNAME} on your device via your current browser.`
+                      }`
+            }
             </h5>
             <div class="w3-row text-medium">
             Install ${APPNAME} as a web app by any one of the following ways.
@@ -262,14 +270,14 @@ const installWebAppInstructions = (show=true) => {
         showCancelButton: false,
         showDenyButton: false,
         didOpen: () => {
-            loadGlobalEventListeners()
+            loadGlobalEventListeners();
         },
         preConfirm: () => {},
-    })
-    if(show) dial.fire()
+    });
+    if (show) dial.fire();
 };
 
-const previewImageDialog = (src, alt='', title='') => {
+const previewImageDialog = (src, alt = "", title = "") => {
     if (!src) return;
     getElement("image-previewer").style.display = "flex";
     getElement("image-previewer").addEventListener("click", (e) => {
@@ -280,7 +288,10 @@ const previewImageDialog = (src, alt='', title='') => {
     getElement("preivew-image-src").src = src;
     getElement("preivew-image-src").alt = alt;
     getElement("preivew-image-src").title = title;
-    firstTimeMessage(KEY.previewImageInfo,"Click anywhere around the image to close preview.")
+    firstTimeMessage(
+        KEY.previewImageInfo,
+        "Click anywhere around the image to close preview."
+    );
 };
 
 const futureMessage = (message = "") => {
@@ -290,8 +301,8 @@ const futureMessage = (message = "") => {
 const futuremessage = futureMessage;
 
 const firstTimeMessage = (key, _message = "") => {
-    if(localStorage.getItem(`first-intro-${key}`) != 1){
-        message(_message)
+    if (localStorage.getItem(`first-intro-${key}`) != 1) {
+        message(_message);
         localStorage.setItem(`first-intro-${key}`, 1);
     }
-}
+};

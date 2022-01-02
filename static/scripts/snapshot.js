@@ -46,24 +46,24 @@ const loadSnapshotScroller = async () => {
             );
         }
     }
-}
+};
 const showSnapshotMoreBtn = (snapID) => {
-    getElement(`snap-modal-${snapID}`).style.display = 'flex';
+    getElement(`snap-modal-${snapID}`).style.display = "flex";
     setTimeout(() => {
-        getElement(`snap-laptop-${snapID}`).classList.add('right-snap');
-        getElement(`snap-mob-${snapID}`).classList.add('bottom-snap');
+        getElement(`snap-laptop-${snapID}`).classList.add("right-snap");
+        getElement(`snap-mob-${snapID}`).classList.add("bottom-snap");
     }, 50);
-}
+};
 const closeSnapshotMoreBtn = (snapID, event) => {
-    const snapmodal = getElement(`snap-modal-${snapID}`)
+    const snapmodal = getElement(`snap-modal-${snapID}`);
     if (event.target == snapmodal) {
-        getElement(`snap-laptop-${snapID}`).classList.remove('right-snap');
-        getElement(`snap-mob-${snapID}`).classList.remove('bottom-snap');
+        getElement(`snap-laptop-${snapID}`).classList.remove("right-snap");
+        getElement(`snap-mob-${snapID}`).classList.remove("bottom-snap");
         setTimeout(() => {
             snapmodal.style.display = "none";
-        })
+        });
     }
-}
+};
 
 const admireSnap = async (snapID) => {
     if (!snapID) return;
@@ -110,17 +110,17 @@ const deleteSnap = (snapID, projectID) => {
         title: `Delete snapshot`,
         html: `Are you sure you want to delete the snapshot?`,
         showDenyButton: true,
-        denyButtonText: 'Yes, delete',
-        confirmButtonText: 'No, wait!',
-    }).then((res)=>{
-        if(res.isDenied){
+        denyButtonText: "Yes, delete",
+        confirmButtonText: "No, wait!",
+    }).then((res) => {
+        if (res.isDenied) {
             postRequest2({
-                path:setUrlParams(
+                path: setUrlParams(
                     URLS.Projects ? URLS.Projects.SNAPSHOT : URLS.SNAPSHOT,
                     projectID,
                     "remove"
                 ),
-                data:{
+                data: {
                     snapid: snapID,
                     snapID,
                 },
@@ -129,11 +129,13 @@ const deleteSnap = (snapID, projectID) => {
                 if (data.code === code.OK) {
                     hideElement(`snap-${snapID}`);
                     message(data.message);
-                    closeSnapshotMoreBtn(snapID, {target:getElement(`snap-modal-${snapID}`)});
+                    closeSnapshotMoreBtn(snapID, {
+                        target: getElement(`snap-modal-${snapID}`),
+                    });
                 } else {
                     error(data.error);
                 }
             });
         }
-    })
+    });
 };

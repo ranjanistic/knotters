@@ -1,4 +1,5 @@
 from uuid import UUID
+import re
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
@@ -236,7 +237,12 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
 
             profiletopics = []
             for top in addtopics:
-                topic, _ = Topic.objects.get_or_create(name__iexact=top,defaults=dict(name=str(top).capitalize()))
+                if len(top) > 35:
+                    continue
+                top = re.sub('[^a-zA-Z \\\s-]', '', top)
+                if len(top) > 35:
+                    continue
+                topic, _ = Topic.objects.get_or_create(name__iexact=top,defaults=dict(name=str(top).capitalize(),creator=request.user.profile))
                 profiletopics.append(ProfileTopic(topic=topic,profile=request.user.profile))
             if len(profiletopics) > 0:
                 ProfileTopic.objects.bulk_create(profiletopics)
@@ -571,7 +577,7 @@ def browseSearch(request: WSGIRequest):
         if request.user.is_authenticated:
             excludeIDs = request.user.profile.blockedIDs
         
-        projects = []
+        profiles = []
         specials = ('topic:','type:')
         pquery = None
         is_moderator = is_mentor = is_verified = None

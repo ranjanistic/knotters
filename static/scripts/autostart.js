@@ -43,8 +43,12 @@ window.addEventListener("load", () => {
         getElements("hide-beta").forEach((elem) => hide(elem));
     }
     subLoader(false);
-    if(sessionStorage.getItem('device-theme')==1){
-        message(`Theme set to your system default. Use ${Icon('brightness_medium')} to toggle it.`)
+    if (sessionStorage.getItem("device-theme") == 1) {
+        message(
+            `Theme set to your system default. Use ${Icon(
+                "brightness_medium"
+            )} to toggle it.`
+        );
     }
 });
 
@@ -65,7 +69,7 @@ addEventListener("keydown", (e) => {
     let __prevScrollpos__ = window.pageYOffset;
     window.addEventListener("scroll", () => {
         const currentScrollPos = window.pageYOffset;
-        const navbar = getElement("navbar")
+        const navbar = getElement("navbar");
         if (__prevScrollpos__ > currentScrollPos) {
             navbar.style.top = "0";
         } else {

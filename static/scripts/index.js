@@ -90,10 +90,13 @@ const loadGlobalEventListeners = () => {
         if (localStorage.getItem(`first-intro-${view.id}`) == 1) {
             hide(view);
         } else {
-            if(!view.innerHTML.trim()) view.innerHTML = view.getAttribute("data-html");
+            if (!view.innerHTML.trim())
+                view.innerHTML = view.getAttribute("data-html");
             getElement(`close-${view.id}`).addEventListener("click", () => {
                 localStorage.setItem(`first-intro-${view.id}`, 1);
-                message(STRING.re_introduction, (t)=>{t.onclick=_=>window.location.href=URLS.LANDING});
+                message(STRING.re_introduction, (t) => {
+                    t.onclick = (_) => (window.location.href = URLS.LANDING);
+                });
                 hide(view);
             });
         }
@@ -140,7 +143,7 @@ const loadGlobalEventListeners = () => {
     getElements("preview-type-image").forEach((image) => {
         image.classList.add("pointer");
         image.addEventListener("click", (e) => {
-            previewImageDialog(e.target.src,e.target.alt, e.target.title);
+            previewImageDialog(e.target.src, e.target.alt, e.target.title);
         });
     });
 
@@ -467,7 +470,7 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
         }
     } catch (e) {
         subLoader(false);
-        if(!navigator.onLine){
+        if (!navigator.onLine) {
             error(STRING.network_error_message);
         } else error(STRING.default_error_message, true);
         return false;
@@ -495,7 +498,7 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
         }
     } catch (e) {
         subLoader(false);
-        if(!navigator.onLine){
+        if (!navigator.onLine) {
             error(STRING.network_error_message);
         } else error(STRING.default_error_message, true);
         return false;
@@ -578,9 +581,9 @@ const handleCropImageUpload = (
     ratio = 1 / 1
 ) => {
     const file = Array.from(event.target.files)[0];
-    if (file){
+    if (file) {
         loader();
-        message('Loading image...')
+        message("Loading image...");
     }
     const reader = new FileReader();
     reader.onload = (_) => {
@@ -592,8 +595,8 @@ const handleCropImageUpload = (
                 <img src="${base64String}" style="max-width:100%" id="tempprofileimageoutput" />
                 </div>`,
             showDenyButton: true,
-            denyButtonText: 'Cancel',
-            confirmButtonText: 'Confirm',
+            denyButtonText: "Cancel",
+            confirmButtonText: "Confirm",
             didOpen: () => {
                 cropImage = new Cropper(getElement("tempprofileimageoutput"), {
                     ...(ratio !== true ? { aspectRatio: ratio } : {}),
@@ -603,31 +606,29 @@ const handleCropImageUpload = (
                 });
                 loader(false);
             },
-            preConfirm: (x)=> {
-                try{
+            preConfirm: (x) => {
+                try {
                     const croppedB64 = cropImage
-                            .getCroppedCanvas()
-                            .toDataURL("image/png");
-                        if (String(croppedB64).length / 1024 / 1024 >= 10) {
-                            error(
-                                "Image too large. Preferred size < 10 MB"
-                            );
-                            return false
-                        }
-                        getElement(dataOutElemID).value = croppedB64;
-                        getElement(previewImgID).src = croppedB64;
-                        return croppedB64;
-                } catch(e) {
-                    error('',true);
-                    return false
+                        .getCroppedCanvas()
+                        .toDataURL("image/png");
+                    if (String(croppedB64).length / 1024 / 1024 >= 10) {
+                        error("Image too large. Preferred size < 10 MB");
+                        return false;
+                    }
+                    getElement(dataOutElemID).value = croppedB64;
+                    getElement(previewImgID).src = croppedB64;
+                    return croppedB64;
+                } catch (e) {
+                    error("", true);
+                    return false;
                 }
+            },
+        }).then((res) => {
+            if (res.isConfirmed) {
+                console.log(res);
+                onCropped(res.value);
             }
-        }).then((res)=>{
-            if(res.isConfirmed){
-                console.log(res)
-                onCropped(res.value)
-            }
-        })  
+        });
     };
     if (file) {
         reader.readAsDataURL(file);
@@ -946,7 +947,6 @@ const handleInputDropdowns = ({
     });
 };
 
-
 const NegativeText = (text = "") =>
     `<span class="negative-text">${text}</span>`;
 
@@ -980,14 +980,13 @@ const secsToTime = (secs) => {
     }`;
 };
 
-
 const radarChartView = (
     chartCanvas,
     labels = [],
     labelsData = [],
     colorhex = "f5d702"
 ) => {
-    colorhex = colorhex.startsWith('#') ? colorhex.slice(1) : colorhex;
+    colorhex = colorhex.startsWith("#") ? colorhex.slice(1) : colorhex;
     return new Chart(chartCanvas.getContext("2d"), {
         type: "radar",
         data: {
@@ -1060,10 +1059,10 @@ const restartIntros = () => {
 
 const getFormDataById = (id) => {
     let elements = getElement(id).elements;
-    let obj ={};
-    for(let i = 0 ; i < elements.length ; i++){
+    let obj = {};
+    for (let i = 0; i < elements.length; i++) {
         let item = elements.item(i);
         obj[item.name] = item.value;
     }
     return obj;
-}
+};

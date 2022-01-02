@@ -2,14 +2,14 @@
  * Client device/browser related controls & settings
  */
 
- window.addEventListener("beforeinstallprompt", (e) => {
+window.addEventListener("beforeinstallprompt", (e) => {
     __appInstallPromptEvent = e;
 });
 
-window.addEventListener('appinstalled', () => {
+window.addEventListener("appinstalled", () => {
     installWebAppInstructions(false);
     __appInstallPromptEvent = null;
-    success('App installed successfully')
+    success("App installed successfully");
 });
 
 const __clearCacheByPath__ = async (path) => {
@@ -84,7 +84,7 @@ const windowScrollState = (enable = true) => {
     var wheelOpt = supportsPassive ? { passive: false } : false;
     var wheelEvent =
         "onwheel" in document.createElement("div") ? "wheel" : "mousewheel";
-        
+
     function disableScroll() {
         window.addEventListener("DOMMouseScroll", preventDefault, false); // older FF
         window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
@@ -110,35 +110,32 @@ const isStandaloneMode = (_) =>
     window.navigator.standalone ||
     document.referrer.includes("android-app://");
 
-const canInstallPWA = (_) => window.navigator.serviceWorker?true:false;
+const canInstallPWA = (_) => (window.navigator.serviceWorker ? true : false);
 
-const refresh = ({
-    fullLoad=false,
-    subload=true
-}) => {
-    if(subload) subLoader(subload)
-    if(fullLoad) loader(fullLoad)
+const refresh = ({ fullLoad = false, subload = true }) => {
+    if (subload) subLoader(subload);
+    if (fullLoad) loader(fullLoad);
     window.location.reload();
-}
+};
 
 const refer = ({
     path = window.location.pathname,
-    query = {}, 
+    query = {},
     fullLoad = false,
-    subload=true
+    subload = true,
 }) => {
-    if(subload) subLoader(subload)
-    if(fullLoad) loader(fullLoad)
+    if (subload) subLoader(subload);
+    if (fullLoad) loader(fullLoad);
     window.location.href = setUrlQueries(path, query);
-}
+};
 
 const relocate = ({
     path = window.location.pathname,
-    query = {}, 
+    query = {},
     fullLoad = false,
-    subload=true
+    subload = true,
 }) => {
-    if(subload) subLoader(subload)
-    if(fullLoad) loader(fullLoad)
+    if (subload) subLoader(subload);
+    if (fullLoad) loader(fullLoad);
     window.location.replace(setUrlQueries(path, query));
-}
+};

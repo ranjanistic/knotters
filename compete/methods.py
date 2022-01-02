@@ -19,8 +19,10 @@ from .apps import APPNAME
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
 
+def rendererstrResponse(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    return HttpResponse(rendererstr(request, file, data))
 
-def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> str:
     return renderString(request, file, data, fromApp=APPNAME)
 
 

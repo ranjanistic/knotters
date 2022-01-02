@@ -80,9 +80,9 @@ const loadTabScript = (attr, tab) => {
                             };
                         });
                         try {
-                            getElement("invitepeople").onclick = async (_) => {                        
+                            getElement("invitepeople").onclick = async (_) => {
                                 await Swal.fire({
-                                    title: 'Invite teammate',
+                                    title: "Invite teammate",
                                     html: `
                                     <div class="w3-row">
                                         <h5>Type the email address or Github ID of the person to invite them to participate with you.</h5>
@@ -92,25 +92,31 @@ const loadTabScript = (attr, tab) => {
                                     `,
                                     showCancelButton: true,
                                     showConfirmButton: true,
-                                    confirmButtonText: 'Send Invitation',
-                                    cancelButtonText: 'Cancel',
-                                    preConfirm : async () => {
+                                    confirmButtonText: "Send Invitation",
+                                    cancelButtonText: "Cancel",
+                                    preConfirm: async () => {
                                         const userID = String(
                                             getElement("dialoginviteeID").value
                                         ).trim();
                                         if (!userID) {
-                                            getElement("dialoginviteerr").innerHTML = "Please enter a valid ID";
-                                            return false
+                                            getElement(
+                                                "dialoginviteerr"
+                                            ).innerHTML =
+                                                "Please enter a valid ID";
+                                            return false;
                                         }
-                                        return true
-                                    }
-                                }).then(async(result)=> {
-                                    if(result.isConfirmed){
+                                        return true;
+                                    },
+                                }).then(async (result) => {
+                                    if (result.isConfirmed) {
                                         const userID = String(
                                             getElement("dialoginviteeID").value
                                         ).trim();
                                         if (!userID) {
-                                            getElement("dialoginviteerr").innerHTML = "Please enter a valid ID";
+                                            getElement(
+                                                "dialoginviteerr"
+                                            ).innerHTML =
+                                                "Please enter a valid ID";
                                         }
                                         const data = await postRequest(
                                             setUrlParams(
@@ -125,14 +131,16 @@ const loadTabScript = (attr, tab) => {
                                             );
                                             tab.click();
                                         } else {
-                                            getElement("dialoginviteerr").innerHTML = data.error;
+                                            getElement(
+                                                "dialoginviteerr"
+                                            ).innerHTML = data.error;
                                         }
                                     }
-                                })
+                                });
                             };
                             getElement("finalsubmit").onclick = async (_) => {
                                 await Swal.fire({
-                                    title: 'Final submission',
+                                    title: "Final submission",
                                     html: `
                                     <div class="w3-row">
                                         <h3>Are you sure you want to <strong>submit</strong>?</h3>
@@ -145,31 +153,44 @@ const loadTabScript = (attr, tab) => {
                                     showCancelButton: true,
                                     showConfirmButton: true,
                                     showDenyButton: true,
-                                    confirmButtonText: 'Verify submission',
-                                    cancelButtonText: 'No, not yet',
-                                    denyButtonText: 'Yes, submit now',
+                                    confirmButtonText: "Verify submission",
+                                    cancelButtonText: "No, not yet",
+                                    denyButtonText: "Yes, submit now",
                                     focusConfirm: false,
-                                }).then(async(result)=> {
-                                    if(result.isDismissed){
-                                        message('Not submitted yet')
+                                }).then(async (result) => {
+                                    if (result.isDismissed) {
+                                        message("Not submitted yet");
                                     } else if (result.isConfirmed) {
-                                        const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
-                                        if(!suburl){
-                                            error('No submission URL saved!')
-                                            return
+                                        const suburl = getElement(
+                                            "submissionurl"
+                                        )
+                                            .getAttribute("data-saved")
+                                            .trim();
+                                        if (!suburl) {
+                                            error("No submission URL saved!");
+                                            return;
                                         }
-                                        miniWindow(suburl, 'Submission')
-                                        return false
-                                    } else if(result.isDenied){
-                                        const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
-                                        const nsuburl = getElement("submissionurl").value.trim();
-                                        if(!suburl){
-                                            error('No submission URL saved!')
-                                            return
+                                        miniWindow(suburl, "Submission");
+                                        return false;
+                                    } else if (result.isDenied) {
+                                        const suburl = getElement(
+                                            "submissionurl"
+                                        )
+                                            .getAttribute("data-saved")
+                                            .trim();
+                                        const nsuburl =
+                                            getElement(
+                                                "submissionurl"
+                                            ).value.trim();
+                                        if (!suburl) {
+                                            error("No submission URL saved!");
+                                            return;
                                         }
-                                        if (suburl != nsuburl){
-                                            error('Submission URL changed, save before submitting!')
-                                            return false
+                                        if (suburl != nsuburl) {
+                                            error(
+                                                "Submission URL changed, save before submitting!"
+                                            );
+                                            return false;
                                         }
                                         const data = await postRequest(
                                             setUrlParams(
@@ -185,7 +206,7 @@ const loadTabScript = (attr, tab) => {
                                             error(data.error);
                                         }
                                     }
-                                })
+                                });
                             };
                         } catch {}
                     }
@@ -206,31 +227,40 @@ const loadTabScript = (attr, tab) => {
                                 showCancelButton: true,
                                 showConfirmButton: true,
                                 showDenyButton: true,
-                                confirmButtonText: 'Verify submission',
-                                cancelButtonText: 'No, not yet (later)',
-                                denyButtonText: 'Yes, submit now (late)',
+                                confirmButtonText: "Verify submission",
+                                cancelButtonText: "No, not yet (later)",
+                                denyButtonText: "Yes, submit now (late)",
                                 focusConfirm: false,
-                            }).then(async(result)=> {
-                                if(result.isDismissed){
-                                    message('Not submitted yet')
+                            }).then(async (result) => {
+                                if (result.isDismissed) {
+                                    message("Not submitted yet");
                                 } else if (result.isConfirmed) {
-                                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
-                                    if(!suburl){
-                                        error('No submission URL saved!')
-                                        return
+                                    const suburl = getElement("submissionurl")
+                                        .getAttribute("data-saved")
+                                        .trim();
+                                    if (!suburl) {
+                                        error("No submission URL saved!");
+                                        return;
                                     }
-                                    miniWindow(suburl, 'Submission')
-                                    return false
-                                } else if(result.isDenied){
-                                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
-                                    const nsuburl = getElement("submissionurl").value.trim();
-                                    if(!suburl){
-                                        error('No submission URL saved!')
-                                        return
+                                    miniWindow(suburl, "Submission");
+                                    return false;
+                                } else if (result.isDenied) {
+                                    const suburl = getElement("submissionurl")
+                                        .getAttribute("data-saved")
+                                        .trim();
+                                    const nsuburl =
+                                        getElement(
+                                            "submissionurl"
+                                        ).value.trim();
+                                    if (!suburl) {
+                                        error("No submission URL saved!");
+                                        return;
                                     }
-                                    if (suburl != nsuburl){
-                                        error('Submission URL changed, save before submitting!')
-                                        return false
+                                    if (suburl != nsuburl) {
+                                        error(
+                                            "Submission URL changed, save before submitting!"
+                                        );
+                                        return false;
                                     }
                                     const data = await postRequest(
                                         setUrlParams(
@@ -246,7 +276,7 @@ const loadTabScript = (attr, tab) => {
                                         error(data.error);
                                     }
                                 }
-                            })
+                            });
                         };
                     } catch {}
                 }
@@ -285,7 +315,7 @@ const loadTabScript = (attr, tab) => {
     try {
         getElement("finalsubmit").onclick = async (_) => {
             await Swal.fire({
-                title: 'Final submission',
+                title: "Final submission",
                 html: `
                 <div class="w3-row">
                     <h3>Are you sure you want to <strong>submit</strong>?</h3>
@@ -298,38 +328,40 @@ const loadTabScript = (attr, tab) => {
                 showCancelButton: true,
                 showConfirmButton: true,
                 showDenyButton: true,
-                confirmButtonText: 'Verify submission',
-                cancelButtonText: 'Cancel',
-                denyButtonText: 'Final Submit',
+                confirmButtonText: "Verify submission",
+                cancelButtonText: "Cancel",
+                denyButtonText: "Final Submit",
                 focusConfirm: false,
-            }).then(async(result)=> {
-                if(result.isDismissed){
-                    message('Not submitted yet')
+            }).then(async (result) => {
+                if (result.isDismissed) {
+                    message("Not submitted yet");
                 } else if (result.isConfirmed) {
-                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
-                    if(!suburl){
-                        error('No submission URL saved!')
-                        return
+                    const suburl = getElement("submissionurl")
+                        .getAttribute("data-saved")
+                        .trim();
+                    if (!suburl) {
+                        error("No submission URL saved!");
+                        return;
                     }
-                    miniWindow(suburl, 'Submission')
-                    return false
-                } else if(result.isDenied){
-                    const suburl = getElement("submissionurl").getAttribute('data-saved').trim()
+                    miniWindow(suburl, "Submission");
+                    return false;
+                } else if (result.isDenied) {
+                    const suburl = getElement("submissionurl")
+                        .getAttribute("data-saved")
+                        .trim();
                     const nsuburl = getElement("submissionurl").value.trim();
-                    if(!suburl){
-                        error('No submission URL saved!')
-                        return
+                    if (!suburl) {
+                        error("No submission URL saved!");
+                        return;
                     }
-                    if (suburl != nsuburl){
-                        error('Submission URL changed, save before submitting!')
-                        return false
+                    if (suburl != nsuburl) {
+                        error(
+                            "Submission URL changed, save before submitting!"
+                        );
+                        return false;
                     }
                     const data = await postRequest(
-                        setUrlParams(
-                            URLS.SUBMIT,
-                            compID,
-                            compdata.subID
-                        )
+                        setUrlParams(URLS.SUBMIT, compID, compdata.subID)
                     );
                     if (data.code === code.OK) {
                         success(data.message);
@@ -338,7 +370,7 @@ const loadTabScript = (attr, tab) => {
                         error(data.error);
                     }
                 }
-            })
+            });
         };
     } catch {}
 };

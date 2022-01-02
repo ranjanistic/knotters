@@ -4,11 +4,10 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% if count %}
-<div class="w3-row active">
-    <div class="w3-row" style="padding:16px 4px">
-    <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">{% trans "More" %}</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Latest Competitions" %}</h4>
+{% if query %}
+<div class="w3-row tertiary">
+    <div class="w3-row" style="padding:12px 4px">
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Results for '{{query}}'{% endblocktrans %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser-wide">
         <div class="swiper-wrapper swiper-wrap">
@@ -32,8 +31,8 @@
             {% empty %}
             <div class="w3-padding w3-col">
             <center class="w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No results yet." %}</h3>
+                <i class="w3-jumbo">search</i>
+                <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
             </center>
             </div>
 			{% endfor %} 
@@ -63,8 +62,8 @@
             {% empty %}
             <div class="w3-padding w3-col">
             <center class="w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No latest competitions." %}</h3>
+                <i class="w3-jumbo">search</i>
+                <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
             </center>
             </div>
 			{% endfor %} 

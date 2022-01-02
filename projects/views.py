@@ -1,3 +1,4 @@
+import re
 from uuid import UUID
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
@@ -449,13 +450,15 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
+        addtopics = request.POST.get('addtopics', None)
+
         project = BaseProject.objects.get(
             id=projID, creator=request.user.profile, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
 
-        if not (addtopicIDs or removetopicIDs):
+        if not (addtopicIDs or removetopicIDs or addtopics):
             if json_body:
                 return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
             return redirect(project.getLink(error=Message.NO_TOPICS_SELECTED))
@@ -483,6 +486,31 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 project.topics.add(topic)
                 for tag in project.getTags:
                     topic.tags.add(tag)
+        
+        if addtopics and len(addtopics) > 0:
+            count = ProjectTopic.objects.filter(project=project).count()
+            if not json_body:
+                addtopics = addtopics.strip(',').split(',')
+            if count + len(addtopics) > 5:
+                if json_body:
+                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
+
+            projecttopics = []
+            for top in addtopics:
+                if len(top) > 35:
+                    continue
+                top = re.sub('[^a-zA-Z \\\s-]', '', top)
+                if len(top) > 35:
+                    continue
+                topic, created = Topic.objects.get_or_create(name__iexact=top,defaults=dict(name=str(top).capitalize(),creator=request.user.profile))
+                if created:
+                    for tag in project.getTags:
+                        topic.tags.add(tag)
+                projecttopics.append(ProjectTopic(topic=topic,project=project))
+            if len(projecttopics) > 0:
+                ProjectTopic.objects.bulk_create(projecttopics)
+
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))

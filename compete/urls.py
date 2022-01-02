@@ -4,6 +4,7 @@ from .views import *
 
 urlpatterns = [
     path(URL.INDEX, index),
+    path(URL.Compete.BROWSE_SEARCH, browseSearch),
     path(URL.Compete.INDEXTAB, indexTab),
     path(URL.Compete.COMPETETABSECTION, competitionTab),
     path(URL.Compete.COMPID, competition),

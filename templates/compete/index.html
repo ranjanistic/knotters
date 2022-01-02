@@ -59,6 +59,21 @@
   </div>">
 </div>
 <div class="w3-row tertiary" id="mainframe" style="min-height:50vh">
+    <div class="w3-row tertiary w3-padding">
+        <div class="w3-col w3-quarter w3-padding-small">
+        </div>
+        <form class="no-auto" id="search-compete-form">
+        <div class="w3-col w3-half w3-center w3-padding-small">
+            <input class="wide primary" placeholder="{% trans "Search competitions as status:history, topic:Design, or anything" %}" id="browse-search-input" />
+        </div>
+        <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
+            <button type="button" class="negative w3-right browse-search-compete" data-icon="close" id="browse-search-clear"></button>
+            <button type="button" class="positive w3-right browse-search-compete" data-icon="search" id="browse-search-exec"></button>
+        </div>
+        </form>
+    </div>
+    <div class="w3-row search-view" data-search-type="licenses" id='browse-search-view'>
+    </div>
     <div class="w3-row browser-view" data-type="latest-competitions" id='latest-competitions-view'>
     </div>
   	<div class="w3-row w3-center">
@@ -76,6 +91,36 @@
 </div>
 {% endblock %} 
 
+{% block in_scripts %}
+<script>
+try{
+  getElement("browse-search-clear").onclick=()=>{
+    getElement("browse-search-view").innerHTML='';
+    hideElement("browse-search-actions");
+  }
+  getElement("browse-search-input").oninput=(e)=>{
+    visibleElement("browse-search-actions", String(e.target.value).trim())
+  }
+  getElement("browse-search-exec").onclick=async()=>{
+    let query = String(getElement("browse-search-input").value).trim();
+    if(!query) return message('{% trans "Type something to search competitions" %}')
+    const data = await getRequest2({path:URLS.BROWSE_SEARCH,data:{query}})
+    if(!data) return
+    setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
+  }
+  getElement("search-compete-form").onsubmit=(e)=>{
+      getElement("browse-search-exec").click();
+  }
+  if("{{request.GET.search}}"){
+    getElement("browse-search-input").value="{{request.GET.search}}";
+    showElement("browse-search-actions");
+    getElement("browse-search-exec").click()
+  }
+}catch(e){
+  console.log(e)
+}
+</script>
+{% endblock %}
 {% block scripts %}
 <script src="{% static 'scripts/compete/index.js' %}"  type="text/javascript"></script>
 {% endblock %}

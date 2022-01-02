@@ -1,3 +1,5 @@
+# import mimetypes
+
 import os
 from pathlib import Path
 from .strings import url, DIVISIONS, PEOPLE, AUTH
@@ -13,6 +15,8 @@ DEBUG = not env.ISPRODUCTION
 ALLOWED_HOSTS = env.HOSTS
 SERVER_EMAIL = env.SERVER_EMAIL
 ADMINS = [(env.PUBNAME, env.MAILUSER)]
+
+# mimetypes.add_type("text/javascript", ".js", True)
 
 INSTALLED_APPS = [
     "django.contrib.admin",

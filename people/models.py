@@ -181,6 +181,8 @@ class Address(models.Model):
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
+    creator = models.ForeignKey("Profile", on_delete=models.SET_NULL, related_name='topic_creator', null=True, blank=True)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now, null=True, blank=True)
     tags = models.ManyToManyField(
         f'{PROJECTS}.Tag', default=[], through='TopicTag')
 

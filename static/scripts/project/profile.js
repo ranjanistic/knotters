@@ -1,4 +1,3 @@
-
 if (selfProject) {
     getElement("uploadprojectimage").onchange = (e) => {
         handleCropImageUpload(
@@ -12,29 +11,33 @@ if (selfProject) {
         );
     };
 
-    
-
     const loadExistingTopics = () => {
         initializeMultiSelector({
             candidateClass: "topic-existing",
             selectedClass: "negative",
             deselectedClass: "primary negative-text",
             onSelect: (btn) => {
-                if (!getElement("removetopicIDs").value.includes(btn.id))
-                    getElement("removetopicIDs").value += getElement(
-                        "removetopicIDs"
-                    ).value
+                const remtopIDselem = getElement("removetopicIDs");
+                if (!remtopIDselem.value.includes(btn.id))
+                    remtopIDselem.value += remtopIDselem.value
                         ? "," + btn.id
                         : btn.id;
                 return true;
             },
             onDeselect: (btn) => {
-                let addtopids = getElement("addtopicIDs").value.split(",").filter(x=>x)
-                let addtoplen = addtopids.length;
-                
-                let remtopids = getElement("removetopicIDs").value.split(",").filter(x=>x);
+                let addtopids = getElement("addtopicIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtops = getElement("addtopics")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtoplen = addtopids.length + addtops.length;
+
+                let remtopids = getElement("removetopicIDs")
+                    .value.split(",")
+                    .filter((x) => x);
                 let remtoplen = remtopids.length;
-                
+
                 if (
                     getElements("topic-existing").length -
                         remtoplen +
@@ -44,7 +47,13 @@ if (selfProject) {
                     error("Only upto 5 topics allowed");
                     return false;
                 }
-                getElement("removetopicIDs").value = getElement("removetopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                getElement("removetopicIDs").value = getElement(
+                    "removetopicIDs"
+                )
+                    .value.replaceAll(btn.id, "")
+                    .split(",")
+                    .filter((x) => x)
+                    .join(",");
                 return true;
             },
         });
@@ -55,11 +64,18 @@ if (selfProject) {
             selectedClass: "positive",
             deselectedClass: "primary",
             onSelect: (btn) => {
-                let addtopids = getElement("addtopicIDs").value.split(",").filter(x=>x);
-                let addtoplen = addtopids.length;
-                let remtopids = getElement("removetopicIDs").value.split(",").filter(x=>x);
+                let addtopids = getElement("addtopicIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtops = getElement("addtopics")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtoplen = addtopids.length + addtops.length;
+
+                let remtopids = getElement("removetopicIDs")
+                    .value.split(",")
+                    .filter((x) => x);
                 let remtoplen = remtopids.length;
-                
                 if (
                     getElements("topic-existing").length -
                         remtoplen +
@@ -69,15 +85,36 @@ if (selfProject) {
                     error("Only upto 5 topics allowed");
                     return false;
                 }
-                if (!getElement("addtopicIDs").value.includes(btn.id))
-                    getElement("addtopicIDs").value += getElement("addtopicIDs")
-                        .value
-                        ? "," + btn.id
-                        : btn.id;
+                if (btn.classList.contains("topic-name")) {
+                    if (!getElement("addtopics").value.includes(btn.id))
+                        getElement("addtopics").value += getElement("addtopics")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                } else {
+                    if (!getElement("addtopicIDs").value.includes(btn.id))
+                        getElement("addtopicIDs").value += getElement(
+                            "addtopicIDs"
+                        ).value
+                            ? "," + btn.id
+                            : btn.id;
+                }
                 return true;
             },
             onDeselect: (btn) => {
-                getElement("addtopicIDs").value = getElement("addtopicIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                if (!btn.classList.contains("topic-name")) {
+                    getElement("addtopicIDs").value = getElement("addtopicIDs")
+                        .value.replaceAll(btn.id, "")
+                        .split(",")
+                        .filter((x) => x)
+                        .join(",");
+                } else {
+                    getElement("addtopics").value = getElement("addtopics")
+                        .value.replaceAll(btn.id, "")
+                        .split(",")
+                        .filter((x) => x)
+                        .join(",");
+                }
                 return true;
             },
         });
@@ -94,12 +131,12 @@ if (selfProject) {
             }
         }
         getElement("topics-viewer-new").innerHTML = "";
-        const data = await postRequest(
-            setUrlParams(URLS.TOPICSEARCH, projectID),
-            {
+        const data = await postRequest2({
+            path: setUrlParams(URLS.TOPICSEARCH, projectID), 
+            data:{
                 query: e.target.value,
             }
-        );
+        });
         if (!data) return;
         if (data.code === code.OK) {
             let buttons = [];
@@ -119,16 +156,41 @@ if (selfProject) {
                 loadNewTopics();
                 loadExistingTopics();
             } else {
-                getElement(
-                    "topics-viewer-new"
-                ).innerHTML = `No topics for '${e.target.value}'`;
+                buttons.push(
+                    `<button type="button" class="${
+                        getElement("addtopics").value.includes(e.target.value)
+                            ? "positive"
+                            : "primary"
+                    } topic-new topic-name" id="${e.target.value}">${Icon(
+                        "add"
+                    )}${e.target.value}</button>`
+                );
+                getElement("topics-viewer-new").innerHTML = buttons.join("");
+                loadNewTopics();
+                loadExistingTopics();
             }
         } else {
             error(data.error);
         }
     };
     loadExistingTopics();
-    
+    getElement("save-edit-projecttopics").onclick = async () => {
+        const obj = getFormDataById("edit-project-topics-form");
+        const resp = await postRequest2({
+            path:setUrlParams(URLS.TOPICSUPDATE,projectID), 
+            data:{
+                addtopicIDs: obj.addtopicIDs.split(",").filter((x) => x),
+                addtopics: obj.addtopics.split(",").filter((x) => x),
+                removetopicIDs: obj.removetopicIDs.split(",").filter((x) => x),
+            }
+        });
+        if (resp.code === code.OK){
+            subLoader()
+            return window.location.reload();
+        }
+        error(resp.error);
+    };
+
     const loadExistingTags = () => {
         initializeMultiSelector({
             candidateClass: "tag-existing",
@@ -144,10 +206,16 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                let addtagids = getElement("addtagIDs").value.split(",").filter(x=>x);
-                let addtags = getElement("addtags").value.split(",").filter(x=>x);
+                let addtagids = getElement("addtagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtags = getElement("addtags")
+                    .value.split(",")
+                    .filter((x) => x);
                 let addtaglen = addtagids.length + addtags.length;
-                let remtagids = getElement("removetagIDs").value.split(",").filter(x=>x);
+                let remtagids = getElement("removetagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
                 let remtaglen = remtagids.length;
                 if (
                     getElements("tag-existing").length -
@@ -158,8 +226,12 @@ if (selfProject) {
                     error("Only upto 5 tags allowed");
                     return false;
                 }
-                
-                getElement("removetagIDs").value=getElement("removetagIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",")
+
+                getElement("removetagIDs").value = getElement("removetagIDs")
+                    .value.replaceAll(btn.id, "")
+                    .split(",")
+                    .filter((x) => x)
+                    .join(",");
                 return true;
             },
         });
@@ -170,12 +242,18 @@ if (selfProject) {
             selectedClass: "positive",
             deselectedClass: "primary",
             onSelect: (btn) => {
-                let addtagids = getElement("addtagIDs").value.split(",").filter(x=>x);
-                let addtags = getElement("addtags").value.split(",").filter(x=>x);
+                let addtagids = getElement("addtagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtags = getElement("addtags")
+                    .value.split(",")
+                    .filter((x) => x);
                 let addtaglen = addtagids.length + addtags.length;
-                let remtagids = getElement("removetagIDs").value.split(",").filter(x=>x);
+                let remtagids = getElement("removetagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
                 let remtaglen = remtagids.length;
-                
+
                 if (
                     getElements("tag-existing").length -
                         remtaglen +
@@ -185,7 +263,7 @@ if (selfProject) {
                     error("Only upto 5 tags allowed");
                     return false;
                 }
-                if(btn.classList.contains('tag-name')){
+                if (btn.classList.contains("tag-name")) {
                     if (!getElement("addtags").value.includes(btn.id))
                         getElement("addtags").value += getElement("addtags")
                             .value
@@ -201,10 +279,18 @@ if (selfProject) {
                 return true;
             },
             onDeselect: (btn) => {
-                if(!btn.classList.contains('tag-name')){
-                    getElement("addtagIDs").value = getElement("addtagIDs").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                if (!btn.classList.contains("tag-name")) {
+                    getElement("addtagIDs").value = getElement("addtagIDs")
+                        .value.replaceAll(btn.id, "")
+                        .split(",")
+                        .filter((x) => x)
+                        .join(",");
                 } else {
-                    getElement("addtags").value = getElement("addtags").value.replaceAll(btn.id, "").split(",").filter(x=>x).join(",");
+                    getElement("addtags").value = getElement("addtags")
+                        .value.replaceAll(btn.id, "")
+                        .split(",")
+                        .filter((x) => x)
+                        .join(",");
                 }
                 return true;
             },
@@ -222,12 +308,12 @@ if (selfProject) {
             }
         }
         getElement("tags-viewer-new").innerHTML = "";
-        const data = await postRequest(
-            setUrlParams(URLS.TAGSEARCH, projectID),
-            {
+        const data = await postRequest2({
+            path: setUrlParams(URLS.TAGSEARCH, projectID),
+            data: {
                 query: e.target.value,
             }
-        );
+        });
         if (!data) return;
         if (data.code === code.OK) {
             let buttons = [];
@@ -259,9 +345,6 @@ if (selfProject) {
                 getElement("tags-viewer-new").innerHTML = buttons.join("");
                 loadNewTags();
                 loadExistingTags();
-                // getElement(
-                //     "tags-viewer-new"
-                // ).innerHTML = `No tags for '${e.target.value}'`;
             }
         } else {
             error(data.error);
@@ -269,7 +352,7 @@ if (selfProject) {
     };
     loadExistingTags();
 }
-if(ismoderator || selfProject) {
+if (ismoderator || selfProject) {
     getElement("snap-file").onchange = (e) => {
         handleCropImageUpload(
             e,
@@ -306,7 +389,7 @@ loadsnaps.onclick = (_) => {
     ).then((data) => {
         if (data === false) {
             currentsnapsview.innerHTML = loadErrorHTML();
-            return
+            return;
         }
         if (!String(data).trim()) {
             if (snapstart < 1) {
@@ -320,24 +403,35 @@ loadsnaps.onclick = (_) => {
         snapstart = snapend;
         snapend = snapstart + 10;
         show(loadsnaps);
-        getElements('delete-snapshot').forEach((btn) => {
+        getElements("delete-snapshot").forEach((btn) => {
             btn.onclick = (e) => {
-                alertify.confirm('Delete snapshot', 
-                "Are you sure you want to delete snapshot?",
-                ()=>{
-                    postRequest(
-                        setUrlParams(URLS.SNAPSHOT, projectID, "remove"), {
-                            snapid:btn.getAttribute("data-snapid")
-                        }
-                    ).then((data) => {
-                        if (data.code === code.OK) {
-                            btn.parentElement.remove();
-                            message(data.message);
-                        } else {
-                            error(data.error);
-                        }
-                    });
-                }, ()=>{}).set('labels', {ok:'Yes', cancel:'No'}).set('closable', false);
+                alertify
+                    .confirm(
+                        "Delete snapshot",
+                        "Are you sure you want to delete snapshot?",
+                        () => {
+                            postRequest2({
+                                path:setUrlParams(
+                                    URLS.SNAPSHOT,
+                                    projectID,
+                                    "remove"
+                                ),
+                                data:{
+                                    snapid: btn.getAttribute("data-snapid"),
+                                }
+                            }).then((data) => {
+                                if (data.code === code.OK) {
+                                    btn.parentElement.remove();
+                                    message(data.message);
+                                } else {
+                                    error(data.error);
+                                }
+                            });
+                        },
+                        () => {}
+                    )
+                    .set("labels", { ok: "Yes", cancel: "No" })
+                    .set("closable", false);
             };
         });
     });
@@ -351,7 +445,7 @@ const loadLiveData = async () => {
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {
-        const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID))
+        const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID));
         if (!data || data.code !== code.OK) {
             setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
             setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
