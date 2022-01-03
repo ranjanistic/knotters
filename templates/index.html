@@ -177,7 +177,7 @@
         <div style="min-height: 50vh;">
             {% block content %}
             <div class="w3-row">
-                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:80vh;"
+                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:70vh;"
                     data-html="
                     <br/>
                     <div class='w3-row'>
@@ -198,7 +198,9 @@
                                 {% endif %}
                             </div>
                             <br/>
+                             {% if request.user.is_authenticated %}
                             <span class='text-medium dead-text'>Click I'm ready to hide this.</span>
+                             {% endif %}
                         </div>
                         <div class='w3-col w3-half'>
                             <img src='{{ICON}}' width='70%' class='darkimg' />
