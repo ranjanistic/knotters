@@ -190,8 +190,12 @@
                             </div>
                             <div class='w3-row'>
                                 <a href='{% if request.user.is_authenticated %}{{URLS.ON_BOARDING}}{% else %}{{URLS.LANDING}}{% endif %}'><button class='big-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
-                                
+                                {% if request.user.is_authenticated %}
                                 <button class='big-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
+                                {% else %}
+                                 <span id='close-intro-banner' hidden></span>
+                                 <a href="{% url 'account_signup' %}?next={{request.path}}"><button class='big-button positive' data-icon='person_add'>{% trans "Sign up" %}</button></a>
+                                {% endif %}
                             </div>
                             <br/>
                             <span class='text-medium dead-text'>Click I'm ready to hide this.</span>
