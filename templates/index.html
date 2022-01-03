@@ -194,7 +194,7 @@
                                 <button class='big-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
                                 {% else %}
                                  <span id='close-intro-banner' hidden></span>
-                                 <a href="{% url 'account_signup' %}?next={{request.path}}"><button class='big-button positive' data-icon='person_add'>{% trans "Sign up" %}</button></a>
+                                 <a href='{% url 'account_signup' %}?next={{request.path}}'><button class='big-button positive' data-icon='person_add'>{% trans "Sign up" %}</button></a>
                                 {% endif %}
                             </div>
                             <br/>
