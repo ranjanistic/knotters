@@ -28,18 +28,20 @@ def defaultBannerPath():
 
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, default="")
-    description = models.TextField(default="")
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(default=timezone.now)
-    banner = models.ImageField(upload_to=competeBannerPath, default=defaultBannerPath)
-    primary_color = models.CharField(max_length=7, default="#ffffff")
-    secondary_color = models.CharField(max_length=7, default="#000000")
-    associate = models.ImageField(upload_to=competeAssociatePath, default=defaultBannerPath)
+    name = models.CharField(max_length=100)
+    pseudonym = models.CharField(max_length=50)
+    description = models.TextField(max_length=500)
+    detail = models.TextField(max_length=2000)
+    start_date = models.DateTimeField(auto_now=False)
+    end_date = models.DateTimeField(auto_now=False)
+    banner = models.ImageField(upload_to=competeBannerPath, null=True,blank=True)
+    primary_color = models.CharField(max_length=7, null=True, blank=True)
+    secondary_color = models.CharField(max_length=7, null=True, blank=True)
+    associate = models.ImageField(upload_to=competeAssociatePath, null=True,blank=True)
     is_active = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now=False, default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name="event_creator")
     competitions = models.ManyToManyField('Competition', through="EventCompetition", related_name="event_competitions", default=[])
 
@@ -52,6 +54,10 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+       self.updated_at = timezone.now()
+       super(Event, self).save(*args, **kwargs) # Call the real save() method
 
 class EventCompetition(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
