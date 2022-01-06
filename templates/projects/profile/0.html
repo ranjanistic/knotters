@@ -100,17 +100,24 @@
         <br />
 		{% endif %}
 
-        {% if project.socialsites.count or project.url %}
         <div class="w3-row pallete">
-        {% if project.url %}
-            <a target="_blank" rel="noreferrer" href="{{project.url}}"><strong>{{project.url|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
+        <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
+        {% if project.socialsites.count or project.url %}
+            {% if project.url %}
+                <a target="_blank" rel="noreferrer" href="{{project.url}}"><strong class="text-medium">{{project.url|noprotocol|truncatechars:25}}</strong></a><br/>
+            {% endif %}
+            {% for site in project.socialsites %}
+                <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
+            {% endfor %}
+        {% else %}
+            <br/>
+            <center class="dead-text">
+                <div class="w3-jumbo material-icons">link_off</div>
+                <h5>No links</h5>
+            </center>
         {% endif %}
-        {% for site in project.socialsites %}
-            <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
-        {% endfor %}
         </div>
         <br/>
-        {% endif %}
 
         {% if project.repolink %}
         <div class="w3-row w3-padding-small">
@@ -125,10 +132,11 @@
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row w3-center">
                 <div class="pallete">
-                    <center><h5>Overview</h5><hr/></center>
+                    <center><h5 class="align"><i>notes</i>&nbsp;Overview</h5></center><br/>
                     <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab positive-text text-big">{{project.category.name|capfirst}}</strong></a>
+                    <br/>
                     <div class="w3-row" id="view-projecttopics">
-                    {% for topicdata in project.getTopicsData %}                        
+                    {% for topicdata in project.getTopicsData %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
                             <button class="accent big-button topic-name">
                             <b>{{topicdata.topic}}</b>
@@ -136,12 +144,12 @@
                         </a>
                     {% empty %}
                         {% if iscreator %}
-                            <button class="accent edit-action big-button" data-edittarget="projecttopics" data-icon="add">{% trans "Add topics" %}</button>
+                            <button class="accent edit-action big-button" data-edittarget="projecttopics" data-icon="add">Add topics</button>
                         {% else %}
                             <br/>
                             <div class="dead-text">
                                 <i class="w3-jumbo">hourglass_top</i>
-                                <h4>{% trans "No topics yet." %}</h4>
+                                <h4>No topics yet</h4>
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -203,21 +211,23 @@
                 {% endif %}
             </div>
             <div class="w3-row w3-padding pallete">
-                <center><h5>{% trans "Assets" %}</h5><hr/></center>
+                <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
                 <div class="w3-row">
                     {% for asset in project.assets %}
+
                     {% empty %}
                         {% if iscreator %}
-                        <center>
-                        <div class="w3-jumbo material-icons" id="add_assets">add_circle</div>
-                        <h5>{% trans "Add assets" %}</h5>
-                        <strong class="dead-text">csv, xlsx, pdf... {% trans "anything related to the project." %}</strong>
-                        <strong class="dead-text">{% trans "Coming soon" %}</strong>
+                        <center >
+                        <div class="w3-jumbo material-icons">add_circle</div>
+                        <h5>Add assets</h5>
+                        <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
+                        <strong class="dead-text">Coming soon</strong>
                         </center>
                         {% else %}
+                        <br/>
                         <center class="dead-text">
                         <div class="w3-jumbo material-icons">cloud_off</div>
-                        <h5>{% trans "No assets" %}</h5>
+                        <h5>No assets</h5>
                         </center>
                         {% endif %}
                     {% endfor %}
@@ -245,7 +255,7 @@
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row">
                 <div class="pallete">
-                    <center><h5>Description</h5><hr/></center>
+                    <center><h5 class="align"><i>description</i>&nbsp;Description</h5></center><br/>
                     <strong>{% trans "Created on" %} <span>{{project.createdOn}}</span></strong><br/><br/>
                     <strong>{% trans "Created by" %}</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle primary" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
@@ -253,11 +263,10 @@
             </div>
             <br/>
             <div class="w3-row pallete no-pad">
-                <center><h5 class="w3-padding">Snapshots</h5>
+                <center><h5 class="w3-padding align"><i>camera</i>&nbsp;Snapshots</h5>
                 {% if iscreator %}
                 <div class="w3-row" id="view-snapshot">
-                    <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">{% trans "Create" %}</button>
-                    <hr/>
+                    <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
                 </div>
                 <div class="w3-row" id="edit-snapshot">
                     <input type='file' hidden id='snap-file' accept="image/png, image/jpg, image/jpeg" />
@@ -269,7 +278,7 @@
                         <div class="dead-text" id='add-image-view'>
                             <label for="snap-file">
                                 <div class="w3-jumbo material-icons">add_circle</div>
-                                <h5>{% trans "Add image" %}</h5>
+                                <h5>Add image</h5>
                             </label>
                         </div>
                         <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">{% trans "Publish snapshot" %}</button>
@@ -277,12 +286,9 @@
                     </form>
                     <hr/>
                 </div>
-                {% else %}
-                <hr/>
                 {% endif %}
                 </center>
                 <div class="w3-row" id="snapshots-view">
-                    
                 </div>
                 <br/>
                 <center><button class="small primary" data-icon='expand_more' hidden id='load-more-snaps'>{% trans "Load more" %}</button></center>

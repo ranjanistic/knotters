@@ -69,7 +69,7 @@ def addTopicToDatabase(topic: str) -> Topic:
             topicObj = Topic.objects.create(name=topic)
     return topicObj
 
-PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,
+PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,profileString.FRAMEWORKS,
                     profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,
                     profileString.ACHEIVEMENTS, profileString.COMPETITIONS,profileString.MENTORSHIP,profileString.PEOPLE]
 
@@ -81,8 +81,9 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
     if requestUser.is_authenticated and profile.isBlocked(requestUser) or not profile.is_active:
         return None
     try:
+        selfprofile = requestUser == profile.user
         data = dict(
-                self=requestUser == profile.user,
+                self=selfprofile,
                 person=profile.user
             )
         if section == profileString.OVERVIEW:
@@ -92,7 +93,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             def approved_only(project):
                 return project.is_approved
                 
-            if requestUser != profile.user:
+            if not selfprofile:
                 projects = projects.filter(suspended=False)
                 data[Code.APPROVED] = list(filter(approved_only, projects))
             else:
@@ -109,6 +110,11 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             data[Code.RESULTS] = Result.objects.filter(submission__members=profile).order_by('-rank', '-points')
             data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile).order_by("-competition__createdOn")
             data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True).order_by('-respondOn')
+        elif section == profileString.FRAMEWORKS:
+            if selfprofile:
+                data[Code.FRAMEWORKS] = Framework.objects.filter(creator=profile,trashed=False).order_by("-createdOn")
+            else:
+                data[Code.FRAMEWORKS] = Framework.objects.filter(creator=profile,trashed=False, is_draft=False).order_by("-createdOn")
         elif section == profileString.CONTRIBUTION:
             pass
         elif section == profileString.ACTIVITY:

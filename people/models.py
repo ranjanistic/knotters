@@ -1,4 +1,6 @@
 import uuid
+
+from django.core.exceptions import ValidationError
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from deprecated import deprecated
@@ -954,9 +956,12 @@ class Framework(models.Model):
     primary_color = models.CharField(max_length=10,null=True, blank=True)
     secondary_color = models.CharField(max_length=10,null=True, blank=True)
     is_draft = models.BooleanField(default=True)
+    creator = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='framework_creator')
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     trashed = models.BooleanField(default=False)
-    admirers = models.ManyToManyField(Profile, through="FrameworkAdmirer", related_name='admirers', default=[])
+    suspended = models.BooleanField(default=False)
+    admirers = models.ManyToManyField(Profile, through="FrameworkAdmirer", related_name='framework_admirers', default=[])
+    reporters = models.ManyToManyField(Profile, through="FrameworkReport", related_name='framework_reporters', default=[])
 
     def __str__(self):
         return self.name
@@ -972,7 +977,7 @@ class Framework(models.Model):
     @property
     def frames(self):
         return Frame.objects.filter(framework=self)
-
+    
 class Frame(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='frame_framework')
@@ -983,9 +988,26 @@ class Frame(models.Model):
     text = models.CharField(max_length=500)
     snapshot = models.ForeignKey(Snapshot, related_name='frame_snapshot', on_delete=models.SET_NULL, null=True, blank=True)
     
+    def __str__(self):
+        return self.title
+    
+    def save(self, *args, **kwargs):
+        if not (self.image or self.video or self.snapshot):
+            raise ValidationError('At least one of image, video or snapshot must be provided')
+        super(Frame, self).save(*args, **kwargs)
 
 class FrameworkAdmirer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='admirer_framework')
     admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admirer_profile')
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    
+class FrameworkReport(models.Model):
+    class Meta:
+        unique_together = ('profile', 'framework', 'category')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='framework_reporter_profile')
+    framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='reported_framework')
+    category = models.ForeignKey(
+        ReportCategory, on_delete=models.PROTECT, related_name='reported_framework_category')

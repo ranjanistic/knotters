@@ -393,7 +393,13 @@ loadsnaps.onclick = (_) => {
         }
         if (!String(data).trim()) {
             if (snapstart < 1) {
-                currentsnapsview.innerHTML = `<div class="dead-text" align="center">No snapshots yet</div>`;
+                currentsnapsview.innerHTML = `
+                <br/>
+                <center class="dead-text">
+                        <div class="w3-jumbo material-icons">camera</div>
+                        <h5>No snapshots</h5>
+                    </center>
+                `;
             } else {
                 currentsnapsview.innerHTML = `<div class="dead-text" align="center"><br/>No more snapshots</div>`;
             }
@@ -442,6 +448,7 @@ loadsnaps.click();
 const loadLiveData = async () => {
     const contribview = getElement("project-contibutors-view");
     const languageview = getElement("project-languages-view");
+    const langdefaulthtml = languageview.innerHTML;
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {
@@ -455,16 +462,20 @@ const loadLiveData = async () => {
         }
         if (contribview) setHtmlContent(contribview, data.contributorsHTML);
         if (languageview) {
-            setHtmlContent(
-                languageview,
-                `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`
-            );
-            radarChartView(
-                getElement("project-languages-distribution-chart"),
-                Object.keys(data.languages),
-                Object.keys(data.languages).map((key) => data.languages[key]),
-                "12e49d"
-            );
+            if(Object.keys(data.languages).length) {
+                setHtmlContent(
+                    languageview,
+                    `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`
+                );
+                radarChartView(
+                    getElement("project-languages-distribution-chart"),
+                    Object.keys(data.languages),
+                    Object.keys(data.languages).map((key) => data.languages[key]),
+                    "12e49d"
+                );
+            } else {
+                setHtmlContent(languageview, langdefaulthtml)
+            }
         }
     }
 };

@@ -88,6 +88,7 @@ class Code():
     RESULTS = "results"
     JUDGEMENTS = 'judgements'
     MODERATIONS = 'moderations'
+    FRAMEWORKS = 'frameworks'
     PEOPLE = "people"
 
     class Test():
@@ -271,6 +272,7 @@ class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
     ACHEIVEMENTS = "acheivements"
+    FRAMEWORKS = "frameworks"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
     MODERATION = "moderation"
@@ -701,6 +703,10 @@ class URL():
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
         BROWSE_SEARCH = 'browse/search'
+
+        CREATE_FRAME = 'frameworks/create'
+        PUBLISH_FRAME = 'frameworks/publish'
+        FRAMEWORK = 'framework/:frameworkID'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1312,6 +1318,11 @@ class Template():
         def profile_moderation(self):
             return f'{self.DIRNAME}/{self.PROFILE_MODERATION}.html'
 
+        PROFILE_FRAMEWORK = f"profile/{Profile.FRAMEWORKS}"
+        @property
+        def profile_framework(self):
+            return f'{self.DIRNAME}/{self.PROFILE_FRAMEWORK}.html'
+
         SETTING_ACCOUNT = f"setting/{Profile.Setting.ACCOUNT}"
 
         @property
@@ -1327,6 +1338,12 @@ class Template():
         @property
         def setting_security(self):
             return f'{self.DIRNAME}/{self.SETTING_SECURITY}.html'
+
+        FRAMEWORK_CREATE = f"framework/create"
+
+        @property
+        def framework_create(self):
+            return f'{self.DIRNAME}/{self.FRAMEWORK_CREATE}.html'
 
     people = People()
 

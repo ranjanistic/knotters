@@ -157,7 +157,6 @@ def snapshot(request: WSGIRequest, snapID):
         snapshot = Snapshot.objects.get(id=snapID)
         return renderView(request, Template.VIEW_SNAPSHOT, dict(snapshot=snapshot))
     except Exception as e:
-        errorLog(e)
         raise Http404(e)
 
 @csrf_exempt
@@ -457,6 +456,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.CREATE_FRAME}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_CATEGORIES}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.REPORT_CATEGORIES}"),
@@ -480,6 +480,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.FRAMEWORK}"),
                 setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
                 setPathParams(f"/{URL.BRANDING}"),
                 setPathParams(f"/{URL.BROWSER}"),
