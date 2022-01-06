@@ -40,8 +40,8 @@
 {% block nav_auth_user %}
   {% if user.is_authenticated and user == person %}
     <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">{% trans "Logout" %}</span></button></a>
-  {% elif user.is_authenticated %}
-    <a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.profile.getName}}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" />&nbsp;{{user.profile.getFName}}</button></a>
+  {% elif user.is_authenticated and user != person %}
+    <a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.profile.getName}}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" /></button></a>
   {% else %}
       {% block nav_auth_login %}
       <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent" data-icon="login"><span class="w3-hide-small">{% trans "Login" %}</span></button></a>
@@ -160,17 +160,17 @@
             {% if not person.profile.is_manager %}
             <button title="Acheivements" id="acheivements" class="nav-tab" data-icon="emoji_events"><span class="w3-hide-small">{% trans "Acheivements" %}</span></button>
             {% endif %}
-            <button title="Community Frameworks" id="frameworks" class="nav-tab" data-icon="vertical_split"><span class="w3-hide-small">{% trans "Frameworks" %}</span></button>
             {% if person.profile.is_manager %}
             <button title="Competitions" id="competitions" class="nav-tab" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button>
             <button title="People" id="people" class="nav-tab" data-icon="group"><span class="w3-hide-small">{% trans "People" %}</span></button>
             {% endif %}
+            <button title="Community Frameworks" id="frameworks" class="nav-tab" data-icon="vertical_split"><span class="w3-hide-small">{% trans "Frameworks" %}</span></button>
             {% if person.profile.is_moderator %}
             <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
             {% endif %}
           </div>
           <br/>
-          <div id="tabview" style="min-height:60vh;max-height:70vh;overflow-y: scroll;"></div>
+          <div id="tabview" style="min-height:60vh;max-height:75vh;overflow-y: scroll;"></div>
         </div>
 
         {% if user.is_authenticated and user == person %}
@@ -206,6 +206,7 @@
   const isModerator = "{{person.profile.is_moderator}}" == 'True';
   const isMentor = "{{person.profile.is_mentor}}" == 'True';
   const isManager = "{{person.profile.is_manager}}" == 'True';
+  const tabindex = (Number("{{request.GET.tab}}"||-2)>-1)?Number("{{request.GET.tab}}"): false;
             
   try{
     getElement("reactivateaccount").onclick=async()=>{

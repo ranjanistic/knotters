@@ -4,4 +4,15 @@
 {% load cache %}
 {% load custom_tags %}
 
-profile frameworks
+<div class="w3-row">
+{% for fw in frameworks %}
+
+{% empty %}
+    <br/><br/>
+    <center class="dead-text">
+        <i class="w3-jumbo">hourglass_top</i>
+        <h3>{% trans "No frameworks, yet." %}</h3>
+        <h6>The emptiness not {{person.profile.getFName}}'s fault, as frameworks are still under development.</h6>
+    </center>
+{% endfor %}
+</div>

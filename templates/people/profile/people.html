@@ -14,7 +14,7 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
 <div class="w3-row">
     {% for profile in people %}
     <div class="w3-col w3-padding-small l2 m4 s6">
-        <div class="w3-row pallete accent no-pad">
+        <div class="w3-row pallete-slab accent no-pad">
             <a onclick="miniWindow('{{profile.getLink}}')">
             <img class="primary wide" src="{{profile.getDP}}" />
             </a>
@@ -41,5 +41,16 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
         {% endif %}
     </center>
     {% endfor %}
+    {% if people.count and self %}
+    <div class="w3-col w3-padding-small l2 m4 s6">
+        <div class="w3-row pallete-slab positive-text pointer" onclick="message('Feature under development.')">
+            <br/>
+            <div class="w3-jumbo material-icons">add_circle</div>
+            <div class="w3-row w3-padding-small">
+            <h4>Add People</h4>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 </div>

@@ -495,6 +495,7 @@ initializeTabsView({
     uniqueID: "profiletab",
     onShowTab: loadTabScript,
     activeTabClass: isMentor ? "active" : isModerator ? "accent" : "positive",
+    tabindex,
     inactiveTabClass:
         "primary " +
         (isMentor
@@ -526,6 +527,7 @@ if (selfProfile) {
         viewID: "stabview",
         spinnerID: "sloader",
         onShowTab: loadTabScript,
+        tabindex
     });
 
     getElement("uploadprofilepic").onchange = (e) => {
