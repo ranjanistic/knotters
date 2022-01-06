@@ -20,10 +20,17 @@ urlpatterns = [
     path(URL.Management.REPORT_FEED_TYPEID, reportfeedTypeID),
 
     path(URL.Management.COMMUNITY, community),
+
     path(URL.Management.MODERATORS, moderators),
     path(URL.Management.ELGIBLE_MODSEARCH, searchEligibleModerator),
     path(URL.Management.ADD_MODERATOR, addModerator),
     path(URL.Management.REMOVE_MODERATOR, removeModerator),
+
+    path(URL.Management.MENTORS, mentors),
+    path(URL.Management.ELGIBLE_MNTSEARCH, searchEligibleMentor),
+    path(URL.Management.ADD_MENTOR, addMentor),
+    path(URL.Management.REMOVE_MENTOR, removeMentor),
+
     path(URL.Management.LABEL_CREATE, labelCreate),
     path(URL.Management.LABEL_UPDATE, labelUpdate),
     path(URL.Management.LABEL_DELETE, labelDelete),

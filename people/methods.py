@@ -55,7 +55,7 @@ def filterBio(string: str) -> str:
     return bio
 
 
-def addTopicToDatabase(topic: str) -> Topic:
+def addTopicToDatabase(topic: str, creator = None) -> Topic:
     topic = str(topic).strip().replace('\n', str())
     if not topic:
         return False
@@ -63,10 +63,10 @@ def addTopicToDatabase(topic: str) -> Topic:
     try:
         topicObj = Topic.objects.filter(name__iexact=topic).first()
         if not topicObj:
-            topicObj = Topic.objects.create(name=topic)
+            topicObj = Topic.objects.create(name=topic, creator=creator)
     except:
         if not topicObj:
-            topicObj = Topic.objects.create(name=topic)
+            topicObj = Topic.objects.create(name=topic, creator=creator)
     return topicObj
 
 PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS,profileString.FRAMEWORKS,

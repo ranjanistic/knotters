@@ -11,31 +11,32 @@
 <div class="w3-row w3-padding">
     <div class="w3-col w3-third w3-padding">
         <a href="{{URLS.COMPETITIONS}}">
-            <div class="w3-row pallete accent">
+            <div class="w3-row pallete active">
+                <i class="w3-right">arrow_forward</i>
                 <h4>Manage Competitions</h4>
                 <stong>Result declaration, certificate allotment, blah blah.</stong>
-                <i class="w3-right">arrow_forward</i>
-            </div>
-        </a>
-    </div>
-    <div class="w3-col w3-third w3-padding" hidden>
-        <a href="{{URLS.REPORT_FEED}}">
-            <div class="w3-row pallete accent">
-                <h4>Reports & Feedbacks</h4>
-                <stong>Reports, guideline violations & stuff</stong>
-                <i class="w3-right">arrow_forward</i>
             </div>
         </a>
     </div>
     <div class="w3-col w3-third w3-padding">
         <a href="{{URLS.COMMUNITY}}">
             <div class="w3-row pallete accent">
+                <i class="w3-right">arrow_forward</i>
                 <h4>Manage People</h4>
                 <stong>Labels, moderators, & whatnot.</stong>
+            </div>
+        </a>
+    </div>
+    <div class="w3-col w3-third w3-padding">
+        <a href="{{URLS.REPORT_FEED}}">
+            <div class="w3-row pallete negative text-negative">
                 <i class="w3-right">arrow_forward</i>
+                <h4>Reports</h4>
+                <stong>Reports, guideline violations against your people</stong>
             </div>
         </a>
     </div>
 </div>
-
+    <br/>
+<center>You can add people to your management from your profile.</center>
 {% endblock %}

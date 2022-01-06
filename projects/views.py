@@ -612,7 +612,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
                 for addtag in addtags:
-                    tag = addTagToDatabase(addtag)
+                    tag = addTagToDatabase(addtag, request.user.profile)
                     project.tags.add(tag)
                     for topic in project.getTopics():
                         topic.tags.add(tag)

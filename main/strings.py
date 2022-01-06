@@ -864,8 +864,10 @@ class URL():
             return setPathParams(self.COMPETITION, compID)
         TOPICSEARCH = 'topicsearch'
         JUDGESEARCH = 'judgesearch'
+        
         MODSEARCH = 'moderatorsearch'
         ELGIBLE_MODSEARCH = 'moderatorsearch/eligible'
+        ELGIBLE_MNTSEARCH = 'mentorsearch/eligible'
 
         CREATE_REPORT = 'report-feedback/reports/create'
         CREATE_FEED = 'report-feedback/feedbacks/create'
@@ -884,6 +886,9 @@ class URL():
         MODERATORS = 'community/moderators'
         REMOVE_MODERATOR = 'community/moderators/remove'
         ADD_MODERATOR = 'community/moderators/add'
+        MENTORS = 'community/mentors'
+        REMOVE_MENTOR = 'community/mentors/remove'
+        ADD_MENTOR = 'community/mentors/add'
         LABELS = 'community/labels'
         LABEL_TYPE = 'community/labels/<str:type>'
 
@@ -1586,6 +1591,12 @@ class Template():
         @property
         def community_moderators(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_MODERATORS}.html'
+
+        COMMUNITY_MENTORS = 'community/mentors'
+
+        @property
+        def community_mentors(self):
+            return f'{self.DIRNAME}/{self.COMMUNITY_MENTORS}.html'
 
     management = Management()
 

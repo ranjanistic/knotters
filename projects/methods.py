@@ -70,7 +70,7 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
         if not reponame:
             return False
         license = License.objects.get(id=licenseID)
-        categoryObj = addCategoryToDatabase(category)
+        categoryObj = addCategoryToDatabase(category, creator)
         if not categoryObj:
             return False
         return Project.objects.create(
@@ -80,7 +80,7 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
         return False
 
 
-def addCategoryToDatabase(category: str) -> Category:
+def addCategoryToDatabase(category: str, creator = None) -> Category:
     category = str(category).strip().replace('\n', str())
     if not category:
         return False
@@ -88,21 +88,21 @@ def addCategoryToDatabase(category: str) -> Category:
     try:
         categoryObj = Category.objects.filter(name__iexact=category).first()
         if not categoryObj:
-            categoryObj = Category.objects.create(name=category)
+            categoryObj = Category.objects.create(name=category, creator=creator)
     except:
         if not categoryObj:
-            categoryObj = Category.objects.create(name=category)
+            categoryObj = Category.objects.create(name=category, creator=creator)
     return categoryObj
 
 
-def addTagToDatabase(tag: str) -> Tag:
+def addTagToDatabase(tag: str, creator = None) -> Tag:
     tag = str(tag).strip('#').strip().replace(
         '\n', str()).replace(" ", "_").strip()
     if not tag or tag == '':
         return False
     tagobj = uniqueTag(tag)
     if tagobj == True:
-        tagobj = Tag.objects.create(name=tag)
+        tagobj = Tag.objects.create(name=tag, creator=creator)
     return tagobj
 
 

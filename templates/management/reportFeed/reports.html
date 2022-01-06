@@ -1,12 +1,9 @@
 {% load custom_tags %}
 <div class="w3-row w3-padding">
-
-{% for report in reports %}
+{% for report in userreports %}
 <div class="w3-row pallete-slab">
-    {{report.summary|or:report.detail|truncatechars:50}}<br/>
-    By: {{ report.author }}, {{ report.createdOn|or:'Before epoch'}}<br/>
-    Last update: {{report.lastupdate|or:'Before epoch'}}
-    <a href="{{report.getLink}}"><button class="w3-right small positive">View</button></a>
+    <b>{{report.category}}</b><br/>
+    <a onclick="miniWindow('{{report.user.profile.get_link}}')">{{report.user.profile.get_name}} ({{report.user.profile.getEmail}})</a>
 </div>
 {% endfor %}
 </div>

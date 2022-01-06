@@ -17,7 +17,7 @@ class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
-
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True,blank=True, related_name="tag_creator")
     def __str__(self):
         return self.name
 
@@ -59,6 +59,7 @@ class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True,blank=True, related_name="category_creator")
     tags = models.ManyToManyField(Tag, through='CategoryTag', default=[])
 
     def __str__(self):

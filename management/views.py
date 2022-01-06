@@ -15,14 +15,14 @@ from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJs
 from main.strings import COMPETE, URL, Message, Code, Template
 from moderation.methods import assignModeratorToObject, getModeratorToAssignModeration
 from compete.models import Competition
-from projects.models import Category, Tag
-from people.models import Topic, Profile
+from projects.models import Category, ReportedProject, Tag
+from people.models import ReportedUser, Topic, Profile
 from moderation.models import Moderation
 from projects.methods import addTagToDatabase, addCategoryToDatabase
 from people.methods import addTopicToDatabase
 from main.env import BOTMAIL
 from .methods import renderer, createCompetition, rendererstr
-from .models import Report, Feedback
+from .models import Management, ManagementPerson, Report, Feedback
 from .apps import APPNAME
 
 
@@ -43,12 +43,13 @@ def community(request: WSGIRequest):
 @manager_only
 @require_GET
 def moderators(request: WSGIRequest):
-    moderators = Profile.objects.exclude(user__email__in=[
-                                         request.user.email, BOTMAIL]).filter(is_moderator=True, to_be_zombie=False)
-    profiles = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
-        user__emailaddress__verified=True,
-        is_moderator=False, to_be_zombie=False, is_active=True).order_by('-xp')[0:10]
-    return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
+    try:
+        mgm = Management.objects.get(profile=request.user.profile)
+        moderators = mgm.people.filter(is_moderator=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        profiles = mgm.people.filter(is_moderator=False,is_mentor=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
+    except Exception as e:
+        raise Http404(e)
 
 
 @manager_only
@@ -58,15 +59,14 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).filter(
-            Q(
-                Q(user__emailaddress__verified=True, is_active=True,
-                  suspended=False, to_be_zombie=False, is_moderator=False),
-                Q(user__email__startswith=query)
-                | Q(user__first_name__startswith=query)
-                | Q(githubID__startswith=query)
-            )
-        ).first()
+        mgm = Management.objects.get(profile=request.user.profile)
+        profile = mgm.people.filter(Q(
+            Q(is_active=True,
+                suspended=False, to_be_zombie=False, is_moderator=False, is_mentor=False,),
+            Q(user__email__startswith=query)
+            | Q(user__first_name__startswith=query)
+            | Q(githubID__startswith=query)
+        )).first()
         if profile.isBlocked(request.user):
             raise Exception()
         return respondJson(Code.OK, dict(mod=dict(
@@ -88,20 +88,20 @@ def removeModerator(request: WSGIRequest):
         modID = request.POST.get('modID', None)
         if not modID or modID == request.user.get_id:
             return respondJson(Code.NO)
-        moderator = Profile.objects.filter(
-            user__id=modID, is_moderator=True).update(is_moderator=False)
-        if moderator == 0:
+        mgm = Management.objects.get(profile=request.user.profile)
+        moderators = mgm.people.filter(user__id=modID, is_moderator=True).values_list('id',flat=True)
+        moderators = Profile.objects.filter(id__in=list(moderators)).update(is_moderator=False)
+        if moderators == 0:
             return respondJson(Code.NO)
         for mod in Moderation.objects.filter(moderator__user__id=modID, resolved=False):
             moderator = getModeratorToAssignModeration(
-                mod.type, mod.object, ignoreModProfiles=[mod.moderator])
+                mod.type, mod.object, ignoreModProfiles=[mod.moderator], onlyModProfiles=[mgm.people.filter(user__id=modID, is_moderator=True,to_be_zombie=False,is_active=True,suspended=False)])
             if moderator:
                 mod.moderator = moderator
                 mod.save()
         return respondJson(Code.OK)
     except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO, error=e)
+        return respondJson(Code.NO)
 
 
 @manager_only
@@ -111,15 +111,94 @@ def addModerator(request: WSGIRequest):
         userID = request.POST.get('userID', None)
         if not userID or userID == request.user.get_id:
             return respondJson(Code.NO)
-        user = Profile.objects.filter(user__id=userID, is_moderator=False,
-                                      suspended=False, to_be_zombie=False).update(is_moderator=True)
-        if user == 0:
+        mgm = Management.objects.get(profile=request.user.profile)
+        profiles = mgm.people.filter(user__id=userID, is_moderator=False, is_mentor=False,
+                                      suspended=False, to_be_zombie=False, is_active=True).values_list('id',flat=True)
+        profiles = Profile.objects.filter(id__in=list(profiles)).update(is_moderator=True)
+        if profiles == 0:
+            return respondJson(Code.NO)
+        return respondJson(Code.OK)
+    except Exception as e:
+        return respondJson(Code.NO)
+
+@manager_only
+@require_GET
+def mentors(request: WSGIRequest):
+    try:
+        mgm = Management.objects.get(profile=request.user.profile)
+        mentors = mgm.people.filter(is_mentor=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        profiles = mgm.people.filter(is_mentor=False, is_moderator=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        return renderer(request, Template.Management.COMMUNITY_MENTORS, dict(mentors=mentors, profiles=profiles))
+    except Exception as e:
+        raise Http404(e)
+
+
+@manager_only
+@require_JSON_body
+def searchEligibleMentor(request: WSGIRequest) -> JsonResponse:
+    try:
+        query = request.POST.get('query', None)
+        if not query or not str(query).strip():
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        mgm = Management.objects.get(profile=request.user.profile)
+        profile = mgm.people.filter(Q(
+            Q(is_active=True,
+                suspended=False, to_be_zombie=False, is_mentor=False, is_moderator=False),
+            Q(user__email__startswith=query)
+            | Q(user__first_name__startswith=query)
+            | Q(githubID__startswith=query)
+        )).first()
+        if profile.isBlocked(request.user):
+            raise Exception()
+        return respondJson(Code.OK, dict(mnt=dict(
+            id=profile.user.id,
+            userID=profile.getUserID(),
+            name=profile.getName(),
+            email=profile.getEmail(),
+            url=profile.getLink(),
+            dp=profile.getDP(),
+        )))
+    except Exception as e:
+        return respondJson(Code.NO)
+
+
+@manager_only
+@require_JSON_body
+def removeMentor(request: WSGIRequest):
+    print('he')
+    try:
+        mntID = request.POST.get('mntID', None)
+        print(mntID)
+        if not mntID or mntID == request.user.get_id:
+            return respondJson(Code.NO)
+        mgm = Management.objects.get(profile=request.user.profile)
+        mentors = mgm.people.filter(user__id=mntID, is_mentor=True).values_list('id',flat=True)
+        print(mentors)
+        mentors = Profile.objects.filter(id__in=list(mentors)).update(is_mentor=False)
+        if mentors == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
     except Exception as e:
         print(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO, error=e)
 
+
+@manager_only
+@require_JSON_body
+def addMentor(request: WSGIRequest):
+    try:
+        userID = request.POST.get('userID', None)
+        if not userID or userID == request.user.get_id:
+            return respondJson(Code.NO)
+        mgm = Management.objects.get(profile=request.user.profile)
+        profiles = mgm.people.filter(user__id=userID, is_mentor=False,is_moderator=False,
+                                      suspended=False, to_be_zombie=False, is_active=True).values_list('id',flat=True)
+        profiles = Profile.objects.filter(id__in=list(profiles)).update(is_mentor=True)
+        if profiles == 0:
+            return respondJson(Code.NO)
+        return respondJson(Code.OK)
+    except Exception as e:
+        return respondJson(Code.NO)
 
 @manager_only
 @require_GET
@@ -132,17 +211,19 @@ def labels(request: WSGIRequest):
 @require_GET
 def labelType(request: WSGIRequest, type: str):
     try:
+        mgm = Management.objects.get(profile=request.user.profile)
         if type == Code.TOPIC:
-            topics = Topic.objects.filter()
+            topics = Topic.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_TOPICS, dict(topics=topics))
         if type == Code.CATEGORY:
-            categories = Category.objects.filter()
+            categories = Category.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_CATEGORIES, dict(categories=categories))
         if type == Code.TAG:
-            tags = Tag.objects.filter()
+            tags = Tag.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_TAGS, dict(tags=tags))
         raise Exception('Invalid label')
-    except:
+    except Exception as e:
+        print(e)
         raise Http404()
 
 
@@ -150,11 +231,14 @@ def labelType(request: WSGIRequest, type: str):
 @require_GET
 def label(request: WSGIRequest, type: str, labelID: UUID):
     try:
-        if type == Code.TOPIC:
-            topic = Topic.objects.get(id=labelID)
+        mgm = Management.objects.get(profile=request.user.profile)
+        if type == Code.TOPIC:    
+            topic = Topic.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
+            if not topic: raise Exception('Invalid topic')
             return renderer(request, Template.Management.COMMUNITY_TOPIC, dict(topic=topic))
         if type == Code.CATEGORY:
-            category = Category.objects.get(id=labelID)
+            category = Category.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
+            if not category: raise Exception('Invalid category')
             return renderer(request, Template.Management.COMMUNITY_CATEGORY, dict(category=category))
         raise Exception('Invalid label')
     except:
@@ -167,11 +251,11 @@ def labelCreate(request: WSGIRequest, type: str):
     try:
         name = request.POST['name']
         if type == Code.TOPIC:
-            label = addTopicToDatabase(name)
+            label = addTopicToDatabase(name, request.user.profile)
         elif type == Code.CATEGORY:
-            label = addCategoryToDatabase(name)
+            label = addCategoryToDatabase(name, request.user.profile)
         elif type == Code.TAG:
-            label = addTagToDatabase(name)
+            label = addTagToDatabase(name, request.user.profile)
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK, dict(label=dict(id=label.get_id, name=label.name)))
@@ -183,13 +267,14 @@ def labelCreate(request: WSGIRequest, type: str):
 @require_JSON_body
 def labelUpdate(request: WSGIRequest, type: str, labelID: UUID):
     try:
+        mgm = Management.objects.get(profile=request.user.profile)
+        name = request.POST['name']
         if type == Code.TAG:
-            name = request.POST['name']
-            tag = Tag.objects.filter(id=labelID).update(name=name)
+            tag = Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).update(name=name)
         elif type == Code.TOPIC:
-            topic = Topic.objects.filter(id=labelID).update()
+            topic = Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
         elif type == Code.CATEGORY:
-            category = Category.objects.filter(id=labelID).update()
+            category = Category.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -201,16 +286,17 @@ def labelUpdate(request: WSGIRequest, type: str, labelID: UUID):
 @require_JSON_body
 def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
     try:
+        mgm = Management.objects.get(profile=request.user.profile)
         if type == Code.TOPIC:
-            topic = Topic.objects.get(id=labelID)
+            topic = Topic.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
             if topic.isDeletable:
                 topic.delete()
         elif type == Code.CATEGORY:
-            category = Category.objects.get(id=labelID)
+            category = Category.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
             if category.isDeletable:
                 category.delete()
         elif type == Code.TAG:
-            tags = Tag.objects.filter(id=labelID).delete()
+            tags = Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).delete()
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -222,7 +308,7 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
 @require_GET
 def competitions(request: WSGIRequest) -> HttpResponse:
     try:
-        competes = Competition.objects.filter()
+        competes = Competition.objects.filter(creator=request.user.profile)
         return renderer(request, Template.Management.COMP_INDEX, dict(competes=competes))
     except:
         raise Http404()
@@ -232,7 +318,7 @@ def competitions(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        compete = Competition.objects.get(id=compID)
+        compete = Competition.objects.get(id=compID, creator=request.user.profile)
         resstatus = cache.get(f"results_declaration_task_{compete.get_id}")
         certstatus = cache.get(f"certificates_allotment_task_{compete.get_id}")
         return renderer(request, Template.Management.COMP_COMPETE, dict(
@@ -271,9 +357,10 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
+        mgm = Management.objects.get(profile=request.user.profile)
+        profile = mgm.people.exclude(user__id__in=excludeIDs).filter(
             Q(
-                Q(user__emailaddress__verified=True, is_active=True,
+                Q(is_active=True,
                   suspended=False, to_be_zombie=False, is_mentor=True),
                 Q(user__email__startswith=query)
                 | Q(user__first_name__startswith=query)
@@ -302,9 +389,10 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        profile = Profile.objects.exclude(user__email__in=[request.user.email, BOTMAIL]).exclude(user__id__in=excludeIDs).filter(
+        mgm = Management.objects.get(profile=request.user.profile)
+        profile = mgm.people.exclude(user__id__in=excludeIDs).filter(
             Q(
-                Q(user__emailaddress__verified=True, is_active=True,
+                Q(is_active=True,
                   suspended=False, to_be_zombie=False, is_moderator=True),
                 Q(user__email__startswith=query)
                 | Q(user__first_name__startswith=query)
@@ -447,7 +535,7 @@ def submitCompetition(request) -> HttpResponse:
             compete.save()
 
         mod = Profile.objects.get(
-            user__id=modID, user__emailaddress__verified=True, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
+            user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
         assigned = assignModeratorToObject(
             COMPETE, compete, mod, "Competition")
         if not assigned:
@@ -505,16 +593,17 @@ def createFeedback(request: WSGIRequest):
 @require_GET
 def reportfeedType(request: WSGIRequest, type: str):
     try:
+        mgm = Management.objects.get(profile=request.user.profile)
         if type == Code.REPORTS:
-            reports = Report.objects.filter().order_by('resolved')
-            return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(reports=reports))
+            userreports = ReportedUser.objects.filter(user__id__in=mgm.people.filter(suspended=False,is_active=True,to_be_zombie=False).values_list('user__id', flat=True))
+            return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(reports=[], userreports=userreports))
         elif type == Code.FEEDBACKS:
             feedbacks = Feedback.objects.filter()
             return rendererstr(request, Template.Management.REPORTFEED_FEEDBACKS, dict(feedbacks=feedbacks))
         else:
             raise Exception(type)
     except Exception as e:
-        raise Http404()
+        raise Http404(e)
 
 
 @manager_only
@@ -530,5 +619,4 @@ def reportfeedTypeID(request: WSGIRequest, type: str, ID: UUID):
         else:
             raise Exception(type)
     except Exception as e:
-        errorLog(e)
-        raise Http404()
+        raise Http404(e)

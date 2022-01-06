@@ -25,7 +25,7 @@
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
-                    {% comment %}<button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>{% endcomment %}
+                    <button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
                 </div>
             </div>
         </div>
@@ -59,6 +59,9 @@
     {% endfor %}
     </div>
 </div>
+<br/>
+<center>You can add people to your management from your profile.</center>
+<br/>
 {% endblock %}
 
 {% block in_scripts %}
@@ -73,7 +76,7 @@ getElements('demote-moderator').forEach((demote)=>{
              async ()=>{
                 const modID = e.target.getAttribute('data-userID');
                 const modname = e.target.getAttribute('data-name');
-                {% comment %}const data = await postRequest('{{URLS.REMOVE_MODERATOR}}', {modID}){% endcomment %}
+                const data = await postRequest2({path:URLS.REMOVE_MODERATOR, data:{modID}})
                 if (!data) return
                 if (data.code == code.OK){
                     message(`Demoted ${modname} as moderator`)
@@ -93,7 +96,7 @@ getElement('search-mod-input').oninput=async(e)=>{
         return 
 //         loadAddMods()
     }
-    const data = await postRequest(URLS.MODSEARCH, {query:e.target.value})
+    const data = await postRequest2({path:URLS.MODSEARCH, data:{query:e.target.value}})
     if(!data) return
     if (data.code!==code.OK) return
     const mod = data.mod;
@@ -120,7 +123,7 @@ getElement('search-profile-input').oninput=async(e)=>{
         resview.innerHTML = ''
         return loadAddMods()
     }
-    const data = await postRequest(URLS.ELGIBLE_MODSEARCH, {query:e.target.value})
+    const data = await postRequest2({path:URLS.ELGIBLE_MODSEARCH, data:{query:e.target.value}})
     if(!data) return
     if (data.code!==code.OK) return
     const mod = data.mod;
@@ -154,14 +157,14 @@ const loadAddMods = () => {
                 async ()=>{
                     const userID = e.target.getAttribute('data-userID');
                     const username = e.target.getAttribute('data-name');
-                    const data = await postRequest(URLS.ADD_MODERATOR, {userID})
+                    const data = await postRequest2({path:URLS.ADD_MODERATOR, data:{userID}})
                     if (!data) return
                     if (data.code == code.OK){
                         message(`Promoted ${username} as moderator`)
                         hideElement(`pallete-promote-${userID}`)
-                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', '').replaceAll('positive', '').replaceAll('Promote', '')
+                        let newmod = getElement(`pallete-promote-${userID}`).innerHTML.replaceAll('promote-', 'demote-').replaceAll('positive', 'negative').replaceAll('Promote', 'Demote')
                         getElement('new-moderators-view').innerHTML += `<div class="w3-row pallete-slab" id="pallete-demote-${userID}">${newmod}</div>`
-                        {% comment %}loadDemoteMods(){% endcomment %}
+                        loadDemoteMods()
                         return
                     }
                     error(data.error)
@@ -171,7 +174,7 @@ const loadAddMods = () => {
         }
     })
 }
-{% comment %}loadDemoteMods(){% endcomment %}
+loadDemoteMods()
 loadAddMods()
 </script>
 {% endblock %}
