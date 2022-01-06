@@ -24,4 +24,8 @@ urlpatterns = [
     path(URL.People.UNBLOCK_USER, unblockUser),
     path(URL.People.GITHUB_EVENTS, githubEventsListener),
     path(URL.People.BROWSE_SEARCH, browseSearch),
+
+    path(URL.People.CREATE_FRAME, create_framework),
+    path(URL.People.PUBLISH_FRAME, publish_framework),
+    path(URL.People.FRAMEWORK, view_framework),
 ]

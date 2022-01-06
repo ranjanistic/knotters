@@ -1,0 +1,33 @@
+{% extends 'people/index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Meet the people you share this platform with. Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.{% endblock %}
+{% block og_url %}{{request.path}}{% endblock %}
+{% block og_title %}{% trans "Framework" %}{% endblock %}
+{% block og_description %}Meet the people you share this platform with. Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.{% endblock %}
+{% block og_site_name %}{% trans "Framework" %}{% endblock %}
+
+{% block tw_url %}{{request.path}}{% endblock %}
+{% block tw_title %}{% trans "Framework" %}{% endblock %}
+{% block tw_description %}Meet the people you share this platform with. Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.{% endblock %}
+{% block tw_site_name %}{% trans "Framework" %}{% endblock %}
+
+{% block title %}{% trans "Framework" %}{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+{% block nav_back_theme %}accent{% endblock %}
+
+{% block nav_href %}{{request.path}}{% endblock %}
+{% block nav_text %}{% trans "Framework" %}{% endblock %}
+
+{% block nav_noauth_people %}{% endblock %} 
+
+{% block content %}
+Framework view
+{% endblock %}
+

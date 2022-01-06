@@ -1,0 +1,78 @@
+{% extends 'people/index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Create a framework at Knotters.{% endblock %}
+{% block og_url %}{{request.path}}{% endblock %}
+{% block og_title %}{% trans "Create Framework" %}{% endblock %}
+{% block og_description %}Create a framework at Knotters.{% endblock %}
+{% block og_site_name %}{% trans "Create Framework" %}{% endblock %}
+
+{% block tw_url %}{{request.path}}{% endblock %}
+{% block tw_title %}{% trans "Create Framework" %}{% endblock %}
+{% block tw_description %}Create a framework at Knotters.{% endblock %}
+{% block tw_site_name %}{% trans "Create Framework" %}{% endblock %}
+
+{% block title %}{% trans "Create Framework" %}{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+{% block nav_back_icon %}close{% endblock %}
+{% block nav_back_theme %}accent{% endblock %}
+
+{% block nav_href %}{{request.path}}{% endblock %}
+{% block nav_text %}<input name="framework_name" placeholder="New framework" />{% endblock %}
+
+{% block nav_auth_links %}{% endblock %} 
+{% block nav_noauth %}{% endblock %}
+{% block nav_extra_links %}{% endblock %}
+
+{% block content %}
+<div class="w3-row">
+    <div class="w3-col w3-half w3-padding">
+        <div class="w3-row pallete-slab w3-center dead-text">
+            <span>Frame 1</span>
+            <div class="w3-row">
+                <div class="w3-row">
+                    <textarea class="wide primary" placeholder="Add text..."></textarea>
+                </div>
+                <div class="w3-row pallete">
+                    <a><h3><i class="material-icons w3-jumbo">add_circle_outline</i><br/>Add media</h3></a>
+                    <strong class="text-medium dead-text">Image, Video, PPT, DOC, XLS</strong>
+                </div>
+            </div>
+            <h1>OR</h1>
+            <div class="w3-row pallete">
+                <a><h3><i class="material-icons w3-jumbo">link</i><br/>Link snapshot</h3></a>
+                <strong class="text-medium dead-text">Instead of creating a new frame,<br/> link any of your existing snapshots.</strong>
+            </div>
+        </div>
+        <div class="w3-row">
+            <button class="big-button negative" data-icon="delete">Discard</button>
+            <button class="big-button accent" data-icon="save">Save draft</button>
+            <button class="big-button positive" data-icon="done">Publish Framework</button>
+        </div>
+    </div>
+    <div class="w3-col w3-half w3-padding">
+        <div class="w3-row pallete-slab">
+            <div class="w3-row">
+                <div class="w3-row pallete-slab primary">
+                    <strong class="text-medium"><input class="wide" value="Frame 1" placeholder="Frame 1" /></strong>
+                    <button class="negative-text w3-right primary small" data-icon="delete"></button>
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row w3-center">
+                <a><h6 class="align"><i>add_circle</i>&nbsp;Add frame</h6></a>
+            </div>
+        </div>
+    </div>
+</div>
+<br/>
+{% endblock %}
+
+{% block in_scripts %}
+{% endblock %}

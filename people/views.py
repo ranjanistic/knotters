@@ -646,4 +646,20 @@ def browseSearch(request: WSGIRequest):
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         return Http404(e)
+
+@normal_profile_required
+@require_GET
+def create_framework(request:WSGIRequest):
+    return renderer(request, Template.People.FRAMEWORK_CREATE)
+
+@normal_profile_required
+@require_JSON_body
+def publish_framework(request:WSGIRequest):
     
+    raise Http404()
+
+@normal_profile_required
+@require_JSON_body
+def view_framework(request:WSGIRequest, frameworkID: UUID):
+    
+    raise Http404()
