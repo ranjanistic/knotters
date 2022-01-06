@@ -37,12 +37,6 @@ window.addEventListener("load", () => {
         localStorage.removeItem(Key.futureMessage);
     }
 
-    if (window.location.host.startsWith("beta.")) {
-        getElements("beta-alert-view").forEach((elem) => show(elem));
-        if (!window.sessionStorage.getItem("beta-alerted")) betaAlert();
-        getElements("hide-beta").forEach((elem) => hide(elem));
-    }
-    subLoader(false);
     if (sessionStorage.getItem("device-theme") == 1) {
         message(
             `Theme set to your system default. Use ${Icon(
@@ -50,6 +44,12 @@ window.addEventListener("load", () => {
             )} to toggle it.`
         );
     }
+    if (window.location.host.startsWith("beta.")) {
+        getElements("beta-alert-view").forEach((elem) => show(elem));
+        if (!window.sessionStorage.getItem("beta-alerted")) betaAlert();
+        getElements("hide-beta").forEach((elem) => hide(elem));
+    }
+    subLoader(false);
 });
 
 addEventListener("keydown", (e) => {

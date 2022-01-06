@@ -107,16 +107,19 @@ const betaAlert = () => {
             title: `This is ${APPNAME}`,
             html: `
             <h5>
-            Welcome to ${APPNAME}, the pre-stable version of Knotters.<br/>
-            New features become available here before Knotters.<br/>
-            You'll have to create an account here separately from Knotters. None of the information at Knotters will be made available here.
-            <br/>
-            By continuing, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
+            This is not Knotters.<br/>
+            ${APPNAME} is the ${NegativeText("unstable")} version of <a target="_blank" href="${window.location.href.replace("//beta.","//")}">Knotters</a>.<br/>
+            New features become available here before release at Knotters.
             </h5>
+            <h6>
+            None of the information from <a target="_blank" href="https://knotters.org">knotters.org</a> will be made available here, including your account info.
+            </h6>
+            By continuing, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
             `,
-            confirmButtonText: "Go to Knotters",
-            cancelButtonText: `Stay in ${APPNAME}`,
-            showCancelButton: true,
+            confirmButtonText: "Take me to Knotters",
+            denyButtonText: `I'll stay in ${APPNAME}`,
+            showCancelButton: false,
+            showDenyButton: true,
             focusConfirm: false,
             allowOutsideClick: false,
         }).then((result) => {
@@ -127,7 +130,7 @@ const betaAlert = () => {
                 );
             } else {
                 window.sessionStorage.setItem("beta-alerted", 1);
-                message(`Remember, you're using ${APPNAME}!`);
+                message(`Remember, you're using ${APPNAME}, not Knotters!`);
             }
         });
     }
