@@ -1,0 +1,36 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load socialaccount %}
+{% load account %}
+{% load custom_tags %}
+
+{% block og_url %}{{URLS.Auth.LOGIN}}{% endblock %}
+{% block og_title %}{% trans "Account" %}{% endblock %}
+{% block og_site_name %}{% trans "Account" %}{% endblock %}
+
+{% block tw_url %}{{URLS.Auth.LOGIN}}{% endblock %}
+{% block tw_title %}{% trans "Account" %}{% endblock %}
+{% block tw_site_name %}{% trans "Account" %}{% endblock %}
+
+{% block title %}{% trans "Account" %}{% endblock %}
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block nav_text %}{% trans "Account" %}{% endblock %}
+{% block nav_auth_links %}{% endblock %}
+
+{% block nav_style %}tertiary{% endblock %}
+{% block nav_text_style %}text-tertiary{% endblock %}
+{% block themecolor %}tertiary{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+{% block ext_scripts %}
+<script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
+{% endblock %}

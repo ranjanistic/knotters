@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+{% extends 'account/index.html' %}
 {% load static %}
 {% load i18n %}
 {% load l10n %}
@@ -95,7 +95,4 @@
   message("Please login to continue")
  {% endif %}
 </script>
-{% endblock %}
-{% block ext_scripts %}
-<script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true'></script>
 {% endblock %}
