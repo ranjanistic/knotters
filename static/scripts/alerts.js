@@ -114,7 +114,7 @@ const betaAlert = () => {
             <h6>
             None of the information from <a target="_blank" href="https://knotters.org">knotters.org</a> will be made available here, including your account info.
             </h6>
-            By continuing, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
+            By staying here, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
             `,
             confirmButtonText: "Take me to Knotters",
             denyButtonText: `I'll stay in ${APPNAME}`,
