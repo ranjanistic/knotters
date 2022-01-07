@@ -448,7 +448,7 @@ loadsnaps.click();
 const loadLiveData = async () => {
     const contribview = getElement("project-contibutors-view");
     const languageview = getElement("project-languages-view");
-    const langdefaulthtml = languageview.innerHTML;
+    const langdefaulthtml = languageview?languageview.innerHTML:'';
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {

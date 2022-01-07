@@ -237,7 +237,7 @@
             <br/>
             <div class="w3-row">
                 <div class="pallete">
-                <center><h5>{% trans "Settings" %}</h5><hr/></center>
+                <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5><hr/></center>
                 <div class="w3-row">
                 {% if project.has_linked_repo %}
                     <button class="negative" id='unlink-github-repository'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Unlink {{project.linked_repo.reponame}}</button>
@@ -331,9 +331,6 @@ if (selfProject){
         error(resp.error)
     }
 
-    getElement('add_assets').onclick=()=>{
-
-    }
     getElement('delete-project').onclick=_=>{
         alertify.confirm('{% trans "Delete Project" %}', 
         `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and
