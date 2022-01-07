@@ -1,6 +1,7 @@
 import uuid
 
 from django.core.exceptions import ValidationError
+from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from deprecated import deprecated
@@ -89,6 +90,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return True
+
+    @property
+    def emails(self):
+        return EmailAddress.objects.filter(user=self).values_list('email', flat=True)
 
     @property
     def get_name(self) -> str:
@@ -451,8 +456,12 @@ class Profile(models.Model):
     def getLName(self) -> str:
         return Code.ZOMBIE if self.is_zombie else self.user.last_name or ''
 
-    def getEmail(self) -> str:
+    @property
+    def get_email(self) -> str:
         return Code.ZOMBIEMAIL if self.is_zombie else self.user.email
+
+    def getEmail(self) -> str:
+        return self.get_email
 
     def getBio(self) -> str:
         return self.bio if self.bio else ''
@@ -696,6 +705,9 @@ class Profile(models.Model):
 
     def isBlocked(self, user: User) -> bool:
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()
+
+    def is_blocked(self, user: User) -> bool:
+        return self.isBlocked(user)
 
     def reportUser(self, user: User, category):
         report, _ = ReportedUser.objects.get_or_create(user=user, profile=self, category=category, defaults=dict(

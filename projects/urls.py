@@ -37,5 +37,9 @@ urlpatterns = [
     path(URL.Projects.SNAPSHOTS, snapshots),
     path(URL.Projects.SNAPSHOT, snapshot),
     path(URL.Projects.TOGGLE_ADMIRATION, toggleAdmiration),
-    path(URL.Projects.TOGGLE_SNAP_ADMIRATION, toggleSnapAdmiration)
+    path(URL.Projects.TOGGLE_SNAP_ADMIRATION, toggleSnapAdmiration),
+
+    path(URL.Projects.INVITE_PROJECT_OWNER, handleOwnerInvitation),
+    path(URL.Projects.PROJECT_TRANS_INVITE, projectTransferInvite),
+    path(URL.Projects.PROJECT_TRANS_INVITE_ACT, projectTransferInviteAction),
 ]

@@ -1,4 +1,6 @@
 from uuid import UUID
+
+from django.core.exceptions import ObjectDoesNotExist
 from ratelimit.decorators import ratelimit
 import os
 from django.db.models import Sum
@@ -145,7 +147,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             id=subID, members=request.user.profile, submitted=False)
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
-        if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID:
+        if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID or (userID in request.user.emails):
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID), Q(
             is_active=True, suspended=False, to_be_zombie=False, user__emailaddress__verified=True)).first()
@@ -193,10 +195,8 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
         try:
             SubmissionParticipant.objects.get(
                 submission=submission, profile=request.user.profile, confirmed=False)
-            return render(request, Template().invitation, renderData({
-                'submission': submission,
-            }, APPNAME))
-        except:
+            return renderer(request, Template.Compete.INVITATION, dict(submission=submission))
+        except ObjectDoesNotExist:
             return redirect(submission.competition.getLink())
     except Exception as e:
         errorLog(e)
@@ -211,35 +211,29 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
     """
     try:
         if request.user.getID() != userID:
-            raise Exception()
+            raise Exception(request.user.getID())
         submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
             raise Exception()
         if not submission.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception()
+            raise Exception(request.user.profile)
         if action == Action.DECLINE:
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).delete()
-            return render(request, Template().invitation, renderData(dict(
-                submission=submission,
-                declined=True
-            ), APPNAME))
+            return renderer(request, Template.Compete.INVITATION, dict(submission=submission, declined=True))
         elif action == Action.ACCEPT:
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True,confirmed_on=timezone.now())
-            request.user.profile.increaseXP(by=5)
+            request.user.profile.increaseXP(by=4)
             addMethodToAsyncQueue(
                 f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
-            return render(request, Template().invitation, renderData(dict(
-                submission=submission,
-                accepted=True
-            ), APPNAME))
+            return renderer(request, Template.Compete.INVITATION, dict(submission=submission, accepted=True))
         else:
-            raise Exception()
+            raise Exception(action)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required

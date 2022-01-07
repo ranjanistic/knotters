@@ -103,6 +103,7 @@ admin.site.register(Snapshot)
 admin.site.register(ReportedProject)
 admin.site.register(ProjectAdmirer)
 admin.site.register(FileExtension)
+admin.site.register(ProjectTransferInvitation)
 
 @admin.register(TopicFileExtension)
 class TopicFileExtensionAdmin(admin.ModelAdmin):

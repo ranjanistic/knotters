@@ -24,6 +24,7 @@ def staff_or_404(u):
 
 admin.site.login = login_required(user_passes_test(staff_or_404)(admin.site.login))
 
+handler403 = 'main.views.handler403'
 
 urlpatterns = [
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),

@@ -105,19 +105,22 @@ const violationReportDialog = async (
     await Swal.fire({
         title: `Report ${reportTarget}`,
         html: `
-        <select class="text-medium wide" id='violation-report-category' required>
+            Select category
+        <select class="text-medium wide negative-text" id='violation-report-category' required>
                 ${options}
             </select>
         `,
         focusConfirm: false,
+        showConfirmButton: false,
+        showDenyButton: true,
         showCancelButton: true,
-        confirmButtonText: `${Icon("report")} Report ${reportTarget}`,
+        denyButtonText: `${Icon("report")} Report ${reportTarget}`,
         cancelButtonText: "No, go back",
-        preConfirm: () => {
+        preDeny: () => {
             return getElement("violation-report-category").value;
         },
     }).then(async (result) => {
-        if (result.isConfirmed) {
+        if (result.isDenied) {
             loader();
             message("Reporting...");
             const data = await postRequest2({

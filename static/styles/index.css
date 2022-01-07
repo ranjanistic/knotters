@@ -672,6 +672,16 @@ button.small > i {
     background-color: var(--primary);
 }
 
+button > img.circle {
+    padding: 1px !important;
+    margin: 0 !important;
+    margin-bottom: 2px !important;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: var(--primary);
+}
+
 .dropdown-box .selected-option,
 .input-dropdown-input-field {
     color: var(--primary-text);

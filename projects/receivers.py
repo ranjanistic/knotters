@@ -1,8 +1,9 @@
+from datetime import timezone
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 from main.methods import addMethodToAsyncQueue
-from .mailers import freeProjectDeleted, freeProjectCreated
-from .models import Project, Asset, FreeProject, Snapshot, defaultImagePath
+from .mailers import freeProjectDeleted, freeProjectCreated, projectTransferInvitation
+from .models import Project, Asset, FreeProject, ProjectTransferInvitation, Snapshot, defaultImagePath
 from .apps import APPNAME
 
 @receiver(post_save, sender=Project)
@@ -43,6 +44,7 @@ def on_asset_delete(sender, instance, **kwargs):
         instance.file.delete(save=False)
     except Exception as e:
         pass
+
 @receiver(post_delete, sender=FreeProject)
 def on_freeproject_delete(sender, instance, **kwargs):
     """
@@ -68,3 +70,11 @@ def on_snap_delete(sender, instance, **kwargs):
             instance.image.delete(save=False)
     except Exception as e:
         pass
+
+@receiver(post_save, sender=ProjectTransferInvitation)
+def on_transfer_invite_create(sender, instance, created, **kwargs):
+    """
+    Project invitaion created.
+    """
+    if created:
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}",instance)

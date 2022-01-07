@@ -199,6 +199,10 @@ class Message():
 
     PAYMENT_REG_SUCCESS = _("You have successfully paid the registration fee")
 
+    ALREADY_INVITED = _("Invitation already exists")
+    PROJECT_TRANSFER_ACCEPTED = _("You\'re now the owner of this project.")
+    PROJECT_TRANSFER_DECLINED = _("You\'ve declined the ownership of this project.")
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -839,6 +843,15 @@ class URL():
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
         TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
+        INVITE_PROJECT_OWNER = 'invite/ownership'
+        PROJECT_TRANS_INVITE = 'invitation/transfer/<str:inviteID>'
+        def projectTransInvite(self,inviteID):
+            return setPathParams(self.PROJECT_TRANS_INVITE, inviteID)
+
+        PROJECT_TRANS_INVITE_ACT = 'invitation/action/transfer/<str:inviteID>'
+        def projectTransInviteAct(self,inviteID):
+            return setPathParams(self.PROJECT_TRANS_INVITE_ACT, inviteID)
+
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1188,6 +1201,13 @@ class Template():
         def cert_appcertificate(self):
             return f'{self.DIRNAME}/{self.CERT_APPCERTIFICATE}.html'
 
+        INVITATION = 'invitation'
+
+        @property
+        @deprecated
+        def invitation(self):
+            return f'{self.DIRNAME}/{self.INVITATION}.html'
+            
         CERTIFICATE = 'certificate'
 
         @property
@@ -1256,6 +1276,12 @@ class Template():
         @property
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
+
+        INVITATION = 'invitation'
+
+        @property
+        def invitation(self):
+            return f'{self.DIRNAME}/{self.INVITATION}.html'
 
         BROWSE_NEWBIE = 'browse/newbie'
 
@@ -1400,6 +1426,12 @@ class Template():
         @property
         def create_mod(self):
             return f'{self.DIRNAME}/{self.CREATE_MOD}.html'
+
+        INVITATION = 'invitation'
+
+        @property
+        def invitation(self):
+            return f'{self.DIRNAME}/{self.INVITATION}.html'
 
         LICENSE_INDEX = 'license/index'
 

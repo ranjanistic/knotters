@@ -369,6 +369,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
         self.assertIsInstance(resp.context['submission'], Submission)
 
     def test_inviteAction(self):
@@ -396,6 +397,7 @@ class TestViews(TestCase):
             subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
 
         resp = client.post(follow=True,path=root(url.compete.inviteAction(
             subID, user.getID(), getRandomStr())))
@@ -405,6 +407,7 @@ class TestViews(TestCase):
             subID, user.getID(), Action.DECLINE)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['declined'])
         self.assertEqual(SubmissionParticipant.objects.filter(
@@ -421,6 +424,7 @@ class TestViews(TestCase):
             subID, user.getID(), Action.ACCEPT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['accepted'])
         self.assertEqual(SubmissionParticipant.objects.filter(
@@ -468,11 +472,13 @@ class TestViews(TestCase):
             subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
 
         resp = client.post(follow=True,path=root(url.compete.inviteAction(
             subID, user.getID(), Action.ACCEPT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['accepted'])
 
@@ -494,6 +500,7 @@ class TestViews(TestCase):
             subID, user.getID(), Action.ACCEPT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.compete.invitation)
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['accepted'])
 

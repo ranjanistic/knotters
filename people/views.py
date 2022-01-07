@@ -1,5 +1,6 @@
 from uuid import UUID
 import re
+from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
@@ -12,7 +13,7 @@ from main.decorators import decode_JSON, github_only, require_JSON_body, normal_
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
 from main.env import BOTMAIL
 from main.strings import Action, Code, Event, Message, Template
-from management.models import ReportCategory
+from management.models import Management, ReportCategory
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
@@ -319,13 +320,18 @@ def profileSuccessor(request: WSGIRequest):
                 except Exception as e:
                     errorLog(e)
                     return respondJson(Code.NO)
-            elif userID and request.user.email != userID:
+            elif userID and request.user.email != userID and not (userID in request.user.emails):
                 try:
-                    successor = User.objects.get(
-                        email=userID)
+                    if request.user.profile.is_manager:
+                        smgm = Management.objects.get(profile__user__email=userID)
+                        successor = smgm.profile.user
+                    else:
+                        successor = User.objects.get(
+                            email=userID)
+
                     if successor.profile.isBlocked(request.user):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-                    if not successor.profile.ghID and not successor.profile.githubID:
+                    if not successor.profile.ghID:
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
@@ -333,7 +339,7 @@ def profileSuccessor(request: WSGIRequest):
                                 f"{APPNAME}.mailers.{successorInvite.__name__}", request.user, successor)
                         return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
                     successor_confirmed = userID == BOTMAIL
-                except:
+                except Exception as e:
                     return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
             else:
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -373,11 +379,13 @@ def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
     try:
         predecessor = User.objects.get(id=predID)
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise Exception()
-        return render(request, Template().invitation, renderData(dict(predecessor=predecessor), APPNAME))
+            raise ObjectDoesNotExist(predecessor.profile.successor)
+        return renderer(request, Template.People.INVITATION, dict(predecessor=predecessor))
+    except ObjectDoesNotExist as e:
+        raise Http404(e)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required

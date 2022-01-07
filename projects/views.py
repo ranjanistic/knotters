@@ -1,10 +1,14 @@
+from datetime import timedelta
 import re
 from uuid import UUID
 from django.core.cache import cache
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
+from moderation.views import action
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
@@ -20,8 +24,8 @@ from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, Snapshot, Tag, Category
-from .mailers import sendProjectSubmissionNotification
+from .models import BaseProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
+from .mailers import projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
@@ -307,8 +311,10 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
             raise Exception()
-    except Exception as e:
+    except ObjectDoesNotExist as e:
         return profileFree(request, reponame)
+    except Exception as e:
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -480,20 +486,20 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             currentcount = projtops.count()
             if currentcount + len(addtopicIDs) > 5:
                 if json_body:
-                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                    return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
             for topic in Topic.objects.filter(id__in=addtopicIDs):
                 project.topics.add(topic)
                 for tag in project.getTags:
                     topic.tags.add(tag)
-        
+
         if addtopics and len(addtopics) > 0:
             count = ProjectTopic.objects.filter(project=project).count()
             if not json_body:
                 addtopics = addtopics.strip(',').split(',')
             if count + len(addtopics) > 5:
                 if json_body:
-                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                    return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
 
             projecttopics = []
@@ -503,11 +509,13 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 top = re.sub('[^a-zA-Z \\\s-]', '', top)
                 if len(top) > 35:
                     continue
-                topic, created = Topic.objects.get_or_create(name__iexact=top,defaults=dict(name=str(top).capitalize(),creator=request.user.profile))
+                topic, created = Topic.objects.get_or_create(name__iexact=top, defaults=dict(
+                    name=str(top).capitalize(), creator=request.user.profile))
                 if created:
                     for tag in project.getTags:
                         topic.tags.add(tag)
-                projecttopics.append(ProjectTopic(topic=topic,project=project))
+                projecttopics.append(ProjectTopic(
+                    topic=topic, project=project))
             if len(projecttopics) > 0:
                 ProjectTopic.objects.bulk_create(projecttopics)
 
@@ -600,7 +608,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
                 return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
-            
+
             for tag in Tag.objects.filter(id__in=addtagIDs):
                 project.tags.add(tag)
                 for topic in project.getTopics():
@@ -698,17 +706,17 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
     try:
         project = BaseProject.objects.get(
             id=projID, trashed=False, suspended=False)
-        if request.POST['admire'] in  ["true", True]:
+        if request.POST['admire'] in ["true", True]:
             project.admirers.add(request.user.profile)
         elif request.POST['admire'] in ["false", False]:
             project.admirers.remove(request.user.profile)
-        if request.POST.get('JSON_BODY',False):
+        if request.POST.get('JSON_BODY', False):
             return respondJson(Code.OK)
         return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
         if request.POST.get('JSON_BODY', False):
-            return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if project:
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
         raise Http404()
@@ -852,7 +860,7 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
         if type != Code.HOOK:
             return HttpResponseBadRequest('Invaild link type')
         ghevent = request.POST['ghevent']
-        
+
         reponame = request.POST["repository"]["name"]
         owner_ghID = request.POST["repository"]["owner"]["login"]
         hookID = request.POST['hookID']
@@ -906,7 +914,7 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
                         if not fileext:
                             fileext, _ = FileExtension.objects.get_or_create(
                                 extension__iexact=ext, defaults=dict(extension=ext))
-                            extensions[ext] = dict(fileext=fileext,topics=[])
+                            extensions[ext] = dict(fileext=fileext, topics=[])
                             fileext.topics.set(project.topics.all())
                         for topic in fileext.topics.all():
                             hastopic = False
@@ -924,13 +932,14 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
                                         break
 
                             if increase:
-                                by=1
+                                by = 1
                                 commit_committer.increaseTopicPoints(
                                     by=by, topic=topic)
                                 if hastopic:
-                                    extensions[ext]['topics'][tpos]['xp']= lastxp+by
+                                    extensions[ext]['topics'][tpos]['xp'] = lastxp+by
                                 else:
-                                    extensions[ext]['topics'].append(dict(topic=topic,xp=(lastxp+by)))
+                                    extensions[ext]['topics'].append(
+                                        dict(topic=topic, xp=(lastxp+by)))
             project.creator.increaseXP(
                 by=(((len(commits)//len(committers))//2) or 1))
             project.moderator.increaseXP(
@@ -994,27 +1003,29 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
 
+
 @decode_JSON
 def browseSearch(request: WSGIRequest):
     json_body = request.POST.get('JSON_BODY', False)
     try:
         query = request.GET.get('query', request.POST.get('query', ''))
         projects = []
-        specials = ('tag:','category:','topic:','type:')
+        specials = ('tag:', 'category:', 'topic:', 'type:')
         verified = None
         pquery = None
         dbquery = Q()
         if query.startswith(specials):
             def specquerieslist(q):
-                return [Q(tags__name__iexact=q),Q(category__name__iexact=q),Q(topics__name__iexact=q), Q()]
+                return [Q(tags__name__iexact=q), Q(category__name__iexact=q), Q(topics__name__iexact=q), Q()]
             commaparts = query.split(",")
             for cpart in commaparts:
-                if cpart.strip().lower().startswith(specials):    
+                if cpart.strip().lower().startswith(specials):
                     special, specialq = cpart.split(':')
-                    if special.strip().lower()=='type':
+                    if special.strip().lower() == 'type':
                         verified = specialq.strip().lower() == 'verified'
                     else:
-                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
+                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[
+                                    list(specials).index(f"{special.strip()}:")])
                 else:
                     pquery = cpart.strip()
                     break
@@ -1039,15 +1050,17 @@ def browseSearch(request: WSGIRequest):
                 | Q(topics__name__istartswith=pquery)
                 | Q(tags__name__istartswith=pquery)
             ))
-        projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).filter(dbquery).order_by('name').distinct()[0:10]
+        projects = BaseProject.objects.exclude(trashed=True).exclude(
+            suspended=True).filter(dbquery).order_by('name').distinct()[0:10]
         if verified != None:
-            projects = list(filter(lambda m: verified == m.is_verified , list(projects)))
+            projects = list(filter(lambda m: verified ==
+                            m.is_verified, list(projects)))
         if json_body:
             return respondJson(Code.OK, dict(
                 projects=list(map(lambda m: dict(
-                    name=m.name,nickname=m.get_nickname,is_verified=m.is_verified,
-                    url=m.get_abs_link,description=m.description,
-                    imageUrl=m.get_abs_dp,creator=m.creator.get_name
+                    name=m.name, nickname=m.get_nickname, is_verified=m.is_verified,
+                    url=m.get_abs_link, description=m.description,
+                    imageUrl=m.get_abs_dp, creator=m.creator.get_name
                 ), projects)),
                 query=query
             ))
@@ -1196,3 +1209,88 @@ def reportSnapshot(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
+
+
+@normal_profile_required
+@require_JSON_body
+def handleOwnerInvitation(request: WSGIRequest):
+    try:
+        action = request.POST['action']
+        projID = request.POST['projectID']
+        if action == Action.CREATE:
+            email = request.POST['email'].lower()
+            if (request.user.email == email) or (email in request.user.emails):
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            baseproject = BaseProject.objects.get(
+                id=projID, suspended=False, trashed=False, creator=request.user.profile)
+            receiver = Profile.objects.get(
+                user__email=email, suspended=False, is_active=True, to_be_zombie=False)
+            if baseproject.is_verified:
+                vproj = baseproject.getProject(True)
+                if receiver in [vproj.moderator, vproj.mentor]:
+                    return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            inv, created = ProjectTransferInvitation.objects.get_or_create(
+                baseproject=baseproject, sender=request.user.profile, resolved=False,
+                defaults=dict(
+                    receiver=receiver,
+                    resolved=False
+                )
+            )
+            if not created:
+                if inv.receiver != receiver:
+                    inv.receiver = receiver
+                    inv.expiresOn = timezone.now() + timedelta(days=1)
+                    inv.save()
+                    addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
+                else:
+                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+        elif action == Action.REMOVE:
+            baseproject = BaseProject.objects.get(
+                id=projID, suspended=False, trashed=False, creator=request.user.profile)
+            baseproject.cancel_invitation()
+        return respondJson(Code.OK)
+    except Exception as e:
+        # errorLog(e)
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+
+
+@normal_profile_required
+@require_GET
+def projectTransferInvite(request: WSGIRequest, inviteID: UUID):
+    try:
+        invitation = ProjectTransferInvitation.objects.get(id=inviteID, baseproject__suspended=False,
+                                                           baseproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        return renderer(request, Template.Projects.INVITATION,
+                 dict(invitation=invitation))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        raise Http404(e)
+
+@normal_profile_required
+@require_JSON_body
+def projectTransferInviteAction(request: WSGIRequest, inviteID: UUID):
+    try:
+        action = request.POST['action']
+        invitation = ProjectTransferInvitation.objects.get(id=inviteID, baseproject__suspended=False,
+                                                           baseproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.PROJECT_TRANSFER_ACCEPTED 
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferAcceptedInvitation.__name__}",invitation)
+        else:
+            message = Message.PROJECT_TRANSFER_DECLINED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferDeclinedInvitation.__name__}",invitation)
+        return redirect(invitation.baseproject.getLink(alert=message))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        raise Http404(e)

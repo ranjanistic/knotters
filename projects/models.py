@@ -1,3 +1,4 @@
+from pydoc import resolve
 import uuid
 from deprecated import deprecated
 from django.db import models
@@ -169,6 +170,8 @@ class BaseProject(models.Model):
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
     migrated = models.BooleanField(
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
+    migrated_by = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True, blank=True, related_name="baseproject_migrated_by")
+    migrated_on = models.DateTimeField(auto_now=False, null=True, blank=True)
     trashed = models.BooleanField(
         default=False, help_text="Deleted for creator, can be used when rejected.")
     license = models.ForeignKey(License, on_delete=models.PROTECT)
@@ -310,7 +313,32 @@ class BaseProject(models.Model):
         return self.admirers.count()
 
     def isAdmirer(self, profile):
-        return profile in self.admirers.all()
+        return self.admirers.filter(id=profile.id).exists()
+
+    @property
+    def under_invitation(self):
+        return ProjectTransferInvitation.objects.filter(baseproject=self, resolved=False).exists()
+
+    def current_invitation(self):
+        try:
+            return ProjectTransferInvitation.objects.get(baseproject=self, resolved=False)
+        except:
+            return None
+
+    def cancel_invitation(self):
+        return ProjectTransferInvitation.objects.filter(baseproject=self).delete()
+    
+    def transfer_to(self,newcreator):
+        if self.suspended or self.trashed:
+            return False
+        if self.is_free:
+            FreeRepository.objects.filter(free_project=self.getProject()).delete()
+        self.migrated_by = self.creator
+        self.creator = newcreator
+        self.migrated = True
+        self.migrated_on = timezone.now()
+        self.save()
+        return True
 
 class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
@@ -670,11 +698,39 @@ class TopicFileExtension(models.Model):
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
     file_extension = models.ForeignKey(FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
 
-class VerifiedProjectTransferInvitation(Invitation):
-    verified_project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='invitation_verifiedproject')
+class ProjectTransferInvitation(Invitation):
+    baseproject = models.OneToOneField(BaseProject, on_delete=models.CASCADE, related_name='invitation_baseproject')
     sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_sender')
     receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_receiver')
 
     class Meta:
-        unique_together = ('sender', 'receiver', 'verified_project')
+        unique_together = ('sender', 'receiver', 'baseproject')
     
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.projectTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.projectTransInviteAct(self.get_id)}"
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        if self.sender.is_blocked(self.receiver.user): return False
+        done = self.baseproject.transfer_to(self.receiver)
+        if not done: return done
+        self.resolve()
+        self.save()
+        return done
+
+    def decline(self):
+        if self.expired: return False
+        if self.resolved: return False
+        if self.sender.is_blocked(self.receiver.user): return False
+        self.resolve()
+        self.save()
+        return True

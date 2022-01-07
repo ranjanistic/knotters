@@ -1,4 +1,5 @@
 import json
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -16,7 +17,8 @@ from django.core.cache import cache
 from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
-from django.shortcuts import redirect
+from django.template import RequestContext
+from django.shortcuts import redirect, render
 from management.models import HookRecord, GhMarketApp, GhMarketPlan
 from webpush import send_user_notification, send_group_notification
 from moderation.models import LocalStorage
@@ -24,7 +26,7 @@ from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
 from people.models import DisplayMentor, Profile, GHMarketPurchase
 from people.methods import rendererstr as peopleRendererstr
-from projects.methods import rendererstr as projectsRendererstr, renderer_stronly as projectsRenderer_stronly
+from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
 from .bots import Github
 from .env import ADMINPATH, ISPRODUCTION, ISBETA
@@ -156,8 +158,16 @@ def snapshot(request: WSGIRequest, snapID):
     try:
         snapshot = Snapshot.objects.get(id=snapID)
         return renderView(request, Template.VIEW_SNAPSHOT, dict(snapshot=snapshot))
-    except Exception as e:
+    except ObjectDoesNotExist as e:
         raise Http404(e)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+def handler403(request, exception, template_name="403.html"):
+    response = render(template_name)
+    response.status_code = 403
+    return response
 
 @csrf_exempt
 @github_only
@@ -450,6 +460,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECT_TRANS_INVITE}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),

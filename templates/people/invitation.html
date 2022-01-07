@@ -1,0 +1,26 @@
+{% extends 'invitation.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block invite_body %}
+    <div class="w3-row w3-center">
+    <div class="material-icons w3-jumbo positive-text">
+    supervisor_account
+    </div>
+    <h1>{% trans "Invitation for successorship" %}</h1>
+    <h4><a href="{{predecessor.profile.getLink}}" target="_blank"><img src="{{predecessor.profile.getDP}}" width="30" class="w3-circle" /></a>{{predecessor.getName}} wants you to be the successor of their profile assets on {{APPNAME}}.</h4>
+    <br/>
+    <h6 class="dead-text">Accepting successorship will <span class="positive-text">grant you the authority</span> of {{predecessor.getName}}'s assets if they <span class="negative-text">have deleted or will delete</span> their account.</h6>
+    <h6 class="dead-text">Declining successorship will make the <a href="{{knotbot.getLink}}" target="_blank"><img src="{{knotbot.getDP}}" width="30" class="w3-circle" /></a>{{knotbot.ghID}} their successor.</h6>
+    </div>
+{% endblock %}
+
+{% block accept_action %}{{URLS.SUCCESSORINVITEACTION|params:'accept'}}{% endblock %}
+{% block decline_action %}{{URLS.SUCCESSORINVITEACTION|params:'decline'}}{% endblock %}
+{% block accept_formdata %}<input hidden name="predID" value="{{predecessor.getID}}" />{% endblock %}
+{% block decline_formdata %}<input hidden name="predID" value="{{predecessor.getID}}" />{% endblock %}
+{% block accept_text %}{% trans "Accept successorship" %}{% endblock %}
+{% block decline_text %}{% trans "Decline successorship" %}{% endblock %}

@@ -315,6 +315,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.people.invitation)
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
@@ -346,6 +347,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.invitation)
+        self.assertTemplateUsed(resp, template.people.invitation)
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 

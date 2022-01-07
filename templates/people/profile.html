@@ -180,14 +180,16 @@
           <i class="w3-right w3-spin">settings</i><h3>{% trans "Settings" %}</h3>
           </div>
           <div class="w3-row w3-padding-small">
-            <button id="account" class="set-tab" data-icon="manage_accounts"><span class="w3-hide-small">{% trans "Account" %}</span></button>
-            <button id="preference" class="set-tab" data-icon="settings"><span class="w3-hide-small">{% trans "Preference" %}</span></button>
-            <button id="security" class="set-tab" data-icon="shield"><span class="w3-hide-small">{% trans "Security" %}</span></button>
-            {% if user.is_authenticated and user.is_moderator and False %}
-              <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
-            {% endif %}
-            <hr />
-            <div id="stabview"></div>
+            <div class="w3-row">
+              <button id="account" class="set-tab" data-icon="manage_accounts"><span class="w3-hide-small">{% trans "Account" %}</span></button>
+              <button id="preference" class="set-tab" data-icon="tune"><span class="w3-hide-small">{% trans "Preference" %}</span></button>
+              <button id="security" class="set-tab" data-icon="shield"><span class="w3-hide-small">{% trans "Security" %}</span></button>
+              {% if user.is_authenticated and user.is_moderator and False %}
+                <button id="moderation" class="set-tab"><i class="material-icons">schema</i><span class="w3-hide-small">{% trans "Moderation" %}</span></button>
+              {% endif %}
+            </div>
+            <br/>
+            <div class="w3-row" id="stabview"></div>
           </div>
         </div>
         {% endif %}

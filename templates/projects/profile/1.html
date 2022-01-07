@@ -254,13 +254,33 @@
                 <div class="pallete">
                     <center><h5 class="align"><i>description</i>&nbsp;Description</h5></center><br/>
                     <strong>Created on <span>{{project.createdOn}}</span></strong><br/><br/>
-                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="w3-circle" src="{{project.creator.getDP}}"  width="25"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
+                    <strong>Created by</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="circle" src="{{project.creator.getDP}}"  width="25"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>Approved on <span> {{project.approvedOn}}</span></strong><br/><br/>
-                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="w3-circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
+                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>License: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
                 </div>
             </div>
             <br/>
+            {% if iscreator %}
+            <div class="w3-row">
+                <div class="pallete">
+                    <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
+                    <div class="w3-row">
+                    {% if project.under_invitation %}
+                        <h6>Transfer invited</h6>
+                        <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
+                        <b>till {{project.current_invitation.expiresOn}}</b>
+                        <button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>
+                    {% else %}
+                        <br/>
+                        <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
+                    {% endif %}
+                        {% comment %} <button class="negative" data-icon="delete" id='delete-project'>{% trans "Delete project" %}</button> {% endcomment %}
+                    </div>
+                </div>
+            </div>
+            <br/>
+            {% endif %}
             <div class="w3-row pallete no-pad">
                 <center><h5 class="w3-padding align"><i>camera</i>&nbsp;Snapshots</h5>
                 {% if iscreator or ismoderator %}
@@ -303,18 +323,10 @@
 
 {% block in_scripts %}
 <script>
-const getFormData = (id) => {
-    var elements = document.getElementById(id).elements;
-        var obj ={};
-        for(var i = 0 ; i < elements.length ; i++){
-            var item = elements.item(i);
-            obj[item.name] = item.value;
-        }
-    return obj;
-}
 const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = "{{ismoderator}}"==='True';
+
 {% if not project.suspended %}
 if(!selfProject){
     if(authenticated){
@@ -367,6 +379,62 @@ if(!selfProject){
             }
             error(resp.error)
         }
+        {% if not project.under_invitation %}
+        getElement('transfer-project').onclick=(e)=>{
+            const x = Swal.fire({
+                title: 'Transfer project',
+                html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
+                Invite the new owner by their email to transfer project.</h6>
+                <br/>
+                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Send Invite',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: async () => {
+                    let email = getElement("transfer-project-new-email").value.trim()
+                    if(email) return email
+                    error('New email address required')
+                    return false
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    message("Sending invitation...");
+                    const data = await postRequest2({
+                        path: URLS.INVITE_PROJECT_OWNER,
+                        data: {
+                            action: 'create',
+                            projectID,
+                            email: result.value,
+                        }
+                    })
+                    if(data.code===code.OK){
+                        futuremessage("Invitation sent.")
+                        return window.location.reload()
+                    }
+                    error(data.error)
+                }
+            })
+        }
+        {% else %}
+            getElement('delete-project-invitation').onclick=async(e)=>{
+                message("Deleting invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_PROJECT_OWNER,
+                    data: {
+                        action: 'remove',
+                        projectID,
+                    }
+                })
+                if(data.code===code.OK){
+                    futuremessage("Invitation cancelled")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+
+        {% endif %}
     }
 }
 {% endif %}

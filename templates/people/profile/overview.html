@@ -18,7 +18,7 @@
             {% empty %}
                 <br/>
                 <div class="dead-text w3-padding">
-                    <i class="w3-jumbo">hourglass_top</i>
+                    <i class="w3-jumbo">scatter_plot</i>
                     <h3>{% trans "No topics yet." %}</h3>
                 {% if self %}
                     <h6 class="dead-text">We are eager to know which topics you relate to.</h6>
@@ -56,8 +56,9 @@
         <div class="w3-col w3-half w3-center w3-padding">
             {% if profile.totalTopics == 0 %}
                 <center class="dead-text">
-                    <img src="{{ICON_SHADOW}}"  width="250" />
-                    <h2>{% trans "Graph depends on topics." %}</h2>
+                    <span class="w3-hide-small"><br/><br/><br/></span>
+                    <div class="material-icons w3-jumbo">auto_graph</div>
+                    <h3>{% trans "Graph depends on topics." %}</h3>
                 {% if self %}
                     <h6 class="dead-text">{% trans "No topics means no shiny, cool looking graph for you." %}</h6>
                 {% else %}

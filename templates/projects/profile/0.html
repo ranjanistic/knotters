@@ -237,16 +237,25 @@
             <br/>
             <div class="w3-row">
                 <div class="pallete">
-                <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5><hr/></center>
+                <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
                 <div class="w3-row">
                 {% if project.has_linked_repo %}
                     <button class="negative" id='unlink-github-repository'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Unlink {{project.linked_repo.reponame}}</button>
                 {% else %}
-                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link GitHub repository</button>
+                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link repository</button>
                 {% endif %}
                 </div>
                 <div class="w3-row">
-                    <button class="negative" data-icon="delete" id='delete-project'>{% trans "Delete project" %}</button>
+                    {% if project.under_invitation %}
+                        <h6>Transfer invited</h6>
+                        <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
+                        <b>till {{project.current_invitation.expiresOn}}</b>
+                        <button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>
+                    {% else %}
+                        <br/>
+                        <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
+                        <button class="negative" data-icon="delete" id='delete-project'>{% trans "Delete project" %}</button>
+                    {% endif %}
                 </div>
                 </div>
             </div>
@@ -317,6 +326,9 @@ const getFormData = (id) => {
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = false;
+
+
+
 {% if not project.suspended %}
 if (selfProject){
     getElement('save-edit-projecttags').onclick= async ()=> {
@@ -331,6 +343,7 @@ if (selfProject){
         error(resp.error)
     }
 
+    {% if not project.under_invitation %}
     getElement('delete-project').onclick=_=>{
         alertify.confirm('{% trans "Delete Project" %}', 
         `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and
@@ -351,6 +364,60 @@ if (selfProject){
         }
         ).set('closable', false).set('labels',{ok:'No, wait', cancel:'Yes delete'})
     }
+    getElement('transfer-project').onclick=(e)=>{
+        const x = Swal.fire({
+            title: 'Transfer project',
+            html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
+            Invite the new owner by their email to transfer project.</h6>
+            <br/>
+            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Send Invite',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                let email = getElement("transfer-project-new-email").value.trim()
+                if(email) return email
+                error('New email address required')
+                return false
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                message("Sending invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_PROJECT_OWNER,
+                    data: {
+                        action: 'create',
+                        projectID,
+                        email: result.value,
+                    }
+                })
+                if(data.code===code.OK){
+                    futuremessage("Invitation sent.")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        })
+    }
+    {% else %}
+        getElement('delete-project-invitation').onclick=async(e)=>{
+            message("Deleting invitation...");
+            const data = await postRequest2({
+                path: URLS.INVITE_PROJECT_OWNER,
+                data: {
+                    action: 'remove',
+                    projectID,
+                }
+            })
+            if(data.code===code.OK){
+                futuremessage("Invitation cancelled")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    {% endif %}
 }
 {% if not project.has_linked_repo and iscreator %}
 getElement('link-github-repository').onclick=async()=>{
@@ -415,46 +482,49 @@ getElement("unlink-github-repository").onclick=_=>{
 
 getElement('save-edit-snapshot').onclick=(e)=>{
     e.preventDefault();
-
     e.target.form.submit()
+}
+getElement('transfer-project').onclick=(e)=>{
+    new Swal.fire({
+        title: 'Transfer project',
+        html: `<h6>Transfer project '{{project.nickname}}' to another user?</h6>
+        Invite the new owner by their email to transfer project.
+        <input class="wide" type="email" autocomplete="email" placeholder="email address" id="transfer-project-new-email" />
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Transfer',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true,
+        preConfirm: async () => {
+            let email = getElement("transfer-project-new-email").value.trim()
+            if(email) return email
+            return false
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            message("Sending invitation...");
+            const data = await postRequest2({
+                path: URLS.INVITE_PROJECT_OWNER,
+                data: {
+                    projectID,
+                    email: result.value,
+                }
+            })
+            if(data.code===code.OK){
+                futuremessage("Invitation sent.")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    })
 }
 {% endif %}
 if(!selfProject){
     if(authenticated){
-    getElement('report-project').onclick=async()=>{
-        const data = await getRequest(URLS.REPORT_CATEGORIES)
-        if(!data) return
-        if(data.code!==code.OK){
-            return error(data.error)
+        getElement('report-project').onclick=async()=>{
+            await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
         }
-        let options=''
-        data.reports.forEach((rep)=>{
-            options+=`<option value='${rep.id}'>${rep.name}</option>`
-        })
-        alertify.confirm(
-            `<h3>Report {{project.nickname}}</h3>`,
-            `
-            <select id='report-category' required>
-            ${options}
-            </select>
-            `,
-            ()=>{},
-            async()=>{
-                loader()
-                message('Reporting...')
-                const data = await postRequest(URLS.REPORT_PROJECT,{
-                    projectID: '{{project.get_id}}',
-                    report: getElement('report-category').value,
-                })
-                loader(false)
-                if(!data) return 
-                if(data.code===code.OK){
-                    return message("Reported {{project.nickname}}. We'll investigate.")
-                }
-                error(data.error)
-            }
-        ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
-    }}
+    }
 }
 {% endif %}
 </script>

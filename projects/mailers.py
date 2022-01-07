@@ -1,6 +1,6 @@
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
-from .models import Project, FreeProject
+from .models import Project, FreeProject, ProjectTransferInvitation
 
 
 def freeProjectCreated(project: FreeProject):
@@ -88,3 +88,84 @@ def projectRejectedNotification(project: Project):
         footer=f"The moderator must have found something unacceptable, but if you think this is a mistake, then you might be able to resubmit the same project for moderation. This is unfortunate.",
         conclusion=f"This email was generated we have rejected a project submission received from your {PUBNAME} account. If this is unfamiliar, then please report to us."
     )
+
+def projectTransferInvitation(invite:ProjectTransferInvitation):
+    """
+    Invitation to accept project ownership
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Project Transfer Invite",
+        header=f"You've been invited to accept ownership of project {invite.baseproject.name} by its creator, {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd want to take control of the project.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+    return sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Project Transfer Initiated",
+        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept ownership of your project {invite.baseproject.name}.",
+        actions=[{
+            'text': 'View projet',
+            'url': invite.baseproject.get_link
+        }],
+        footer=f"If they decline, then your project will not get transferred to them.",
+        conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting your project's profile."
+    )
+
+def projectTransferAcceptedInvitation(invite:ProjectTransferInvitation):
+    """
+    Invitation to accept project ownership
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Project Transfer Success",
+        header=f"This is to inform you that your project, {invite.baseproject.name}, has been successfully transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View projet',
+            'url': invite.baseproject.get_link
+        }],
+        footer=f"This action was irreversible, and now they control this project and you've been detached from it.",
+        conclusion=f"If this action is unfamiliar, then you may contact the new owner, or contact us."
+    )
+
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Project Ownership Accepted",
+        header=f"You've been invited to accept ownership of {invite.baseproject.name} by its creator, {invite.sender.getFName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd want to take control of the project.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+
+def projectTransferDeclinedInvitation(invite:ProjectTransferInvitation):
+    """
+    Invitation to accept project ownership
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Project Transfer Failed",
+        header=f"This is to inform you that your project, {invite.baseproject.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View projet',
+            'url': invite.baseproject.get_link
+        }],
+        footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+

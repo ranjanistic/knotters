@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.utils import timezone
 from django.db import models
 import uuid
@@ -156,14 +157,12 @@ class Invitation(models.Model):
     Base class for all invitations
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    expiresOn = models.DateTimeField(auto_now=False)
+    expiresOn = models.DateTimeField(auto_now=False, default=timezone.now()+timedelta(days=1))
     resolved = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.createdOn = timezone.now()
         self.modifiedOn = timezone.now()
         return super(Invitation, self).save(*args, **kwargs)
 
@@ -172,7 +171,7 @@ class Invitation(models.Model):
         return self.id.hex
 
     @property
-    def getLink(self):
+    def get_link(self):
         return f"{url.getRoot(APPNAME)}{url.management.invitationID(self.get_id)}"
 
     def __str__(self):
@@ -184,7 +183,12 @@ class Invitation(models.Model):
     
     def resolve(self):
         self.resolved = True
+        self.expiresOn = timezone.now()
         self.save()
+    
+    @property
+    def expired(self):
+        return self.expiresOn <= timezone.now()
 
 class ManagementInvitation(Invitation):
     sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_sender')
