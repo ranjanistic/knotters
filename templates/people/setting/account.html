@@ -17,7 +17,7 @@
     {% endif %}
     <h4>{% trans "Phone" %}</h4>
     {% if request.user.password %}
-    <input disabled class="wide" type="text" value="+91 XXXX" />
+    <input disabled class="wide" type="text" value="None" />
     {% else %}
     {% endif %}
     </form>
@@ -28,8 +28,8 @@
     <h4>{% trans "Password" %}</h4>
     <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">{% trans "Change Password" %}</button>
     <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">{% trans "Forgot Password" %}</button>
-    <h4>{% trans "Change Phone numbers" %}</h4>
-    <button class="accent" onclick="miniWindow('{{URLS.Auth.PHONE}}')" data-icon="open_in_new">{% trans "Phone numbers" %}</button>
+    <h4 hidden>{% trans "Change Phone numbers" %}</h4>
+    <button hidden class="accent" onclick="miniWindow('{{URLS.Auth.PHONE}}')" data-icon="open_in_new">{% trans "Phone numbers" %}</button>
     <br/><br/>
     <button hidden class="w3-right" id="save-edit-settings" data-icon="done">{% trans "Save" %}</button>
     <button class="w3-right" id="discard-edit-settings" data-icon="cancel">{% trans "Cancel" %}</button>

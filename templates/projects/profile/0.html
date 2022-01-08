@@ -365,7 +365,7 @@ if (selfProject){
         ).set('closable', false).set('labels',{ok:'No, wait', cancel:'Yes delete'})
     }
     getElement('transfer-project').onclick=(e)=>{
-        const x = Swal.fire({
+        Swal.fire({
             title: 'Transfer project',
             html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
             Invite the new owner by their email to transfer project.</h6>
@@ -484,40 +484,7 @@ getElement('save-edit-snapshot').onclick=(e)=>{
     e.preventDefault();
     e.target.form.submit()
 }
-getElement('transfer-project').onclick=(e)=>{
-    new Swal.fire({
-        title: 'Transfer project',
-        html: `<h6>Transfer project '{{project.nickname}}' to another user?</h6>
-        Invite the new owner by their email to transfer project.
-        <input class="wide" type="email" autocomplete="email" placeholder="email address" id="transfer-project-new-email" />
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Transfer',
-        cancelButtonText: 'Cancel',
-        showLoaderOnConfirm: true,
-        preConfirm: async () => {
-            let email = getElement("transfer-project-new-email").value.trim()
-            if(email) return email
-            return false
-        }
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            message("Sending invitation...");
-            const data = await postRequest2({
-                path: URLS.INVITE_PROJECT_OWNER,
-                data: {
-                    projectID,
-                    email: result.value,
-                }
-            })
-            if(data.code===code.OK){
-                futuremessage("Invitation sent.")
-                return window.location.reload()
-            }
-            error(data.error)
-        }
-    })
-}
+
 {% endif %}
 if(!selfProject){
     if(authenticated){

@@ -381,7 +381,7 @@ if(!selfProject){
         }
         {% if not project.under_invitation %}
         getElement('transfer-project').onclick=(e)=>{
-            const x = Swal.fire({
+            Swal.fire({
                 title: 'Transfer project',
                 html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
                 Invite the new owner by their email to transfer project.</h6>
