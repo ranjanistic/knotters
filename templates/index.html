@@ -122,6 +122,9 @@
                         {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
+                        {% if request.user.profile.is_manager %}
+                        {% block nav_noauth_management %}<a href="{{URLS.MANAGEMENT}}"><button aria-label="Management" title="Management" class="primary" data-icon="business"><span class="w3-hide-small">{% trans "Management" %}</span></button></a>{% endblock %}
+                        {% endif %}
                         {% block nav_noauth_extra_links %}{% endblock %}
                     {% endblock %}
                     {% block nav_extra_links %}{% endblock %}
@@ -350,14 +353,12 @@
                 <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">{% trans "Privacy Policy" %}</a><br/>
-                {% if request.user.is_authenticated and request.user.profile.is_manager %}
-                <a href="{{URLS.MANAGEMENT}}" class="text-secondary w3-animate-left">Management</a><br/>
-                {% endif %}
                 <a href="mailto:{{CONTACTMAIL}}" target="_blank" class="text-secondary w3-animate-left">{% trans "Contact us" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="{{URLS.BRANDING}}" class="text-secondary w3-animate-left">{% trans "Brand Resources" %}</a><br/>
                 <a onclick="installWebAppInstructions()" class="text-secondary w3-animate-left">{% trans "Web App Installation" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
+                <a href="https://events.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Events" %}</a><br/>
                 <a href="https://beta.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
@@ -379,13 +380,14 @@
                 <center>
                 <br/>
                 {% block footer_social %}
-                    <a href="https://wa.me/919311797944" target="_blank" rel="noreferrer"><span hidden>WhatsApp</span><button aria-label="WhatsApp"  class="primary w3-animate-zoom"><img alt="WhatsApp" src="{% static 'graphics/thirdparty/whatsapp.png' %}" width="30" height="23" /></button></a>
+                    <a href="https://wa.me/919311797944" target="_blank" rel="noreferrer"><span hidden>WhatsApp</span><button aria-label="WhatsApp"  class="primary w3-animate-zoom"><img alt="WhatsApp" src="{% static 'graphics/thirdparty/whatsapp.png' %}" width="31" height="23" /></button></a>
                     <a href="https://github.com/Knotters" target="_blank" rel="noreferrer"><span hidden>Github</span><button aria-label="Github"  class="primary w3-animate-zoom"><img alt="Github" class="darkimg" src="{% static 'graphics/thirdparty/github.png' %}" width="20" height="20"/></button></a>
                     <a href="https://twitter.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Twitter</span><button aria-label="Twitter"  class="primary w3-animate-zoom"><img alt="Twitter" src="{% static 'graphics/thirdparty/twitter.png' %}" width="22"  height="22"/></button></a>
                     <a href="https://instagram.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Instagram</span><button aria-label="Instagram"  class="primary w3-animate-zoom"><img alt="Instagram" class="darkimg" src="{% static 'graphics/thirdparty/instagram.png' %}" width="18" height="18" /></button></a>
                     <a href="https://facebook.com/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Facebook</span><button aria-label="Facebook"  class="primary w3-animate-zoom"><img alt="Facebook" src="{% static 'graphics/thirdparty/facebook.png' %}" width="18" height="18" /></button></a>
                     <a href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.png' %}" width="18" height="20" /></button></a>
                     <a href="https://linkedin.com/company/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/linkedin.png' %}" width="21" height="18" /></button></a>
+                    <a href="https://www.reddit.com/u/knottersdotorg" target="_blank" rel="noreferrer"><span hidden>Linkedin</span><button aria-label="Linkedin" class="primary w3-animate-zoom"><img alt="Linkedin" src="{% static 'graphics/thirdparty/reddit.png' %}" width="22" height="22" /></button></a>
                     <a href="https://www.youtube.com/channel/UCgN_akOSuGvHl-ifHBI9uzg" target="_blank" rel="noreferrer"><span hidden>YouTube</span><button aria-label="YouTube"  class="primary w3-animate-zoom"><img alt="YouTube" src="{% static 'graphics/thirdparty/youtube.png' %}" width="26" height="18" /></button></a>
                 {% endblock %}
                 <br/><br/>

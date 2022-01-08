@@ -30,9 +30,6 @@
 
 {% block nav_extra_links %}
 <a href="{{URLS.CERT_INDEX}}"><button title="{% trans "Certification" %}" class="primary" data-icon="qr_code"><span class="w3-hide-small">{% trans "Certification" %}</span></button></a>
-{% if request.user.profile.is_manager %}
-<a href="{{URLS.Management.CREATE_COMP}}"><button title="{% trans "Create competition" %}" class="active" data-icon="add"><span class="w3-hide-small">{% trans "Create" %}</span></button></a>
-{% endif %}
 {% endblock %}
 
 {% block content %}

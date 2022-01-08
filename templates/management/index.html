@@ -1,8 +1,21 @@
 {% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
 
-{% block title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block themecolor %}primary{% endblock %}
 
-{% block nav_text %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block title %}Management{% endblock %}
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+{% block nav_back_theme %}positive{% endblock %}
+
+{% block nav_noauth_management %}{% endblock %}
+
+{% block nav_text %}{% trans "Management" %}{% endblock %}
 
 {% block nav_href %}{{URLS.ROOT}}{% endblock %}
 
