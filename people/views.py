@@ -331,7 +331,7 @@ def profileSuccessor(request: WSGIRequest):
 
                     if successor.profile.isBlocked(request.user):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-                    if not successor.profile.ghID:
+                    if not successor.profile.ghID and not successor.profile.githubID:
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
