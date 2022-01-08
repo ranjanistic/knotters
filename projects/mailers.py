@@ -142,13 +142,13 @@ def projectTransferAcceptedInvitation(invite:ProjectTransferInvitation):
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Project Ownership Accepted",
-        header=f"You've been invited to accept ownership of {invite.baseproject.name} by its creator, {invite.sender.getFName()} ({invite.sender.getEmail()}).",
+        header=f"This is to inform you that you've accepted the ownership of {invite.baseproject.name}.",
         actions=[{
-            'text': 'View Invitation',
-            'url': invite.get_link
+            'text': 'View Project',
+            'url': invite.baseproject.get_link
         }],
-        footer=f"Visit the above link to decide whether you'd want to take control of the project.",
-        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+        footer=f"Now you have the control and will be shown as creator of the project at {PUBNAME}",
+        conclusion=f"This email was sent because you've accepted the project's ownership."
     )
 
 def projectTransferDeclinedInvitation(invite:ProjectTransferInvitation):

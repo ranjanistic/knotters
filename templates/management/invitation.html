@@ -1,0 +1,25 @@
+{% extends 'invitation.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block invite_body %}
+    <div class="w3-row w3-center">
+    <div class="material-icons w3-jumbo positive-text">
+    person_add
+    </div>
+    <div class="w3-row w3-center">
+    <h1>{% trans "Organization Invitation" %}</h1>
+    <h4><a href="{{invitation.sender.get_link}}" target="_blank"><img src="{{invitation.sender.getDP}}" width="30" class="w3-circle" /></a>{{invitation.sender.getName}} has invited you to join {{invitation.management.getName}} Organization at {{APPNAME}}, as a member.</h4>
+    </div>
+    </div>
+    <br/>
+{% endblock %}
+
+{% block accept_action %}{{invitation.get_act_link}}{% endblock %}
+{% block decline_action %}{{invitation.get_act_link}}{% endblock %}
+{% block accept_formdata %}<input hidden name="predID" value="{{predecessor.getID}}" />{% endblock %}
+{% block decline_formdata %}<input hidden name="predID" value="{{predecessor.getID}}" />{% endblock %}
+{% block accept_text %}{% trans "Join" %} {{invitation.management.getName}}{% endblock %}

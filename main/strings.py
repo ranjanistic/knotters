@@ -203,6 +203,9 @@ class Message():
     PROJECT_TRANSFER_ACCEPTED = _("You\'re now the owner of this project.")
     PROJECT_TRANSFER_DECLINED = _("You\'ve declined the ownership of this project.")
 
+    JOINED_MANAGEMENT = _("You\'ve joined this organization.")
+    DECLINED_JOIN_MANAGEMENT = _("You\'ve declined invitation to join this organization.")
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -931,6 +934,16 @@ class URL():
         LABEL_TOPICS = 'community/labels/topics'
         LABEL_CATEGORYS = 'community/labels/categories'
 
+        PEOPLE_MGM_SEND_INVITE = 'invite/people'
+
+        PEOPLE_MGM_INVITE = 'invitation/people/<str:inviteID>'
+        def peopleMGMInvite(self,inviteID):
+            return setPathParams(self.PEOPLE_MGM_INVITE, inviteID)
+
+        PEOPLE_MGM_INVITE_ACT = 'invitation/action/people/<str:inviteID>'
+        def peopleMGMInviteAct(self,inviteID):
+            return setPathParams(self.PEOPLE_MGM_INVITE_ACT, inviteID)
+
         def getURLSForClient(self) -> dict:
             URLS = dict()
 
@@ -1629,6 +1642,13 @@ class Template():
         @property
         def community_mentors(self):
             return f'{self.DIRNAME}/{self.COMMUNITY_MENTORS}.html'
+
+        INVITATION = 'invitation'
+        @property
+        def invitation(self):
+            return f'{self.DIRNAME}/{self.INVITATION}.html'
+
+
 
     management = Management()
 

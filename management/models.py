@@ -117,8 +117,6 @@ class Management(models.Model):
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.createdOn = timezone.now()
         self.modifiedOn = timezone.now()
         return super(Management, self).save(*args, **kwargs)
 
@@ -126,13 +124,23 @@ class Management(models.Model):
     def get_accountid(self):
         return self.profile.get_userid
 
+    def getName(self):
+        return self.profile.getName()
+    
+    @property
+    def get_name(self):
+        return self.getName()
+
     @property
     def get_id(self):
         return self.id.hex
 
+    def getLink(self, success='', error='', message=''):
+        return self.profile.getLink(success=success, error=error, message=message)
+
     @property
-    def getLink(self):
-        return self.profile.getLink()
+    def get_link(self):
+        return self.getLink()
 
     def __str__(self):
         return self.profile.getName()
@@ -144,9 +152,15 @@ class ManagementPerson(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     person = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_person_profile')
     management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='management_person_mgm')
-    
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
     class Meta:
         unique_together = ('person', 'management')
+
+    def save(self, *args, **kwargs):
+        self.modifiedOn = timezone.now()
+        return super(Management, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.person.getName()} at {self.management}"
@@ -197,6 +211,33 @@ class ManagementInvitation(Invitation):
 
     class Meta:
         unique_together = ('sender', 'receiver', 'management')
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.management.peopleMGMInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.management.peopleMGMInviteAct(self.get_id)}"
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        if self.sender.is_blocked(self.receiver.user): return False
+        done = self.management.people.add(self.receiver)
+        if not done: return done
+        self.resolve()
+        return done
+
+    def decline(self):
+        if self.expired: return False
+        if self.resolved: return False
+        if self.sender.is_blocked(self.receiver.user): return False
+        self.delete()
+        return True
 
 
 class GhMarketApp(models.Model):

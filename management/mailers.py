@@ -1,3 +1,4 @@
+from management.models import ManagementInvitation
 from people.models import Profile
 from main.env import PUBNAME
 from main.mailers import sendActionEmail
@@ -16,5 +17,43 @@ def alertLegalUpdate(docname, docurl):
             footer="It is our duty to keep you updated with changes in our terms & policies.",
             conclusion=f"This email was sent because we have updated a legal document from our side, which may concern you as you are a member at {PUBNAME}."
         )
-    print(f"{emails.count()} people alerted for change in {docname}")
+    # print(f"{emails.count()} people alerted for change in {docname}")
+
+def managementInvitationSent(invite:ManagementInvitation):
+    """
+    Invitation to accept project ownership
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Organization Invitation",
+        header=f"You've been invited to be a member of {invite.management.get_name} by {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd like to join the organization at {PUBNAME}.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+
+def managementInvitationAccepted(invite:ManagementInvitation):
+    """
+    Invitation to accept project ownership
+    """
+    if not invite.resolved: return False
+    
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Organization Invitation Accepted",
+        header=f"You've accepted the membership of {invite.management.get_name}.",
+        actions=[{
+            'text': 'View organization',
+            'url': invite.management.get_link
+        }],
+        footer=f"Now you'll get collective notifications and perks from your organization on {PUBNAME}, with other responsibilites.",
+        conclusion=f"This email was sent because you accepted an organization's membership invitation."
+    )
 

@@ -1,6 +1,6 @@
 import uuid
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -355,7 +355,10 @@ class Profile(models.Model):
     def management(self):
         try:
             return Management.objects.get(profile=self)
-        except:
+        except ObjectDoesNotExist:
+            return False
+        except Exception as e:
+            errorLog(e)
             return False
 
     @property

@@ -37,4 +37,8 @@ urlpatterns = [
     path(URL.Management.LABELS, labels),
     path(URL.Management.LABEL_TYPE, labelType),
     path(URL.Management.LABEL, label),
+
+    path(URL.Management.PEOPLE_MGM_SEND_INVITE, sendPeopleInvite),
+    path(URL.Management.PEOPLE_MGM_INVITE, peopleMGMInvitation),
+    path(URL.Management.PEOPLE_MGM_INVITE_ACT, peopleMGMInvitationAction),
 ]

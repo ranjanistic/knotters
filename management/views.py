@@ -1,4 +1,5 @@
 from uuid import UUID
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
@@ -6,13 +7,14 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 # from django.conf import settings
 # from django.views.decorators.cache import cache_page
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 from allauth.account.models import EmailAddress
 from django.core.cache import cache
-from main.decorators import manager_only, require_JSON_body
-from main.methods import base64ToImageFile, respondRedirect, errorLog, respondJson
-from main.strings import COMPETE, URL, Message, Code, Template
+from main.decorators import manager_only, normal_profile_required, require_JSON_body
+from main.methods import addMethodToAsyncQueue, base64ToImageFile, respondRedirect, errorLog, respondJson
+from main.strings import COMPETE, URL, Action, Message, Code, Template
+from management.mailers import managementInvitationAccepted, managementInvitationSent
 from moderation.methods import assignModeratorToObject, getModeratorToAssignModeration
 from compete.models import Competition
 from projects.models import Category, ReportedProject, Tag
@@ -22,7 +24,7 @@ from projects.methods import addTagToDatabase, addCategoryToDatabase
 from people.methods import addTopicToDatabase
 from main.env import BOTMAIL
 from .methods import renderer, createCompetition, rendererstr
-from .models import Management, ManagementPerson, Report, Feedback
+from .models import Management, ManagementInvitation, ManagementPerson, Report, Feedback
 from .apps import APPNAME
 
 
@@ -618,5 +620,94 @@ def reportfeedTypeID(request: WSGIRequest, type: str, ID: UUID):
             return rendererstr(request, Template.Management.REPORTFEED_FEEDBACK, dict(feedback=feedback))
         else:
             raise Exception(type)
+    except Exception as e:
+        raise Http404(e)
+
+@manager_only
+@require_JSON_body
+def sendPeopleInvite(request: WSGIRequest):
+    try:
+        action = request.POST['action']
+        if action == Action.CREATE:
+            email = request.POST['email'].lower()
+            if (request.user.email == email) or (email in request.user.emails):
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            receiver = Profile.objects.get(user__email=email, suspended=False, is_active=True, to_be_zombie=False)
+            if request.user.profile.management.people.filter(profile=receiver).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
+            inv, created = ManagementInvitation.objects.get_or_create(
+                management=request.user.profile.management,
+                sender=request.user.profile,
+                resolved=False,
+                defaults=dict(
+                    receiver=receiver,
+                    resolved=False
+                )
+            )
+            if not created:
+                if inv.receiver != receiver:
+                    inv.receiver = receiver
+                    inv.expiresOn = timezone.now() + timedelta(days=1)
+                    inv.save()
+                    addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementInvitationSent.__name__}", inv)
+                else:
+                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+        elif action == Action.REMOVE:
+            invID = request.POST['inviteID']
+            inv = ManagementInvitation.objects.get(id=invID)
+            inv.delete()
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+@require_GET
+def peopleMGMInvitation(request: WSGIRequest, inviteID: UUID):
+    try:
+        invitation = ManagementInvitation.objects.get(id=inviteID,
+            receiver=request.user.profile, expiresOn__gt=timezone.now(),
+            resolved=False,
+            management__profile__suspended=False,
+            management__profile__is_active=True
+        )
+        return renderer(request, Template.Management.INVITATION,
+                 dict(invitation=invitation))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        raise Http404(e)
+
+@normal_profile_required
+@require_JSON_body
+def peopleMGMInvitationAction(request: WSGIRequest, inviteID: UUID):
+    try:
+        action = request.POST['action']
+        invitation = ManagementInvitation.objects.get(id=inviteID,
+            receiver=request.user.profile, expiresOn__gt=timezone.now(),
+            resolved=False,
+            management__profile__suspended=False,
+            management__profile__is_active=True
+        )
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.JOINED_MANAGEMENT
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementInvitationAccepted.__name__}",invitation)
+        else:
+            message = Message.DECLINED_JOIN_MANAGEMENT
+        return redirect(invitation.management.getLink(alert=message))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         raise Http404(e)
