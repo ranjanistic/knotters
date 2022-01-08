@@ -206,6 +206,8 @@ class Message():
     JOINED_MANAGEMENT = _("You\'ve joined this organization.")
     DECLINED_JOIN_MANAGEMENT = _("You\'ve declined invitation to join this organization.")
 
+    PENDING_MODERATIONS_EXIST = _("Pending unresolved moderation requests exist.")
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -943,6 +945,10 @@ class URL():
         PEOPLE_MGM_INVITE_ACT = 'invitation/action/people/<str:inviteID>'
         def peopleMGMInviteAct(self,inviteID):
             return setPathParams(self.PEOPLE_MGM_INVITE_ACT, inviteID)
+            
+        PEOPLE_MGM_REMOVE = 'people/remove'
+        def peopleMGMRemove(self):
+            return setPathParams(self.PEOPLE_MGM_REMOVE)
 
         def getURLSForClient(self) -> dict:
             URLS = dict()

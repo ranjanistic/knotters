@@ -81,8 +81,9 @@ def createCompetition(creator, title, tagline, shortdescription,
         Perk.objects.bulk_create(perkobjs)
         return compete
     except Exception as e:
-        print("here")
         errorLog(e)
         if compete:
             compete.delete()
         return False
+
+from .receivers import *

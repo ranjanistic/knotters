@@ -23,27 +23,56 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
             </div>
             {% if self or profile == request.user.profile %}
             <div class="w3-row w3-padding-small">
-                <button onclick="message('Feature under development.')" class="small negative" data-icon="delete" data-userID="{{profile.get_userid}}"></button>
+                <button class="small negative delete-mgm-person" 
+                data-icon="delete" 
+                data-userID="{{profile.get_userid}}"
+                data-member-name="{{profile.getName}}"
+                data-member-dp="{{profile.getDP}}"
+                ></button>
             </div>
             {% endif %}
         </div>
     </div>
     {% empty %}
+    {% if not request.user.profile.management.has_invitations or not self %}
     <br/><br/>
     <center class="dead-text">
         <i class="w3-jumbo">hourglass_top</i>
         <h3>{% trans "No people, yet." %}</h3>
         {% if self %}
         <h6>{% trans "People in your management will be shown here." %}</h6>
-        <button class="accent big-button" data-icon="person_add" onclick="message('Feature under development.')">Invite people</button>
+        <button class="accent big-button" data-icon="person_add" id="send-mgm-invite">Invite people</button>
         {% else %}
         <h6>The seed of {{person.profile.getName}} will become a tree, in time.</h6>
         {% endif %}
     </center>
+    {% endif %}
     {% endfor %}
-    {% if people.count and self %}
+    {% if self %}
+    {% for inv in request.user.profile.management.current_invitations %}
+        <div class="w3-col w3-padding-small l2 m4 s6">
+            <div class="w3-row pallete-slab tertiary no-pad">
+                <a onclick="miniWindow('{{inv.receiver.getLink}}')">
+                <img class="primary wide" src="{{inv.receiver.getDP}}" />
+                </a>
+                <div class="w3-row w3-padding-small dead-text">
+                <strong style="word-break:break-word">{{inv.receiver.getFName|truncatechars:18}}</strong>{% if inv.receiver.is_verified %}<i class="w3-small">verified</i>{% endif %}
+                </div>
+                <div class="w3-row w3-padding-small">
+                    <button class="small negative delete-mgm-person-invite" 
+                        data-icon="delete"
+                        data-userID="{{inv.receiver.get_userid}}" 
+                        data-inviteID="{{inv.get_id}}"
+                        data-receiver-name="{{inv.receiver.getName}}"
+                        data-receiver-dp="{{inv.receiver.getDP}}"
+                    >Cancel</button>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% if people.count or request.user.profile.management.has_invitations %}
     <div class="w3-col w3-padding-small l2 m4 s6">
-        <div class="w3-row pallete-slab positive-text pointer" onclick="message('Feature under development.')">
+        <div class="w3-row pallete-slab positive-text pointer" id="send-mgm-invite">
             <br/>
             <div class="w3-jumbo material-icons">add_circle</div>
             <div class="w3-row w3-padding-small">
@@ -51,6 +80,7 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
             </div>
         </div>
     </div>
+    {% endif %}
     {% endif %}
 </div>
 </div>

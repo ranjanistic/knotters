@@ -1,7 +1,7 @@
-from management.models import ManagementInvitation
+from management.models import Management, ManagementInvitation, ManagementPerson
 from people.models import Profile
 from main.env import PUBNAME
-from main.mailers import sendActionEmail
+from main.mailers import sendActionEmail, sendAlertEmail
 
 def alertLegalUpdate(docname, docurl):
     emails = Profile.objects.filter(is_active=True,to_be_zombie=False).values_list('user__email',flat=True)
@@ -18,6 +18,7 @@ def alertLegalUpdate(docname, docurl):
             conclusion=f"This email was sent because we have updated a legal document from our side, which may concern you as you are a member at {PUBNAME}."
         )
     # print(f"{emails.count()} people alerted for change in {docname}")
+    return True
 
 def managementInvitationSent(invite:ManagementInvitation):
     """
@@ -25,17 +26,17 @@ def managementInvitationSent(invite:ManagementInvitation):
     """
     if invite.resolved: return False
     if invite.expired: return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Organization Invitation",
-        header=f"You've been invited to be a member of {invite.management.get_name} by {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        header=f"You've been invited to be a member of {invite.management.get_name} at {PUBNAME}.",
         actions=[{
             'text': 'View Invitation',
             'url': invite.get_link
         }],
         footer=f"Visit the above link to decide whether you'd like to join the organization at {PUBNAME}.",
-        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+        conclusion=f"We recommed you to visit the link and make you decision there. You can block the user if this is a spam."
     )
 
 def managementInvitationAccepted(invite:ManagementInvitation):
@@ -44,16 +45,29 @@ def managementInvitationAccepted(invite:ManagementInvitation):
     """
     if not invite.resolved: return False
     
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Organization Invitation Accepted",
-        header=f"You've accepted the membership of {invite.management.get_name}.",
+        header=f"You've accepted the membership of {invite.management.get_name} organization at {PUBNAME}.",
         actions=[{
             'text': 'View organization',
             'url': invite.management.get_link
         }],
-        footer=f"Now you'll get collective notifications and perks from your organization on {PUBNAME}, with other responsibilites.",
+        footer=f"Now you'll get collective growth and perks from your organization on {PUBNAME}, among other benefits.",
         conclusion=f"This email was sent because you accepted an organization's membership invitation."
+    )
+
+def managementPersonRemoved(mgm:Management, person:Profile):
+    """
+    Remvoing a member from an organization alert
+    """
+    return sendAlertEmail(
+        to=person.getEmail(),
+        username=person.getFName(),
+        subject=f"Organization Membership Terminated",
+        header=f"You've been detached from {mgm.get_name} organization at {PUBNAME}.",
+        footer=f"Either this was your action, or the manager itself. Contact them if there's a mistake.",
+        conclusion=f"This email was sent because your membership has been terminated from the organization in Knotters."
     )
 

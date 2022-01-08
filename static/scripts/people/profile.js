@@ -483,6 +483,105 @@ const loadTabScript = (tab) => {
                 });
             }
             break;
+        case "people": {
+            if(isManager && selfProfile) {
+                getElement("send-mgm-invite").onclick = async () => {
+                    Swal.fire({
+                        title: 'Invite person',
+                        html: `<h6>Invite a person to your organization as a member.<br/>
+                        Type their email to send invitation right away.</h6>
+                        <br/>
+                        <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="mgm-person-new-email" />
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Send Invite',
+                        cancelButtonText: 'Cancel',
+                        showLoaderOnConfirm: true,
+                        preConfirm: async () => {
+                            let email = getElement("mgm-person-new-email").value.trim()
+                            if(email) return email
+                            error('Email address required')
+                            return false
+                        }
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            message("Sending invitation...");
+                            const data = await postRequest2({
+                                path: URLS.Management.PEOPLE_MGM_SEND_INVITE,
+                                data: {
+                                    action: 'create',
+                                    email: result.value,
+                                }
+                            })
+                            if(data.code===code.OK){
+                                message("Invitation sent.")
+                                return tab.click()
+                            }
+                            error(data.error)
+                        }
+                    })
+                }
+
+                getElements("delete-mgm-person-invite").forEach((del)=>{
+                    del.onclick=_=>{
+                        Swal.fire({
+                            title: 'Delete Invitation',
+                            imageUrl: del.getAttribute('data-receiver-dp'),
+                            imageWidth: 90,
+                            html: `<h6>Delete invitation for ${del.getAttribute('data-receiver-name')}?</h6>`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Delete',
+                            cancelButtonText: 'No',
+                        }).then(async(result)=>{
+                            if(result.isConfirmed){
+                                message("Deleting invitation...")
+                                const data = await postRequest2({
+                                    path: URLS.Management.PEOPLE_MGM_SEND_INVITE,
+                                    data: {
+                                        action: 'remove',
+                                        inviteID: del.getAttribute('data-inviteID'),
+                                    }
+                                })
+                                if(data.code===code.OK){
+                                    message("Invitation deleted.")
+                                    return tab.click()
+                                }
+                                error(data.error)
+                            }
+                        })
+                    }
+                })
+            }
+            getElements("delete-mgm-person").forEach((del)=>{
+                del.onclick=_=>{
+                    Swal.fire({
+                        title: 'Remove Member',
+                        imageUrl: del.getAttribute('data-member-dp'),
+                        imageWidth: 90,
+                        html: `<h6>Remove member ${del.getAttribute('data-member-name')}?</h6>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Remove',
+                        cancelButtonText: 'No',
+                    }).then(async(result)=>{
+                        if(result.isConfirmed){
+                            message("Removing member...")
+                            const data = await postRequest2({
+                                path: URLS.Management.PEOPLE_MGM_REMOVE,
+                                data: {
+                                    userID: del.getAttribute('data-userID'),
+                                    mgmID,
+                                }
+                            })
+                            if(data.code===code.OK){
+                                message("Member removed.")
+                                return tab.click()
+                            }
+                            error(data.error)
+                        }
+                    })
+                }
+            })
+        }
         default:
             break;
     }

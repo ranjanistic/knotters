@@ -14,7 +14,7 @@ from django.core.cache import cache
 from main.decorators import manager_only, normal_profile_required, require_JSON_body
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, URL, Action, Message, Code, Template
-from management.mailers import managementInvitationAccepted, managementInvitationSent
+from management.mailers import managementInvitationAccepted, managementInvitationSent, managementPersonRemoved
 from moderation.methods import assignModeratorToObject, getModeratorToAssignModeration
 from compete.models import Competition
 from projects.models import Category, ReportedProject, Tag
@@ -167,22 +167,21 @@ def searchEligibleMentor(request: WSGIRequest) -> JsonResponse:
 @manager_only
 @require_JSON_body
 def removeMentor(request: WSGIRequest):
-    print('he')
     try:
         mntID = request.POST.get('mntID', None)
-        print(mntID)
         if not mntID or mntID == request.user.get_id:
             return respondJson(Code.NO)
         mgm = Management.objects.get(profile=request.user.profile)
         mentors = mgm.people.filter(user__id=mntID, is_mentor=True).values_list('id',flat=True)
-        print(mentors)
         mentors = Profile.objects.filter(id__in=list(mentors)).update(is_mentor=False)
         if mentors == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
-        print(e)
-        return respondJson(Code.NO, error=e)
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @manager_only
@@ -225,8 +224,7 @@ def labelType(request: WSGIRequest, type: str):
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_TAGS, dict(tags=tags))
         raise Exception('Invalid label')
     except Exception as e:
-        print(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @manager_only
@@ -633,20 +631,22 @@ def sendPeopleInvite(request: WSGIRequest):
             if (request.user.email == email) or (email in request.user.emails):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             receiver = Profile.objects.get(user__email=email, suspended=False, is_active=True, to_be_zombie=False)
-            if request.user.profile.management.people.filter(profile=receiver).exists():
+            if request.user.profile.management.people.filter(id=receiver.id).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
+            if receiver.isBlocked(request.user):
+                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+
             inv, created = ManagementInvitation.objects.get_or_create(
                 management=request.user.profile.management,
                 sender=request.user.profile,
                 resolved=False,
+                receiver=receiver,
                 defaults=dict(
-                    receiver=receiver,
                     resolved=False
                 )
             )
             if not created:
-                if inv.receiver != receiver:
-                    inv.receiver = receiver
+                if inv.expired:
                     inv.expiresOn = timezone.now() + timedelta(days=1)
                     inv.save()
                     addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementInvitationSent.__name__}", inv)
@@ -654,7 +654,7 @@ def sendPeopleInvite(request: WSGIRequest):
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
         elif action == Action.REMOVE:
             invID = request.POST['inviteID']
-            inv = ManagementInvitation.objects.get(id=invID)
+            inv = ManagementInvitation.objects.get(id=invID, resolved=False)
             inv.delete()
         return respondJson(Code.OK)
     except ObjectDoesNotExist:
@@ -706,8 +706,36 @@ def peopleMGMInvitationAction(request: WSGIRequest, inviteID: UUID):
             addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementInvitationAccepted.__name__}",invitation)
         else:
             message = Message.DECLINED_JOIN_MANAGEMENT
-        return redirect(invitation.management.getLink(alert=message))
+        return redirect(invitation.management.getLink(message=message))
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
         raise Http404(e)
+        
+@normal_profile_required
+@require_JSON_body
+def peopleMGMRemove(request: WSGIRequest):
+    try:
+        userID = request.POST['userID']
+        mgmID = request.POST['mgmID']
+        
+        person = Profile.objects.get(user__id=userID)
+        mgm = Management.objects.get(id=mgmID)
+
+        if not (request.user.profile == person or request.user.profile == mgm.profile):
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if person.is_moderator:
+            if Moderation.objects.filter(competiton__creator=mgm.profile, moderator=person, resolved=False).exists():
+                return respondJson(Code.NO, error=Message.PENDING_MODERATIONS_EXIST)
+
+        done = person.removeFromManagement(mgm.id)
+        if not done:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementPersonRemoved.__name__}",mgm, person)
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

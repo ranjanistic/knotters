@@ -136,7 +136,7 @@ class Management(models.Model):
         return self.id.hex
 
     def getLink(self, success='', error='', message=''):
-        return self.profile.getLink(success=success, error=error, message=message)
+        return self.profile.getLink(success=success, error=error, alert=message)
 
     @property
     def get_link(self):
@@ -147,6 +147,13 @@ class Management(models.Model):
 
     def getPeople(self):
         return self.people.all()
+    
+    @property
+    def has_invitations(self):
+        return ManagementInvitation.objects.filter(management=self, resolved=False).exists()
+
+    def current_invitations(self):
+        return ManagementInvitation.objects.filter(management=self, resolved=False)
 
 class ManagementPerson(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -210,7 +217,7 @@ class ManagementInvitation(Invitation):
     management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='invitation_management')
 
     class Meta:
-        unique_together = ('sender', 'receiver', 'management')
+        unique_together = ('receiver', 'management')
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.management.peopleMGMInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
@@ -227,7 +234,7 @@ class ManagementInvitation(Invitation):
         if self.expired: return False
         if self.resolved: return False
         if self.sender.is_blocked(self.receiver.user): return False
-        done = self.management.people.add(self.receiver)
+        done = self.receiver.addToManagement(self.management.id)
         if not done: return done
         self.resolve()
         return done

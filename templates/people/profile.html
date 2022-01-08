@@ -209,6 +209,9 @@
   const isMentor = "{{person.profile.is_mentor}}" == 'True';
   const isManager = "{{person.profile.is_manager}}" == 'True';
   const tabindex = (Number("{{request.GET.tab}}"||-2)>-1)?Number("{{request.GET.tab}}"): false;
+  {% if person.profile.is_manager %}
+    const mgmID = "{{person.profile.manager_id}}";
+  {% endif %}
             
   try{
     getElement("reactivateaccount").onclick=async()=>{

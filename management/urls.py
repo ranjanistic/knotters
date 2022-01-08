@@ -41,4 +41,6 @@ urlpatterns = [
     path(URL.Management.PEOPLE_MGM_SEND_INVITE, sendPeopleInvite),
     path(URL.Management.PEOPLE_MGM_INVITE, peopleMGMInvitation),
     path(URL.Management.PEOPLE_MGM_INVITE_ACT, peopleMGMInvitationAction),
+    path(URL.Management.PEOPLE_MGM_REMOVE, peopleMGMRemove),
+
 ]

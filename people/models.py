@@ -362,6 +362,16 @@ class Profile(models.Model):
             return False
 
     @property
+    def manager_id(self):
+        try:
+            return Management.objects.get(profile=self).get_id
+        except ObjectDoesNotExist:
+            return False
+        except Exception as e:
+            errorLog(e)
+            return False
+
+    @property
     def managements(self):
         return Management.objects.filter(people=self)
     
@@ -380,7 +390,10 @@ class Profile(models.Model):
             mgm = Management.objects.get(id=mgmID,people=self)
             mgm.people.remove(self)
             return True
-        except:
+        except ObjectDoesNotExist:
+            return False
+        except Exception as e:
+            errorLog(e)
             return False
 
     def convertToManagement(self, force=False) -> bool:

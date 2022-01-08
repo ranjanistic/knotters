@@ -1,4 +1,3 @@
-from datetime import timezone
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 from main.methods import addMethodToAsyncQueue
