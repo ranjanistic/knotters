@@ -446,7 +446,7 @@ if not DEBUG:
             "file": {
                 "level": "INFO",
                 "class": "logging.handlers.RotatingFileHandler",
-                "filename": env_("LOGFILE"),
+                "filename": env_("LOGFILE") or '_logs_/server.log',
                 "formatter": "app",
                 'maxBytes': 1024*1024*5,
                 'backupCount': 5
