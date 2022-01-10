@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import user_passes_test
+from django.views.generic.base import RedirectView
 from allauth.account.decorators import login_required
 from django.contrib import admin
 from django.urls import path, include
@@ -39,6 +40,9 @@ urlpatterns = [
     path(URL.AUTH, include(f'{AUTH2}.urls')),
     path('webpush/', include('webpush.urls')),
     path(URL.INDEX, index),
+    path(URL.Auth.LOGIN, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
+    path(URL.Auth.SIGNUP, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
+    path('register/', RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
     path(URL.ON_BOARDING, on_boarding),
     path(URL.ON_BOARDING_UPDATE, on_boarding_update),
     path(URL.LANDING, landing),
