@@ -17,7 +17,7 @@
 {% block tw_title %}{% trans "Logout" %}{% endblock %}
 {% block tw_site_name %}{% trans "Logout" %}{% endblock %}
 
-{% block nav_href %}{{request.user.profile.getLink}}{% endblock %}
+{% block nav_href %}{{URLS.AUTH}}{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 

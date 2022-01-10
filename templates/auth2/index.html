@@ -1,0 +1,15 @@
+{% extends 'account/index.html' %}
+
+{% block nav_href %}{{URLS.INDEX}}{% endblock %}
+
+{% block content%}
+<br/>
+<div class="w3-row w3-center">
+<a href="{{request.user.profile.get_link}}"><img class="w3-circle primary" width="100" src="{{request.user.profile.get_dp}}" />
+<h4>{{request.user.get_name}}</h4></a>
+<strong class="text-medium">{{request.user.email}}</strong>
+</div>
+{% endblock %}
+
+{% block ext_scripts %}
+{% endblock %}

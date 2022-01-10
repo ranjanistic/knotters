@@ -5,6 +5,7 @@ from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
+from auth2.apps import APPNAME as AUTH2
 from django.utils.translation import gettext_lazy as _
 
 AUTH = 'auth'
@@ -245,7 +246,7 @@ class Action():
 
 action = Action()
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT]
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
 
 
 class Project():
@@ -396,7 +397,7 @@ class URL():
 
         :fromApp: The app name, if nothing or invalid value is passed, returns root.
         """
-        if fromApp == AUTH:
+        if fromApp == AUTH2:
             return f"/{self.AUTH if withslash else self.AUTH.strip('/')}"
         if fromApp == DOCS:
             return f"/{self.DOCS if withslash else self.DOCS.strip('/')}"
@@ -431,7 +432,7 @@ class URL():
         return f"https://github.com/{ghID}"
 
     class Auth():
-
+        
         SIGNUP = 'signup/'
         LOGIN = 'login/'
         LOGOUT = 'logout/'
@@ -457,7 +458,7 @@ class URL():
             urls = classAttrsToDict(URL.Auth, cond)
 
             for key in urls:
-                URLS[key] = f"{url.getRoot(AUTH)}{setPathParams(urls[key])}"
+                URLS[key] = f"{url.getRoot(AUTH2)}{setPathParams(urls[key])}"
             return URLS
 
     auth = Auth()
@@ -1049,6 +1050,7 @@ class Template():
 
     class Auth():
         DIRNAME = 'account'
+        INDEX = 'index'
 
         ACCOUNT_INACTIVE = 'account_inactive'
 

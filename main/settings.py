@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from .strings import url, DIVISIONS, PEOPLE, AUTH
 from . import env
+from .env import env as env_
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env.PROJECTKEY
@@ -436,3 +437,35 @@ if env.ASYNC_CLUSTER:
 
 
 RATELIMIT_ENABLE = env.ISPRODUCTION
+if not DEBUG:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "root": {"level": "INFO", "handlers": ["file"]},
+        "handlers": {
+            "file": {
+                "level": "INFO",
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": env_("LOGFILE"),
+                "formatter": "app",
+                'maxBytes': 1024*1024*5,
+                'backupCount': 5
+            },
+        },
+        "loggers": {
+            "django": {
+                "handlers": ["file"],
+                "level": "INFO",
+                "propagate": True
+            },
+        },
+        "formatters": {
+            "app": {
+                "format": (
+                    u"%(asctime)s [%(levelname)-8s] "
+                    "(%(module)s.%(funcName)s) %(message)s"
+                ),
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+    }

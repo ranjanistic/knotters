@@ -5,7 +5,7 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from ratelimit.decorators import ratelimit
-from .strings import URL, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
+from .strings import URL, AUTH2, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
 from .env import ISPRODUCTION, ADMINPATH
 from .views import *
 from allauth.account import views
@@ -36,6 +36,7 @@ urlpatterns = [
     path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path(URL.AUTH, include('allauth_2fa.urls')),
     path(URL.AUTH, include('allauth.urls')),
+    path(URL.AUTH, include(f'{AUTH2}.urls')),
     path('webpush/', include('webpush.urls')),
     path(URL.INDEX, index),
     path(URL.ON_BOARDING, on_boarding),

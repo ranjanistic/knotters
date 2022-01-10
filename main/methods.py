@@ -17,7 +17,7 @@ from django.conf import settings
 from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING, PUBNAME
-from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH
+from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH2, AUTH
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -29,30 +29,33 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     URLS = dict(**data.get('URLS', dict()), **url.getURLSForClient())
     if data.get('URLS', None):
         del data['URLS']
-    if fromApp == str():
-        URLS = dict(**URLS, Projects=url.projects.getURLSForClient(), People=url.people.getURLSForClient(),
-                    Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
-    elif fromApp == PEOPLE:
-        URLS = dict(**URLS, **url.people.getURLSForClient(), Projects=url.projects.getURLSForClient(), Compete=url.compete.getURLSForClient(),
-                    Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
-    elif fromApp == PROJECTS:
-        URLS = dict(**URLS, **url.projects.getURLSForClient(), People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(),
-                    Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
-    elif fromApp == COMPETE:
-        URLS = dict(**URLS, **url.compete.getURLSForClient(), People=url.people.getURLSForClient(), Projects=url.projects.getURLSForClient(),
-                    Moderation=url.moderation.getURLSForClient(), Management=url.management.getURLSForClient())
-    elif fromApp == MODERATION:
-        URLS = dict(**URLS, **url.moderation.getURLSForClient(), Projects=url.projects.getURLSForClient(),
-                    People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Management=url.management.getURLSForClient())
-    elif fromApp == MANAGEMENT:
-        URLS = dict(**URLS, **url.management.getURLSForClient(), Projects=url.projects.getURLSForClient(),
-                    People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient())
-    elif fromApp == DOCS:
-        URLS = dict(**URLS, **url.docs.getURLSForClient(), Projects=url.projects.getURLSForClient(), Management=url.management.getURLSForClient(),
-                    People=url.people.getURLSForClient(), Compete=url.compete.getURLSForClient(), Moderation=url.moderation.getURLSForClient())
-
-    URLS = dict(**URLS, Docs=url.docs.getURLSForClient(),
-                Auth=url.auth.getURLSForClient())
+    applinks  = {
+        PROJECTS.capitalize():url.projects.getURLSForClient(),
+        PEOPLE.capitalize():url.people.getURLSForClient(),
+        AUTH.capitalize():url.auth.getURLSForClient(),
+        DOCS.capitalize():url.docs.getURLSForClient(),
+        COMPETE.capitalize():url.compete.getURLSForClient(),
+        MODERATION.capitalize():url.moderation.getURLSForClient(),
+        MANAGEMENT.capitalize():url.management.getURLSForClient()
+    }
+    URLS = dict(
+        **URLS, 
+        **applinks
+    )
+    if fromApp == PROJECTS:
+        URLS = dict(**URLS, **URLS[PROJECTS.capitalize()])
+    if fromApp == PEOPLE:
+        URLS = dict(**URLS, **URLS[PEOPLE.capitalize()])
+    if fromApp == AUTH2:
+        URLS = dict(**URLS, **URLS[AUTH.capitalize()])
+    if fromApp == DOCS:
+        URLS = dict(**URLS, **URLS[DOCS.capitalize()])
+    if fromApp == COMPETE:
+        URLS = dict(**URLS, **URLS[COMPETE.capitalize()])
+    if fromApp == MODERATION:
+        URLS = dict(**URLS, **URLS[MODERATION.capitalize()])
+    if fromApp == MANAGEMENT:
+        URLS = dict(**URLS, **URLS[MANAGEMENT.capitalize()])
 
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
 

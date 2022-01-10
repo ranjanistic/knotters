@@ -265,7 +265,7 @@ class APIKey(models.Model):
     key = models.CharField(max_length=100, unique=True, help_text="Random string at least 32 chars")
     name = models.CharField(max_length=100, null=True,blank=True)
     is_internal = models.BooleanField(default=False)
-    creator = models.ForeignKey(f'{PEOPLE}.Profile', related_name='apikey_creator_profile', on_delete=models.CASCADE)
+    creator = models.ForeignKey(f'{PEOPLE}.Profile', related_name='apikey_creator_profile', on_delete=models.CASCADE, null=True)
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def save(self, *args, **kwargs):

@@ -446,6 +446,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.ROBOTS_TXT}",
                 f"/{URL.VERSION_TXT}",
                 f"/{URL.REDIRECTOR}*",
+                f"/{URL.AUTH}",
                 f"/{URL.AUTH}*",
                 f"/{URL.MODERATION}*",
                 f"/{URL.COMPETE}*",

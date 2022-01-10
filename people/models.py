@@ -18,6 +18,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 from django.conf import settings
 from main.strings import Code, PROJECTS, url, MANAGEMENT
+from auth2.models import PhoneNumber
 from .apps import APPNAME
 
 
@@ -155,35 +156,7 @@ class State(models.Model):
 
     def __str__(self):
         return self.name
-    
 
-class PhoneNumber(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='phone_user')
-    number = models.CharField(max_length=100)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='phone_country')
-    verified = models.BooleanField(default=False)
-    primary = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.user.get_name
-
-class Address(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='address_user')
-    locality = models.CharField(max_length=200, null=True, blank=True)
-    line_1 = models.CharField(max_length=200, null=True, blank=True)
-    line_2 = models.CharField(max_length=200, null=True, blank=True)
-    city = models.CharField(max_length=200, null=True, blank=True)
-    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='phone_country')
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='address_country')
-    zip_code = models.CharField(max_length=100, null=True, blank=True)
-    phone_number = models.ForeignKey(PhoneNumber,on_delete=models.SET_NULL, related_name='address_phone', null=True,blank=True)
-
-    def __str__(self):
-        return self.user.get_name
 
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
