@@ -105,13 +105,13 @@
             <br/>
             <button type="button" class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
             <br/>
-            <button type="button" class="w3-bar-item side-nav-tab" id="guidelines" data-icon="rule">Guidelines</button> 
+            <button type="button" class="w3-bar-item side-nav-tab" id="preview" data-icon="visibility">Preview</button> 
             <br/><br/><br/><br/><br/>  <br/><br/><br/><br/><br/>
           </div>
           <div class="w3-center w3-hide-large w3-hide-medium w3-padding">
             <button type="button" class="side-nav-tab" id="overview" data-icon="toc"></button>
             <button type="button" class="side-nav-tab" id="task" data-icon="code"></button>
-            <button type="button" class="side-nav-tab" id="guidelines" data-icon="rule"></button>
+            <button type="button" class="side-nav-tab" id="preview" data-icon="rule"></button>
           </div>
         </div>
   
@@ -176,27 +176,14 @@
             <h4>Sample</h4>
             <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task sample (Basic HTML allowed)" type="text" name="comptaskSample" id="comptaskSample"></textarea>
           </div>
-          <div class="w3-row w3-padding-small" id="guideline-block">
-            <center><h4>The following guidelines are to be followed by participants, including the generic <a onclick="miniWindow('/docs/competitionguidelines')">competition guidelines</a>.</h4></center>
-            <br/>
-            <h4>What to submit</h4>
-            <p>Your submission should be a valid URL with all the neccessary content required by the task of this competition. Make sure that your provided URL is publicly available all the time after submission.
-            If our judges and moderator are unable to access the content provided on your submission URL, then your submission will stand INVALID.
-            </p>
-            
-            <h4>Where to submit</h4>
-            <p>For your submission to be considered valid, you must only submit from the only <strong>Submission</strong> tab in this page. For small devices, submission tab will the 4th bubble above this view.<br/>
-            Only the <strong class="positive-text">submissions from this page</strong> will be considered <strong class="positive-text">VALID</strong>. We strictly advise you to <strong>NOT use any other means of submission</strong>.
-            If you provide your submission via any means <strong class="negative-text">other than this page</strong>, then your submission
-            will be <strong class="negative-text">INVALID</strong>
-            </p>
-            
-            <h4>When to submit</h4>
-            <p>It is a general advise that you should prepare your submission till at least an hour before a competition ends, to avoid hassle.<br/>
-            This competition will accept submissions between <strong>{{compete.startAt}}</strong> and <strong>{{compete.endAt}}</strong>.
-            <br/>Any submission after the latter time will be considered late, and therefore, will be <a class="negative-text" target="_blank" href="/docs/competitionguidelines">vulnerable to invalidation</a>.
-            </p>
-        </div>
+          <div class="w3-row w3-padding-small" id="preview-block">
+            <h4>Summary</h4>
+            <p class="text-medium" style="word-break:break-word" id="comptaskSummary-preview"></p>
+            <h4>Detail</h4>            
+            <p class="text-medium" style="word-break:break-word" id="comptaskDetail-preview"></p>
+            <h4>Sample</h4>
+            <p class="text-medium" style="word-break:break-word" id="comptaskSample-preview"></p>
+          </div>
         </div>
       </div>
   
@@ -241,15 +228,18 @@
             if(tab.id==='overview'){
                 getElement('overview-block').style.display='block';
                 getElement('task-block').style.display='none';
-                getElement('guideline-block').style.display='none';
+                getElement('preview-block').style.display='none';
             } else if(tab.id === 'task') {
                 getElement('overview-block').style.display='none';
                 getElement('task-block').style.display='block';
-                getElement('guideline-block').style.display='none';
-            } else{
+                getElement('preview-block').style.display='none';
+            } else if (tab.id === 'preview') {
                 getElement('overview-block').style.display='none';
                 getElement('task-block').style.display='none';
-                getElement('guideline-block').style.display='block';
+                getElement('preview-block').style.display='block';
+                getElement('comptaskSummary-preview').innerHTML = getElement("comptaskSummary").value;
+                getElement('comptaskDetail-preview').innerHTML = getElement("comptaskDetail").value;
+                getElement('comptaskSample-preview').innerHTML = getElement("comptaskSample").value;
             }
         },
         uniqueID: "competetab",
