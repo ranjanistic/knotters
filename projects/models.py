@@ -581,12 +581,15 @@ class LegalDoc(models.Model):
     lastUpdate = models.DateTimeField(
         auto_now=False, default=timezone.now, editable=False)
     effectiveDate = models.DateTimeField(auto_now=False, default=timezone.now)
+    notify_all = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if LegalDoc.objects.filter(id=self.id).exists():
             if self.content != (LegalDoc.objects.get(id=self.id)).content:
                 self.lastUpdate = timezone.now()
-                addMethodToAsyncQueue(f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.getLink())
+                if self.notify_all:
+                    addMethodToAsyncQueue(f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.getLink())
+        self.notify_all = False
         super(LegalDoc, self).save(*args, **kwargs)
 
     def getLink(self):
