@@ -27,7 +27,7 @@
       {% endfor %}
       </div>
       <br/>
-      <h5 class="negative-text">{% trans "Save these tokens at a secure place. Losing these can lock you out of your account!" %}</h5>
+      <h5 class="negative-text">{% trans "Save these tokens at a secure place. Losing these can lock you out of your account!" %}<br/>Do not share these with anyone, even if they claim to be from {{APPNAME}}.</h5>
   {% else %}
     {% trans "Backup tokens have been generated and hidden. You can get them from your account settings view." %}
   {% endif %}
@@ -35,7 +35,7 @@
 {% endif %}
 <br/>
 {% if backup_tokens %}
-<a href="/"><button class="accent" onclick="window.close()" data-icon="verified">{% trans "I have saved them" %}</button></a>
+<a href="/"><button class="accent" onclick="window.close()" data-icon="done">{% trans "I have saved them" %}</button></a>
 {% endif %}
 
 <form method="post">
