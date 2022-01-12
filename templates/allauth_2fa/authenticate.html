@@ -15,13 +15,13 @@
 <h1>{% trans "Two-Factor Authentication" %}</h1>
 <h4>{% trans "Since you have enabled 2FA on your account, this is an additional layer of authentication." %}</h4>
 <br/>
-<h6>{% trans "Type the code from your autheticator app, below." %} {% trans "Use a backup token if auth app inaccessible." %}</h6>
-<br/>
+<strong class="text-medium">{% trans "Type the code from your autheticator app, below." %} {% trans "Use a backup token if auth app inaccessible." %}</strong>
+<br/><br/>
 <form method="POST">
   {% csrf_token %}
   <input type="text" class="required-field" name="otp_token" placeholder="{% trans "Two factor code" %} {% trans "or" %} {% trans "backup token" %}" autofocus="autofocus" autocomplete="off" inputmode="numeric" required="" id="id_otp_token"><br/><br/>
   <input type="hidden" name="{{redirect_field_name|or:'next'}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
-  <button class="accent recaptcha-protected-form-action" type="submit" data-icon="done">{% trans "Proceed" %}</button>
+  <button class="accent recaptcha-protected-form-action" type="submit" data-icon="login">{% trans "Proceed" %}</button>
 </form>
 </div>
 <br/>
