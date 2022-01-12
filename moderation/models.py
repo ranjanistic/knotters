@@ -104,7 +104,7 @@ class Moderation(models.Model):
         if self.type == PEOPLE:
             return self.profile == profile
         if self.type == COMPETE:
-            return self.requestor == profile
+            return self.competition.isJudge(profile) or self.requestor == profile
 
     def isPending(self) -> bool:
         return self.status == Code.MODERATION

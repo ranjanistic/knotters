@@ -51,6 +51,8 @@ def getObjectCreator(object:models.Model):
         return object.creator
     elif isinstance(object, Competition):
         return object.creator
+    elif isinstance(object, Profile):
+        return object
     else:
         raise IllegalModerationType()
 
