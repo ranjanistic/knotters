@@ -262,11 +262,13 @@ def AllotCompetitionCertificates(results:list,competition:Competition):
     """
     @async
     """
+    print('oif')
     try:
         cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
         appreciateeCerts = []
         id = uuid4()
         certificate = generateModCertificate(competition,id.hex)
+        print('aah')
         if not certificate:
             cache.delete(f"certificates_allotment_task_{competition.get_id}")
             raise Exception(f"Couldn't generate certificate of {competition.moderator.getName()} (m) for {competition.title}")

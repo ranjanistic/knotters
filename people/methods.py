@@ -1,13 +1,12 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
-from itertools import chain
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString, COMPETE
-from projects.models import BaseProject, FreeProject, Project
+from projects.models import BaseProject, Project
 from moderation.models import Moderation
 from compete.models import Competition, CompetitionJudge, Result
 from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
@@ -122,7 +121,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         elif section == profileString.MODERATION:
             if profile.is_moderator:
                 mods = Moderation.objects.filter(moderator=profile)
-                data[Code.UNRESOLVED] = list(filter(lambda m: m.is_stale, list(mods.filter(resolved=False).order_by('-requestOn'))))
+                data[Code.UNRESOLVED] = list(filter(lambda m: not m.is_stale or m.competition, list(mods.filter(resolved=False).order_by('-requestOn'))))
                 data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
                 data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
         elif section == profileString.COMPETITIONS:

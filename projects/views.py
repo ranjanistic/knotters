@@ -190,15 +190,20 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
-@ratelimit(key='user', rate='3/m', block=True, method=('POST'))
+@ratelimit(key='user', rate='3/m', block=True, method=(Code.POST))
 def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         acceptedTerms = request.POST.get("acceptterms", False)
         if not acceptedTerms:
+            if json_body:
+                return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
             return respondRedirect(APPNAME, URL.projects.createMod(step=3), error=Message.TERMS_UNACCEPTED)
         license = request.POST.get('license', None)
         if not license:
+            if json_body:
+                return respondJson(Code.NO, error=Message.LICENSE_UNSELECTED)
             return respondRedirect(APPNAME, URL.projects.createMod(step=3), error=Message.LICENSE_UNSELECTED)
         name = request.POST["projectname"]
         description = request.POST["projectabout"]
@@ -206,12 +211,18 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         reponame = request.POST["reponame"]
         userRequest = request.POST["description"]
         referURL = request.POST.get("referurl", "")
+        stale_days = int(request.POST.get("stale_days", 3))
+        stale_days = stale_days if stale_days in range(1,16) else 3
+        useInternalMods = request.user.profile.is_manager and request.POST.get("useInternalMods", False)
+
         if not uniqueRepoName(reponame):
-            return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
+            if json_body:
+                return respondJson(Code.NO, error=Message.NICKNAME_ALREADY_TAKEN)
+            return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.NICKNAME_ALREADY_TAKEN)
         projectobj = createProject(creator=request.user.profile, name=name,
                                    category=category, reponame=reponame, description=description, url=referURL, licenseID=license)
         if not projectobj:
-            raise Exception()
+            raise Exception('createProject: False')
         try:
             imageData = request.POST['projectimage']
             imageFile = base64ToImageFile(imageData)
@@ -221,17 +232,35 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         except:
             pass
         mod = requestModerationForObject(
-            projectobj, APPNAME, userRequest, referURL)
+            projectobj, APPNAME, userRequest, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
         if not mod:
             projectobj.delete()
+            if useInternalMods:
+                if request.user.profile.management.total_moderators == 0:
+                    if json_body:
+                        return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
+                    return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.NO_INTERNAL_MODERATORS)
+            if json_body:
+                return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
             return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", projectobj)
-        return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
+        else:
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", projectobj)
+            if json_body:
+                return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
+            return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
+    except KeyError:
+        if projectobj:
+            projectobj.delete()
+        if json_body:
+            return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
+        return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
     except Exception as e:
         if projectobj:
             projectobj.delete()
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
         return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
 
 

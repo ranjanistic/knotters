@@ -172,7 +172,6 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
                 f'{APPNAME}.mailers.{participantInviteAlert.__name__}', person, request.user.profile, submission)
             return respondJson(Code.OK)
     except Exception as e:
-        print(e)
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
@@ -495,8 +494,10 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
                 score=top["score"]
             ))
         return respondJson(Code.OK, dict(topics=topics))
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO)
     except Exception as e:
-        print(e)
+        errorLog(e)
         return respondJson(Code.NO)
 
 
@@ -600,16 +601,14 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
             return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
         doneresultIDs = ParticipantCertificate.objects.filter(
             result__competition=competition).values_list("result__id", flat=True)
-        if(len(doneresultIDs) > 0):
-            remainingresults = Result.objects.filter(
-                ~Q(id__in=doneresultIDs), competition=competition)
-        else:
-            remainingresults = Result.objects.filter(competition=competition)
+        remainingresults = Result.objects.filter(competition=competition).exclude(id__in=list(doneresultIDs))
         cache.set(f"certificates_allotment_task_{competition.get_id}",
-                  Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
+                    Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{AllotCompetitionCertificates.__name__}", remainingresults, competition)
         return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         return HttpResponseServerError(e)

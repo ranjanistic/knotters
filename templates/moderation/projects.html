@@ -66,24 +66,24 @@
         <div class="w3-row pallete accent w3-center">
         <br/>
         {% if ismoderator and not moderation.resolved %}
-        <i class="w3-jumbo">warning</i>
-        <h3 class="text-accent">{% trans "Take Action" %}</h3>
-        {% if moderation.is_stale %}
-            <h4>It is too late now. This moderation remained open to action for 3 days since last activity.</h4>
-            <h5>In future, do not be late in responding as we also notify you before it's too late.</h5>
-            <a href="{{request.user.profile.getLink}}"><button class="primary">Okay</button></a>
-        {% else %}
-        <h6>Approving this project will create a repository under {{APPNAME}} organization on GitHub, and will grant the requestor a moderate level
-        of access to this project and related services, everywhere. {% trans "Therefore, decide thoughtfully before proceeding." %}</h6>
-        <button class="big-button positive modaction" id="approve" data-icon="done">{% trans "Approve" %}</button>
-        <button class="big-button negative modaction" id="reject" data-icon="close">{% trans "Reject" %}</button>
-        <form method="POST" action="{{URLS.ACTION|params:moderation.getID}}">
-            {% csrf_token %}
-            <input type="text" hidden value="true" name="skip" />
-            <button class="big-button primary" type="submit" id="skip" data-icon="skip_next">{% trans "Skip" %}</button>
-        </form>
-        
-        {% endif %}
+            <i class="w3-jumbo">warning</i>
+            <h3 class="text-accent">{% trans "Take Action" %}</h3>
+            {% if moderation.is_stale %}
+                <h4>It is too late now. This moderation waited for 3 days for you to respond.</h4>
+                <h5>In future, do not be late in responding, as we also notify you before it's too late.</h5>
+                <a href="{{request.user.profile.getLink}}"><button class="primary" data-icon="sentiment_dissatisfied">Okay</button></a>
+            {% else %}
+            <h6>Approving this project will create a repository under {{APPNAME}} organization on GitHub, and will grant the requestor a moderate level
+            of access to this project and related services, everywhere. {% trans "Therefore, decide thoughtfully before proceeding." %}</h6>
+            <button class="big-button positive modaction" id="approve" data-icon="done">{% trans "Approve" %}</button>
+            <button class="big-button negative modaction" id="reject" data-icon="close">{% trans "Reject" %}</button>
+            <form method="POST" action="{{URLS.ACTION|params:moderation.getID}}">
+                {% csrf_token %}
+                <input type="text" hidden value="true" name="skip" />
+                <button class="big-button primary" type="submit" id="skip" data-icon="skip_next">{% trans "Skip" %}</button>
+            </form><br/>
+            <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+            {% endif %}
         {% else %}
             <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
             <h3 class="text-accent">Action {% if moderation.resolved %}taken{% endif %}</h3>
@@ -95,7 +95,7 @@
                 {% if moderation.resolved and moderation.isRejected and not forwarded or moderation.is_stale %}
                     {% if moderation.project.canRetryModeration or moderation.is_stale %}
                         {% if moderation.is_stale and not moderation.isRejected%}
-                        <h2>No activity for a long time.</h2>
+                        <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
                         {% else %}
                         <h2>{{moderation.project.moderationRetriesLeft}} {% trans "retry left." %}</h2>
                         {% endif %}
@@ -112,9 +112,11 @@
                     {% else %}
                         <h4>{% trans "Project deleted" %}</h4>
                     {% endif %}
-                {% elif forwarded %}
+                {% elif not moderation.resolved and not moderation.isRejected and forwarded %}
                     <h4>{% trans "Moderation re-applied" %}</h4>
                     <a href="{{forwarded.getLink}}"><button class="positive" data-icon="open_in_new">{% trans "View moderation" %}</button></a>
+                {% elif not moderation.resolved %}
+                    <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
                 {% endif %}
             {% endif %}
         {% endif %}
@@ -122,8 +124,8 @@
         </div>
         <br/>
         <div class="w3-row w3-padding">
-        <h5>Do respect and follow <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a> in any kind of conversation.</h5>
-        <h5>You can go through the <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">moderation guidelines</a> for any doubt or help regarding this.</h5>
+        <h5>Do respect and follow <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a> in any kind of interaction.</h5>
+        <h5>You can go through the <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a> for any doubt or help regarding this.</h5>
         <h5>For <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy reasons</a>, {% trans "we keep the identity of requestor and moderator anonymous to each other." %}</h5>
         </div>
     </div>
@@ -176,38 +178,9 @@ getElements("modaction").forEach((action)=>{
 })
 {% endif %}
     getElement('report-moderation').onclick=async()=>{
-        const data = await getRequest(URLS.REPORT_CATEGORIES)
-        if(!data) return
-        if(data.code!==code.OK){
-            return error(data.error)
-        }
-        let options=''
-        data.reports.forEach((rep)=>{
-            options+=`<option value='${rep.id}'>${rep.name}</option>`
-        })
-        alertify.confirm(
-            `<h3>{% trans "Report" %}</h3>`,
-            `
-            <select id='report-category' required>
-            ${options}
-            </select>
-            `,
-            ()=>{},
-            async()=>{
-                loader()
-                message('{% trans "Reporting" %}...')
-                const data = await postRequest(URLS.REPORT_MODERATION,{
-                    moderationID: '{{moderation.get_id}}',
-                    report: getElement('report-category').value,
-                })
-                loader(false)
-                if(!data) return 
-                if(data.code===code.OK){
-                    return message(`{% trans "Reported" %}. {% trans "We\'ll investigate." %}`)
-                }
-                error(data.error)
-            }
-        ).set('labels', {cancel:`${Icon('report')} {% trans "Report" %}`, ok:'{% trans "No" %}, {% trans "go back" %}'}).set('closable', false)
+        await violationReportDialog(URLS.REPORT_MODERATION,{
+            moderationID: '{{moderation.get_id}}',
+        },'',URLS.REPORT_CATEGORIES)
     }
 </script>
 {% endblock %}

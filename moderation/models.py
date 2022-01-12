@@ -38,6 +38,8 @@ class Moderation(models.Model):
     requestOn = models.DateTimeField(auto_now=False, default=timezone.now)
     respondOn = models.DateTimeField(auto_now=False, null=True, blank=True)
     resolved = models.BooleanField(default=False)
+    stale_days = models.IntegerField(default=3)
+    internal_mod = models.BooleanField(default=False)
 
     def __str__(self):
         if self.type == PROJECTS:
@@ -70,11 +72,10 @@ class Moderation(models.Model):
     @property
     def is_stale(self):
         """
-        No response for 3 consecutive days
+        No response for consecutive stale_days or 3
         """
         if self.resolved: return False
-        stale_days = 3
-        if self.project: stale_days = self.project.stale_days
+        stale_days = self.stale_days or 3
         if not self.respondOn:
             if timezone.now() > (self.requestOn + timedelta(days=stale_days)):
                 return True
@@ -88,13 +89,22 @@ class Moderation(models.Model):
     def approveCompeteLink(self):
         return f"{url.getRoot(APPNAME)}{url.moderation.approveCompete(modID=self.getID())}"
 
+    @property
+    def requestor(self) -> bool:
+        if self.type == PROJECTS:
+            return self.project.creator
+        if self.type == PEOPLE:
+            return None
+        if self.type == COMPETE:
+            return self.competition.creator
+
     def isRequestor(self, profile) -> bool:
         if self.type == PROJECTS:
-            return profile == self.project.creator
+            return profile == self.requestor
         if self.type == PEOPLE:
             return self.profile.isReporter(profile)
         if self.type == COMPETE:
-            return self.competition.isJudge(profile)
+            return self.requestor == profile
 
     def isPending(self) -> bool:
         return self.status == Code.MODERATION
@@ -129,17 +139,22 @@ class Moderation(models.Model):
         self.save()
         return True
 
-    def revertApproval(self) -> bool:
+    def revertRespond(self) -> bool:
         self.status = Code.MODERATION
-        self.respondOn = None
         if self.type == PROJECTS:
             self.project.status = Code.MODERATION
             self.project.approvedOn = None
             self.project.save()
         self.resolved = False
-        self.moderator.decreaseXP(by=5)
         self.save()
         return True
+
+    def revertApproval(self) -> bool:
+        if self.revertRespond():
+            self.moderator.decreaseXP(by=5)
+            return True
+        return False
+
 
     def reject(self) -> bool:
         self.status = Code.REJECTED

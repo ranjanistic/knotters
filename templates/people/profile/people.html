@@ -14,23 +14,31 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
 <div class="w3-row">
     {% for profile in people %}
     <div class="w3-col w3-padding-small l2 m4 s6">
-        <div class="w3-row pallete-slab accent no-pad">
+        <div class="w3-row pallete-slab {% if profile.is_moderator or profile.is_mentor %}{{profile.theme}}{% else %}tertiary{% endif %} no-pad">
             <a onclick="miniWindow('{{profile.getLink}}')">
             <img class="primary wide" src="{{profile.getDP}}" />
             </a>
-            <div class="w3-row w3-padding-small">
+            <div class="w3-row w3-padding-small {% if profile.is_moderator or profile.is_mentor %}text-{{profile.theme}}{% else %}positive-text{% endif %}">
             <strong style="word-break:break-word">{{profile.getName|truncatechars:18}}</strong>{% if profile.is_verified %}<i class="w3-small">verified</i>{% endif %}
             </div>
-            {% if self or profile == request.user.profile %}
             <div class="w3-row w3-padding-small">
+            {% if self or profile == request.user.profile %}
                 <button class="small negative delete-mgm-person" 
                 data-icon="delete" 
                 data-userID="{{profile.get_userid}}"
                 data-member-name="{{profile.getName}}"
                 data-member-dp="{{profile.getDP}}"
                 ></button>
-            </div>
+            {% else %}
+                {% if profile.get_xp %}
+                    <strong>{{profile.get_xp}}</strong>
+                {% else %}
+                    {% for label in person.profile.get_labels %}
+                        <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
+                    {% endfor %}
+                {% endif %}
             {% endif %}
+            </div>
         </div>
     </div>
     {% empty %}

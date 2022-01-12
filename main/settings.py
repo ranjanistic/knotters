@@ -82,7 +82,7 @@ MIDDLEWARE = [
 # CORS_ALLOWED_ORIGINS = env.CORS_ALLOWED_ORIGINS
 # CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 # CORS_ALLOW_ALL_ORIGINS = DEBUG
-# print(CORS_ALLOWED_ORIGINS)
+
 ROOT_URLCONF = "main.urls"
 
 BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.STRINGS,
@@ -179,7 +179,8 @@ if not env.ISTESTING and env.ASYNC_CLUSTER:
             'LOCATION': env.REDIS_LOCATION,
             'OPTIONS': {} if not env.REDIS_PASSWORD else {
                 'PASSWORD': env.REDIS_PASSWORD,
-            }
+            },
+            'TIMEOUT': None
         },
     }
 

@@ -23,7 +23,7 @@ const message = (msg = "", onOpen = (toast) => {}) => {
         position: "bottom-start",
         showConfirmButton: false,
         iconColor: "#000",
-        timer: Math.max(msg.split(" ").length * 400, 3000),
+        timer: Math.max(msg.split(" ").length * 400, 5000),
         timerProgressBar: true,
         didOpen: (toast) => {
             toast.addEventListener("mouseenter", Swal.stopTimer);
@@ -45,7 +45,7 @@ const error = (msg = STRING.default_error_message, force = false) => {
         position: "bottom-end",
         showConfirmButton: false,
         iconColor: "#000",
-        timer: Math.max(msg.split(" ").length * 400, 3000),
+        timer: Math.max(msg.split(" ").length * 400, 5000),
         timerProgressBar: true,
         didOpen: (toast) => {
             toast.addEventListener("mouseenter", Swal.stopTimer);
@@ -74,7 +74,7 @@ const success = (msg = "Success") => {
         position: "top-end",
         showConfirmButton: false,
         iconColor: "#fff",
-        timer: Math.max(msg.split(" ").length * 400, 3000),
+        timer: Math.max(msg.split(" ").length * 400, 5000),
         timerProgressBar: true,
         didOpen: (toast) => {
             toast.addEventListener("mouseenter", Swal.stopTimer);

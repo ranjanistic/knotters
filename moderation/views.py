@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import Http404, HttpResponse, JsonResponse
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
@@ -84,8 +85,10 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
             return redirect(mod.getLink(alert=Message.REQ_MESSAGE_SAVED))
         else:
             raise Exception()
-    except:
-        raise Http404()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        raise Http404(e)
 
 
 @moderator_only
@@ -94,7 +97,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
     Moderator action on moderation. (Project, primarily)
     """
-    json_body = request.POST.get("JSON_BODY", False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     mod = None
     try:
         mod = Moderation.objects.get(
@@ -103,8 +106,16 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             raise Exception()
         skip = request.POST.get('skip', None)
         if skip:
+            onlyModProfiles = None
+            if mod.internal_mod and mod.requestor.is_manager:
+                onlyModProfiles = mod.requestor.management.moderators.exclude(id=mod.moderator.id)
+                if not len(onlyModProfiles):
+                    return redirect(mod.getLink(error=Message.NO_MODERATORS_AVAILABLE))
+
             newmod = getModeratorToAssignModeration(
-                mod.type, mod.object, [mod.moderator])
+                type=mod.type, object=mod.object, ignoreModProfiles=[mod.moderator], onlyModProfiles=onlyModProfiles)
+            if not newmod:
+                return redirect(mod.getLink(error=Message.NO_MODERATORS_AVAILABLE))
             mod.moderator = newmod
             mod.save()
             addMethodToAsyncQueue(
@@ -152,13 +163,13 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
             if (mod.resolved and mod.status == Code.REJECTED) or mod.is_stale:
                 if mod.is_stale: mod.moderator.decreaseXP(by=2)
                 newmod = requestModerationForObject(
-                    mod.project, mod.type, reassignIfRejected=True)
+                    mod.project, mod.type, reassignIfRejected=True, stale_days=mod.stale_days, useInternalMods=mod.internal_mod)
         elif mod.type == PEOPLE:
             newmod = requestModerationForObject(
-                mod.profile, mod.type, reassignIfRejected=True)
+                mod.profile, mod.type, reassignIfRejected=True, stale_days=mod.stale_days, useInternalMods=mod.internal_mod)
         elif mod.type == COMPETE:
             newmod = requestModerationForObject(
-                mod.competition, mod.type, reassignIfRejected=True)
+                mod.competition, mod.type, reassignIfRejected=True, stale_days=mod.stale_days, useInternalMods=mod.internal_mod)
         else:
             return redirect(mod.getLink(alert=Message.ERROR_OCCURRED))
         if not newmod:

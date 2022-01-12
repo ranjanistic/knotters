@@ -37,8 +37,8 @@
                         <br/>
                         <center>
                         <i class="w3-jumbo material-icons">hourglass_top</i>
-                        <h4>{% trans "Wait for it." %}</h4>
-                        <h6>{% trans "Patience is the key" %}</h6>
+                        <h6>{% trans "Wait for it." %}</h6>
+                        <strong>{% trans "Patience is the key." %}</strong>
                         </center>
                         <br/>
                         {% endfor %}
@@ -70,8 +70,8 @@
                         <br/>
                         <center>
                         <i class="w3-jumbo">done</i>
-                        <h4>{% trans "All resolved" %}</h4>
-                        <h6>{% trans "Help the ones which are live." %}</h6>
+                        <h6>{% trans "All resolved" %}</h6>
+                        <strong>{% trans "Help the ones which are live." %}</strong>
                         </center>
                         <br/>
                         {% endfor %}
@@ -99,14 +99,14 @@
                             <h6>{{mod.competition.title}}</h6>
                             <span>{{mod.competition.tagline}}</span>
                             {% endif %}
-                            <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">{% trans "View" %}</button></a>
+                            <a href="{{mod.getLink}}" class="w3-right"><button class="tertiary dead-text small" data-icon="open_in_new"></button></a>
                         </div>
                         {% empty %}
                         <br/>
                         <center class="dead-text">
                         <i class="w3-jumbo material-icons">hourglass_top</i>
-                        <h4>{% trans "None rejected." %}</h4>
-                        <h6>{% trans "Cool!" %}</h6>
+                        <h6>{% trans "None rejected" %}</h6>
+                        <strong>{% trans "Cool!" %}</strong>
                         </center>
                         <br/>
                         {% endfor %}

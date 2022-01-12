@@ -93,6 +93,8 @@ def on_boarding(request:WSGIRequest) -> HttpResponse:
 def on_boarding_update(request:WSGIRequest) -> HttpResponse:
     try:
         on_boarded = request.POST.get('onboarded', False)
+        if on_boarded and not (request.user.profile.on_boarded and request.user.profile.xp):
+            request.user.profile.increaseXP(10)
         request.user.profile.on_boarded = on_boarded == True
         request.user.profile.save()
         return respondJson(Code.OK)

@@ -310,8 +310,8 @@ def competitions(request: WSGIRequest) -> HttpResponse:
     try:
         competes = Competition.objects.filter(creator=request.user.profile)
         return renderer(request, Template.Management.COMP_INDEX, dict(competes=competes))
-    except:
-        raise Http404()
+    except Exception as e:
+        raise Http404(e)
 
 
 @manager_only
@@ -329,7 +329,7 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
         ))
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @manager_only

@@ -76,6 +76,7 @@
                     class="big-input"
                     maxlength="300"
                     rows="4"
+                    type="text"
                     name="projectabout"
                     id="projectabout"
                     placeholder="About your project in a sentence or two."
@@ -90,6 +91,7 @@
                     name="description"
                     maxlength="5000"
                     rows="5"
+                    type="text"
                     id="description"
                     placeholder="Detailed explanation of the project, i.e. motive, etc. for moderator to understand."
                 ></textarea>
@@ -121,6 +123,8 @@
                     class="big-input"
                     name="referurl"
                     id="referurl"
+                    type="url"
+                    inputmode="url"
                     maxlength="100"
                     placeholder="Any link related to this project, optional"
                 />
@@ -153,8 +157,28 @@
                 <br/>
                 <strong><a target="_blank" onclick="newTab('{{URLS.ALLLICENSES}}')">Learn more</a> about these licenses.</strong>
                 <br/>
+                <strong>Days before expiration
+                <input
+                    name="stale_days"
+                    id="stale_days"
+                    type="number"
+                    inputmode="numeric"
+                    placeholder="1-15",
+                    value="3"
+                    required
+                    onblur="this.value=((15-Number(this.value))>=0?Number(this.value)>0?Number(this.value):1:15)||3"
+                    min="1"
+                    max="15"
+                /></strong><br/>
+                {% if request.user.profile.is_manager %}
+                <label>
+                    <input name="useInternalMods" checked id="useInternalMods" type="checkbox"  aria-required="true" />
+                    Use moderators only from <a href="{{request.user.profile.get_link}}?tab=2" target="_blank">my organization</a>.
+                </label>
+                <br/>
+                {% endif %}
                 <label id="confirm-check-box">
-                    <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
+                    <input name="acceptterms" id="acceptterms" type="checkbox" required aria-required="true" />
                     I've read the {{appname}} 
                         <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">moderation guidelines</a>, 
                         <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 

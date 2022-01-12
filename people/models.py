@@ -431,7 +431,7 @@ class Profile(models.Model):
     
     @property
     def has_labels(self):
-        return self.is_moderator or self.is_mentor
+        return self.is_moderator or self.is_mentor or self.is_manager
 
     def get_labels(self):
         labels = []
@@ -439,14 +439,29 @@ class Profile(models.Model):
             labels.append(dict(name='MOD', theme='accent'))
         if self.is_mentor:
             labels.append(dict(name='MNT', theme='active'))
+        if self.is_manager:
+            labels.append(dict(name='MGR', theme='tertiary positive-text'))
         return labels
+
     @property
     def theme(self):
         if self.is_moderator:
             return 'accent'
         if self.is_mentor:
             return 'active'
+        if self.is_manager:
+            return 'tertiary'
         return "positive"
+
+    @property
+    def text_theme(self):
+        if self.is_moderator:
+            return 'text-accent'
+        if self.is_mentor:
+            return 'text-active'
+        if self.is_manager:
+            return 'positive-text'
+        return "text-positive"
 
     @property
     def ghID(self) -> str:
@@ -536,7 +551,7 @@ class Profile(models.Model):
 
     @property
     def get_xp(self) -> str:
-        return f"{self.xp if self.xp else 0} XP"
+        return f"{self.xp if self.xp else 0} XP" if not self.is_manager else ""
 
     def getXP(self) -> str:
         return self.get_xp

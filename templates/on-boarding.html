@@ -508,7 +508,7 @@
             }
         }).then((res)=>{
             if(res.code === code.OK){
-                window.location.href=("{{request.GET.next}}"||URLS.ROOT)
+                window.location.href=("{{request.GET.next}}"||"{{request.user.profile.get_link}}?s=Profile XP increased")
             } else {
                 loader(false)
                 error(res.error)

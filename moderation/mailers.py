@@ -1,5 +1,5 @@
 from people.models import Profile
-from main.strings import PROJECTS
+from main.strings import PROJECTS, COMPETE, PEOPLE
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
 from .models import Moderation

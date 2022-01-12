@@ -96,7 +96,7 @@ def manager_only(function):
             return function(request, *args, **kwargs)
         else:
             if request.method == 'GET':
-                raise Http404()
+                raise Http404('Unauthorized manager access')
             return HttpResponseForbidden('Unauthorized access')
     return wrap
 

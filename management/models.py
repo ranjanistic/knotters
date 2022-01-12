@@ -145,9 +145,6 @@ class Management(models.Model):
     def __str__(self):
         return self.profile.getName()
 
-    def getPeople(self):
-        return self.people.all()
-    
     @property
     def has_invitations(self):
         return ManagementInvitation.objects.filter(management=self, resolved=False).exists()
@@ -155,6 +152,41 @@ class Management(models.Model):
     def current_invitations(self):
         return ManagementInvitation.objects.filter(management=self, resolved=False)
 
+    def getPeople(self):
+        return self.people.all()
+    
+    @property
+    def total_moderators(self):
+        return self.people.filter(is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).count()
+
+    @property
+    def moderators(self):
+        return self.people.filter(is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
+
+    @property
+    def total_moderators_abs(self):
+        return self.people.filter(is_moderator=True, to_be_zombie=False).count()
+
+    @property
+    def moderators_abs(self):
+        return self.people.filter(is_moderator=True, to_be_zombie=False)
+
+    @property
+    def total_mentors(self):
+        return self.people.filter(is_mentor=True, is_active=True, to_be_zombie=False, suspended=False).count()
+
+    @property
+    def mentors(self):
+        return self.people.filter(is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
+
+    @property
+    def total_mentors_abs(self):
+        return self.people.filter(is_mentor=True, to_be_zombie=False).count()
+
+    @property
+    def mentors_abs(self):
+        return self.people.filter(is_mentor=True, to_be_zombie=False)
+        
 class ManagementPerson(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     person = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_person_profile')

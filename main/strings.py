@@ -55,6 +55,9 @@ class Code():
     OK = "OK"
     PONG = "PONG"
     NO = "NO"
+    JSON_BODY = "JSON_BODY"
+    GET = "GET"
+    POST = "POST"
     UNKNOWN_EVENT = "UNKNOWN_EVENT"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -151,6 +154,7 @@ class Message():
     SUBMISSION_TOO_LATE = _("It is too late now.")
     SUBMISSION_MARKING_INVALID = _("Invalid submission markings, try again.")
     SUBMISSION_ERROR = _("Error in submission")
+    NO_INTERNAL_MODERATORS = _("No moderators in available your organization")
 
     FREE_PROJECT_CREATED = _("Project created successfully!")
     SENT_FOR_REVIEW = _("Sent for review")
@@ -197,6 +201,7 @@ class Message():
     CERT_NOT_FOUND = _('Certificate not found')
 
     MODERATION_SKIPPED = _("That moderation was passed on to another moderator.")
+    NO_MODERATORS_AVAILABLE = _("No moderators available")
 
     PAYMENT_REG_SUCCESS = _("You have successfully paid the registration fee")
 
