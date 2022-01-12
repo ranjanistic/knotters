@@ -77,7 +77,7 @@ def getCompetitionSectionData(section: str, competition: Competition, user: User
     elif section == Compete.SUBMISSION:
         try:
             profile = user.profile
-            if competition.isNotAllowedToParticipate(profile):
+            if competition.isNotAllowedToParticipate(profile, False):
                 return None
                 
             relation = SubmissionParticipant.objects.get(

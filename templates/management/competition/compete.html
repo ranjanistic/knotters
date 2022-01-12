@@ -42,6 +42,10 @@
         <strong>Task summary: {{compete.taskSummary |truncatechars:100 }}</strong><br/>
         <strong>Task detail: {{compete.taskDetail|truncatechars:100}}</strong><br/>
         <strong>Task sample: {{compete.taskSample|truncatechars:100}}</strong><br/>
+        {% if compete.qualifier %}
+        <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
+        <strong>Qualifier rank: {{compete.qualifier_rank}}</strong>
+        {% endif %}
         <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
         <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
         <strong>Moderated? {{compete.moderated|yesno}}</strong><br/>

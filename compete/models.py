@@ -10,17 +10,23 @@ from moderation.models import Moderation
 from management.models import Invitation
 from main.strings import url, MANAGEMENT
 from main.methods import errorLog, getNumberSuffix
-from main.env import BOTMAIL
+from main.env import BOTMAIL, SITE
 from .apps import APPNAME
 
 
 def competeBannerPath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/banners/{instance.getID()}.{fileparts[len(fileparts)-1]}"
+    ext = fileparts[len(fileparts)-1]
+    if not (ext in ['jpg', 'png', 'jpeg']):
+        ext = 'png'
+    return f"{APPNAME}/banners/{instance.get_id}_{uuid.uuid4().hex}.{ext}"
 
 def competeAssociatePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/associates/{instance.getID()}.{fileparts[len(fileparts)-1]}"
+    ext = fileparts[len(fileparts)-1]
+    if not (ext in ['jpg', 'png', 'jpeg']):
+        ext = 'png'
+    return f"{APPNAME}/associates/{instance.get_id}_{uuid.uuid4().hex}.{ext}"
 
 
 def defaultBannerPath():
@@ -117,8 +123,12 @@ class Competition(models.Model):
     reg_fee = models.IntegerField(default=0)
     fee_link = models.URLField(max_length=1000, blank=True, null=True)
     hidden = models.BooleanField(default=False)
+    is_draft = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    qualifier = models.ForeignKey(f"{APPNAME}.Competition", on_delete=models.SET_NULL, null=True, blank=True, related_name="qualifier_competition")
+    qualifier_rank = models.IntegerField(default=0)
 
     def __str__(self) -> str:
         return self.title
@@ -136,14 +146,26 @@ class Competition(models.Model):
     def getID(self) -> str:
         return self.get_id
 
-    def getBanner(self) -> str:
+    @property
+    def get_banner(self) -> str:
         return f"{settings.MEDIA_URL}{str(self.banner)}"
+
+    def getBanner(self) -> str:
+        return self.get_banner
+
+    @property
+    def get_banner_abs(self) -> str:
+        return f"{SITE}{self.get_banner}"
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         """
         Link to competition profile page
         """
         return f"{url.getRoot(APPNAME)}{url.compete.compID(compID=self.getID())}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self) -> str:
+        return self.getLink()
 
     def participationLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.participate(compID=self.getID())}"
@@ -280,11 +302,19 @@ class Competition(models.Model):
             errorLog(e)
             return self.getLink()
 
-    def isAllowedToParticipate(self, profile:Profile) -> bool:
-        return not (self.creator == profile or self.moderator == profile or self.isJudge(profile) or profile.is_manager or profile.getEmail() == BOTMAIL)
+    def isAllowedToParticipate(self, profile:Profile, checkqualifier=True) -> bool:    
+        allowed = not (self.creator == profile or self.moderator == profile or self.isJudge(profile) or profile.is_manager or profile.getEmail() == BOTMAIL)
+        if allowed and checkqualifier:
+            if self.qualifier:
+                if not self.qualifier.resultDeclared:
+                    allowed = False
+                elif self.qualifier_rank > 0:
+                    allowed = Result.objects.filter(competition=self.qualifier, rank__lte=self.qualifier_rank, submission__members=profile).exists()
+        return allowed
 
-    def isNotAllowedToParticipate(self, profile:Profile) -> bool:
-        return not self.isAllowedToParticipate(profile)
+
+    def isNotAllowedToParticipate(self, profile:Profile, checkqualifier=True) -> bool:
+        return not self.isAllowedToParticipate(profile, checkqualifier)
         
     def isParticipant(self, profile: Profile) -> bool:
         """

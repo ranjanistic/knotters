@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'allauth_2fa',
     "webpush",
-    "django_q",
+    # "django_q",
     # "corsheaders"
 ] + DIVISIONS
 

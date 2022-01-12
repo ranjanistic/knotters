@@ -106,19 +106,22 @@
             <button type="button" class="w3-bar-item side-nav-tab" id="task" data-icon="code">Task</button>
             <br/>
             <button type="button" class="w3-bar-item side-nav-tab" id="preview" data-icon="visibility">Preview</button> 
+            <br/>
+            <button type="button" class="w3-bar-item side-nav-tab" id="qualifier" data-icon="link">Qualifier</button>
             <br/><br/><br/><br/><br/>  <br/><br/><br/><br/><br/>
           </div>
           <div class="w3-center w3-hide-large w3-hide-medium w3-padding">
             <button type="button" class="side-nav-tab" id="overview" data-icon="toc"></button>
             <button type="button" class="side-nav-tab" id="task" data-icon="code"></button>
             <button type="button" class="side-nav-tab" id="preview" data-icon="visibility"></button>
+            <button type="button" class="side-nav-tab" id="qualifier" data-icon="link"></button>
           </div>
         </div>
   
         <div class="w3-col w3-threequarter w3-padding">
           <br/>
           <div id="tabview">
-            <div class="w3-row w3-padding-small" id="overview-block">
+            <div class="w3-row w3-padding-small side-nav-tab-view" id="overview-block">
                 <center>
                     <h3>Topics of this competition</h3>
                     <span id="selectedtopicsview">
@@ -168,7 +171,7 @@
                 </strong>
                 </div>
           </div>
-          <div class="w3-row w3-padding-small" id="task-block">
+          <div class="w3-row w3-padding-small side-nav-tab-view" id="task-block">
             <h4>Summary</h4>
             <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task summary (Basic HTML allowed)" type="text" name="comptaskSummary" id="comptaskSummary"></textarea>
             <h4>Detail</h4>            
@@ -176,13 +179,32 @@
             <h4>Sample</h4>
             <textarea rows="4" cols="25" class="create-compete-input wide" required placeholder="Task sample (Basic HTML allowed)" type="text" name="comptaskSample" id="comptaskSample"></textarea>
           </div>
-          <div class="w3-row w3-padding-small" id="preview-block">
+          <div class="w3-row w3-padding-small side-nav-tab-view" id="preview-block">
             <h4>Summary</h4>
             <p class="text-medium" style="word-break:break-word" id="comptaskSummary-preview"></p>
             <h4>Detail</h4>            
             <p class="text-medium" style="word-break:break-word" id="comptaskDetail-preview"></p>
             <h4>Sample</h4>
             <p class="text-medium" style="word-break:break-word" id="comptaskSample-preview"></p>
+          </div>
+          <div class="w3-row w3-padding-small side-nav-tab-view" id="qualifier-block">
+            <div class="w3-center w3-padding" id="view-qualifier-comp">
+                <h4>You can link a qualifier competition for your competition (optional)</h4>
+                <h6>This will require the participants to be qualified in the linked competition first, and then participate in your competition.</h6>
+                <strong>Also, people will be able to participate in your competition only when the results of the qualifier competition are declared.</strong>
+                <button type='button' class="big-button active edit-action" id="select-qualifier-competition-init" data-edittarget="qualifier-comp" data-icon='add'>Select qualifier competition</button>
+                <input hidden type='text' name='qualifier-competition-id' id="qualifier-competition-id">
+                <div id="qualifier-comp-preview">
+                </div>
+            </div>
+            <div class="w3-center w3-padding" id="edit-qualifier-comp">
+                <input type='text' class="wide" id="search-qualifier-comp-input" placeholder="Search previous competitions" />
+                <button type="button" id="search-qualifier-comp-action" class="primary" data-icon="search">Search</button>
+                <div id="qualifier-comp-search-result">
+                </div><br/>
+                <button type='button' form="comp-search-result" id='save-edit-qualifier-comp'>Save</button>
+                <button id='discard-edit-qualifier-comp'>Cancel</button>
+            </div>
           </div>
         </div>
       </div>
@@ -192,7 +214,6 @@
     <br/>
     </form>
     <center><button form="create-compete-form" type="submit" id="create-compete-form-submit-button" class="positive big-button" data-icon="done">Create Competition</button>
-    <!-- <button form="create-compete-form" type="reset" class="negative big-button" data-icon="close">Clear fields</button> -->
     </center>
     <br/>
 </div>
@@ -225,21 +246,13 @@
 
     initializeTabsView({
         onEachTab: async (tab) => {
-            if(tab.id==='overview'){
-                getElement('overview-block').style.display='block';
-                getElement('task-block').style.display='none';
-                getElement('preview-block').style.display='none';
-            } else if(tab.id === 'task') {
-                getElement('overview-block').style.display='none';
-                getElement('task-block').style.display='block';
-                getElement('preview-block').style.display='none';
-            } else if (tab.id === 'preview') {
-                getElement('overview-block').style.display='none';
-                getElement('task-block').style.display='none';
-                getElement('preview-block').style.display='block';
-                getElement('comptaskSummary-preview').innerHTML = getElement("comptaskSummary").value;
-                getElement('comptaskDetail-preview').innerHTML = getElement("comptaskDetail").value;
-                getElement('comptaskSample-preview').innerHTML = getElement("comptaskSample").value;
+            getElements("side-nav-tab-view").forEach((v)=>{
+                visible(v, v.id.startsWith(tab.id))
+            })
+            if (tab.id === 'preview'){
+                getElement('comptaskSummary-preview').innerHTML = getElement("comptaskSummary").value || 'Nothing';
+                getElement('comptaskDetail-preview').innerHTML = getElement("comptaskDetail").value|| 'Nothing';
+                getElement('comptaskSample-preview').innerHTML = getElement("comptaskSample").value|| 'Nothing';
             }
         },
         uniqueID: "competetab",
@@ -451,6 +464,53 @@
             error('Ending time should be greater than begin time!')
         }
     })
+
+    getElement("search-qualifier-comp-action").onclick=async()=>{
+        let query = getElement("search-qualifier-comp-input").value.trim();
+        if(!query) return message('Type something to search');
+        const viewer = getElement("qualifier-comp-search-result")
+        const data = await postRequest2({path:setUrlParams(URLS.Compete.BROWSE_SEARCH), data:{query,limit:1}})
+        if(!data) return
+        if(data.code!=code.OK) return error(data.error)
+        if(!(data.competitions.length)) return viewer.innerHTML = '<br/>No competitions found';
+        const comp = data.competitions[0];
+        viewer.innerHTML = `
+            <br/>
+            <div class="pallete-slab pointer" id='search-competition-result'>
+                <img class="pallete-slab no-pad primary" src="${comp.banner}" width="100" /><br/>
+                <strong>${comp.title}</strong><br/>
+                ${comp.tagline}
+                <br/>
+                <a href="${comp.url}" target="_blank"><button type="button" class="small primary">View</button></a>
+                <button class="positive small" type="button" id="qualifier-comp-result-select">Select</button>
+            </div><br/>
+        `
+        getElement("qualifier-comp-result-select").onclick=_=>{
+            const selectedviewer = getElement("qualifier-comp-preview");
+            selectedviewer.innerHTML = `
+            <br/>
+                <div class="pallete-slab" id='search-competition-result'>
+                    <img class="pallete-slab no-pad primary" src="${comp.banner}" width="100" /><br/>
+                    <strong>${comp.title}</strong><br/>
+                    ${comp.tagline}
+                    <br/>
+                    <a href="${comp.url}" target="_blank"><button type="button" class="small primary">View</button></a>
+                    <button type="button" class="negative small" id="selected-qualifier-comp-remove">Remove</button>
+                </div><br/>
+            `
+            selectedviewer.innerHTML+=`<br/>
+            <strong>Provide the maximum rank required in linked competition to qualify for your competition</strong><br/>
+            <input type='number' name='qualifier-competition-rank' class="create-compete-input" title='Qualifing rank' required inputmode='numeric' placeholder='Qualifing rank' />`;
+            getElement('qualifier-competition-id').value = comp.id;
+            getElement('selected-qualifier-comp-remove').onclick=_=>{
+                getElement('qualifier-competition-id').value = '';
+                selectedviewer.innerHTML = '';
+                showElement('select-qualifier-competition-init');
+            }
+            hideElement('select-qualifier-competition-init');
+            getElement('save-edit-qualifier-comp').click()
+        }
+    }
     getElement("create-compete-form-submit-button").onclick=(e)=>{
         e.preventDefault();
         if(!getElements('create-compete-input').every(element => {

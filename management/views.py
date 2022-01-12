@@ -449,6 +449,15 @@ def submitCompetition(request) -> HttpResponse:
         taskSummary = str(request.POST['comptaskSummary']).strip()
         taskDetail = str(request.POST['comptaskDetail']).strip()
         taskSample = str(request.POST['comptaskSample']).strip()
+
+        qualifier_id = str(request.POST.get('qualifier-competition-id', '')).strip()
+        qualifier_rank = 0
+
+        if qualifier_id:
+            qualifier_rank = int(request.POST['qualifier-competition-rank'])
+            if qualifier_rank < 1:
+                return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_QUALIFIER_RANK)
+
         perks = []
         for key in request.POST.keys():
             if str(key).startswith('compperk'):
@@ -480,9 +489,11 @@ def submitCompetition(request) -> HttpResponse:
         if startAt >= endAt:
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_TIME_PAIR)
 
-        if judgeIDs.__contains__(modID):
+        if modID.replace('-','').lower() in list(map(lambda j: j.replace('-','').lower(), judgeIDs)):
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_TIME_PAIR)
-        
+        qualifier = None
+        if qualifier_id:
+            qualifier = Competition.objects.get(id=qualifier_id, hidden=False,is_draft=False)
         compete = createCompetition(
             creator=request.user.profile,
             title=title,
@@ -500,7 +511,9 @@ def submitCompetition(request) -> HttpResponse:
             taskSample=taskSample,
             max_grouping=max_grouping,
             reg_fee=reg_fee,
-            fee_link=fee_link
+            fee_link=fee_link,
+            qualifier=qualifier,
+            qualifier_rank=qualifier_rank
         )
         if not compete:
             raise Exception("Competition not created")
@@ -542,9 +555,9 @@ def submitCompetition(request) -> HttpResponse:
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_MODERATOR)
         return redirect(compete.getManagementLink(alert=Message.COMP_CREATED))
     except Exception as e:
-        errorLog(e)
         if compete:
             compete.delete()
+        errorLog(e)
         return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.ERROR_OCCURRED)
 
 

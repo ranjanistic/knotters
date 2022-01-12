@@ -117,7 +117,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         except Exception as e:
             pass
         if competition.isNotAllowedToParticipate(request.user.profile):
-            return HttpResponseForbidden()
+            return redirect(competition.getLink(alert=Message.PARTICIPATION_PROHIBITED))
         if competition.isParticipant(request.user.profile):
             return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
         submission = Submission.objects.create(competition=competition)
@@ -188,18 +188,20 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
         submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
-            raise Exception()
+            raise Exception('inactive competition invite render')
         if not submission.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception()
+            raise Exception('not allowed to part invite render')
         try:
             SubmissionParticipant.objects.get(
                 submission=submission, profile=request.user.profile, confirmed=False)
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission))
         except ObjectDoesNotExist:
             return redirect(submission.competition.getLink())
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -230,6 +232,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission, accepted=True))
         else:
             raise Exception(action)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
@@ -278,14 +282,16 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                                       competition__endAt__gte=now, competition__resultDeclared=False, members=request.user.profile
                                       )
         if not subm.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception()
+            raise Exception('not allowed to part save subm')
         subm.repo = str(request.POST.get('submissionurl', '')).strip()
         subm.modifiedOn = now
         subm.save()
         return redirect(subm.competition.getLink(alert=Message.SAVED))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -300,9 +306,9 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
             id=subID, competition__id=compID, competition__resultDeclared=False, members=request.user.profile, submitted=False)
         message = Message.SUBMITTED_SUCCESS
         if submission.isInvitee(request.user.profile):
-            raise Exception()
+            raise Exception('unconfirmed participant try final subm')
         if not submission.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception()
+            raise Exception('not allowd to part final subm')
         if submission.competition.moderated():
             return respondJson(Code.OK, error=Message.SUBMISSION_TOO_LATE)
         if submission.competition.endAt < now:
@@ -318,6 +324,8 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         addMethodToAsyncQueue(
             f"{APPNAME}.mailers.{submissionConfirmedAlert.__name__}", submission)
         return respondJson(Code.OK, message=message)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -342,9 +350,9 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         competition = submissions.first().competition
 
         if competition.allSubmissionsMarkedByJudge(judge=request.user.profile):
-            raise Exception()
+            raise Exception('already submpoints')
         if competition.isAllowedToParticipate(request.user.profile):
-            raise Exception()
+            raise Exception('allowd participant try submpoints')
 
         topics = competition.getTopics()
 
@@ -421,7 +429,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
             id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile)
 
         if comp.isAllowedToParticipate(request.user.profile):
-            raise Exception()
+            raise Exception('allowed to part declaring results')
 
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getManagementLink(error=Message.INVALID_REQUEST))
@@ -668,10 +676,10 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
 
 @decode_JSON
 def browseSearch(request: WSGIRequest):
-    json_body = request.POST.get('JSON_BODY', False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         query = request.GET.get('query', request.POST.get('query', ''))
-        
+        limit = request.GET.get('limit', request.POST.get('limit', 10))
         competitions = []
         specials = ('topic:','manager:','judge:','status:')
         pquery = None
@@ -717,18 +725,25 @@ def browseSearch(request: WSGIRequest):
                 | Q(topics__name__iexact=pquery)
                 | Q(topics__name__istartswith=pquery)
             ))
-        competitions = Competition.objects.exclude(hidden=True).filter(dbquery).order_by('title').distinct()[0:10]
+        competitions = Competition.objects.filter(dbquery).exclude(hidden=True).exclude(is_draft=True).order_by('title').distinct()[0:limit]
         
         if json_body:
             return respondJson(Code.OK, dict(
                 competitions=list(map(lambda c: dict(
+                    id=c.get_id,
                     title=c.title,
                     tagline=c.tagline,
                     shortdescription=c.shortdescription,
                     manager=c.creator.get_name,
+                    manager_link=c.creator.get_link,
+                    manager_dp=c.creator.get_dp,
                     isUpcoming=c.isUpcoming(),
                     isActive=c.isActive(),
                     isHistory=c.isHistory(),
+                    resultDeclared=c.resultDeclared,
+                    banner_abs=c.get_banner_abs,
+                    banner=c.get_banner,
+                    url=c.get_link,
                 ), competitions)),
                 query=query
             ))

@@ -102,16 +102,40 @@
             
             <h1>{% trans "Competition is a thrill way to grow." %}</h1>
             {% if request.user.is_authenticated %}
-            <form action="{{compete.participationLink}}" method="POST">
-                {% csrf_token %}
-                <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">{% trans "Participate Independently" %}</button></a>
-                <br/><br/><br/>
-                <strong>{% trans "If you have been invited, then the above button will cancel your pending invitations." %}</strong>
-                <br/><br/>
-            </form>
-                {% if submission and not confirmed %}
-                    <h5>{% trans "You have a pending invitation for participation in this competition" %}</h5>
-                    <a href="{{URLS.INVITATION|params:submission.get_id|params:request.user.get_id}}"><button class="positive">{% trans "View invitation" %}</button></a>
+                {% if compete.qualifier %}
+                    <strong>You need to acheive a rank under {{compete.qualifier_rank}} in the following competition to participate here.</strong>
+                    <br/><br/>
+                    <div class="pallete-slab no-pad">
+                        <img src="{{compete.qualifier.get_banner}}" class="pallete no-pad primary" width="80%"/>
+                        <h5>{{compete.qualifier.title}}</h5>
+                        <strong>{{compete.qualifier.tagline}}</strong><br/>
+                        <a href="{{compete.qualifier.get_link}}" target="_blank"><button class='primary'>View</button></a>
+                    </div>
+                    {% if compete.qualifier.resultDeclared %}
+                        <form action="{{compete.participationLink}}" method="POST">
+                            {% csrf_token %}
+                            <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">{% trans "Participate Independently" %}</button></a>
+                            <br/><br/><br/>
+                            <strong>{% trans "If you have been invited, then the above button will cancel your pending invitations." %}</strong>
+                            <br/><br/>
+                        </form>
+                        {% if submission and not confirmed %}
+                            <h5>{% trans "You have a pending invitation for participation in this competition" %}</h5>
+                            <a href="{{URLS.INVITATION|params:submission.get_id|params:request.user.get_id}}"><button class="positive">{% trans "View invitation" %}</button></a>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <form action="{{compete.participationLink}}" method="POST">
+                        {% csrf_token %}
+                        <a href="#mainframe"><button type="submit" class="display-button accent" id="participate" data-icon="addchart">{% trans "Participate Independently" %}</button></a>
+                        <br/><br/><br/>
+                        <strong>{% trans "If you have been invited, then the above button will cancel your pending invitations." %}</strong>
+                        <br/><br/>
+                    </form>
+                    {% if submission and not confirmed %}
+                        <h5>{% trans "You have a pending invitation for participation in this competition" %}</h5>
+                        <a href="{{URLS.INVITATION|params:submission.get_id|params:request.user.get_id}}"><button class="positive">{% trans "View invitation" %}</button></a>
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <a href="{% url 'account_login' %}?next={{compete.getLink}}#mainframe"><button class="display-button positive" data-icon="login">{% trans "Login to Participate" %}</button></a>
