@@ -19,7 +19,7 @@
 <br/><br/>
 <form method="POST">
   {% csrf_token %}
-  <input type="text" class="required-field" name="otp_token" placeholder="{% trans "Two factor code" %} {% trans "or" %} {% trans "backup token" %}" autofocus="autofocus" autocomplete="off" inputmode="numeric" required="" id="id_otp_token"><br/><br/>
+  <input type="text" class="required-field" name="otp_token" placeholder="{% trans "Two factor code" %} {% trans "or" %} {% trans "backup token" %}" autofocus="autofocus" autocomplete="off" required="" id="id_otp_token"><br/><br/>
   <input type="hidden" name="{{redirect_field_name|or:'next'}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
   <button class="accent recaptcha-protected-form-action" type="submit" data-icon="login">{% trans "Proceed" %}</button>
 </form>
