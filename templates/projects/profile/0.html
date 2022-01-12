@@ -32,7 +32,7 @@
                 <center>{{project.description}}</center>
                 </div>
                 <div class="w3-row w3-padding-small">
-                    {% if user.is_authenticated and user.profile == project.creator %}
+                    {% if iscreator %}
                     <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
                     {% endif %}
                     <i class="w3-left pointer navigator-share-action" 
@@ -51,7 +51,7 @@
                 <label id="uploadprojectimagelabel" for="uploadprojectimage">{% trans "Select Image" %}</label>
                 </button>
                 <br/>
-                <form method="POST" action="{{project.editProfileLink}}">
+                <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'pallete'}}">
                 {% csrf_token %}
                 <input type="text" hidden id="projectimageData" name="projectimage" value="" />
                 <div class="w3-row w3-padding">
@@ -101,21 +101,37 @@
 		{% endif %}
 
         <div class="w3-row pallete">
-        <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
-        {% if project.socialsites.count or project.url %}
-            {% if project.url %}
-                <a target="_blank" rel="noreferrer" href="{{project.url}}"><strong class="text-medium">{{project.url|noprotocol|truncatechars:25}}</strong></a><br/>
-            {% endif %}
-            {% for site in project.socialsites %}
-                <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
-            {% endfor %}
-        {% else %}
-            <br/>
-            <center class="dead-text">
-                <div class="w3-jumbo material-icons">link_off</div>
-                <h5>No links</h5>
-            </center>
-        {% endif %}
+            <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
+            <div class="text-medium" id="view-sociallinks">    
+                {% for site in project.socialsites %}
+                    <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
+                {% empty %}
+                    <br/>
+                    <center class="dead-text">
+                        <div class="w3-jumbo material-icons">link_off</div>
+                        <h5>No links</h5>
+                    </center>
+                {% endfor %}
+                {% if iscreator %}
+                    <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
+                {% endif %}
+            </div>
+            <div class="w3-center " id="edit-sociallinks" hidden>
+                <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'sociallinks'}}">
+                {% csrf_token %}
+                <div id="edit-sociallinks-inputs">
+                {% for site in project.socialsites %}
+                    <div>
+                        <input type="url" class="wide"  placeholder="Link to anything relevant" value="{{site.site}}" name="sociallink{{forloop.counter}}" id="sociallink{{forloop.counter}}" /><br/><br/>
+                    </div>
+                {% endfor %}
+                </div>
+                <br/>
+                <button class="primary" type="button" id="sociallinks-add" data-icon='add'>Add link</button><br/><br/>
+                <button id="save-edit-sociallinks" data-icon="done">{% trans "Save" %}</button>
+                <button id="discard-edit-sociallinks" data-icon="close">{% trans "Discard" %}</button>
+                </form>
+            </div>
         </div>
         <br/>
 
@@ -328,7 +344,6 @@ const selfProject = "{{iscreator}}"==='True';
 const ismoderator = false;
 
 
-
 {% if not project.suspended %}
 if (selfProject){
     getElement('save-edit-projecttags').onclick= async ()=> {
@@ -418,6 +433,17 @@ if (selfProject){
             error(data.error)
         }
     {% endif %}
+
+    getElement('sociallinks-add').onclick=_=>{
+        const parent=getElement('edit-sociallinks-inputs');
+        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
 }
 {% if not project.has_linked_repo and iscreator %}
 getElement('link-github-repository').onclick=async()=>{

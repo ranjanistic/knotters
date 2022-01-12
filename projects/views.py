@@ -389,15 +389,20 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                     link = str(request.POST[key]).strip()
                     if link:
                         sociallinks.append(link)
+            sociallinks = list(set(sociallinks))[:5]
             ProjectSocial.objects.filter(project=project).delete()
-            if len(sociallinks) > 1:
+            if len(sociallinks) > 0:
                 projectSocials = []
                 for link in sociallinks:
                     projectSocials.append(
-                        ProjectSocial(project=project, link=link))
+                        ProjectSocial(project=project, site=link))
                 ProjectSocial.objects.bulk_create(projectSocials)
-            return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
+                return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
+            else:
+                return redirect(project.getLink(), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
+    except ObjectDoesNotExist:
+        return HttpResponseForbidden()
     except Exception as e:
         errorLog(e)
         return HttpResponseForbidden()

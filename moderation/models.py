@@ -67,7 +67,7 @@ class Moderation(models.Model):
         else: return None
 
     def getLink(self, alert: str = '', error: str = '', success: str = '') -> str:
-        return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.getID())}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
     @property
     def is_stale(self):
@@ -94,7 +94,7 @@ class Moderation(models.Model):
         if self.type == PROJECTS:
             return self.project.creator
         if self.type == PEOPLE:
-            return None
+            return self.profile
         if self.type == COMPETE:
             return self.competition.creator
 
@@ -102,7 +102,7 @@ class Moderation(models.Model):
         if self.type == PROJECTS:
             return profile == self.requestor
         if self.type == PEOPLE:
-            return self.profile.isReporter(profile)
+            return self.profile == profile
         if self.type == COMPETE:
             return self.requestor == profile
 
