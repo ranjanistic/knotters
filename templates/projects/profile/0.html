@@ -423,7 +423,8 @@ if (selfProject){
 getElement('link-github-repository').onclick=async()=>{
     {% if request.user.profile.ghID %}
         loader()
-        const data = await postRequest(URLS.USER_GH_REPOS,{public:true});
+        const data = await postRequest2({path:URLS.USER_GH_REPOS,data:{public:true}, retainCache: true});
+        
         loader(false)
         if(!data) return
         if(data.code===code.OK){
@@ -431,28 +432,45 @@ getElement('link-github-repository').onclick=async()=>{
             data.repos.forEach((repo)=>{
                 options+=`<option value=${repo.id}>${repo.name}</option>`
             })
-            return alertify.confirm('Link Github repository',
-                `<h6>Select a repository from the list to link. Only public repositories can be linked.</h6>
-                    <div class="w3-row">
-                        <select id="selected-repo">
-                            ${options}
-                        </select>
-                    </div>
+            return Swal.fire({
+                title: 'Link GitHub repository',
+                imageUrl: "{% static 'graphics/thirdparty/github.png' %}",
+                imageWidth:50,
+                html: `<h6>Link GitHub repository to project '{{project.nickname}}'.<br/>Only public repositories can be linked.</h6>
+                <br/>
+                <select class="wide" id="link-github-repository-select">
+                    ${options}
+                </select>
                 `,
-                async ()=>{
+                showCancelButton: true,
+                confirmButtonText: 'Link',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: async () => {
+                    let repoID = getElement("link-github-repository-select").value
+                    if(repoID) return repoID
+                    error('Repository required')
+                    return false
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
                     loader()
-                    message('Linking...')
-                    const data = await postRequest(URLS.LINK_FREE_REPO,{repoID:getElement('selected-repo').value,projectID})
-                    if(!data) return loader(false)
+                    message("Linking repository...");
+                    const data = await postRequest2({
+                        path: URLS.LINK_FREE_REPO,
+                        data: {
+                            projectID,
+                            repoID: result.value,
+                        }
+                    })
                     if(data.code===code.OK){
-                        futuremessage(`Repository linked`)
+                        futuremessage("Repository linked.")
                         return window.location.reload()
                     }
                     loader(false)
                     error(data.error)
-                },
-                ()=>{}
-            ).set('labels', {ok:'Link', cancel:'Discard'})
+                }
+            })
         }
         error(data.error)
     {% else %}
@@ -461,14 +479,19 @@ getElement('link-github-repository').onclick=async()=>{
 }
 {% elif iscreator %}
 getElement("unlink-github-repository").onclick=_=>{
-    alertify.confirm('Unlink Github repository?',
-        `<h6>Are you sure you want to unlink your Github repository '{{project.linked_repo.reponame}}' from your '{{project.nickname}}' project on {{APPNAME}}?</h6>
-        `,
-        ()=>{},
-        async ()=>{
+    Swal.fire({
+        title: 'Unlink Github repository?',
+        html:`<h6>Are you sure you want to unlink your Github repository '{{project.linked_repo.reponame}}' from your '{{project.nickname}}' project on {{APPNAME}}?</h6>`,
+        showCancelButton: true,
+        showDenyButton: true,
+        showConfirmButton: false,
+        denyButtonText: 'Yes, Unlink',
+        cancelButtonText: 'No, wait',
+    }).then(async(result)=>{
+        if(result.isDenied){
             loader()
             message('Unlinking...')
-            const data = await postRequest(URLS.UNLINK_FREE_REPO,{projectID})
+            const data = await postRequest2({path:URLS.UNLINK_FREE_REPO,data:{projectID}})
             if(!data) return loader(false)
             if(data.code===code.OK){
                 futuremessage(`Unlinked your '{{project.linked_repo.reponame}}' repository`)
@@ -476,8 +499,8 @@ getElement("unlink-github-repository").onclick=_=>{
             }
             loader(false)
             error(data.error)
-        },
-    ).set('closable', false).set('labels', {ok:'No, wait', cancel:'Yes, unlink'})
+        }
+    })
 }
 
 getElement('save-edit-snapshot').onclick=(e)=>{

@@ -80,7 +80,7 @@
 {% endblock %}
 {% block in_scripts %}
 <script>
-try{
+
   getElement("browse-search-clear").onclick=()=>{
     getElement("browse-search-view").innerHTML='';
     hideElement("browse-search-actions");
@@ -103,8 +103,6 @@ try{
     showElement("browse-search-actions");
     getElement("browse-search-exec").click()
   }
-}catch(e){
-  console.log(e)
-}
+
 </script>
 {% endblock %}

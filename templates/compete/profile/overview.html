@@ -8,7 +8,7 @@
     <center>
         <h3>{% trans "Topics of this competition" %}</h3>
         {% for topic in compete.getTopics %}
-        <button class="positive" onclick="message('Your submission will be judged on {{topic.name}}')">{{topic.name}}</button>
+        <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="positive" >{{topic.name}}</button></a>
         {% endfor %}
         <br/>
         <br/>
