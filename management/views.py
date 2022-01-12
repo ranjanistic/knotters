@@ -725,7 +725,7 @@ def peopleMGMRemove(request: WSGIRequest):
         if not (request.user.profile == person or request.user.profile == mgm.profile):
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         if person.is_moderator:
-            if Moderation.objects.filter(competiton__creator=mgm.profile, moderator=person, resolved=False).exists():
+            if Moderation.objects.filter(competition__creator=mgm.profile, moderator=person, resolved=False).exists():
                 return respondJson(Code.NO, error=Message.PENDING_MODERATIONS_EXIST)
 
         done = person.removeFromManagement(mgm.id)
