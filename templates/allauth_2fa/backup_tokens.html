@@ -11,14 +11,14 @@
 <div class="w3-row w3-center w3-padding">
 <i class="w3-jumbo negative-text">vpn_key</i>
 <h1>2FA {% trans "Backup Tokens" %}</h1>
-<h5>
+<strong class="text-medium">
 {% if backup_tokens %}
   {% trans "Your account recovery tokens, in case you lose access to your two factor token device." %}
 {% else %}
   {% trans "Generate your recovery tokens, in case you lose access to your two factor device." %}
 {% endif %}
-</h5>
-<br/>
+</strong>
+<br/><br/>
 {% if backup_tokens %}
   {% if reveal_tokens %}
     <div class="pallete-slab">
