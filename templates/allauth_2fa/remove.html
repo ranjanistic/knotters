@@ -12,7 +12,7 @@
 <i class="w3-jumbo negative-text">cancel</i>
 <h2>{% trans "Disable" %} {% trans "Two-Factor Authentication" %}?</h2>
 <br/>
-<h5>{% trans "Are you sure you want to disable" %} {% trans "two-factor authentication" %} {% trans "on your account" %}?<br/>
+<h5>{% trans "Are you sure you want to disable" %} {% trans "two-factor authentication" %} {% trans "on your account" %} {{request.user.email}}?<br/>
 <span class="negative-text">{% trans "This will potentially weaken your account security." %}</span></h5>
 <br/>
   <div class="w3-row w3-padding">
