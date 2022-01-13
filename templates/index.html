@@ -319,7 +319,7 @@
         <footer class="w3-row tertiary w3-padding" {% block show_lite_footer %}hidden{% endblock %}>
             <br/>
             <div class="w3-col w3-half w3-padding">
-            {% if LANGUAGES.count %}
+            {% if LANGUAGES|length %}
             <form action="{% url "set_language" %}" method="POST">
                 {% csrf_token %}
                 <select name="language" class="selectLanguage" id="language_lite_footer" onchange="this.form.submit()">
@@ -341,7 +341,7 @@
         <footer class="w3-row secondary w3-padding w3-animate-bottom" >
             <br/><br/>
             <div class="w3-col w3-half primary-text w3-padding">
-                {% if LANGUAGES.count %}
+                {% if LANGUAGES|length %}
                 <form action="{% url "set_language" %}" method="POST">
                     {% csrf_token %}
                     <select name="language" class="selectLanguage" id="language" onchange="this.form.submit()">
