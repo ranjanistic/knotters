@@ -511,7 +511,8 @@ const loadTabScript = (tab) => {
                                 data: {
                                     action: 'create',
                                     email: result.value,
-                                }
+                                },
+                                retainCache: true
                             })
                             if(data.code===code.OK){
                                 message("Invitation sent.")
@@ -540,7 +541,8 @@ const loadTabScript = (tab) => {
                                     data: {
                                         action: 'remove',
                                         inviteID: del.getAttribute('data-inviteID'),
-                                    }
+                                    },
+                                    retainCache: true
                                 })
                                 if(data.code===code.OK){
                                     message("Invitation deleted.")
@@ -570,7 +572,8 @@ const loadTabScript = (tab) => {
                                 data: {
                                     userID: del.getAttribute('data-userID'),
                                     mgmID,
-                                }
+                                },
+                                retainCache: true
                             })
                             if(data.code===code.OK){
                                 message("Member removed.")
@@ -589,7 +592,7 @@ const loadTabScript = (tab) => {
 
 initializeTabsView({
     onEachTab: async (tab) => {
-        return await getRequest(setUrlParams(URLS.PROFILETAB, userID, tab.id));
+        return await getRequest2({path:setUrlParams(URLS.PROFILETAB, userID, tab.id)});
     },
     uniqueID: "profiletab",
     onShowTab: loadTabScript,

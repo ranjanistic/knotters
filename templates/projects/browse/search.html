@@ -11,21 +11,19 @@
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
-            {% for project in projects %}
-             {% if project.is_free or project.is_approved %}
-            <div class="swiper-slide">
-                <a href="{{project.getLink}}">
-                    <div class="pallete w3-center no-pad">
-                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
-                        <div class="w3-row w3-padding">
-                            <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                            <span>{{ project.description|truncatechars:45 }}</span>
+            {% for project in projects %}            
+                <div class="swiper-slide">
+                    <a href="{{project.getLink}}">
+                        <div class="pallete w3-center no-pad">
+                            <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                            <div class="w3-row w3-padding">
+                                <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                                <span>{{ project.description|truncatechars:45 }}</span>
+                            </div>
+                            <br/>
                         </div>
-                        <br/>
-                    </div>
-                </a>
-            </div>
-            {% endif %}
+                    </a>
+                </div>
             {% empty %}
             <div class="w3-padding w3-col">
             <center class="w3-padding">

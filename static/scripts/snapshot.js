@@ -4,14 +4,18 @@ const loadBrowseSnaps = async (excludeIDs = []) => {
     if (!viewer) {
         viewer = viewers[viewers.length - 1];
     }
+    console.log(setUrlQueries(setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS), {n:excludeIDs[excludeIDs.length-1] || 0}))
     const snapdata = await postRequest2({
-        path: setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS),
+        path: setUrlQueries(setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS), {n:excludeIDs[excludeIDs.length-1] || 0}),
         data: { excludeIDs },
         retainCache: true,
         allowCache: true,
     });
     if (!snapdata) return false;
     if (snapdata.code === code.OK && snapdata.snapIDs.length) {
+        if (excludeIDs.length && excludeIDs.some((id) => snapdata.snapIDs.includes(id))) {
+            return false;
+        }
         setHtmlContent(viewer, viewer.innerHTML + snapdata.html);
         return snapdata.snapIDs;
     }
