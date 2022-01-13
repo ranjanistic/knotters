@@ -93,6 +93,7 @@ class TestViews(TestCase):
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, template.compete.history)
 
+    @tag('afm')
     def test_competition(self):
         resp = self.client.get(follow=True,path=root(url.compete.compID(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
@@ -120,7 +121,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.compete.profile)
         self.assertEqual(resp.context['compete'], self.comp)
         self.assertFalse(resp.context['isJudge'])
-        # self.assertTrue(resp.context['isMod'])
+        self.assertTrue(resp.context['isMod'])
         self.assertFalse(resp.context['isManager'])
         self.client.logout()
 
