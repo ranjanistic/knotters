@@ -1,14 +1,18 @@
 from django.core.management.base import BaseCommand, CommandError
+import re
+from rcssmin import cssmin
+from rjsmin import jsmin
 from django.template.loader import render_to_string
 from django.conf import settings
-from os import listdir, remove,  symlink, mkdir
+from os import listdir, remove,  symlink, mkdir, walk
 from os.path import isdir, isfile, join
 from pathlib import Path
 import shutil
 from datetime import datetime
-from main.env import VERSION
+from main.env import SITE, VERSION
 from main.methods import renderData
 from main.context_processors import GlobalContextData
+from main.strings import URL
 
 class Command(BaseCommand):
     """
@@ -130,16 +134,75 @@ class Command(BaseCommand):
             mkdir(err_dir)
         print("ERR DIR: ", err_dir)
         notfoundstr = render_to_string('404.html', renderData(dict(**GlobalContextData,csrf_token=" ")))
+        notfoundstr = re.sub('\s+',' ', notfoundstr).replace('\n','').strip().replace(settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/')
         notfoundpath = join(err_dir,'40x.html')
         print("404 PATH: ", notfoundpath)
         with open(notfoundpath,'w+') as file:
             file.write(notfoundstr)
         print("404 PATH DONE: ", notfoundpath)
         servererrorstr = render_to_string('50x.html', renderData(dict(**GlobalContextData,csrf_token=" ")))
+        servererrorstr = re.sub('\s+',' ', servererrorstr).replace('\n','').strip().replace(settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/')
         servererrpath = join(err_dir,'50x.html')
         print("500 PATH: ", servererrpath)
         with open(servererrpath,'w+') as file:
-            file.write(servererrorstr)
+            file.write(servererrorstr.replace('\n','').strip())
         print("500 PATH DONE: ", servererrpath)
         
         print("\nDONE", __SUCCESS and Path(settings.STATIC_ROOT).exists() and Path(settings.STATIC_ROOT).is_dir())
+
+
+        print("COMPRESSING: ", settings.STATIC_ROOT)
+        if __SUCCESS and Path(settings.STATIC_ROOT).exists() and Path(settings.STATIC_ROOT).is_dir():
+            print("COMPRESSING STATIC ROOT: ", settings.STATIC_ROOT)
+            try:
+                print("COMPRESSING STATIC ROOT: ", settings.STATIC_ROOT)
+                compress(settings.STATIC_ROOT)
+                print("COMPRESSED STATIC ROOT: ", settings.STATIC_ROOT)
+            except Exception as e:
+                print("COMPRESS STATIC ROOT ERR: ", settings.STATIC_ROOT)
+                print(e)
+                pass
+
+
+def compress(path):
+    """
+    Compress all files in a directory
+    """
+    print("COMPRESSING: ", path)
+    if Path(path).exists() and Path(path).is_dir():
+        for root, dirs, files in walk(path):
+            for file in files:
+                if file.endswith('.css'):
+                    filepath = join(root, file)
+                    print("COMPRESSING: ", filepath)
+                    try:
+                        with open(filepath, "r") as f:
+                            fdata = f.read()
+                        compressedfdata = cssmin(fdata)
+                        with open(filepath, "w") as f:
+                            f.write(compressedfdata)
+                    except Exception as e:
+                        print("COMPRESS CSS ERR: ", filepath)
+                        print(e)
+                        print("PROCEEDING WITH COMPRESSION")
+                        pass
+                elif file.endswith('.js') and not file.endswith('.min.js'):
+                    filepath = join(root, file)
+                    print("COMPRESSING: ", filepath)
+                    try:
+                        with open(filepath, "r") as f:
+                            fdata = f.read()
+                        compressedfdata = jsmin(fdata)
+                        with open(filepath, "w") as f:
+                            f.write(compressedfdata)
+                    except Exception as e:
+                        print("COMPRESS JS ERR: ", filepath)
+                        print(e)
+                        print("PROCEEDING WITH COMPRESSION")
+                        pass
+                else:
+                    print("SKIPPING: ", join(root, file))
+                    pass
+    else:
+        print("SKIPPING: ", path)
+        pass
