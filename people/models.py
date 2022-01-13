@@ -436,11 +436,11 @@ class Profile(models.Model):
     def get_labels(self):
         labels = []
         if self.is_moderator:
-            labels.append(dict(name='MOD', theme='accent'))
+            labels.append(dict(name='MOD', theme='accent', text='moderator'))
         if self.is_mentor:
-            labels.append(dict(name='MNT', theme='active'))
+            labels.append(dict(name='MNT', theme='active', text='mentor'))
         if self.is_manager:
-            labels.append(dict(name='MGR', theme='tertiary positive-text'))
+            labels.append(dict(name='MGR', theme='tertiary positive-text', text='manager'))
         return labels
 
     @property

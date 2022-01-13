@@ -81,7 +81,7 @@
           <div class="w3-row w3-padding">
             <h5 style="{% if person.profile.has_labels %}margin:4px{% endif %}" class="{% if person.profile.is_verified %}align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
             {% for label in person.profile.get_labels %}
-              <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
+              <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
             {% endfor %}
             {% if person.profile.has_labels %}<br/>{% endif %}
             <span>{{ person.profile.getBio }}</span>
