@@ -11,10 +11,10 @@ from .env import ISPRODUCTION, ADMINPATH
 from .views import *
 from allauth.account import views
 
-views.signup = ratelimit(key='user_or_ip', rate='5/m',block=True, method=('POST'))(views.signup)
-views.password_reset = ratelimit(key='user_or_ip', rate='5/m',block=True, method=('POST'))(views.password_reset)
-views.password_reset_from_key = ratelimit(key='user_or_ip', rate='5/m',block=True, method=('POST'))(views.password_reset_from_key)
-views.login = ratelimit(key='user_or_ip', rate='15/m',block=True, method=('POST'))(views.login)
+views.signup = ratelimit(key='user_or_ip', rate='10/m',block=True, method=(Code.POST))(views.signup)
+views.password_reset = ratelimit(key='user_or_ip', rate='10/m',block=True, method=(Code.POST))(views.password_reset)
+views.password_reset_from_key = ratelimit(key='user_or_ip', rate='10/m',block=True, method=(Code.POST))(views.password_reset_from_key)
+views.login = ratelimit(key='user_or_ip', rate='15/m',block=True, method=(Code.POST))(views.login)
 
 admin.autodiscover()
 def staff_or_404(u):
@@ -38,11 +38,12 @@ urlpatterns = [
     path(URL.AUTH, include('allauth_2fa.urls')),
     path(URL.AUTH, include('allauth.urls')),
     path(URL.AUTH, include(f'{AUTH2}.urls')),
-    path('webpush/', include('webpush.urls')),
     path(URL.INDEX, index),
     path(URL.Auth.LOGIN, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
     path(URL.Auth.SIGNUP, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
+    path('signin/', RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
     path('register/', RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
+    path('webpush/', include('webpush.urls')),
     path(URL.ON_BOARDING, on_boarding),
     path(URL.ON_BOARDING_UPDATE, on_boarding_update),
     path(URL.LANDING, landing),
@@ -63,7 +64,7 @@ urlpatterns = [
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),
-    path(URL.APPLANDING, applanding),
+    # path(URL.APPLANDING, applanding),
 ]
 
 if not ISPRODUCTION:

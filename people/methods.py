@@ -1,9 +1,11 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from allauth.socialaccount.models import SocialAccount
+from django.core.cache import cache
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
+from django.conf import settings
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString, COMPETE
 from projects.models import BaseProject, Project
@@ -77,53 +79,79 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
 
 
 def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
+
     if requestUser.is_authenticated and profile.isBlocked(requestUser) or not profile.is_active:
         return None
+    cachekey = f"{section}_{profile.user.id}"
     try:
         selfprofile = requestUser == profile.user
         data = dict(
                 self=selfprofile,
                 person=profile.user
             )
+        if not selfprofile:
+            cachekey = f"{cachekey}_{requestUser.id}"
         if section == profileString.OVERVIEW:
             pass
         elif section == profileString.PROJECTS:
-            projects = BaseProject.objects.filter(creator=profile,trashed=False).order_by("-createdOn")
-            def approved_only(project):
-                return project.is_approved
-                
+            projects = cache.get(cachekey,[])
+            if not len(projects):
+                projects = BaseProject.objects.filter(creator=profile,trashed=False).order_by("-createdOn").distinct()
+                    
             if not selfprofile:
                 projects = projects.filter(suspended=False)
-                data[Code.APPROVED] = list(filter(approved_only, projects))
+                data[Code.APPROVED] = list(filter(lambda p: p.is_approved, projects))
             else:
-                def rejected_only(project):
-                    return project.is_rejected
-
-                def moderation_only(project):
-                    return project.is_pending
-
-                data[Code.APPROVED] = list(filter(approved_only, projects))
-                data[Code.MODERATION] = list(filter(moderation_only, projects))
-                data[Code.REJECTED] = list(filter(rejected_only, projects))
+                data[Code.APPROVED] = list(filter(lambda p: p.is_approved, projects))
+                data[Code.MODERATION] = list(filter(lambda p: p.is_pending, projects))
+                data[Code.REJECTED] = list(filter(lambda p: p.is_rejected, projects))
+            if len(projects):
+                cache.set(cachekey, projects, settings.CACHE_INSTANT)
         elif section == profileString.ACHEIVEMENTS:
-            data[Code.RESULTS] = Result.objects.filter(submission__members=profile).order_by('-rank', '-points')
-            data[Code.JUDGEMENTS] = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile).order_by("-competition__createdOn")
-            data[Code.MODERATIONS] = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True).order_by('-respondOn')
+            results = cache.get(f"{cachekey}{Code.RESULTS}",[])
+            if not len(results):
+                results = Result.objects.filter(submission__members=profile).order_by('-rank', '-points')
+                if len(results):
+                    cache.set(cachekey, results, settings.CACHE_INSTANT)
+            judements = cache.get(f"{cachekey}{Code.JUDGEMENTS}",[])
+            if not len(judements):
+                judements = CompetitionJudge.objects.filter(competition__resultDeclared=True,judge=profile).order_by("-competition__createdOn")
+                if len(judements):
+                    cache.set(cachekey, judements, settings.CACHE_INSTANT)
+            moderations = cache.get(f"{cachekey}{Code.MODERATIONS}",[])
+            if not len(moderations):
+                moderations = Moderation.objects.filter(type=COMPETE,moderator=profile,resolved=True,status=Code.APPROVED,competition__resultDeclared=True).order_by('-respondOn')
+                if len(moderations):
+                    cache.set(cachekey, moderations, settings.CACHE_INSTANT)
+            data[Code.RESULTS] = results
+            data[Code.JUDGEMENTS] = judements
+            data[Code.MODERATIONS] = moderations
         elif section == profileString.FRAMEWORKS:
-            if selfprofile:
-                data[Code.FRAMEWORKS] = Framework.objects.filter(creator=profile,trashed=False).order_by("-createdOn")
-            else:
-                data[Code.FRAMEWORKS] = Framework.objects.filter(creator=profile,trashed=False, is_draft=False).order_by("-createdOn")
+            frameworks = cache.get(cachekey,[])
+            if not len(frameworks):
+                if selfprofile:
+                    frameworks = Framework.objects.filter(creator=profile,trashed=False).order_by("-createdOn")
+                else:
+                    frameworks = Framework.objects.filter(creator=profile,trashed=False, is_draft=False).order_by("-createdOn")
+                if len(frameworks):
+                    cache.set(cachekey, frameworks, settings.CACHE_INSTANT)
+            data[Code.FRAMEWORKS] = frameworks
         elif section == profileString.CONTRIBUTION:
             pass
         elif section == profileString.ACTIVITY:
             pass
         elif section == profileString.MODERATION:
             if profile.is_moderator:
-                mods = Moderation.objects.filter(moderator=profile)
-                data[Code.UNRESOLVED] = list(filter(lambda m: not m.is_stale or m.competition, list(mods.filter(resolved=False).order_by('-requestOn'))))
-                data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
-                data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
+                mods = []
+                if not selfprofile:
+                    mods = cache.get(cachekey,[])
+                if not len(mods):
+                    mods = Moderation.objects.filter(moderator=profile)
+                    if len(mods) and not selfprofile:
+                        cache.set(cachekey,mods,settings.CACHE_INSTANT)
+            data[Code.UNRESOLVED] = list(filter(lambda m: not m.is_stale or m.competition, list(mods.filter(resolved=False).order_by('-requestOn'))))
+            data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
+            data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
         elif section == profileString.COMPETITIONS:
             if profile.is_manager:
                 data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile).order_by("-createdOn")

@@ -8,7 +8,7 @@ from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
-from main.strings import Code, url, PEOPLE, project, MANAGEMENT, DOCS
+from main.strings import Code, setURLAlerts, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
@@ -144,14 +144,26 @@ class License(models.Model):
     def __str__(self):
         return self.name
 
-    def getID(self):
+    @property
+    def get_id(self):
         return self.id.hex
 
-    def getLink(self):
-        return f'{url.getRoot(APPNAME)}{url.projects.license(id=self.getID())}'
+    def getID(self):
+        return self.get_id
+
+    def getLink(self, success='', error='', message=''):
+        return f'{url.getRoot(APPNAME)}{url.projects.license(id=self.getID())}{url.getMessageQuery(alert=message,error=error,success=success)}'
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def is_custom(self):
+        return self.creator.getEmail() != BOTMAIL
 
     def isCustom(self):
-        return self.creator.getEmail() != BOTMAIL
+        return self.is_custom
 
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')

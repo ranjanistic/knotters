@@ -1,5 +1,7 @@
 from uuid import UUID
 import re
+from django.core.cache import cache
+from ratelimit.decorators import ratelimit
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
@@ -8,6 +10,7 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
 from allauth.account.decorators import login_required
+from django.conf import settings
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import decode_JSON, github_only, require_JSON_body, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
@@ -185,7 +188,7 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
 @require_POST
 @decode_JSON
 def topicsUpdate(request: WSGIRequest) -> HttpResponse:
-    json_body = request.POST.get('JSON_BODY', False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
@@ -575,68 +578,79 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
 
-
+@ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
 def browseSearch(request: WSGIRequest):
-    json_body = request.POST.get('JSON_BODY', False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         query = request.GET.get('query', request.POST.get('query', ''))
+        limit = request.GET.get('limit', request.POST.get('limit', 10))
         excludeIDs = []
+        cachekey = f'people_browse_search_{query}{request.LANGUAGE_CODE}'
         if request.user.is_authenticated:
             excludeIDs = request.user.profile.blockedIDs
+            cachekey = f"{cachekey}{request.user.id}"
+    
+        profiles = cache.get(cachekey,[])
         
-        profiles = []
-        specials = ('topic:','type:')
-        pquery = None
-        is_moderator = is_mentor = is_verified = is_manager = None
-        dbquery = Q()
-
-        if query.startswith(specials):
-            def specquerieslist(q):
-                return [Q(topics__name__iexact=q), Q()]
-            commaparts = query.split(",")
-            for cpart in commaparts:
-                if cpart.strip().lower().startswith(specials):    
-                    special, specialq = cpart.split(':')
-                    if special.strip().lower()=='type':
-                        is_moderator = specialq.strip().lower() == 'moderator' or is_moderator
-                        is_mentor = specialq.strip().lower() == 'mentor' or is_mentor
-                        is_verified = specialq.strip().lower() == 'verified' or is_verified
-                        is_manager = specialq.strip().lower() == 'manager' or is_manager
-                        if is_moderator != None:
-                            dbquery = Q(dbquery, is_moderator=is_moderator)
-                        if is_mentor != None:
-                            dbquery = Q(dbquery, is_mentor=is_mentor)
-                        if is_verified != None:
-                            dbquery = Q(dbquery, is_verified=is_verified)
+        if not len(profiles):
+            specials = ('topic:','type:')
+            pquery = None
+            is_moderator = is_mentor = is_verified = is_manager = None
+            dbquery = Q()
+            invalidQuery = False
+            if query.startswith(specials):
+                def specquerieslist(q):
+                    return [Q(topics__name__iexact=q), Q()]
+                commaparts = query.split(",")
+                for cpart in commaparts:
+                    if cpart.strip().lower().startswith(specials):    
+                        special, specialq = cpart.split(':')
+                        if special.strip().lower()=='type':
+                            is_moderator = specialq.strip().lower() == 'moderator' or is_moderator
+                            is_mentor = specialq.strip().lower() == 'mentor' or is_mentor
+                            is_verified = specialq.strip().lower() == 'verified' or is_verified
+                            is_manager = specialq.strip().lower() == 'manager' or is_manager
+                            if is_moderator != None:
+                                dbquery = Q(dbquery, is_moderator=is_moderator)
+                            if is_mentor != None:
+                                dbquery = Q(dbquery, is_mentor=is_mentor)
+                            if is_verified != None:
+                                dbquery = Q(dbquery, is_verified=is_verified)
+                            if not (is_moderator or is_mentor or is_verified or is_manager):
+                                invalidQuery = True
+                                break
+                        else:
+                            dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
                     else:
-                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
-                else:
-                    pquery = cpart.strip()
-                    break
-        else:
-            pquery = query
-        if pquery:
-            fname, lname = convertToFLname(pquery)
-            dbquery = Q(dbquery, Q(
-                Q(user__email__istartswith=pquery)
-                | Q(user__email__icontains=pquery)
-                | Q(user__first_name__istartswith=fname)
-                | Q(user__first_name__iendswith=fname)
-                | Q(user__last_name__istartswith=(lname or fname))
-                | Q(user__last_name__iendswith=(lname or fname))
-                | Q(githubID__istartswith=pquery)
-                | Q(githubID__iexact=pquery)
-                | Q(user__first_name__iexact=pquery)
-                | Q(user__last_name__iexact=pquery)
-                | Q(user__last_name__iexact=(lname or fname))
-                | Q(topics__name__iexact=pquery)
-                | Q(topics__name__istartswith=pquery)
-            ))
-        profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).order_by('user__first_name').distinct()[0:10]
-        
-        if is_manager:
-            profiles=list(filter(lambda p: p.is_manager, profiles))
+                        pquery = cpart.strip()
+                        break
+            else:
+                pquery = query
+            if pquery and not invalidQuery:
+                fname, lname = convertToFLname(pquery)
+                dbquery = Q(dbquery, Q(
+                    Q(user__email__istartswith=pquery)
+                    | Q(user__email__icontains=pquery)
+                    | Q(user__first_name__istartswith=fname)
+                    | Q(user__first_name__iendswith=fname)
+                    | Q(user__last_name__istartswith=(lname or fname))
+                    | Q(user__last_name__iendswith=(lname or fname))
+                    | Q(githubID__istartswith=pquery)
+                    | Q(githubID__iexact=pquery)
+                    | Q(user__first_name__iexact=pquery)
+                    | Q(user__last_name__iexact=pquery)
+                    | Q(user__last_name__iexact=(lname or fname))
+                    | Q(topics__name__iexact=pquery)
+                    | Q(topics__name__istartswith=pquery)
+                ))
+            if not invalidQuery:
+                profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).order_by('user__first_name').distinct()[0:limit]
+
+                if is_manager:
+                    profiles=list(filter(lambda p: p.is_manager, profiles))
+                if len(profiles):
+                    cache.set(cachekey, profiles, settings.CACHE_SHORT)
 
         if json_body:
             return respondJson(Code.OK, dict(

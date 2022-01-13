@@ -72,6 +72,10 @@ class Code():
     ZOMBIEMAIL = 'zombie@knotters.org'
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
 
+    ACTIVE = "active"
+    HISTORY = "history"
+    UPCOMING = "upcoming"
+
     HOOK = 'hook'
     SHA256 = 'sha256'
     UTF_8 = 'utf-8'

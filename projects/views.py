@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models.query_utils import Q
+from django.db.models.query_utils import Q, InvalidQuery
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from moderation.views import action
@@ -606,7 +606,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
-    json_body = request.POST.get('JSON_BODY', False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     next = None
     project = None
     try:
@@ -744,12 +744,12 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
             project.admirers.add(request.user.profile)
         elif request.POST['admire'] in ["false", False]:
             project.admirers.remove(request.user.profile)
-        if request.POST.get('JSON_BODY', False):
+        if request.POST.get(Code.JSON_BODY, False):
             return respondJson(Code.OK)
         return redirect(project.getProject().getLink())
     except Exception as e:
         errorLog(e)
-        if request.POST.get('JSON_BODY', False):
+        if request.POST.get(Code.JSON_BODY, False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if project:
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
@@ -1035,69 +1035,97 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
-        raise Http404()
+        raise Http404(e)
 
 
+@ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
 def browseSearch(request: WSGIRequest):
-    json_body = request.POST.get('JSON_BODY', False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         query = request.GET.get('query', request.POST.get('query', ''))
-        projects = []
-        specials = ('tag:', 'category:', 'topic:', 'type:')
-        verified = None
-        pquery = None
-        dbquery = Q()
-        if query.startswith(specials):
-            def specquerieslist(q):
-                return [Q(tags__name__iexact=q), Q(category__name__iexact=q), Q(topics__name__iexact=q), Q()]
-            commaparts = query.split(",")
-            for cpart in commaparts:
-                if cpart.strip().lower().startswith(specials):
-                    special, specialq = cpart.split(':')
-                    if special.strip().lower() == 'type':
-                        verified = specialq.strip().lower() == 'verified'
+        limit = request.GET.get('limit', request.POST.get('limit', 10))
+        excludecreatorIDs = []
+        cachekey = f'project_browse_search_{query}{request.LANGUAGE_CODE}'
+        if request.user.is_authenticated:
+            excludecreatorIDs = request.user.profile.blockedIDs
+            cachekey = f"{cachekey}{request.user.id}"
+
+        projects = cache.get(cachekey,[])
+        
+        if not len(projects):
+            
+            specials = ('tag:', 'category:', 'topic:', 'creator:', 'type:')
+            verified = None
+            pquery = None
+            dbquery = Q()
+            invalidQuery = False
+            if query.startswith(specials):
+                def specquerieslist(q):
+                    return [
+                        Q(tags__name__iexact=q), 
+                        Q(category__name__iexact=q), 
+                        Q(topics__name__iexact=q), 
+                        Q(Q(creator__user__first_name__iexact=q)|Q(creator__user__last_name__iexact=q)|Q(creator__user__email__iexact=q)|Q(creator__githubID__iexact=q)),
+                        Q()
+                    ]
+                commaparts = query.split(",")
+                for cpart in commaparts:
+                    if cpart.strip().lower().startswith(specials):
+                        special, specialq = cpart.split(':')
+                        if special.strip().lower() == 'type':
+                            verified = specialq.strip().lower() == 'verified'
+                            if not verified:
+                                invalidQuery = True
+                                break
+                        else:
+                            dbquery = Q(dbquery, specquerieslist(specialq.strip())[
+                                        list(specials).index(f"{special.strip()}:")])
                     else:
-                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[
-                                    list(specials).index(f"{special.strip()}:")])
-                else:
-                    pquery = cpart.strip()
-                    break
-        else:
-            pquery = query
-        if pquery:
-            dbquery = Q(dbquery, Q(
-                Q(name__istartswith=pquery)
-                | Q(name__iendswith=pquery)
-                | Q(name__iexact=pquery)
-                | Q(name__icontains=pquery)
-                | Q(description__icontains=pquery)
-                | Q(creator__user__first_name__istartswith=pquery)
-                | Q(creator__user__last_name__istartswith=pquery)
-                | Q(creator__user__email__istartswith=pquery)
-                | Q(creator__githubID__istartswith=pquery)
-                | Q(creator__githubID__iexact=pquery)
-                | Q(category__name__iexact=pquery)
-                | Q(topics__name__iexact=pquery)
-                | Q(tags__name__iexact=pquery)
-                | Q(category__name__istartswith=pquery)
-                | Q(topics__name__istartswith=pquery)
-                | Q(tags__name__istartswith=pquery)
-            ))
-        projects = BaseProject.objects.exclude(trashed=True).exclude(
-            suspended=True).filter(dbquery).order_by('name').distinct()[0:10]
-        if verified != None:
-            projects = list(filter(lambda m: verified ==
-                            m.is_verified, list(projects)))
+                        pquery = cpart.strip()
+                        break
+            else:
+                pquery = query
+            if pquery and not invalidQuery:
+                dbquery = Q(dbquery, Q(
+                    Q(name__istartswith=pquery)
+                    | Q(name__iendswith=pquery)
+                    | Q(name__iexact=pquery)
+                    | Q(name__icontains=pquery)
+                    | Q(description__icontains=pquery)
+                    | Q(creator__user__first_name__istartswith=pquery)
+                    | Q(creator__user__last_name__istartswith=pquery)
+                    | Q(creator__user__email__istartswith=pquery)
+                    | Q(creator__githubID__istartswith=pquery)
+                    | Q(creator__githubID__iexact=pquery)
+                    | Q(category__name__iexact=pquery)
+                    | Q(topics__name__iexact=pquery)
+                    | Q(tags__name__iexact=pquery)
+                    | Q(category__name__istartswith=pquery)
+                    | Q(topics__name__istartswith=pquery)
+                    | Q(tags__name__istartswith=pquery)
+                ))
+            if not invalidQuery:
+                projects = BaseProject.objects.exclude(trashed=True).exclude(
+                    suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(dbquery).order_by('name').distinct()[0:limit]
+                projects = list(filter(lambda m: m.is_approved, list(projects)))
+                if verified != None:
+                    projects = list(filter(lambda m: verified ==
+                                    m.is_verified, list(projects)))
+                if len(projects):
+                    cache.set(cachekey, projects, settings.CACHE_SHORT)
+        
         if json_body:
             return respondJson(Code.OK, dict(
                 projects=list(map(lambda m: dict(
+                    id=m.get_id,
                     name=m.name, nickname=m.get_nickname, is_verified=m.is_verified,
                     url=m.get_abs_link, description=m.description,
                     imageUrl=m.get_abs_dp, creator=m.creator.get_name
                 ), projects)),
                 query=query
             ))
+        
         return rendererstr(request, Template.Projects.BROWSE_SEARCH, dict(projects=projects, query=query))
     except Exception as e:
         errorLog(e)
@@ -1105,20 +1133,48 @@ def browseSearch(request: WSGIRequest):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         return Http404(e)
 
-
-@require_GET
+@ratelimit(key='user_or_ip', rate='2/s')
+@decode_JSON
 def licenseSearch(request: WSGIRequest):
-    query = request.GET.get('query', '')
-    licenses = License.objects.exclude(public=False).filter(Q(
-        Q(name__istartswith=query)
-        | Q(name__iexact=query)
-        | Q(name__icontains=query)
-        | Q(keyword__iexact=query)
-        | Q(description__istartswith=query)
-        | Q(description__icontains=query)
-    ))[0:10]
-    return rendererstr(request, Template.Projects.LICENSE_SEARCH, dict(licenses=licenses, query=query))
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        query = request.GET.get('query', '')
+        limit = request.GET.get('limit', request.POST.get('limit', 10))
+        cachekey = f'license_search_{query}{request.LANGUAGE_CODE}'
 
+        if request.user.is_authenticated:
+            cachekey = f"{cachekey}{request.user.id}"
+        
+        licenses = cache.get(cachekey,[])
+        if not len(licenses):
+            licenses = License.objects.exclude(public=False).filter(Q(
+                Q(name__istartswith=query)
+                | Q(name__iexact=query)
+                | Q(name__icontains=query)
+                | Q(keyword__iexact=query)
+                | Q(description__istartswith=query)
+                | Q(description__icontains=query)
+            ))[0:limit]
+            if len(licenses):
+                cache.set(cachekey,licenses,settings.CACHE_SHORT)
+
+        if json_body:
+            return respondJson(Code.OK, dict(
+                licenses=list(map(lambda l: dict(
+                    id=l.get_id,
+                    name=l.name, 
+                    keyword=l.keyword,
+                    url=l.get_link,
+                    description=l.description,
+                    creator=l.creator.get_name
+                ), licenses)),
+                query=query
+            ))    
+        return rendererstr(request, Template.Projects.LICENSE_SEARCH, dict(licenses=licenses, query=query))
+    except Exception as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return Http404(e)
 
 def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10):
     # In Project Snapshot view

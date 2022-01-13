@@ -665,9 +665,7 @@ class Profile(models.Model):
     @property
     def getAllTopicIds(self):
         topIDs = ProfileTopic.objects.filter(profile=self).order_by('-points').values_list('topic__id', flat=True)
-        def hexize(topUUID):
-            return topUUID.hex
-        return list(map(hexize,topIDs))
+        return list(map(lambda tid: tid.hex,topIDs))
 
     def getAllTopics(self):
         return self.topics.all()
@@ -719,22 +717,30 @@ class Profile(models.Model):
 
     @property
     def blockedIDs(self) -> list:
-        ids = []
-        for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
-            if block.blockeduser == self.user:
-                ids.append(block.profile.getUserID())
-            else:
-                ids.append(block.blockeduser.getID())
+        cachekey = f"blocked_userids_{self.user.id}"
+        ids = cache.get(cachekey,[])
+        if not len(ids):
+            for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
+                if block.blockeduser == self.user:
+                    ids.append(block.profile.getUserID())
+                else:
+                    ids.append(block.blockeduser.getID())
+            if len(ids):
+                cache.set(cachekey, ids, settings.CACHE_INSTANT)
         return ids
 
     @property
     def blockedProfiles(self) -> list:
-        profiles = []
-        for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
-            if block.blockeduser == self.user:
-                profiles.append(block.profile)
-            else:
-                profiles.append(block.blockeduser.profile)
+        cachekey = f"blocked_userprofiles_{self.user.id}"
+        profiles = cache.get(cachekey,[])
+        if not len(profiles):
+            for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
+                if block.blockeduser == self.user:
+                    profiles.append(block.profile)
+                else:
+                    profiles.append(block.blockeduser.profile)
+                if len(profiles):
+                    cache.set(cachekey, profiles, settings.CACHE_INSTANT)
         return profiles
 
     def filterBlockedProfiles(self,profiles) -> list:

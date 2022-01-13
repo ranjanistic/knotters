@@ -1,12 +1,11 @@
 from uuid import UUID
-
 from django.core.exceptions import ObjectDoesNotExist
 from ratelimit.decorators import ratelimit
 import os
 from django.db.models import Sum
 from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import Http404, HttpResponse, HttpResponseForbidden, HttpResponseServerError, JsonResponse
-from django.shortcuts import redirect, render
+from django.http.response import Http404, HttpResponse, HttpResponseServerError, JsonResponse
+from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 from django.db.models import Q
@@ -14,7 +13,7 @@ from django.conf import settings
 from django.core.cache import cache
 from allauth.account.models import EmailAddress
 from main.decorators import decode_JSON, require_JSON_body, normal_profile_required, manager_only
-from main.methods import addMethodToAsyncQueue, errorLog, renderData, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, errorLog, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
@@ -25,7 +24,6 @@ from .apps import APPNAME
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def index(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.INDEX)
 
@@ -37,9 +35,9 @@ def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
         if data:
             return HttpResponse(data)
         else:
-            raise Exception()
-    except:
-        raise Http404()
+            raise Exception(tab)
+    except Exception as e:
+        raise Http404(e)
 
 
 @require_GET
@@ -55,9 +53,11 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
                 isManager=(compete.creator == request.user.profile),
             )
         return renderer(request, Template.Compete.PROFILE, data)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @require_JSON_body
@@ -79,6 +79,8 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
                             participated=False,
                             )
         return respondJson(Code.OK, data)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
@@ -93,14 +95,16 @@ def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResp
             return HttpResponse(data)
         else:
             raise Exception()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
-@ratelimit(key='user', rate='10/m', block=True, method=('POST'))
+@ratelimit(key='user', rate='10/m', block=True, method=(Code.POST))
 def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     Take participation
@@ -127,14 +131,16 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         addMethodToAsyncQueue(
             f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
         return redirect(competition.getLink(alert=Message.PARTICIPATION_CONFIRMED))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='5/m', block=True, method=('POST'))
+@ratelimit(key='user', rate='5/m', block=True, method=(Code.POST))
 def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     """
     To invite a member in submission, relation to be confirmed via mail link. (Must not be judge or moderator for the competition)
@@ -171,6 +177,8 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             addMethodToAsyncQueue(
                 f'{APPNAME}.mailers.{participantInviteAlert.__name__}', person, request.user.profile, submission)
             return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -254,27 +262,26 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             submission=submission, profile=request.user.profile, confirmed=True)
         if not submission.competition.isActive():
             raise Exception()
-        try:
-            conf = SubmissionParticipant.objects.filter(profile=member, submission=submission, confirmed=True).first()
-            submission.members.remove(member)
-            if submission.totalActiveMembers() == 0:
-                submission.delete()
-            if conf:
-                member.decreaseXP(by=5)
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
-            return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
-        except Exception as e:
-            errorLog(e)
-            raise Exception(e)
+        
+        conf = SubmissionParticipant.objects.filter(profile=member, submission=submission, confirmed=True).first()
+        submission.members.remove(member)
+        if submission.totalActiveMembers() == 0:
+            submission.delete()
+        if conf:
+            member.decreaseXP(by=5)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
+        return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
-@ratelimit(key='user', rate='5/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='5/s', block=True, method=(Code.POST))
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         now = timezone.now()
@@ -334,7 +341,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
 @normal_profile_required
 @judge_only
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     """
     For judge to submit their markings of all submissions of a competition.
@@ -391,7 +398,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                         points=point
                     ))
 
-        subtopicpoints = SubmissionTopicPoint.objects.bulk_create(
+        _ = SubmissionTopicPoint.objects.bulk_create(
             topicpointsList)
         addMethodToAsyncQueue(
             f"{APPNAME}.mailers.{submissionsJudgedAlert.__name__}", competition, request.user.profile)
@@ -412,6 +419,8 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                 profiletopic.increasePoints(by=judgeXP)
         request.user.profile.increaseXP(by=judgeXP)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -419,7 +428,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
 @manager_only
 @require_POST
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     For manager to declare results after markings of all submissions by all judges have been completed.
@@ -441,14 +450,16 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{DeclareResults.__name__}", comp)
         return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARING))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     try:
         result = Result.objects.get(submission__competition__id=compID,
@@ -480,9 +491,11 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                     break
 
         return redirect(result.submission.competition.getLink(alert=Message.XP_ADDED))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 # @normal_profile_required
@@ -510,12 +523,11 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
 
 
 @require_GET
-# @cache_page(settings.CACHE_LONG)
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     return renderer(request, Template.Compete.CERT_INDEX)
 
 
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user_or_ip', rate='2/s', block=True, method=(Code.POST))
 def certificateVerify(request: WSGIRequest) -> HttpResponse:
     certID = request.POST.get('certID', request.GET.get('id', None))
     try:
@@ -532,13 +544,14 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
             return respondRedirect(APPNAME, URL.compete.apprCertificate(appcert.competition.get_id, appcert.appreciatee.getUserID()))
 
         return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
+    except ObjectDoesNotExist as o:
+        return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
     except Exception as e:
         errorLog(e)
         return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
 
 
 @require_GET
-# @cache_page(settings.CACHE_MINI)
 def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
@@ -560,13 +573,14 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         certpath = False if not partcert else partcert.getCertImage if partcert.certificate else False
         certID = False if not partcert else partcert.get_id
         return renderer(request, Template.Compete.CERT_CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self, certID=certID))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @require_GET
-# @cache_page(settings.CACHE_MINI)
 def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
@@ -590,13 +604,16 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
         else:
             compete = Competition.objects.get(id=compID)
         return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(compete=compete, appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
-        raise Http404()
+        errorLog(e)
+        raise Http404(e)
 
 
 @manager_only
 @require_POST
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         competition = Competition.objects.get(
@@ -624,7 +641,7 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
 
 @normal_profile_required
 @require_GET
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.getID() == userID:
@@ -644,14 +661,16 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
                     os.path.basename(file_path)
                 return response
         raise Exception()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_GET
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
     try:
         if request.user.getID() == userID:
@@ -670,63 +689,83 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
                     os.path.basename(file_path)
                 return response
         raise Exception()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404()
 
+@ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
 def browseSearch(request: WSGIRequest):
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         query = request.GET.get('query', request.POST.get('query', ''))
         limit = request.GET.get('limit', request.POST.get('limit', 10))
-        competitions = []
-        specials = ('topic:','manager:','judge:','status:')
-        pquery = None
-        dbquery = Q()
-
-        if query.startswith(specials):
-            def specquerieslist(q):
-                return [Q(topics__name__iexact=q), Q(creator__user__first_name__istartswith=q), Q(judges__user__first_name__istartswith=q), Q()]
-            commaparts = query.split(",")
-            for cpart in commaparts:
-                if cpart.strip().lower().startswith(specials):    
-                    special, specialq = cpart.split(':')
-                    if special.strip().lower()=='status':
-                        status = specialq.strip().lower()
-                        if status == "active":
-                            dbquery = Q(dbquery, startAt__lte=timezone.now(), endAt__gte=timezone.now())
-                        if status == "history":
-                            dbquery = Q(dbquery, endAt__lt=timezone.now())
-                        if status == "upcoming":
-                            dbquery = Q(dbquery, startAt__gt=timezone.now())
-                    else:
-                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
-                else:
-                    pquery = cpart.strip()
-                    break
-        else:
-            pquery = query
-        if pquery:
-            dbquery = Q(dbquery, Q(
-                Q(title__iexact=pquery)
-                | Q(title__istartswith=pquery)
-                | Q(title__icontains=pquery)
-                | Q(title__istartswith=pquery)
-
-                | Q(tagline__istartswith=pquery)
-                | Q(tagline__icontains=pquery)
-                | Q(tagline__istartswith=pquery)
-
-                | Q(shortdescription__istartswith=pquery)
-                | Q(shortdescription__icontains=pquery)
-                | Q(shortdescription__istartswith=pquery)
-                
-                | Q(topics__name__iexact=pquery)
-                | Q(topics__name__istartswith=pquery)
-            ))
-        competitions = Competition.objects.filter(dbquery).exclude(hidden=True).exclude(is_draft=True).order_by('title').distinct()[0:limit]
         
+        cachekey = f'compete_browse_search_{query}{request.LANGUAGE_CODE}'
+        if request.user.is_authenticated:
+            cachekey = f"{cachekey}{request.user.id}"
+    
+        competitions = cache.get(cachekey,[])
+        
+        if not len(competitions):
+            specials = ('topic:','manager:','judge:','status:')
+            pquery = None
+            dbquery = Q()
+            invalidQuery = False
+            if query.startswith(specials):
+                def specquerieslist(q):
+                    return [Q(topics__name__iexact=q), Q(creator__user__first_name__istartswith=q), Q(judges__user__first_name__istartswith=q, resultDeclared=True), Q()]
+                commaparts = query.split(",")
+                for cpart in commaparts:
+                    if cpart.strip().lower().startswith(specials):    
+                        special, specialq = cpart.split(':')
+                        if special.strip().lower()=='status':
+                            status = specialq.strip().lower()
+                            
+                            if status == Code.ACTIVE:
+                                dbquery = Q(dbquery, startAt__lte=timezone.now(), endAt__gte=timezone.now())
+                            if status == Code.HISTORY:
+                                dbquery = Q(dbquery, endAt__lt=timezone.now())
+                            if status == Code.UPCOMING:
+                                dbquery = Q(dbquery, startAt__gt=timezone.now())
+                            if status not in [Code.ACTIVE, Code.HISTORY, Code.UPCOMING]:
+                                invalidQuery = True
+                                break
+                        else:
+                            dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
+                    else:
+                        pquery = cpart.strip()
+                        break
+            else:
+                pquery = query
+            
+            
+            if pquery and not invalidQuery:
+                dbquery = Q(dbquery, Q(
+                    Q(title__iexact=pquery)
+                    | Q(title__istartswith=pquery)
+                    | Q(title__icontains=pquery)
+                    | Q(title__istartswith=pquery)
+
+                    | Q(tagline__istartswith=pquery)
+                    | Q(tagline__icontains=pquery)
+                    | Q(tagline__istartswith=pquery)
+
+                    | Q(shortdescription__istartswith=pquery)
+                    | Q(shortdescription__icontains=pquery)
+                    | Q(shortdescription__istartswith=pquery)
+                    
+                    | Q(topics__name__iexact=pquery)
+                    | Q(topics__name__istartswith=pquery)
+                ))
+            
+            if not invalidQuery:
+                competitions = Competition.objects.filter(dbquery).exclude(hidden=True).exclude(is_draft=True).order_by('title').distinct()[0:limit]
+                if len(competitions):
+                    cache.set(cachekey, competitions, settings.CACHE_SHORT)
+            
         if json_body:
             return respondJson(Code.OK, dict(
                 competitions=list(map(lambda c: dict(
