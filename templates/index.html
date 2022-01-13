@@ -8,7 +8,7 @@
 {% load custom_tags %}
 
 <!DOCTYPE html>
-<html lang="{{LANGUAGE_CODE}}" class="">
+<html lang="{{LANGUAGE_CODE|or:'en'}}" class="">
     {% block head %}
     <head>
     
@@ -319,6 +319,7 @@
         <footer class="w3-row tertiary w3-padding" {% block show_lite_footer %}hidden{% endblock %}>
             <br/>
             <div class="w3-col w3-half w3-padding">
+            {% if LANGUAGES.count %}
             <form action="{% url "set_language" %}" method="POST">
                 {% csrf_token %}
                 <select name="language" class="selectLanguage" id="language_lite_footer" onchange="this.form.submit()">
@@ -327,6 +328,7 @@
                 {% endfor %}
                 </select>
             </form>
+            {% endif %}
             </div>
             <div class="w3-col w3-half primary-text w3-padding">
             <img class="w3-right" src="{{ICON_SHADOW}}" width="100" />
@@ -339,6 +341,7 @@
         <footer class="w3-row secondary w3-padding w3-animate-bottom" >
             <br/><br/>
             <div class="w3-col w3-half primary-text w3-padding">
+                {% if LANGUAGES.count %}
                 <form action="{% url "set_language" %}" method="POST">
                     {% csrf_token %}
                     <select name="language" class="selectLanguage" id="language" onchange="this.form.submit()">
@@ -347,6 +350,7 @@
                     {% endfor %}
                     </select>
                 </form>
+                {% endif %}
                 <a href="/press" class="text-secondary w3-animate-left" hidden>{% trans "For the press" %}</a><br/>
                 <span class="text-secondary w3-animate-left pointer" onclick="troubleShootingInfo()">{% trans "Troubleshooting" %}</span><br/>
                 <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">{% trans "Report" %} &amp; {% trans "Feedback" %}</span><br/>
