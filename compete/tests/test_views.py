@@ -16,7 +16,7 @@ from main.tests.utils import authroot, getRandomStr
 from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestPasswords, getTestTopicsInst, getTestUsersInst, getTestEmails, getTestNames
 from people.models import Profile, ProfileTopic, Topic
 from moderation.models import Moderation
-from moderation.methods import requestModerationForObject
+from moderation.methods import assignModeratorToObject, requestModerationForObject
 from .utils import getCompTitle, root, getTestUrl
 from compete.methods import *
 
@@ -53,7 +53,8 @@ class TestViews(TestCase):
         self.mgprofile.save()
         self.comp = Competition.objects.create(title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
-        requestModerationForObject(self.comp, APPNAME)
+        assignModeratorToObject(APPNAME, self.comp,self.modprofile)
+        # requestModerationForObject(self.comp, APPNAME)
         self.comp.judges.add(self.judgeprofile)
         self.client = Client()
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(5))
@@ -119,7 +120,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.compete.profile)
         self.assertEqual(resp.context['compete'], self.comp)
         self.assertFalse(resp.context['isJudge'])
-        self.assertTrue(resp.context['isMod'])
+        # self.assertTrue(resp.context['isMod'])
         self.assertFalse(resp.context['isManager'])
         self.client.logout()
 

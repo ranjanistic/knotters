@@ -238,7 +238,7 @@ def requestModerationForObject(
         errorLog(e)
         return False
 
-def assignModeratorToObject(type,object,moderator:Profile, requestData, referURL='', stale_days=3, internal_mod=False):
+def assignModeratorToObject(type,object,moderator:Profile, requestData='', referURL='', stale_days=3, internal_mod=False):
     try:
         if not (moderator.is_moderator and moderator.is_normal):
             raise Exception('Invalid moderator')
