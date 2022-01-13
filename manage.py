@@ -7,11 +7,13 @@ ENVSAMPLEPATH = 'main/.env.example'
 def main(ENVPATH):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
     os.environ.setdefault('ENVPATH', ENVPATH)
-    from main.env import ISPRODUCTION, ENV, DBNAME, VERSION
+    from main.env import ISPRODUCTION, ENV, DBNAME, VERSION, STATIC_ROOT, STATIC_URL
     if not ISPRODUCTION:
         print(f"Environment from: {ENVPATH}")
         print(f"Database: {DBNAME}")
         print(f"Version: {VERSION}")
+        print(f"Static Root: {STATIC_ROOT}")
+        print(f"Static: {STATIC_URL}")
     print(f"Environment: {ENV}")
     try:
         from django.core.management import execute_from_command_line

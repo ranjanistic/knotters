@@ -1,5 +1,7 @@
 import json
 from django.core.exceptions import ObjectDoesNotExist
+from django.template.loader import render_to_string
+from rjsmin import jsmin
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -382,10 +384,19 @@ class Manifest(TemplateView):
         context = dict(**context, icons=icons)
         return context
 
-
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
+
+    def render_to_response(self, context, **response_kwargs):
+        response_kwargs.setdefault('content_type', self.content_type)
+        stringrender = render_to_string(self.get_template_names(), request=self.request,context=context)
+        try:
+            stringrender = jsmin(stringrender)
+        except:
+            pass
+        return HttpResponse(stringrender, **response_kwargs)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
