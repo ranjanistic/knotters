@@ -64,7 +64,7 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 def index(request: WSGIRequest) -> HttpResponse:
     if request.user.is_authenticated and not request.user.profile.on_boarded:
         return respondRedirect(path=URL.ON_BOARDING)
-    competition = Competition.objects.filter(endAt__gt=timezone.now()).order_by("-startAt").first()
+    competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
     return renderView(request, Template.INDEX, dict(competition=competition))
 
 
@@ -647,7 +647,7 @@ def browser(request: WSGIRequest, type: str):
             # TODO
             return HttpResponseBadRequest()
         elif type == Browse.LATEST_COMPETITIONS:
-            competitions=Competition.objects.filter(hidden=False).order_by("-startAt")[:limit]
+            competitions=Competition.objects.filter(hidden=False,is_draft=False).order_by("-startAt")[:limit]
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         elif type == Browse.TRENDING_MENTORS:
             mentors=Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
@@ -665,6 +665,6 @@ def browser(request: WSGIRequest, type: str):
         else:
             return HttpResponseBadRequest()
     except Exception as e:
-        if request.POST.get('JSON_BODY', False):
+        if request.POST.get(Code.JSON_BODY, False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)

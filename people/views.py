@@ -588,7 +588,7 @@ def browseSearch(request: WSGIRequest):
         profiles = []
         specials = ('topic:','type:')
         pquery = None
-        is_moderator = is_mentor = is_verified = None
+        is_moderator = is_mentor = is_verified = is_manager = None
         dbquery = Q()
 
         if query.startswith(specials):
@@ -602,6 +602,7 @@ def browseSearch(request: WSGIRequest):
                         is_moderator = specialq.strip().lower() == 'moderator' or is_moderator
                         is_mentor = specialq.strip().lower() == 'mentor' or is_mentor
                         is_verified = specialq.strip().lower() == 'verified' or is_verified
+                        is_manager = specialq.strip().lower() == 'manager' or is_manager
                         if is_moderator != None:
                             dbquery = Q(dbquery, is_moderator=is_moderator)
                         if is_mentor != None:
@@ -634,6 +635,9 @@ def browseSearch(request: WSGIRequest):
             ))
         profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).order_by('user__first_name').distinct()[0:10]
         
+        if is_manager:
+            profiles=list(filter(lambda p: p.is_manager, profiles))
+
         if json_body:
             return respondJson(Code.OK, dict(
                 profiles=list(map(lambda m: dict(
