@@ -168,11 +168,10 @@ def compress(path):
     """
     Compress all files in a directory
     """
-    print("COMPRESSING: ", path)
     if Path(path).exists() and Path(path).is_dir():
         for root, dirs, files in walk(path):
             for file in files:
-                if file.endswith('.css'):
+                if file.endswith('.css') and not file.endswith('.min.css'):
                     filepath = join(root, file)
                     print("COMPRESSING: ", filepath)
                     try:
@@ -204,5 +203,5 @@ def compress(path):
                     print("SKIPPING: ", join(root, file))
                     pass
     else:
-        print("SKIPPING: ", path)
+        print("NOT A DIR: ", path)
         pass
