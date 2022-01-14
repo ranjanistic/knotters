@@ -21,7 +21,8 @@ on:
       - "genversion.py"
       - "cleanobsoletestatic.py"
       - "refresh.py"
-      - "discordbo.py"
+      - "discordbot.py"
+      - '**/commands/**'
 
 jobs:
   testing:
