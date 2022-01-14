@@ -135,6 +135,19 @@ const loadGlobalEventListeners = () => {
                 }`;
             }
         }
+        if(!button.title){
+            if(!button.childElementCount){
+                button.title = button.innerText
+            } else{
+                button.title = button.children[button.childElementCount-1].innerText
+            }
+            if(!button.title && button.ariaLabel){
+                button.title = button.ariaLabel
+            }
+        }
+        if(!button.ariaLabel){
+            button.ariaLabel = button.title
+        }
     });
     getElementsByTag("i").forEach((icon) => {
         icon.classList.add("material-icons");
@@ -193,9 +206,9 @@ const loadGlobalEventListeners = () => {
     getElements("navigator-share-action").forEach((share) => {
         share.addEventListener("click", () => {
             shareLinkAction(
-                share.getAttribute("data-title"),
-                share.getAttribute("data-text"),
-                share.getAttribute("data-url")
+                share.getAttribute("data-title")||share.getAttribute("data-text"),
+                share.getAttribute("data-text")||share.getAttribute("data-title"),
+                share.getAttribute("data-url")||window.location.href
             );
         });
     });
@@ -204,7 +217,7 @@ const loadGlobalEventListeners = () => {
 const copyToClipboard = (text) => {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text);
-        success("Copied to clipboard");
+        message("Copied to clipboard");
     } else {
         error("Unable to copy!");
     }
@@ -466,7 +479,7 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
         try {
             return JSON.parse(data);
         } catch {
-            return data;
+            return data||true;
         }
     } catch (e) {
         subLoader(false);
@@ -494,7 +507,7 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
         try {
             return JSON.parse(data);
         } catch {
-            return data;
+            return data||true;
         }
     } catch (e) {
         subLoader(false);

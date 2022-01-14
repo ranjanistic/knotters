@@ -24,6 +24,7 @@ window.addEventListener("load", () => {
             sessionStorage.setItem(Key.navigated, code.LEFT);
         });
     });
+    
     loadReporters();
     loadBrowserSwiper();
     window.history.pushState(
@@ -49,6 +50,15 @@ window.addEventListener("load", () => {
         if (!window.sessionStorage.getItem("beta-alerted")) betaAlert();
         getElements("hide-beta").forEach((elem) => hide(elem));
     }
+    sessionStorage.removeItem(KEY.message_firing)
+    sessionStorage.removeItem(KEY.error_firing)
+    sessionStorage.removeItem(KEY.success_firing)
+    sessionStorage.removeItem(KEY.message_queue)
+    sessionStorage.removeItem(KEY.error_queue)
+    sessionStorage.removeItem(KEY.success_queue)
+    sessionStorage.removeItem(KEY.message_fired)
+    sessionStorage.removeItem(KEY.error_fired)
+    sessionStorage.removeItem(KEY.success_fired)
     subLoader(false);
 });
 

@@ -1,23 +1,24 @@
-const loadBrowseSnaps = async (excludeIDs = []) => {
+const snapshotExcludeIDS = [];
+const loadBrowseSnaps = async (observer) => {
     const viewers = getElements("snapshot-viewer");
     let viewer = viewers.find((view) => view.innerHTML.trim() == "");
     if (!viewer) {
         viewer = viewers[viewers.length - 1];
     }
-    console.log(setUrlQueries(setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS), {n:excludeIDs[excludeIDs.length-1] || 0}))
     const snapdata = await postRequest2({
-        path: setUrlQueries(setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS), {n:excludeIDs[excludeIDs.length-1] || 0}),
-        data: { excludeIDs },
+        path: setUrlQueries(setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS), {n:snapshotExcludeIDS[snapshotExcludeIDS.length-1] || 0}),
+        data: { excludeIDs:snapshotExcludeIDS },
         retainCache: true,
         allowCache: true,
     });
     if (!snapdata) return false;
     if (snapdata.code === code.OK && snapdata.snapIDs.length) {
-        if (excludeIDs.length && excludeIDs.some((id) => snapdata.snapIDs.includes(id))) {
+        if (snapshotExcludeIDS.some((id) => snapdata.snapIDs.includes(id))) {
             return false;
         }
         setHtmlContent(viewer, viewer.innerHTML + snapdata.html);
-        return snapdata.snapIDs;
+        snapshotExcludeIDS.push(...snapdata.snapIDs)
+        return true;
     }
     return false;
 };
@@ -25,30 +26,49 @@ const loadBrowseSnaps = async (excludeIDs = []) => {
 const loadSnapshotScroller = async () => {
     const viewers = getElements("snapshot-viewer");
     if (viewers.length) {
-        let viewedSnaps = [];
         let done = await loadBrowseSnaps();
-        if (done) {
-            viewedSnaps = viewedSnaps.concat(done);
-            let options = {
-                root: null,
-                rootMargins: "0px",
-                threshold: 0.5,
-            };
+        if(done){
             const observer = new IntersectionObserver(async (entries) => {
                 if (entries[0].isIntersecting && done) {
-                    viewedSnaps = viewedSnaps.concat(done);
-                    done = await loadBrowseSnaps(viewedSnaps);
+                    done = await loadBrowseSnaps();
+                    
+                    if(done){
+                        observer.observe(
+                            document.querySelector(
+                                `#snap-${snapshotExcludeIDS[snapshotExcludeIDS.length - 1].replaceAll(
+                                    "-",
+                                    ""
+                                )}`
+                            )
+                        );
+                    } else {
+                        if(navigator.onLine){
+                            observer.unobserve(
+                                document.querySelector(
+                                    `#snap-${snapshotExcludeIDS[snapshotExcludeIDS.length - 1].replaceAll(
+                                        "-",
+                                        ""
+                                    )}`
+                                )
+                            );
+                        }
+                    }
                 }
-            }, options);
+            }, {
+                root: null,
+                rootMargins: "0px",
+                threshold: 0,
+            });
             observer.observe(
                 document.querySelector(
-                    `#snap-${viewedSnaps[viewedSnaps.length - 1].replaceAll(
+                    `#snap-${snapshotExcludeIDS[snapshotExcludeIDS.length - 1].replaceAll(
                         "-",
                         ""
                     )}`
                 )
             );
         }
+        
     }
 };
 const showSnapshotMoreBtn = (snapID) => {

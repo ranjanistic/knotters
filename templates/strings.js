@@ -7,6 +7,7 @@ const STRING = {
     re_introduction: '{% trans "Press Alt+R for re-introduction, or visit The Landing Page" %}',
     update_available:'{% trans "Update available" %}',
     default_error_message: '{% trans "Something went wrong." %}',
+    default_success_message: '{% trans "Successfull" %}',
     network_error_message: '{% trans "Network error, check your connection." %}',
 }
 

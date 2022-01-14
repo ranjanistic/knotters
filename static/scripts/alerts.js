@@ -17,76 +17,210 @@ const loaders = (show = true) => {
     subLoader(show);
 };
 
+window.addEventListener(KEY.message_fired, (e) => {
+    let queue = [];
+    try{
+        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue)||"[]")
+    } catch {
+        queue = []
+    }
+    if(queue.length){
+        const title = queue[0].msg;
+        if(!sessionStorage.getItem(KEY.message_firing)){
+            sessionStorage.setItem(KEY.message_firing,1)
+            Swal.mixin({
+                toast: true,
+                position: "bottom-start",
+                showConfirmButton: false,
+                iconColor: "#000",
+                timer: queue[0].timer,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener("mouseenter", Swal.stopTimer);
+                    toast.addEventListener("mouseleave", Swal.resumeTimer);
+                    getElements("swal2-container").forEach((e) => (e.style.zIndex = 999999999));
+                    eval(queue[0].onOpen)(toast);
+                },
+                didClose:(t)=>{
+                    sessionStorage.removeItem(KEY.message_firing)
+                    let queue = [];
+                    try{
+                        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue)||"[]")
+                    } catch {
+                        queue = []
+                    }
+                    queue.shift();
+                    sessionStorage.setItem(KEY.message_queue, JSON.stringify(queue, (key, value)=> {
+                        if (typeof value === 'function') {
+                          return value.toString();
+                        } else {
+                          return value;
+                        }
+                    }))
+                    if(queue.length > 0){
+                        window.dispatchEvent(new CustomEvent(KEY.message_fired));
+                    }
+                }
+            }).fire({
+                icon: "info",
+                title
+            });
+        }
+    }
+});
+window.addEventListener(KEY.error_fired, (e) => {
+    let queue = [];
+    try{
+        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
+    } catch {
+        queue = []
+    }
+    if(queue.length){
+        const title = queue[0].msg;
+        if(!sessionStorage.getItem(KEY.error_firing)){
+            sessionStorage.setItem(KEY.error_firing,1)
+            Swal.mixin({
+                toast: true,
+                position: "bottom-end",
+                showConfirmButton: false,
+                iconColor: "#000",
+                timer: queue[0].timer,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener("mouseenter", Swal.stopTimer);
+                    toast.addEventListener("mouseleave", Swal.resumeTimer);
+                    getElements("swal2-container").forEach((e) => (e.style.zIndex = 999999999));
+                },
+                didClose:(t)=>{
+                    sessionStorage.removeItem(KEY.error_firing)
+                    let queue = [];
+                    try{
+                        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
+                    } catch {
+                        queue = []
+                    }
+                    queue.shift();
+                    sessionStorage.setItem(KEY.error_queue, JSON.stringify(queue, (key, value)=> {
+                        if (typeof value === 'function') {
+                          return value.toString();
+                        } else {
+                          return value;
+                        }
+                    }))
+                    if(queue.length > 0){
+                        window.dispatchEvent(new CustomEvent(KEY.error_fired));
+                    }
+                }
+            }).fire({
+                icon: "error",
+                title
+            });
+        }
+    }
+});
+window.addEventListener(KEY.success_fired, (e) => {
+    let queue = [];
+    try{
+        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
+    } catch {
+        queue = []
+    }
+    if(queue.length){
+        const title = queue[0].msg;
+        if(!sessionStorage.getItem(KEY.success_firing)){
+            sessionStorage.setItem(KEY.success_firing,1)
+            Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                iconColor: "#fff",
+                timer: queue[0].timer,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener("mouseenter", Swal.stopTimer);
+                    toast.addEventListener("mouseleave", Swal.resumeTimer);
+                    getElements("swal2-container").forEach((e) => (e.style.zIndex = 999999999));
+                },
+                didClose:(t)=>{
+                    sessionStorage.removeItem(KEY.success_firing)
+                    let queue = [];
+                    try{
+                        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
+                    } catch {
+                        queue = []
+                    }
+                    queue.shift();
+                    sessionStorage.setItem(KEY.success_queue, JSON.stringify(queue, (key, value)=> {
+                        if (typeof value === 'function') {
+                          return value.toString();
+                        } else {
+                          return value;
+                        }
+                    }))
+                    if(queue.length > 0){
+                        window.dispatchEvent(new CustomEvent(KEY.success_fired));
+                    }
+                }
+            }).fire({
+                icon: "success",
+                title
+            });
+        }
+    }
+});
+
 const message = (msg = "", onOpen = (toast) => {}) => {
-    Swal.mixin({
-        toast: true,
-        position: "bottom-start",
-        showConfirmButton: false,
-        iconColor: "#000",
-        timer: Math.max(msg.split(" ").length * 400, 5000),
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener("mouseenter", Swal.stopTimer);
-            toast.addEventListener("mouseleave", Swal.resumeTimer);
-            getElements("swal2-container").forEach(
-                (e) => (e.style.zIndex = 999999999)
-            );
-            onOpen(toast);
-        },
-    }).fire({
-        icon: "info",
-        title: msg,
-    });
+    sessionStorage.removeItem(KEY.error_firing)
+    sessionStorage.removeItem(KEY.success_firing)
+    sessionStorage.removeItem(KEY.error_queue)
+    sessionStorage.removeItem(KEY.success_queue)
+    let queue = [];
+    try{
+        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue)||"[]")
+    } catch {
+        queue = []
+    }
+    queue.push({msg:msg,timer: Math.max(msg.split(" ").length * 500, 5000), onOpen:onOpen})
+    sessionStorage.setItem(KEY.message_queue, JSON.stringify(queue,(key, value) =>{
+        if (typeof value === 'function') {
+          return value.toString();
+        } else {
+          return value;
+        }
+      }))
+    window.dispatchEvent(new CustomEvent(KEY.message_fired));
 };
 
 const error = (msg = STRING.default_error_message, force = false) => {
-    const toast = Swal.mixin({
-        toast: true,
-        position: "bottom-end",
-        showConfirmButton: false,
-        iconColor: "#000",
-        timer: Math.max(msg.split(" ").length * 400, 5000),
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener("mouseenter", Swal.stopTimer);
-            toast.addEventListener("mouseleave", Swal.resumeTimer);
-            getElements("swal2-container").forEach(
-                (e) => (e.style.zIndex = 999999999)
-            );
-        },
-    });
-    if (msg !== STRING.default_error_message || force) {
-        toast.fire({
-            icon: "error",
-            title: msg || STRING.default_error_message,
-        });
-    } else {
-        toast.fire({
-            icon: "error",
-            title: msg || STRING.default_error_message,
-        });
+    sessionStorage.removeItem(KEY.message_firing)
+    sessionStorage.removeItem(KEY.success_firing)
+    sessionStorage.removeItem(KEY.message_queue)
+    sessionStorage.removeItem(KEY.success_queue)
+    let queue = [];
+    try{
+        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
+    } catch {
+        queue = []
     }
+    queue.push({msg:msg||STRING.default_error_message,timer: Math.max(msg.split(" ").length * 500, 5000)})
+    sessionStorage.setItem(KEY.error_queue, JSON.stringify(queue))
+    window.dispatchEvent(new CustomEvent(KEY.error_fired));
 };
 
-const success = (msg = "Success") => {
-    Swal.mixin({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        iconColor: "#fff",
-        timer: Math.max(msg.split(" ").length * 400, 5000),
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener("mouseenter", Swal.stopTimer);
-            toast.addEventListener("mouseleave", Swal.resumeTimer);
-            getElements("swal2-container").forEach(
-                (e) => (e.style.zIndex = 999999999)
-            );
-        },
-    }).fire({
-        icon: "success",
-        title: msg,
-    });
+const success = (msg = STRING.default_success_message) => {
+    sessionStorage.removeItem(KEY.message_firing)
+    sessionStorage.removeItem(KEY.error_firing)
+    sessionStorage.removeItem(KEY.message_queue)
+    sessionStorage.removeItem(KEY.error_queue)
+    let queue = [];
+    try{
+        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
+    } catch {
+        queue = []
+    }
+    queue.push({msg:msg,timer: Math.max(msg.split(" ").length * 500, 5000)})
+    sessionStorage.setItem(KEY.success_queue, JSON.stringify(queue))
+    window.dispatchEvent(new CustomEvent(KEY.success_fired));
 };
 
 const loaderHTML = (loaderID = "loader") =>

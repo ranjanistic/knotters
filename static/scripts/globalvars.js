@@ -5,6 +5,15 @@ const KEY = {
     deferupdate: "deferupdate",
     previewImageInfo: "preview-image-info",
     current_theme: "theme",
+    message_firing: "message_firing",
+    error_firing: "error_firing",
+    success_firing: "success_firing",
+    message_queue: "message-queue",
+    error_queue: "error-queue",
+    success_queue: "success-queue",
+    message_fired: "message-fired",
+    error_fired: "error-fired",
+    success_fired: "success-fired",
 };
 const Key = KEY;
 
@@ -17,3 +26,4 @@ const CODE = {
 const code = CODE;
 
 let __appInstallPromptEvent = null;
+const _BROWSER = navigator.userAgent.match(/(firefox|msie|chrome|safari|trident)/ig)[0].toLowerCase();

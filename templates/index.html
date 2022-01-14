@@ -6,6 +6,7 @@
 {% load account %}
 {% load socialaccount %}
 {% load custom_tags %}
+{% load webpush_notifications %}
 
 <!DOCTYPE html>
 <html lang="{{LANGUAGE_CODE|or:'en'}}" class="">
@@ -68,6 +69,7 @@
 
         <link rel="manifest" href="{{MANIFESTURL}}" />
         <title>{% block title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}</title>
+        {% webpush_header %}
     </head>
     {% endblock %}
     <body>
@@ -415,7 +417,6 @@
         {% endblock %}
         <script src="{{URLS.STRINGS}}"></script>
         <script src="{% static 'scripts/globalvars.js' %}"></script>
-        <script src="{% static 'scripts/sw.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
@@ -423,13 +424,15 @@
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'interactjs/interactjs.min.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
+        <script src="{% static 'scripts/request.js' %}"></script>
+        <script src="{% static 'scripts/notification.js' %}"></script>
         <script src="{% static 'scripts/theme.js' %}"></script>
         <script src="{% static 'scripts/alerts.js' %}"></script>
-        <script src="{% static 'scripts/request.js' %}"></script>
         <script src="{% static 'scripts/reporter.js' %}"></script>
         <script src="{% static 'scripts/device.js' %}"></script>
         <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
+        <script src="{% static 'scripts/sw.js' %}"></script>
 
         <script>
             const SITE = "{{SITE}}";

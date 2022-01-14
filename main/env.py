@@ -53,7 +53,7 @@ VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY').strip()
 VAPID_ADMIN_MAIL = env('VAPID_ADMIN_MAIL').strip()
 LOCALE_ABS_PATH = env('LOCALE_ABS_PATH').strip()
 CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS').split(',')
-
+CDN_URL = env('CDN_URL', default='https://cdn.knotters.org').strip()
 
 PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
 PUBNAME = None if PUBNAME == 'none' else PUBNAME

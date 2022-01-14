@@ -43,7 +43,7 @@ urlpatterns = [
     path(URL.Auth.SIGNUP, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
     path('signin/', RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
     path('register/', RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
-    path('webpush/', include('webpush.urls')),
+    path(URL.WEBPUSH, include('webpush.urls')),
     path(URL.ON_BOARDING, on_boarding),
     path(URL.ON_BOARDING_UPDATE, on_boarding_update),
     path(URL.LANDING, landing),

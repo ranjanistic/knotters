@@ -1,4 +1,5 @@
 import os
+import logging
 import requests
 import base64
 from uuid import uuid4
@@ -12,12 +13,13 @@ from django.core.files.base import ContentFile, File
 from django.db.models.fields.files import ImageFieldFile
 from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
+from webpush import send_user_notification, send_group_notification
 from django.shortcuts import redirect, render
 from django.conf import settings
 from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
-from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING, PUBNAME
-from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH2, AUTH
+from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING, PUBNAME, SITE
+from .strings import URL, Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH2, AUTH
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -29,17 +31,17 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     URLS = dict(**data.get('URLS', dict()), **url.getURLSForClient())
     if data.get('URLS', None):
         del data['URLS']
-    applinks  = {
-        PROJECTS.capitalize():url.projects.getURLSForClient(),
-        PEOPLE.capitalize():url.people.getURLSForClient(),
-        AUTH.capitalize():url.auth.getURLSForClient(),
-        DOCS.capitalize():url.docs.getURLSForClient(),
-        COMPETE.capitalize():url.compete.getURLSForClient(),
-        MODERATION.capitalize():url.moderation.getURLSForClient(),
-        MANAGEMENT.capitalize():url.management.getURLSForClient()
+    applinks = {
+        PROJECTS.capitalize(): url.projects.getURLSForClient(),
+        PEOPLE.capitalize(): url.people.getURLSForClient(),
+        AUTH.capitalize(): url.auth.getURLSForClient(),
+        DOCS.capitalize(): url.docs.getURLSForClient(),
+        COMPETE.capitalize(): url.compete.getURLSForClient(),
+        MODERATION.capitalize(): url.moderation.getURLSForClient(),
+        MANAGEMENT.capitalize(): url.management.getURLSForClient()
     }
     URLS = dict(
-        **URLS, 
+        **URLS,
         **applinks
     )
     if fromApp == PROJECTS:
@@ -176,7 +178,9 @@ def base64ToImageFile(base64Data: base64) -> File:
             return False
         return ContentFile(base64.b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
     except Exception as e:
+        errorLog(e)
         return None
+
 
 def base64ToFile(base64Data: base64) -> File:
     try:
@@ -194,20 +198,13 @@ class JsonEncoder(DjangoJSONEncoder):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
 
+
 def errorLog(error, raiseErr=True):
     if not ISTESTING:
-        try:
-            with open(os.path.join(os.path.join(settings.BASE_DIR, '_logs_'), 'errors.txt'), 'a') as log_file:
-                log_file.write(f"\n{timezone.now()}\n{error}")
-            # addMethodToAsyncQueue(f"main.mailers.sendErrorLog", error)
-        except Exception as e:
-            print('Error in logging: ', e)
-            if not ISDEVELOPMENT:
-                print('Log: ', error)
+        logging.log(logging.ERROR, error)
         if ISDEVELOPMENT:
             if raiseErr:
                 raise Exception(error)
-            else: print(error)
 
 
 def getNumberSuffix(value: int) -> str:
@@ -285,8 +282,66 @@ def allowBypassDeactivated(path):
     return False
 
 
+def sendUserNotification(users, payload: dict, ttl=1000):
+    try:
+        for user in users:
+            send_user_notification(user, payload=payload, ttl=ttl)
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+
+
+def sendGroupNotification(groups, payload, ttl=1000):
+    try:
+        for group in groups:
+            send_group_notification(group, payload=payload, ttl=ttl)
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+
+
+def user_device_notify(user_s, 
+    title, body=None, url=None, icon=None,
+    badge=None, actions=[],
+    dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
+):
+    if not user_s:
+        return False
+    users = user_s
+    if not isinstance(user_s, list):
+        users = [user_s]
+    return addMethodToAsyncQueue(f"main.methods.{sendUserNotification.__name__}", users, dict(
+        title=title,
+        body=body,
+        url=url,
+        icon=icon,
+        badge=badge, actions=actions,dir=dir,image=image,lang=lang,renotify=renotify,requireInteraction=requireInteraction,
+        silent=silent, tag=tag, timestamp=timestamp, vibrate=vibrate
+    ))
+
+
+def group_device_notify(group_s, title, body=None, url=None, icon=None,
+    badge=None, actions=[],
+    dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
+):
+    if not group_s or not len(group_s):
+        return False
+    groups = group_s
+    if not isinstance(group_s, list):
+        groups = [group_s]
+    return addMethodToAsyncQueue(f"main.methods.{sendGroupNotification.__name__}", groups, dict(
+        title=title,
+        body=body,
+        url=url,
+        icon=icon,
+        badge=badge, actions=actions,dir=dir,image=image,lang=lang,renotify=renotify,requireInteraction=requireInteraction,
+        silent=silent, tag=tag, timestamp=timestamp, vibrate=vibrate
+    ))
+
+
 def addActivity(view, user, request_get, request_post, status):
-    print(request_post)
     ActivityRecord.objects.create(view_name=view, user=user, request_get=json.dumps(
         request_get), request_post=json.dumps(request_post), response_status=status)
 
@@ -296,26 +351,6 @@ def activity(request, response):
     addMethodToAsyncQueue(f"main.methods.{addActivity.__name__}", request.path,
                           request.user, request.GET.__dict__, request.POST, response.status_code)
 
-# def alertUnverified():
-#     from .mailers import sendActionEmail
-#     emails = EmailAddress.objects.filter(
-#         verified=False,
-#         primary=True,
-#         user__date_joined__lte=(timezone.now()+timedelta(days=-2)),
-#     )
-#     for email in emails:
-#         sendActionEmail(
-#             username=email.user.first_name,
-#             to=email.user.email,
-#             subject="Unverified account",
-#             header=f"Please login to verify your account at {PUBNAME}, or else your unverified account will be deleted automatically in two days.",
-#             footer=f"This is done to prevent spam accounts on our platform, and if you're reading this, please verify your account asap.",
-#             conclusion=f"This an alert about your unverified account at {PUBNAME}. If this is unfamiliar, then you don't need to worry.",
-#             actions=[dict(
-#                 text='Login to continue',
-#                 url=f'{url.getRoot(AUTH)}{url.Auth.LOGIN}'
-#             )]
-#         )
 
 def removeUnverified():
     from people.models import Profile, User
@@ -325,7 +360,7 @@ def removeUnverified():
         primary=True,
         user__date_joined__lte=time
     ).values_list('user', flat=True)
-    if not EmailAddress.objects.filter(user__id__in=list(users),verified=True).exists():
+    if not EmailAddress.objects.filter(user__id__in=list(users), verified=True).exists():
         profs = Profile.objects.filter(user__id__in=list(users)).delete()
         delusers = User.objects.filter(id__in=list(users)).delete()
         return delusers, profs

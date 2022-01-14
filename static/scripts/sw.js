@@ -98,6 +98,7 @@ const serviceWorkerRegistration = () => {
                         }
                     });
                 });
+                initializePushNotification(reg);
             })
             .catch((err) => {
                 console.log("SW:0:", err);
@@ -117,82 +118,20 @@ const serviceWorkerRegistration = () => {
     }
 };
 
-const initializeNotificationState = (reg) => {
-    if (!reg.showNotification) {
-        error("Showing notifications isn't supported ☹️");
-        return;
-    }
-    if (Notification.permission === "denied") {
-        alertify.confirm(
-            "Notification",
-            "Please allow us to send useful notifications, we won't annoy you.",
-            () => {
-                Notification.requestPermission().then((permission) => {
-                    if (permission === "granted") {
-                        initializeNotificationState(reg);
-                    } else {
-                        error("You prevented us from showing notifications.");
-                    }
-                });
-            },
-            () => {
-                error("You prevented us from showing notifications.");
-            }
-        );
-        return;
-    }
-    if (!"PushManager" in window) {
-        error("Push isn't allowed in your browser 🤔");
-        return;
-    }
-    subscribe(reg);
-};
-
-function urlB64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\-/g, "+")
-        .replace(/_/g, "/");
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    const outputData = outputArray.map((_, index) => rawData.charCodeAt(index));
-
-    return outputData;
-}
-
-const subscribe = async (reg) => {
-    const subscription = await reg.pushManager.getSubscription();
-    if (subscription) {
-        sendSubData(subscription);
-        return;
-    }
-    const options = {
-        userVisibleOnly: true,
-        applicationServerKey: urlB64ToUint8Array(VAPID_KEY),
-    };
-
-    const sub = await reg.pushManager.subscribe(options);
-    sendSubData(sub);
-};
-
-const sendSubData = async (subscription) => {
-    const browser = navigator.userAgent
-        .match(/(firefox|msie|chrome|safari|trident)/gi)[0]
-        .toLowerCase();
-    const data = {
-        status_type: "subscribe",
-        subscription: subscription.toJSON(),
-        browser: browser,
-        group: "test_group",
-    };
-    const resp = await postRequest(
-        "/webpush/save_information",
-        data,
-        {},
-        {
-            credentials: "include",
+const initializePushNotification = (reg) => {
+    reg.pushManager.getSubscription().then((subscription) => {
+        if (subscription) {
+            togglePushSubscription({
+                statusType: "subscribe",
+                subscription,
+                // callback: (response) => {
+                //     if (response) {
+                //         message(
+                //             "Successfully subscribed for Push Notification"
+                //         );
+                //     }
+                // },
+            });
         }
-    );
-    console.log(resp);
+    });
 };

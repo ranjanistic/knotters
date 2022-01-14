@@ -1,5 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
+from webpush.models import Group
+from main.strings import Template, Auth2
 from main.methods import renderString, renderView
 from .apps import APPNAME
 
@@ -14,3 +16,25 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
 
 def renderer_stronly(request: WSGIRequest, file: str, data: dict = dict()) -> str:
     return renderString(request, file, data, fromApp=APPNAME)
+
+def get_auth_section_data(requestUser, section):
+    data = dict()
+    if section == Auth2.DEVICE:
+        data['notifications'] = []
+    if section == Auth2.ACCOUNT:
+        pass
+    if section == Auth2.SECURITY:
+        pass
+    if section == Auth2.PREFERENCE:
+        pass
+    return data
+    
+def get_auth_section_html(request, section):
+    if section not in Auth2().AUTH2_SECTIONS:
+        return False
+    data = dict()
+    for sec in Auth2().AUTH2_SECTIONS:
+        if sec == section:
+            data = get_auth_section_data(request.user,sec)
+            break
+    return renderer_stronly(request, section, data)

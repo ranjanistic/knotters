@@ -1209,6 +1209,8 @@ def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10)
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=('POST'))
 def snapshot(request: WSGIRequest, projID: UUID, action: str):
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    baseproject = None
     try:
         baseproject = BaseProject.objects.get(
             id=projID, trashed=False, suspended=False)
@@ -1222,8 +1224,15 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
             if not (text or image or video):
                 return redirect(baseproject.getProject().getLink(error=Message.INVALID_REQUEST))
 
-            imagefile = base64ToImageFile(image)
-            videofile = base64ToImageFile(video)
+            try:
+                imagefile = base64ToImageFile(image)
+            except:
+                imagefile = None
+            try:
+                videofile = base64ToImageFile(video)
+            except:
+                videofile = None
+                
 
             snapshot = Snapshot.objects.create(
                 base_project=baseproject,
@@ -1254,7 +1263,11 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
         return respondJson(Code.NO)
     except Exception as e:
         errorLog(e, False)
-        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if baseproject:
+            return redirect(baseproject.getLink(error=Message.INVALID_REQUEST))
+        raise Http404(e)
 
 
 def reportCategories(request: WSGIRequest):

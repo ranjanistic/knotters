@@ -1,5 +1,4 @@
 import json
-import re
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from rjsmin import jsmin
@@ -459,6 +458,7 @@ class ServiceWorker(TemplateView):
             ignorelist=json.dumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
+                f"/{URL.WEBPUSH}*"
                 f"/{URL.ROBOTS_TXT}",
                 f"/{URL.VERSION_TXT}",
                 f"/{URL.REDIRECTOR}*",
@@ -552,11 +552,13 @@ def browser(request: WSGIRequest, type: str):
                     cachekey = cachekey + "".join(excludeIDs)
                 snaps = cache.get(cachekey,[])
                 snapIDs = [snap.id for snap in snaps]
+                
                 if not len(snaps):
-                    snaps = Snapshot.objects.exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).distinct().order_by("-created_on")[:limit]
+                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
                     if len(snaps):
                         cache.set(cachekey, snaps, settings.CACHE_INSTANT)
+                
                 data = dict(
                     html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
                     snapIDs=snapIDs,

@@ -5,6 +5,7 @@ from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
+from .env import CDN_URL
 from auth2.apps import APPNAME as AUTH2
 from django.utils.translation import gettext_lazy as _
 
@@ -327,6 +328,19 @@ class Compete():
             self.RESULT
         ]
 
+class Auth2():
+    ACCOUNT = "account"
+    DEVICE = "device"
+    SECURITY = "security"
+    PREFERENCE = "preference"
+
+    def __init__(self) -> None:
+        self.AUTH2_SECTIONS = [
+            self.ACCOUNT,
+            self.DEVICE,
+            self.SECURITY,
+            self.PREFERENCE
+        ]
 
 profile = Profile()
 compete = Compete()
@@ -364,6 +378,8 @@ class URL():
     OFFLINE = 'off408'
     BRANDING = 'branding/'
     ROOT = '/'
+    WEBPUSH = 'webpush/'
+    ICON_PNG = f"{CDN_URL}/graphics/self/1024/icon.png"
     AUTH = f"{AUTH}/"
     DOCS = f'{DOCS}/'
     PROJECTS = f'{PROJECTS}/'
@@ -460,6 +476,9 @@ class URL():
         GITHUB = 'github/'
         GOOGLE = 'google/'
         DISCORD = 'discord/'
+
+        NOTIF_ENABLED = 'push-notify/enabled'
+        TAB_SECTION = 'section/<str:section>/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1152,6 +1171,7 @@ class Template():
         @property
         def verified_email_required(self):
             return f"{self.DIRNAME}/{self.VERIFIED_EMAIL_REQUIRED}.html"
+
 
     auth = Auth()
 
