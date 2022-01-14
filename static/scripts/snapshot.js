@@ -6,8 +6,11 @@ const loadBrowseSnaps = async (observer) => {
         viewer = viewers[viewers.length - 1];
     }
     const snapdata = await postRequest2({
-        path: setUrlQueries(setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS), {n:snapshotExcludeIDS[snapshotExcludeIDS.length-1] || 0}),
-        data: { excludeIDs:snapshotExcludeIDS },
+        path: setUrlQueries(
+            setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS),
+            { n: snapshotExcludeIDS[snapshotExcludeIDS.length - 1] || 0 }
+        ),
+        data: { excludeIDs: snapshotExcludeIDS },
         retainCache: true,
         allowCache: true,
     });
@@ -17,7 +20,7 @@ const loadBrowseSnaps = async (observer) => {
             return false;
         }
         setHtmlContent(viewer, viewer.innerHTML + snapdata.html);
-        snapshotExcludeIDS.push(...snapdata.snapIDs)
+        snapshotExcludeIDS.push(...snapdata.snapIDs);
         return true;
     }
     return false;
@@ -27,48 +30,47 @@ const loadSnapshotScroller = async () => {
     const viewers = getElements("snapshot-viewer");
     if (viewers.length) {
         let done = await loadBrowseSnaps();
-        if(done){
-            const observer = new IntersectionObserver(async (entries) => {
-                if (entries[0].isIntersecting && done) {
-                    done = await loadBrowseSnaps();
-                    
-                    if(done){
-                        observer.observe(
-                            document.querySelector(
-                                `#snap-${snapshotExcludeIDS[snapshotExcludeIDS.length - 1].replaceAll(
-                                    "-",
-                                    ""
-                                )}`
-                            )
-                        );
-                    } else {
-                        if(navigator.onLine){
-                            observer.unobserve(
+        if (done) {
+            const observer = new IntersectionObserver(
+                async (entries) => {
+                    if (entries[0].isIntersecting && done) {
+                        done = await loadBrowseSnaps();
+
+                        if (done) {
+                            observer.observe(
                                 document.querySelector(
-                                    `#snap-${snapshotExcludeIDS[snapshotExcludeIDS.length - 1].replaceAll(
-                                        "-",
-                                        ""
-                                    )}`
+                                    `#snap-${snapshotExcludeIDS[
+                                        snapshotExcludeIDS.length - 1
+                                    ].replaceAll("-", "")}`
                                 )
                             );
+                        } else {
+                            if (navigator.onLine) {
+                                observer.unobserve(
+                                    document.querySelector(
+                                        `#snap-${snapshotExcludeIDS[
+                                            snapshotExcludeIDS.length - 1
+                                        ].replaceAll("-", "")}`
+                                    )
+                                );
+                            }
                         }
                     }
+                },
+                {
+                    root: null,
+                    rootMargins: "0px",
+                    threshold: 0,
                 }
-            }, {
-                root: null,
-                rootMargins: "0px",
-                threshold: 0,
-            });
+            );
             observer.observe(
                 document.querySelector(
-                    `#snap-${snapshotExcludeIDS[snapshotExcludeIDS.length - 1].replaceAll(
-                        "-",
-                        ""
-                    )}`
+                    `#snap-${snapshotExcludeIDS[
+                        snapshotExcludeIDS.length - 1
+                    ].replaceAll("-", "")}`
                 )
             );
         }
-        
     }
 };
 const showSnapshotMoreBtn = (snapID) => {

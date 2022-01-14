@@ -26,4 +26,6 @@ const CODE = {
 const code = CODE;
 
 let __appInstallPromptEvent = null;
-const _BROWSER = navigator.userAgent.match(/(firefox|msie|chrome|safari|trident)/ig)[0].toLowerCase();
+const _BROWSER = navigator.userAgent
+    .match(/(firefox|msie|chrome|safari|trident)/gi)[0]
+    .toLowerCase();

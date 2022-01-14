@@ -18,7 +18,7 @@ const togglePushSubscription = async ({
             credentials: "include",
         },
     });
-    callback(donst)
+    callback(donst);
 };
 
 const subscribeToPush = async (
@@ -57,15 +57,14 @@ const subscribeToPush = async (
                         group,
                         callback: (response) => {
                             if (response) {
-                                if (group){
-
+                                if (group) {
                                     // message(
                                     //     "Successfully subscribed"
                                     // );
                                 }
                                 done(subscription);
                             }
-                            
+
                             return response;
                         },
                     });
