@@ -153,21 +153,21 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
         }
         {% if DEBUG %}debug_log(`${path} does not allow set caching`);{% endif %}
         if (FetchRes.redirected && FetchRes.url.includes("/auth/")) {
-            {%  if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
+            {% if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
             const splitnext = FetchRes.url.split("?next=");
             if (
                 splitnext.length > 1 &&
                 event.request.url.includes(splitnext[1])
             ) {
-                {%  if DEBUG %}debug_log(`${path} redirect to auth with next`);{% endif %}
+                {% if DEBUG %}debug_log(`${path} redirect to auth with next`);{% endif %}
                 throw Error(event.request.url);
             }
-            {%  if DEBUG %}debug_log(`${path} redirect to auth without next`);{% endif %}
+            {% if DEBUG %}debug_log(`${path} redirect to auth without next`);{% endif %}
         }
-        {%  if DEBUG %}debug_log(`${path} is not a redirect to auth`);{% endif %}
+        {% if DEBUG %}debug_log(`${path} is not a redirect to auth`);{% endif %}
         return FetchRes;
     } else if (FetchRes.status < 400) {
-        {%  if DEBUG %}debug_log(`${path} status under 400`);{% endif %}
+        {% if DEBUG %}debug_log(`${path} status under 400`);{% endif %}
         if (event.request.headers.get(X_SCRIPTFETCH) !== H_TRUE) {
             return FetchRes;
         }
@@ -187,7 +187,7 @@ const netFetchErrorHandler = async (path, event, error) => {
         {% if DEBUG %}debug_log(`${path} is cached`);{% endif %}
         return cachedResponse;
     } catch (e) {
-        {%  if DEBUG %}debug_log(`${path} is not cached`);{% endif %}
+        {% if DEBUG %}debug_log(`${path} is not cached`);{% endif %}
         if (canShowOfflineView(path, event)) {
             {% if DEBUG %}debug_log(`${path} can show offline`);{% endif %}
             return caches.match(_OFFPATH);
@@ -199,7 +199,7 @@ const netFetchErrorHandler = async (path, event, error) => {
 
 const cacheFetchResponseHandler = async (path, event, CachedRes) => {
     if (CachedRes) {
-        {%  if DEBUG %}debug_log(`${path} is cached`);{% endif %}
+        {% if DEBUG %}debug_log(`${path} is cached`);{% endif %}
         return CachedRes;
     }
     {% if DEBUG %}debug_log(`${path} is not cached`);{% endif %}
@@ -231,10 +231,10 @@ const cacheFetchResponseHandler = async (path, event, CachedRes) => {
         }
     }
     if (FetchRes.redirected && FetchRes.url.includes("/auth/")) {
-        {%  if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
+        {% if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
         const splitnext = FetchRes.url.split("?next=");
         if (splitnext.length > 1 && event.request.url.includes(splitnext[1])) {
-            {%  if DEBUG %}debug_log(`${path} redirect to auth with next`);{% endif %}
+            {% if DEBUG %}debug_log(`${path} redirect to auth with next`);{% endif %}
             throw Error(event.request.url);
         }
     }
@@ -275,21 +275,4 @@ self.addEventListener(EVENTS.MESSAGE, (event) => {
     if (event.data.action === "skipWaiting") {
         self.skipWaiting();
     }
-});
-
-self.addEventListener("push", function (event) {
-    const eventInfo = event.data.text();
-    const head = "Welcome to {{APPNAME}}";
-    const body = "Ready to takeoff? Virtually ofcourse.";
-
-    event.waitUntil(
-        self.registration.showNotification(head, {
-            body: body,
-            icon: "{{SITE|safe}}{{ICON|safe}}",
-        })
-    );
-});
-
-self.addEventListener(EVENTS.CACHE, (event) => {
-    {%  if DEBUG %}debug_log("cache", event);{% endif %}
 });

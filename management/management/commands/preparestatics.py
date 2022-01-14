@@ -1,18 +1,16 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 import re
 from rcssmin import cssmin
 from rjsmin import jsmin
 from django.template.loader import render_to_string
 from django.conf import settings
-from os import listdir, remove,  symlink, mkdir, walk
-from os.path import isdir, isfile, join
+from os import remove,  symlink, mkdir, walk
+from os.path import join
 from pathlib import Path
 import shutil
-from datetime import datetime
 from main.env import SITE, VERSION
 from main.methods import renderData
 from main.context_processors import GlobalContextData
-from main.strings import URL
 
 class Command(BaseCommand):
     """
@@ -82,8 +80,8 @@ class Command(BaseCommand):
                     print("STATIC_ROOT RETAINED: ", settings.STATIC_ROOT)
                     __SUCCESS = True
 
-        print("\nLINKING EMAIL ASSETS WITH LATEST STATIC VERSION\n")
         if __SUCCESS and Path(settings.STATIC_ROOT).exists() and Path(settings.STATIC_ROOT).is_dir():
+            print("\nLINKING EMAIL ASSETS WITH LATEST STATIC VERSION\n")
             __STATIC_EMAIL_LNROOT = settings.STATIC_ROOT.replace(__STATIC_ROOT_VERSION, 'email')
             __STATIC_EMAIL_LN_TARGET = join(settings.STATIC_ROOT, 'graphics/email/')
             print("EMAIL STATIC LNROOT: ", __STATIC_EMAIL_LNROOT)
@@ -127,6 +125,53 @@ class Command(BaseCommand):
                     print("EMAIL STATIC LNROOT EXISTS: ", __STATIC_EMAIL_LNROOT_PATH)
                 else:
                     print("PANIC: EMAIL STATIC LNROOT NOT EXIST: ", __STATIC_EMAIL_LNROOT_PATH)
+
+            print("\nLINKING CDN ASSETS WITH LATEST STATIC VERSION\n")
+            __STATIC_CDN_LNROOT = settings.STATIC_ROOT.replace(__STATIC_ROOT_VERSION, 'cdn')
+            __STATIC_CDN_LN_TARGET = join(settings.STATIC_ROOT)
+            print("CDN STATIC LNROOT: ", __STATIC_CDN_LNROOT)
+
+            if not (Path(__STATIC_CDN_LN_TARGET).exists() and Path(__STATIC_CDN_LN_TARGET).is_dir()):
+                print("NEW CDN STATIC TARGET EMPTY: ", __STATIC_CDN_LN_TARGET)
+                print("RETAINING LN OLD CDN STATIC TARGET")
+            else:
+                print("LINKING NEW CDN STATIC TARGET: ", __STATIC_CDN_LN_TARGET)
+                
+                __STATIC_CDN_LNROOT_PATH = Path(__STATIC_CDN_LNROOT)
+                if __STATIC_CDN_LNROOT_PATH.exists() and __STATIC_CDN_LNROOT_PATH.is_dir():
+                    try:
+                        print("REMOVING OLD STATIC LNROOT: ", __STATIC_CDN_LNROOT_PATH)
+                        remove(__STATIC_CDN_LNROOT_PATH)
+                        print("REMOVED OLD STATIC LNROOT")
+                    except Exception as e:
+                        print("REMOVE OLD STATIC LNROOT ERR: ", __STATIC_CDN_LNROOT_PATH)
+                        print(e)
+                        print("PROCEEDING CDN STATIC LINK W: ", __STATIC_CDN_LN_TARGET)
+                        pass
+                else:
+                    try:
+                        print("REMOVING OLD STATIC LNROOT (INEXISTENT|NONDIR): ", __STATIC_CDN_LNROOT_PATH)
+                        remove(__STATIC_CDN_LNROOT_PATH)
+                        print("REMOVED OLD STATIC LNROOT (INEXISTENT|NONDIR)")
+                    except Exception as e:
+                        print("REMOVE OLD STATIC LNROOT ERR (INEXISTENT|NONDIR): ", __STATIC_CDN_LNROOT_PATH)
+                        print(e)
+                        print("PROCEEDING CDN STATIC LINK W: ", __STATIC_CDN_LN_TARGET)
+                        pass
+                try:
+                    print("LINKING NEW STATIC LNROOT")
+                    symlink(__STATIC_CDN_LN_TARGET,__STATIC_CDN_LNROOT_PATH)
+                    print("DONE LINKING NEW STATIC LNROOT: ", __STATIC_CDN_LN_TARGET)
+                except Exception as e:
+                    print("LINKING NEW STATIC LNROOT ERR: ", __STATIC_CDN_LNROOT_PATH)
+                    print(e)
+
+                if __STATIC_CDN_LNROOT_PATH.exists() and __STATIC_CDN_LNROOT_PATH.is_dir():
+                    print("CDN STATIC LNROOT EXISTS: ", __STATIC_CDN_LNROOT_PATH)
+                else:
+                    print("PANIC: CDN STATIC LNROOT NOT EXIST: ", __STATIC_CDN_LNROOT_PATH)
+        else:
+            print("STATIC ROOT NOT EXIST: ", settings.STATIC_ROOT, __SUCCESS)
 
         print("\nGENERATING STATIC ERROR PAGES\n")
         err_dir = Path(options['errors_dir'][0])
