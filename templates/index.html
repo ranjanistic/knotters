@@ -6,7 +6,6 @@
 {% load account %}
 {% load socialaccount %}
 {% load custom_tags %}
-{% load webpush_notifications %}
 
 <!DOCTYPE html>
 <html lang="{{LANGUAGE_CODE|or:'en'}}" class="">
@@ -69,7 +68,6 @@
 
         <link rel="manifest" href="{{MANIFESTURL}}" />
         <title>{% block title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}</title>
-        {% webpush_header %}
     </head>
     {% endblock %}
     <body>

@@ -101,6 +101,6 @@ ISTESTING = ENV == Environment.TESTING
 
 ISBETA = HOSTS and HOSTS[0].startswith('beta.')
 
-if ISPRODUCTION:
+if not ISPRODUCTION:
     STATIC_ROOT =  f"{STATIC_ROOT}{VERSION}/"
     STATIC_URL =  f"{STATIC_URL}{VERSION}/"
