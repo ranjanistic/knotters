@@ -18,8 +18,8 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
-from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING, PUBNAME, SITE
-from .strings import URL, Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, BYPASS_DEACTIVATION_PATHS, AUTH2, AUTH
+from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING
+from .strings import URL, Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, AUTH2, AUTH
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -125,7 +125,7 @@ def getDeepFilePaths(dir_name: str, appendWhen=None):
             path = str(path).strip("\\")
         if path.startswith(dir_name):
             path = f"/{path}"
-        if not assets.__contains__(path):
+        if path not in assets:
             if appendWhen:
                 if appendWhen(path):
                     assets.append(path)
@@ -138,20 +138,27 @@ def mapDeepPaths(dir_name, traversed=list(), results=list()):
     """
     Returns list of mapping of paths inside the given directory.
     """
-    dirs = os.listdir(dir_name)
-    if dirs:
-        for f in dirs:
-            new_dir = dir_name + f + '/'
-            if os.path.isdir(new_dir) and new_dir not in traversed:
-                traversed.append(new_dir)
-                mapDeepPaths(new_dir, traversed, results)
-            else:
-                results.append([new_dir[:-1], os.stat(new_dir[:-1])])
+    paths = []
+    if True:
+        for root, dirs, files in os.walk(dir_name):
+            for file in files:
+                paths.append(os.path.join(root, file))
+        return paths
+    else:
+        dirs = os.listdir(dir_name)
+        if dirs:
+            for f in dirs:
+                new_dir = dir_name + f + '/'
+                if os.path.isdir(new_dir) and new_dir not in traversed:
+                    traversed.append(new_dir)
+                    mapDeepPaths(new_dir, traversed, results)
+                else:
+                    results.append([new_dir[:-1], os.stat(new_dir[:-1])])
 
-    paths = list()
-    for file_name, _ in results:
-        paths.append(str(file_name).strip('.'))
-    return paths
+        paths = list()
+        for file_name, _ in results:
+            paths.append(str(file_name).strip('.'))
+        return paths
 
 
 def maxLengthInList(list: list = list()) -> int:
@@ -275,9 +282,12 @@ def testPathRegex(pathreg, path):
 
 
 def allowBypassDeactivated(path):
-    path = path.split('?')[0]
-    for pathreg in BYPASS_DEACTIVATION_PATHS:
-        if (testPathRegex(pathreg, path)):
+    path = path.split('?')[0].strip()
+    path = path.split('#')[0].strip()
+    for pathreg in settings.BYPASS_DEACTIVE_PATHS:
+        if path == pathreg or testPathRegex(pathreg, path) or path.startswith(pathreg):
+            return True
+        elif path == pathreg or testPathRegex(pathreg, path) or path.startswith(pathreg):
             return True
     return False
 

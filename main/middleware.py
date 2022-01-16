@@ -46,6 +46,7 @@ class MessageFilterMiddleware(object):
             request.GET._mutable = False
         return self.get_response(request)
 
+
 class ActivityMiddleware(object):
 
     def __init__(self, get_response) -> None:
@@ -57,11 +58,13 @@ class ActivityMiddleware(object):
         if real_ip and real_ip != 'None':
             client_ip_address = ip_address(real_ip)
             print(client_ip_address)
+
         def addslash(path):
             return f"/{path}" if not path.startswith('/') else path
-        if not (request.path.startswith(f"/{ADMINPATH}") or list(map(addslash,[URL.SERVICE_WORKER])).__contains__(request.path)):
-            activity(request,self.get_response(request))
+        if not (request.path.startswith(f"/{ADMINPATH}") or list(map(addslash, [URL.SERVICE_WORKER])).__contains__(request.path)):
+            activity(request, self.get_response(request))
         return self.get_response(request)
+
 
 class AuthAccessMiddleware(object):
 
@@ -76,7 +79,7 @@ class AuthAccessMiddleware(object):
             if request.user.is_authenticated:
                 request.session['ip_address'] = client_ip_address
                 print(client_ip_address)
-        
+
         return self.get_response(request)
 
 
@@ -91,11 +94,11 @@ class ProfileActivationMiddleware(object):
 
     def __call__(self, request: WSGIRequest):
         if request.user.is_authenticated and not request.user.profile.is_active:
-            if request.method == 'POST' or request.headers.get('X-KNOT-REQ-SCRIPT', False)=='true':
+            if request.method == 'POST' or request.headers.get('X-KNOT-REQ-SCRIPT', False) == 'true':
                 if not allowBypassDeactivated(request.get_full_path()):
                     return HttpResponseForbidden()
             if request.method == 'GET':
-                if not (request.get_full_path().startswith(request.user.profile.getLink()) or allowBypassDeactivated(request.get_full_path()) or request.get_full_path().startswith(settings.MEDIA_URL)):
+                if not (request.get_full_path().startswith(request.user.profile.getLink()) or allowBypassDeactivated(request.get_full_path())):
                     return redirect(request.user.profile.getLink())
         return self.get_response(request)
 
@@ -104,21 +107,36 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
     """
     For two factor session key management.
     """
+
     def process_request(self, request):
         match = resolve(request.path)
         except_list = getattr(settings, 'BYPASS_2FA_PATHS', ())
-        except_list += ('two-factor-authenticate',)
+        except_list += ('/auth/two-factor-authenticate',)
         if (request.path.strip('/') not in except_list) and (not match.url_name or not match.url_name.startswith(except_list)):
+            dele = True
+            for p in except_list:
+                if request.path == p:
+                    dele = False
+                    break
+                elif request.path.startswith(p):
+                    dele = False
+                    break
+                elif request.path.strip('/').startswith(p):
+                    dele = False
+                    break
             try:
-                del request.session['allauth_2fa_user_id']
+                if dele:
+                    del request.session['allauth_2fa_user_id']
             except KeyError:
                 pass
+
 
 class ExtendedSessionMiddleware(SessionMiddleware):
     """
     To extended session expiry date on every request.
     """
-    def process_response(self, request:WSGIRequest, response):
+
+    def process_response(self, request: WSGIRequest, response):
         """
         If request.session was modified, or if the configuration is to save the
         session every time, save the changes and set a session cookie or delete
@@ -130,8 +148,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
             empty = request.session.is_empty()
         except AttributeError:
             return response
-        # First check if we need to delete this cookie.
-        # The session should be deleted only if the session is entirely empty.
+
         if settings.SESSION_COOKIE_NAME in request.COOKIES and empty:
             response.delete_cookie(
                 settings.SESSION_COOKIE_NAME,
@@ -143,27 +160,17 @@ class ExtendedSessionMiddleware(SessionMiddleware):
             if accessed:
                 patch_vary_headers(response, ('Cookie',))
             if not empty:
-                
-                # if request.session.get_expire_at_browser_close():
-                #     max_age = None
-                #     expires = None
-                # else:
+
                 max_age = request.session.get_expiry_age()
                 expires_time = time.time() + max_age
                 expires = http_date(expires_time)
-                
-                # Save the session data and refresh the client cookie.
-                # Skip session save for 500 responses, refs #3881.
+
                 if response.status_code != 500:
                     try:
                         request.session.save()
                     except UpdateError:
                         return response
-                       # raise SuspiciousOperation(
-                         #   "The request's session was deleted before the "
-                         #   "request completed. The user may have logged "
-                         #   "out in a concurrent request, for example."
-                       # )
+
                     response.set_cookie(
                         settings.SESSION_COOKIE_NAME,
                         request.session.session_key, max_age=max_age,
@@ -174,6 +181,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
                         samesite=settings.SESSION_COOKIE_SAMESITE,
                     )
         return response
+
 
 class XForwardedForMiddleware(MiddlewareMixin):
     def process_request(self, request):

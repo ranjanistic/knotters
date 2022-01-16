@@ -37,7 +37,8 @@ def require_JSON_body(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)),JSON_BODY=True)
+            request.POST = dict(
+                **request.POST, **json.loads(request.body.decode(Code.UTF_8)), JSON_BODY=True)
             return function(request, *args, **kwargs)
         except Exception as e:
             if request.method == Code.POST:
@@ -45,16 +46,22 @@ def require_JSON_body(function):
             return HttpResponseNotAllowed(permitted_methods=[Code.POST])
     return wrap
 
+
+require_JSON = require_JSON_body
+
+
 def decode_JSON(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = dict(**request.POST,**json.loads(request.body.decode(Code.UTF_8)),JSON_BODY=True)
+            request.POST = dict(
+                **request.POST, **json.loads(request.body.decode(Code.UTF_8)), JSON_BODY=True)
             return function(request, *args, **kwargs)
         except Exception as e:
             pass
         return function(request, *args, **kwargs)
     return wrap
+
 
 def dev_only(function):
     @wraps(function)
@@ -100,6 +107,7 @@ def manager_only(function):
             return HttpResponseForbidden('Unauthorized access')
     return wrap
 
+
 @decDec(csrf_exempt)
 def github_only(function):
     @wraps(function)
@@ -126,7 +134,7 @@ def github_only(function):
                 return HttpResponseForbidden('Permission denied 3')
 
             mac = hmac.new(force_bytes(settings.GH_HOOK_SECRET),
-                        msg=force_bytes(request.body), digestmod=sha256)
+                           msg=force_bytes(request.body), digestmod=sha256)
             if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
                 return HttpResponseForbidden('Permission denied 4')
 
@@ -135,7 +143,7 @@ def github_only(function):
                 if ghevent == Event.PING:
                     return HttpResponse(Code.PONG)
                 hookID = request.META.get('HTTP_X_GITHUB_DELIVERY', None)
-                request.POST = dict(**request.POST,ghevent=ghevent,hookID=hookID, **json.loads(
+                request.POST = dict(**request.POST, ghevent=ghevent, hookID=hookID, **json.loads(
                     unquote(request.body.decode(Code.UTF_8)).split('payload=')[1]))
                 return function(request, *args, **kwargs)
             except Exception as e:
@@ -144,6 +152,7 @@ def github_only(function):
         else:
             return function(request, *args, **kwargs)
     return wrap
+
 
 @decDec(csrf_exempt)
 def github_remote_only(function):
@@ -172,7 +181,8 @@ def github_remote_only(function):
                 if ghevent == Event.PING:
                     return HttpResponse(Code.OK)
                 hookID = request.META.get('HTTP_X_GITHUB_DELIVERY', None)
-                request.POST = dict(**request.POST,ghevent=ghevent,hookID=hookID)
+                request.POST = dict(
+                    **request.POST, ghevent=ghevent, hookID=hookID)
                 return function(request, *args, **kwargs)
             except Exception as e:
                 errorLog(e)

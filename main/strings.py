@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 AUTH = 'auth'
 DOCS = 'docs'
 
+
 def classAttrsToDict(className, appendCondition) -> dict:
     data = dict()
     for key in className.__dict__:
@@ -19,6 +20,7 @@ def classAttrsToDict(className, appendCondition) -> dict:
             if appendCondition(key, className.__dict__.get(key)):
                 data[key] = className.__dict__.get(key)
     return data
+
 
 def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """
@@ -38,7 +40,8 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRema
         i += 1
     return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
 
-def setURLAlerts(url,alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
+
+def setURLAlerts(url, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
     if error:
         error = f"{'&' if otherQueries else '?'}e={error}" if message.isValid(
             error) else ''
@@ -51,6 +54,7 @@ def setURLAlerts(url,alert: str = '', error: str = '', success: str = '', otherQ
         success = f"{'&' if otherQueries else '?'}s={success}" if message.isValid(
             success) else ''
     return f"{url}{error}{alert}{success}"
+
 
 class Code():
     OK = "OK"
@@ -108,7 +112,9 @@ class Code():
         MAIL = 'mail'
         REST = 'rest'
 
+
 code = Code()
+
 
 class Event():
     PING = 'ping'
@@ -134,7 +140,8 @@ class Message():
     INVALID_REQUEST = _("Invalid request")
     INVALID_RESPONSE = _("Invalid response")
     SAVED = _("Saved")
-    PROFILE_UPDATED = _("Profile updated, it might take some time for changes to appear.")
+    PROFILE_UPDATED = _(
+        "Profile updated, it might take some time for changes to appear.")
     TAGS_UPDATED = _("Tags updated.")
     TOPICS_UPDATED = _("Topics updated.")
     NO_TOPICS_SELECTED = _("No topics selected")
@@ -148,7 +155,8 @@ class Message():
     RESULT_DECLARING = _("Results declaration in progress")
     ALREADY_PARTICIPATING = _("You're already participating.")
     PARTICIPATION_CONFIRMED = _('Participation confirmed!')
-    PARTICIPATION_PROHIBITED = _('You are currently not allowed to participate.')
+    PARTICIPATION_PROHIBITED = _(
+        'You are currently not allowed to participate.')
     PARTICIPATION_WITHDRAWN = _('Participation withdrawn.')
     MEMBER_REMOVED = _('Member removed')
     INVALID_ID = _('Invalid ID')
@@ -167,7 +175,8 @@ class Message():
     PROJECT_DELETED = _("Project deleted")
     TERMS_UNACCEPTED = _("You have not accepted the terms")
     LICENSE_UNSELECTED = _("You have to choose a license")
-    NICKNAME_ALREADY_TAKEN = _("The nickname is not available, try something else.")
+    NICKNAME_ALREADY_TAKEN = _(
+        "The nickname is not available, try something else.")
     INVALID_LIC_DATA = _('Invalid license data')
     SNAP_CREATED = _("Snapshot published")
     SNAP_UPDATED = _("Snapshot updated")
@@ -183,12 +192,15 @@ class Message():
     SETUP_APPROVED_PROJECT_DONE = _("Approved project setup done.")
 
     ACCOUNT_PREF_SAVED = _("Account preferences saved.")
-    SUCCESSOR_GH_UNLINKED = _('Your successor should have Github profile linked to their account.')
+    SUCCESSOR_GH_UNLINKED = _(
+        'Your successor should have Github profile linked to their account.')
     SUCCESSOR_OF_PROFILE = _('You are the successor of this profile.')
     SUCCESSOR_NOT_FOUND = _('Successor not found')
     SUCCESSOR_UNSET = _('Successor not set, use default successor if none.')
-    SUCCESSORSHIP_DECLINED = _("You\'ve declined this profile\'s successorship")
-    SUCCESSORSHIP_ACCEPTED = _("You\'re now the successor of this profile\'s assets.")
+    SUCCESSORSHIP_DECLINED = _(
+        "You\'ve declined this profile\'s successorship")
+    SUCCESSORSHIP_ACCEPTED = _(
+        "You\'re now the successor of this profile\'s assets.")
 
     ACCOUNT_DEACTIVATED = _("Account deactivated.")
     ACCOUNT_DELETED = _("Account deleted successfully.")
@@ -200,26 +212,31 @@ class Message():
     INVALID_MODERATOR = _('Invalid moderator')
     COMP_TITLE_EXISTS = _('Competition with similar title exists')
     INVALID_TIME_PAIR = _('Timings are abnormal, please correct them')
-    INVALID_QUALIFIER_RANK = _('The qualifier rank is not valid. Use rank > 0 or 1')
+    INVALID_QUALIFIER_RANK = _(
+        'The qualifier rank is not valid. Use rank > 0 or 1')
     SAME_MOD_JUDGE = _('Moderator and judges should be different')
     COMP_CREATED = _("Competition created successfully")
     CERTS_GENERATED = _('Certificates generated successfully.')
     CERTS_GENERATING = _('Certificates are being generated.')
     CERT_NOT_FOUND = _('Certificate not found')
 
-    MODERATION_SKIPPED = _("That moderation was passed on to another moderator.")
+    MODERATION_SKIPPED = _(
+        "That moderation was passed on to another moderator.")
     NO_MODERATORS_AVAILABLE = _("No moderators available")
 
     PAYMENT_REG_SUCCESS = _("You have successfully paid the registration fee")
 
     ALREADY_INVITED = _("Invitation already exists")
     PROJECT_TRANSFER_ACCEPTED = _("You\'re now the owner of this project.")
-    PROJECT_TRANSFER_DECLINED = _("You\'ve declined the ownership of this project.")
+    PROJECT_TRANSFER_DECLINED = _(
+        "You\'ve declined the ownership of this project.")
 
     JOINED_MANAGEMENT = _("You\'ve joined this organization.")
-    DECLINED_JOIN_MANAGEMENT = _("You\'ve declined invitation to join this organization.")
+    DECLINED_JOIN_MANAGEMENT = _(
+        "You\'ve declined invitation to join this organization.")
 
-    PENDING_MODERATIONS_EXIST = _("Pending unresolved moderation requests exist.")
+    PENDING_MODERATIONS_EXIST = _(
+        "Pending unresolved moderation requests exist.")
 
     def isValid(self, message: str) -> bool:
         """
@@ -290,6 +307,7 @@ class Moderation():
 
 moderation = Moderation()
 
+
 class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
@@ -328,6 +346,7 @@ class Compete():
             self.RESULT
         ]
 
+
 class Auth2():
     ACCOUNT = "account"
     DEVICE = "device"
@@ -342,8 +361,10 @@ class Auth2():
             self.PREFERENCE
         ]
 
+
 profile = Profile()
 compete = Compete()
+
 
 class Browse():
     PROJECT_SNAPSHOTS = "project-snapshots"
@@ -364,7 +385,8 @@ class Browse():
     def getAllKeys():
         def cond(key, value):
             return str(key).isupper()
-        return classAttrsToDict(Browse,cond)
+        return classAttrsToDict(Browse, cond)
+
 
 class URL():
     INDEX = ''
@@ -424,7 +446,7 @@ class URL():
 
         :fromApp: The app name, if nothing or invalid value is passed, returns root.
         """
-        if fromApp == AUTH2:
+        if fromApp == AUTH2 or fromApp == AUTH:
             return f"/{self.AUTH if withslash else self.AUTH.strip('/')}"
         if fromApp == DOCS:
             return f"/{self.DOCS if withslash else self.DOCS.strip('/')}"
@@ -459,9 +481,11 @@ class URL():
         return f"https://github.com/{ghID}"
 
     class Auth():
-        
+
         SIGNUP = 'signup/'
+        REGISTER = 'register/'
         LOGIN = 'login/'
+        SIGNIN = 'signin/'
         LOGOUT = 'logout/'
         INACTIVE = 'inactive/'
         EMAIL = 'email/'
@@ -477,8 +501,10 @@ class URL():
         GOOGLE = 'google/'
         DISCORD = 'discord/'
 
+        NOTIFY_SW = 'notify-sw.js'
         NOTIF_ENABLED = 'push-notify/enabled'
         TAB_SECTION = 'section/<str:section>/'
+        VERIFY_REAUTH = 're-auth/verify/'
 
         def getURLSForClient(self):
             URLS = dict()
@@ -674,7 +700,7 @@ class URL():
 
         REPORT_CATEGORIES = 'report/categories/'
         REPORT_MODERATION = 'reportmoderation/'
-        
+
         def getURLSForClient(self):
             URLS = dict()
 
@@ -823,7 +849,6 @@ class URL():
         def profile(self, reponame):
             return self.profileMod(reponame)
 
-
         PROFILEEDIT = 'profile/edit/<str:projectID>/<str:section>/'
 
         def profileEdit(self, projectID, section):
@@ -874,20 +899,21 @@ class URL():
         SNAPSHOT = 'snapshot/<str:projID>/<str:action>/'
 
         REPORT_CATEGORIES = 'report/categories'
-        REPORT_PROJECT = 'reportproject/'        
-        REPORT_SNAPSHOT = 'reportsnapshot/'        
+        REPORT_PROJECT = 'reportproject/'
+        REPORT_SNAPSHOT = 'reportsnapshot/'
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
         TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
         INVITE_PROJECT_OWNER = 'invite/ownership'
         PROJECT_TRANS_INVITE = 'invitation/transfer/<str:inviteID>'
-        def projectTransInvite(self,inviteID):
+
+        def projectTransInvite(self, inviteID):
             return setPathParams(self.PROJECT_TRANS_INVITE, inviteID)
 
         PROJECT_TRANS_INVITE_ACT = 'invitation/action/transfer/<str:inviteID>'
-        def projectTransInviteAct(self,inviteID):
-            return setPathParams(self.PROJECT_TRANS_INVITE_ACT, inviteID)
 
+        def projectTransInviteAct(self, inviteID):
+            return setPathParams(self.PROJECT_TRANS_INVITE_ACT, inviteID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -913,7 +939,7 @@ class URL():
             return setPathParams(self.COMPETITION, compID)
         TOPICSEARCH = 'topicsearch'
         JUDGESEARCH = 'judgesearch'
-        
+
         MODSEARCH = 'moderatorsearch'
         ELGIBLE_MODSEARCH = 'moderatorsearch/eligible'
         ELGIBLE_MNTSEARCH = 'mentorsearch/eligible'
@@ -970,14 +996,17 @@ class URL():
         PEOPLE_MGM_SEND_INVITE = 'invite/people'
 
         PEOPLE_MGM_INVITE = 'invitation/people/<str:inviteID>'
-        def peopleMGMInvite(self,inviteID):
+
+        def peopleMGMInvite(self, inviteID):
             return setPathParams(self.PEOPLE_MGM_INVITE, inviteID)
 
         PEOPLE_MGM_INVITE_ACT = 'invitation/action/people/<str:inviteID>'
-        def peopleMGMInviteAct(self,inviteID):
+
+        def peopleMGMInviteAct(self, inviteID):
             return setPathParams(self.PEOPLE_MGM_INVITE_ACT, inviteID)
-            
+
         PEOPLE_MGM_REMOVE = 'people/remove'
+
         def peopleMGMRemove(self):
             return setPathParams(self.PEOPLE_MGM_REMOVE)
 
@@ -1080,6 +1109,7 @@ class Template():
 
     class Auth():
         DIRNAME = 'account'
+        DIRNAME2 = 'auth2'
         INDEX = 'index'
 
         ACCOUNT_INACTIVE = 'account_inactive'
@@ -1172,6 +1202,10 @@ class Template():
         def verified_email_required(self):
             return f"{self.DIRNAME}/{self.VERIFIED_EMAIL_REQUIRED}.html"
 
+        NOTIFY_SW_JS = "notify-sw.js"
+        @property
+        def notify_sw_js(self):
+            return f"{self.DIRNAME2}/{self.NOTIFY_SW_JS}"
 
     auth = Auth()
 
@@ -1259,7 +1293,7 @@ class Template():
         @deprecated
         def invitation(self):
             return f'{self.DIRNAME}/{self.INVITATION}.html'
-            
+
         CERTIFICATE = 'certificate'
 
         @property
@@ -1298,11 +1332,13 @@ class Template():
             return f'{self.DIRNAME}/{self.PROFILE_RESULT}.html'
 
         BROWSE_RECENT_WINNERS = "browse/recent-winners"
+
         @property
         def browse_recent_winners(self):
             return f'{self.DIRNAME}/{self.BROWSE_RECENT_WINNERS}.html'
 
         BROWSE_LATEST_COMP = "browse/latest-competitions"
+
         @property
         def browse_latest_comp(self):
             return f'{self.DIRNAME}/{self.BROWSE_LATEST_COMP}.html'
@@ -1358,7 +1394,7 @@ class Template():
         @property
         def trending_mods(self):
             return f'{self.DIRNAME}/{self.BROWSE_TRENDING_MODS}.html'
-       
+
         BROWSE_DISPLAY_MENTORS = 'browse/display-mentors'
 
         @property
@@ -1402,6 +1438,7 @@ class Template():
             return f'{self.DIRNAME}/{self.PROFILE_MODERATION}.html'
 
         PROFILE_FRAMEWORK = f"profile/{Profile.FRAMEWORKS}"
+
         @property
         def profile_framework(self):
             return f'{self.DIRNAME}/{self.PROFILE_FRAMEWORK}.html'
@@ -1496,7 +1533,6 @@ class Template():
         @property
         def license_lic(self):
             return f'{self.DIRNAME}/{self.LICENSE_LIC}.html'
-
 
         PROFILE_CONTRIBS = 'profile/contributors'
 
@@ -1683,30 +1719,12 @@ class Template():
             return f'{self.DIRNAME}/{self.COMMUNITY_MENTORS}.html'
 
         INVITATION = 'invitation'
+
         @property
         def invitation(self):
             return f'{self.DIRNAME}/{self.INVITATION}.html'
-
-
 
     management = Management()
 
 
 template = Template()
-
-BYPASS_DEACTIVATION_PATHS = [
-    f"{url.getRoot()}{URL.FAVICON}",
-    f"{url.getRoot()}{URL.ROBOTS_TXT}",
-    f"{url.getRoot()}{URL.MANIFEST}",
-    f"{url.getRoot()}{URL.STRINGS}",
-    f"{url.getRoot()}{URL.SERVICE_WORKER}",
-    f"{url.getRoot()}{URL.SWITCH_LANG}setlang/",
-    f"{url.getRoot()}{URL.OFFLINE}",
-    f"{url.getRoot()}{URL.REDIRECTOR}",
-    f"{url.getRoot(AUTH)}{URL.Auth.LOGOUT}",
-    f"{url.getRoot(PEOPLE)}{URL.People.ACCOUNTACTIVATION}",
-    f"{url.getRoot(DOCS)}",
-    f"{url.getRoot(DOCS)}{URL.Docs.TYPE}",
-    f"{url.getRoot(MANAGEMENT)}{URL.Management.CREATE_REPORT}",
-    f"{url.getRoot(MANAGEMENT)}{URL.Management.CREATE_FEED}",
-]

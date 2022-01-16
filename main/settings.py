@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from .strings import url, DIVISIONS, PEOPLE, AUTH2
+from .strings import DOCS, url, DIVISIONS, PEOPLE, AUTH2, MANAGEMENT
 from . import env
 from .env import env as env_
 
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'allauth_2fa',
     "webpush",
     "django_q",
+    "mfa",
     # "corsheaders"
 ] + DIVISIONS
 
@@ -85,9 +86,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "main.urls"
 
-BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.STRINGS,
-                    url.SERVICE_WORKER, url.SWITCH_LANG, url.VERIFY_CAPTCHA)
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -124,9 +122,9 @@ AUTH_PASSWORD_VALIDATORS = [
 VAPID_PUBLIC_KEY = env.VAPID_PUBLIC_KEY
 
 WEBPUSH_SETTINGS = {
-   "VAPID_PUBLIC_KEY": VAPID_PUBLIC_KEY,
-   "VAPID_PRIVATE_KEY": env.VAPID_PRIVATE_KEY,
-   "VAPID_ADMIN_EMAIL": env.VAPID_ADMIN_MAIL,
+    "VAPID_PUBLIC_KEY": VAPID_PUBLIC_KEY,
+    "VAPID_PRIVATE_KEY": env.VAPID_PRIVATE_KEY,
+    "VAPID_ADMIN_EMAIL": env.VAPID_ADMIN_MAIL,
 }
 
 PASSWORD_HASHERS = [
@@ -256,6 +254,24 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 # LOGIN_REDIRECT_URL = 'two_factor:profile'
 LOGIN_URL = f'{url.getRoot(AUTH2)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
+
+BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.STRINGS, url.VERSION_TXT,
+                    url.SERVICE_WORKER, url.SWITCH_LANG, url.VERIFY_CAPTCHA, url.OFFLINE,
+                    f"{url.getRoot(AUTH2)}{url.Auth.NOTIFY_SW}",
+                )
+
+BYPASS_DEACTIVE_PATHS = BYPASS_2FA_PATHS + (
+    url.REDIRECTOR,
+    f"{url.getRoot(AUTH2)}{url.Auth.LOGOUT}",
+    f"{url.getRoot(PEOPLE)}{url.People.ACCOUNTACTIVATION}",
+    f"{url.getRoot(DOCS)}",
+    f"{url.getRoot(DOCS)}{url.Docs.TYPE}",
+    f"{url.getRoot(MANAGEMENT)}{url.Management.CREATE_REPORT}",
+    f"{url.getRoot(MANAGEMENT)}{url.Management.CREATE_FEED}",
+)
+
+if DEBUG:
+    BYPASS_DEACTIVE_PATHS += (MEDIA_URL, STATIC_URL)
 
 APPEND_SLASH = not False
 if DEBUG:
@@ -471,3 +487,24 @@ if not DEBUG:
             },
         },
     }
+
+MFA_UNALLOWED_METHODS = ()
+MFA_LOGIN_CALLBACK = f"{AUTH2}.views.mfa2_login"
+MFA_RECHECK = True           # Allow random rechecking of the user
+MFA_RECHECK_MIN = 10         # Minimum interval in seconds
+MFA_RECHECK_MAX = 30         # Maximum in seconds
+MFA_QUICKLOGIN = True        # Allows quick login for returning users
+
+# TOTP Issuer name, this should be your project's name
+TOKEN_ISSUER_NAME = env.PUBNAME
+
+if DEBUG:
+    U2F_APPID = "https://localhost"
+    FIDO_SERVER_ID = u"localhost"
+else:
+    U2F_APPID = env.SITE
+    FIDO_SERVER_ID = env.HOSTS[0]
+
+FIDO_SERVER_NAME = env.PUBNAME
+MFA_REDIRECT_AFTER_REGISTRATION = url.getRoot(AUTH2)
+MFA_SUCCESS_REGISTRATION_MSG = 'Your keys have successfully been created!'

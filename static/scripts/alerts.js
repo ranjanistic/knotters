@@ -180,14 +180,17 @@ const message = (msg = "", onOpen = (toast) => {}) => {
     } catch {
         queue = []
     }
+    if(queue.length && queue[queue.length-1].msg == msg){
+        return;
+    }
     queue.push({msg:msg,timer: Math.max(msg.split(" ").length * 500, 5000), onOpen:onOpen})
     sessionStorage.setItem(KEY.message_queue, JSON.stringify(queue,(key, value) =>{
         if (typeof value === 'function') {
-          return value.toString();
+            return value.toString();
         } else {
-          return value;
+            return value;
         }
-      }))
+    }))
     window.dispatchEvent(new CustomEvent(KEY.message_fired));
 };
 
@@ -201,6 +204,9 @@ const error = (msg = STRING.default_error_message, force = false) => {
         queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
     } catch {
         queue = []
+    }
+    if(queue.length && queue[queue.length-1].msg == msg){
+        return
     }
     queue.push({msg:msg||STRING.default_error_message,timer: Math.max(msg.split(" ").length * 500, 5000)})
     sessionStorage.setItem(KEY.error_queue, JSON.stringify(queue))
@@ -217,6 +223,9 @@ const success = (msg = STRING.default_success_message) => {
         queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
     } catch {
         queue = []
+    }
+    if(queue.length && queue[queue.length-1].msg == msg){
+        return
     }
     queue.push({msg:msg,timer: Math.max(msg.split(" ").length * 500, 5000)})
     sessionStorage.setItem(KEY.success_queue, JSON.stringify(queue))

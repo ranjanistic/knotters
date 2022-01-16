@@ -19,10 +19,8 @@ from django.core.cache import cache
 from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
-from django.template import RequestContext
 from django.shortcuts import redirect, render
-from management.models import HookRecord, GhMarketApp, GhMarketPlan
-from webpush import send_user_notification, send_group_notification
+from management.models import HookRecord, GhMarketPlan
 from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
@@ -339,8 +337,12 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        suspended = Profile.objects.filter(
-            Q(suspended=True) | Q(is_zombie=True))
+        cacheKey = f"{Code.ROBOTS_TXT}_suspended_list"
+        suspended = cache.get(cacheKey,[])
+        if not len(suspended):
+            suspended = Profile.objects.filter(
+                Q(suspended=True) | Q(is_zombie=True))
+            cache.set(cacheKey,suspended,settings.CACHE_SHORT)
         context = dict(**context, media=settings.MEDIA_URL,
                        suspended=suspended, ISBETA=ISBETA)
         return context
@@ -357,21 +359,16 @@ class Manifest(TemplateView):
         sizes = []
 
         def appendWhen(path: str):
-            condition = path.endswith('icon-circle.png')
+            condition = path.endswith(('icon-circle.png', 'icon-dark.png','icon.png','icon-circle-dark.png'))
             if condition:
                 parts = path.split('/')
                 size = int(parts[len(parts)-2])
-                if not sizes.__contains__(size):
-                    sizes.append(size)
+                sizes.append(size)
             return condition
 
-        assets = getDeepFilePaths(
-            'static/graphics/self', appendWhen=appendWhen)
+        assets = getDeepFilePaths('static/graphics/self', appendWhen=appendWhen)
 
-        def attachStaticURL(path: str):
-            return str(path.replace("/static/",settings.STATIC_URL))
-
-        assets = list(map(attachStaticURL, assets))
+        assets = list(map(lambda p: str(p.replace("/static/",settings.STATIC_URL)), assets))
 
         icons = []
 
@@ -416,9 +413,13 @@ class ServiceWorker(TemplateView):
         assets.append(f"/{URL.OFFLINE}")
         assets.append(f"/{URL.MANIFEST}")
 
-        swassets, created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
-            value=json.dumps(assets)
-        ))
+        cacheKey = f'localstore_{Code.SWASSETS}'
+        swassets = cache.get(cacheKey, None)
+        created = False
+        if not swassets:
+            swassets, created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
+                value=json.dumps(assets)
+            ))
         if not created:
             oldassets = json.loads(swassets.value)
             different = False
@@ -439,6 +440,7 @@ class ServiceWorker(TemplateView):
             if different:
                 swassets.value = json.dumps(assets)
                 swassets.save()
+                cache.set(cacheKey, swassets)
             else:
                 assets = oldassets
 
@@ -510,6 +512,7 @@ class ServiceWorker(TemplateView):
 
 class Strings(TemplateView):
     content_type = Code.APPLICATION_JS
+    # mime_type = Code.APPLICATION_JS
     template_name = Template.STRINGS
 
     def render_to_response(self, context, **response_kwargs):

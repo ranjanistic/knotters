@@ -98,7 +98,6 @@ const serviceWorkerRegistration = () => {
                         }
                     });
                 });
-                initializePushNotification(reg);
             })
             .catch((err) => {
                 console.log("SW:0:", err);
@@ -115,6 +114,28 @@ const serviceWorkerRegistration = () => {
         message(
             "Your browser doesn't support some of our features ☹️. Please update/change your browser for the best experience."
         );
+    }
+};
+const notifyServiceWorkerRegistration = () => {
+    if (navigator.serviceWorker) {
+        console.log("notif reg")
+        navigator.serviceWorker
+            .register(URLS.Auth.NOTIFY_SW)
+            .then((reg) => {
+                console.log(reg)
+                if(reg.waiting){
+                    reg.waiting.postMessage({ action: "skipWaiting" });
+                }
+                reg.addEventListener("updatefound", () => {
+                    if(reg.waiting){
+                        reg.waiting.postMessage({ action: "skipWaiting" });
+                    }
+                });
+                initializePushNotification(reg);
+            })
+            .catch((err) => {
+                console.log("NSW:0:", err);
+            });    
     }
 };
 

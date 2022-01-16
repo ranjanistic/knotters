@@ -247,7 +247,7 @@ class Profile(models.Model):
 
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
 
-    xp = models.IntegerField(default=10, help_text='Experience count')
+    xp = models.IntegerField(default=1, help_text='Experience count')
 
     blocklist = models.ManyToManyField(
         'User', through='BlockedUser', default=[], related_name='blocked_users')
