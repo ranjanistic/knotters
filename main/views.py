@@ -337,7 +337,7 @@ class Robots(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cacheKey = f"{Code.ROBOTS_TXT}_suspended_list"
+        cacheKey = f"{Template.ROBOTS_TXT}_suspended_list"
         suspended = cache.get(cacheKey,[])
         if not len(suspended):
             suspended = Profile.objects.filter(
