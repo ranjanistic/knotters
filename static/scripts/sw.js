@@ -118,16 +118,16 @@ const serviceWorkerRegistration = () => {
 };
 const notifyServiceWorkerRegistration = () => {
     if (navigator.serviceWorker) {
-        console.log("notif reg")
+        console.log("notif reg");
         navigator.serviceWorker
             .register(URLS.Auth.NOTIFY_SW)
             .then((reg) => {
-                console.log(reg)
-                if(reg.waiting){
+                console.log(reg);
+                if (reg.waiting) {
                     reg.waiting.postMessage({ action: "skipWaiting" });
                 }
                 reg.addEventListener("updatefound", () => {
-                    if(reg.waiting){
+                    if (reg.waiting) {
                         reg.waiting.postMessage({ action: "skipWaiting" });
                     }
                 });
@@ -135,7 +135,7 @@ const notifyServiceWorkerRegistration = () => {
             })
             .catch((err) => {
                 console.log("NSW:0:", err);
-            });    
+            });
     }
 };
 

@@ -32,7 +32,8 @@ class Theme {
                 COLOR.getColorByTheme(
                     window.parent.document
                         .getElementById("themecolor")
-                        .getAttribute("content").trim(),
+                        .getAttribute("content")
+                        .trim(),
                     themevalue
                 ) || COLOR.primary()
             );
