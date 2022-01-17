@@ -359,7 +359,7 @@ class Manifest(TemplateView):
         sizes = []
 
         def appendWhen(path: str):
-            condition = path.endswith(('icon-circle.png', 'icon-dark.png','icon.png','icon-circle-dark.png'))
+            condition = path.endswith(('icon-circle.png','icon.png'))
             if condition:
                 parts = path.split('/')
                 size = int(parts[len(parts)-2])
