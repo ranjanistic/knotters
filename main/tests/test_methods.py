@@ -23,8 +23,8 @@ class MainMethodsTest(TestCase):
     def test_getDeepFilePaths(self):
         def appendWhen(path):
             return path.endswith('.html')
-        with self.assertRaises(FileNotFoundError):
-            getDeepFilePaths('template', appendWhen)
+        
+        self.assertEqual(len(getDeepFilePaths('template', appendWhen)),0)
         templates = getDeepFilePaths('templates', appendWhen)
         self.assertIsInstance(templates, list)
         self.assertTrue(len(templates) > 0)
