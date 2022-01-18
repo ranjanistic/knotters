@@ -177,6 +177,7 @@ if not env.ISTESTING and env.ASYNC_CLUSTER:
             'LOCATION': env.REDIS_LOCATION,
             'OPTIONS': {} if not env.REDIS_PASSWORD else {
                 'PASSWORD': env.REDIS_PASSWORD,
+                'db': env.REDIS_DB,
             },
             'TIMEOUT': None
         },
@@ -449,7 +450,7 @@ if env.ASYNC_CLUSTER:
             'host': env.REDIS_HOST,
             'port': env.REDIS_PORT,
             'password': env.REDIS_PASSWORD,
-            'db': 2,
+            'db': env.REDIS_DB + 1,
         }
     }
 
