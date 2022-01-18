@@ -101,9 +101,7 @@ const serviceWorkerRegistration = () => {
             })
             .catch((err) => {
                 console.log("SW:0:", err);
-                error(
-                    "An internal error occurred. We humbly request you to reload this page."
-                );
+                console.log("An internal error occurred. We humbly request you to reload this page.");
             });
 
         if (Number(localStorage.getItem(Key.appUpdated))) {
