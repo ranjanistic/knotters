@@ -18,7 +18,7 @@
 {% block tw_image_url %}{% if certpath %}{{certpath}}{% else %}{{result.competition.getBanner}}{% endif %}{% endblock %}
 {% block tw_url %}{{result.getCertLink|params:member.getUserID}}{% endblock %}
 {% block tw_title %}{{member.getFName}}'s Certificate{% endblock %}
-{% block tw_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
+{% block tw_description %}{{member.getName}}'s certificate of participation in {{result.competition.title}}.{% endblock %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
@@ -33,11 +33,8 @@
         <div class="primary w3-padding"><h4><a href="{{member.getLink}}"><img src="{{member.getDP}}" class="w3-circle" width="30" alt="{{member.getName}}" /></a> <b>{{member.getName}}</b> participated in <a href="{{result.competition.getLink}}" >{{result.competition.title}}</a>{% if result.submission.totalMembers > 1 %}, along with {{result.submission.totalMembers|add:'-1'}} {% if result.submission.totalMembers == 2 %}other{% else %}others{% endif %}{% endif%}.</h4></div>
         {% endcache %}
         {% if certpath %}
-        {% cache CACHE_MAX participant_certificate_view result.getCertLink|params:member.getUserID|add:LANGUAGE_CODE %}
-        <img src="{{certpath}}" width="100%" class="preview-type-image" />
-        {% endcache %}
+        <img src="{{certpath}}" width="100%" class="preview-type-image" alt="{{member.getName}}'s certificate of participation in {{result.competition.title}}" />
         {% else %}
-        {% cache CACHE_SHORT participant_certificate_unavailable result.getCertLink|params:member.getUserID|add:LANGUAGE_CODE %}
         <div class="dead-text w3-center primary w3-padding">
         <h4>
         <i class="w3-jumbo">hourglass_top</i><br/>
@@ -45,7 +42,6 @@
         {% trans "Regardless of the availability of certificate, this page is equivalent to the said certification." %}
         </h4>
         </div>
-        {% endcache %}
         {% endif %}
     </div>
     <div class="w3-col w3-third">
