@@ -164,7 +164,7 @@ const loadGlobalEventListeners = () => {
         elem.classList.add("pointer");
         elem.addEventListener("click", (e) => {
             copyToClipboard(
-                e.target.getAttribute("data-copy") || e.target.innerHTML
+                elem.getAttribute("data-copy") || e.target.innerHTML
             );
         });
     });

@@ -6,7 +6,7 @@
 
 {% if count %}
 <div class="w3-row active">
-    <div class="w3-row" style="padding:16px 4px">
+    <div class="w3-row w3-animate-right" style="padding:16px 4px">
     <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">{% trans "More" %}</button></a>
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Recent winners" %}</h4>
     </div>
@@ -14,7 +14,7 @@
         <div class="swiper-wrapper swiper-wrap">
             {% for result in results %}
                 {% for member in result.submission.getMembers %}
-                <div class="swiper-slide">
+                <div class="swiper-slide w3-animate-zoom">
                     <a href="{{member.getLink}}">
                         <div class="pallete w3-center no-pad">
                             <img class="primary" src="{{ member.getDP }}" alt="{{ member.getName }}" />
@@ -42,7 +42,7 @@
         <div class="swiper-wrap_i">
             {% for result in results %}
                 {% for member in result.submission.getMembers %}
-                <div class="w3-col">
+                <div class="w3-col w3-animate-zoom">
                     <a href="{{member.getLink}}">
                         <div class="pallete pallete_i w3-center">
                             <img class="primary" src="{{ member.getDP }}" alt="{{ member.getName }}" />

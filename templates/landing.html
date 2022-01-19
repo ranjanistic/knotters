@@ -111,7 +111,7 @@
         <h4>Creativity  +100XP 😎</h4>
     </div>
     <br/>
-    <div class="w3-row w3-padding">
+    <div class="w3-row w3-padding" id='better-truth'>
         <div class="pallete-slab accent w3-padding-large">
             <center><h1>The Better Truth</h1></center>
             <div class="pallete primary w3-padding-large">
@@ -128,7 +128,7 @@
         </div>
     </div>
     <br/>
-    <div class="w3-row w3-padding">
+    <div class="w3-row w3-padding" id="bitter-truth">
         <div class="pallete-slab secondary w3-padding-large">
             <center><h1 class="text-secondary">The Bitter Truth</h1></center>
             <div class="pallete primary w3-padding-large">
@@ -141,9 +141,9 @@
         </div>
     </div>
     <br/>
-    <div class="w3-row w3-padding-large">
+    <div class="w3-row w3-padding-large" id='projects'>
         <div class="w3-row">
-            <h1 class="w3-jumbo"><span class="active">The Projects</span></h1>
+            <h1 class="w3-jumbo"><span class="active">The Projects</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#projects"><i>link</i></a></h1>
             <strong class="w3-large">
                 <p class="text-big">
                     As we said, it's all about patience, therefore the first thing that we'd like to have you introduced,
@@ -174,7 +174,7 @@
             <h3>Your project could be one of the <span class="accent">following</span>.
             </h3>
             <div class="w3-row">
-                <h1><span class="accent">Quick Project</span></h1>
+                <h1 id="quick-projects"><span class="accent" >Quick Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#quick-projects"><i>link</i></a></h1>
                 <strong class="text-medium">
                     As the name goes, a quick project can be created quickly, without waiting for anyone's approval.
                     This is the fastest way to start a new project here. Any kind of project can be created under this category.
@@ -182,7 +182,7 @@
                 <br/>
                 <a onclick="newTab('{{URLS.Projects.CREATE_FREE}}')"><button class='big-button positive' data-icon="add">New quick project</button></a>
                 <br/><br/>
-                <h1><span class="accent">Verified Project <i>verified</i></span></h1>
+                <h1 id="verified-projects"><span class="accent" >Verified Project <i>verified</i></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#verified-projects"><i>link</i></a></h1>
                 <strong class="text-medium">
                     A project under this category will have its own Github repository under {{APPNAME}} organization,
                     and much more. But to fall under this category, your project has to undergo a review procedure
@@ -192,7 +192,7 @@
                 <br/>
                 <a onclick="newTab('{{URLS.Projects.CREATE_MOD}}')"><button class='big-button accent' data-icon="add">New verified project</button></a>
                 <br/><br/>
-                <h1><span class="accent" id="core-projects">Core Project</span></h1>
+                <h1 id="core-projects"><span class="accent">Core Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#core-projects"><i>link</i></a></h1>
                 <strong class="text-medium">
                     A special category for projects, which are currently available to management accounts only.
                     Under this category, managers/organizations can request a closed source project at {{APPNAME}}, and it will be
@@ -216,18 +216,18 @@
         </div>
     </div>
     <br/>
-    <div class="w3-row w3-padding-large">
+    <div class="w3-row w3-padding-large"  id="competitons">
         <div class="w3-row">
-            <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span></h1>
+            <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#competitons"><i>link</i></a></h1>
             <strong class="w3-large">
                 <p class="text-big">
                     We conduct and host competitions in which anyone can participate. Robot🤖 participants are still not allowed. Sorry <a onclick="miniWindow('{{URLS.ROBOTS_TXT}}')">robots</a>!<br/>
                     Most of our competitions are based & targeted on real world problems, and not money oriented. However, perks & prizes are involved.
                 </p>
             </strong>
-            <h3><span class="active">Following</span> are the perks of participation.
+            <h3 id="competion-perks"><span class="active">Following</span> are the perks of participation.
             </h3>
-            <div class="w3-row">
+            <div class="w3-row" >
                 <h1><span class="active">Flex-able certificate</span></h1>
                 <strong class="text-medium">
                     You'll earn a flex-able certificate upon successfull participation in any active competition at Knotters.
@@ -267,8 +267,8 @@
         </div>
     </div>
     <br/>
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Moderators" %} <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><strong class="w3-small w3-round w3-tag accent">MOD</strong></a></h1>
+    <div class="w3-row w3-padding-large" id="moderators">
+        <h1>{% trans "The Moderators" %} <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><strong class="w3-small w3-round w3-tag accent">MOD</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#moderators"><i>link</i></a></h1>
         <strong class="text-medium">
             To review and take action on verified projects submissions, a category of users at Knotters are called the moderators.
             The descision taken by a moderator for a project decides its future. If approved, the project enters our world.
@@ -279,8 +279,8 @@
         </strong><br/>
         <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><button class='big-button accent' data-icon="search">Search moderators</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Mentors" %} <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><strong class="w3-small w3-round w3-tag active">MNT</strong></a></h1>
+    <div class="w3-row w3-padding-large" id="mentors">
+        <h1>{% trans "The Mentors" %} <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><strong class="w3-small w3-round w3-tag active">MNT</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#mentors"><i>link</i></a></h1>
         <strong class="text-medium">
             Mentors are the people who, during peacetime, guide projects through their knowledge and expertise in the domain of concerned project.
             By 'during peacetime', we meant when they are not involved in any competitions. So yeah you can infer that they have a role in competitions too.
@@ -290,8 +290,8 @@
         </strong><br/>
         <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><button class='big-button active' data-icon="search">Search mentors</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Managers" %} <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong></a></h1>
+    <div class="w3-row w3-padding-large" id="managers">
+        <h1>{% trans "The Managers" %} <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#managers"><i>link</i></a></h1>
         <strong class="text-medium">
             Or, organizations. Or, groups. Or, clubs. Or, companies. Or, whatever you call an organized group of people. 
             These are the type of accounts which have access to management tools of {{APPNAME}}, for example, creating competitions,
@@ -299,8 +299,8 @@
         </strong><br/>
         <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><button class='big-button primary' data-icon="search">Search managements</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Licenses" %}</h1>
+    <div class="w3-row w3-padding-large" id="licenses">
+        <h1>{% trans "The Licenses" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#licenses"><i>link</i></a></h1>
         <strong class="text-medium">
             Several open source licenses are provided on Knotters by default to choose from for your next project.
             You cannot change the license after a project is live. For quick projects, you can only choose from available licenses
@@ -309,8 +309,8 @@
         </strong><br/>
         <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button primary' data-icon="open_in_new">View licenses</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "Your profile" %}</h1>
+    <div class="w3-row w3-padding-large" id="profile">
+        <h1>{% trans "Your profile" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#profile"><i>link</i></a></h1>
         <strong class="text-medium">
             Just like the profile of your project is its own room on Knotters, your own profile also represents your presence in our community.
             Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself.
@@ -322,8 +322,8 @@
         <a onclick="newTab('{{URLS.Auth.LOGIN}}')"><button class='big-button primary' style="border:4px solid var(--positive)" data-icon="login">Login for profile</button></a>
         {% endif %}
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Topics" %}</h1>
+    <div class="w3-row w3-padding-large" id="topics">
+        <h1>{% trans "The Topics" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#topics"><i>link</i></a></h1>
         <strong class="text-medium">
             Our platform is filled with numerous of topics to choose from, for your profile, for your projects, and for the competitions,
             through which you can uniquely select and level up your expertise in the domain of your choice.
@@ -334,8 +334,8 @@
         <a href="{{URLS.PROJECTS}}?search=topic:Translation" target="_blank"><button class='big-button positive' data-icon="search">Translation Projects</button></a>
     </div>
     
-    <div class="w3-row w3-padding-large">
-        <h1>{% trans "Everything counts" %}</h1>
+    <div class="w3-row w3-padding-large" id="everything-counts">
+        <h1>{% trans "Everything counts" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#everything-counts"><i>link</i></a></h1>
         <strong class="text-medium">
             As you'd have read, your level of expertise on Knotters depends on the XP your profile and your topics have.
             Every action you take on Knotters duly contributes to your own visible growth, reflecting in your profile.
@@ -347,8 +347,8 @@
         <a href="{{gh_market_app.gh_url}}" target="_blank"><button class='big-button secondary'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="30" />&nbsp;&nbsp;Our GitHub bot</button></a>
         <strong>for contribution tracking.</strong>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>Level up</h1>
+    <div class="w3-row w3-padding-large" id="level-up">
+        <h1>Level up<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#level-up"><i>link</i></a></h1>
         <strong class="text-medium">
             If you've read about how a moderator gets projects to review, then you could probably interpret the importance of 
             XP of topics for a moderator. As the submitted projects have a category, the associated topics with that particular
@@ -361,8 +361,8 @@
         </strong><br/>
         <a href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank"><button class='big-button primary' data-icon="open_in_new">Apply for promotion</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>Wall of Fame</h1>
+    <div class="w3-row w3-padding-large" id="wall-of-fame">
+        <h1>Wall of Fame <a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#wall-of-fame"><i>link</i></a></h1>
         <strong class="text-medium">
             Yes, you read that right. We have a dedicated wall of fame at Knotters! For those who are unfamiliar with this kind of wall,
             it showcases the acheivers of historical significance at one place. Winners of competitions take the most of the area in 
@@ -371,8 +371,8 @@
         </strong><br/>
         <a onclick="newTab('{{URLS.FAME_WALL}}')"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>Top activities & highlights</h1>
+    <div class="w3-row w3-padding-large" id="activites">
+        <h1>Top activities & highlights<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#activites"><i>link</i></a></h1>
         <strong class="text-medium">
             On the top of everything, most of the sections on this platform will regularly higlight projects, people,
             and several categories of recommendations for you to never stop exploring. By showing you relevant profiles at Knotters 
@@ -384,8 +384,8 @@
         <a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="psychology">Competition activities</button></a>
         <a href="{{URLS.PEOPLE}}" target="_blank"><button class='big-button accent' data-icon="groups">Community activities</button></a>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>Tips & Tricks</h1>
+    <div class="w3-row w3-padding-large" id="tips-n-tricks">
+        <h1>Tips & Tricks<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#tips-n-tricks"><i>link</i></a></h1>
         <strong class="text-medium">
             <li>Use Alt + R to restart introductions anywhere, or just visit this landing page.</li>
             <li>Use Alt + F10 to switch theme, or click <i class="themeswitch pointer">brightness_medium</i> on navbar.</li>
@@ -395,8 +395,8 @@
             <li>Many of the things on this platform can work offline too. Also (and therefore), you'll receive in-app updates from us time to time.</li>
         </strong>
     </div>
-    <div class="w3-row w3-padding-large">
-        <h1>The 'why' of everything</h1>
+    <div class="w3-row w3-padding-large" id="why">
+        <h1>The 'why' of everything<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#why"><i>link</i></a></h1>
         <strong class="text-medium">
             So far you've come, assuming not scrolled all the way down here, you must've got an idea of Knotters,
             and what the existence of this platform intends to bring in the world of open collaboration through your browser.

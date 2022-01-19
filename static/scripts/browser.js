@@ -1,46 +1,51 @@
 const loadBrowserSwiper = () => {
-    loadCarousels({
-        container: "swiper-browser",
-        breakpoints: {
-            1024: {
-                slidesPerView: 4,
-                spaceBetween: 15,
+    const x = () => {
+        
+        loadCarousels({
+            container: "swiper-browser",
+            breakpoints: {
+                1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 15,
+                },
+                768: {
+                    slidesPerView: 4,
+                    spaceBetween: 10,
+                },
+                920: {
+                    slidesPerView: 4,
+                    spaceBetween: 10,
+                },
+                640: {
+                    slidesPerView: 4,
+                    spaceBetween: 10,
+                },
             },
-            768: {
-                slidesPerView: 4,
-                spaceBetween: 10,
+        });
+        loadCarousels({
+            container: "swiper-browser-wide",
+            breakpoints: {
+                1024: {
+                    slidesPerView: 2,
+                    spaceBetween: 50,
+                },
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 10,
+                },
+                920: {
+                    slidesPerView: 2,
+                    spaceBetween: 10,
+                },
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 10,
+                },
             },
-            920: {
-                slidesPerView: 4,
-                spaceBetween: 10,
-            },
-            640: {
-                slidesPerView: 4,
-                spaceBetween: 10,
-            },
-        },
-    });
-    loadCarousels({
-        container: "swiper-browser-wide",
-        breakpoints: {
-            1024: {
-                slidesPerView: 2,
-                spaceBetween: 50,
-            },
-            768: {
-                slidesPerView: 2,
-                spaceBetween: 10,
-            },
-            920: {
-                slidesPerView: 2,
-                spaceBetween: 10,
-            },
-            640: {
-                slidesPerView: 2,
-                spaceBetween: 10,
-            },
-        },
-    });
+        });
+    }
+    x();
+    setTimeout(x, 800);
 };
 
 const loadBrowsers = () => {
