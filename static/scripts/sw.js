@@ -98,6 +98,7 @@ const serviceWorkerRegistration = () => {
                         }
                     });
                 });
+                initializePushNotification(reg);
             })
             .catch((err) => {
                 console.log("SW:0:", err);
@@ -114,7 +115,7 @@ const serviceWorkerRegistration = () => {
         );
     }
 };
-const notifyServiceWorkerRegistration = () => {
+const _notifyServiceWorkerRegistration = () => {
     if (navigator.serviceWorker) {
         console.log("notif reg");
         navigator.serviceWorker

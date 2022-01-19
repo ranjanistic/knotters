@@ -1,1 +1,1 @@
-notifyServiceWorkerRegistration();
+// _notifyServiceWorkerRegistration();
