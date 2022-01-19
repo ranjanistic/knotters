@@ -32,21 +32,22 @@
             <h1>{{APPNAME}}</h1>
             <h1 class="w3-hide-small w3-jumbo"><b>{% trans "The landing page" %}</b></h1>
             <h1 class="w3-hide-large w3-hide-medium"><b>{% trans "The landing page" %}</b></h1>
-            <strong class="text-medium">
+            <strong class="text-big">
                 {% trans "Keep scrolling, will ya?" %}
                 </strong>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-bottom">
-            <a href="#scrolled"><button class="positive big-button">{% trans "Scroll" %}</button></a>
+            <a href="#scrolled"><button class="positive big-button" data-icon="arrow_downward">{% trans "Scroll" %}</button></a>
         </div>
         <br/>
         <div class="w3-row w3-center w3-animate-opacity">
-            <h6>({% trans "Please scroll, virtually begging you😥" %})</h6>
+            <h6>({% trans "Please scroll, to proceed further😥" %})</h6>
         </div>
     </div>
     <br>
     <div class="w3-row w3-padding-large" align='center' id='scrolled'>
+    <br/><br/>
         {% if not request.user.is_authenticated %}
             <strong class="text-big">It is highly recommended that you create an account or login first, then proceed.</strong><br/>
             <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
@@ -55,17 +56,18 @@
             <strong class="text-big">It is highly recommended that you go through on-boarding first.</strong><br/>
             <a href="{{URLS.ON_BOARDING}}?next={{request.path}}"><button class="big-button positive" data-icon="play_arrow">Continue to on-boarding</button></a>
         {% endif %}
+        <br/><br/>
     </div>
     <br/>
     <div class="w3-row w3-padding-large" align='left'>
         <h2>{% trans "Not exactly a landing page"%}<a href="https://en.wikipedia.org/wiki/Landing_page" title="{% trans "What is a landing page?" %}" target="_blank" rel="noreferrer"><i>open_in_new</i></a></h2>
         <div class="w3-col w3-half">
             <strong class="w3-large">
-            <p> 
+            <p class="text-medium">
                 Please come back here if you'll click the above link icon. Wikipedia articles can be intriguing sometimes.<br/>
                 This page is a story, telling the story of this page itself, with a tiny (very tiny, almost microscopic) focus on {{APPNAME}} platform.
             </p>
-            <p>
+            <p class="text-medium">
                 Are you interested in our story? Regardless, we'll continue to tell.
                 Not that we don't care about <a onclick="reportFeedbackView(1)">your opinion</a> (which we do), but most of the content on this page is static.
             </p>
@@ -79,7 +81,7 @@
     <div class="w3-row w3-padding-large" align='center'>
         <h2>The center heading</h2>
         <strong class="w3-large">
-        <p>
+        <p class="text-medium">
             To indicate that something important has come up, however, everything is important in this page,
             it's just that center heading looks cool. <a onclick="reportFeedbackView(1)">Does it?</a>
             <br/>
@@ -96,7 +98,7 @@
         </div>
         <div class="w3-col w3-half" align='right'>
             <strong class="w3-large">
-            <p>
+            <p class="text-medium">
                 Has the story started? It did when you first visited this page. It's all about patience.
                 Ofcourse you can speed scroll all the way down to the bottom of this page to get rid of this slow character buildup. But, where's the fun in that?
             </p>
@@ -143,7 +145,7 @@
         <div class="w3-row">
             <h1 class="w3-jumbo"><span class="active">The Projects</span></h1>
             <strong class="w3-large">
-                <p>
+                <p class="text-big">
                     As we said, it's all about patience, therefore the first thing that we'd like to have you introduced,
                     is the Projects feature of {{APPNAME}}, which actively involves the patience factor.
                 </p>
@@ -169,7 +171,7 @@
                     again, a family. {{APPNAME}} provides all of these to your project.
                 </p>
             </strong>
-            <h3>Your project could be one of the <span class="accent">following two</span>.
+            <h3>Your project could be one of the <span class="accent">following</span>.
             </h3>
             <div class="w3-row">
                 <h1><span class="accent">Quick Project</span></h1>
@@ -178,27 +180,39 @@
                     This is the fastest way to start a new project here. Any kind of project can be created under this category.
                 </strong>
                 <br/>
-                <h1><span class="accent">Verified Project</span></h1>
+                <a onclick="newTab('{{URLS.Projects.CREATE_FREE}}')"><button class='big-button positive' data-icon="add">New quick project</button></a>
+                <br/><br/>
+                <h1><span class="accent">Verified Project <i>verified</i></span></h1>
                 <strong class="text-medium">
                     A project under this category will have its own Github repository under {{APPNAME}} organization,
                     and much more. But to fall under this category, your project has to undergo a review procedure
                     (Moderators are there for that, we'll discuss them later).
                     Currently recommended for coding based projects only.
                 </strong>
+                <br/>
+                <a onclick="newTab('{{URLS.Projects.CREATE_MOD}}')"><button class='big-button accent' data-icon="add">New verified project</button></a>
+                <br/><br/>
+                <h1><span class="accent" id="core-projects">Core Project</span></h1>
+                <strong class="text-medium">
+                    A special category for projects, which are currently available to management accounts only.
+                    Under this category, managers/organizations can request a closed source project at {{APPNAME}}, and it will be
+                    available to a few chosen people at {{APPNAME}}, and the people of the organization, for contribution.
+                    The source code of these kind of projects will also remain under {{APPNAME}} organization, but with limited visibility.
+                    Organizations may also provide incentives to the people who contribute to it.
+                </strong>
+                
                 <br/><br/>
                 <h4>
                     And it doesn't end here
                 </h4>
-                <h6>
+                <strong class="text-medium">
                     All projects at Knotters have some special powers through which a track record is maintained of every contributor,
                     and it reflects in each of their profiles accordingly, alongside their respective topics (We'll discuss 'topics' soon).<br/>
                     In short - Everything counts!
-                </h6>
-                <a onclick="newTab('{{URLS.Projects.CREATE}}')"><button class='big-button positive' data-icon="open_in_new">Try creating a project</button></a>
+                </strong><br/>
+                <a onclick="newTab('{{URLS.Projects.CREATE}}')"><button class='big-button primary' data-icon="open_in_new">Try creating a project</button></a>
             </div>
-
-            <div class="w3-row">
-            </div>
+            
         </div>
     </div>
     <br/>
@@ -206,8 +220,8 @@
         <div class="w3-row">
             <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span></h1>
             <strong class="w3-large">
-                <p>
-                    We conduct and host competitions in which anyone - even your pet 🐶 - can participate. Robot🤖 participants are still not allowed. Sorry <a onclick="miniWindow('{{URLS.ROBOTS_TXT}}')">robots</a>!<br/>
+                <p class="text-big">
+                    We conduct and host competitions in which anyone can participate. Robot🤖 participants are still not allowed. Sorry <a onclick="miniWindow('{{URLS.ROBOTS_TXT}}')">robots</a>!<br/>
                     Most of our competitions are based & targeted on real world problems, and not money oriented. However, perks & prizes are involved.
                 </p>
             </strong>
@@ -231,7 +245,8 @@
                 <br/>
                 <h1><span class="active">Submission to Project</span></h1>
                 <strong class="text-medium">
-                    After a competion ends, which is right after results declaration, we convert the winner's submission into a verified project on Knotters,
+                    After a competion ends, which is right after results declaration, we may convert the winner's submission into a verified project on Knotters 
+                    (after an internal review),
                     without any need to undergo our review procedure, so that it opens up to further contribution. The moderator of competition becomes the moderator 
                     of this verified project too, and one of the judges become mentor of the project.
                 </strong>
@@ -239,20 +254,21 @@
                 <h4>
                     And it doesn't end here
                 </h4>
-                <h6>
+                <strong class="text-medium">
                     All competitions at Knotters have some special powers through which a track record is maintained of every participant,
                     and it reflects in each of their profiles accordingly, alongside their respective topics.
                     Finished competitions remain as an archive to explore the historical records of endeavour.
                     <br/>
                     Again - Everything counts!
-                </h6>
-                <a onclick="newTab('{{URLS.COMPETE}}')"><button class='big-button positive' data-icon="open_in_new">Try participating</button></a>
+                </strong>
+                <br/>
+                <a onclick="newTab('{{URLS.COMPETE}}')"><button class='big-button active' data-icon="open_in_new">Try participating</button></a>
             </div>
         </div>
     </div>
     <br/>
     <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Moderators" %} <strong class="w3-small w3-round w3-tag accent">MOD</strong></h1>
+        <h1>{% trans "The Moderators" %} <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><strong class="w3-small w3-round w3-tag accent">MOD</strong></a></h1>
         <strong class="text-medium">
             To review and take action on verified projects submissions, a category of users at Knotters are called the moderators.
             The descision taken by a moderator for a project decides its future. If approved, the project enters our world.
@@ -261,9 +277,10 @@
             according to their area of expertise, which is interpreted from their overall contribution record on Knotters.
             The moderator helps a project reach new heights if approved. Moderator is like a project mentor.
         </strong><br/>
+        <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><button class='big-button accent' data-icon="search">Search moderators</button></a>
     </div>
     <div class="w3-row w3-padding-large">
-        <h1>{% trans "The Mentors" %} <strong class="w3-small w3-round w3-tag active">MNT</strong></h1>
+        <h1>{% trans "The Mentors" %} <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><strong class="w3-small w3-round w3-tag active">MNT</strong></a></h1>
         <strong class="text-medium">
             Mentors are the people who, during peacetime, guide projects through their knowledge and expertise in the domain of concerned project.
             By 'during peacetime', we meant when they are not involved in any competitions. So yeah you can infer that they have a role in competitions too.
@@ -271,6 +288,16 @@
             Mentors too have XPs, topics and growth on this platform, just like the moderators have, just like everyone has.
             Currently we have limited mentorship to verified projects only.
         </strong><br/>
+        <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><button class='big-button active' data-icon="search">Search mentors</button></a>
+    </div>
+    <div class="w3-row w3-padding-large">
+        <h1>{% trans "The Managers" %} <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong></a></h1>
+        <strong class="text-medium">
+            Or, organizations. Or, groups. Or, clubs. Or, companies. Or, whatever you call an organized group of people. 
+            These are the type of accounts which have access to management tools of {{APPNAME}}, for example, creating competitions,
+            creating <a href="#core-projects">Core projects</a>, linking people to their profile for collective growth, promoting people as moderators or mentors, and so on.
+        </strong><br/>
+        <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><button class='big-button primary' data-icon="search">Search managements</button></a>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>{% trans "The Licenses" %}</h1>
@@ -280,7 +307,7 @@
             (which are enough in numbers). For verified projects, you can add your own license if the default ones doesn't suit you.
             If you don't understand licenses and their importance, you can go with the default selected license for your projects.
         </strong><br/>
-        <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button accent' data-icon="open_in_new">View licenses</button></a>
+        <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button primary' data-icon="open_in_new">View licenses</button></a>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>{% trans "Your profile" %}</h1>
@@ -290,9 +317,9 @@
             You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.
         </strong><br/>
         {% if request.user.is_authenticated %}
-        <a onclick="newTab('{{request.user.profile.getLink}}')"><button class='big-button accent'><img src="{{request.user.profile.getDP}}" class="w3-circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
+        <a onclick="newTab('{{request.user.profile.getLink}}')"><button class='big-button primary' style="border:4px solid var(--accent)"><img src="{{request.user.profile.getDP}}" class="circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
         {% else %}
-        <a onclick="newTab('{{URLS.Auth.LOGIN}}')"><button class='big-button accent' data-icon="login">Login for profile</button></a>
+        <a onclick="newTab('{{URLS.Auth.LOGIN}}')"><button class='big-button primary' style="border:4px solid var(--positive)" data-icon="login">Login for profile</button></a>
         {% endif %}
     </div>
     <div class="w3-row w3-padding-large">
@@ -303,6 +330,8 @@
             The topics have indiviual XP points for everyone on Knotters, which can be increased via various sources, the major source being participation 
             in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
         </strong><br/>
+        <a href="{{URLS.PEOPLE}}?search=topic:UI/UX" target="_blank"><button class='big-button accent' data-icon="search">UI/UX People</button></a>
+        <a href="{{URLS.PROJECTS}}?search=topic:Translation" target="_blank"><button class='big-button positive' data-icon="search">Translation Projects</button></a>
     </div>
     
     <div class="w3-row w3-padding-large">
@@ -315,6 +344,8 @@
             and for most of the part, you don't need to care about the ways. Focus on the work you do here, or just play around the
             different segments of this platform, and we'll take care of your growth reflection.
         </strong><br/>
+        <a href="{{gh_market_app.gh_url}}" target="_blank"><button class='big-button secondary'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="30" />&nbsp;&nbsp;Our GitHub bot</button></a>
+        <strong>for contribution tracking.</strong>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Level up</h1>
@@ -328,6 +359,7 @@
             You can, if you want to, become a moderator too. It is a selective process, and depending upon your performance and
             experience at Knotters, we'll reach out to you for the opportunity.
         </strong><br/>
+        <a href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank"><button class='big-button primary' data-icon="open_in_new">Apply for promotion</button></a>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Wall of Fame</h1>
@@ -347,6 +379,10 @@
             we intend to provide you sources of inspiration, exposure to what other people do here, 
             and increase the possibilities for you to find the next suitable project that you'd like to start contributing in.
         </strong>
+        <br/>
+        <a href="{{URLS.PROJECTS}}" target="_blank"><button class='big-button positive' data-icon="widgets">Project activities</button></a>
+        <a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="psychology">Competition activities</button></a>
+        <a href="{{URLS.PEOPLE}}" target="_blank"><button class='big-button accent' data-icon="groups">Community activities</button></a>
     </div>
     <div class="w3-row w3-padding-large">
         <h1>Tips & Tricks</h1>
@@ -356,9 +392,7 @@
             <li>While using any search box, you can also search by label:name, like <a onclick="miniWindow('{{URLS.PEOPLE}}?search=topic:creativity')" target="_blank">topic:creativity</a> or 
                 <a onclick="miniWindow('{{URLS.PROJECTS}}?search=tag:nodejs')" target="_blank">tag:nodejs</a>.</li>
             <li>You can install this website on your device as application (through supported browsers only). <a onclick="installWebAppInstructions()">Click here</a> to check if you can.</li>
-                
-            <li>Many of the things on this platform can work offline too. Also, you'll receive in-app important updates from us time to time.</li>
-
+            <li>Many of the things on this platform can work offline too. Also (and therefore), you'll receive in-app updates from us time to time.</li>
         </strong>
     </div>
     <div class="w3-row w3-padding-large">
@@ -369,7 +403,7 @@
             If not, then don't worry, follow your instincts, move around and explore the different sections of Knotters.
             It's not that hard to understand the importance of open source community, with proper project recognition and
             exposure to new kinds of skillsets favouring your own personal growth, by doing a simple thing - get started.
-            <br/>
+            <br/><br/>
             Are you ready?
         </strong>
     </div>

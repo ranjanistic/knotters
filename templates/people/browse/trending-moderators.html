@@ -8,7 +8,9 @@
 <div class="w3-row active">
     <div class="w3-row" style="padding:16px 4px">
     <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending moderators" %}&nbsp;<strong class="w3-small w3-round w3-tag accent">MOD</strong></h4>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending moderators" %}&nbsp;
+        <a href="{{URLS.PEOPLE}}?search=type:{{moderators.0.get_labels.0.text}}"><strong class="w3-small w3-round w3-tag {{moderators.0.get_labels.0.theme}}">{{moderators.0.get_labels.0.name}}</strong></a>
+    </h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
