@@ -22,6 +22,9 @@
 
 {% block title %}{{ compete.title }}{%endblock %} 
 
+{% block nav_style %}active{% endblock %}
+{% block nav_text_style %}text-active{% endblock %}
+
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'styles/compete/profile.css' %}" />
 {% endblock %}
@@ -34,7 +37,7 @@
 {% block content %}
   {% if isJudge or isMod or isManager %}
     <strong>
-      <div class="w3-row w3-center accent w3-padding">
+      <div class="w3-row w3-center active w3-padding">
         {% if isJudge %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} one of the judges of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent">Click here</a> for judgement view.
         {% elif isMod %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the moderator of this competition. <a href="{{compete.getJudgementLink}}" class="underline text-accent">Click here</a> for moderation view.
         {% elif isManager %}You {% if compete.resultDeclared %}were{% else %}are{% endif %} the manager of this competition. <a href="{{compete.getManagementLink}}" class="underline text-accent">Click here</a> for management view.
@@ -65,7 +68,7 @@
         <strong>{{compete.shortdescription}}
         </strong>
         <br/><br/>
-        <button class="small navigator-share-action accent" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}">{% trans "Share" %}</button>
+        <button class="small navigator-share-action active" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}">{% trans "Share" %}</button>
         </div>
         {% if compete.associate %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">
