@@ -52,3 +52,4 @@ makemessages
 compilemessages
 knottrans/
 locale/
+prod/
