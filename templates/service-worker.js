@@ -19,6 +19,7 @@ const EVENTS = {
     ACTIVATE: "activate",
     FETCH: "fetch",
     MESSAGE: "message",
+    PUSH: 'push'
 };
 const METHODS = {
     GET: "GET",
@@ -275,4 +276,49 @@ self.addEventListener(EVENTS.MESSAGE, (event) => {
     if (event.data.action === "skipWaiting") {
         self.skipWaiting();
     }
+});
+
+self.addEventListener(EVENTS.PUSH, (event) => {
+    const payload = event.data ? event.data.text() : JSON.stringify({ title: "{{APPNAME}}" });
+    const defaultOps = {
+        icon: "{{ICON_PNG}}",
+        badge:"{{ICON_SHADOW_PNG}}",
+        actions: [],
+        dir: "auto",
+        image: null,
+        lang: "{{LANGUAGE_CODE}}",
+        renotify: false,
+        requireInteraction: false,
+        silent: false,
+        tag: "{{APPNAME}}{{VERSION}}",
+        timestamp: Date.now(),
+        vibrate: [200, 100, 200],
+    }
+    let title, options = defaultOps;
+    try{
+        data = JSON.parse(payload),
+        title = data.title;
+        options = {
+            body: data.body||"",
+            icon: data.icon|| defaultOps.icon,
+            badge: data.badge|| defaultOps.badge,
+            actions: data.actions|| defaultOps.actions,
+            dir: data.dir|| defaultOps.dir,
+            image: data.image|| defaultOps.image,
+            lang: data.lang|| defaultOps.lang,
+            renotify: data.renotify|| defaultOps.renotify,
+            requireInteraction: data.requireInteraction|| defaultOps.requireInteraction,
+            silent: data.silent|| defaultOps.silent,
+            tag: data.tag|| defaultOps.tag,
+            timestamp: data.timestamp|| defaultOps.timestamp,
+            vibrate: data.vibrate|| defaultOps.vibrate,
+        }
+    } catch {
+        title = payload;
+    }
+    {% if DEBUG %}debug_log(title);{% endif %}
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+
 });
