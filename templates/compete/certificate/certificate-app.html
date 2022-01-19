@@ -38,7 +38,7 @@
             </h4>
         </div>
         {% if certpath %}
-        <img src="{{certpath}}" width="100%" class="preview-type-image" />
+        <img src="{{certpath}}" width="100%" class="preview-type-image" alt="{{person.getName }}'s certificate of appreciation for {{compete.title}}" />
         {% else %}
         <div class="dead-text w3-center primary w3-padding">
         <h4>
@@ -70,7 +70,7 @@
                 <button class="small primary" data-icon="download">{% trans "Download certificate" %}</button>
             </a>
             {% endif %}
-            <button class="small primary navigator-share-action" data-title="{{person.getFName}}'s Certificate" data-text="{{person.getName }}'s certificate of participation in '{{compete.title}}" data-url="{{request.build_absolute_uri}}" data-icon="share">{% trans "Share" %}</button>
+            <button class="small primary navigator-share-action active" data-title="{{person.getFName}}'s Certificate" data-text="{{person.getName }}'s certificate of appreciation for {{compete.title}}." data-url="{{request.build_absolute_uri}}" data-icon="share">{% trans "Share" %}</button>
         </div>
         <br/>
         {% if compete.get_associate %}
@@ -88,6 +88,6 @@
 {% endblock %}
 {% block in_scripts %}
 <script>
-message("Certificate is valid");
+success("This certificate is valid.");
 </script>
 {% endblock %}
