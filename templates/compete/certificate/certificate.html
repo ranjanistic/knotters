@@ -30,7 +30,7 @@
 <div class="w3-row">
     <div class="w3-col w3-twothird">
         {% cache CACHE_LONG participant_certificate_header result.getCertLink|params:member.getUserID|add:LANGUAGE_CODE %}
-        <div class="primary w3-padding"><h4><a href="{{member.getLink}}"><img src="{{member.getDP}}" class="w3-circle" width="30" alt="{{member.getName}}" /></a> <b>{{member.getName}}</b> participated in <a href="{{result.competition.getLink}}" >{{result.competition.title}}</a> &amp; secured <span class="secondary accent-text">{{result.rank|numsuffix}}</span> rank{% if result.submission.totalMembers > 1 %}, along with {{result.submission.totalMembers|add:'-1'}} {% if result.submission.totalMembers == 2 %}other{% else %}others{% endif %}{% endif%}.</h4></div>
+        <div class="primary w3-padding"><h4><a href="{{member.getLink}}"><img src="{{member.getDP}}" class="w3-circle" width="30" alt="{{member.getName}}" /></a> <b>{{member.getName}}</b> participated in <a href="{{result.competition.getLink}}" >{{result.competition.title}}</a>{% if result.submission.totalMembers > 1 %}, along with {{result.submission.totalMembers|add:'-1'}} {% if result.submission.totalMembers == 2 %}other{% else %}others{% endif %}{% endif%}.</h4></div>
         {% endcache %}
         {% if certpath %}
         {% cache CACHE_MAX participant_certificate_view result.getCertLink|params:member.getUserID|add:LANGUAGE_CODE %}
@@ -71,7 +71,7 @@
                 <button class="small primary" data-icon="download">{% trans "Download certificate" %}</button>
             </a>
             {% endif %}
-            <button class="small primary navigator-share-action" data-title="{{member.getFName}}'s Certificate" data-text="{{member.getName }}'s certificate of participation in '{{compete.title}}" data-url="{{result.getCertLink|params:member.getUserID}}" data-icon="share">{% trans "Share" %}</button>
+            <button class="small primary navigator-share-action active" data-title="{{member.getFName}}'s Certificate" data-text="{{member.getName}}'s certificate of participation in {{result.competition.title}}" data-url="{{result.getCertLink|params:member.getUserID}}" data-icon="share">{% trans "Share" %}</button>
         </div>
         <br/>
         {% if result.competition.get_associate %}
@@ -89,6 +89,6 @@
 {% endblock %}
 {% block in_scripts %}
 <script>
-message("Certificate is valid");
+success("This certificate is valid");
 </script>
 {% endblock %}
