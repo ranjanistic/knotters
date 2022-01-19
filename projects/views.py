@@ -24,7 +24,7 @@ from moderation.models import Moderation
 from moderation.methods import requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
+from .models import BaseProject, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
 from .mailers import projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
@@ -81,6 +81,11 @@ def createMod(request: WSGIRequest) -> HttpResponse:
         Q(creator=request.user.profile) | Q(public=True))[0:5]
     return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
 
+@normal_profile_required
+@require_GET
+def createCore(request: WSGIRequest) -> HttpResponse:
+    categories = Category.objects.all().order_by('name')
+    return renderer(request, Template.Projects.CREATE_CORE, dict(categories=categories))
 
 @normal_profile_required
 @require_JSON_body
@@ -265,6 +270,12 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
 
 
 @normal_profile_required
+@require_POST
+@ratelimit(key='user', rate='3/m', block=True, method=(Code.POST))
+def submitCoreProject(request: WSGIRequest) -> HttpResponse:
+    raise Http404()
+
+@normal_profile_required
 @require_JSON_body
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
@@ -306,16 +317,30 @@ def transferProjectOwnership(request: WSGIRequest, projID: UUID) -> HttpResponse
 
 
 @require_GET
+def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
+    try:
+        project = CoreProject.objects.get(codename=codename, trashed=False, suspended=False)
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        if project.suspended and not iscreator:
+            raise Exception(codename)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        return renderer(request, Template.Projects.PROFILE_CORE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
+    except Exception as e:
+        raise Http404(e)
+
+@require_GET
 def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
     try:
         project = FreeProject.objects.get(
             nickname=nickname, trashed=False, suspended=False)
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
-            raise Exception()
+            raise Exception(nickname)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
             request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
+    except ObjectDoesNotExist as e:
+        return profileFree(request, nickname)
     except Exception as e:
         raise Http404(e)
 
@@ -339,7 +364,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
                     Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
-            raise Exception()
+            raise Exception(reponame)
     except ObjectDoesNotExist as e:
         return profileFree(request, reponame)
     except Exception as e:

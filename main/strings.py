@@ -822,8 +822,14 @@ class URL():
         def createMod(self, step: int = 0):
             return f"{self.CREATE_MOD}?step={step}"
 
+        CREATE_CORE = 'create/2/'
+
+        def createCore(self):
+            return self.CREATE_CORE
+
         SUBMIT_FREE = 'submit/0/'
         SUBMIT_MOD = 'submit/1/'
+        SUBMIT_CORE = 'submit/2/'
 
         """ deprecated """
         SUBMIT = SUBMIT_MOD
@@ -838,10 +844,16 @@ class URL():
         def profileFree(self, nickname):
             return setPathParams(self.PROFILE_FREE, nickname)
 
+
         PROFILE_MOD = 'profile/<str:reponame>'
 
         def profileMod(self, reponame):
             return setPathParams(self.PROFILE_MOD, reponame)
+
+        PROFILE_CORE = 'profile/<str:codename>'
+
+        def profileCore(self, codename):
+            return setPathParams(self.PROFILE_CORE, codename)
 
         PROFILE = PROFILE_MOD
 
@@ -1492,6 +1504,12 @@ class Template():
         def profile_mod(self):
             return f'{self.DIRNAME}/{self.PROFILE_MOD}.html'
 
+        PROFILE_CORE = 'profile/2'
+
+        @property
+        def profile_core(self):
+            return f'{self.DIRNAME}/{self.PROFILE_CORE}.html'
+
         PROFILE = PROFILE_MOD
 
         @property
@@ -1515,6 +1533,12 @@ class Template():
         @property
         def create_mod(self):
             return f'{self.DIRNAME}/{self.CREATE_MOD}.html'
+
+        CREATE_CORE = 'create/2'
+
+        @property
+        def create_core(self):
+            return f'{self.DIRNAME}/{self.CREATE_CORE}.html'
 
         INVITATION = 'invitation'
 

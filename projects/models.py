@@ -579,6 +579,16 @@ class ProjectSocial(models.Model):
     site = models.URLField(max_length=800)
 
 
+class CoreProject(BaseProject):
+    codename = models.CharField(max_length=500, unique=True, null=False, blank=False)
+    verified = False
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
+
+    def editProfileLink(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+
 class LegalDoc(models.Model):
     class Meta:
         unique_together = ('name', 'pseudonym')
