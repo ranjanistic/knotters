@@ -358,38 +358,7 @@ const ismoderator = "{{ismoderator}}"==='True';
 if(!selfProject){
     if(authenticated){
         getElement('report-project').onclick=async()=>{
-            const data = await getRequest(URLS.REPORT_CATEGORIES)
-            if(!data) return
-            if(data.code!==code.OK){
-                return error(data.error)
-            }
-            let options=''
-            data.reports.forEach((rep)=>{
-                options+=`<option value='${rep.id}'>${rep.name}</option>`
-            })
-            alertify.confirm(
-                `<h3>Report {{project.nickname}}</h3>`,
-                `
-                <select id='report-category' required>
-                ${options}
-                </select>
-                `,
-                ()=>{},
-                async()=>{
-                    loader()
-                    message('Reporting...')
-                    const data = await postRequest(URLS.REPORT_PROJECT,{
-                        projectID: '{{project.get_id}}',
-                        report: getElement('report-category').value,
-                    })
-                    loader(false)
-                    if(!data) return 
-                    if(data.code===code.OK){
-                        return message("Reported {{project.nickname}}. We'll investigate.")
-                    }
-                    error(data.error)
-                }
-            ).set('labels', {cancel:`${Icon('report')} Report {{project.nickname}}`, ok:'No, go back'}).set('closable', false)
+            await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
         }
     }
 } else {

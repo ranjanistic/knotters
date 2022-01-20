@@ -138,7 +138,7 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
         if (canClearDynCache(path, event)) {
             {% if DEBUG %}debug_log(`${path} can clear dyn cache`);{% endif %}
             await caches.delete(_DYN_CACHE_NAME);
-        }
+        };
         // const ignore = isIgnored(path) || isNoOffline(path);
         if (canSetDynCache(path, event)) {
             {% if DEBUG %}debug_log(`${path} can set cache`);{% endif %}
@@ -149,8 +149,8 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             } catch (e) {
                 console.error(e);
                 return FetchRes;
-            }
-        }
+            };
+        };
         {% if DEBUG %}debug_log(`${path} does not allow set caching`);{% endif %}
         if (FetchRes.redirected && FetchRes.url.includes("/auth/")) {
             {% if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
@@ -161,20 +161,20 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             ) {
                 {% if DEBUG %}debug_log(`${path} redirect to auth with next`);{% endif %}
                 throw Error(event.request.url);
-            }
+            };
             {% if DEBUG %}debug_log(`${path} redirect to auth without next`);{% endif %}
-        }
+        };
         {% if DEBUG %}debug_log(`${path} is not a redirect to auth`);{% endif %}
         return FetchRes;
     } else if (FetchRes.status < 400) {
         {% if DEBUG %}debug_log(`${path} status under 400`);{% endif %}
         if (event.request.headers.get(X_SCRIPTFETCH) !== H_TRUE) {
             return FetchRes;
-        }
+        };
         throw Error(event);
     } else {
         throw Error(event);
-    }
+    };
 };
 
 const netFetchErrorHandler = async (path, event, error) => {
@@ -183,7 +183,7 @@ const netFetchErrorHandler = async (path, event, error) => {
         const cachedResponse = await caches.match(event.request.url);
         if (!cachedResponse) {
             throw Error(event);
-        }
+        };
         {% if DEBUG %}debug_log(`${path} is cached`);{% endif %}
         return cachedResponse;
     } catch (e) {
@@ -191,17 +191,17 @@ const netFetchErrorHandler = async (path, event, error) => {
         if (canShowOfflineView(path, event)) {
             {% if DEBUG %}debug_log(`${path} can show offline`);{% endif %}
             return caches.match(_OFFPATH);
-        }
+        };
         {% if DEBUG %}debug_log(`${path} cannot show offline`);{% endif %}
         console.log(error);
-    }
+    };
 };
 
 const cacheFetchResponseHandler = async (path, event, CachedRes) => {
     if (CachedRes) {
         {% if DEBUG %}debug_log(`${path} is cached`);{% endif %}
         return CachedRes;
-    }
+    };
     {% if DEBUG %}debug_log(`${path} is not cached`);{% endif %}
     const FetchRes = await fetch(event.request);
     {% if DEBUG %}debug_log(`${path} is fetched`, FetchRes.status);{% endif %}
@@ -212,14 +212,14 @@ const cacheFetchResponseHandler = async (path, event, CachedRes) => {
         ) {
             // get script fetch error can show offline view
             throw Error(event.request.url);
-        }
+        };
         {% if DEBUG %}debug_log(`${path} is not fetched`, FetchRes.status);{% endif %}
         return FetchRes;
-    }
+    };
     if (canClearDynCache(path, event)) {
         {% if DEBUG %}debug_log(`${path} can clear dyn cache`);{% endif %}
         await caches.delete(_DYN_CACHE_NAME);
-    }
+    };
     // const ignore = isIgnored(path) || isNoOffline(path);
     if (canSetDynCache(path, event)) {
         {% if DEBUG %}debug_log(`${path} can set dyn cache`);{% endif %}
@@ -228,16 +228,16 @@ const cacheFetchResponseHandler = async (path, event, CachedRes) => {
             cache.put(event.request.url, FetchRes.clone());
         } catch (e) {
             console.error(e);
-        }
-    }
+        };
+    };
     if (FetchRes.redirected && FetchRes.url.includes("/auth/")) {
         {% if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
         const splitnext = FetchRes.url.split("?next=");
         if (splitnext.length > 1 && event.request.url.includes(splitnext[1])) {
             {% if DEBUG %}debug_log(`${path} redirect to auth with next`);{% endif %}
             throw Error(event.request.url);
-        }
-    }
+        };
+    };
     return FetchRes;
 };
 
@@ -246,7 +246,7 @@ const cacheFetchErrorHandler = async (path, event, error) => {
     if (canShowOfflineView(path, event)) {
         {% if DEBUG %}debug_log(`${path} can show offline`);{% endif %}
         return caches.match(_OFFPATH);
-    }
+    };
     {% if DEBUG %}debug_log(`${path} cannot show offline`);{% endif %}
     console.log(error);
 };
@@ -256,26 +256,26 @@ self.addEventListener(EVENTS.FETCH, async (event) => {
     if(isNetFirst(path)){
         event.respondWith(
             fetch(event.request).then(async(FetchRes)=>{
-                return await netFetchResponseHandler(path, event, FetchRes)
+                return await netFetchResponseHandler(path, event, FetchRes);
             }).catch(async(e)=>{
-                return await netFetchErrorHandler(path, event, e)
+                return await netFetchErrorHandler(path, event, e);
             })  
         );
     }else{
         event.respondWith(
             caches.match(event.request).then(async(CachedRes)=>{
-                return await cacheFetchResponseHandler(path,event, CachedRes)
+                return await cacheFetchResponseHandler(path,event, CachedRes);
             }).catch(async(e)=>{
-                return await cacheFetchErrorHandler(path, event, e)
+                return await cacheFetchErrorHandler(path, event, e);
             })
-        )
-    }
+        );
+    };
 });
 
 self.addEventListener(EVENTS.MESSAGE, (event) => {
     if (event.data.action === "skipWaiting") {
         self.skipWaiting();
-    }
+    };
 });
 
 self.addEventListener(EVENTS.PUSH, (event) => {
@@ -293,7 +293,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
         tag: "{{APPNAME}}{{VERSION}}",
         timestamp: Date.now(),
         vibrate: [200, 100, 200],
-    }
+    };
     let title, options = defaultOps;
     try{
         data = JSON.parse(payload),
@@ -312,10 +312,10 @@ self.addEventListener(EVENTS.PUSH, (event) => {
             tag: data.tag|| defaultOps.tag,
             timestamp: data.timestamp|| defaultOps.timestamp,
             vibrate: data.vibrate|| defaultOps.vibrate,
-        }
+        };
     } catch {
         title = payload;
-    }
+    }!
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(
         self.registration.showNotification(title, options)
