@@ -9,6 +9,6 @@ const STRING = {
     default_error_message: '{% trans "Something went wrong." %}',
     default_success_message: '{% trans "Successfull" %}',
     network_error_message: '{% trans "Network error, check your connection." %}',
-}
+};
 
 Object.freeze(STRING);
