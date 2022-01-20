@@ -26,6 +26,7 @@ django-csp==3.7
 django-environ==0.4.5
 django-fakeredis==0.1.2
 django-formtools==2.3
+django-htmlmin==0.11.0
 django-mfa2==2.4.0
 django-otp==1.0.6
 django-phonenumber-field==5.2.0
@@ -47,6 +48,7 @@ environ==1.0
 fakeredis==1.6.0
 fido2==0.9.2
 fuzzywuzzy==0.18.0
+html5lib==1.1
 http-ece==1.1.0
 idna==2.10
 ipaddress==1.0.23
@@ -96,5 +98,6 @@ ua-parser==0.10.0
 urllib3==1.26.5
 user-agents==2.2.0
 wcwidth==0.2.5
+webencodings==0.5.1
 wrapt==1.12.1
 yarl==1.6.3
