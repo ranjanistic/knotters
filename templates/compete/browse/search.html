@@ -6,13 +6,13 @@
 
 {% if query %}
 <div class="w3-row tertiary">
-    <div class="w3-row" style="padding:12px 4px">
+    <div class="w3-row w3-animate-right" style="padding:12px 4px">
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Results for '{{query}}'{% endblocktrans %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser-wide">
         <div class="swiper-wrapper swiper-wrap">
             {% for competition in competitions %}
-                <div class="swiper-slide" style="width:10vw !important;">
+                <div class="swiper-slide w3-animate-zoom" style="width:10vw !important;">
                     <a href="{{competition.getLink}}">                    
                         <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
                             <div class="w3-col w3-half pallete tertiary">
@@ -41,7 +41,7 @@
     <div class="w3-hide-large w3-row">
         <div class="swiper-wrap_i">
             {% for competition in competitions %}
-                <div class="w3-col w3-padding">
+                <div class="w3-col w3-padding w3-animate-zoom">
                     <a href="{{competition.getLink}}">
                     <div class="" style="width:80vw !important;">
                         <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">

@@ -14,6 +14,8 @@ const KEY = {
     message_fired: "message-fired",
     error_fired: "error-fired",
     success_fired: "success-fired",
+    loader: 'global-loader',
+    subLoader: 'sub-loader',
 };
 const Key = KEY;
 

@@ -27,11 +27,6 @@ window.addEventListener("load", () => {
     
     loadReporters();
     loadBrowserSwiper();
-    window.history.pushState(
-        "object or string",
-        document.title,
-        window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/, "")
-    );
     serviceWorkerRegistration();
     if (localStorage.getItem(Key.futureMessage)) {
         message(localStorage.getItem(Key.futureMessage));
@@ -59,6 +54,33 @@ window.addEventListener("load", () => {
     sessionStorage.removeItem(KEY.message_fired)
     sessionStorage.removeItem(KEY.error_fired)
     sessionStorage.removeItem(KEY.success_fired)
+    
+    if(window.location.href.split('#').length > 1) {
+        const elem = getElement(window.location.href.split('#')[1])
+        if(elem){
+            setTimeout(() => {
+                elem.scrollIntoView();
+                setTimeout(() => {
+                    let op = 1
+                    let times = 0
+                    x = setInterval(()=>{
+                        op=op<1?op*2:op/2;
+                        elem.style.opacity=op;
+                        times++;
+                        if(times>7){
+                            clearInterval(x);
+                            elem.style.opacity=1
+                        }
+                    },100)
+                },900)
+            }, 300)
+        }
+    }
+    window.history.pushState(
+        "object or string",
+        document.title,
+        window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/, "")
+    );
     subLoader(false);
 });
 

@@ -5,14 +5,14 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row tertiary" style="background-image: url('{{ICON}}');">
+<div class="w3-row secondary" style="background-image: url('{{ICON_SHADOW}}');">
     <div class="w3-row" style="padding:16px 4px">
-    <h2 class="w3-center pallete">{% trans "Backed by the Greatest" %}</h2>
+        <h2 class="w3-center"><span class="pallete-slab tertiary">{% trans "Backed by the Greatest" %}</span></h2>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
             {% for dmentor in dmentors %}
-            <div class="swiper-slide">
+            <div class="swiper-slide w3-animate-zoom">
                 <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"{% endif %}>
                 <div class="pallete w3-center no-pad">
                     <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />

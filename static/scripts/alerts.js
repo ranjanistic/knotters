@@ -1,12 +1,20 @@
 const loader = (show = true) => {
     if (show) {
         getElements("swal2-container").forEach((e) => (e.style.zIndex = 1060));
+        sessionStorage.setItem(KEY.loader, 1);
+        window.dispatchEvent(new CustomEvent(KEY.loader));
+    } else {
+        sessionStorage.removeItem(KEY.loader);
     }
     visibleElement("viewloader", show);
 };
 const subLoader = (show = true) => {
     if (show) {
         getElements("swal2-container").forEach((e) => (e.style.zIndex = 1060));
+        sessionStorage.setItem(KEY.subLoader, 1);
+        window.dispatchEvent(new CustomEvent(KEY.subLoader));
+    } else {
+        sessionStorage.removeItem(KEY.subLoader);
     }
     visibleElement("subloader", show);
 };

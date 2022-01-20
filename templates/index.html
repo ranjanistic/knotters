@@ -75,21 +75,25 @@
          <div
            class="pallette primary negative-text w3-center w3-row"
          >
-         <i class="w3-jumbo material-icons">code_off</i>
+         <i class="w3-jumbo material-icons">error</i>
          <h3 class="negative-text">Javascript Disabled</h3>
            <div class="w3-row w3-center">
-            <h6 class="negative-text">Please enable javascript in your browser, allow us to use it, if
+            <strong class="text-medium negative-text">Please enable javascript in your browser, allow {{SITE}} to use it, if
             denied.<br />If your browser doesn't support javascript, try a
             <a
               target="_blank"
               rel="noreferrer"
               href="https://google.com/search?q=modern+browsers"
               >modern browser</a
-              >.</h6>
+              >.</strong><br/><br/>
              <a href="https://www.google.com/search?q=enable+javascript" 
                 target="_blank"
                 rel="noreferrer">
-              <button class="positive">Enable JS</button>
+              <button class="positive"><i class="material-icons">code</i>Enable JS</button>
+             </a>
+             <a href="{{request.path}}" 
+                rel="noreferrer">
+              <button class="primary"><i class="material-icons">refresh</i>Refresh</button>
              </a>
             </div>
          </div>

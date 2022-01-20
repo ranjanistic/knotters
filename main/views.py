@@ -20,7 +20,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect, render
-from management.models import HookRecord, GhMarketPlan
+from management.models import HookRecord, GhMarketPlan, GhMarketApp
 from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
@@ -121,7 +121,13 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
 
 @require_GET
 def landing(request: WSGIRequest) -> HttpResponse:
-    return renderView(request, Template.LANDING)
+    apps = cache.get('gh_market_apps', [])
+    if not len(apps):
+        apps = GhMarketApp.objects.filter()
+        cache.set('gh_market_apps', apps, settings.CACHE_SHORT)
+    return renderView(request, Template.LANDING, dict(
+        gh_market_app=apps.first()
+    ))
 
 
 @require_GET
