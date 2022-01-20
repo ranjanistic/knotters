@@ -9,12 +9,12 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from management.models import ReportCategory
 from people.models import ProfileTopic
-from projects.methods import setupApprovedProject
+from projects.methods import setupApprovedProject, setupApprovedCoreProject
 from projects.mailers import projectRejectedNotification
 from compete.mailers import submissionsModeratedAlert
 from main.methods import errorLog, respondJson, respondRedirect, addMethodToAsyncQueue
-from main.strings import Code, Message, PROJECTS, PEOPLE, COMPETE, URL
-from main.decorators import require_JSON_body, moderator_only, normal_profile_required
+from main.strings import CORE_PROJECT, Code, Message, PROJECTS, PEOPLE, COMPETE, URL, Template
+from main.decorators import decode_JSON, require_JSON_body, moderator_only, normal_profile_required
 from .apps import APPNAME
 from .mailers import moderationAssignedAlert
 from .models import Moderation
@@ -29,7 +29,7 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
         isModerator = moderation.moderator == request.user.profile
         isRequestor = moderation.isRequestor(request.user.profile)
         if not isRequestor and not isModerator:
-            raise Exception()
+            raise Exception(id)
         data = dict(moderation=moderation, ismoderator=isModerator)
         if moderation.type == COMPETE:
             if isRequestor:
@@ -40,8 +40,11 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
                 ~Q(id=id), type=PROJECTS, project=moderation.project, resolved=False).order_by('-requestOn').first()
             data = dict(**data, forwarded=forwarded)
         return renderer(request, moderation.type, data)
-    except:
-        raise Http404()
+    except ObjectDoesNotExist as o:
+        Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -106,6 +109,8 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             raise Exception()
         skip = request.POST.get('skip', None)
         if skip:
+            if mod.type == CORE_PROJECT or mod.type == COMPETE:
+                return redirect(mod.getLink(error=Message.INVALID_REQUEST))
             onlyModProfiles = None
             if mod.internal_mod and mod.requestor.is_manager:
                 onlyModProfiles = mod.requestor.management.moderators.exclude(id=mod.moderator.id)
@@ -130,31 +135,47 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 if done and mod.type == PROJECTS:
                     addMethodToAsyncQueue(
                         f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}", mod.project)
+                if done and mod.type == CORE_PROJECT:
+                    addMethodToAsyncQueue(
+                        f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}", mod.coreproject)
                 return respondJson(Code.OK if done else Code.NO)
             elif approve:
                 done = mod.approve()
-                if done and mod.type == PROJECTS:
-                    done = setupApprovedProject(mod.project, mod.moderator)
-                    if not done:
-                        mod.revertApproval()
+                if done:
+                    if mod.type == PROJECTS:
+                        done = setupApprovedProject(mod.project, mod.moderator)
+                        if not done:
+                            mod.revertApproval()
+                    elif mod.type == CORE_PROJECT:
+                        done = setupApprovedCoreProject(mod.coreproject, mod.moderator)
+                        if not done:
+                            mod.revertApproval()
                 return respondJson(Code.OK if done else Code.NO, error=Message.ERROR_OCCURRED if not done else str())
             else:
                 return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if mod:
+            return redirect(mod.getLink(error=Message.INVALID_REQUEST))
+        raise Http404(o)
     except Exception as e:
-        errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if mod:
             return redirect(mod.getLink(error=Message.ERROR_OCCURRED))
-        raise Http404()
+        errorLog(e)
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
     """
     Re-request for moderation if possible, and if rejected or stale. (Project, primarily)
     """
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         mod = Moderation.objects.get(
             id=modID)
@@ -171,13 +192,18 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
             newmod = requestModerationForObject(
                 mod.competition, mod.type, reassignIfRejected=True, stale_days=mod.stale_days, useInternalMods=mod.internal_mod)
         else:
-            return redirect(mod.getLink(alert=Message.ERROR_OCCURRED))
+            return redirect(mod.getLink(alert=Message.INVALID_REQUEST))
         if not newmod:
             return redirect(mod.getLink(alert=Message.ERROR_OCCURRED))
         else:
             return redirect(newmod.getLink(alert=Message.MODERATION_REAPPLIED))
-    except:
-        raise Http404()
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @moderator_only
@@ -221,7 +247,10 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 profiletopic.increasePoints(by=modXP)
         request.user.profile.increaseXP(by=modXP)
         return respondJson(Code.OK)
-    except:
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
@@ -233,6 +262,7 @@ def reportCategories(request: WSGIRequest):
             reports.append(dict(id=cat.id, name=cat.name))
         return respondJson(Code.OK, dict(reports=reports))
     except Exception as e:
+        errorLog(e)
         return respondJson(Code.NO)
 
 
@@ -246,6 +276,8 @@ def reportModeration(request: WSGIRequest):
         category = ReportCategory.objects.get(id=report)
         request.user.profile.reportModeration(moderation, category)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

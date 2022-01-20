@@ -19,55 +19,75 @@
     font-family: var(--head-font);
 }
 
-.loader,.loader:before,.loader:after{
-    top:0;
-    bottom:0;
-    left:0;
-    right:0; 
-    content:"";
-    position:absolute;
-    border-radius:50%;
-  }
-  .loader{
-    position:relative;
+.loader,
+.loader:before,
+.loader:after {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+}
+.loader {
+    position: relative;
     top: calc(50% - 70px);
-    width:100px;
-    height:100px;
-    margin:auto;
-    animation:spin 2s alternate infinite;
-  }
-  
-  @keyframes spin{
-    100%{transform:rotate(360deg)}
-  }
-  
-  .loader:before{
-    border:8px solid var(--active);
-    border-bottom:8px solid transparent;
-    border-left:8px solid transparent;
-    animation:spin1 1s alternate infinite;
-  }
-  
-  .loader:after{
-    border:8px solid var(--accent);
-    border-top:8px solid transparent;
-    border-right:8px solid var(--positive);
-    animation:spin2 1s alternate infinite;
-  }
-  
-  @keyframes spin1{
-    20%{transform:rotate(50deg)}
-    40%{transform:rotate(100deg)}
-    80%{transform:rotate(200deg)}
-    100%{transform:rotate(320deg)}
-  }
-  
-  @keyframes spin2{
-    0%{transform:rotate(-30deg)}
-    40%{transform:rotate(-30deg)}
-    80%{transform:rotate(170deg)}
-    100%{transform:rotate(30deg);}
-  }
+    width: 100px;
+    height: 100px;
+    margin: auto;
+    animation: spin 2s alternate infinite;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loader:before {
+    border: 8px solid var(--active);
+    border-bottom: 8px solid transparent;
+    border-left: 8px solid transparent;
+    animation: spin1 1s alternate infinite;
+}
+
+.loader:after {
+    border: 8px solid var(--accent);
+    border-top: 8px solid transparent;
+    border-right: 8px solid var(--positive);
+    animation: spin2 1s alternate infinite;
+}
+
+@keyframes spin1 {
+    20% {
+        transform: rotate(50deg);
+    }
+    40% {
+        transform: rotate(100deg);
+    }
+    80% {
+        transform: rotate(200deg);
+    }
+    100% {
+        transform: rotate(320deg);
+    }
+}
+
+@keyframes spin2 {
+    0% {
+        transform: rotate(-30deg);
+    }
+    40% {
+        transform: rotate(-30deg);
+    }
+    80% {
+        transform: rotate(170deg);
+    }
+    100% {
+        transform: rotate(30deg);
+    }
+}
 
 .linear-loader {
     position: fixed;

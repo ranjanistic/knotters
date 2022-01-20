@@ -5,7 +5,7 @@ const togglePushSubscription = async ({
     callback = (data) => {},
     browser = _BROWSER,
 }) => {
-    const donst = await postRequest2({
+    const done = await postRequest2({
         path: "/webpush/save_information",
         data: {
             status_type: statusType,
@@ -18,7 +18,7 @@ const togglePushSubscription = async ({
             credentials: "include",
         },
     });
-    callback(donst);
+    callback(done);
 };
 
 const subscribeToPush = async (
@@ -26,7 +26,6 @@ const subscribeToPush = async (
     done = (subscription, err = null) => {}
 ) => {
     const reg = await navigator.serviceWorker.getRegistration();
-    console.log(reg.pushManager);
     reg.pushManager.getSubscription().then((subscription) => {
         if (subscription) {
             togglePushSubscription({
@@ -34,11 +33,12 @@ const subscribeToPush = async (
                 subscription,
                 group,
                 callback: (response) => {
-                    console.log(response);
                     if (response) {
-                        // message(
-                        //     "Successfully subscribed for Push Notification"
-                        // );
+                        message(
+                            STRING.subscribed_to_notif_of +
+                                " " +
+                                (group ? group : APPNAME)
+                        );
                         done(subscription);
                     }
                     return response;
@@ -57,11 +57,11 @@ const subscribeToPush = async (
                         group,
                         callback: (response) => {
                             if (response) {
-                                if (group) {
-                                    // message(
-                                    //     "Successfully subscribed"
-                                    // );
-                                }
+                                message(
+                                    STRING.subscribed_to_notif_of +
+                                        " " +
+                                        (group ? group : APPNAME)
+                                );
                                 done(subscription);
                             }
 
@@ -98,7 +98,7 @@ const unsubscribeFromPush = async (group = null) => {
     const reg = await navigator.serviceWorker.getRegistration();
     reg.pushManager.getSubscription().then(function (subscription) {
         if (!subscription) {
-            message("Subscription is not available");
+            message(STRING.subscription_unavailable);
             return true;
         }
         return togglePushSubscription({
@@ -112,15 +112,18 @@ const unsubscribeFromPush = async (group = null) => {
                         .then((successful) => {
                             console.log(successful);
                             message(
-                                "Successfully unsubscribed for Push Notification"
+                                STRING.unsubscribed_from_notif_of +
+                                    " " +
+                                    (group ? group : APPNAME)
                             );
                             return successful;
                         })
                         .catch((error) => {
                             console.log(error);
-                            message(
-                                "Error during unsubscribe from Push Notification"
-                            );
+                            error();
+                            // message(
+                            //     "Error during unsubscribe from Push Notification"
+                            // );
                         });
                 }
             },

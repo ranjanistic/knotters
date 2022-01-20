@@ -14,8 +14,8 @@ const KEY = {
     message_fired: "message-fired",
     error_fired: "error-fired",
     success_fired: "success-fired",
-    loader: 'global-loader',
-    subLoader: 'sub-loader',
+    loader: "global-loader",
+    subLoader: "sub-loader",
 };
 const Key = KEY;
 
@@ -31,3 +31,5 @@ let __appInstallPromptEvent = null;
 const _BROWSER = navigator.userAgent
     .match(/(firefox|msie|chrome|safari|trident)/gi)[0]
     .toLowerCase();
+
+Swal = Swal.mixin({ scrollbarPadding: false });

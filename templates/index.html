@@ -155,7 +155,7 @@
         <div class="w3-row">
         {% for alert in alerts %}
         <div class="w3-row positive w3-center w3-padding" id="view-{{alert.id}}">
-            <span class="w3-padding">{{alert.message}}{% if alert.url %} <a class="text-positive" href="{{alert.url}}">Click here</a>{% endif %}</span>
+            <span class="w3-padding">{{alert.message}}{% if alert.url %} <a class="text-positive" href="{{alert.url}}">Click here to proceed</a>.{% endif %}</span>
             <button class="small primary w3-right close-global-alert" data-icon="close" id="{{alert.id}}"></button>
         </div>
         {% endfor %}
@@ -184,7 +184,7 @@
         <div style="min-height: 50vh;">
             {% block content %}
             <div class="w3-row accent w3-padding w3-center first-time-view" id="mod-mentor-looking">
-              <strong>We are actively looking for mentors and moderators. <a class="underline text-accent" href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank">Click here</a> to request to be one.</strong>
+              <strong>We are actively looking for mentors and moderators. <a class="underline text-accent" href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank">Click here to request</a> to be one.</strong>
               <button class='accent w3-right small no-pad' id='close-mod-mentor-looking' data-icon='close'></button>
             </div>
             <div class="w3-row">
@@ -414,17 +414,17 @@
             <div class="loading-animation"></div>
         </div>
         <div class="preview-image-modal w3-padding-small" id="image-previewer">
-            <img src=""  id="preivew-image-src"/>
+            <img src="{{ICON}}"  id="preivew-image-src"/>
         </div>
         {% endblock %}
-        <script src="{{URLS.STRINGS}}"></script>
-        <script src="{% static 'scripts/globalvars.js' %}"></script>
         <script src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{% static 'interactjs/interactjs.min.js' %}"></script>
+        <script src="{{URLS.STRINGS}}" type="text/javascript"></script>
+        <script src="{% static 'scripts/globalvars.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/request.js' %}"></script>
         <script src="{% static 'scripts/notification.js' %}"></script>
@@ -438,6 +438,7 @@
 
         <script>
             const SITE = "{{SITE}}";
+            const STATIC_URL = "{% static '*' %}";
             const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True';
             const activeuser = authenticated && "{{request.user.profile.is_active}}" == 'True';
             const ROOT = "{{ROOT}}";
@@ -447,6 +448,7 @@
             const SUBAPPNAME = "{{SUBAPPNAME}}";
             const ICON = "{{ICON}}";
             const ICON_DARK = "{{ICON_DARK}}";
+            const ICON_SHADOW = "{{ICON_SHADOW}}";
             const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
             const VAPID_KEY = "{{VAPID_KEY}}";
             if("{{request.GET.e}}") {

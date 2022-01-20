@@ -8,7 +8,7 @@ from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
-from main.strings import Code, setURLAlerts, url, PEOPLE, project, MANAGEMENT, DOCS
+from main.strings import CORE_PROJECT, Code, setURLAlerts, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
@@ -277,24 +277,34 @@ class BaseProject(models.Model):
 
     @property
     def is_approved(self):
-        return Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or self.is_free
+        return self.is_free or Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or CoreProject.objects.filter(id=self.id,status=Code.APPROVED).exists()
 
     @property
     def is_pending(self):
-        return Project.objects.filter(id=self.id,status=Code.MODERATION).exists()
+        return Project.objects.filter(id=self.id,status=Code.MODERATION).exists() or CoreProject.objects.filter(id=self.id,status=Code.MODERATION).exists()
 
     @property
     def is_rejected(self):
-        return Project.objects.filter(id=self.id,status=Code.REJECTED).exists()
+        return Project.objects.filter(id=self.id,status=Code.REJECTED).exists() or CoreProject.objects.filter(id=self.id,status=Code.REJECTED).exists()
 
     def getProject(self,onlyApproved=False):
-        project = None
+        project = cache.get(f'{self.id}_subproject', None)
+        if project:
+            return project
         try:
             project = FreeProject.objects.get(id=self.id)
+            cache.set(f'{self.id}_subproject', project, settings.CACHE_SHORT)
         except:
-            project = Project.objects.get(id=self.id)
-            if onlyApproved and not project.isApproved():
-                return None
+            try:
+                project = Project.objects.get(id=self.id)
+                if onlyApproved and not project.isApproved():
+                    return None
+                cache.set(f'{self.id}_subproject', project, settings.CACHE_SHORT)
+            except:
+                project = CoreProject.objects.get(id=self.id)
+                if onlyApproved and not project.isApproved():
+                    return None
+                cache.set(f'{self.id}_subproject', project, settings.CACHE_SHORT)
         return project
 
     @property
@@ -311,6 +321,8 @@ class BaseProject(models.Model):
         project = self.getProject()
         if project.verified:
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=project.reponame)}{url.getMessageQuery(alert,error,success)}"
+        if project.core:
+            return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=project.codename)}{url.getMessageQuery(alert,error,success)}"
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
   
     @property
@@ -318,6 +330,8 @@ class BaseProject(models.Model):
         project = self.getProject()
         if project.verified:
             return project.reponame
+        if project.core:
+            return project.codename
         return project.nickname
 
     @property
@@ -364,8 +378,7 @@ class Project(BaseProject):
     mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, related_name='verified_project_mentor',null=True, blank=True)
 
     verified = True
-
-    stale_days = 3
+    core = False
 
     def sub_save(self):
         assert len(self.reponame) > 0
@@ -497,6 +510,7 @@ class Asset(models.Model):
 class FreeProject(BaseProject):
     nickname = models.CharField(max_length=500, unique=True, null=False, blank=False)
     verified = False
+    core = False
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=self.nickname)}{url.getMessageQuery(alert,error,success)}"
@@ -581,13 +595,110 @@ class ProjectSocial(models.Model):
 
 class CoreProject(BaseProject):
     codename = models.CharField(max_length=500, unique=True, null=False, blank=False)
+    repo_id = models.IntegerField(default=0, null=True, blank=True)
+    status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
+        project.PROJECTSTATES), default=Code.MODERATION)
+    approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     verified = False
+    core = True
+    
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+    
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        try:
+            if self.status != Code.APPROVED:
+                return (Moderation.objects.filter(project=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error,success=success)
+            return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
+        except:
+            return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
+
+    def isApproved(self) -> bool:
+        return self.status == Code.APPROVED
+
+    def isLive(self) -> bool:
+        return self.isApproved()
+
+    def rejected(self) -> bool:
+        return self.status == Code.REJECTED
+
+    def underModeration(self) -> bool:
+        return self.status == Code.MODERATION
+
+    def getRepoLink(self) -> str:
+        try:
+            if self.repo_id:
+                data = cache.get(f"gh_repo_data_{self.repo_id}")
+                if data:
+                    return data.html_url
+                try:
+                    data = Github.get_repo(int(self.repo_id))
+                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                    return data.html_url
+                except:
+                    return self.codename
+            else:
+                try:
+                    data = GithubKnotters.get_repo(self.codename)
+                    self.repo_id = data.id
+                    self.save()
+                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                    return data.html_url
+                except:
+                    return self.codename
+        except Exception as e:
+            errorLog(e)
+            return None
+
+    @property
+    def nickname(self):
+        return self.codename
+
+    @property
+    def moderator(self):
+        mod = Moderation.objects.filter(project=self, type=CORE_PROJECT, status__in=[
+                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn').first()
+        return None if not mod else mod.moderator
+
+    def getModerator(self) -> models.Model:
+        if not self.isApproved():
+            return None
+        mod = Moderation.objects.filter(
+            project=self, type=CORE_PROJECT, status=Code.APPROVED, resolved=True).order_by('-respondOn').first()
+        return None if not mod else mod.moderator
+
+    def getModLink(self) -> str:
+        try:
+            return (Moderation.objects.filter(project=self, type=CORE_PROJECT).order_by('requestOn').first()).getLink()
+        except:
+            return str()
+
+    def moderationRetriesLeft(self) -> int:
+        if self.status != Code.APPROVED:
+            return 1 - Moderation.objects.filter(type=CORE_PROJECT, project=self).count()
+        return 0
+
+    def canRetryModeration(self) -> bool:
+        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed
+
+    def getTrashLink(self) -> str:
+        return url.projects.trash(self.getID())
+
+    def moveToTrash(self) -> bool:
+        if not self.isApproved():
+            self.trashed = True
+            self.creator.decreaseXP(by=2)
+            self.save()
+            return self.trashed
+        return self.trashed
+
+    def editProfileLink(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+    
 
 class LegalDoc(models.Model):
     class Meta:

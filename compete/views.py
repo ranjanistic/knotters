@@ -1,5 +1,6 @@
 from uuid import UUID
 from django.core.exceptions import ObjectDoesNotExist
+from main.exceptions import InactiveCompetitionError
 from ratelimit.decorators import ratelimit
 import os
 from django.db.models import Sum
@@ -249,10 +250,12 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """
     Remove member/Withdraw participation
     """
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         member = request.user.profile if request.user.getID(
         ) == userID else Profile.objects.get(user__id=userID)
@@ -261,7 +264,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
         if not submission.competition.isActive():
-            raise Exception()
+            raise InactiveCompetitionError(submission.competition, subID, userID)
         
         conf = SubmissionParticipant.objects.filter(profile=member, submission=submission, confirmed=True).first()
         submission.members.remove(member)
@@ -271,10 +274,20 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             member.decreaseXP(by=5)
             addMethodToAsyncQueue(
                 f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
+        if json_body:
+            return respondJson(Code.OK, message=(Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED))
         return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
+    except InactiveCompetitionError as c:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(c)
     except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         errorLog(e)
         raise Http404(e)
 

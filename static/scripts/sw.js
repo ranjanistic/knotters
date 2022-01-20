@@ -4,19 +4,24 @@ const newUpdateDialog = async (newServiceWorker) => {
             title: STRING.update_available,
             imageUrl: isDark() ? ICON_DARK : ICON,
             imageWidth: 90,
-            html: `
-            <div class="w3-row w3-center id="app-update-view">
-            <h5 class="text-primary">A new version of ${APPNAME} is available,<br/> with new features <br/>& performance improvements.</h5>
+            html: `<div class="w3-row w3-center id="app-update-view">
+            <h5 class="text-primary">${
+                STRING.app_new_version_available
+            },<br/> ${STRING.with_new_features} <br/>& ${
+                STRING.perf_improvements
+            }.</h5>
             <strong class="align">v<span id="app-update-view-oldversion">...</span>&nbsp;${Icon(
                 "fast_forward"
             )}&nbsp;v<span class="positive-text" id="app-update-view-newversion">...</span></strong>
-            <h4>Shall we update?</h4>
-            <h6 class="dead-text">Updates are important. It will take a few seconds, depending upon your network strength.</h6>
+            <h4>${STRING.shall_we_update}</h4>
+            <h6 class="dead-text">${STRING.updates_are_imp} ${
+                STRING.will_take_few_seconds
+            }</h6>
             </div>`,
             showDenyButton: true,
             showConfirmButton: true,
-            confirmButtonText: "Yes, update now",
-            denyButtonText: "No, not now",
+            confirmButtonText: STRING.yes_up_now,
+            denyButtonText: STRING.not_now,
             allowOutsideClick: false,
             didOpen: async () => {
                 const newversion = await getRequest2({
@@ -43,7 +48,7 @@ const newUpdateDialog = async (newServiceWorker) => {
                 sessionStorage.removeItem(Key.deferupdate);
                 subLoader(true);
                 loader(true);
-                message("Updating...");
+                message(STRING.updating);
                 localStorage.setItem(Key.appUpdated, 1);
                 try {
                     newServiceWorker.postMessage({ action: "skipWaiting" });
@@ -59,7 +64,7 @@ const newUpdateDialog = async (newServiceWorker) => {
                     sessionStorage.removeItem(Key.deferupdate);
                     newUpdateDialog(newServiceWorker);
                 };
-                message("Okay, we won't remind you in this session.");
+                message(STRING.update_supressed);
             }
         });
     } else {
@@ -98,26 +103,25 @@ const serviceWorkerRegistration = () => {
                         }
                     });
                 });
-                initializePushNotification(reg);
+                if (authenticated) {
+                    initializePushNotification(reg);
+                }
             })
             .catch((err) => {
                 console.log("SW:0:", err);
-                console.log("An internal error occurred. We humbly request you to reload this page.");
+                console.log(STRING.internal_error);
             });
 
         if (Number(localStorage.getItem(Key.appUpdated))) {
-            success("App updated successfully.");
+            success(STRING.app_update_success);
             localStorage.removeItem(Key.appUpdated);
         }
     } else {
-        message(
-            "Your browser doesn't support some of our features ☹️. Please update/change your browser for the best experience."
-        );
+        message(STRING.browser_outdated);
     }
 };
 const _notifyServiceWorkerRegistration = () => {
     if (navigator.serviceWorker) {
-        console.log("notif reg");
         navigator.serviceWorker
             .register(URLS.Auth.NOTIFY_SW)
             .then((reg) => {
@@ -144,13 +148,6 @@ const initializePushNotification = (reg) => {
             togglePushSubscription({
                 statusType: "subscribe",
                 subscription,
-                // callback: (response) => {
-                //     if (response) {
-                //         message(
-                //             "Successfully subscribed for Push Notification"
-                //         );
-                //     }
-                // },
             });
         }
     });

@@ -159,6 +159,8 @@ const loadTabScript = (tab) => {
                             data: {
                                 query: e.target.value,
                             },
+                            retainCache: true,
+                            allowCache: true,
                         });
                         if (!data) return;
                         if (data.code === code.OK) {
@@ -221,6 +223,7 @@ const loadTabScript = (tab) => {
                                         .split(",")
                                         .filter((x) => x),
                                 },
+                                retainCache: true,
                             });
                             if (resp.code === code.OK) return tab.click();
                             error(resp.error);
@@ -230,53 +233,42 @@ const loadTabScript = (tab) => {
             break;
         case "security":
             {
-                const deactivationDialog = () => {
-                    const ddial = alertify
-                        .confirm(
-                            `
-                    <h4 class="negative-text">
-                    Deactivate your ${APPNAME} account?
-                    </h4>`,
-                            `<h5>
-                        Are you sure you want to ${NegativeText(
-                            "de-activate"
-                        )} your account?<br/>
-                        Your account will NOT get deleted, instead, it will be hidden from everyone.
-
-                        This also implies that your profile URL will not work during this period of deactivation.
-
-                        You can reactivate your account by logging in again anytime.
-                    </h5>`,
-                            () => {},
-                            async () => {
-                                message("Deactivating account...");
-                                loaders(true);
-                                const data = await postRequest2({
-                                    path: URLS.ACCOUNTACTIVATION,
-                                    data: {
-                                        deactivate: true,
-                                    },
-                                });
-                                if (data && data.code === code.OK) {
-                                    message(
-                                        "Your account has been deactivated."
-                                    );
-                                    return await logOut();
-                                }
-                                loaders(false);
-                                error(data.error);
+                const deactivationDialog = async () => {
+                    await Swal.fire({
+                        title: STRING.deactivate_appname_account,
+                        html: `<h5>${STRING.you_sure_to} ${NegativeText(
+                            STRING.de_activate
+                        )} ${STRING.your_acc}?<br/>${
+                            STRING.account_hidden_from_all
+                        }<br/>${STRING.deactive_profile_url_wont_work}<br/>${
+                            STRING.can_reactivate_anytime
+                        }</h5>`,
+                        showConfirmButton: false,
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        denyButtonText:
+                            Icon("toggle_off") + " " + STRING.deactivate_my_acc,
+                        cancelButtonText: STRING.no_go_back,
+                    }).then(async (result) => {
+                        if (result.isDenied) {
+                            message(STRING.deactivating_acc);
+                            loaders(true);
+                            const data = await postRequest2({
+                                path: URLS.ACCOUNTACTIVATION,
+                                data: {
+                                    deactivate: true,
+                                },
+                            });
+                            if (data && data.code === code.OK) {
+                                message(STRING.acc_deactivated);
+                                return await logOut();
                             }
-                        )
-                        .set("labels", {
-                            ok: "No, Go back",
-                            cancel: `${Icon(
-                                "toggle_off"
-                            )} Deactivate my account`,
-                        })
-                        .set("closable", false);
+                            loaders(false);
+                            error(data.error);
+                        }
+                    });
                 };
-
-                getElement("deactivateaccount").onclick = (_) => {
+                getElement("deactivateaccount").onclick = async (_) => {
                     deactivationDialog();
                 };
 
@@ -451,139 +443,145 @@ const loadTabScript = (tab) => {
                     const username = unblock.getAttribute("data-username");
                     const userID = unblock.getAttribute("data-userID");
                     unblock.onclick = (_) => {
-                        alertify
-                            .confirm(
-                                `<h3>Un-block ${username}?</h3>`,
-                                `<h6>Are you sure you want to ${PositiveText(
-                                    `unblock ${username}`
-                                )}? You both will be visible to each other on ${APPNAME}, including all associated activities.
-                            <br/>You can block them anytime from their profile.
+                        Swal.fire({
+                            title: `Un-block ${username}?`,
+                            html: `<h6>Are you sure you want to ${PositiveText(
+                                `unblock ${username}`
+                            )}? You both will be visible to each other on ${APPNAME}, including all associated activities.
+                                <br/>You can block them anytime from their profile.
                             </h6>`,
-                                async () => {
-                                    const data = await postRequest2({
-                                        path: URLS.UNBLOCK_USER,
-                                        data: { userID },
-                                    });
-                                    if (!data) return;
-                                    if (data.code === code.OK) {
-                                        message(`Unblocked ${username}.`);
-                                        return tab.click();
-                                    }
-                                    error(data.error);
-                                },
-                                () => {}
-                            )
-                            .set("labels", {
-                                ok: `${Icon(
-                                    "remove_circle_outline"
-                                )} Unblock ${username}`,
-                                cancel: "No, go back",
-                            });
+                            showCancelButton: true,
+                            cancelButtonText: STRING.no_go_back,
+                            confirmButtonText: `${Icon(
+                                "remove_circle_outline"
+                            )} Unblock ${username}`,
+                        }).then(async (res) => {
+                            if (res.isConfirmed) {
+                                const data = await postRequest2({
+                                    path: URLS.UNBLOCK_USER,
+                                    data: { userID },
+                                });
+                                if (!data) return;
+                                if (data.code === code.OK) {
+                                    message(`Unblocked ${username}.`);
+                                    return tab.click();
+                                }
+                                error(data.error);
+                            }
+                        });
                     };
                 });
             }
             break;
         case "people": {
-            if(isManager && selfProfile) {
+            if (isManager && selfProfile) {
                 getElement("send-mgm-invite").onclick = async () => {
                     Swal.fire({
-                        title: 'Invite person',
+                        title: "Invite person",
                         html: `<h6>Invite a person to your organization as a member.<br/>
                         Type their email to send invitation right away.</h6>
                         <br/>
                         <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="mgm-person-new-email" />
                         `,
                         showCancelButton: true,
-                        confirmButtonText: 'Send Invite',
-                        cancelButtonText: 'Cancel',
+                        confirmButtonText: "Send Invite",
+                        cancelButtonText: "Cancel",
                         showLoaderOnConfirm: true,
                         preConfirm: async () => {
-                            let email = getElement("mgm-person-new-email").value.trim()
-                            if(email) return email
-                            error('Email address required')
-                            return false
-                        }
+                            let email = getElement(
+                                "mgm-person-new-email"
+                            ).value.trim();
+                            if (email) return email;
+                            error("Email address required");
+                            return false;
+                        },
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             message("Sending invitation...");
                             const data = await postRequest2({
                                 path: URLS.Management.PEOPLE_MGM_SEND_INVITE,
                                 data: {
-                                    action: 'create',
+                                    action: "create",
                                     email: result.value,
                                 },
-                                retainCache: true
-                            })
-                            if(data.code===code.OK){
-                                message("Invitation sent.")
-                                return tab.click()
+                                retainCache: true,
+                            });
+                            if (data.code === code.OK) {
+                                message("Invitation sent.");
+                                return tab.click();
                             }
-                            error(data.error)
+                            error(data.error);
                         }
-                    })
-                }
+                    });
+                };
 
-                getElements("delete-mgm-person-invite").forEach((del)=>{
-                    del.onclick=_=>{
+                getElements("delete-mgm-person-invite").forEach((del) => {
+                    del.onclick = (_) => {
                         Swal.fire({
-                            title: 'Delete Invitation',
-                            imageUrl: del.getAttribute('data-receiver-dp'),
+                            title: "Delete Invitation",
+                            imageUrl: del.getAttribute("data-receiver-dp"),
                             imageWidth: 90,
-                            html: `<h6>Delete invitation for ${del.getAttribute('data-receiver-name')}?</h6>`,
+                            html: `<h6>Delete invitation for ${del.getAttribute(
+                                "data-receiver-name"
+                            )}?</h6>`,
                             showCancelButton: true,
-                            confirmButtonText: 'Delete',
-                            cancelButtonText: 'No',
-                        }).then(async(result)=>{
-                            if(result.isConfirmed){
-                                message("Deleting invitation...")
+                            confirmButtonText: "Delete",
+                            cancelButtonText: "No",
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                message("Deleting invitation...");
                                 const data = await postRequest2({
-                                    path: URLS.Management.PEOPLE_MGM_SEND_INVITE,
+                                    path: URLS.Management
+                                        .PEOPLE_MGM_SEND_INVITE,
                                     data: {
-                                        action: 'remove',
-                                        inviteID: del.getAttribute('data-inviteID'),
+                                        action: "remove",
+                                        inviteID:
+                                            del.getAttribute("data-inviteID"),
                                     },
-                                    retainCache: true
-                                })
-                                if(data.code===code.OK){
-                                    message("Invitation deleted.")
-                                    return tab.click()
+                                    retainCache: true,
+                                });
+                                if (data.code === code.OK) {
+                                    message("Invitation deleted.");
+                                    return tab.click();
                                 }
-                                error(data.error)
+                                error(data.error);
                             }
-                        })
-                    }
-                })
+                        });
+                    };
+                });
             }
-            getElements("delete-mgm-person").forEach((del)=>{
-                del.onclick=_=>{
+            getElements("delete-mgm-person").forEach((del) => {
+                del.onclick = (_) => {
                     Swal.fire({
-                        title: 'Remove Member',
-                        imageUrl: del.getAttribute('data-member-dp'),
+                        title: "Remove Member",
+                        imageUrl: del.getAttribute("data-member-dp"),
                         imageWidth: 90,
-                        html: `<h6>Remove member ${del.getAttribute('data-member-name')}?</h6>`,
+                        html: `<h6>Remove member ${del.getAttribute(
+                            "data-member-name"
+                        )}?</h6>`,
                         showCancelButton: true,
-                        confirmButtonText: 'Remove',
-                        cancelButtonText: 'No',
-                    }).then(async(result)=>{
-                        if(result.isConfirmed){
-                            message("Removing member...")
+                        confirmButtonText: "Remove",
+                        cancelButtonText: "No",
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            message("Removing member...");
                             const data = await postRequest2({
                                 path: URLS.Management.PEOPLE_MGM_REMOVE,
                                 data: {
-                                    userID: del.getAttribute('data-userID'),
+                                    userID: del.getAttribute("data-userID"),
                                     mgmID,
                                 },
-                                retainCache: true
-                            })
-                            if(data.code===code.OK){
-                                message("Member removed.")
-                                return tab.click()
+                                retainCache: true,
+                            });
+                            if (data.code === code.OK) {
+                                message("Member removed.");
+                                return tab.click();
                             }
-                            error(data.error)
+                            error(data.error);
                         }
-                    })
-                }
-            })
+                    });
+                };
+            });
         }
         default:
             break;
@@ -592,7 +590,9 @@ const loadTabScript = (tab) => {
 
 initializeTabsView({
     onEachTab: async (tab) => {
-        return await getRequest2({path:setUrlParams(URLS.PROFILETAB, userID, tab.id)});
+        return await getRequest2({
+            path: setUrlParams(URLS.PROFILETAB, userID, tab.id),
+        });
     },
     uniqueID: "profiletab",
     onShowTab: loadTabScript,
@@ -629,7 +629,7 @@ if (selfProfile) {
         viewID: "stabview",
         spinnerID: "sloader",
         onShowTab: loadTabScript,
-        tabindex
+        tabindex,
     });
 
     getElement("uploadprofilepic").onchange = (e) => {

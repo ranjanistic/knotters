@@ -287,7 +287,7 @@ def allowBypassDeactivated(path):
     for pathreg in settings.BYPASS_DEACTIVE_PATHS:
         if path == pathreg or testPathRegex(pathreg, path) or path.startswith(pathreg):
             return True
-        elif path == pathreg or testPathRegex(pathreg, path) or path.startswith(pathreg):
+        elif path.strip('/') == pathreg.strip('/') or testPathRegex(pathreg.strip('/'), path.strip('/')) or path.strip('/').startswith(pathreg.strip('/')):
             return True
     return False
 

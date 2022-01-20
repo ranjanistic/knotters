@@ -1,81 +1,81 @@
 input:focus,
 textarea:focus {
-  outline: none;
-  border: 0px;
+    outline: none;
+    border: 0px;
 }
 
 input.invalid,
 textarea.invalid {
-  border-color: var(--negative);
+    border-color: var(--negative);
 }
 
 .step-tab {
-  display: none;
+    display: none;
 }
 
-.step-tab span{
-  color: var(--negative);
+.step-tab span {
+    color: var(--negative);
 }
 
 .step {
-  height: 15px;
-  width: 15px;
-  margin: 0 2px;
-  background-color: #bbbbbb;
-  border: none;
-  border-radius: 50%;
-  display: inline-block;
-  opacity: 0.5;
+    height: 15px;
+    width: 15px;
+    margin: 0 2px;
+    background-color: #bbbbbb;
+    border: none;
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.5;
 }
 
 .step.active {
-  opacity: 1;
+    opacity: 1;
 }
 
 .step.finish {
-  background-color: var(--positive);
-  opacity: 1;
+    background-color: var(--positive);
+    opacity: 1;
 }
 
 .big-input {
-  width: 100%;
-  font-size: 22px;
-  font-family: var(--head-font);
-  border: 2px solid var(--active);
+    width: 100%;
+    font-size: 22px;
+    font-family: var(--head-font);
+    border: 2px solid var(--active);
 }
 
 #confirm-check-box {
-  font-weight: bolder;
+    font-weight: bolder;
 }
 
 .big-icon {
-  font-size: 20px !important;
-  padding: 0 !important;
-  margin: 0 !important;
+    font-size: 20px !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .file {
-	position: absolute;
-	right: -9999px;
-	visibility: hidden;
-	opacity: 0;
+    position: absolute;
+    right: -9999px;
+    visibility: hidden;
+    opacity: 0;
 }
 .submit {
-	position: relative;
-	padding: 1rem 3rem;
-	background: #0c8fda;
-	display: inline-block;
-	text-align: center;
-	overflow: hidden;
-	border-radius: 10px;
-	border: 0;
-	color:#fff;
+    position: relative;
+    padding: 1rem 3rem;
+    background: #0c8fda;
+    display: inline-block;
+    text-align: center;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 0;
+    color: #fff;
 }
 .submit:hover {
-  background: darken(#0c8fda, 5);
-  color: #fff;
-  cursor: pointer;
-  transition: 0.2s all;
+    background: darken(#0c8fda, 5);
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s all;
 }
 /*label {
 	position: relative;
@@ -93,37 +93,36 @@ label:hover {
   transition: 0.2s all;
 }*/
 
-
 .files {
-  background: #eee;
-  padding: 1rem;
-  margin:1rem 0;
-  border-radius:10px;
+    background: #eee;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 10px;
 }
-#ul{
-  list-style:none;
-  padding:0;
-  max-height:150px;
-  overflow:auto;
+#ul {
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow: auto;
 }
-.files>ul>li{
-  padding:0.5rem 0;
-  padding-right:2rem;
-  position:relative;
+.files > ul > li {
+    padding: 0.5rem 0;
+    padding-right: 2rem;
+    position: relative;
 }
-.files>ul>li>i{
-  cursor:pointer;
-  position:absolute;
-  top:50%;
-  right:0;
-  transform:translatey(-50%);
+.files > ul > li > i {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translatey(-50%);
 }
 .container {
-  width: 100%;
-  padding: 0 2rem;
+    width: 100%;
+    padding: 0 2rem;
 }
 
 span.file-size {
-	color: #999;
-	padding-left: 0.5rem;
+    color: #999;
+    padding-left: 0.5rem;
 }

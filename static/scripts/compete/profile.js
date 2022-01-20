@@ -2,8 +2,11 @@ let compdata = {};
 let intv;
 
 const loadData = async () => {
-    const data = await postRequest(setUrlParams(URLS.DATA, compID));
-    if (data.code === code.OK) {
+    const data = await postRequest2({
+        path: setUrlParams(URLS.DATA, compID),
+        retainCache: true,
+    });
+    if (data && data.code === code.OK) {
         compdata = { ...data };
         Object.freeze(compdata);
         clearInterval(intv);
@@ -59,24 +62,32 @@ const loadTabScript = (attr, tab) => {
                     if (compdata.participated) {
                         getElements("remove-person").forEach((remove) => {
                             remove.onclick = (_) => {
-                                alertify
-                                    .alert(
-                                        `Remove teammate`,
-                                        `
-                            <div class="w3-row">
-                                <h4>Are you sure you want to <span class="negative-text">remove</span> 
-                                ${remove.getAttribute("data-name")}?</h4>
-                                <form method="POST" action="${setUrlParams(
-                                    URLS.REMOVEMEMBER,
-                                    compdata.subID,
-                                    remove.getAttribute("data-userID")
-                                )}">
-                                    ${csrfHiddenInput(csrfmiddlewaretoken)}
-                                    <button class="negative">Yes, remove</button>
-                                </form>
-                            </div>`
-                                    )
-                                    .set({ label: "Cancel" });
+                                Swal.fire({
+                                    title: `Remove teammate`,
+                                    html: `Are you sure you want to remove ${remove.dataset.name} from this competition?`,
+                                    showDenyButton: true,
+                                    showCancelButton: false,
+                                    confirmButtonText: STRING.cancel,
+                                    denyButtonText: "Yes, remove",
+                                }).then(async (result) => {
+                                    if (result.isDenied) {
+                                        const data = await postRequest2({
+                                            path: setUrlParams(
+                                                URLS.REMOVEMEMBER,
+                                                compdata.subID,
+                                                remove.dataset.userID
+                                            ),
+                                        });
+                                        if (!data) return;
+                                        if (data.code === code.OK) {
+                                            message(
+                                                "Removed " + remove.dataset.name
+                                            );
+                                            return tab.click();
+                                        }
+                                        error(data.error);
+                                    }
+                                });
                             };
                         });
                         try {
@@ -302,12 +313,12 @@ const loadTabScript = (attr, tab) => {
                         `;
                         topic.id, topic.name, topic.score;
                     });
-                    alertify.alert(
-                        `Rank Scorecard`,
-                        `<h4>Rank ${numsuffix(rank)} points distribution</h4>
-                       ${scores}
-                      `
-                    );
+                    Swal.fire({
+                        title: `Rank Scorecard`,
+                        html: `<h4>Rank ${numsuffix(
+                            rank
+                        )} points distribution</h4>${scores}`,
+                    });
                 };
             });
         }

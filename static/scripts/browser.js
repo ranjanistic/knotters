@@ -1,6 +1,5 @@
 const loadBrowserSwiper = () => {
     const x = () => {
-        
         loadCarousels({
             container: "swiper-browser",
             breakpoints: {
@@ -43,7 +42,7 @@ const loadBrowserSwiper = () => {
                 },
             },
         });
-    }
+    };
     x();
     setTimeout(x, 800);
 };

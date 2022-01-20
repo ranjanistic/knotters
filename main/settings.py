@@ -63,7 +63,6 @@ STATICFILES_FINDERS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # "corsheaders.middleware.CorsMiddleware",
     "main.middleware.ExtendedSessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -74,10 +73,11 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'main.middleware.TwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
-    "main.middleware.ProfileActivationMiddleware",
     # "main.middleware.ActivityMiddleware",
     # "main.middleware.AuthAccessMiddleware",
+    "main.middleware.MinifyMiddleware",
     "main.middleware.MessageFilterMiddleware",
+    "main.middleware.ProfileActivationMiddleware",
 ]
 
 # CORS_ALLOWED_ORIGINS = env.CORS_ALLOWED_ORIGINS
@@ -263,6 +263,7 @@ BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.STRINGS, url.VERSION_TXT,
 
 BYPASS_DEACTIVE_PATHS = BYPASS_2FA_PATHS + (
     url.REDIRECTOR,
+    url.WEBPUSH_SUB,
     f"{url.getRoot(AUTH2)}{url.Auth.LOGOUT}",
     f"{url.getRoot(PEOPLE)}{url.People.ACCOUNTACTIVATION}",
     f"{url.getRoot(DOCS)}",

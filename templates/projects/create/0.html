@@ -87,8 +87,9 @@
                 <br/>
                 <label id="confirm-check-box">
                 <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
-                I've read the {{appname}} 
-                <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
+                I've read the {{APPNAME}} 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a>, 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
                     <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
                     <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
                 </label>

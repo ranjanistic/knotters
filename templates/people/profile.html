@@ -216,8 +216,7 @@
             
   try{
     getElement("reactivateaccount").onclick=async()=>{
-      subLoader()
-      loader()
+      loaders()
       message("Reactivating your account...")
       const data = await postRequest(URLS.ACCOUNTACTIVATION, {
         activate: true

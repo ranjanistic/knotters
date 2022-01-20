@@ -30,3 +30,7 @@ class IllegalModerationState(IllegalModeration):
 class InvalidBaseProject(Exception):
     """The given state of moderation is illegal"""
     pass
+
+class InactiveCompetitionError(Exception):
+    """The given competition is inactive"""
+    pass

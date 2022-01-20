@@ -27,15 +27,15 @@ const loaders = (show = true) => {
 
 window.addEventListener(KEY.message_fired, (e) => {
     let queue = [];
-    try{
-        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue)||"[]")
+    try {
+        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue) || "[]");
     } catch {
-        queue = []
+        queue = [];
     }
-    if(queue.length){
+    if (queue.length) {
         const title = queue[0].msg;
-        if(!sessionStorage.getItem(KEY.message_firing)){
-            sessionStorage.setItem(KEY.message_firing,1)
+        if (!sessionStorage.getItem(KEY.message_firing)) {
+            sessionStorage.setItem(KEY.message_firing, 1);
             Swal.mixin({
                 toast: true,
                 position: "bottom-start",
@@ -46,47 +46,56 @@ window.addEventListener(KEY.message_fired, (e) => {
                 didOpen: (toast) => {
                     toast.addEventListener("mouseenter", Swal.stopTimer);
                     toast.addEventListener("mouseleave", Swal.resumeTimer);
-                    getElements("swal2-container").forEach((e) => (e.style.zIndex = 999999999));
+                    getElements("swal2-container").forEach(
+                        (e) => (e.style.zIndex = 999999999)
+                    );
                     eval(queue[0].onOpen)(toast);
                 },
-                didClose:(t)=>{
-                    sessionStorage.removeItem(KEY.message_firing)
+                didClose: (t) => {
+                    sessionStorage.removeItem(KEY.message_firing);
                     let queue = [];
-                    try{
-                        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue)||"[]")
+                    try {
+                        queue = JSON.parse(
+                            sessionStorage.getItem(KEY.message_queue) || "[]"
+                        );
                     } catch {
-                        queue = []
+                        queue = [];
                     }
                     queue.shift();
-                    sessionStorage.setItem(KEY.message_queue, JSON.stringify(queue, (key, value)=> {
-                        if (typeof value === 'function') {
-                          return value.toString();
-                        } else {
-                          return value;
-                        }
-                    }))
-                    if(queue.length > 0){
-                        window.dispatchEvent(new CustomEvent(KEY.message_fired));
+                    sessionStorage.setItem(
+                        KEY.message_queue,
+                        JSON.stringify(queue, (key, value) => {
+                            if (typeof value === "function") {
+                                return value.toString();
+                            } else {
+                                return value;
+                            }
+                        })
+                    );
+                    if (queue.length > 0) {
+                        window.dispatchEvent(
+                            new CustomEvent(KEY.message_fired)
+                        );
                     }
-                }
+                },
             }).fire({
                 icon: "info",
-                title
+                title,
             });
         }
     }
 });
 window.addEventListener(KEY.error_fired, (e) => {
     let queue = [];
-    try{
-        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
+    try {
+        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue) || "[]");
     } catch {
-        queue = []
+        queue = [];
     }
-    if(queue.length){
+    if (queue.length) {
         const title = queue[0].msg;
-        if(!sessionStorage.getItem(KEY.error_firing)){
-            sessionStorage.setItem(KEY.error_firing,1)
+        if (!sessionStorage.getItem(KEY.error_firing)) {
+            sessionStorage.setItem(KEY.error_firing, 1);
             Swal.mixin({
                 toast: true,
                 position: "bottom-end",
@@ -97,46 +106,53 @@ window.addEventListener(KEY.error_fired, (e) => {
                 didOpen: (toast) => {
                     toast.addEventListener("mouseenter", Swal.stopTimer);
                     toast.addEventListener("mouseleave", Swal.resumeTimer);
-                    getElements("swal2-container").forEach((e) => (e.style.zIndex = 999999999));
+                    getElements("swal2-container").forEach(
+                        (e) => (e.style.zIndex = 999999999)
+                    );
                 },
-                didClose:(t)=>{
-                    sessionStorage.removeItem(KEY.error_firing)
+                didClose: (t) => {
+                    sessionStorage.removeItem(KEY.error_firing);
                     let queue = [];
-                    try{
-                        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
+                    try {
+                        queue = JSON.parse(
+                            sessionStorage.getItem(KEY.error_queue) || "[]"
+                        );
                     } catch {
-                        queue = []
+                        queue = [];
                     }
                     queue.shift();
-                    sessionStorage.setItem(KEY.error_queue, JSON.stringify(queue, (key, value)=> {
-                        if (typeof value === 'function') {
-                          return value.toString();
-                        } else {
-                          return value;
-                        }
-                    }))
-                    if(queue.length > 0){
+                    sessionStorage.setItem(
+                        KEY.error_queue,
+                        JSON.stringify(queue, (key, value) => {
+                            if (typeof value === "function") {
+                                return value.toString();
+                            } else {
+                                return value;
+                            }
+                        })
+                    );
+                    if (queue.length > 0) {
                         window.dispatchEvent(new CustomEvent(KEY.error_fired));
                     }
-                }
+                },
             }).fire({
                 icon: "error",
-                title
+                title,
             });
         }
     }
 });
 window.addEventListener(KEY.success_fired, (e) => {
     let queue = [];
-    try{
-        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
+    try {
+        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue) || "[]");
     } catch {
-        queue = []
+        queue = [];
     }
-    if(queue.length){
+    if (queue.length) {
         const title = queue[0].msg;
-        if(!sessionStorage.getItem(KEY.success_firing)){
-            sessionStorage.setItem(KEY.success_firing,1)
+        if (!sessionStorage.getItem(KEY.success_firing)) {
+            sessionStorage.setItem(KEY.success_firing, 1);
             Swal.mixin({
                 toast: true,
                 position: "top-end",
@@ -147,96 +163,118 @@ window.addEventListener(KEY.success_fired, (e) => {
                 didOpen: (toast) => {
                     toast.addEventListener("mouseenter", Swal.stopTimer);
                     toast.addEventListener("mouseleave", Swal.resumeTimer);
-                    getElements("swal2-container").forEach((e) => (e.style.zIndex = 999999999));
+                    getElements("swal2-container").forEach(
+                        (e) => (e.style.zIndex = 999999999)
+                    );
                 },
-                didClose:(t)=>{
-                    sessionStorage.removeItem(KEY.success_firing)
+                didClose: (t) => {
+                    sessionStorage.removeItem(KEY.success_firing);
                     let queue = [];
-                    try{
-                        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
+                    try {
+                        queue = JSON.parse(
+                            sessionStorage.getItem(KEY.success_queue) || "[]"
+                        );
                     } catch {
-                        queue = []
+                        queue = [];
                     }
                     queue.shift();
-                    sessionStorage.setItem(KEY.success_queue, JSON.stringify(queue, (key, value)=> {
-                        if (typeof value === 'function') {
-                          return value.toString();
-                        } else {
-                          return value;
-                        }
-                    }))
-                    if(queue.length > 0){
-                        window.dispatchEvent(new CustomEvent(KEY.success_fired));
+                    sessionStorage.setItem(
+                        KEY.success_queue,
+                        JSON.stringify(queue, (key, value) => {
+                            if (typeof value === "function") {
+                                return value.toString();
+                            } else {
+                                return value;
+                            }
+                        })
+                    );
+                    if (queue.length > 0) {
+                        window.dispatchEvent(
+                            new CustomEvent(KEY.success_fired)
+                        );
                     }
-                }
+                },
             }).fire({
                 icon: "success",
-                title
+                title,
             });
         }
     }
 });
 
 const message = (msg = "", onOpen = (toast) => {}) => {
-    sessionStorage.removeItem(KEY.error_firing)
-    sessionStorage.removeItem(KEY.success_firing)
-    sessionStorage.removeItem(KEY.error_queue)
-    sessionStorage.removeItem(KEY.success_queue)
+    sessionStorage.removeItem(KEY.error_firing);
+    sessionStorage.removeItem(KEY.success_firing);
+    sessionStorage.removeItem(KEY.error_queue);
+    sessionStorage.removeItem(KEY.success_queue);
     let queue = [];
-    try{
-        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue)||"[]")
+    try {
+        queue = JSON.parse(sessionStorage.getItem(KEY.message_queue) || "[]");
     } catch {
-        queue = []
+        queue = [];
     }
-    if(queue.length && queue[queue.length-1].msg == msg){
+    if (queue.length && queue[queue.length - 1].msg == msg) {
         return;
     }
-    queue.push({msg:msg,timer: Math.max(msg.split(" ").length * 500, 5000), onOpen:onOpen})
-    sessionStorage.setItem(KEY.message_queue, JSON.stringify(queue,(key, value) =>{
-        if (typeof value === 'function') {
-            return value.toString();
-        } else {
-            return value;
-        }
-    }))
+    queue.push({
+        msg: msg,
+        timer: Math.max(msg.split(" ").length * 500, 5000),
+        onOpen: onOpen,
+    });
+    sessionStorage.setItem(
+        KEY.message_queue,
+        JSON.stringify(queue, (key, value) => {
+            if (typeof value === "function") {
+                return value.toString();
+            } else {
+                return value;
+            }
+        })
+    );
     window.dispatchEvent(new CustomEvent(KEY.message_fired));
 };
 
 const error = (msg = STRING.default_error_message, force = false) => {
-    sessionStorage.removeItem(KEY.message_firing)
-    sessionStorage.removeItem(KEY.success_firing)
-    sessionStorage.removeItem(KEY.message_queue)
-    sessionStorage.removeItem(KEY.success_queue)
+    sessionStorage.removeItem(KEY.message_firing);
+    sessionStorage.removeItem(KEY.success_firing);
+    sessionStorage.removeItem(KEY.message_queue);
+    sessionStorage.removeItem(KEY.success_queue);
     let queue = [];
-    try{
-        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue)||"[]")
+    try {
+        queue = JSON.parse(sessionStorage.getItem(KEY.error_queue) || "[]");
     } catch {
-        queue = []
+        queue = [];
     }
-    if(queue.length && queue[queue.length-1].msg == msg){
-        return
+    if (queue.length && queue[queue.length - 1].msg == msg) {
+        return;
     }
-    queue.push({msg:msg||STRING.default_error_message,timer: Math.max(msg.split(" ").length * 500, 5000)})
-    sessionStorage.setItem(KEY.error_queue, JSON.stringify(queue))
+    queue.push({
+        msg: msg || STRING.default_error_message,
+        timer: Math.max(msg.split(" ").length * 500, 5000),
+    });
+    sessionStorage.setItem(KEY.error_queue, JSON.stringify(queue));
     window.dispatchEvent(new CustomEvent(KEY.error_fired));
 };
 
 const success = (msg = STRING.default_success_message) => {
-    sessionStorage.removeItem(KEY.message_firing)
-    sessionStorage.removeItem(KEY.error_firing)
-    sessionStorage.removeItem(KEY.message_queue)
-    sessionStorage.removeItem(KEY.error_queue)
+    sessionStorage.removeItem(KEY.message_firing);
+    sessionStorage.removeItem(KEY.error_firing);
+    sessionStorage.removeItem(KEY.message_queue);
+    sessionStorage.removeItem(KEY.error_queue);
     let queue = [];
-    try{
-        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue)||"[]")
+    try {
+        queue = JSON.parse(sessionStorage.getItem(KEY.success_queue) || "[]");
     } catch {
-        queue = []
+        queue = [];
     }
-    if(queue.length && queue[queue.length-1].msg == msg){
-        return
+    if (queue.length && queue[queue.length - 1].msg == msg) {
+        return;
     }
-    queue.push({msg:msg,timer: Math.max(msg.split(" ").length * 500, 5000)})
-    sessionStorage.setItem(KEY.success_queue, JSON.stringify(queue))
+    queue.push({
+        msg: msg,
+        timer: Math.max(msg.split(" ").length * 500, 5000),
+    });
+    sessionStorage.setItem(KEY.success_queue, JSON.stringify(queue));
     window.dispatchEvent(new CustomEvent(KEY.success_fired));
 };
 
@@ -246,7 +284,11 @@ const loadErrorHTML = (
     retryID = "retryload"
 ) => `<div class="w3-center w3-padding-32">
 <i class="negative-text material-icons w3-jumbo">error</i>
-<h3>Oops. Something wrong here?</h3><button class="primary" id="${retryID}">Retry</button></div></div>`;
+<h3>${
+    STRING.oops_something_went_wrong
+}</h3><button class="primary" id="${retryID}">${Icon("reload")} ${
+    STRING.retry
+}</button></div></div>`;
 
 const betaAlert = () => {
     if (
@@ -259,7 +301,12 @@ const betaAlert = () => {
             html: `
             <h5>
             This is not Knotters.<br/>
-            ${APPNAME} is the ${NegativeText("unstable")} version of <a target="_blank" href="${window.location.href.replace("//beta.","//")}">Knotters</a>.<br/>
+            ${APPNAME} is the ${NegativeText(
+                "unstable"
+            )} version of <a target="_blank" href="${window.location.href.replace(
+                "//beta.",
+                "//"
+            )}">Knotters</a>.<br/>
             New features become available here before release at Knotters.
             </h5>
             <h6>
@@ -267,8 +314,8 @@ const betaAlert = () => {
             </h6>
             By staying here, you accept that for any of your data loss at Knotters Beta due to any error, you will solely be responsible.
             `,
-            confirmButtonText: "Take me to Knotters",
-            denyButtonText: `I'll stay in ${APPNAME}`,
+            confirmButtonText: STRING.take_me_to_appname,
+            denyButtonText: STRING.stay_in_appname,
             showCancelButton: false,
             showDenyButton: true,
             focusConfirm: false,
@@ -281,7 +328,7 @@ const betaAlert = () => {
                 );
             } else {
                 window.sessionStorage.setItem("beta-alerted", 1);
-                message(`Remember, you're using ${APPNAME}, not Knotters!`);
+                message(STRING.remember_using_appname);
             }
         });
     }
@@ -289,13 +336,13 @@ const betaAlert = () => {
 
 const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
     Swal.fire({
-        title: "Github ID Required",
+        title: STRING.gh_id_required,
         html: `<div class="w3-row w3-padding">
-        <h4>Your Github identity must be linked with Knotters for this action.</h4>
+        <h4>${STRING.must_link_gh_account}</h4>
         </div>`,
-        imageUrl: `/static/${VERSION}/graphics/thirdparty/github.png`,
-        confirmButtonText: `${Icon("open_in_new")}Link Github Account`,
-        cancelButtonText: "Leave it",
+        imageUrl: setUrlParams(STATIC_URL, "graphics/thirdparty/github.png"),
+        confirmButtonText: `${Icon("open_in_new")} ${STRING.link_gh_account}`,
+        cancelButtonText: STRING.leave_it,
         showCancelButton: true,
     }).then((res) => {
         if (res.isConfirmed) {
@@ -314,7 +361,7 @@ const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
 
 const troubleShootingInfo = () => {
     Swal.fire({
-        title: "Troubleshooting",
+        title: STRING.troubleshooting,
         html: `
             <div class="w3-row w3-left">
             <h5>If you are facing problems during normal usage of ${APPNAME}, then any or all of the following steps might help you out.</h5>
@@ -329,20 +376,18 @@ const troubleShootingInfo = () => {
             </span>
             </div>
         `,
-        confirmButtonText: "Problem solved!",
-        denyButtonText: "I still have problems",
+        confirmButtonText: STRING.problem_solved,
+        denyButtonText: STRING.problem_unsolved,
         showCancelButton: false,
         showDenyButton: true,
         preConfirm: () => {},
     }).then((res) => {
         if (res.isConfirmed) {
-            message(
-                "Glad we could help 😊! Do not hesitate to contact us anytime."
-            );
+            message(STRING.glad_to_help);
         } else if (res.isDenied) {
             window.scrollTo(0, document.body.scrollHeight);
             message(
-                "We're sorry to hear that. You may submit a report, or reach us via our social channels or email. Click here to report.",
+                STRING.sorry_couldnt_help + " " + STRING.click_to_report,
                 (toast) => {
                     toast.onclick = (_) => reportFeedbackView();
                 }
@@ -356,19 +401,19 @@ const blockUserView = ({ userID = "", username = "", userDP = null }) => {
         title: `Block ${username}?`,
         imageUrl: userDP,
         imageWidth: 100,
-        html: `<h6>Are you sure you want to ${NegativeText(
-            `block ${username}`
+        html: `<h6>${STRING.you_sure_to} ${NegativeText(
+            `${STRING.block} ${username}`
         )}?
         <br/>You both will be invisible to each other on ${APPNAME},<br/>including all associated activities.
-        <br/>You can unblock them anytime from your profile's privacy settings.
+        <br/>${STRING.you_can_unblock_from}
         </h6>`,
         showDenyButton: true,
-        confirmButtonText: "No, wait!",
-        denyButtonText: "Yes, block!",
+        confirmButtonText: STRING.no_wait,
+        denyButtonText: STRING.yes_block,
     }).then(async (res) => {
         if (res.isDenied) {
             loader();
-            message("Blocking...");
+            message(STRING.blocking);
             const data = await postRequest(
                 URLS.People ? URLS.People.BLOCK_USER : URLS.BLOCK_USER,
                 {
@@ -377,7 +422,7 @@ const blockUserView = ({ userID = "", username = "", userDP = null }) => {
             );
             if (!data) return loader(false);
             if (data.code === code.OK) {
-                futuremessage(`Blocked ${username}.`);
+                futuremessage(`${STRING.blocked} ${username}.`);
                 return window.location.replace(ROOT);
             }
             loader(false);
@@ -408,10 +453,16 @@ const installWebAppInstructions = (show = true) => {
             <br/>
             <div class="w3-row ">
             <div class="w3-col w3-half w3-padding-small">
-            <img src="/static/${VERSION}/graphics/info/install-pwa-chrome-win.webp" title="Chrome on Windows" alt="Chrome on Windows" class="wide preview-type-image w3-card w3-round"  />
+            <img src="${setUrlParams(
+                STATIC_URL,
+                "graphics/info/install-pwa-chrome-win.webp"
+            )}" title="Chrome on Windows" alt="Chrome on Windows" class="wide preview-type-image w3-card w3-round"  />
                 </div>
                 <div class="w3-col w3-half w3-padding-small">
-                <img src="/static/${VERSION}/graphics/info/install-pwa-chrome-android.webp" title="Chrome on Android" alt="Chrome on Android" class="wide preview-type-image w3-card w3-round" />
+                <img src="${setUrlParams(
+                    STATIC_URL,
+                    "graphics/info/install-pwa-chrome-android.webp"
+                )}" title="Chrome on Android" alt="Chrome on Android" class="wide preview-type-image w3-card w3-round" />
                 </div>
             </div>
             <br/>
@@ -420,7 +471,7 @@ const installWebAppInstructions = (show = true) => {
             </div>
         </div>
         `,
-        confirmButtonText: "Got it!",
+        confirmButtonText: STRING.got_it,
         showCancelButton: false,
         showDenyButton: false,
         didOpen: () => {
@@ -442,10 +493,7 @@ const previewImageDialog = (src, alt = "", title = "") => {
     getElement("preivew-image-src").src = src;
     getElement("preivew-image-src").alt = alt;
     getElement("preivew-image-src").title = title;
-    firstTimeMessage(
-        KEY.previewImageInfo,
-        "Click anywhere around the image to close preview."
-    );
+    firstTimeMessage(KEY.previewImageInfo, STRING.close_preview_img_help);
 };
 
 const futureMessage = (message = "") => {

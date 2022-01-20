@@ -93,7 +93,7 @@ def on_boarding(request:WSGIRequest) -> HttpResponse:
 def on_boarding_update(request:WSGIRequest) -> HttpResponse:
     try:
         on_boarded = request.POST.get('onboarded', False)
-        if on_boarded and not (request.user.profile.on_boarded and request.user.profile.xp):
+        if on_boarded and not (request.user.profile.on_boarded and request.user.profile.xp > 9):
             request.user.profile.increaseXP(10)
         request.user.profile.on_boarded = on_boarded == True
         request.user.profile.save()
@@ -490,6 +490,7 @@ class ServiceWorker(TemplateView):
                     f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_CORE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.CREATE_FRAME}"),
@@ -525,7 +526,8 @@ class Strings(TemplateView):
         response_kwargs.setdefault('content_type', self.content_type)
         stringrender = render_to_string(self.get_template_names(), request=self.request,context=context)
         try:
-            stringrender = jsmin(stringrender)
+            if not settings.DEBUG:
+                stringrender = jsmin(stringrender)
         except:
             pass
         return HttpResponse(stringrender, **response_kwargs)

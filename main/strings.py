@@ -177,6 +177,8 @@ class Message():
     LICENSE_UNSELECTED = _("You have to choose a license")
     NICKNAME_ALREADY_TAKEN = _(
         "The nickname is not available, try something else.")
+    CODENAME_ALREADY_TAKEN = _(
+        "The codename is not available, try something else.")
     INVALID_LIC_DATA = _('Invalid license data')
     SNAP_CREATED = _("Snapshot published")
     SNAP_UPDATED = _("Snapshot updated")
@@ -279,6 +281,7 @@ DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
 
 
 class Project():
+    CORE_PROJECT = "core-project"
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
     PROJECTSTATESCHOICES = (
         [code.MODERATION, code.MODERATION.capitalize()],
@@ -287,9 +290,8 @@ class Project():
     )
     PALLETE = 'pallete'
 
-
 project = Project()
-
+CORE_PROJECT = Project.CORE_PROJECT
 
 class Moderation():
     MODSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
@@ -299,10 +301,10 @@ class Moderation():
         [code.REJECTED, code.REJECTED.capitalize()]
     )
 
-    TYPES = [PROJECTS, PEOPLE, COMPETE]
+    TYPES = [PROJECTS, PEOPLE, COMPETE, Project.CORE_PROJECT]
 
     TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
-    )], [COMPETE, COMPETE.capitalize()])
+    )], [COMPETE, COMPETE.capitalize()], [Project.CORE_PROJECT,Project.CORE_PROJECT.capitalize()])
 
 
 moderation = Moderation()
@@ -401,6 +403,7 @@ class URL():
     BRANDING = 'branding/'
     ROOT = '/'
     WEBPUSH = 'webpush/'
+    WEBPUSH_SUB = 'webpush/<str:sub>'
     ICON_PNG = f"{CDN_URL}/graphics/self/1024/icon.png"
     AUTH = f"{AUTH}/"
     DOCS = f'{DOCS}/'
@@ -1628,6 +1631,12 @@ class Template():
         @property
         def compete(self):
             return f'{self.DIRNAME}/{self.COMPETE}.html'
+
+        CORE_PROJECT = 'core-project'
+
+        @property
+        def coreproject(self):
+            return f'{self.DIRNAME}/{self.CORE_PROJECT}.html'
 
     moderation = Moderation()
 

@@ -9,7 +9,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 window.addEventListener("appinstalled", () => {
     installWebAppInstructions(false);
     __appInstallPromptEvent = null;
-    success("App installed successfully");
+    success(STRING.app_install_success);
 });
 
 const __clearCacheByPath__ = async (path) => {

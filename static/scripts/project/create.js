@@ -15,9 +15,9 @@ const validationError = Array.from(
 );
 
 const actionLoader = (visible = true) => {
-    formValues.forEach((input)=>{
-        input.disabled = visible
-    })
+    formValues.forEach((input) => {
+        input.disabled = visible;
+    });
     visibleElement("actionloader", visible);
     visibleElement("actionbuttons", !visible);
 };
@@ -57,11 +57,14 @@ const showStep = (n) => {
         });
     }
     if (n == stepviews.length - 1) {
-        setHtmlContent(nextStepBtn, `Submit ${Icon("done", "big-icon")}`);
+        setHtmlContent(
+            nextStepBtn,
+            `${STRING.submit} ${Icon("done", "big-icon")}`
+        );
     } else {
         setHtmlContent(
             nextStepBtn,
-            `Next ${Icon("navigate_next", "big-icon")}`
+            `${STRING.next} ${Icon("navigate_next", "big-icon")}`
         );
     }
     fixStepIndicator(n);
@@ -71,40 +74,54 @@ const nextPrev = async (n) => {
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
-        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"), {
-            reponame: formValues[formValues.indexOf(formValues.find((input)=>input.id==='reponame'))].value,
-        })
+        const data = await postRequest(
+            setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"),
+            {
+                reponame:
+                    formValues[
+                        formValues.indexOf(
+                            formValues.find((input) => input.id === "reponame")
+                        )
+                    ].value,
+            }
+        );
         actionLoader(false);
-        if(!data) return;
+        if (!data) return;
         if (data.code === code.OK) {
             hide(stepviews[currentStep]);
             currentStep = currentStep + n;
             showStep(currentStep);
         } else {
-            validationError[validationError.indexOf(validationError.find((input)=>input.id==='reponameerror'))].innerHTML = data.error;
+            validationError[
+                validationError.indexOf(
+                    validationError.find(
+                        (input) => input.id === "reponameerror"
+                    )
+                )
+            ].innerHTML = data.error;
         }
     } else {
         if (n > 0 && currentStep === stepviews.length - 1) {
             if (!validateForm())
                 return error(
-                    "Some values are invalid. Please refresh page and start over."
-                    );
-            if(!getElements('license-choice').some((choice)=>Array.from(choice.classList).includes('positive'))){
-                return error(
-                    "Click on a license bubble to choose one."
+                    `${STRING.some_val_invalid} ${STRING.refresh_n_startover}`
                 );
+            if (
+                !getElements("license-choice").some((choice) =>
+                    Array.from(choice.classList).includes("positive")
+                )
+            ) {
+                return error(STRING.click_bubble_choose_lic);
             }
             if (!getElement("acceptterms").checked) {
-                return error(
-                    "Please check the acceptance of terms checkbox at bottom."
-                );
+                return error(STRING.pl_accept_terms);
             }
             actionLoader(true);
-            subLoader(true)
-            formValues.forEach((input)=>{
-                input.disabled = false
-            })
-            alertify.message("Creating project...");
+            subLoader(true);
+            formValues.forEach((input) => {
+                input.disabled = false;
+            });
+            message(STRING.creating_project);
             getElement("create-project-form").submit();
             return false;
         } else {
@@ -123,7 +140,8 @@ const __validator_str_regex = {
         projectabout: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{1,200}$/,
         projectcategory: /^[a-zA-Z ]{3,}$/,
         description: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{5,5000}$/,
-        referurl: /^(|https?:\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)$/,
+        referurl:
+            /^(|https?:\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)$/,
     },
     err: {
         projectname: "Only alphabets & numbers allowed, max 40.",
@@ -196,8 +214,8 @@ getElement("projectimage").onchange = (e) => {
 formValues.forEach((value) => {
     value.value = localStorage.getItem(`createproject${value.id}`) || "";
     value.onblur = (_) => {
-        if(validateForm(value.id)){
-            localStorage.setItem(`createproject${value.id}`,value.value);
+        if (validateForm(value.id)) {
+            localStorage.setItem(`createproject${value.id}`, value.value);
         }
     };
 });
@@ -219,50 +237,48 @@ getElement("more-licenses").onclick = async (_) => {
     }
     let licenses = [];
     data.licenses.forEach((license) => {
-        licenses.push(`<button type="button" class="license-choice" id="${license.id.replaceAll('-','')}" title="${license.name}: ${license.description}">${license.name}</button>`)
+        licenses.push(
+            `<button type="button" class="license-choice" id="${license.id.replaceAll(
+                "-",
+                ""
+            )}" title="${license.name}: ${license.description}">${
+                license.name
+            }</button>`
+        );
     });
-    const dial = alertify
-        .confirm(
-            `<h6>Licenses</h6>`,
-            `
-        <div class="w3-row">
-        <button class="primary" type="button" id="custom-license">${Icon(
-            "add"
-        )} Add custom license</button>
-        </div>
-        <div class="w3-row" id="more-licenses-view">
-        ${licenses.join('')}
-        </div>
+    Swal.fire({
+        title: "Licenses",
+        html: `
+            <div class="w3-row" id="more-licenses-view">
+            ${licenses.join("")}
+            </div>
         `,
-            () => {
-                if(!licenses.length) return
-                let button = licenses.find(lic=>lic.includes(getElement("license").value))
-                if(!button) return
-                getElement('licenses').innerHTML+=button
-                dial.destroy()
-                loadLicenseChoices();
-            },
-            () => {
-                dial.destroy()
-            }
-        )
-        .set("closable", false)
-        .set("labels", {
-            ok: "Set license",
-            cancel: "Cancel",
-        });
-    loadLicenseChoices();
-
-    getElement("custom-license").onclick = (_) => {
-        customLicenseDialog();
-    };
+        showDenyButton: true,
+        denyButtonText: STRING.add_cust_lic,
+        confirmButtonText: "Set license",
+        didOpen: () => {
+            loadLicenseChoices();
+        },
+        preConfirm: () => {
+            return getElement("license").value;
+        },
+    }).then(async (res) => {
+        if (res.isDenied) {
+            return customLicenseDialog();
+        }
+        if (res.isConfirmed) {
+            let button = licenses.find((lic) => lic.includes(res.value));
+            if (!button) return;
+            getElement("licenses").innerHTML += button;
+            loadLicenseChoices();
+        }
+    });
 };
 
 const customLicenseDialog = () => {
-    const dial = alertify
-        .confirm(
-            `<h6>Add custom license</h6>`,
-            `
+    Swal.fire({
+        title: STRING.add_cust_lic,
+        html: `
         <div class="w3-row">
         <input class="wide" placeholder="License name" id='custom-license-name' type='text' required maxlength='50'/><br/><br/>
         <input class="wide" placeholder="Short description" id='custom-license-description' type='text' required maxlength='500'/><br/><br/>
@@ -273,57 +289,62 @@ const customLicenseDialog = () => {
         </label>
         </div>
         `,
-            async (e) => {
-                let name = String(getElement("custom-license-name").value).trim();
-                let description = String(
-                    getElement("custom-license-description").value
-                ).trim();
-                let content = String(getElement("custom-license-content").value);
-                let public = getElement("custom-license-public").checked;
-                if(!name){
-                    return error('License name is required')
-                }
-                if(!description){
-                    return error('License description is required')
-                }
-                if(!content.trim()){
-                    return error('License text is required')
-                }
-                const data = await postRequest(URLS.ADDLICENSE, {
-                    name,
-                    description,
-                    content,
-                    public,
-                });
-                if(!data) return;
-                
-                if(data.code === code.OK){
-                    success(`${data.license.name} license added`)
-                    const button = document.createElement('button')
-                    button.setAttribute('id', data.license.id)
-                    button.setAttribute('title', data.license.description)
-                    button.setAttribute('type', "button")
-                    button.classList.add('license-choice')
-                    getElement('licenses').appendChild(button)
-                    getElement(data.license.id).innerHTML=data.license.name
-                    loadLicenseChoices()
-                } else {
-                    error(data.error)
-                }
-                dial.destroy()
-            },
-            () => {
-                dial.destroy()
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: STRING.create_lic,
+        cancelButtonText: STRING.cancel,
+        focusConfirm: false,
+        preConfirm: () => {
+            let name = String(getElement("custom-license-name").value).trim();
+            if (!name) {
+                error(STRING.lic_name_required);
+                return false;
             }
-        )
-        .set("closable", false)
-        .set("labels", {
-            ok: "Create & set license",
-            cancel: "Cancel",
-        });
+            let description = String(
+                getElement("custom-license-description").value
+            ).trim();
+            if (!description) {
+                error(STRING.lic_desc_required);
+                return false;
+            }
+            let content = String(
+                getElement("custom-license-content").value
+            ).trim();
+            if (!content) {
+                error(STRING.lic_text_required);
+                return false;
+            }
+            return {
+                name,
+                description,
+                content,
+                public: getElement("custom-license-public").checked,
+            };
+        },
+    }).then(async (result) => {
+        if (result.isConfirmed && result.value) {
+            const data = await postRequest(URLS.ADDLICENSE, {
+                ...result.value,
+            });
+            if (!data) return;
+            if (data.code === code.OK) {
+                success(`${data.license.name} ${STRING.lic_created}`);
+                const button = document.createElement("button");
+                button.setAttribute("id", data.license.id);
+                button.setAttribute("title", data.license.description);
+                button.setAttribute("type", "button");
+                button.classList.add("license-choice");
+                getElement("licenses").appendChild(button);
+                getElement(data.license.id).innerHTML = data.license.name;
+                loadLicenseChoices();
+            } else {
+                error(data.error);
+            }
+        }
+    });
 };
 
-const loadLicenseChoices = (selected=0) =>
+const loadLicenseChoices = (selected = 0) =>
     initializeTabsView({
         uniqueID: "license",
         activeTabClass: "positive text-positive",
@@ -332,8 +353,7 @@ const loadLicenseChoices = (selected=0) =>
         onEachTab: (tab) => {
             getElement("license").value = tab.id;
         },
-        selected
+        selected,
     });
 
-alertify.closeAll();
 loadLicenseChoices();

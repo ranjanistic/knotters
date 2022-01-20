@@ -9,7 +9,7 @@ from main.strings import Code, Event, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
-from .models import Category, FreeProject, License, Project, ProjectSocial, Tag
+from .models import Category, CoreProject, FreeProject, License, Project, ProjectSocial, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification
 
@@ -75,6 +75,29 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
             return False
         return Project.objects.create(
             creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def createCoreProject(name: str, category: str, codename: str, description: str, creator: Profile) -> CoreProject or bool:
+    """
+    Creates core project on knotters under moderation status.
+
+    :name: Display name of project
+    :category: The category of project
+    :reponame: Repository name, a unique indetifier of project
+    :description: Visible about (bio) of project
+    :tags: List of tag strings
+    :creator: The profile of project creator
+    """
+    try:
+        codename = uniqueRepoName(codename)
+        if not codename:
+            return False
+        categoryObj = addCategoryToDatabase(category, creator)
+        if not categoryObj:
+            return False
+        return CoreProject.objects.create(creator=creator, name=name, codename=codename, description=description, category=categoryObj)
     except Exception as e:
         errorLog(e)
         return False
@@ -154,6 +177,27 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         if task in [Message.SETTING_APPROVED_PROJECT, Message.SETUP_APPROVED_PROJECT_DONE]:
             return True
         cache.set(f'approved_project_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
+        addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> bool:
+    """
+    Setup project which has been approved by moderator. (project status should be: LIVE)
+
+    Creates github org repository and setup restrictions & allowances.
+
+    Creates discord chat channel.
+    """
+    try:
+        if not project.isApproved():
+            return False
+        task = cache.get(f'approved_coreproject_setup_{project.id}')
+        if task in [Message.SETTING_APPROVED_PROJECT, Message.SETUP_APPROVED_PROJECT_DONE]:
+            return True
+        cache.set(f'approved_coreproject_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
         addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
         return True
     except Exception as e:
@@ -268,6 +312,102 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         )
         cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def setupOrgGihtubRepository(coreproject: CoreProject, moderator: Profile) -> bool:
+    """
+    Creates github org repository and setup restrictions & allowances for corresponding project.
+
+    Invites creator to organization & created repository
+
+    :reponame: The name of repository to be created
+    """
+    try:
+        if not coreproject.isApproved():
+            return False
+        if not moderator.ghID:
+            return False
+        ghUser = None
+        try:
+            ghUser = Github.get_user(coreproject.creator.ghID)
+        except:
+            pass
+        ghMod = Github.get_user(moderator.ghID)
+
+        ghOrgRepo = getGhOrgRepo(coreproject.codename)
+
+        if not ghOrgRepo:
+            ghOrgRepo = GithubKnotters.create_repo(
+                name=coreproject.codename,
+                homepage=f"{SITE}{coreproject.getLink()}",
+                description=coreproject.description,
+                auto_init=True,
+                has_issues=True,
+                has_projects=True,
+                has_wiki=True,
+                private=True,
+                has_downloads=True,
+                allow_squash_merge=True,
+                allow_merge_commit=True,
+                allow_rebase_merge=True,
+                delete_branch_on_merge=False
+            )
+
+        ghBranch = ghOrgRepo.get_branch("main")
+
+        ghBranch.edit_protection(
+            strict=False,
+            enforce_admins=False,
+            dismiss_stale_reviews=True,
+            required_approving_review_count=0,
+        )
+        if ghUser:
+            inviteMemberToGithubOrg(ghUser)
+
+        try:
+            ghrepoteam = GithubKnotters.create_team(
+                name=f"team-{coreproject.codename}",
+                repo_names=[ghOrgRepo],
+                permission="push",
+                description=f"{coreproject.name}'s team",
+                privacy='closed'
+            )
+
+            if GithubKnotters.has_in_members(ghMod):
+                ghrepoteam.add_membership(
+                    member=ghMod,
+                    role="maintainer"
+                )
+            if ghUser:
+                if GithubKnotters.has_in_members(ghUser):
+                    ghrepoteam.add_membership(
+                        member=ghUser,
+                        role="member"
+                    )
+        except:
+            pass
+
+        ghOrgRepo.add_to_collaborators(
+            collaborator=moderator.ghID, permission="maintain")
+        if ghUser:
+            ghOrgRepo.add_to_collaborators(
+                collaborator=coreproject.creator.ghID, permission="push")
+
+        ghOrgRepo.create_hook(
+            name='web',
+            config=dict(
+                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,projID=coreproject.get_id)}",
+                content_type='form',
+                secret=settings.GH_HOOK_SECRET,
+                insecure_ssl=0,
+                digest=Code.SHA256
+            )
+        )
+        cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",coreproject)
         return True
     except Exception as e:
         errorLog(e)

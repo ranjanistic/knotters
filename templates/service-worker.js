@@ -10,24 +10,20 @@ const _VERSION = "{{VERSION}}",
     _RECACHELIST_ = {{recacheList|safe}},
     _NOOFFLINELIST_ = {{noOfflineList|safe}},
     _NETFIRSTLIST_ = {{netFirstList|safe}},
-    _PARAMREGEX = "[a-zA-Z0-9./\\-_?=&%#:@]";
-
-const _STAT_CACHE_NAME = `static-cache-${_VERSION}`,
-    _DYN_CACHE_NAME = `dynamic-cache-${_VERSION}`;
-
-const EVENTS = {
-    ACTIVATE: "activate",
-    FETCH: "fetch",
-    MESSAGE: "message",
-    PUSH: 'push'
-};
-const METHODS = {
-    GET: "GET",
-    POST: "POST",
-};
-
-const H_TRUE = "true";
-const H_FALSE = "false";
+    _PARAMREGEX = "[a-zA-Z0-9./\\-_?=&%#:@]",
+    _STAT_CACHE_NAME = `static-cache-${_VERSION}`,
+    _DYN_CACHE_NAME = `dynamic-cache-${_VERSION}`,
+    EVENTS = {
+        ACTIVATE: "activate",
+        FETCH: "fetch",
+        MESSAGE: "message",
+        PUSH: 'push'
+    }, METHODS = {
+        GET: "GET",
+        POST: "POST",
+    },
+    H_TRUE = "true",
+    H_FALSE = "false";
 
 {% if DEBUG %}
 const debug_log = (l) => {
@@ -52,86 +48,52 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
     ).test(testPath);
 };
 
-const isNetFirst = (path) => {
-    return _NETFIRSTLIST_.some((netFirst) =>
-        testAsteriskPathRegex(netFirst, path)
-    );
-};
-const isNoOffline = (path) => {
-    return _NOOFFLINELIST_.some((noOffline) =>
-        testAsteriskPathRegex(noOffline, path)
-    );
-};
-const isIgnored = (path) => {
-    return _IGNORELIST_.some((ignore) => testAsteriskPathRegex(ignore, path));
-};
-
-const isRecache = (path) => {
-    return _RECACHELIST_.some((recache) =>
-        testAsteriskPathRegex(recache, path)
-    );
-};
-
-const canClearDynCache = (path, event) => {
+const isNetFirst = (path) => _NETFIRSTLIST_.some((netFirst) => testAsteriskPathRegex(netFirst, path)),
+    isNoOffline = (path) => _NOOFFLINELIST_.some((noOffline) => testAsteriskPathRegex(noOffline, path)),
+    isIgnored = (path) => _IGNORELIST_.some((ignore) => testAsteriskPathRegex(ignore, path)),
+    isRecache = (path) => _RECACHELIST_.some((recache) => testAsteriskPathRegex(recache, path)),
     // will always clear dyn cache if POST method, except if retain cache header is true
-    return (
-        isRecache(path) ||
-        (event.request.method === METHODS.POST &&
-            event.request.headers.get(X_RETAINCACHE) !== H_TRUE)
-    );
-};
-
-const canSetDynCache = (path, event) => {
+    canClearDynCache = (path, event) => (isRecache(path) || (event.request.method === METHODS.POST && event.request.headers.get(X_RETAINCACHE) !== H_TRUE)),
     // will never set dyn cache if POST method, except if allow cache header is true
-    return (
-        !isIgnored(path) &&
-        (event.request.method !== METHODS.POST ||
-            event.request.headers.get(X_ALLOWCACHE) == H_TRUE)
-    );
-};
+    canSetDynCache = (path, event) => (!isIgnored(path) && (event.request.method !== METHODS.POST || event.request.headers.get(X_ALLOWCACHE) == H_TRUE)),
+    canShowOfflineView = (path, event) => !(isNoOffline(path) || event.request.headers.get(X_SCRIPTFETCH) == H_TRUE);
 
-const canShowOfflineView = (path, event) => {
-    return !(
-        isNoOffline(path) || event.request.headers.get(X_SCRIPTFETCH) == H_TRUE
-    );
-};
-
-self.addEventListener(EVENTS.ACTIVATE, (event) => {
+self.addEventListener(EVENTS.ACTIVATE, (event) => 
     event.waitUntil(
         caches
             .keys()
-            .then(async (keys) => {
-                return await Promise.all(
-                    keys.map(async (key) => {
-                        return await caches.delete(key);
-                    })
+            .then(async keys => 
+                await Promise.all(
+                    keys.map(async key => 
+                        await caches.delete(key)
+                    )
                 )
-                    .then(async (a) => {
-                        return await caches
+                    .then(async _ =>
+                        await caches
                             .open(_STAT_CACHE_NAME)
-                            .then(async (cache) => {
-                                return await Promise.all(
-                                    _ASSETS_.map(async (asset) => {
-                                        return await cache.add(asset);
-                                    })
-                                );
-                            })
+                            .then(async cache => 
+                                await Promise.all(
+                                    _ASSETS_.map(async asset =>
+                                        await cache.add(asset)
+                                    )
+                                )
+                            )
                             .catch((e) => {
                                 console.error(e);
                                 return caches.delete(_STAT_CACHE_NAME);
-                            });
-                    })
+                            })
+                    )
                     .catch((err) => {
                         console.error(err);
                         return err;
-                    });
-            })
+                    })
+            )
             .catch((err) => {
                 console.error(err);
                 return err;
             })
-    );
-});
+    )
+);
 
 const netFetchResponseHandler = async (path, event, FetchRes) => {
     if (FetchRes.status < 300) {
@@ -139,7 +101,6 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             {% if DEBUG %}debug_log(`${path} can clear dyn cache`);{% endif %}
             await caches.delete(_DYN_CACHE_NAME);
         };
-        // const ignore = isIgnored(path) || isNoOffline(path);
         if (canSetDynCache(path, event)) {
             {% if DEBUG %}debug_log(`${path} can set cache`);{% endif %}
             try {
@@ -220,7 +181,6 @@ const cacheFetchResponseHandler = async (path, event, CachedRes) => {
         {% if DEBUG %}debug_log(`${path} can clear dyn cache`);{% endif %}
         await caches.delete(_DYN_CACHE_NAME);
     };
-    // const ignore = isIgnored(path) || isNoOffline(path);
     if (canSetDynCache(path, event)) {
         {% if DEBUG %}debug_log(`${path} can set dyn cache`);{% endif %}
         try {
@@ -255,19 +215,15 @@ self.addEventListener(EVENTS.FETCH, async (event) => {
     const path = event.request.url.replace(_SITE, "");
     if(isNetFirst(path)){
         event.respondWith(
-            fetch(event.request).then(async(FetchRes)=>{
-                return await netFetchResponseHandler(path, event, FetchRes);
-            }).catch(async(e)=>{
-                return await netFetchErrorHandler(path, event, e);
-            })  
+            fetch(event.request).then(async FetchRes =>
+                await netFetchResponseHandler(path, event, FetchRes)
+            ).catch(async e => await netFetchErrorHandler(path, event, e))
         );
     }else{
         event.respondWith(
-            caches.match(event.request).then(async(CachedRes)=>{
-                return await cacheFetchResponseHandler(path,event, CachedRes);
-            }).catch(async(e)=>{
-                return await cacheFetchErrorHandler(path, event, e);
-            })
+            caches.match(event.request).then(async CachedRes=>
+                await cacheFetchResponseHandler(path,event, CachedRes)
+            ).catch(async e => await cacheFetchErrorHandler(path, event, e))
         );
     };
 });
@@ -315,7 +271,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
         };
     } catch {
         title = payload;
-    }!
+    };
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(
         self.registration.showNotification(title, options)

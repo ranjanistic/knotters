@@ -24,7 +24,7 @@ window.addEventListener("load", () => {
             sessionStorage.setItem(Key.navigated, code.LEFT);
         });
     });
-    
+
     loadReporters();
     loadBrowserSwiper();
     serviceWorkerRegistration();
@@ -35,9 +35,9 @@ window.addEventListener("load", () => {
 
     if (sessionStorage.getItem("device-theme") == 1) {
         message(
-            `Theme set to your system default. Use ${Icon(
+            `${STRING.theme_set_sys_default} ${STRING.use} ${Icon(
                 "brightness_medium"
-            )} to toggle it.`
+            )} ${STRING.to_toggle_it}`
         );
     }
     if (window.location.host.startsWith("beta.")) {
@@ -45,35 +45,35 @@ window.addEventListener("load", () => {
         if (!window.sessionStorage.getItem("beta-alerted")) betaAlert();
         getElements("hide-beta").forEach((elem) => hide(elem));
     }
-    sessionStorage.removeItem(KEY.message_firing)
-    sessionStorage.removeItem(KEY.error_firing)
-    sessionStorage.removeItem(KEY.success_firing)
-    sessionStorage.removeItem(KEY.message_queue)
-    sessionStorage.removeItem(KEY.error_queue)
-    sessionStorage.removeItem(KEY.success_queue)
-    sessionStorage.removeItem(KEY.message_fired)
-    sessionStorage.removeItem(KEY.error_fired)
-    sessionStorage.removeItem(KEY.success_fired)
-    
-    if(window.location.href.split('#').length > 1) {
-        const elem = getElement(window.location.href.split('#')[1])
-        if(elem){
+    sessionStorage.removeItem(KEY.message_firing);
+    sessionStorage.removeItem(KEY.error_firing);
+    sessionStorage.removeItem(KEY.success_firing);
+    sessionStorage.removeItem(KEY.message_queue);
+    sessionStorage.removeItem(KEY.error_queue);
+    sessionStorage.removeItem(KEY.success_queue);
+    sessionStorage.removeItem(KEY.message_fired);
+    sessionStorage.removeItem(KEY.error_fired);
+    sessionStorage.removeItem(KEY.success_fired);
+
+    if (window.location.href.split("#").length > 1) {
+        const elem = getElement(window.location.href.split("#")[1]);
+        if (elem) {
             setTimeout(() => {
                 elem.scrollIntoView();
                 setTimeout(() => {
-                    let op = 1
-                    let times = 0
-                    x = setInterval(()=>{
-                        op=op<1?op*2:op/2;
-                        elem.style.opacity=op;
+                    let op = 1;
+                    let times = 0;
+                    x = setInterval(() => {
+                        op = op < 1 ? op * 2 : op / 2;
+                        elem.style.opacity = op;
                         times++;
-                        if(times>7){
+                        if (times > 7) {
                             clearInterval(x);
-                            elem.style.opacity=1
+                            elem.style.opacity = 1;
                         }
-                    },100)
-                },900)
-            }, 300)
+                    }, 100);
+                }, 900);
+            }, 300);
         }
     }
     window.history.pushState(

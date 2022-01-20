@@ -1,4 +1,5 @@
 from django.shortcuts import redirect
+from htmlmin.minify import html_minify
 from django.http.response import HttpResponseForbidden
 from django.urls import resolve
 from ipaddress import ip_address
@@ -11,7 +12,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.utils.cache import patch_vary_headers
 from django.utils.http import http_date
 from django.conf import settings
-from .strings import message, URL
+from .strings import message, URL, Code
 from .env import ADMINPATH
 from .methods import allowBypassDeactivated, activity
 from django.core.handlers.wsgi import WSGIRequest
@@ -47,6 +48,20 @@ class MessageFilterMiddleware(object):
         return self.get_response(request)
 
 
+class MinifyMiddleware(object):
+
+    def __init__(self, get_response) -> None:
+        self.get_response = get_response
+        super().__init__()
+
+    def __call__(self, request: WSGIRequest):
+        response = self.get_response(request)
+        if not settings.DEBUG:
+            if response.status_code == 200 and response['Content-Type'] == f'text/html; charset={Code.UTF_8}':
+                minified = html_minify(response.content.decode(Code.UTF_8))
+                response.content = minified.encode(Code.UTF_8)
+        return response
+
 class ActivityMiddleware(object):
 
     def __init__(self, get_response) -> None:
@@ -57,7 +72,7 @@ class ActivityMiddleware(object):
         real_ip = u'{}'.format(request.META.get('HTTP_X_REAL_IP'))
         if real_ip and real_ip != 'None':
             client_ip_address = ip_address(real_ip)
-            print(client_ip_address)
+            # print(client_ip_address)
 
         def addslash(path):
             return f"/{path}" if not path.startswith('/') else path
@@ -78,7 +93,7 @@ class AuthAccessMiddleware(object):
             client_ip_address = ip_address(real_ip)
             if request.user.is_authenticated:
                 request.session['ip_address'] = client_ip_address
-                print(client_ip_address)
+                # print(client_ip_address)
 
         return self.get_response(request)
 
@@ -122,6 +137,9 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
                     dele = False
                     break
                 elif request.path.strip('/').startswith(p):
+                    dele = False
+                    break
+                elif request.path.strip('/').startswith(p.strip('/')):
                     dele = False
                     break
             try:

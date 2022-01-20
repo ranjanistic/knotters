@@ -1,56 +1,56 @@
 #banner {
-  width: 100%;
-  max-height: 50vh;
-  overflow: hidden;
+    width: 100%;
+    max-height: 50vh;
+    overflow: hidden;
 }
 
 #competition-tabs {
-  height: 90vh;
-  margin: 2rem 0 2rem;
+    height: 90vh;
+    margin: 2rem 0 2rem;
 }
 
 #competition-info h3 span {
-  font-size: 1rem;
-  opacity: 0.8;
+    font-size: 1rem;
+    opacity: 0.8;
 }
 
 #competition-description {
-  opacity: 1;
+    opacity: 1;
 }
 
 #competition-description span {
-  opacity: 0.8;
+    opacity: 0.8;
 }
 
 #sidebar {
-  background-color: var(--tertiary);
-  padding: 10px;
-  border-radius: 25px;
-  height: 85vh;
+    background-color: var(--tertiary);
+    padding: 10px;
+    border-radius: 25px;
+    height: 85vh;
 }
 
 #sidebar .side-nav-tab {
-  margin: 20px 0;
-  font-family: var(--head-font);
-  font-size: 18px;
-  border-radius: 20px;
-  transition: var(--delay);
+    margin: 20px 0;
+    font-family: var(--head-font);
+    font-size: 18px;
+    border-radius: 20px;
+    transition: var(--delay);
 }
 
 #sidebar .side-nav-tab i {
-  vertical-align: sub;
-  margin-right: 1rem;
+    vertical-align: sub;
+    margin-right: 1rem;
 }
 
 @media screen and (max-width: 768px) {
-  #sidebar {
-    overflow-x: auto;
-    height: 16vh;
-    padding: 5px 8px;
-  }
+    #sidebar {
+        overflow-x: auto;
+        height: 16vh;
+        padding: 5px 8px;
+    }
 
-  #sidebar .side-nav-tab {
-    margin: 0px;
-    font-size: 14px;
-  }
+    #sidebar .side-nav-tab {
+        margin: 0px;
+        font-size: 14px;
+    }
 }

@@ -44,7 +44,7 @@ if (selfProject) {
                         addtoplen ===
                     5
                 ) {
-                    error("Only upto 5 topics allowed");
+                    error(STRING.upto_5_topics_allowed);
                     return false;
                 }
                 getElement("removetopicIDs").value = getElement(
@@ -82,7 +82,7 @@ if (selfProject) {
                         addtoplen ===
                     5
                 ) {
-                    error("Only upto 5 topics allowed");
+                    error(STRING.upto_5_topics_allowed);
                     return false;
                 }
                 if (btn.classList.contains("topic-name")) {
@@ -132,10 +132,10 @@ if (selfProject) {
         }
         getElement("topics-viewer-new").innerHTML = "";
         const data = await postRequest2({
-            path: setUrlParams(URLS.TOPICSEARCH, projectID), 
-            data:{
+            path: setUrlParams(URLS.TOPICSEARCH, projectID),
+            data: {
                 query: e.target.value,
-            }
+            },
         });
         if (!data) return;
         if (data.code === code.OK) {
@@ -177,15 +177,15 @@ if (selfProject) {
     getElement("save-edit-projecttopics").onclick = async () => {
         const obj = getFormDataById("edit-project-topics-form");
         const resp = await postRequest2({
-            path:setUrlParams(URLS.TOPICSUPDATE,projectID), 
-            data:{
+            path: setUrlParams(URLS.TOPICSUPDATE, projectID),
+            data: {
                 addtopicIDs: obj.addtopicIDs.split(",").filter((x) => x),
                 addtopics: obj.addtopics.split(",").filter((x) => x),
                 removetopicIDs: obj.removetopicIDs.split(",").filter((x) => x),
-            }
+            },
         });
-        if (resp.code === code.OK){
-            subLoader()
+        if (resp.code === code.OK) {
+            subLoader();
             return window.location.reload();
         }
         error(resp.error);
@@ -223,7 +223,7 @@ if (selfProject) {
                         addtaglen ===
                     5
                 ) {
-                    error("Only upto 5 tags allowed");
+                    error(STRING.upto_5_tags_allowed);
                     return false;
                 }
 
@@ -260,7 +260,7 @@ if (selfProject) {
                         addtaglen ===
                     5
                 ) {
-                    error("Only upto 5 tags allowed");
+                    error(STRING.upto_5_tags_allowed);
                     return false;
                 }
                 if (btn.classList.contains("tag-name")) {
@@ -312,7 +312,7 @@ if (selfProject) {
             path: setUrlParams(URLS.TAGSEARCH, projectID),
             data: {
                 query: e.target.value,
-            }
+            },
         });
         if (!data) return;
         if (data.code === code.OK) {
@@ -397,11 +397,11 @@ loadsnaps.onclick = (_) => {
                 <br/>
                 <center class="dead-text">
                         <div class="w3-jumbo material-icons">camera</div>
-                        <h5>No snapshots</h5>
+                        <h5>${STRING.no_snapshots}</h5>
                     </center>
                 `;
             } else {
-                currentsnapsview.innerHTML = `<div class="dead-text" align="center"><br/>No more snapshots</div>`;
+                currentsnapsview.innerHTML = `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`;
             }
             return hide(loadsnaps);
         }
@@ -410,34 +410,10 @@ loadsnaps.onclick = (_) => {
         snapend = snapstart + 10;
         show(loadsnaps);
         getElements("delete-snapshot").forEach((btn) => {
-            btn.onclick = (e) => {
-                alertify
-                    .confirm(
-                        "Delete snapshot",
-                        "Are you sure you want to delete snapshot?",
-                        () => {
-                            postRequest2({
-                                path:setUrlParams(
-                                    URLS.SNAPSHOT,
-                                    projectID,
-                                    "remove"
-                                ),
-                                data:{
-                                    snapid: btn.getAttribute("data-snapid"),
-                                }
-                            }).then((data) => {
-                                if (data.code === code.OK) {
-                                    btn.parentElement.remove();
-                                    message(data.message);
-                                } else {
-                                    error(data.error);
-                                }
-                            });
-                        },
-                        () => {}
-                    )
-                    .set("labels", { ok: "Yes", cancel: "No" })
-                    .set("closable", false);
+            btn.onclick = async (e) => {
+                await deleteSnap(btn.dataset.snapid, projectID, () => {
+                    btn.parentElement.remove();
+                });
             };
         });
     });
@@ -448,7 +424,7 @@ loadsnaps.click();
 const loadLiveData = async () => {
     const contribview = getElement("project-contibutors-view");
     const languageview = getElement("project-languages-view");
-    const langdefaulthtml = languageview?languageview.innerHTML:'';
+    const langdefaulthtml = languageview ? languageview.innerHTML : "";
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
     if (contribview || languageview) {
@@ -462,7 +438,7 @@ const loadLiveData = async () => {
         }
         if (contribview) setHtmlContent(contribview, data.contributorsHTML);
         if (languageview) {
-            if(Object.keys(data.languages).length) {
+            if (Object.keys(data.languages).length) {
                 setHtmlContent(
                     languageview,
                     `<canvas id="project-languages-distribution-chart" class="chart-view" data-type="radar" width="400" height="400"></canvas>`
@@ -470,11 +446,13 @@ const loadLiveData = async () => {
                 radarChartView(
                     getElement("project-languages-distribution-chart"),
                     Object.keys(data.languages),
-                    Object.keys(data.languages).map((key) => data.languages[key]),
+                    Object.keys(data.languages).map(
+                        (key) => data.languages[key]
+                    ),
                     "12e49d"
                 );
             } else {
-                setHtmlContent(languageview, langdefaulthtml)
+                setHtmlContent(languageview, langdefaulthtml);
             }
         }
     }

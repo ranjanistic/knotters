@@ -1,6 +1,6 @@
 /**
  * Get request method with additional cache control setting params.
- * @returns {Promise<JSON|string>} response data
+ * @returns {Promise<JSON|string|boolean>} response data
  */
 const getRequest2 = async ({
     path,
@@ -23,7 +23,7 @@ const getRequest2 = async ({
 
 /**
  * Post request method with additional cache control setting params.
- * @returns {Promise<JSON|string>} response data
+ * @returns {Promise<JSON|string|boolean>} response data
  */
 const postRequest2 = async ({
     path,

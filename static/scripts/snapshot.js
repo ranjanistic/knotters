@@ -1,5 +1,5 @@
 const snapshotExcludeIDS = [];
-const loadBrowseSnaps = async (observer) => {
+const loadBrowseSnaps = async () => {
     const viewers = getElements("snapshot-viewer");
     let viewer = viewers.find((view) => view.innerHTML.trim() == "");
     if (!viewer) {
@@ -126,18 +126,18 @@ const reportSnap = async (snapID) =>
     await violationReportDialog(
         URLS.Projects ? URLS.Projects.REPORT_SNAPSHOT : URLS.REPORT_SNAPSHOT,
         { snapID },
-        "Snapshot",
+        STRING.snapshot,
         URLS.Projects ? URLS.Projects.REPORT_CATEGORIES : URLS.REPORT_CATEGORIES
     );
 
-const deleteSnap = (snapID, projectID) => {
+const deleteSnap = (snapID, projectID, afterDel = null) => {
     if (!snapID || !projectID) return;
     Swal.fire({
-        title: `Delete snapshot`,
-        html: `Are you sure you want to delete the snapshot?`,
+        title: `${STRING.delete} ${STRING.snapshot}`,
+        html: `${STRING.you_sure_to} ${STRING.delete_the_snap}?`,
         showDenyButton: true,
-        denyButtonText: "Yes, delete",
-        confirmButtonText: "No, wait!",
+        denyButtonText: STRING.yes_del,
+        confirmButtonText: STRING.no_wait,
     }).then((res) => {
         if (res.isDenied) {
             postRequest2({
@@ -153,11 +153,15 @@ const deleteSnap = (snapID, projectID) => {
                 retainCache: true,
             }).then((data) => {
                 if (data.code === code.OK) {
-                    hideElement(`snap-${snapID}`);
+                    if (afterDel) {
+                        afterDel();
+                    } else {
+                        hideElement(`snap-${snapID}`);
+                        closeSnapshotMoreBtn(snapID, {
+                            target: getElement(`snap-modal-${snapID}`),
+                        });
+                    }
                     message(data.message);
-                    closeSnapshotMoreBtn(snapID, {
-                        target: getElement(`snap-modal-${snapID}`),
-                    });
                 } else {
                     error(data.error);
                 }

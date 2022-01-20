@@ -19,9 +19,9 @@ const reportFeedback = async ({
     if (!data) return false;
     if (data.code === code.OK) {
         success(
-            `${
-                isReport ? "Report" : "Feedback"
-            } received and will be looked into.`
+            `${isReport ? STRING.report : STRING.feedback} ${
+                STRING.received_and_noted
+            }`
         );
         return true;
     }
@@ -31,28 +31,28 @@ const reportFeedback = async ({
 
 const reportFeedbackView = () => {
     Swal.fire({
-        title: "Report or Feedback",
+        title: `${STRING.report} ${STRING.or} ${STRING.feedback}`,
         html: `
         <div class="w3-row w3-center report-feed-view" id="report-view">
-            <textarea class="wide" rows="3" id="report-feed-summary" placeholder="Short description" ></textarea><br/><br/>
-            <textarea class="wide" rows="5" id="report-feed-detail" placeholder="Explain everything here in detail (optional)" ></textarea>
-            <h6>Your identity will remain private.</h6>
-            <input class="wide" type="email" autocomplete="email" id="report-feed-email" placeholder="Your email address (optional)" /><br/><br/>
+            <textarea class="wide" rows="3" id="report-feed-summary" placeholder="${STRING.short_desc}" ></textarea><br/><br/>
+            <textarea class="wide" rows="5" id="report-feed-detail" placeholder="${STRING.explain_in_detail} (${STRING.optional})" ></textarea>
+            <h6>${STRING.your_id_remain_private}</h6>
+            <input class="wide" type="email" autocomplete="email" id="report-feed-email" placeholder="${STRING.your_email_addr} (${STRING.optional})" /><br/><br/>
         </div>
         `,
         showDenyButton: true,
         showCancelButton: true,
         showConfirmButton: true,
-        confirmButtonText: "Send Feedback",
-        denyButtonText: "Send Report",
-        cancelButtonText: "Cancel",
+        confirmButtonText: `${STRING.send} ${STRING.feedback}`,
+        denyButtonText: `${STRING.send} ${STRING.report}`,
+        cancelButtonText: STRING.cancel,
         focusConfirm: false,
         preConfirm: () => {
             const summary = String(
                 getElement("report-feed-summary").value
             ).trim();
             if (!summary) {
-                error("Short description required");
+                error(STRING.short_desc_required);
                 return false;
             }
             return true;
@@ -62,7 +62,7 @@ const reportFeedbackView = () => {
                 getElement("report-feed-summary").value
             ).trim();
             if (!summary) {
-                error("Short description required");
+                error(STRING.short_desc_required);
                 return false;
             }
             return true;
@@ -72,14 +72,18 @@ const reportFeedbackView = () => {
         let data = {};
         const summary = String(getElement("report-feed-summary").value).trim();
         if (!summary) {
-            error("Short description required");
+            error(STRING.short_desc_required);
             return false;
         }
         data["summary"] = summary;
         data["detail"] = String(getElement("report-feed-detail").value).trim();
         data["isReport"] = result.isDenied;
         data["email"] = String(getElement("report-feed-email").value).trim();
-        message(`Submitting ${result.isDenied ? "report" : "feedback"}...`);
+        message(
+            `${STRING.submitting} ${
+                result.isDenied ? STRING.report : STRING.feedback
+            }...`
+        );
         loader();
         await reportFeedback(data);
         loader(false);
@@ -103,9 +107,9 @@ const violationReportDialog = async (
         options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
     });
     await Swal.fire({
-        title: `Report ${reportTarget}`,
+        title: `${STRING.report} ${reportTarget}`,
         html: `
-            Select category
+            ${STRING.select_category}
         <select class="text-medium wide negative-text" id='violation-report-category' required>
                 ${options}
             </select>
@@ -114,15 +118,15 @@ const violationReportDialog = async (
         showConfirmButton: false,
         showDenyButton: true,
         showCancelButton: true,
-        denyButtonText: `${Icon("report")} Report ${reportTarget}`,
-        cancelButtonText: "No, go back",
+        denyButtonText: `${Icon("report")} ${STRING.report} ${reportTarget}`,
+        cancelButtonText: STRING.no_wait,
         preDeny: () => {
             return getElement("violation-report-category").value;
         },
     }).then(async (result) => {
         if (result.isDenied) {
             loader();
-            message("Reporting...");
+            message(STRING.reporting);
             const data = await postRequest2({
                 path: reportURL,
                 data: {
@@ -135,7 +139,9 @@ const violationReportDialog = async (
             if (!data) return;
             if (data.code === code.OK) {
                 return message(
-                    `Reported${" " + reportTarget}. We\'ll investigate.`
+                    `${STRING.reported}${" " + reportTarget}. ${
+                        STRING.we_will_investigate
+                    }`
                 );
             }
             error(data.error);

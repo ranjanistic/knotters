@@ -2,7 +2,7 @@ from django.db import models
 from uuid import uuid4
 from django.utils import timezone
 from datetime import timedelta
-from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, moderation
+from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, CORE_PROJECT, moderation
 from main.methods import maxLengthInList
 from main.exceptions import IllegalModerationEntity
 from management.models import ReportCategory
@@ -14,6 +14,8 @@ class Moderation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(
         f"{PROJECTS}.Project", on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_project")
+    coreproject = models.ForeignKey(
+        f"{PROJECTS}.CoreProject", on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_coreproject")
 
     profile = models.ForeignKey(f"{PEOPLE}.Profile", blank=True, null=True,
                                 on_delete=models.CASCADE, related_name="moderation_profile")
@@ -42,7 +44,7 @@ class Moderation(models.Model):
     internal_mod = models.BooleanField(default=False)
 
     def __str__(self):
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             return self.project.name
         elif self.type == PEOPLE:
             return self.profile.getName()
@@ -58,7 +60,7 @@ class Moderation(models.Model):
 
     @property
     def object(self) -> models.Model:
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             return self.project
         elif self.type == PEOPLE:
             return self.profile
@@ -91,7 +93,7 @@ class Moderation(models.Model):
 
     @property
     def requestor(self) -> bool:
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             return self.project.creator
         if self.type == PEOPLE:
             return self.profile
@@ -99,7 +101,7 @@ class Moderation(models.Model):
             return self.competition.creator
 
     def isRequestor(self, profile) -> bool:
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             return profile == self.requestor
         if self.type == PEOPLE:
             return self.profile == profile
@@ -119,18 +121,20 @@ class Moderation(models.Model):
         type = type if type else self.type
         if type == PROJECTS and self.project:
             return self.project
+        elif type == CORE_PROJECT and self.coreproject:
+            return self.coreproject
         elif type == COMPETE and self.competition:
             return self.competition
         elif type == PEOPLE and self.profile:
             return self.profile
         else:
-            raise IllegalModerationEntity()
+            raise IllegalModerationEntity(type)
 
     def approve(self) -> bool:
         now = timezone.now()
         self.status = Code.APPROVED
         self.respondOn = now
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             self.project.status = Code.APPROVED
             self.project.approvedOn = now
             self.project.save()
@@ -141,7 +145,7 @@ class Moderation(models.Model):
 
     def revertRespond(self) -> bool:
         self.status = Code.MODERATION
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             self.project.status = Code.MODERATION
             self.project.approvedOn = None
             self.project.save()
@@ -155,11 +159,10 @@ class Moderation(models.Model):
             return True
         return False
 
-
     def reject(self) -> bool:
         self.status = Code.REJECTED
         self.respondOn = timezone.now()
-        if self.type == PROJECTS:
+        if self.type in [PROJECTS,CORE_PROJECT]:
             self.project.status = Code.REJECTED
             self.project.save()
         self.resolved = True

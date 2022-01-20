@@ -285,12 +285,18 @@ class GhMarketApp(models.Model):
     gh_name = models.CharField(max_length=100, unique=True)
     gh_url = models.URLField(max_length=200, unique=True)
 
+    def __str__(self) -> str:
+        return f'{self.gh_id} {self.gh_name}'
+
 class GhMarketPlan(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gh_id = models.CharField(max_length=100, unique=True)
     is_free = models.BooleanField(default=True)
     gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
     gh_url = models.URLField(max_length=200, unique=True)
+
+    def __str__(self) -> str:
+        return f'{self.gh_app} {self.gh_id}'
 
 class APIKey(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

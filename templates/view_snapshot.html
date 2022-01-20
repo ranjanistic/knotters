@@ -26,11 +26,11 @@
 {% block nav_icon_hide %}{% endblock %}
 
 {% block nav_href %}{{snapshot.base_project.getLink}}{% endblock %}
-{% block nav_text %}Snapshot{% endblock %}
+{% block nav_text %}{% trans "Snapshot" %}{% endblock %}
 
 {% block content %}
 <div class="w3-row align">
-    <div class="w3-col w3-twothird s11 l8 tertiary pallete-slab" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snapshot.get_id}}'>
+    <div class="w3-col w3-twothird s11 l8 tertiary pallete-slab w3-animate-zoom" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snapshot.get_id}}'>
         <br/>
         <div class="w3-row w3-padding">
         <a href="{{snapshot.creator.getLink}}" title="{{snapshot.creator.getName}}"><img alt="{{snapshot.creator.getName}}" class="w3-right w3-circle" src="{{snapshot.creator.getDP}}" width="50" /></a>
@@ -49,8 +49,8 @@
         <div class="w3-row w3-padding">
             <div class="w3-col l4 m4 s4">
                 <a href="{{snapshot.base_project.getLink}}" title="{{snapshot.base_project.name}}">
-                <button class="primary">
-                <img alt="{{snapshot.creator.getName}}" class="circle" src="{{snapshot.base_project.getDP}}" width="30" />
+                <button class="primary" title="{{snapshot.base_project.name}}">
+                <img alt="{{snapshot.base_project.name}}" class="circle" src="{{snapshot.base_project.getDP}}" width="30" />
                 <span class="w3-hide-small">{{snapshot.base_project.get_nickname}}</span>{% if snapshot.base_project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
                 </button>
                 </a>
@@ -69,14 +69,14 @@
                      class="primary"
                      {% endif %}
                         id="snap-admire-{{snapshot.get_id}}">
-                        <i class="text-big">volunteer_activism</i><span class="w3-hide-small">Admire</span>
+                        <i class="text-big">volunteer_activism</i>
                     </button>
                 </div>
                 {% if not request.user.is_authenticated %}
                 </a>
                 {% endif %}
                 <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snapshot.base_project.name}} project!" data-text="{{snapshot.text}}" data-url="{{snapshot.getLink}}">
-                    <button class="accent" id="snap-share-{{snapshot.get_id}}"><i class="text-big">share</i><span class="w3-hide-small">Share</span></button>
+                    <button class="accent" id="snap-share-{{snapshot.get_id}}"><i class="text-big">share</i></button>
                 </div>
                 <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn('{{snapshot.get_id}}')">
                     <button class="tertiary" id="snap-more-{{snapshot.get_id}}"><i class="text-big">more_horiz</i><span class="w3-hide-small">More</span></button>

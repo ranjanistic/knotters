@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
 from main.bots import Github
-from main.methods import errorLog
+from main.methods import errorLog, user_device_notify
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
 from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot
 from moderation.models import ReportedModeration, Moderation
@@ -143,6 +143,10 @@ class Topic(models.Model):
     @property
     def get_id(self) -> str:
         return self.id.hex
+
+    @property
+    def get_name(self) -> str:
+        return self.name.lower().capitalize()
 
     @property
     def label_type(self) -> str:
@@ -563,6 +567,7 @@ class Profile(models.Model):
             self.xp = 0
         self.xp = self.xp + by
         self.save()
+        user_device_notify(self.user, "Profile XP Increased!", f"You have gained +{by} XP!", self.get_abs_link)
         return self.xp
 
     def decreaseXP(self, by: int = 0) -> int:
@@ -582,20 +587,16 @@ class Profile(models.Model):
         return self.xp
 
     def increaseTopicPoints(self, topic, by: int = 0) -> int:
-        proftop, created = ProfileTopic.objects.get_or_create(
+        proftop, _ = ProfileTopic.objects.get_or_create(
             profile=self, topic=topic, defaults=dict(
                 profile=self,
                 topic=topic,
                 trashed=True,
-                points=by,
+                points=0,
             )
         )
-        if created:
-            return by
         return proftop.increasePoints(by)
         
-
-
     def xpTarget(self):
         xp = self.xp
         strxp = str(xp)
@@ -819,6 +820,7 @@ class ProfileTopic(models.Model):
             points = self.points + by
         self.points = points
         self.save()
+        user_device_notify(self.profile.user, "Topic XP Increased!", f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
         return self.points
 
     def decreasePoints(self, by: int = 0) -> int:
@@ -920,7 +922,7 @@ class ProfileSuccessorInvitation(Invitation):
 
 class GHMarketPurchase(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name='purchaser_profile',null=True, blank=True)
+    profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='purchaser_profile',null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     gh_app_plan = models.ForeignKey(GhMarketPlan, on_delete=models.SET_NULL, null=True, blank=True)
     effective_date = models.DateTimeField(auto_now=False, default=timezone.now)

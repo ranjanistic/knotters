@@ -2,11 +2,11 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.core.cache import cache
 from people.models import Profile
 from compete.models import Competition
-from projects.models import Project
+from projects.models import CoreProject, Project
 from django.db.models import Q
 from django.db import models
 from main.methods import renderView, errorLog
-from main.strings import Code, PROJECTS, PEOPLE, COMPETE
+from main.strings import CORE_PROJECT, Code, PROJECTS, PEOPLE, COMPETE
 from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
@@ -18,6 +18,8 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()):
 def getModelByType(type: str) -> models.Model:
     if type == PROJECTS:
         return Project
+    if type == CORE_PROJECT:
+        return CoreProject
     elif type == COMPETE:
         return Competition
     elif type == PEOPLE:
@@ -29,6 +31,8 @@ def getModelByType(type: str) -> models.Model:
 def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: list = []) -> list:
     ignoreModProfileIDs = []
     if modType == PROJECTS and isinstance(object, Project):
+        ignoreModProfileIDs.append(object.creator.id)
+    elif modType == CORE_PROJECT and isinstance(object, CoreProject):
         ignoreModProfileIDs.append(object.creator.id)
     elif modType == PEOPLE and isinstance(object, Profile):
         ignoreModProfileIDs.append(object.id)
@@ -47,7 +51,7 @@ def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: li
     return ignoreModProfileIDs
 
 def getObjectCreator(object:models.Model):
-    if isinstance(object, Project):
+    if isinstance(object, Project) or isinstance(object, CoreProject):
         return object.creator
     elif isinstance(object, Competition):
         return object.creator
@@ -56,7 +60,7 @@ def getObjectCreator(object:models.Model):
     else:
         raise IllegalModerationType()
 
-def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], preferModProfiles: list = [], onlyModProfiles = False, samplesize=100) -> Profile:
+def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], preferModProfiles: list = [], onlyModProfiles = False, samplesize=100, internal=False) -> Profile:
     """
     Implementes round robin algorithm to retreive an available moderator, along with other restrictions.
 
@@ -101,12 +105,12 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         if len(preferModProfileIDs) > 0:
             query = Q(query, id__in=preferModProfileIDs)
 
-    availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(query).distinct()
+    availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(query).distinct()[:samplesize]
     
     totalAvailableModProfiles = len(availableModProfiles)
     if totalAvailableModProfiles == 0:
         if preferred:
-            availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(defaultQuery).distinct()
+            availableModProfiles = Profile.objects.exclude(id__in=ignoreModProfileIDs).filter(defaultQuery).distinct()[:samplesize]
             totalAvailableModProfiles = len(availableModProfiles)
             if totalAvailableModProfiles == 0:
                 return False
@@ -128,7 +132,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     
     robinIndexkey = Code.MODERATOR
     
-    if onlyModProfiles and creator.is_manager:
+    if internal and creator.is_manager:
         robinIndexkey = f"moderator_rr_{creator.manager_id}"
     
     robinIndexValue = cache.get(robinIndexkey, None)
@@ -204,7 +208,7 @@ def requestModerationForObject(
         if not mod:
             if not preferModProfiles:
                 preferModProfiles = []
-            newmoderator = getModeratorToAssignModeration(type, object, preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles)
+            newmoderator = getModeratorToAssignModeration(type, object, preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles, internal=useInternalMods)
             if not newmoderator:
                 return False
             return assignModeratorToObject(type,object,newmoderator,requestData, stale_days=stale_days, internal_mod=useInternalMods)
@@ -218,7 +222,7 @@ def requestModerationForObject(
                 onlyModProfiles.exclude(id=mod.moderator.id)
 
             newmoderator = getModeratorToAssignModeration(
-                type=type, object=object, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles)
+                type=type, object=object, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles,internal=useInternalMods)
             if not newmoderator:
                 return False
 
@@ -233,6 +237,77 @@ def requestModerationForObject(
                 object.status = Code.MODERATION
                 object.save()
 
+            return newmod
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def requestModerationForCoreProject(
+    coreproject: CoreProject,
+    requestData: str = str(),
+    referURL: str = str(),
+    reassignIfRejected: bool = False,
+    reassignIfApproved: bool = False,
+    useInternalMods = False,
+    stale_days=3,
+    chosenModerator: Profile = None,
+) -> Moderation or bool:
+    """
+    Submit a subapplication entity model object for moderation.
+
+    :object: The subapplication entity model object (Project|Profile|Competition)
+    :type: The subapplication or entity type.
+    :requestData: Relevent string data regarding moderation.
+    :referUrl: Relevant url regarding moderation.
+    :reassignIfRejected: If True, and if a moderation already exists for the :object: with status Code.REJECTED, then a new moderation instance is created for it. Default False.
+    :reassignIfApproved: If True, and if a moderation already exists for the :object: with status Code.APPROVED, then a new moderation instance is created for it. Default False.
+    """
+    try:
+        
+        query = Q(type=type, project=coreproject)
+        mod = Moderation.objects.filter(query).order_by('-requestOn','-respondOn').first()
+        preferModProfiles = None
+        onlyModProfiles = None
+        
+        if chosenModerator:
+            if chosenModerator.is_moderator and chosenModerator.is_normal and not chosenModerator.isBlocked(coreproject.creator.user):
+                onlyModProfiles = [chosenModerator]
+            else:
+                raise Exception("Chosen moderator", chosenModerator ,"is not available for ", coreproject)
+        elif useInternalMods and coreproject.creator.is_manager:
+            onlyModProfiles = coreproject.creator.management.moderators
+            if not len(onlyModProfiles): return False
+        else:
+            preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=object.category.topics).distinct()
+
+        if not mod:
+            if not preferModProfiles:
+                preferModProfiles = []
+            newmoderator = getModeratorToAssignModeration(PROJECTS, coreproject, preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles)
+            if not newmoderator:
+                raise Exception("No moderator available for ", coreproject)
+            return assignModeratorToCoreProject(coreproject,newmoderator,requestData, stale_days=stale_days, internal_mod=useInternalMods)
+
+        if (mod.isRejected() and reassignIfRejected) or (mod.isApproved() and reassignIfApproved) or mod.is_stale:
+            if preferModProfiles:
+                preferModProfiles.exclude(id=mod.moderator.id)
+            else: 
+                preferModProfiles = []
+            if onlyModProfiles:
+                onlyModProfiles.exclude(id=mod.moderator.id)
+
+            newmoderator = getModeratorToAssignModeration(type=PROJECTS, object=coreproject, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles)
+            if not newmoderator:
+                raise Exception("No moderator available for ", coreproject)
+
+            requestData = requestData if requestData else mod.request
+            referURL = referURL if referURL else mod.referURL
+            newmod = assignModeratorToCoreProject(coreproject, newmoderator, requestData, referURL, stale_days=stale_days,internal_mod=useInternalMods)
+            if not newmod:
+                raise Exception("Moderator not assigned ", coreproject, newmoderator)
+            else:
+                coreproject.status = Code.MODERATION
+                coreproject.save()
             return newmod
     except Exception as e:
         errorLog(e)
@@ -254,6 +329,15 @@ def assignModeratorToObject(type,object,moderator:Profile, requestData='', refer
         else:
             return False
         return newmod
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def assignModeratorToCoreProject(coreproject:CoreProject,moderator:Profile, requestData='', referURL='', stale_days=3, internal_mod=False):
+    try:
+        if not (moderator.is_moderator and moderator.is_normal):
+            raise Exception('Invalid moderator', moderator)
+        return Moderation.objects.create(coreproject=coreproject, type=CORE_PROJECT, moderator=moderator, request=requestData, referURL=referURL, stale_days=stale_days, internal_mod=internal_mod)
     except Exception as e:
         errorLog(e)
         return False

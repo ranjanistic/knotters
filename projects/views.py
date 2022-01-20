@@ -17,16 +17,16 @@ from django.conf import settings
 from main.bots import Github
 from allauth.account.models import EmailAddress
 from main.env import PUBNAME
-from main.decorators import github_remote_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
+from main.decorators import github_remote_only, manager_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
-from moderation.methods import requestModerationForObject
+from moderation.methods import requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
 from .models import BaseProject, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
 from .mailers import projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
-from .methods import addTagToDatabase, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .methods import addTagToDatabase, createCoreProject, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -268,6 +268,84 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
         return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
 
+@manager_only
+@require_POST
+@ratelimit(key='user', rate='3/m', block=True, method=(Code.POST))
+def submitCoreProject(request: WSGIRequest) -> HttpResponse:
+    projectobj = None
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        acceptedTerms = request.POST.get("acceptterms", False)
+        if not acceptedTerms:
+            if json_body:
+                return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
+            return respondRedirect(APPNAME, URL.projects.createCore(), error=Message.TERMS_UNACCEPTED)
+        
+        name = request.POST["projectname"]
+        description = request.POST["projectabout"]
+        category = request.POST["projectcategory"]
+        reponame = request.POST["reponame"]
+        userRequest = request.POST["description"]
+        referURL = request.POST.get("referurl", "")
+        chosenModID = request.POST.get("chosenmodID", None)
+        stale_days = int(request.POST.get("stale_days", 3))
+        stale_days = stale_days if stale_days in range(1,16) else 3
+        useInternalMods = request.user.profile.is_manager and request.POST.get("useInternalMods", False)
+
+        if not uniqueRepoName(reponame):
+            if json_body:
+                return respondJson(Code.NO, error=Message.CODENAME_ALREADY_TAKEN)
+            return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.CODENAME_ALREADY_TAKEN)
+
+        chosenModerator = None
+        if chosenModID:
+            chosenModerator = Profile.objects.filter(user__id=chosenModID, is_moderator=True,is_active=True,suspended=False,to_be_zombie=False).first()
+        if chosenModerator:
+            useInternalMods = False
+
+        projectobj = createCoreProject(creator=request.user.profile, name=name,category=category, reponame=reponame, description=description)
+        if not projectobj:
+            raise Exception('createCoreProject: False')
+        try:
+            imageData = request.POST['projectimage']
+            imageFile = base64ToImageFile(imageData)
+            if imageFile:
+                projectobj.image = imageFile
+            projectobj.save()
+        except:
+            pass
+        mod = requestModerationForCoreProject(
+            projectobj, userRequest, referURL, useInternalMods=useInternalMods, stale_days=stale_days,chosenModerator=chosenModerator)
+        if not mod:
+            projectobj.delete()
+            if useInternalMods:
+                if request.user.profile.management.total_moderators == 0:
+                    if json_body:
+                        return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
+                    return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.NO_INTERNAL_MODERATORS)
+            if json_body:
+                return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
+            return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.SUBMISSION_ERROR)
+        else:
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", projectobj)
+            if json_body:
+                return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
+            return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
+    except KeyError:
+        if projectobj:
+            projectobj.delete()
+        if json_body:
+            return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
+        return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.SUBMISSION_ERROR)
+    except Exception as e:
+        if projectobj:
+            projectobj.delete()
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
+        return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.SUBMISSION_ERROR)
+
 
 @normal_profile_required
 @require_POST
@@ -325,7 +403,10 @@ def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
             raise Exception(codename)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
         return renderer(request, Template.Projects.PROFILE_CORE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
+    except ObjectDoesNotExist as e:
+        raise Http404(e)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 @require_GET
@@ -340,7 +421,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
             request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except ObjectDoesNotExist as e:
-        return profileFree(request, nickname)
+        return profileCore(request, nickname)
     except Exception as e:
         raise Http404(e)
 

@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 {% for snap in snaps %}
-<div class="w3-col tertiary pallete-slab" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snap.get_id}}'>
+<div class="w3-col tertiary pallete-slab w3-animate-zoom" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snap.get_id}}'>
         <br/>
         <div class="w3-row w3-padding">
         <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="50" /></a>

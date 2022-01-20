@@ -1,28 +1,32 @@
-.ajs-modal,.ajs-top, .ajs-dimmer , .alertify, .swal2-modal {
+.ajs-modal,
+.ajs-top,
+.ajs-dimmer,
+.alertify,
+.swal2-modal {
     z-index: 99999 !important;
 }
-.ajs-header{
+.ajs-header {
     border-radius: 12px 12px 0 0 !important;
     border-bottom: 0 !important;
 }
-.ajs-footer{
+.ajs-footer {
     border-radius: 0 0 12px 12px !important;
     border-top: 0 !important;
 }
 
 .ajs-maximized .ajs-header,
 .ajs-maximized .ajs-footer {
-    border-radius: 0 !important
+    border-radius: 0 !important;
 }
 
 .ajs-basic.ajs-maximized .ajs-header,
 .ajs-basic.ajs-maximized .ajs-footer {
-    border-radius: 0 !important
+    border-radius: 0 !important;
 }
 
-.ajs-basic.ajs-maximized .ajs-content{
-    left:0 !important;
-    right:0 !important;
+.ajs-basic.ajs-maximized .ajs-content {
+    left: 0 !important;
+    right: 0 !important;
     padding: 0 !important;
 }
 
@@ -34,24 +38,28 @@
 .ajs-footer {
     background-color: var(--tertiary) !important;
     color: var(--tertiary-text) !important;
-    
 }
 
 .ajs-body,
-.ajs-dialog, .swal2-modal {
+.ajs-dialog,
+.swal2-modal {
     background-color: var(--primary) !important;
     border-radius: 12px !important;
     color: var(--primary-text);
 }
 
-.ajs-content, .swal2-modal > .swal2-title {
+.ajs-content,
+.swal2-modal > .swal2-title {
     color: var(--primary-text) !important;
 }
 
-.ajs-content > h4, .swal2-modal > h3 {
+.ajs-content > h4,
+.swal2-modal > h3 {
     color: var(--primary-text) !important;
 }
-.ajs-message,.swal2-icon-info, .swal2-toast {
+.ajs-message,
+.swal2-icon-info,
+.swal2-toast {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;
     border: 0 !important;
@@ -60,13 +68,14 @@
     font-family: var(--head-font);
     word-spacing: normal;
     min-width: 20% !important;
-    padding:8px 12px !important;
+    padding: 8px 12px !important;
     text-align: left !important;
     border-radius: 4px !important;
     box-shadow: 4px 4px 15px 5px #0f0f0f27;
-    z-index:999999999 !important;
+    z-index: 999999999 !important;
 }
-.ajs-message.ajs-error,.swal2-icon-error {
+.ajs-message.ajs-error,
+.swal2-icon-error {
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
@@ -74,20 +83,21 @@
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
 }
-.ajs-message.ajs-success,.swal2-icon-success {
+.ajs-message.ajs-success,
+.swal2-icon-success {
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
 }
 
-.ajs-button{
+.ajs-button {
     text-transform: none !important;
     font-family: var(--head-font) !important;
     font-weight: normal !important;
 }
-.swal2-styled{
+.swal2-styled {
     transition: var(--delay) !important;
 }
-.swal2-styled:hover{
+.swal2-styled:hover {
     background-image: none !important;
 }
 .swal2-confirm:hover,
@@ -108,19 +118,21 @@
     /* word-break: break-all !important; */
     -webkit-hyphens: auto !important;
     -ms-hyphens: auto !important;
-    hyphens: auto !important
+    hyphens: auto !important;
 }
-.ajs-ok,.swal2-confirm{
+.ajs-ok,
+.swal2-confirm {
     background-color: var(--positive) !important;
     color: var(--positive-text) !important;
     border-radius: var(--button-radius) !important;
 }
-.ajs-cancel,.swal2-deny{
+.ajs-cancel,
+.swal2-deny {
     background-color: var(--negative) !important;
     color: var(--negative-text) !important;
     border-radius: var(--button-radius) !important;
 }
-.swal2-cancel{
+.swal2-cancel {
     background-color: var(--tertiary) !important;
     color: var(--tertiary-text) !important;
     border-radius: var(--button-radius) !important;
@@ -135,13 +147,12 @@
 }
 .swal2-confirm:active,
 .swal2-deny:active,
-.swal2-cancel:active  {
+.swal2-cancel:active {
     outline: none !important;
     opacity: 0.6 !important;
     box-shadow: 0 0 0 0 #00000000 !important;
     border: 0 !important;
 }
-
 
 .swal2-icon > .swal2-title {
     font-size: 20px !important;

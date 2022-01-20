@@ -13,12 +13,109 @@
 {% block nav_text_style %}text-tertiary{% endblock %}
 {% block nav_back_theme %}positive{% endblock %}
 
-{% block nav_text %}{% trans "Request project" %}{% endblock %}
+{% block nav_text %}{% trans "Request core project" %}{% endblock %}
 {% block nav_href %}{{URLS.CREATE}}{% endblock %}
 {% block nav_back_icon %}close{% endblock %}
 {% block nav_auth_links %}{% endblock %} 
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-Core project subm
+{% if request.user.profile.is_manager and request.user.profile.has_ghID %}
+<div class="w3-row positive">
+    <br/>
+    <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
+    <form action="{{URLS.SUBMIT_CORE}}" method="POST">
+    {% csrf_token %}
+    <div class="w3-col w3-quarter w3-padding">
+        <div class="w3-row">
+            <div class="pallete w3-center" id="edit-pallete">
+                <img src="/media/projects/default.png" id="projectimageoutput" />
+                <button class="positive small" type="button" id="upload-button" data-icon="upload">
+                <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
+                </button>
+                <br/>
+                <input type="text" hidden id="projectimagedata" name="projectimage" value="" />
+                <div class="w3-row w3-padding">
+                    <input type="text" maxlength="70" class="create-project-input" autocomplete="organization-title" autocapitalize placeholder="Project name" required name="projectname" /><br/><br/>
+                    <textarea required maxlength="300" placeholder="About project in a sentence or two." class="create-project-input wide" name="projectabout" ></textarea><br/>
+                </div>
+            </div>
+        </div>
+        <br/>
+    </div>
+    <div class="w3-col w3-threequarter">
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    <center><h5>Overview</h5></center><br/>
+                    <h6>Category</h6>
+                    <select class="wide text-medium tertiary pallete-slab positive-text" name="projectcategory" required>
+                        {% for cat in categories %}
+                        <option value="{{cat.get_id}}">{{cat.name}}</option>
+                        {% endfor %}
+                    </select>
+                    <h6>Description</h6>
+                    <textarea class="wide text-medium" name="projectdescription" required rows="5" placeholder="For contributors to read."></textarea>
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row w3-center">
+                <div class="pallete">
+                    <center><h5>Community Request</h5></center><br/>
+                    <input type="text" placeholder="Type to search a moderator" class="wide"/>
+                    <br/>
+                    <span id="mod-search-output"></span>
+                </div>
+            </div>
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    <center><h5>Metadata</h5></center><br/>
+                    <strong>Requested on <span>{% now "DATETIME_FORMAT" %}</span></strong><br/><br/>
+                    <strong>Requested by</strong><a href="{{request.user.profile.getLink}}"><button class="primary" type="button"><img class="w3-circle primary" src="{{request.user.profile.getDP}}"  width="20"/>&nbsp;{{request.user.profile.getName}}</button></a><br/><br/>
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row pallete">
+                <label id="confirm-check-box">
+                <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
+                I've read the {{APPNAME}} 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a>, 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
+                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
+                </label>
+            </div>
+            <div class="w3-row">
+                <button type="submit" class="w3-right big-button primary" data-icon="done">Submit Request</button>
+            </div>
+        </div>
+    </div>
+    <div class="w3-row"></div>
+    </form>
+    <br/>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block in_scripts %}
+<script>
+{% if not request.user.profile.is_manager %}
+    Swal.fire({title:"Only managers", text:"Core projects are currently reserved for management accounts only."}).then(()=>{
+        loaders()
+        refer({path:URLS.CREATE})
+    });
+{% elif not request.user.profile.has_ghID %}
+    connectWithGithub(URLS.CREATE_CORE, ()=>{
+        refer({path:URLS.CREATE})
+    })
+{% else %}
+    getElement("uploadprojectimage").onchange = (e) => {
+        handleCropImageUpload(e, "projectimagedata", "projectimageoutput", (_) => {
+            getElement("uploadprojectimagelabel").innerHTML = "Selected";
+        });
+    };
+{% endif %}
+</script>
 {% endblock %}

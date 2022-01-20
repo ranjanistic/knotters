@@ -6,8 +6,8 @@ const logOut = async (
     }
 ) => {
     const done = await postRequest(URLS.Auth.LOGOUT);
-    if (!done.location) return error("Failed to logout");
-    message("Logged out successfully");
+    if (!done.location) return error(STRING.logout_failed);
+    message(STRING.logout_success);
     afterLogout();
 };
 
@@ -111,14 +111,19 @@ const loadGlobalEventListeners = () => {
     });
     getElementsByTag("a").forEach((a) => {
         if (
-            a.getAttribute("href") &&
-            !a.getAttribute("href").startsWith("#") &&
-            !a.getAttribute("target") &&
-            a.getAttribute("download") === null
+            a.href &&
+            !a.href.startsWith("#") &&
+            !a.dataset.target &&
+            a.download === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);
             });
+        }
+        if (!(a.href.startsWith("/") || a.href.startsWith(SITE))) {
+            if (!a.rel) {
+                a.rel = "noopener";
+            }
         }
     });
     getElements("href").forEach((href) => {
@@ -128,25 +133,42 @@ const loadGlobalEventListeners = () => {
         });
     });
     getElementsByTag("button").forEach((button) => {
-        if (button.getAttribute("data-icon")) {
+        if (button.dataset.icon) {
             if (!button.innerHTML.includes("material-icons")) {
                 button.innerHTML = `${Icon(button.getAttribute("data-icon"))}${
                     button.innerHTML
                 }`;
             }
         }
-        if(!button.title){
-            if(!button.childElementCount){
-                button.title = button.innerText
-            } else{
-                button.title = button.children[button.childElementCount-1].innerText
+        if (!button.title) {
+            if (!button.childElementCount) {
+                button.title = button.innerText;
+            } else {
+                let text = button.innerText.replace(
+                    button.children[button.childElementCount - 1].innerText,
+                    ""
+                );
+                if (button.childElementCount > 1) {
+                    text = "";
+                    Array.from(button.children)
+                        .filter((child) => child.tagName != "I")
+                        .forEach((child) => {
+                            text += child.innerText;
+                        });
+                }
+                if (!text) {
+                    button.title =
+                        button.children[button.childElementCount - 1].innerText;
+                } else {
+                    button.title = text;
+                }
             }
-            if(!button.title && button.ariaLabel){
-                button.title = button.ariaLabel
+            if (!button.title && button.ariaLabel) {
+                button.title = button.ariaLabel;
             }
         }
-        if(!button.ariaLabel){
-            button.ariaLabel = button.title
+        if (!button.ariaLabel) {
+            button.ariaLabel = button.title;
         }
     });
     getElementsByTag("i").forEach((icon) => {
@@ -155,9 +177,20 @@ const loadGlobalEventListeners = () => {
 
     getElements("preview-type-image").forEach((image) => {
         image.classList.add("pointer");
+        if (!image.title) image.title = "Click to preview";
         image.addEventListener("click", (e) => {
             previewImageDialog(e.target.src, e.target.alt, e.target.title);
         });
+    });
+    getElementsByTag("img").forEach((img) => {
+        if (!img.alt) img.alt = img.title;
+        if (
+            !img.alt &&
+            [ICON, ICON_SHADOW, ICON_DARK].includes(img.src.replace(SITE, ""))
+        ) {
+            img.alt = APPNAME;
+        }
+        if (!img.alt) img.alt = img.src.split("/").pop();
     });
 
     getElements("click-to-copy").forEach((elem) => {
@@ -179,7 +212,7 @@ const loadGlobalEventListeners = () => {
             if (
                 !getElements("required-field").every((field) => {
                     if (!String(field.value).trim()) {
-                        error(field.placeholder + " required");
+                        error(field.placeholder + " " + STRING.required);
                         return false;
                     }
                     return true;
@@ -188,6 +221,7 @@ const loadGlobalEventListeners = () => {
                 return;
             subLoader(true);
             _processReCaptcha((stopLoaders) => {
+                console.log(e.target.form.id);
                 e.target.form.submit();
                 return;
             });
@@ -206,9 +240,11 @@ const loadGlobalEventListeners = () => {
     getElements("navigator-share-action").forEach((share) => {
         share.addEventListener("click", () => {
             shareLinkAction(
-                share.getAttribute("data-title")||share.getAttribute("data-text"),
-                share.getAttribute("data-text")||share.getAttribute("data-title"),
-                share.getAttribute("data-url")||window.location.href
+                share.getAttribute("data-title") ||
+                    share.getAttribute("data-text"),
+                share.getAttribute("data-text") ||
+                    share.getAttribute("data-title"),
+                share.getAttribute("data-url") || window.location.href
             );
         });
     });
@@ -217,16 +253,16 @@ const loadGlobalEventListeners = () => {
 const copyToClipboard = (text) => {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text);
-        message("Copied to clipboard");
+        message(STRING.copied_to_clipboard);
     } else {
-        error("Unable to copy!");
+        error(STRING.copied_to_clipboard_error);
     }
 };
 
 const _processReCaptcha = (
     onSuccess = (stopLoaders) => {},
     onFailure = (e) => {
-        error("Something went wrong, try that again?");
+        error(STRING.default_error_message + " " + STRING.try_that_again);
     }
 ) => {
     try {
@@ -479,7 +515,7 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
         try {
             return JSON.parse(data);
         } catch {
-            return data||true;
+            return data || true;
         }
     } catch (e) {
         subLoader(false);
@@ -507,7 +543,7 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
         try {
             return JSON.parse(data);
         } catch {
-            return data||true;
+            return data || true;
         }
     } catch (e) {
         subLoader(false);
@@ -581,7 +617,7 @@ const shareLinkAction = (title, text, url, afterShared = (_) => {}) => {
                 subLoader(false);
             });
     } else {
-        error("Sharing not available on your system.");
+        error(STRING.sys_share_unavailable);
         copyToClipboard(url);
     }
 };
@@ -596,20 +632,20 @@ const handleCropImageUpload = (
     const file = Array.from(event.target.files)[0];
     if (file) {
         loader();
-        message("Loading image...");
+        message(STRING.loading_image);
     }
     const reader = new FileReader();
     reader.onload = (_) => {
         const base64String = reader.result;
         let cropImage;
         Swal.fire({
-            title: `Crop Image`,
+            title: STRING.crop_image,
             html: `<div class="w3-row w3-center">
                 <img src="${base64String}" style="max-width:100%" id="tempprofileimageoutput" />
                 </div>`,
             showDenyButton: true,
-            denyButtonText: "Cancel",
-            confirmButtonText: "Confirm",
+            denyButtonText: STRING.cancel,
+            confirmButtonText: STRING.confirm,
             didOpen: () => {
                 cropImage = new Cropper(getElement("tempprofileimageoutput"), {
                     ...(ratio !== true ? { aspectRatio: ratio } : {}),
@@ -625,7 +661,7 @@ const handleCropImageUpload = (
                         .getCroppedCanvas()
                         .toDataURL("image/png");
                     if (String(croppedB64).length / 1024 / 1024 >= 10) {
-                        error("Image too large. Preferred size < 10 MB");
+                        error(STRING.img_too_large_10M);
                         return false;
                     }
                     getElement(dataOutElemID).value = croppedB64;
@@ -677,7 +713,7 @@ const fileToBase64 = async (file) => {
             reader.onerror = (error) => reject(error);
         });
     } catch (e) {
-        error("Failed to process file");
+        error(STRING.file_to_base64_error);
         return null;
     }
 };
@@ -802,7 +838,7 @@ const handleMultiFileUpload = (limit = 3, onSubmit = (files) => {}) => {
     // render functions
     function renderFileList() {
         if (multiFiles.length > limit) {
-            error("Limit Exceeded");
+            error(STRING.limit_exceeded);
         } else {
             document.getElementById("ul").innerHTML = ``;
             multiFiles.forEach((file, index) => {
