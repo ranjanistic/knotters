@@ -56,12 +56,12 @@
         <link rel="preload" as="font" href="{% static 'fonts/Questrial/LatinX.woff2' %}" />
         <link rel="preload" as="font" href="{% static 'fonts/Questrial/Latin.woff2' %}" />
         
-        <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
-        <link rel="stylesheet" href="{% static 'icons/material.css' %}">
         <link rel="preload" as="style" href="{% static 'animxyz/animxyz.min.css' %}">
-        <link rel="preload" as="style" href="{% static 'cropper/cropper.min.css'%}" />
         <link rel="preload" as="style" href="{% static 'alertify/alertify.min.css' %%}" />
         <link rel="preload" as="style" href="{% static 'alertify/themes/default.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'styles/w3.css' %}">
+        <link rel="stylesheet" href="{% static 'icons/material.css' %}">
+        <link rel="stylesheet" href="{% static 'cropper/cropper.min.css'%}" />
         <link rel="stylesheet" href="{% static 'swiper/swiper-bundle.min.css' %}" />
         <link rel="stylesheet" href="{% static 'fonts/Poppins.css' %}">
         <link rel="stylesheet" href="{% static 'fonts/Questrial.css' %}">
@@ -425,11 +425,11 @@
         </div>
         {% endblock %}
         <script defer src="{% static 'alertify/alertify.min.js' %}"></script>
+        <script defer src="{% static 'interactjs/interactjs.min.js' %}"></script>
         <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
-        <script defer src="{% static 'cropper/cropper.min.js' %}"></script>
+        <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
-        <script defer src="{% static 'interactjs/interactjs.min.js' %}"></script>
         <script src="{{URLS.STRINGS}}" type="text/javascript"></script>
         <script src="{% static 'scripts/globalvars.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>

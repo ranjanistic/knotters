@@ -1,10 +1,177 @@
-{% extends 'moderation/projects.html' %}
+{% extends 'moderation/index.html' %}
 {% load i18n %}
 {% load l10n %}
 {% load tz %}
 {% load cache %}
 {% load custom_tags %}
 
-{% block title %}
-Core project moderation
+{% block content %}
+<div class="w3-row w3-padding">
+    <center><h4 class="dead-text">
+    {% if moderation.resolved %}
+    This moderation has been resolved.
+    {% else %}
+        {% if ismoderator %}
+        {% trans "This is a core project request." %}
+        {% else %}
+        {% trans "The moderator is reviewing your project, and once it's done, we'll notify you." %}
+        {% endif %}
+    {% endif %}
+    </h4></center>
+    <br/>
+    <div class="w3-col w3-half w3-padding">
+        <img class="w3-right w3-circle preview-type-image" width="150" src="{{moderation.coreproject.getDP}}">
+        <h5 class="dead-text">{% trans "Status" %}: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
+        <h5 class="dead-text">{% trans "Type" %}: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
+        <h5 class="dead-text">{% trans "Category" %}: <span class="text-primary">{{moderation.coreproject.category.name}}</span></h5>
+        <h5 class="dead-text">{% trans "Requested By" %}:</h5><a href="{{moderation.requestor.getLink}}"><button class="primary"><img class="circle" src="{{moderation.requestor.getDP}}"  width="20"/>&nbsp;{{moderation.requestor.getName}}{% if moderation.requestor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
+        
+        <h2>{{moderation.coreproject.name}}</h2>
+        {% if moderation.coreproject.isLive %}
+        <a target="_blank" href="{{moderation.coreproject.getRepoLink}}"><h4 class="positive-text">github.com/Knotters/<span class="text-primary">{{moderation.coreproject.codename}}</span></h4></a>
+        {% else %}
+        <h4 class="dead-text">github.com/Knotters/<span class="text-primary">{{moderation.coreproject.codename}}</span></h4>
+        {% endif %}
+        {% if moderation.referURL %}
+        <a onclick="miniWindow('{{moderation.referURL}}')" title="Be careful with the URLs provided by requestors."><strong>{{moderation.referURL}}</strong></a><br/>
+        {% endif %}
+        Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
+        <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
+        {% csrf_token %}
+        <strong>{{moderation.requestor.get_name}}'s request</strong>
+        {% if ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">{% trans "Report" %}</button><br/>{% endif %}
+        <textarea required name="requestdata" class="wide" rows="4" maxlength="6000" placeholder="{% trans "This is visible to the moderator." %}"
+        {% if ismoderator or moderation.resolved %}disabled{% endif %}
+        >{{moderation.request}}</textarea>
+        {% if not ismoderator and not moderation.resolved and not moderation.is_stale %}
+        <button type="submit" class="positive small w3-right" data-icon="send">{% trans "Save" %}</button>
+        {% endif %}
+        <br/><br/>
+        <strong>{{moderation.moderator.get_name}}'s response</strong>
+        <textarea required name="responsedata" class="wide" rows="4" maxlength="8000"
+        {% if not ismoderator or moderation.resolved or moderation.is_stale%}disabled placeholder="{% trans "No response" %}"{% endif %}
+        {% if ismoderator and not moderation.resolved %}placeholder="{% trans "This is visible to the requestor." %}"{% endif %}
+        >{% if moderation.response %}{{moderation.response}}{% endif %}</textarea>
+        {% if not ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">{% trans "Report" %}</button><br/>{% endif %}
+        {% if ismoderator and not moderation.resolved and not moderation.is_stale %}
+        <button type="submit" class="positive small w3-right" data-icon="send">{% trans "Save" %}</button>
+        {% endif %}
+        </form>
+        {% if moderation.respondOn %}
+            Last response on <strong>{{moderation.respondOn}}</strong><br/>
+        {% endif %}
+    </div>
+    
+    <div class="w3-col w3-half w3-padding">
+        <div class="w3-row pallete accent w3-center">
+        <br/>
+        {% if ismoderator and not moderation.resolved %}
+            <i class="w3-jumbo">warning</i>
+            <h3 class="text-accent">{% trans "Take Action" %}</h3>
+            {% if moderation.is_stale %}
+                <h4>It is too late now. This moderation waited for 3 days for you to respond.</h4>
+                <h5>In future, do not be late in responding, as we also notify you before it's too late.</h5>
+                <a href="{{request.user.profile.getLink}}"><button class="primary" data-icon="sentiment_dissatisfied">Okay</button></a>
+            {% else %}
+            <h6>Approving this project will create a private repository under {{APPNAME}} organization on GitHub, and will grant you the access to this project and related services, everywhere.
+            <br/> Since this is a core project, it will be private to the people under {{APPNAME}} organization only, and you can add more people to this repository later.</h6>
+                You can also <a href="mailto:{{moderation.requestor.user.email}}?subject=Regarding {{moderation.coreproject.name}}'s moderation&cc={{CONTACTMAIL}}&body=Hello, I'm {{request.user.profile.get_name}}, the assigned moderator of your {{moderation.coreproject.name}} project.\n\n">contact the requestor directly</a>.
+            </h6>
+            <button class="big-button positive modaction" id="approve" data-icon="done">{% trans "Approve" %}</button>
+            <button class="big-button negative modaction" id="reject" data-icon="close">{% trans "Reject" %}</button>
+            <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+            {% endif %}
+        {% else %}
+            <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
+            <h3 class="text-accent">Action {% if moderation.resolved %}taken{% endif %}</h3>
+            <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}{% trans "Pending" %}{% endif %}</h4>
+            {% if moderation.coreproject.isLive and moderation.resolved %} 
+            <a href="{{moderation.coreproject.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
+            {% endif %}
+            {% if not ismoderator %}
+                {% if moderation.resolved and moderation.isRejected and not forwarded or moderation.is_stale %}
+                    {% if moderation.coreproject.canRetryModeration or moderation.is_stale %}
+                        {% if moderation.is_stale and not moderation.isRejected%}
+                        <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
+                        {% else %}
+                        <h2>{{moderation.coreproject.moderationRetriesLeft}} {% trans "retry left." %}</h2>
+                        {% endif %}
+                        <form method="POST" action="{{moderation.reapplyLink}}">
+                        {% csrf_token %}
+                        <button class="secondary" type="submit" data-icon="refresh">{% trans "Re-apply for moderation" %}</button>
+                        </form>
+                    {% endif %}
+                    {% if not moderation.coreproject.trashed %}
+                        <form method="POST" action="{{URLS.PROJECTS}}{{moderation.coreproject.getTrashLink}}">
+                        {% csrf_token %}
+                        <button class="negative" type="submit" data-icon="delete">{% trans "Delete project" %}</button>
+                        </form>
+                    {% else %}
+                        <h4>{% trans "Project deleted" %}</h4>
+                    {% endif %}
+                {% elif not moderation.resolved and not moderation.isRejected and forwarded %}
+                    <h4>{% trans "Moderation re-applied" %}</h4>
+                    <a href="{{forwarded.getLink}}"><button class="positive" data-icon="open_in_new">{% trans "View moderation" %}</button></a>
+                {% elif not moderation.resolved %}
+                    <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        
+        </div>
+        <br/>
+        <div class="w3-row w3-padding">
+        <h5>Do respect and follow <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a> in any kind of interaction.</h5>
+        <h5>You can go through the <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a> for any doubt or help regarding this.</h5>
+        </div>
+    </div>
+</div>
+<br/>
+{% endblock%}
+
+{% block in_scripts %}
+<script>
+const modID = "{{moderation.getID}}";
+{% if ismoderator %}
+getElements("modaction").forEach((action)=>{
+    const approve = action.id === 'approve';
+    const modaction = async() => {
+        loader(true);
+        message('{% trans "Resolving moderation" %}, {% trans "please wait" %}.')
+        const data = await postRequest(setUrlParams(URLS.ACTION, modID), {approve})
+        if (!data) return loader(false);
+        if(data.code === code.OK){
+            success('Resolved.')
+            window.location.reload()
+        } else {
+            loader(false);
+            error(data.error)
+        }
+    }
+    action.addEventListener('click',()=>{
+        Swal.fire({
+            title: `{% trans "Final confirmation" %}`,
+            html:`<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this project {{moderation.coreproject.name}} (@{{moderation.coreproject.codename}}) 
+            will be your final decision?
+                <br/><br/>
+            <h5>{% trans "This action is irreversible." %}</h5>`,
+            showConfirmButton: approve,
+            showDenyButton: !approve,
+            denyButtonText: "Reject this project",
+            confirmButtonText: "Approve this project",
+            cancelButtonText: "No, wait!",
+        }).then(async(result)=>{
+            if(result.isConfirmed||result.isDenied){
+                await modaction()
+            }
+        })
+    })
+})
+{% endif %}
+    getElement('report-moderation').onclick=async()=>{
+        await violationReportDialog(URLS.REPORT_MODERATION,{
+            moderationID: '{{moderation.get_id}}',
+        },'',URLS.REPORT_CATEGORIES)
+    }
+</script>
 {% endblock %}

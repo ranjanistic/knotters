@@ -129,9 +129,9 @@
     });
     getElements('create-project-input').forEach(element => {
         if(!Array.from(element.classList).includes('no-retain')){
-            element.value = sessionStorage.getItem(`create-compete-input-${element.id}`)
+            element.value = sessionStorage.getItem(`create-freeproject-input-${element.id}`)
             element.addEventListener("input", (e)=>{
-                sessionStorage.setItem(`create-compete-input-${element.id}`,element.value)
+                sessionStorage.setItem(`create-freeproject-input-${element.id}`,element.value)
             })
         }
     });

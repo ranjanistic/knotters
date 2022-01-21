@@ -20,7 +20,7 @@
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-{% if request.user.profile.is_manager and request.user.profile.has_ghID %}
+{% if request.user.profile.is_manager %}
 <div class="w3-row positive">
     <br/>
     <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
@@ -48,6 +48,8 @@
             <div class="w3-row">
                 <div class="pallete">
                     <center><h5>Overview</h5></center><br/>
+                    <h6>Codename</h6>
+                    <input placeholder="project-codename" maxlength="15" required class="create-project-input" name="projectcodename" id="projectcodename" />
                     <h6>Category</h6>
                     <select class="wide text-medium tertiary pallete-slab positive-text" name="projectcategory" required>
                         {% for cat in categories %}
@@ -55,16 +57,27 @@
                         {% endfor %}
                     </select>
                     <h6>Description</h6>
-                    <textarea class="wide text-medium" name="projectdescription" required rows="5" placeholder="For contributors to read."></textarea>
+                    <textarea class="wide create-project-input" name="projectdescription" required rows="5" placeholder="Details for moderator to understand your project."></textarea>
                 </div>
             </div>
             <br/>
-            <div class="w3-row w3-center">
+            <div class="w3-row">
                 <div class="pallete">
-                    <center><h5>Community Request</h5></center><br/>
-                    <input type="text" placeholder="Type to search a moderator" class="wide"/>
+                    <center><h5>Request</h5></center><br/>
+                    <h6>Moderator Choice</h6>
+                    <input type="radio" name="moderator" class="create-project-input" value="random_moderator" required id="random_moderator" />
+                    <label for="random_moderator"><span class="positive-text">&nbsp;Random moderator</span></label>
                     <br/>
-                    <span id="mod-search-output"></span>
+                    <input type="radio" name="moderator" class="create-project-input" value="internal_moderator" required id="internal_moderator" />
+                    <label for="internal_moderator"><span class="positive-text">&nbsp;Internal moderator</span></label>
+                    <br/>
+                    <input type="radio" name="moderator" class="create-project-input" value="chosen_moderator" required id="chosen_moderator" />
+                    <label for="chosen_moderator"><span class="positive-text">&nbsp;Chosen moderator</span></label>
+                    <br/><br/>
+                    <input type="text" placeholder="Type to search a moderator" class="wide" />
+                    <span id="mod-search-output">
+                    </span>
+                    <input type="text" hidden name="moderator_id" id="moderator_id" />
                 </div>
             </div>
         </div>
@@ -102,20 +115,37 @@
 {% block in_scripts %}
 <script>
 {% if not request.user.profile.is_manager %}
-    Swal.fire({title:"Only managers", text:"Core projects are currently reserved for management accounts only."}).then(()=>{
+    Swal.fire({title:"Only managers", html:"<h4>Core projects are currently reserved for management accounts only.</h4>"}).then(()=>{
         loaders()
         refer({path:URLS.CREATE})
     });
-{% elif not request.user.profile.has_ghID %}
-    connectWithGithub(URLS.CREATE_CORE, ()=>{
-        refer({path:URLS.CREATE})
-    })
 {% else %}
     getElement("uploadprojectimage").onchange = (e) => {
         handleCropImageUpload(e, "projectimagedata", "projectimageoutput", (_) => {
             getElement("uploadprojectimagelabel").innerHTML = "Selected";
         });
     };
+    getElements('create-project-input').forEach(element => {
+        if(!Array.from(element.classList).includes('no-retain')){
+            element.value = sessionStorage.getItem(`create-coreproject-input-${element.id||element.name}`)
+            element.addEventListener("input", (e)=>{
+                sessionStorage.setItem(`create-coreproject-input-${element.id||element.name}`,element.value)
+            })
+        }
+    });
+
+    getElement('projectcodename').oninput=async(e)=>{
+      e.target.value = String(e.target.value).toLowerCase().trim().replaceAll(" ", "-").replaceAll("--","-").replace(/[^a-zA-Z0-9\-]/g, "-");
+    }
+
+    getElement('projectcodename').onchange=async(e)=>{
+        let nickname = String(e.target.value).trim()
+        if(!nickname) return
+        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD,'nickname'),{nickname})
+        if(!data) return
+        if(data.code!==code.OK) return error(data.error)
+        return message(`'${String(e.target.value).trim()}' is available!`)
+    }
 {% endif %}
 </script>
 {% endblock %}

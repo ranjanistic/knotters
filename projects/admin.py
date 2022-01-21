@@ -26,6 +26,18 @@ class FProjectAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
+@admin.register(CoreProject)
+class CProjectAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+    list_filter = ["category"]
+
+    def get_queryset(self, request):
+        query_set = super(CProjectAdmin, self).get_queryset(request)
+        return query_set
+
+    class Meta:
+        ordering = ("")
+
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):

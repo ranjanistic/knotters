@@ -143,7 +143,7 @@ getElements("modaction").forEach((action)=>{
         loader(true);
         message('{% trans "Resolving moderation" %}, {% trans "please wait" %}.')
         const data = await postRequest(setUrlParams(URLS.ACTION, modID), {approve})
-        if (!data) return loader(false);;
+        if (!data) return loader(false);
         if(data.code === code.OK){
             success('Resolved.')
             window.location.reload()
@@ -153,27 +153,22 @@ getElements("modaction").forEach((action)=>{
         }
     }
     action.addEventListener('click',()=>{
-        alertify.confirm(
-            `<h5>{% trans "Final confirmation" %}</h5>`,
-            `<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this project {{moderation.project.name}} (@{{moderation.project.reponame}}) 
+        Swal.fire({
+            title: `{% trans "Final confirmation" %}`,
+            html:`<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this project {{moderation.coreproject.name}} (@{{moderation.coreproject.codename}}) 
             will be your final decision?
                 <br/><br/>
             <h5>{% trans "This action is irreversible." %}</h5>`,
-        async ()=>{
-            if (approve){
-                await modaction()   
-            }
-        },
-        async()=>{
-            if (!approve){
+            showConfirmButton: approve,
+            showDenyButton: !approve,
+            denyButtonText: "Reject this project",
+            confirmButtonText: "Approve this project",
+            cancelButtonText: "No, wait!",
+        }).then(async(result)=>{
+            if(result.isConfirmed||result.isDenied){
                 await modaction()
             }
-        }
-        ).set('closable',false).set('labels', {
-            cancel:approve?'{% trans "No" %}, {% trans "wait" %}!':`${Icon('done')} {% trans "Yes" %}, ${action.id} this project`,
-            ok:!approve?'{% trans "No" %}, {% trans "wait" %}!':`${Icon('done')} {% trans "Yes" %}, ${action.id} this project`,
         })
-        .set('reverseButtons', !approve);
     })
 })
 {% endif %}

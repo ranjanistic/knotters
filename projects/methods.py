@@ -198,7 +198,7 @@ def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> bool:
         if task in [Message.SETTING_APPROVED_PROJECT, Message.SETUP_APPROVED_PROJECT_DONE]:
             return True
         cache.set(f'approved_coreproject_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
-        addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
+        addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgCoreGihtubRepository.__name__}",project,moderator)
         return True
     except Exception as e:
         errorLog(e)
@@ -317,7 +317,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         errorLog(e)
         return False
 
-def setupOrgGihtubRepository(coreproject: CoreProject, moderator: Profile) -> bool:
+def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -> bool:
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
 
@@ -355,11 +355,12 @@ def setupOrgGihtubRepository(coreproject: CoreProject, moderator: Profile) -> bo
                 allow_rebase_merge=True,
                 delete_branch_on_merge=False
             )
+            ghOrgRepo.create_file('LICENSE','Add LICENSE',str(coreproject.license.content))
 
         ghBranch = ghOrgRepo.get_branch("main")
 
         ghBranch.edit_protection(
-            strict=False,
+            strict=True,
             enforce_admins=False,
             dismiss_stale_reviews=True,
             required_approving_review_count=0,
