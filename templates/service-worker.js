@@ -242,7 +242,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
         actions: [],
         dir: "auto",
         image: null,
-        lang: "{{LANGUAGE_CODE}}",
+        lang: "en",
         renotify: false,
         requireInteraction: false,
         silent: false,
