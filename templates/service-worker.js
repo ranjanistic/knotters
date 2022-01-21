@@ -113,6 +113,7 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             };
         };
         {% if DEBUG %}debug_log(`${path} does not allow set caching`);{% endif %}
+        {% if DEBUG %}debug_log(`${path} is ignored: ${isIgnored(path)}`);{% endif %}
         if (FetchRes.redirected && FetchRes.url.includes("/auth/")) {
             {% if DEBUG %}debug_log(`${path} is a redirect to auth`);{% endif %}
             const splitnext = FetchRes.url.split("?next=");
@@ -125,7 +126,6 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             };
             {% if DEBUG %}debug_log(`${path} redirect to auth without next`);{% endif %}
         };
-        {% if DEBUG %}debug_log(`${path} is not a redirect to auth`);{% endif %}
         return FetchRes;
     } else if (FetchRes.status < 400) {
         {% if DEBUG %}debug_log(`${path} status under 400`);{% endif %}

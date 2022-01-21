@@ -37,7 +37,7 @@ const STRING = {
     copied_to_clipboard: `{% trans "Copied to clipboard" %}`,
     copied_to_clipboard_error: `{% trans "Failed to copy to clipboard" %}`,
     try_that_again: `{% trans "Try that again?" %}`,
-    take_me_to_appname: `{% blocktrans %}Take me to {{APPNAME}}{% endblocktrans %}`,
+    take_me_to_appname: `{% blocktrans %}Take me to Knotters{% endblocktrans %}`,
     stay_in_appname: `{% blocktrans %}I\'ll stay in {{APPNAME}}{% endblocktrans %}`,
     remember_using_appname: `{% blocktrans %}Remember, you\'re using {{APPNAME}}, not Knotters!{% endblocktrans %}`,
     glad_to_help: `{% trans "Glad we could help 😊! Do not hesitate to contact us anytime." %}`,

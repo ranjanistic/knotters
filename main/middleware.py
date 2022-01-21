@@ -57,9 +57,12 @@ class MinifyMiddleware(object):
     def __call__(self, request: WSGIRequest):
         response = self.get_response(request)
         if not settings.DEBUG:
-            if response.status_code == 200 and response['Content-Type'] == f'text/html; charset={Code.UTF_8}':
-                minified = html_minify(response.content.decode(Code.UTF_8))
-                response.content = minified.encode(Code.UTF_8)
+            if response.status_code == 200 and response['Content-Type'] == f'text/html; charset={Code.UTF_8}' and not request.headers.get('X-KNOT-REQ-SCRIPT', False):
+                try:
+                    minified = html_minify(response.content.decode(Code.UTF_8))
+                    response.content = minified.encode(Code.UTF_8)
+                except:
+                    pass
         return response
 
 class ActivityMiddleware(object):

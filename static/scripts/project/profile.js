@@ -368,46 +368,30 @@ if (ismoderator || selfProject) {
 }
 
 let snapstart = 0,
-    snapend = snapstart + 10;
+    snapend = snapstart + 2;
+let excludeProjectSnapIDs = []
 const snapsview = getElement(`snapshots-view`);
 
-const addSnapsView = () => {
-    const newsnapview = document.createElement("div");
-    newsnapview.innerHTML = `<div class="w3-row" id="snapshots-view-${snapstart}"><div class="loader"></div></div>`;
-    snapsview.insertBefore(
-        newsnapview,
-        snapsview.childNodes[Array.from(snapsview.childNodes).length - 1]
-    );
-};
 const loadsnaps = getElement("load-more-snaps");
 
 loadsnaps.onclick = (_) => {
-    addSnapsView();
-    const currentsnapsview = getElement(`snapshots-view-${snapstart}`);
-    getRequest(
-        setUrlParams(URLS.SNAPSHOTS, projectID, snapstart, snapend)
-    ).then((data) => {
-        if (data === false) {
-            currentsnapsview.innerHTML = loadErrorHTML();
-            return;
+    postRequest2({
+        path:setUrlQueries(setUrlParams(URLS.SNAPSHOTS, projectID, 5),{n:excludeProjectSnapIDs[excludeProjectSnapIDs.length-1]||0}),
+        data:{
+            excludeIDs: excludeProjectSnapIDs
+        },
+        allowCache:true,
+        retainCache:true,
+    }).then((data) => {
+        if (!data || data.code!==CODE.OK) {
+            return error(data?data.error:'')
         }
-        if (!String(data).trim()) {
-            if (snapstart < 1) {
-                currentsnapsview.innerHTML = `
-                <br/>
-                <center class="dead-text">
-                        <div class="w3-jumbo material-icons">camera</div>
-                        <h5>${STRING.no_snapshots}</h5>
-                    </center>
-                `;
-            } else {
-                currentsnapsview.innerHTML = `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`;
-            }
+        if (!data.snapIDs.length||data.snapIDs.some((id)=>excludeProjectSnapIDs.includes(id))) {
+            snapsview.innerHTML += `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`;
             return hide(loadsnaps);
         }
-        setHtmlContent(currentsnapsview, data);
-        snapstart = snapend;
-        snapend = snapstart + 10;
+        excludeProjectSnapIDs = excludeProjectSnapIDs.concat(data.snapIDs);
+        appendHtmlContent(snapsview,data.html)
         show(loadsnaps);
         getElements("delete-snapshot").forEach((btn) => {
             btn.onclick = async (e) => {

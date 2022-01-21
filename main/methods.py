@@ -3,6 +3,7 @@ import logging
 import requests
 import base64
 from uuid import uuid4
+from htmlmin.minify import html_minify
 import re
 import json
 from django.core.handlers.wsgi import WSGIRequest
@@ -375,3 +376,11 @@ def removeUnverified():
         delusers = User.objects.filter(id__in=list(users)).delete()
         return delusers, profs
     return False
+
+def htmlmin(htmlstr, fragment=False, *args, **kwargs):
+    if settings.DEBUG:
+        return htmlstr
+    mincode = html_minify(htmlstr, *args, **kwargs)
+    if not fragment:
+        return mincode
+    return re.sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)

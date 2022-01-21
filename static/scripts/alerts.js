@@ -286,7 +286,7 @@ const loadErrorHTML = (
 <i class="negative-text material-icons w3-jumbo">error</i>
 <h3>${
     STRING.oops_something_went_wrong
-}</h3><button class="primary" id="${retryID}">${Icon("reload")} ${
+}</h3><button class="primary" id="${retryID}">${Icon("refresh")} ${
     STRING.retry
 }</button></div></div>`;
 

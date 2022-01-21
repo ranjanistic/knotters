@@ -910,7 +910,7 @@ class URL():
 
         NEWBIES = 'newbies/'
         BROWSE_SEARCH = 'browse/search/'
-        SNAPSHOTS = 'snapshots/<str:projID>/<int:start>/<int:end>/'
+        SNAPSHOTS = 'snapshots/<str:projID>/<int:limit>/'
         SNAPSHOT = 'snapshot/<str:projID>/<str:action>/'
 
         REPORT_CATEGORIES = 'report/categories'

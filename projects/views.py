@@ -18,7 +18,7 @@ from main.bots import Github
 from allauth.account.models import EmailAddress
 from main.env import PUBNAME
 from main.decorators import github_remote_only, manager_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, htmlmin, renderString, respondJson, respondRedirect
 from main.strings import Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import requestModerationForCoreProject, requestModerationForObject
@@ -26,7 +26,7 @@ from management.models import ReportCategory
 from people.models import Profile, Topic
 from .models import BaseProject, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
 from .mailers import projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
-from .methods import addTagToDatabase, createCoreProject, createFreeProject, renderer, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .methods import addTagToDatabase, createCoreProject, createFreeProject, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -1282,33 +1282,33 @@ def licenseSearch(request: WSGIRequest):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         return Http404(e)
 
-def snapshots(request: WSGIRequest, projID: UUID, start: int = 0, end: int = 10):
+@require_JSON_body
+def snapshots(request: WSGIRequest, projID: UUID, limit: int = 10):
     # In Project Snapshot view
     try:
-        if end < 1:
-            end = 10
+        if limit < 1:
+            limit = 10
+        excludeIDs = request.POST.get('excludeIDs', [])
 
-        snaps = Snapshot.objects.filter(
-            base_project__id=projID, base_project__trashed=False, base_project__suspended=False).order_by('-created_on')[start:end]
-        if request.method == 'GET':
-            return rendererstr(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps))
-        if request.method == 'POST':
-            jsonsnaps = []
-            for snap in snaps:
-                jsonsnaps.append(dict(
-                    id=snap.get_id,
-                    projectID=snap.project_id,
-                    text=snap.text,
-                    image=snap.get_image,
-                    video=snap.get_video,
-                ))
-            return respondJson(Code.OK, dict(
-                snaps=jsonsnaps
-            ))
-        return HttpResponseBadRequest()
+        cachekey = f"project_snapshots_{projID}_{limit}"
+        if len(excludeIDs):
+            cachekey = cachekey + "".join(excludeIDs)
+            
+        snaps = cache.get(cachekey,[])
+        snapIDs = [snap.id for snap in snaps]
+        
+        if not len(snaps):
+            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False,suspended=False).exclude(id__in=excludeIDs).order_by('-created_on')[:limit]
+            snapIDs = [snap.id for snap in snaps]
+            if len(snaps):
+                cache.set(cachekey, snaps, settings.CACHE_INSTANT)
+        return respondJson(Code.OK, dict(
+            html=htmlmin(renderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)), True),
+            snapIDs=snapIDs
+        ))
     except Exception as e:
         errorLog(e)
-        return HttpResponseBadRequest()
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required

@@ -69,6 +69,14 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
     loadBrowserSwiper();
     afterset();
 };
+const appendHtmlContent = (element, content = "", afterset = () => {}) => {
+    element.innerHTML += content;
+    loadGlobalEventListeners();
+    loadGlobalEditors();
+    loadCarousels({});
+    loadBrowserSwiper();
+    afterset();
+};
 
 const setUrlParams = (path, ...params) => {
     params.forEach((param) => {
@@ -113,8 +121,8 @@ const loadGlobalEventListeners = () => {
         if (
             a.href &&
             !a.href.startsWith("#") &&
-            !a.dataset.target &&
-            a.download === null
+            !a.getAttribute("target") &&
+            a.getAttribute("download") === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);

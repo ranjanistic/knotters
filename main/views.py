@@ -2,7 +2,6 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from rjsmin import jsmin
-from htmlmin.minify import html_minify
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -31,7 +30,7 @@ from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
 from .bots import Github
 from .env import ADMINPATH, ISPRODUCTION, ISBETA
-from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
+from .methods import addMethodToAsyncQueue, htmlmin, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
 from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON
 from .mailers import featureRelease
 from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS, Event
@@ -505,8 +504,7 @@ class ServiceWorker(TemplateView):
             netFirstList=json.dumps([
                 f"/{URL.LANDING}",
                 f"/{URL.FAME_WALL}",
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
@@ -572,7 +570,7 @@ def browser(request: WSGIRequest, type: str):
                         cache.set(cachekey, snaps, settings.CACHE_INSTANT)
                 
                 data = dict(
-                    html=html_minify(renderString(request, Template.SNAPSHOTS, dict(snaps=snaps))),
+                    html=htmlmin(renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)), True),
                     snapIDs=snapIDs,
                     recommended=False
                 )
