@@ -2,6 +2,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from rjsmin import jsmin
+from htmlmin.minify import html_minify
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
@@ -571,7 +572,7 @@ def browser(request: WSGIRequest, type: str):
                         cache.set(cachekey, snaps, settings.CACHE_INSTANT)
                 
                 data = dict(
-                    html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
+                    html=html_minify(renderString(request, Template.SNAPSHOTS, dict(snaps=snaps))),
                     snapIDs=snapIDs,
                     recommended=False
                 )
