@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 import re
 from rcssmin import cssmin
 from rjsmin import jsmin
+from htmlmin.minify import html_minify
 from django.template.loader import render_to_string
 from django.conf import settings
 from os import remove,  symlink, mkdir, walk
@@ -179,14 +180,14 @@ class Command(BaseCommand):
             mkdir(err_dir)
         print("ERR DIR: ", err_dir)
         notfoundstr = render_to_string('404.html', renderData(dict(**GlobalContextData,csrf_token=" ")))
-        notfoundstr = re.sub('\s+',' ', notfoundstr).replace('\n','').strip().replace(settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/')
+        notfoundstr = html_minify(notfoundstr.replace(settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/'))
         notfoundpath = join(err_dir,'40x.html')
         print("404 PATH: ", notfoundpath)
         with open(notfoundpath,'w+') as file:
             file.write(notfoundstr)
         print("404 PATH DONE: ", notfoundpath)
         servererrorstr = render_to_string('50x.html', renderData(dict(**GlobalContextData,csrf_token=" ")))
-        servererrorstr = re.sub('\s+',' ', servererrorstr).replace('\n','').strip().replace(settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/')
+        servererrorstr = html_minify(servererrorstr.replace(settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/'))
         servererrpath = join(err_dir,'50x.html')
         print("500 PATH: ", servererrpath)
         with open(servererrpath,'w+') as file:
