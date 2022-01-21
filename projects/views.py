@@ -19,13 +19,13 @@ from allauth.account.models import EmailAddress
 from main.env import PUBNAME
 from main.decorators import github_remote_only, manager_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, htmlmin, renderString, respondJson, respondRedirect
-from main.strings import Action, Code, Event, Message, URL, Template, setURLAlerts
+from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
 from .models import BaseProject, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
-from .mailers import projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
+from .mailers import coreProjectSubmissionNotification, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createCoreProject, createFreeProject, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
@@ -92,13 +92,13 @@ def createCore(request: WSGIRequest) -> HttpResponse:
 def validateField(request: WSGIRequest, field: str) -> JsonResponse:
     try:
         data = request.POST[field]
-        if ['reponame', 'nickname'].__contains__(field):
+        if field in ['reponame', 'nickname', 'codename']:
             if not uniqueRepoName(data):
                 return respondJson(Code.NO, error=Message.Custom.already_exists(data))
             else:
                 return respondJson(Code.OK)
         else:
-            return respondJson(Code.NO)
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -275,24 +275,33 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        acceptedTerms = request.POST.get("acceptterms", False)
+        acceptedTerms = request.POST.get("coreproject_acceptterms", False)
         if not acceptedTerms:
             if json_body:
                 return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
             return respondRedirect(APPNAME, URL.projects.createCore(), error=Message.TERMS_UNACCEPTED)
         
-        name = request.POST["projectname"]
-        description = request.POST["projectabout"]
-        category = request.POST["projectcategory"]
-        reponame = request.POST["reponame"]
-        userRequest = request.POST["description"]
-        referURL = request.POST.get("referurl", "")
-        chosenModID = request.POST.get("chosenmodID", None)
-        stale_days = int(request.POST.get("stale_days", 3))
-        stale_days = stale_days if stale_days in range(1,16) else 3
-        useInternalMods = request.user.profile.is_manager and request.POST.get("useInternalMods", False)
+        name = request.POST["coreproject_projectname"]
+        about = request.POST["coreproject_projectabout"]
+        category_id = request.POST["coreproject_projectcategory"]
+        codename = request.POST["coreproject_codename"]
+        userRequest = request.POST["coreproject_projectdescription"]
 
-        if not uniqueRepoName(reponame):
+        chosenModID = request.POST.get("coreproject_moderator_id", False)
+        useInternalMods = request.POST.get("coreproject_internal_moderator", False)
+
+        referURL = request.POST.get("coreproject_referurl", "")
+        budget = float(request.POST.get("coreproject_projectbudget", 0))
+        stale_days = int(request.POST.get("coreproject_stale_days", 3))
+
+        lic_name = request.POST["coreproject_license_name"]
+        lic_about = request.POST["coreproject_license_about"]
+        lic_cont = request.POST["coreproject_license_content"]
+
+        stale_days = stale_days if stale_days in range(1,16) else 3
+        useInternalMods = useInternalMods and request.user.profile.is_manager
+
+        if not uniqueRepoName(codename):
             if json_body:
                 return respondJson(Code.NO, error=Message.CODENAME_ALREADY_TAKEN)
             return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.CODENAME_ALREADY_TAKEN)
@@ -303,11 +312,13 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
         if chosenModerator:
             useInternalMods = False
 
-        projectobj = createCoreProject(creator=request.user.profile, name=name,category=category, reponame=reponame, description=description)
+        license = License.objects.create(name=lic_name, description=lic_about, content=lic_cont, creator=request.user.profile,public=False)
+        category = Category.objects.get(id=category_id)
+        projectobj = createCoreProject(name=name,category=category, codename=codename, description=about,creator=request.user.profile, license=license,budget=budget)
         if not projectobj:
             raise Exception('createCoreProject: False')
         try:
-            imageData = request.POST['projectimage']
+            imageData = request.POST['coreproject_projectimage']
             imageFile = base64ToImageFile(imageData)
             if imageFile:
                 projectobj.image = imageFile
@@ -324,34 +335,28 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
                         return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
                     return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.NO_INTERNAL_MODERATORS)
             if json_body:
-                return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
-            return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.SUBMISSION_ERROR)
+                return respondJson(Code.NO, error=Message.NO_MODERATORS_AVAILABLE)
+            return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.NO_MODERATORS_AVAILABLE)
         else:
             addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", projectobj)
+                f"{APPNAME}.mailers.{coreProjectSubmissionNotification.__name__}", projectobj)
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
-    except KeyError:
+    except KeyError as e:
         if projectobj:
             projectobj.delete()
         if json_body:
-            return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
-        return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.SUBMISSION_ERROR)
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.INVALID_REQUEST)
     except Exception as e:
         if projectobj:
             projectobj.delete()
-        errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
+        errorLog(e)
         return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.SUBMISSION_ERROR)
 
-
-@normal_profile_required
-@require_POST
-@ratelimit(key='user', rate='3/m', block=True, method=(Code.POST))
-def submitCoreProject(request: WSGIRequest) -> HttpResponse:
-    raise Http404()
 
 @normal_profile_required
 @require_JSON_body
@@ -397,12 +402,22 @@ def transferProjectOwnership(request: WSGIRequest, projID: UUID) -> HttpResponse
 @require_GET
 def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
     try:
-        project = CoreProject.objects.get(codename=codename, trashed=False, suspended=False)
-        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        if project.suspended and not iscreator:
+        coreproject = CoreProject.objects.get(codename=codename, trashed=False, suspended=False)
+        if coreproject.status == Code.APPROVED:
+            iscreator = False if not request.user.is_authenticated else coreproject.creator == request.user.profile
+            ismoderator = False if not request.user.is_authenticated else coreproject.moderator == request.user.profile
+            if coreproject.suspended and not (iscreator or ismoderator):
+                raise Exception()
+            isAdmirer = request.user.is_authenticated and coreproject.isAdmirer(
+                request.user.profile)
+            return renderer(request, Template.Projects.PROFILE_CORE, dict(project=coreproject, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
+        else:
+            if request.user.is_authenticated:
+                mod = Moderation.objects.filter(coreproject=coreproject, type=CORE_PROJECT, status__in=[
+                    Code.REJECTED, Code.MODERATION]).order_by('-respondOn','-requestOn').first()
+                if coreproject.creator == request.user.profile or mod.moderator == request.user.profile:
+                    return redirect(mod.getLink())
             raise Exception(codename)
-        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
-        return renderer(request, Template.Projects.PROFILE_CORE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
     except ObjectDoesNotExist as e:
         raise Http404(e)
     except Exception as e:
@@ -442,7 +457,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
         else:
             if request.user.is_authenticated:
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
-                    Code.REJECTED, Code.MODERATION]).order_by('-respondOn').first()
+                    Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
             raise Exception(reponame)
@@ -1163,6 +1178,7 @@ def browseSearch(request: WSGIRequest):
             
             specials = ('tag:', 'category:', 'topic:', 'creator:', 'type:')
             verified = None
+            core = None
             pquery = None
             dbquery = Q()
             invalidQuery = False
@@ -1181,7 +1197,8 @@ def browseSearch(request: WSGIRequest):
                         special, specialq = cpart.split(':')
                         if special.strip().lower() == 'type':
                             verified = specialq.strip().lower() == 'verified'
-                            if not verified:
+                            core = specialq.strip().lower() == 'core'
+                            if not verified or not core:
                                 invalidQuery = True
                                 break
                         else:
@@ -1218,6 +1235,10 @@ def browseSearch(request: WSGIRequest):
                 if verified != None:
                     projects = list(filter(lambda m: verified ==
                                     m.is_verified, list(projects)))
+                elif core != None:
+                    projects = list(filter(lambda m: core ==
+                                    m.is_core, list(projects)))
+
                 if len(projects):
                     cache.set(cachekey, projects, settings.CACHE_SHORT)
         

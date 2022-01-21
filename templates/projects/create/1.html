@@ -237,13 +237,16 @@
 {% block in_scripts %}
 <script>
 let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");
+{% if not user.profile.has_ghID %}
+    connectWithGithub(URLS.CREATE_MOD,_=>{window.location.replace(URLS.CREATE)})
+{% else %}
+{% comment %} window.addEventListener('beforeunload',(event)=>{
+    event.preventDefault();
+    return event.returnValue = "Changes are not saved!";
+}) {% endcomment %}
+{% endif %}
 </script>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
-<script>
-{% if not user.profile.has_ghID %}
-    connectWithGithub(URLS.CREATE_MOD,_=>{window.location.replace(URLS.CREATE)})
-{% endif %}
-</script>
 {% endblock %}

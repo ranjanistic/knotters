@@ -73,6 +73,7 @@ class Code():
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
     MODERATOR = "moderator"
+    LAST_MODERATOR = "last_moderator"
     ZOMBIE = 'Zombie'
     ZOMBIEMAIL = 'zombie@knotters.org'
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'

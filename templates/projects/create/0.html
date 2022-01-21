@@ -152,6 +152,10 @@
         if(data.code!==code.OK) return error(data.error)
         return success(`'${String(e.target.value).trim()}' is available!`)
     }
+    {% comment %} window.addEventListener('beforeunload',(event)=>{
+        event.preventDefault();
+        return event.returnValue = "Changes are not saved!";
+    }) {% endcomment %}
 </script>
 {% endblock %}
 {% block scripts %}

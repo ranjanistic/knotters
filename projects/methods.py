@@ -79,7 +79,7 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
         errorLog(e)
         return False
 
-def createCoreProject(name: str, category: str, codename: str, description: str, creator: Profile) -> CoreProject or bool:
+def createCoreProject(name: str, category: Category, codename: str, description: str, creator: Profile, license: License,budget:int=0) -> CoreProject or bool:
     """
     Creates core project on knotters under moderation status.
 
@@ -94,10 +94,7 @@ def createCoreProject(name: str, category: str, codename: str, description: str,
         codename = uniqueRepoName(codename)
         if not codename:
             return False
-        categoryObj = addCategoryToDatabase(category, creator)
-        if not categoryObj:
-            return False
-        return CoreProject.objects.create(creator=creator, name=name, codename=codename, description=description, category=categoryObj)
+        return CoreProject.objects.create(creator=creator, name=name, codename=codename, description=description, category=category, license=license,budget=budget)
     except Exception as e:
         errorLog(e)
         return False

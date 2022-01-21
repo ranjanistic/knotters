@@ -1,6 +1,6 @@
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
-from .models import Project, FreeProject, ProjectTransferInvitation
+from .models import CoreProject, Project, FreeProject, ProjectTransferInvitation
 
 
 def freeProjectCreated(project: FreeProject):
@@ -47,7 +47,24 @@ def sendProjectSubmissionNotification(project: Project):
             'url': project.getModLink()
         }],
         footer=f"We'll notify you as soon as the moderator reviews your project submission. Till then, chill out! NOTE: We're lenient.",
-        conclusion=f"This email was generated because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
+        conclusion=f"This email was sent because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
+    )
+
+def coreProjectSubmissionNotification(coreproject: CoreProject):
+    """
+    Project has been submitted for moderation
+    """
+    return sendActionEmail(
+        to=coreproject.creator.getEmail(),
+        username=coreproject.creator.getFName(),
+        subject='Project Status: Moderation',
+        header=f"This is to inform you that we have received your recently submitted core project request - {coreproject.name} - for moderation. Moderator has been assigned to review it.",
+        actions=[{
+            'text': 'View moderation state',
+            'url': coreproject.getModLink()
+        }],
+        footer=f"We'll notify you as soon as the moderator reviews your project submission. You can check the status anytime from above link.",
+        conclusion=f"This email was sent because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
     )
 
 

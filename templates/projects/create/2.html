@@ -34,10 +34,10 @@
                 <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
                 </button>
                 <br/>
-                <input type="text" hidden id="projectimagedata" name="projectimage" value="" />
+                <input type="text" hidden id="projectimagedata" name="coreproject_projectimage" value="" />
                 <div class="w3-row w3-padding">
-                    <input type="text" maxlength="70" class="create-project-input" autocomplete="organization-title" autocapitalize placeholder="Project name" required name="projectname" /><br/><br/>
-                    <textarea required maxlength="300" placeholder="About project in a sentence or two." class="create-project-input wide" name="projectabout" ></textarea><br/>
+                    <input type="text" maxlength="70" class="create-project-input" autocomplete="organization-title" autocapitalize placeholder="Project name" required name="coreproject_projectname" /><br/><br/>
+                    <textarea required maxlength="300" placeholder="About project in a sentence or two." class="create-project-input wide" name="coreproject_projectabout" ></textarea><br/>
                 </div>
             </div>
         </div>
@@ -49,35 +49,51 @@
                 <div class="pallete">
                     <center><h5>Overview</h5></center><br/>
                     <h6>Codename</h6>
-                    <input placeholder="project-codename" maxlength="15" required class="create-project-input" name="projectcodename" id="projectcodename" />
+                    <input placeholder="project-codename" maxlength="15" required class="create-project-input" name="coreproject_codename" id="projectcodename" />
                     <h6>Category</h6>
-                    <select class="wide text-medium tertiary pallete-slab positive-text" name="projectcategory" required>
+                    <select class="wide text-medium tertiary pallete-slab positive-text" name="coreproject_projectcategory" required>
                         {% for cat in categories %}
                         <option value="{{cat.get_id}}">{{cat.name}}</option>
                         {% endfor %}
                     </select>
                     <h6>Description</h6>
-                    <textarea class="wide create-project-input" name="projectdescription" required rows="5" placeholder="Details for moderator to understand your project."></textarea>
+                    <textarea class="wide create-project-input" name="coreproject_projectdescription" required rows="5" placeholder="Details for moderator to understand your project."></textarea>
                 </div>
             </div>
             <br/>
             <div class="w3-row">
                 <div class="pallete">
-                    <center><h5>Request</h5></center><br/>
-                    <h6>Moderator Choice</h6>
-                    <input type="radio" name="moderator" class="create-project-input" value="random_moderator" required id="random_moderator" />
+                    <center><h5>Moderation</h5></center>
+                    <h6>Customize Moderation</h6>
+                    <input type="radio" name="moderator_type_radio" class="create-project-input" checked value="0" required id="random_moderator" />
                     <label for="random_moderator"><span class="positive-text">&nbsp;Random moderator</span></label>
                     <br/>
-                    <input type="radio" name="moderator" class="create-project-input" value="internal_moderator" required id="internal_moderator" />
-                    <label for="internal_moderator"><span class="positive-text">&nbsp;Internal moderator</span></label>
+                    <input type="radio" name="moderator_type_radio" class="create-project-input" value="1" required id="internal_moderator" />
+                    <label for="internal_moderator"><span class="positive-text">&nbsp;Random Internal moderator</span></label><a href="{{URLS.Management.MODERATORS}}" target="_blank"><i>open_in_new</i></a>
                     <br/>
-                    <input type="radio" name="moderator" class="create-project-input" value="chosen_moderator" required id="chosen_moderator" />
+                    <input type="radio" name="moderator_type_radio" class="create-project-input" value="2" required id="chosen_moderator" />
                     <label for="chosen_moderator"><span class="positive-text">&nbsp;Chosen moderator</span></label>
                     <br/><br/>
-                    <input type="text" placeholder="Type to search a moderator" class="wide" />
-                    <span id="mod-search-output">
+                    <span id="choose_moderator_views" hidden>
+                        <input type="text" placeholder="Type to search a moderator" class="wide" id="choose_moderator_search_input"/>
+                        <span id="choose_moderator_search_output">
+                        </span>
+                        <span id="choose_moderator_selected_output">
+                        </span>
+                        <br/><br/>
                     </span>
-                    <input type="text" hidden name="moderator_id" id="moderator_id" />
+                    <input type="text" hidden name="coreproject_moderator_id" id="coreproject_moderator_id" value='' />
+                    <input type="checkbox" hidden name="coreproject_random_moderator" checked id="coreproject_random_moderator" />
+                    <input type="checkbox" hidden name="coreproject_internal_moderator"  id="coreproject_internal_moderator" />
+                    
+                    <input type="url" placeholder="Any relevant link (optional)" class="wide create-project-input" name="coreproject_referurl" />
+                    
+                    <h6>Maximum days to review</h6>
+                    <input type="number" placeholder="Default: 3 days, max 15 days" value="3" class="create-project-input wide" name="coreproject_stale_days" min="1" max="15" />
+                    <br/>
+
+                    <h6>Project Budget (&#x20B9;)</h6>
+                    <input type="number" min="0" max="1000000" step="0.01" class="create-project-input wide" name="coreproject_projectbudget" required placeholder="INR (&#x20B9;)" />
                 </div>
             </div>
         </div>
@@ -87,12 +103,25 @@
                     <center><h5>Metadata</h5></center><br/>
                     <strong>Requested on <span>{% now "DATETIME_FORMAT" %}</span></strong><br/><br/>
                     <strong>Requested by</strong><a href="{{request.user.profile.getLink}}"><button class="primary" type="button"><img class="w3-circle primary" src="{{request.user.profile.getDP}}"  width="20"/>&nbsp;{{request.user.profile.getName}}</button></a><br/><br/>
+                    <strong>The source code of this project will be visible to people at {{APPNAME}} organization on GitHub only, hidden from rest of the world.</strong>
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row">
+                <div class="pallete">
+                    <center><h5>Proprietary license</h5></center><br/>
+                    <input type="text" placeholder="License name" class="create-project-input wide" name="coreproject_license_name" required maxlength="49" /><br/><br/>
+                    <input type="text" placeholder="About license" class="create-project-input wide" name="coreproject_license_about" required maxlength="500" /><br/><br/>
+                    <textarea type="text" rows="5" 
+                    placeholder="Something like: Copyright (C) {{request.user.profile.get_name}}, Inc - All Rights Reserved. Unauthorized copying..." class="create-project-input wide" 
+                        name="coreproject_license_content" required maxlength="50000">
+                    </textarea>
                 </div>
             </div>
             <br/>
             <div class="w3-row pallete">
                 <label id="confirm-check-box">
-                <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
+                <input name="coreproject_acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
                 I've read the {{APPNAME}} 
                     <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
                     <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a>, 
@@ -101,7 +130,7 @@
                 </label>
             </div>
             <div class="w3-row">
-                <button type="submit" class="w3-right big-button primary" data-icon="done">Submit Request</button>
+                <button type="submit" class="w3-right big-button primary" data-icon="done" id="submit-core-project-request">Submit Request</button>
             </div>
         </div>
     </div>
@@ -139,13 +168,77 @@
     }
 
     getElement('projectcodename').onchange=async(e)=>{
-        let nickname = String(e.target.value).trim()
-        if(!nickname) return
-        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD,'nickname'),{nickname})
+        let codename = String(e.target.value).trim()
+        if(!codename) return
+        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD,'codename'),{codename})
         if(!data) return
         if(data.code!==code.OK) return error(data.error)
         return message(`'${String(e.target.value).trim()}' is available!`)
     }
+    const choose_moderator_views = getElement("choose_moderator_views");
+    const modSearchInput = getElement("choose_moderator_search_input")
+    hide(choose_moderator_views)
+    const searchoninput = async(_)=>{
+        if(!modSearchInput.value.trim()) return
+        const data = await postRequest2({
+            path:URLS.Management.MODSEARCH,
+            data: {
+                query: modSearchInput.value.trim(),
+                internalOnly: false
+            }
+        })
+        if(!data) return
+        if(data.mod){
+            setHtmlContent(getElement("choose_moderator_search_output"),
+                `<button class="primary" type="button" id="mod-search-output-button"><img src="${data.mod.dp}" class="circle" />${data.mod.name}</button>`,
+                ()=>{
+                    getElement("mod-search-output-button").onclick=_=>{
+                        modSearchInput.oninput = null
+                        getElement("coreproject_moderator_id").value = data.mod.id
+                        getElement("choose_moderator_search_output").innerHTML = ""
+                        setHtmlContent(getElement('choose_moderator_selected_output'),
+                            `Selected: <button class="accent" type="button" id="mod-selected-button" data-icon="close"><img src="${data.mod.dp}" class="circle" /> ${data.mod.name}</button>`,
+                            ()=>{
+                                getElement("mod-selected-button").onclick=_=>{
+                                    getElement("coreproject_moderator_id").value = ""
+                                    getElement('choose_moderator_selected_output').innerHTML = ""
+                                    modSearchInput.oninput = searchoninput
+                                }
+                            }
+                        )
+                        
+                    }
+                }
+            )
+        } else {
+            getElement("choose_moderator_search_output").innerHTML = "No results found"
+        }
+    };
+    Array.from(document.getElementsByName('moderator_type_radio')).forEach((radio)=>{
+        radio.onchange=_=>{
+            if(radio.id=="chosen_moderator"){
+                modSearchInput.oninput = searchoninput;
+                visible(choose_moderator_views,radio.checked)
+                getElement("coreproject_random_moderator").checked = false;
+                getElement('coreproject_internal_moderator').checked = false
+            } else {
+                hide(choose_moderator_views)
+                getElement("coreproject_moderator_id").value = "";
+                getElement('choose_moderator_selected_output').innerHTML = ""
+                if(radio.id==="random_moderator"){
+                    getElement("coreproject_random_moderator").checked = true;
+                    getElement("coreproject_internal_moderator").checked = false;
+                } else {
+                    getElement("coreproject_internal_moderator").checked = true;
+                    getElement("coreproject_random_moderator").checked = false;
+                }
+            }
+        }
+    })
 {% endif %}
 </script>
+{% endblock %}
+
+{% block ext_scripts %}
+{% comment %} <script src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true' type="text/javascript"></script> {% endcomment %}
 {% endblock %}

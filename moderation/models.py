@@ -44,8 +44,10 @@ class Moderation(models.Model):
     internal_mod = models.BooleanField(default=False)
 
     def __str__(self):
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type == PROJECTS:
             return self.project.name
+        if self.type == CORE_PROJECT:
+            return self.coreproject.name
         elif self.type == PEOPLE:
             return self.profile.getName()
         elif self.type == COMPETE:
@@ -76,6 +78,7 @@ class Moderation(models.Model):
         """
         No response for consecutive stale_days or 3
         """
+        # return True
         if self.resolved: return False
         stale_days = self.stale_days or 3
         if not self.respondOn:
@@ -93,12 +96,14 @@ class Moderation(models.Model):
 
     @property
     def requestor(self) -> bool:
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type == PROJECTS:
             return self.project.creator
         if self.type == PEOPLE:
             return self.profile
         if self.type == COMPETE:
             return self.competition.creator
+        if self.type == CORE_PROJECT:
+            return self.coreproject.creator
 
     def isRequestor(self, profile) -> bool:
         if self.type in [PROJECTS,CORE_PROJECT]:
@@ -130,14 +135,30 @@ class Moderation(models.Model):
         else:
             raise IllegalModerationEntity(type)
 
+    def getImageByType(self):
+        if type == PROJECTS and self.project:
+            return self.project.get_dp
+        elif type == CORE_PROJECT and self.coreproject:
+            return self.coreproject.get_dp
+        elif type == COMPETE and self.competition:
+            return self.competition.get_banner
+        elif type == PEOPLE and self.profile:
+            return self.profile.get_dp
+        else:
+            return None
+
     def approve(self) -> bool:
         now = timezone.now()
         self.status = Code.APPROVED
         self.respondOn = now
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type == PROJECTS:
             self.project.status = Code.APPROVED
             self.project.approvedOn = now
             self.project.save()
+        elif self.type == CORE_PROJECT:
+            self.coreproject.status = Code.APPROVED
+            self.coreproject.approvedOn = now
+            self.coreproject.save()
         self.resolved = True
         self.moderator.increaseXP(by=5)
         self.save()
@@ -145,10 +166,14 @@ class Moderation(models.Model):
 
     def revertRespond(self) -> bool:
         self.status = Code.MODERATION
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type == PROJECTS:
             self.project.status = Code.MODERATION
             self.project.approvedOn = None
             self.project.save()
+        elif self.type == CORE_PROJECT:
+            self.coreproject.status = Code.MODERATION
+            self.coreproject.approvedOn = None
+            self.coreproject.save()
         self.resolved = False
         self.save()
         return True
@@ -162,9 +187,12 @@ class Moderation(models.Model):
     def reject(self) -> bool:
         self.status = Code.REJECTED
         self.respondOn = timezone.now()
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type == PROJECTS:
             self.project.status = Code.REJECTED
             self.project.save()
+        elif self.type == CORE_PROJECT:
+            self.coreproject.status = Code.REJECTED
+            self.coreproject.save()
         self.resolved = True
         self.save()
         return True

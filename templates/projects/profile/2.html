@@ -13,5 +13,424 @@
 {% block nav_back_theme %}positive{% endblock %}
 
 {% block content %}
-Core project profile
+<div class="w3-row tertiary">
+    <br/>
+{% if project.suspended %}
+    <div class="w3-row w3-center w3-padding">
+      <i class="w3-jumbo negative-text">toggle_off</i>
+      <h2>{% trans "This project is currently suspended." %}</h2><br/>
+      <h3>{% trans "This means the project is currently invisible to the world." %}</h3>
+      <strong>{% trans "We must have emailed you regarding this action, please check your inbox." %}</strong>
+    </div>
+    <br/><br/>
+    <br/>
+{% else %}
+    <div class="w3-col w3-quarter w3-padding">
+        <div class="w3-row">
+            <div class="pallete" style="padding:0" id="view-pallete">
+                <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
+                <div class="w3-row w3-center w3-padding-small">
+                <h5 class="align">{{project.name}}<a class="align" href="{{URLS.PROJECTS}}?search=type:core"><i class="positive-text w3-large">lock</i></a></h5>
+                <center>{{project.description}}</center>
+                </div>
+                <div class="w3-row w3-padding-small">
+                    {% if iscreator %}
+                    <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
+                    {% endif %}
+                    <i class="w3-left pointer navigator-share-action" 
+                        data-title="{{project.name}}"
+                        data-text="{{project.description|or:'Checkout this project!'}}"
+                        data-url="{{project.getLink}}"
+                    >share</i>
+                </div>
+            </div>
+            {% if iscreator %}
+            <div class="pallete w3-center" id="edit-pallete">
+                <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
+                <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
+                <button class="positive small" type="button" id="upload-button">
+                <i>upload</i>
+                <label id="uploadprojectimagelabel" for="uploadprojectimage">{% trans "Select Image" %}</label>
+                </button>
+                <br/>
+                <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'pallete'}}">
+                {% csrf_token %}
+                <input type="text" hidden id="projectimageData" name="projectimage" value="" />
+                <div class="w3-row w3-padding">
+                    <input maxlength="70" type="text" autocomplete="organization-title" autocapitalize placeholder="Project name" required value="{{project.name}}" name="projectname" /><br/><br/>
+                    <textarea maxlength="120" class="wide" placeholder="About project" name="projectabout" >{{project.description}}</textarea><br/>
+                </div>
+                <button id="save-edit-pallete" data-icon="done">{% trans "Save" %}</button>
+                <button id="discard-edit-pallete" data-icon="close">{% trans "Discard" %}</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        
+        <br/>
+        {% if project.has_linked_repo %}
+        <div class="w3-row w3-padding-small">
+            <a target="_blank" rel="noreferrer" href="{{project.linked_repo.repolink}}">
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.linked_repo.reponame}}</button>
+            </a>
+        </div>
+        <br/>
+        {% endif %}
+
+        <div class="w3-row w3-padding-small">
+        <strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong>
+        {% if request.user.is_authenticated %}
+            <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
+                {% csrf_token %}
+                <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                {% if isAdmirer %}
+                <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
+                {% else %}
+                <button type="submit" class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button>
+                {% endif %}
+            </form>
+        {% else %}
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button></a>
+        {% endif %}
+        </div>
+        <br/>
+
+        {% if not iscreator and user.is_authenticated %}
+        <div class="w3-row">
+            <button class="small tertiary negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
+        </div>
+        <br />
+		{% endif %}
+
+        <div class="w3-row pallete">
+            <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
+            <div class="text-medium" id="view-sociallinks">    
+                {% for site in project.socialsites %}
+                    <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
+                {% empty %}
+                    <br/>
+                    <center class="dead-text">
+                        <div class="w3-jumbo material-icons">link_off</div>
+                        <h5>No links</h5>
+                    </center>
+                {% endfor %}
+                {% if iscreator %}
+                    <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
+                {% endif %}
+            </div>
+            <div class="w3-center " id="edit-sociallinks" hidden>
+                <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'sociallinks'}}">
+                {% csrf_token %}
+                <div id="edit-sociallinks-inputs">
+                {% for site in project.socialsites %}
+                    <div>
+                        <input type="url" class="wide"  placeholder="Link to anything relevant" value="{{site.site}}" name="sociallink{{forloop.counter}}" id="sociallink{{forloop.counter}}" /><br/><br/>
+                    </div>
+                {% endfor %}
+                </div>
+                <br/>
+                <button class="primary" type="button" id="sociallinks-add" data-icon='add'>Add link</button><br/><br/>
+                <button id="save-edit-sociallinks" data-icon="done">{% trans "Save" %}</button>
+                <button id="discard-edit-sociallinks" data-icon="close">{% trans "Discard" %}</button>
+                </form>
+            </div>
+        </div>
+        <br/>
+
+        {% if project.repolink %}
+        <div class="w3-row w3-padding-small">
+            <a target="_blank" rel="noreferrer" href="{{project.repoLink}}">
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.repolink}}</button>
+            </a>
+        </div>
+        <br/>
+        {% endif %}
+    </div>
+    <div class="w3-col w3-threequarter">
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row w3-center">
+                <div class="pallete">
+                    <center><h5 class="align"><i>notes</i>&nbsp;Overview</h5></center><br/>
+                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab positive-text text-big">{{project.category.name|capfirst}}</strong></a>
+                    <br/>
+                    <div class="w3-row" id="view-projecttopics">
+                    {% for topicdata in project.getTopicsData %}
+                        <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
+                            <button class="accent big-button topic-name">
+                            <b>{{topicdata.topic}}</b>
+                            </button>
+                        </a>
+                    {% empty %}
+                        {% if iscreator %}
+                            <button class="accent edit-action big-button" data-edittarget="projecttopics" data-icon="add">Add topics</button>
+                        {% else %}
+                            <br/>
+                            <div class="dead-text">
+                                <i class="w3-jumbo">hourglass_top</i>
+                                <h4>No topics yet</h4>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if iscreator and project.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="projecttopics">edit</i>{% endif %}
+                    </div>
+                    {% if iscreator %}
+                    <div id="edit-projecttopics">
+                        <br/>
+                        <strong class="dead-text">{% trans "Total 5 topics allowed" %}</strong>
+                        <form class="no-auto" action="{{URLS.TOPICSUPDATE|params:project.getID}}" method="POST" id="edit-project-topics-form">
+                            {% csrf_token %}
+                            <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
+                            <div class="w3-row w3-padding" id="topics-viewer">
+                                {% for topic in project.getTopics %}
+                                <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                                {% endfor %}
+                                <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                            </div>
+                            <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                            <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                            <input id="addtopics" name="addtopics" hidden type="text" />
+                            <br/>
+                            <button id="save-edit-projecttopics" data-icon="done">{% trans "Save" %}</button>
+                            <button id="discard-edit-projecttopics" data-icon="close">{% trans "Cancel" %}</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="w3-row w3-padding" id="tags">
+                <div id="view-projecttags">
+                {% for tag in project.tags.all %}
+                <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive">#{{tag}}</button></a>
+                {% empty %}
+                    <h5 class="dead-text">{% trans "No tags assigned" %}</h5>
+                {% endfor %}
+                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+                </div>
+                {% if iscreator %}
+                <div id="edit-projecttags">
+                    <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
+                    <form class="no-auto" id="edit-tag-inputs">
+                        {% csrf_token %}
+                        <input class="wide" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                        <div class="w3-row w3-padding" id="topics-viewer">
+                            {% for tag in project.tags.all %}
+                            <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                        </div>
+                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                        <input id="addtags" name="addtags" hidden type="text" />
+                        <br/>
+                        <button id="save-edit-projecttags" data-icon="done">{% trans "Save" %}</button>
+                        <button id="discard-edit-projecttags" data-icon="close">{% trans "Cancel" %}</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <div class="w3-row w3-padding pallete">
+                <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
+                <div class="w3-row">
+                    {% for asset in project.assets %}
+
+                    {% empty %}
+                        {% if iscreator %}
+                        <center >
+                        <div class="w3-jumbo material-icons">add_circle</div>
+                        <h5>Add assets</h5>
+                        <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
+                        <strong class="dead-text">Coming soon</strong>
+                        </center>
+                        {% else %}
+                        <br/>
+                        <center class="dead-text">
+                        <div class="w3-jumbo material-icons">cloud_off</div>
+                        <h5>No assets</h5>
+                        </center>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if iscreator %}
+            <br/>
+            <div class="w3-row">
+                <div class="pallete">
+                <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
+                <div class="w3-row">
+                    {% if project.under_invitation %}
+                        <h6>Transfer invited</h6>
+                        <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
+                        <b>till {{project.current_invitation.expiresOn}}</b>
+                        <button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>
+                    {% else %}
+                        <br/>
+                        <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="w3-col w3-half w3-padding">
+            <div class="w3-row">
+                <div class="pallete">
+                    <center><h5 class="align"><i>description</i>&nbsp;Description</h5></center><br/>
+                    <strong>{% trans "Created on" %} <span>{{project.createdOn}}</span></strong><br/><br/>
+                    <strong>{% trans "Created by" %}</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
+                    <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row pallete no-pad">
+                <center><h5 class="w3-padding align"><i>camera</i>&nbsp;Snapshots</h5>
+                {% if iscreator %}
+                <div class="w3-row" id="view-snapshot">
+                    <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
+                </div>
+                <div class="w3-row" id="edit-snapshot">
+                    <input type='file' hidden id='snap-file' accept="image/png, image/jpg, image/jpeg" />
+                    <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
+                        {% csrf_token %}
+                        <textarea class="wide snapshot-input" name='snaptext' required rows="3" placeholder="Status report, or anything."></textarea>
+                        <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
+                        <img width='100%' id='snapimageview' hidden />
+                        <div class="dead-text" id='add-image-view'>
+                            <label for="snap-file">
+                                <div class="w3-jumbo material-icons">add_circle</div>
+                                <h5>Add image</h5>
+                            </label>
+                        </div>
+                        <button class="small positive" type='submit' id="save-edit-snapshot" data-icon="done">{% trans "Publish snapshot" %}</button>
+                        <button class="small negative" type='button' id="discard-edit-snapshot" data-icon="close">{% trans "Discard" %}</button>
+                    </form>
+                    <hr/>
+                </div>
+                {% endif %}
+                </center>
+                <div class="w3-row" id="snapshots-view">
+                </div>
+                <br/>
+                <center><button class="small primary" data-icon='expand_more' hidden id='load-more-snaps'>{% trans "Load more" %}</button></center>
+                <br/>
+            </div>
+            
+        </div>
+    </div>
+    <div class="w3-row"></div>
+    <br/>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block in_scripts %}
+<script>
+
+const projectID = "{{ project.get_id }}";
+const selfProject = "{{iscreator}}"==='True';
+const ismoderator = false;
+
+{% if not project.suspended %}
+if (selfProject){
+    getElement('save-edit-projecttags').onclick= async ()=> {
+        var obj = getFormDataById("edit-tag-inputs");
+        var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+        });
+        if (resp.code===code.OK){
+            subLoader()
+            return window.location.reload()
+        }
+        error(resp.error)
+    }
+
+    {% if not project.under_invitation %}
+    
+    getElement('transfer-project').onclick=(e)=>{
+        Swal.fire({
+            title: 'Transfer project',
+            html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
+            Invite the new owner by their email to transfer project.</h6>
+            <br/>
+            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Send Invite',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                let email = getElement("transfer-project-new-email").value.trim()
+                if(email) return email
+                error('New email address required')
+                return false
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                message("Sending invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_PROJECT_OWNER,
+                    data: {
+                        action: 'create',
+                        projectID,
+                        email: result.value,
+                    }
+                })
+                if(data.code===code.OK){
+                    futuremessage("Invitation sent.")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        })
+    }
+    {% else %}
+        getElement('delete-project-invitation').onclick=async(e)=>{
+            message("Deleting invitation...");
+            const data = await postRequest2({
+                path: URLS.INVITE_PROJECT_OWNER,
+                data: {
+                    action: 'remove',
+                    projectID,
+                }
+            })
+            if(data.code===code.OK){
+                futuremessage("Invitation cancelled")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    {% endif %}
+
+    getElement('sociallinks-add').onclick=_=>{
+        const parent=getElement('edit-sociallinks-inputs');
+        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
+}
+
+{% if iscreator %}
+getElement('save-edit-snapshot').onclick=(e)=>{
+    e.preventDefault();
+    e.target.form.submit()
+}
+
+{% endif %}
+if(!selfProject){
+    if(authenticated){
+        getElement('report-project').onclick=async()=>{
+            await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
+        }
+    }
+}
+{% endif %}
+</script>
+{% endblock %}
+{% block scripts %}
+{% if not project.suspended %}
+<script src="{% static 'scripts/project/profile.js' %}" ></script>
+{% endif %}
 {% endblock %}

@@ -389,28 +389,45 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
         if not query or not str(query).strip():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         excludeIDs = request.POST.get('excludeIDs', [])
-        mgm = Management.objects.get(profile=request.user.profile)
-        profile = mgm.people.exclude(user__id__in=excludeIDs).filter(
-            Q(
-                Q(is_active=True,
-                  suspended=False, to_be_zombie=False, is_moderator=True),
-                Q(user__email__startswith=query)
-                | Q(user__first_name__startswith=query)
-                | Q(githubID__startswith=query)
-            )
-        ).first()
-        if profile.isBlocked(request.user):
-            raise Exception()
-        return respondJson(Code.OK, dict(mod=dict(
-            id=profile.user.id,
-            userID=profile.getUserID(),
-            name=profile.getName(),
-            email=profile.getEmail(),
-            url=profile.getLink(),
-            dp=profile.getDP(),
-        )))
+        internalOnly = request.POST.get('internalOnly', True)
+        if internalOnly:
+            mgm = Management.objects.get(profile=request.user.profile)
+            profile = mgm.people.exclude(user__id__in=excludeIDs).filter(
+                Q(
+                    Q(is_active=True,
+                    suspended=False, to_be_zombie=False, is_moderator=True),
+                    Q(user__email__startswith=query)
+                    | Q(user__first_name__startswith=query)
+                    | Q(githubID__startswith=query)
+                )
+            ).first()
+        else:
+            profile = Profile.objects.exclude(user__id__in=excludeIDs).filter(
+                Q(
+                    Q(is_active=True,
+                    suspended=False, to_be_zombie=False, is_moderator=True),
+                    Q(user__email__startswith=query)
+                    | Q(user__first_name__startswith=query)
+                    | Q(githubID__startswith=query)
+                )
+            ).first()
+        if profile:
+            if profile.isBlocked(request.user):
+                raise Exception('mgm modsearch blocked: ', profile, request.user)
+            return respondJson(Code.OK, dict(mod=dict(
+                id=profile.user.id,
+                userID=profile.getUserID(),
+                name=profile.getName(),
+                email=profile.getEmail(),
+                url=profile.getLink(),
+                dp=profile.getDP(),
+            )))
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
-        return respondJson(Code.NO)
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @manager_only

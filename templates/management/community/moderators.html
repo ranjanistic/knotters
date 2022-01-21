@@ -25,7 +25,7 @@
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
-                    <button class="small negative demote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
+                    <button class="small negative demote-moderator" data-dp="{{mod.get_dp}}" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Demote</button>
                 </div>
             </div>
         </div>
@@ -52,7 +52,7 @@
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
-                    <button class="small positive promote-moderator" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Promote</button>
+                    <button class="small positive promote-moderator" data-dp="{{mod.get_dp}}" data-profileurl="{{mod.getLink}}" data-name="{{mod.getName}}" data-userID="{{mod.getUserID}}">Promote</button>
                 </div>
             </div>
         </div>
@@ -69,22 +69,30 @@
 const loadDemoteMods = () => {
 getElements('demote-moderator').forEach((demote)=>{
     demote.onclick=(e)=>{
-        alertify.confirm('Demote as moderator?', `<h5>Are you sure that you want to ${NegativeText('demote')} 
-            <span class="positive-text" onclick="miniWindow('${e.target.getAttribute('data-profileurl')}')">${e.target.getAttribute('data-name')}</span>
+        Swal.fire({
+            title: 'Demote moderator',
+            html: `<h5>Are you sure that you want to ${NegativeText('demote')} 
+            <span class="positive-text pointer" onclick="miniWindow('${demote.getAttribute('data-profileurl')}')">${demote.getAttribute('data-name')}</span>
              as a moderator on ${APPNAME}? Their pending moderations will be transferred to a new moderator. (You are not deleting their account)</h5>`,
-             ()=>{},
-             async ()=>{
+            imageUrl: demote.getAttribute('data-dp'),
+            imageWidth: 100,
+            showCancelButton: true,
+            showConfirmButton: false,
+            showDenyButton: true,
+            denyButtonText: 'Yes, demote!'
+        }).then(async(result) => {
+            if (result.isDenied) {
                 const modID = e.target.getAttribute('data-userID');
                 const modname = e.target.getAttribute('data-name');
                 const data = await postRequest2({path:URLS.REMOVE_MODERATOR, data:{modID}})
                 if (!data) return
                 if (data.code == code.OK){
-                    message(`Demoted ${modname} as moderator`)
+                    message(`Demoted ${modname} from moderator`)
                     return hideElement(`pallete-demote-${modID}`)
                 }
                 error(data.error)
-             }
-        ).set('labels', {cancel:'Yes, demote', ok: 'No, wait'}).set('closable', false)
+            }
+        })
     }
 })
 }
@@ -141,7 +149,7 @@ getElement('search-profile-input').oninput=async(e)=>{
             </div>
             <div class="w3-col s4 m3 w3-padding-small">
                 <div class="w3-row w3-right">
-                    <button class="small positive promote-moderator" data-profileurl="${mod.url}" data-name="${mod.name}" data-userID="${mod.userID}">Promote</button>
+                    <button class="small positive promote-moderator"  data-dp="${mod.dp}" data-profileurl="${mod.url}" data-name="${mod.name}" data-userID="${mod.userID}">Promote</button>
                 </div>
             </div>
         </div>`, loadAddMods);
@@ -151,10 +159,18 @@ getElement('search-profile-input').oninput=async(e)=>{
 const loadAddMods = () => {
     getElements('promote-moderator').forEach((promote)=>{
         promote.onclick=(e)=>{
-            alertify.confirm('Promote as moderator?', `<h5>Are you sure that you want to promote 
-                <span class="positive-text" onclick="miniWindow('${e.target.getAttribute('data-profileurl')}')">${e.target.getAttribute('data-name')}</span>
-                as a moderator on ${APPNAME}?</h5>`,
-                async ()=>{
+            Swal.fire({
+                title: 'Promote as moderator?',
+                html: `<h5>Are you sure that you want to ${PositiveText('promote')} 
+                    <span class="positive-text" onclick="miniWindow('${promote.getAttribute('data-profileurl')}')">${promote.getAttribute('data-name')}</span>
+                    as a moderator on ${APPNAME}?</h5>`,
+                imageUrl: promote.getAttribute('data-dp'),
+                imageWidth: 100,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, promote',
+                cancelButtonText: 'No, wait'
+            }).then(async(result) => {
+                if (result.isConfirmed) {
                     const userID = e.target.getAttribute('data-userID');
                     const username = e.target.getAttribute('data-name');
                     const data = await postRequest2({path:URLS.ADD_MODERATOR, data:{userID}})
@@ -168,9 +184,8 @@ const loadAddMods = () => {
                         return
                     }
                     error(data.error)
-                },
-                ()=>{}
-            ).set('labels', {ok:'Yes, promote', cancel: 'No, wait'}).set('closable', false)
+                }
+            })
         }
     })
 }

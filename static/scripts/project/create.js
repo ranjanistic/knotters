@@ -254,7 +254,6 @@ getElement("more-licenses").onclick = async (_) => {
             </div>
         `,
         showDenyButton: true,
-        denyButtonText: STRING.add_cust_lic,
         confirmButtonText: "Set license",
         didOpen: () => {
             loadLicenseChoices();
@@ -263,9 +262,6 @@ getElement("more-licenses").onclick = async (_) => {
             return getElement("license").value;
         },
     }).then(async (res) => {
-        if (res.isDenied) {
-            return customLicenseDialog();
-        }
         if (res.isConfirmed) {
             let button = licenses.find((lic) => lic.includes(res.value));
             if (!button) return;
@@ -275,74 +271,74 @@ getElement("more-licenses").onclick = async (_) => {
     });
 };
 
-const customLicenseDialog = () => {
-    Swal.fire({
-        title: STRING.add_cust_lic,
-        html: `
-        <div class="w3-row">
-        <input class="wide" placeholder="License name" id='custom-license-name' type='text' required maxlength='50'/><br/><br/>
-        <input class="wide" placeholder="Short description" id='custom-license-description' type='text' required maxlength='500'/><br/><br/>
-        <textarea class="wide" placeholder="Full license text" id='custom-license-content' rows="5" type='text' required maxlength='300000'></textarea><br/>
-        <label for='custom-license-public'>
-            <input id='custom-license-public' type='checkbox' />
-            This license can be used without modification by anyone
-        </label>
-        </div>
-        `,
-        showCancelButton: true,
-        showConfirmButton: true,
-        confirmButtonText: STRING.create_lic,
-        cancelButtonText: STRING.cancel,
-        focusConfirm: false,
-        preConfirm: () => {
-            let name = String(getElement("custom-license-name").value).trim();
-            if (!name) {
-                error(STRING.lic_name_required);
-                return false;
-            }
-            let description = String(
-                getElement("custom-license-description").value
-            ).trim();
-            if (!description) {
-                error(STRING.lic_desc_required);
-                return false;
-            }
-            let content = String(
-                getElement("custom-license-content").value
-            ).trim();
-            if (!content) {
-                error(STRING.lic_text_required);
-                return false;
-            }
-            return {
-                name,
-                description,
-                content,
-                public: getElement("custom-license-public").checked,
-            };
-        },
-    }).then(async (result) => {
-        if (result.isConfirmed && result.value) {
-            const data = await postRequest(URLS.ADDLICENSE, {
-                ...result.value,
-            });
-            if (!data) return;
-            if (data.code === code.OK) {
-                success(`${data.license.name} ${STRING.lic_created}`);
-                const button = document.createElement("button");
-                button.setAttribute("id", data.license.id);
-                button.setAttribute("title", data.license.description);
-                button.setAttribute("type", "button");
-                button.classList.add("license-choice");
-                getElement("licenses").appendChild(button);
-                getElement(data.license.id).innerHTML = data.license.name;
-                loadLicenseChoices();
-            } else {
-                error(data.error);
-            }
-        }
-    });
-};
+// const customLicenseDialog = () => {
+//     Swal.fire({
+//         title: STRING.add_cust_lic,
+//         html: `
+//         <div class="w3-row">
+//         <input class="wide" placeholder="License name" id='custom-license-name' type='text' required maxlength='50'/><br/><br/>
+//         <input class="wide" placeholder="Short description" id='custom-license-description' type='text' required maxlength='500'/><br/><br/>
+//         <textarea class="wide" placeholder="Full license text" id='custom-license-content' rows="5" type='text' required maxlength='300000'></textarea><br/>
+//         <label for='custom-license-public'>
+//             <input id='custom-license-public' type='checkbox' />
+//             This license can be used without modification by anyone
+//         </label>
+//         </div>
+//         `,
+//         showCancelButton: true,
+//         showConfirmButton: true,
+//         confirmButtonText: STRING.create_lic,
+//         cancelButtonText: STRING.cancel,
+//         focusConfirm: false,
+//         preConfirm: () => {
+//             let name = String(getElement("custom-license-name").value).trim();
+//             if (!name) {
+//                 error(STRING.lic_name_required);
+//                 return false;
+//             }
+//             let description = String(
+//                 getElement("custom-license-description").value
+//             ).trim();
+//             if (!description) {
+//                 error(STRING.lic_desc_required);
+//                 return false;
+//             }
+//             let content = String(
+//                 getElement("custom-license-content").value
+//             ).trim();
+//             if (!content) {
+//                 error(STRING.lic_text_required);
+//                 return false;
+//             }
+//             return {
+//                 name,
+//                 description,
+//                 content,
+//                 public: getElement("custom-license-public").checked,
+//             };
+//         },
+//     }).then(async (result) => {
+//         if (result.isConfirmed && result.value) {
+//             const data = await postRequest(URLS.ADDLICENSE, {
+//                 ...result.value,
+//             });
+//             if (!data) return;
+//             if (data.code === code.OK) {
+//                 success(`${data.license.name} ${STRING.lic_created}`);
+//                 const button = document.createElement("button");
+//                 button.setAttribute("id", data.license.id);
+//                 button.setAttribute("title", data.license.description);
+//                 button.setAttribute("type", "button");
+//                 button.classList.add("license-choice");
+//                 getElement("licenses").appendChild(button);
+//                 getElement(data.license.id).innerHTML = data.license.name;
+//                 loadLicenseChoices();
+//             } else {
+//                 error(data.error);
+//             }
+//         }
+//     });
+// };
 
 const loadLicenseChoices = (selected = 0) =>
     initializeTabsView({

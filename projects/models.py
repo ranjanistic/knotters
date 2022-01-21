@@ -135,14 +135,24 @@ class License(models.Model):
     name = models.CharField(max_length=50)
     keyword = models.CharField(max_length=80, null=True, blank=True,
                                help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000,null=True, blank=True)
     content = models.CharField(max_length=300000, null=True, blank=True)
     public = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now, null=True,blank=True)
+    modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now, null=True,blank=True)
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        try:
+            if self.content != License.objects.get(id=self.id).content:
+                self.modifiedOn = timezone.now()
+        except:
+            pass
+        return super(License, self).save(*args, **kwargs)
 
     @property
     def get_id(self):
@@ -272,8 +282,16 @@ class BaseProject(models.Model):
         return FreeProject.objects.filter(id=self.id).exists()
 
     @property
+    def is_not_free(self):
+        return not self.is_free
+
+    @property
     def is_verified(self):
-        return not self.is_free and self.is_approved
+        return not self.is_free and self.is_approved and not self.is_core
+
+    @property
+    def is_core(self):
+        return not self.is_free and CoreProject.objects.filter(id=self.id).exists() and self.is_approved
 
     @property
     def is_approved(self):
@@ -596,6 +614,7 @@ class ProjectSocial(models.Model):
 class CoreProject(BaseProject):
     codename = models.CharField(max_length=500, unique=True, null=False, blank=False)
     repo_id = models.IntegerField(default=0, null=True, blank=True)
+    budget = models.FloatField(default=0)
     status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
@@ -612,7 +631,7 @@ class CoreProject(BaseProject):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return (Moderation.objects.filter(project=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error,success=success)
+                return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error,success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
         except:
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
@@ -660,7 +679,7 @@ class CoreProject(BaseProject):
 
     @property
     def moderator(self):
-        mod = Moderation.objects.filter(project=self, type=CORE_PROJECT, status__in=[
+        mod = Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
                                         Code.APPROVED, Code.MODERATION]).order_by('-requestOn').first()
         return None if not mod else mod.moderator
 
@@ -668,18 +687,18 @@ class CoreProject(BaseProject):
         if not self.isApproved():
             return None
         mod = Moderation.objects.filter(
-            project=self, type=CORE_PROJECT, status=Code.APPROVED, resolved=True).order_by('-respondOn').first()
+            coreproject=self, type=CORE_PROJECT, status=Code.APPROVED, resolved=True).order_by('-respondOn').first()
         return None if not mod else mod.moderator
 
     def getModLink(self) -> str:
         try:
-            return (Moderation.objects.filter(project=self, type=CORE_PROJECT).order_by('requestOn').first()).getLink()
+            return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT).order_by('requestOn').first()).getLink()
         except:
             return str()
 
     def moderationRetriesLeft(self) -> int:
         if self.status != Code.APPROVED:
-            return 1 - Moderation.objects.filter(type=CORE_PROJECT, project=self).count()
+            return 1 - Moderation.objects.filter(type=CORE_PROJECT, coreproject=self).count()
         return 0
 
     def canRetryModeration(self) -> bool:

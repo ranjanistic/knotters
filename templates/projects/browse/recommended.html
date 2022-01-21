@@ -17,7 +17,7 @@
                     <div class="pallete w3-center no-pad">
                         <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                         <div class="w3-row w3-padding">
-                            <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                            <h5 class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
                             <span>{{ project.description|truncatechars:45 }}</span>
                         </div>
                         <br/>
@@ -42,7 +42,7 @@
                     <div class="pallete pallete_i w3-center">
                         <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
                         <div class="w3-row w3-padding">
-                            <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                            <h5 class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
                             <span>{{ project.description|truncatechars:45 }}</span>
                         </div>
                         <br/>

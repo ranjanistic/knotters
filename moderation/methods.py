@@ -124,6 +124,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         if modprof.isBlocked(creator.user):
             finalAvailableModProfiles.remove(modprof)
 
+    finalAvailableModProfiles = sorted(finalAvailableModProfiles, key=lambda m: m.xp, reverse=True)
     totalAvailableModProfiles = len(finalAvailableModProfiles)
 
     if totalAvailableModProfiles == 0:
@@ -131,9 +132,11 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
         return False
     
     robinIndexkey = Code.MODERATOR
-    
+    lastModeratorkey = Code.LAST_MODERATOR
+
     if internal and creator.is_manager:
         robinIndexkey = f"moderator_rr_{creator.manager_id}"
+        lastModeratorkey = f"{lastModeratorkey}_{creator.manager_id}"
     
     robinIndexValue = cache.get(robinIndexkey, None)
 
@@ -147,6 +150,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
             robinIndexValue = 1
         else:
             robinIndexValue += 1
+        
         robinStore.value = robinIndexValue
         robinStore.save()
         cache.set(robinIndexkey, robinIndexValue)
@@ -155,12 +159,31 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
             robinIndexValue = 1
         else:
             robinIndexValue += 1
+
         done = LocalStorage.objects.filter(key=robinIndexkey).update(value=robinIndexValue)
         if done == 0:
             LocalStorage.objects.create(key=robinIndexkey, value=robinIndexValue)
         cache.set(robinIndexkey, robinIndexValue)
 
-    return finalAvailableModProfiles[robinIndexValue-1]
+    newlastmoderator = finalAvailableModProfiles[robinIndexValue-1]
+    if totalAvailableModProfiles > 1:
+        lastModeratorID = cache.get(lastModeratorkey, None)
+        created = False
+        if lastModeratorID == None:
+            lastModeratorStore, created = LocalStorage.objects.get_or_create(key=lastModeratorkey, defaults=dict(value=finalAvailableModProfiles[robinIndexValue-1].id))
+            lastModeratorID = lastModeratorStore.value
+            cache.set(lastModeratorkey, lastModeratorID)
+        if not created:
+            filtererd = list(filter(lambda m: str(m.id) == str(lastModeratorID), list(finalAvailableModProfiles)))
+            if len(filtererd) and robinIndexValue > 1:
+                finalAvailableModProfiles.remove(filtererd[0])
+                finalAvailableModProfiles.insert(0, filtererd[0])
+            newlastmoderator = finalAvailableModProfiles[robinIndexValue-1]
+            done = LocalStorage.objects.filter(key=lastModeratorkey).update(value=newlastmoderator.id)
+            if done == 0:
+                LocalStorage.objects.create(key=lastModeratorkey, value=newlastmoderator.id)
+            cache.set(lastModeratorkey, newlastmoderator.id)
+    return newlastmoderator
 
 
 def requestModerationForObject(
@@ -264,7 +287,7 @@ def requestModerationForCoreProject(
     """
     try:
         
-        query = Q(type=type, project=coreproject)
+        query = Q(type=type, coreproject=coreproject)
         mod = Moderation.objects.filter(query).order_by('-requestOn','-respondOn').first()
         preferModProfiles = None
         onlyModProfiles = None
@@ -278,12 +301,12 @@ def requestModerationForCoreProject(
             onlyModProfiles = coreproject.creator.management.moderators
             if not len(onlyModProfiles): return False
         else:
-            preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=object.category.topics).distinct()
+            preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=coreproject.category.topics).distinct()
 
         if not mod:
             if not preferModProfiles:
                 preferModProfiles = []
-            newmoderator = getModeratorToAssignModeration(PROJECTS, coreproject, preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles)
+            newmoderator = getModeratorToAssignModeration(type=CORE_PROJECT, object=coreproject, preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles,internal=useInternalMods)
             if not newmoderator:
                 raise Exception("No moderator available for ", coreproject)
             return assignModeratorToCoreProject(coreproject,newmoderator,requestData, stale_days=stale_days, internal_mod=useInternalMods)
@@ -296,7 +319,7 @@ def requestModerationForCoreProject(
             if onlyModProfiles:
                 onlyModProfiles.exclude(id=mod.moderator.id)
 
-            newmoderator = getModeratorToAssignModeration(type=PROJECTS, object=coreproject, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles)
+            newmoderator = getModeratorToAssignModeration(type=CORE_PROJECT, object=coreproject, ignoreModProfiles=[mod.moderator], preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles,internal=useInternalMods)
             if not newmoderator:
                 raise Exception("No moderator available for ", coreproject)
 

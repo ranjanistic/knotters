@@ -92,7 +92,7 @@
             <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
             {% endif %}
             {% if not ismoderator %}
-                {% if moderation.resolved and moderation.isRejected and not forwarded or moderation.is_stale %}
+                {% if moderation.resolved and moderation.isRejected and not forwarded %}
                     {% if moderation.project.canRetryModeration or moderation.is_stale %}
                         {% if moderation.is_stale and not moderation.isRejected%}
                         <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
