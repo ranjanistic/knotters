@@ -124,7 +124,7 @@ jobs:
       run: |
         sudo systemctl restart knotters.gunicorn
         sudo systemctl restart knotters.cluster0
-        sudo systemctl restart knotters.cluster1
+#        sudo systemctl restart knotters.cluster1
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}
