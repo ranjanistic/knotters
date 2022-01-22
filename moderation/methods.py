@@ -88,6 +88,8 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     query = defaultQuery
 
     preferred = False
+    creator = getObjectCreator(object)
+
     if onlyModProfiles:
         if len(onlyModProfiles) > 0:
             onlyModProfileIDs = []
@@ -96,6 +98,11 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
                     onlyModProfileIDs.append(onlyModProfile.id)
             if len(onlyModProfileIDs)>0:
                 query = Q(query, id__in=onlyModProfileIDs)
+            if len(onlyModProfileIDs) == 1 and creator.is_manager:
+                mprof = list(filter(lambda m: m.id == onlyModProfileIDs[0], list(onlyModProfiles)))[0]
+                if mprof.isBlocked(creator.user):
+                    return False
+                return mprof
     elif len(preferModProfiles) > 0:
         preferred = True
         preferModProfileIDs = []
@@ -115,8 +122,6 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
             if totalAvailableModProfiles == 0:
                 return False
         return False
-
-    creator = getObjectCreator(object)
     
     finalAvailableModProfiles = availableModProfiles
     
