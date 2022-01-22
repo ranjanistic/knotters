@@ -255,19 +255,24 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                     allow_rebase_merge=False,
                     delete_branch_on_merge=False
                 )
-                ghOrgRepo.create_file('LICENSE','Add LICENSE',str(project.license.content))
+        
+        try:
+            ghOrgRepo.create_file('LICENSE','Add LICENSE',str(project.license.content))
+        except:
+            pass
+        
+        try:
+            ghBranch = ghOrgRepo.get_branch("main")
 
-        ghBranch = ghOrgRepo.get_branch("main")
-
-        ghBranch.edit_protection(
-            strict=True,
-            enforce_admins=False,
-            dismiss_stale_reviews=True,
-            required_approving_review_count=1,
-            user_push_restrictions=[moderator.ghID],
-        )
-
-        inviteMemberToGithubOrg(ghUser)
+            ghBranch.edit_protection(
+                strict=True,
+                enforce_admins=False,
+                dismiss_stale_reviews=True,
+                required_approving_review_count=1,
+                user_push_restrictions=[moderator.ghID],
+            )
+        except:
+            pass
 
         try:
             ghrepoteam = GithubKnotters.create_team(
@@ -277,36 +282,40 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                 description=f"{project.name}'s team",
                 privacy='closed'
             )
+            
+            ghrepoteam.add_membership(
+                member=ghMod,
+                role="maintainer"
+            )
 
-            if GithubKnotters.has_in_members(ghMod):
-                ghrepoteam.add_membership(
-                    member=ghMod,
-                    role="maintainer"
-                )
-
-            if GithubKnotters.has_in_members(ghUser):
-                ghrepoteam.add_membership(
-                    member=ghUser,
-                    role="member"
-                )
+            ghrepoteam.add_membership(
+                member=ghUser,
+                role="member"
+            )
         except:
             pass
-
-        ghOrgRepo.add_to_collaborators(
-            collaborator=moderator.ghID, permission="maintain")
-        ghOrgRepo.add_to_collaborators(
-            collaborator=project.creator.ghID, permission="push")
-
-        ghOrgRepo.create_hook(
-            name='web',
-            config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,projID=project.get_id)}",
-                content_type='form',
-                secret=settings.GH_HOOK_SECRET,
-                insecure_ssl=0,
-                digest=Code.SHA256
+        
+        try:
+            ghOrgRepo.add_to_collaborators(
+                collaborator=moderator.ghID, permission="maintain")
+            ghOrgRepo.add_to_collaborators(
+                collaborator=project.creator.ghID, permission="push")
+        except:
+            pass
+        
+        try:
+            ghOrgRepo.create_hook(
+                name='web',
+                config=dict(
+                    url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,projID=project.get_id)}",
+                    content_type='form',
+                    secret=settings.GH_HOOK_SECRET,
+                    insecure_ssl=0,
+                    digest=Code.SHA256
+                )
             )
-        )
+        except:
+            pass
         cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
         return True
@@ -332,6 +341,7 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
             ghUser = Github.get_user(coreproject.creator.ghID)
         except:
             pass
+
         ghMod = Github.get_user(moderator.ghID)
 
         ghOrgRepo = getGhOrgRepo(coreproject.codename)
@@ -352,18 +362,23 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
                 allow_rebase_merge=True,
                 delete_branch_on_merge=False
             )
+
+        try:
             ghOrgRepo.create_file('LICENSE','Add LICENSE',str(coreproject.license.content))
+        except:
+            pass
 
-        ghBranch = ghOrgRepo.get_branch("main")
 
-        ghBranch.edit_protection(
-            strict=True,
-            enforce_admins=False,
-            dismiss_stale_reviews=True,
-            required_approving_review_count=0,
-        )
-        if ghUser:
-            inviteMemberToGithubOrg(ghUser)
+        # ghBranch = ghOrgRepo.get_branch("main")
+
+        # ghBranch.edit_protection(
+        #     strict=True,
+        #     enforce_admins=False,
+        #     dismiss_stale_reviews=True,
+        #     required_approving_review_count=0,
+        # )
+        # if ghUser:
+        #     inviteMemberToGithubOrg(ghUser)
 
         try:
             ghrepoteam = GithubKnotters.create_team(
@@ -373,37 +388,41 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
                 description=f"{coreproject.name}'s team",
                 privacy='closed'
             )
-
-            if GithubKnotters.has_in_members(ghMod):
-                ghrepoteam.add_membership(
-                    member=ghMod,
-                    role="maintainer"
-                )
+            
+            ghrepoteam.add_membership(
+                member=ghMod,
+                role="maintainer"
+            )
             if ghUser:
-                if GithubKnotters.has_in_members(ghUser):
-                    ghrepoteam.add_membership(
-                        member=ghUser,
-                        role="member"
-                    )
+                ghrepoteam.add_membership(
+                    member=ghUser,
+                    role="member"
+                )
         except:
             pass
-
-        ghOrgRepo.add_to_collaborators(
-            collaborator=moderator.ghID, permission="maintain")
-        if ghUser:
+        
+        try:
             ghOrgRepo.add_to_collaborators(
-                collaborator=coreproject.creator.ghID, permission="push")
-
-        ghOrgRepo.create_hook(
-            name='web',
-            config=dict(
-                url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,projID=coreproject.get_id)}",
-                content_type='form',
-                secret=settings.GH_HOOK_SECRET,
-                insecure_ssl=0,
-                digest=Code.SHA256
+                collaborator=moderator.ghID, permission="maintain")
+            if ghUser:
+                ghOrgRepo.add_to_collaborators(
+                    collaborator=coreproject.creator.ghID, permission="push")
+        except:
+            pass
+        
+        try:
+            ghOrgRepo.create_hook(
+                name='web',
+                config=dict(
+                    url=f"{SITE}{url.getRoot(fromApp=APPNAME)}{url.projects.githubEvents(type=Code.HOOK,projID=coreproject.get_id)}",
+                    content_type='form',
+                    secret=settings.GH_HOOK_SECRET,
+                    insecure_ssl=0,
+                    digest=Code.SHA256
+                )
             )
-        )
+        except:
+            pass
         cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",coreproject)
         return True

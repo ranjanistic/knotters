@@ -222,6 +222,7 @@ def requestModerationForObject(
             return False
 
         mod = Moderation.objects.filter(query).order_by('-requestOn','-respondOn').first()
+        
         preferModProfiles = None
         onlyModProfiles = None
         
@@ -231,12 +232,15 @@ def requestModerationForObject(
             onlyModProfiles = object.creator.management.moderators
             if not len(onlyModProfiles): return False
         else:
-            preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=object.category.topics).distinct()
+            if type == PROJECTS:
+                preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=object.category.topics).distinct()
 
         if not mod:
             if not preferModProfiles:
                 preferModProfiles = []
+            
             newmoderator = getModeratorToAssignModeration(type, object, preferModProfiles=preferModProfiles, onlyModProfiles=onlyModProfiles, internal=useInternalMods)
+            
             if not newmoderator:
                 return False
             return assignModeratorToObject(type,object,newmoderator,requestData, stale_days=stale_days, internal_mod=useInternalMods)

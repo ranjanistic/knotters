@@ -10,10 +10,10 @@ from .methods import getModelByType
 from .apps import APPNAME
 
 
-# @receiver(pre_save, sender=LocalStorage)
-# def before_localstore_update(sender, instance:LocalStorage, raw, **kwargs):
-#     if LocalStorage.objects.filter(~Q(id=instance.id),key=instance.key).count() > 0:
-#         raise DuplicateKeyError()
+@receiver(pre_save, sender=LocalStorage)
+def before_localstore_update(sender, instance:LocalStorage, raw, **kwargs):
+    if LocalStorage.objects.filter(~Q(id=instance.id),key=instance.key).count() > 0:
+        raise DuplicateKeyError()
 
 @receiver(pre_save, sender=Moderation)
 def before_moderation_update(sender, instance:Moderation, raw, **kwargs):

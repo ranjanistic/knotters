@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_static',
     'allauth_2fa',
     "webpush",
-    "django_q",
     "mfa",
     # "corsheaders"
 ] + DIVISIONS
+
+if not env.ISTESTING:
+    INSTALLED_APPS.append("django_q")
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
 SOCIALACCOUNT_ADAPTER = f'{PEOPLE}.adapter.CustomSocialAccountAdapter'

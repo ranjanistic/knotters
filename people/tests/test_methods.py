@@ -41,6 +41,7 @@ class PeopleMethodsTest(TestCase):
         self.assertIsInstance(filterBio(getTestBio()+getTestBio()), str)
         self.assertFalse(len(filterBio(getTestBio()+getTestBio())) > 300)
 
+    @tag('profsec')
     def test_getProfileSectionData(self):
         defdata = dict(self=True, person=self.user)
         self.assertFalse(getProfileSectionData(

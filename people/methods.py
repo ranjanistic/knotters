@@ -149,9 +149,9 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                     mods = Moderation.objects.filter(moderator=profile)
                     if len(mods) and not selfprofile:
                         cache.set(cachekey,mods,settings.CACHE_INSTANT)
-            data[Code.UNRESOLVED] = list(filter(lambda m: not m.is_stale or m.competition, list(mods.filter(resolved=False).order_by('-requestOn'))))
-            data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
-            data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
+                data[Code.UNRESOLVED] = list(filter(lambda m: not m.is_stale or m.competition, list(mods.filter(resolved=False).order_by('-requestOn'))))
+                data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
+                data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
         elif section == profileString.COMPETITIONS:
             if profile.is_manager:
                 data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile).order_by("-createdOn")
