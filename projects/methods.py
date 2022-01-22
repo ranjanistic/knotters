@@ -274,32 +274,43 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
         except:
             pass
 
-        try:
-            ghrepoteam = GithubKnotters.create_team(
-                name=f"team-{project.reponame}",
-                repo_names=[ghOrgRepo],
-                permission="push",
-                description=f"{project.name}'s team",
-                privacy='closed'
-            )
-            
-            ghrepoteam.add_membership(
-                member=ghMod,
-                role="maintainer"
-            )
+        teamname = project.gh_team_name
+        ghrepoteam = getGhOrgTeam(teamname)
 
-            ghrepoteam.add_membership(
-                member=ghUser,
-                role="member"
-            )
+        try:
+            if not ghrepoteam:
+                ghrepoteam = GithubKnotters.create_team(
+                    name=teamname,
+                    repo_names=[ghOrgRepo],
+                    permission="push",
+                    description=f"{project.name}'s team",
+                    privacy='closed'
+                )
+        except:
+            pass
+        try:
+            if ghrepoteam:
+                if not ghrepoteam.has_in_members(ghMod):
+                    ghrepoteam.add_membership(
+                        member=ghMod,
+                        role="maintainer"
+                    )
+                if not ghrepoteam.has_in_members(ghUser):
+                    ghrepoteam.add_membership(
+                        member=ghUser,
+                        role="member"
+                    )
         except:
             pass
         
         try:
-            ghOrgRepo.add_to_collaborators(
-                collaborator=moderator.ghID, permission="maintain")
-            ghOrgRepo.add_to_collaborators(
-                collaborator=project.creator.ghID, permission="push")
+            if not ghOrgRepo.has_in_collaborators(ghMod):
+                ghOrgRepo.add_to_collaborators(
+                    collaborator=ghMod, permission="maintain")
+            
+            if not ghOrgRepo.has_in_collaborators(ghUser):
+                ghOrgRepo.add_to_collaborators(
+                    collaborator=ghUser, permission="push")
         except:
             pass
         
@@ -368,45 +379,44 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
         except:
             pass
 
-
-        # ghBranch = ghOrgRepo.get_branch("main")
-
-        # ghBranch.edit_protection(
-        #     strict=True,
-        #     enforce_admins=False,
-        #     dismiss_stale_reviews=True,
-        #     required_approving_review_count=0,
-        # )
-        # if ghUser:
-        #     inviteMemberToGithubOrg(ghUser)
+        teamname = coreproject.gh_team_name
+        ghrepoteam = getGhOrgTeam(teamname)
 
         try:
-            ghrepoteam = GithubKnotters.create_team(
-                name=f"team-{coreproject.codename}",
-                repo_names=[ghOrgRepo],
-                permission="push",
-                description=f"{coreproject.name}'s team",
-                privacy='closed'
-            )
-            
-            ghrepoteam.add_membership(
-                member=ghMod,
-                role="maintainer"
-            )
-            if ghUser:
-                ghrepoteam.add_membership(
-                    member=ghUser,
-                    role="member"
+            if not ghrepoteam:
+                ghrepoteam = GithubKnotters.create_team(
+                    name=teamname,
+                    repo_names=[ghOrgRepo],
+                    permission="push",
+                    description=f"{coreproject.name}'s team",
+                    privacy='closed'
                 )
         except:
             pass
-        
         try:
-            ghOrgRepo.add_to_collaborators(
-                collaborator=moderator.ghID, permission="maintain")
-            if ghUser:
+            if ghrepoteam:
+                if not ghrepoteam.has_in_members(ghMod):
+                    ghrepoteam.add_membership(
+                        member=ghMod,
+                        role="maintainer"
+                    )
+                if ghUser:
+                    if not ghrepoteam.has_in_members(ghUser):
+                        ghrepoteam.add_membership(
+                            member=ghUser,
+                            role="member"
+                        )
+        except:
+            pass
+
+        try:
+            if not ghOrgRepo.has_in_collaborators(ghMod):
                 ghOrgRepo.add_to_collaborators(
-                    collaborator=coreproject.creator.ghID, permission="push")
+                    collaborator=ghMod, permission="maintain")
+            if ghUser:
+                if not ghOrgRepo.has_in_collaborators(ghUser):
+                    ghOrgRepo.add_to_collaborators(
+                        collaborator=ghUser, permission="push")
         except:
             pass
         
@@ -435,7 +445,12 @@ def getGhOrgRepo(reponame: str) -> Repository:
     try:
         return GithubKnotters.get_repo(name=reponame)
     except Exception as e:
-        errorLog(e)
+        return None
+
+def getGhOrgTeam(teamname: str) -> Repository:
+    try:
+        return GithubKnotters.get_team_by_slug(teamname)
+    except Exception as e:
         return None
 
 

@@ -486,6 +486,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECT_TRANS_INVITE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.VER_MOD_TRANS_INVITE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CORE_MOD_TRANS_INVITE}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),

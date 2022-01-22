@@ -233,7 +233,10 @@ class Message():
     PROJECT_TRANSFER_ACCEPTED = _("You\'re now the owner of this project.")
     PROJECT_TRANSFER_DECLINED = _(
         "You\'ve declined the ownership of this project.")
-
+    PROJECT_MOD_TRANSFER_ACCEPTED = _("You\'re now the moderator of this project.")
+    PROJECT_MOD_TRANSFER_DECLINED = _(
+        "You\'ve declined the moderatorship of this project.")
+    ALREADY_INVITED = _("User already invited.")
     JOINED_MANAGEMENT = _("You\'ve joined this organization.")
     DECLINED_JOIN_MANAGEMENT = _(
         "You\'ve declined invitation to join this organization.")
@@ -920,7 +923,10 @@ class URL():
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
         TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
-        INVITE_PROJECT_OWNER = 'invite/ownership'
+        INVITE_PROJECT_OWNER = 'invite/ownership/'
+        INVITE_VERPROJECT_MOD = 'invite/ownership/1'
+        INVITE_COREPROJECT_MOD = 'invite/ownership/2'
+
         PROJECT_TRANS_INVITE = 'invitation/transfer/<str:inviteID>'
 
         def projectTransInvite(self, inviteID):
@@ -930,6 +936,27 @@ class URL():
 
         def projectTransInviteAct(self, inviteID):
             return setPathParams(self.PROJECT_TRANS_INVITE_ACT, inviteID)
+
+        VER_MOD_TRANS_INVITE = 'invitation/modtransfer/1/<str:inviteID>'
+
+        def verifiedModTransInvite(self, inviteID):
+            return setPathParams(self.VER_MOD_TRANS_INVITE, inviteID)
+
+        CORE_MOD_TRANS_INVITE = 'invitation/modtransfer/2/<str:inviteID>'
+
+        def coreModTransInvite(self, inviteID):
+            return setPathParams(self.CORE_MOD_TRANS_INVITE, inviteID)
+
+
+        VER_MOD_TRANS_INVITE_ACT = 'invitation/action/modtransfer/1/<str:inviteID>'
+
+        def verifiedModTransInviteAct(self, inviteID):
+            return setPathParams(self.VER_MOD_TRANS_INVITE_ACT, inviteID)
+
+        CORE_MOD_TRANS_INVITE_ACT = 'invitation/action/modtransfer/2/<str:inviteID>'
+
+        def coreModTransInviteAct(self, inviteID):
+            return setPathParams(self.CORE_MOD_TRANS_INVITE_ACT, inviteID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1549,6 +1576,18 @@ class Template():
         @property
         def invitation(self):
             return f'{self.DIRNAME}/{self.INVITATION}.html'
+
+        CORE_M_INVITATION = 'coremodinvite'
+
+        @property
+        def coremodinvite(self):
+            return f'{self.DIRNAME}/{self.CORE_M_INVITATION}.html'
+
+        VER_M_INVITATION = 'vermodinvite'
+
+        @property
+        def vermodinvite(self):
+            return f'{self.DIRNAME}/{self.VER_M_INVITATION}.html'
 
         LICENSE_INDEX = 'license/index'
 

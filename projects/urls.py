@@ -45,4 +45,12 @@ urlpatterns = [
     path(URL.Projects.INVITE_PROJECT_OWNER, handleOwnerInvitation),
     path(URL.Projects.PROJECT_TRANS_INVITE, projectTransferInvite),
     path(URL.Projects.PROJECT_TRANS_INVITE_ACT, projectTransferInviteAction),
+
+    path(URL.Projects.INVITE_VERPROJECT_MOD, handleVerModInvitation),
+    path(URL.Projects.VER_MOD_TRANS_INVITE, projectModTransferInvite),
+    path(URL.Projects.VER_MOD_TRANS_INVITE_ACT, projectModTransferInviteAction),
+
+    path(URL.Projects.INVITE_COREPROJECT_MOD, handleCoreModInvitation),
+    path(URL.Projects.CORE_MOD_TRANS_INVITE, coreProjectModTransferInvite),
+    path(URL.Projects.CORE_MOD_TRANS_INVITE_ACT, coreProjectModTransferInviteAction),
 ]

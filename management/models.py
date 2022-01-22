@@ -243,6 +243,13 @@ class Invitation(models.Model):
     def expired(self):
         return self.expiresOn <= timezone.now()
 
+    def decline(self):
+        if self.expired: return False
+        if self.resolved: return False
+        self.resolve()
+        self.save()
+        return True
+
 class ManagementInvitation(Invitation):
     sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_sender')
     receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_receiver')

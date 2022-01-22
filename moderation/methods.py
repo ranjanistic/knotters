@@ -269,6 +269,8 @@ def requestModerationForObject(
                 object.status = Code.MODERATION
                 object.save()
 
+            if mod.is_stale:
+                mod.delete()
             return newmod
     except Exception as e:
         errorLog(e)
@@ -340,6 +342,8 @@ def requestModerationForCoreProject(
             else:
                 coreproject.status = Code.MODERATION
                 coreproject.save()
+            if mod.is_stale:
+                mod.delete()
             return newmod
     except Exception as e:
         errorLog(e)

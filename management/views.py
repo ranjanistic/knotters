@@ -5,26 +5,23 @@ from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
-# from django.conf import settings
-# from django.views.decorators.cache import cache_page
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils import timezone
-from allauth.account.models import EmailAddress
 from django.core.cache import cache
 from main.decorators import manager_only, normal_profile_required, require_JSON_body
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, respondRedirect, errorLog, respondJson
-from main.strings import COMPETE, URL, Action, Message, Code, Template
+from main.strings import COMPETE, MODERATION, URL, Action, Message, Code, Template
 from management.mailers import managementInvitationAccepted, managementInvitationSent, managementPersonRemoved
+from moderation.mailers import moderationAssignedAlert
 from moderation.methods import assignModeratorToObject, getModeratorToAssignModeration
 from compete.models import Competition
-from projects.models import Category, ReportedProject, Tag
+from projects.models import Category, Tag
 from people.models import ReportedUser, Topic, Profile
 from moderation.models import Moderation
 from projects.methods import addTagToDatabase, addCategoryToDatabase
 from people.methods import addTopicToDatabase
-from main.env import BOTMAIL
 from .methods import renderer, createCompetition, rendererstr
-from .models import Management, ManagementInvitation, ManagementPerson, Report, Feedback
+from .models import Management, ManagementInvitation, Report, Feedback
 from .apps import APPNAME
 
 
@@ -49,6 +46,7 @@ def moderators(request: WSGIRequest):
         mgm = Management.objects.get(profile=request.user.profile)
         moderators = mgm.people.filter(is_moderator=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = mgm.people.filter(is_moderator=False,is_mentor=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        profiles = list(filter(lambda x: not x.is_manager, profiles))
         return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
     except Exception as e:
         raise Http404(e)
@@ -69,8 +67,10 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
             | Q(user__first_name__startswith=query)
             | Q(githubID__startswith=query)
         )).first()
-        if profile.isBlocked(request.user):
-            raise Exception()
+        if not profile:
+            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+        if profile.isBlocked(request.user) or profile.is_manager:
+            raise Exception("blocked or mgr", profile, request.user)
         return respondJson(Code.OK, dict(mod=dict(
             id=profile.user.id,
             userID=profile.getUserID(),
@@ -79,8 +79,11 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
             url=profile.getLink(),
             dp=profile.getDP(),
         )))
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
-        return respondJson(Code.NO)
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @manager_only
@@ -92,17 +95,41 @@ def removeModerator(request: WSGIRequest):
             return respondJson(Code.NO)
         mgm = Management.objects.get(profile=request.user.profile)
         moderators = mgm.people.filter(user__id=modID, is_moderator=True).values_list('id',flat=True)
+        if not len(moderators):
+            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+        unresolved = Moderation.objects.filter(moderator__user__id=modID, resolved=False)
+        for mod in unresolved:
+            if mod.requestor == request.user.profile:
+                onlyModProfiles = None
+                preferModProfiles = []
+                if mod.internal_mod:
+                    onlyModProfiles = [mgm.people.filter(user__id=modID, is_moderator=True,to_be_zombie=False,is_active=True,suspended=False)]
+                else:
+                    if mod.project or mod.coreproject:
+                        preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=mod.object.category.topics).distinct()
+                moderator = getModeratorToAssignModeration(
+                    mod.type, mod.object, ignoreModProfiles=[mod.moderator], 
+                    onlyModProfiles=onlyModProfiles,
+                    preferModProfiles=preferModProfiles,
+                    internal=mod.internal_mod
+                )
+                if moderator:
+                    mod.moderator = moderator
+                    mod.requestOn = timezone.now()
+                    mod.save()
+                    addMethodToAsyncQueue(f"{MODERATION}.mailers.{moderationAssignedAlert.__name__}", mod)
+                else:
+                    return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
+            else:
+                return respondJson(Code.NO, error=Message.PENDING_MODERATIONS_EXIST)
         moderators = Profile.objects.filter(id__in=list(moderators)).update(is_moderator=False)
         if moderators == 0:
             return respondJson(Code.NO)
-        for mod in Moderation.objects.filter(moderator__user__id=modID, resolved=False):
-            moderator = getModeratorToAssignModeration(
-                mod.type, mod.object, ignoreModProfiles=[mod.moderator], onlyModProfiles=[mgm.people.filter(user__id=modID, is_moderator=True,to_be_zombie=False,is_active=True,suspended=False)])
-            if moderator:
-                mod.moderator = moderator
-                mod.save()
         return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO)
     except Exception as e:
+        errorLog(e)
         return respondJson(Code.NO)
 
 
@@ -120,7 +147,10 @@ def addModerator(request: WSGIRequest):
         if profiles == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO)
     except Exception as e:
+        errorLog(e)
         return respondJson(Code.NO)
 
 @manager_only
@@ -131,7 +161,10 @@ def mentors(request: WSGIRequest):
         mentors = mgm.people.filter(is_mentor=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = mgm.people.filter(is_mentor=False, is_moderator=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         return renderer(request, Template.Management.COMMUNITY_MENTORS, dict(mentors=mentors, profiles=profiles))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 
@@ -150,8 +183,10 @@ def searchEligibleMentor(request: WSGIRequest) -> JsonResponse:
             | Q(user__first_name__startswith=query)
             | Q(githubID__startswith=query)
         )).first()
+        if not profile:
+            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         if profile.isBlocked(request.user):
-            raise Exception()
+            raise Exception('blocked:', profile, request.user)
         return respondJson(Code.OK, dict(mnt=dict(
             id=profile.user.id,
             userID=profile.getUserID(),
@@ -160,8 +195,11 @@ def searchEligibleMentor(request: WSGIRequest) -> JsonResponse:
             url=profile.getLink(),
             dp=profile.getDP(),
         )))
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
-        return respondJson(Code.NO)
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @manager_only
@@ -198,8 +236,11 @@ def addMentor(request: WSGIRequest):
         if profiles == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
-        return respondJson(Code.NO)
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 @manager_only
 @require_GET
@@ -223,9 +264,11 @@ def labelType(request: WSGIRequest, type: str):
             tags = Tag.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_TAGS, dict(tags=tags))
         raise Exception('Invalid label')
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
-
 
 @manager_only
 @require_GET
@@ -241,8 +284,11 @@ def label(request: WSGIRequest, type: str, labelID: UUID):
             if not category: raise Exception('Invalid category')
             return renderer(request, Template.Management.COMMUNITY_CATEGORY, dict(category=category))
         raise Exception('Invalid label')
-    except:
-        raise Http404()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @manager_only
@@ -270,11 +316,11 @@ def labelUpdate(request: WSGIRequest, type: str, labelID: UUID):
         mgm = Management.objects.get(profile=request.user.profile)
         name = request.POST['name']
         if type == Code.TAG:
-            tag = Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).update(name=name)
+            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).update(name=name)
         elif type == Code.TOPIC:
-            topic = Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
+            Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
         elif type == Code.CATEGORY:
-            category = Category.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
+            Category.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -296,7 +342,7 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
             if category.isDeletable:
                 category.delete()
         elif type == Code.TAG:
-            tags = Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).delete()
+            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).delete()
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK)

@@ -1,6 +1,6 @@
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
-from .models import CoreProject, Project, FreeProject, ProjectTransferInvitation
+from .models import CoreModerationTransferInvitation, CoreProject, Project, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation
 
 
 def freeProjectCreated(project: FreeProject):
@@ -181,6 +181,166 @@ def projectTransferDeclinedInvitation(invite:ProjectTransferInvitation):
         actions=[{
             'text': 'View projet',
             'url': invite.baseproject.get_link
+        }],
+        footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+def projectModTransferInvitation(invite:ProjectModerationTransferInvitation):
+    """
+    Invitation to accept project moderatorship
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Verified Project Moderation Transfer Invite",
+        header=f"You've been invited to accept moderatorship of verified project {invite.project.name} by its current moderator, {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd want to take moderatorship of the verified project.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+    return sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Verified Project Moderation Transfer Initiated",
+        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the verified project {invite.project.name}.",
+        actions=[{
+            'text': 'View Verified Project',
+            'url': invite.project.get_link
+        }],
+        footer=f"If they decline, then your moderatorship of this verified project will not get transferred to them.",
+        conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this verified project's profile."
+    )
+
+def projectModTransferAcceptedInvitation(invite:ProjectModerationTransferInvitation):
+    """
+    Invitation to accept project moderatorship
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Verified Project Moderation Transfer Success",
+        header=f"This is to inform you that your moderatorship of the verified project, {invite.project.name}, has been successfully transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View Verified Project',
+            'url': invite.project.get_link
+        }],
+        footer=f"This action was irreversible, and now they control this verified project as moderator and you've been detached from it.",
+        conclusion=f"If this action is unfamiliar, then you may contact the new moderator, or contact us."
+    )
+
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Verified Project Moderation Accepted",
+        header=f"This is to inform you that you've accepted the moderatorship of {invite.project.name}.",
+        actions=[{
+            'text': 'View Verified Project',
+            'url': invite.project.get_link
+        }],
+        footer=f"Now you have the control and will be shown as moderator of the verified project at {PUBNAME}",
+        conclusion=f"This email was sent because you've accepted the verified project's moderatorship."
+    )
+
+def projectModTransferDeclinedInvitation(invite:ProjectModerationTransferInvitation):
+    """
+    Invitation to accept project moderatorship
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Verified Project Moderation Transfer Failed",
+        header=f"This is to inform you that your moderatorship of the verified project, {invite.project.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View Verified Project',
+            'url': invite.project.get_link
+        }],
+        footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+def coreProjectModTransferInvitation(invite:CoreModerationTransferInvitation):
+    """
+    Invitation to accept project moderatorship
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Core Project Moderation Transfer Invite",
+        header=f"You've been invited to accept moderatorship of core project {invite.coreproject.name} by its current moderator, {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd want to take moderatorship of the coreproject.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+    return sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Core Project Moderation Transfer Initiated",
+        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the core project {invite.coreproject.name}.",
+        actions=[{
+            'text': 'View Core Project',
+            'url': invite.coreproject.get_link
+        }],
+        footer=f"If they decline, then your moderatorship of this core project will not get transferred to them.",
+        conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this core project's profile."
+    )
+
+def coreProjectModTransferAcceptedInvitation(invite:CoreModerationTransferInvitation):
+    """
+    Invitation to accept project moderatorship
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Core Project Moderation Transfer Success",
+        header=f"This is to inform you that your moderatorship of the core project, {invite.coreproject.name}, has been successfully transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View Core Project',
+            'url': invite.coreproject.get_link
+        }],
+        footer=f"This action was irreversible, and now they control this core project as moderator and you've been detached from it.",
+        conclusion=f"If this action is unfamiliar, then you may contact the new moderator, or contact us."
+    )
+
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Core Project Moderation Accepted",
+        header=f"This is to inform you that you've accepted the moderatorship of {invite.coreproject.name}.",
+        actions=[{
+            'text': 'View Core Project',
+            'url': invite.coreproject.get_link
+        }],
+        footer=f"Now you have the control and will be shown as moderator of the core project at {PUBNAME}",
+        conclusion=f"This email was sent because you've accepted the core project's moderatorship."
+    )
+
+def coreProjectModTransferDeclinedInvitation(invite:CoreModerationTransferInvitation):
+    """
+    Invitation to accept project moderatorship
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Core Project Moderation Transfer Failed",
+        header=f"This is to inform you that your moderatorship of the core project, {invite.coreproject.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View Core Project',
+            'url': invite.coreproject.get_link
         }],
         footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
         conclusion=f"If this action is unfamiliar, then you may contact us."

@@ -26,6 +26,7 @@ const newUpdateDialog = async (newServiceWorker) => {
             didOpen: async () => {
                 const newversion = await getRequest2({
                     path: URLS.VERSION_TXT,
+                    slient: true,
                 });
                 let oldversion = VERSION;
                 if (oldversion == newversion) {

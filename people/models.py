@@ -506,6 +506,19 @@ class Profile(models.Model):
         return not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
 
     @property
+    def gh_user(self):
+        try:
+            if not self.ghID: return None
+            cachekey = f"gh_user_data_{self.ghID}"
+            ghuser = cache.get(cachekey, None)
+            if not ghuser:
+                ghuser = Github.get_user(self.ghID)
+                cache.set(cachekey, ghuser, settings.CACHE_LONG)
+            return ghuser
+        except Exception as e:
+            return None
+        
+    @property
     def get_ghLink(self) -> str:
         try:
             return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()

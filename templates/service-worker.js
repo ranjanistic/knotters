@@ -133,9 +133,12 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             return FetchRes;
         };
         throw Error(event);
-    } else {
-        throw Error(event);
-    };
+    } else if (FetchRes.status < 404){
+        if (event.request.headers.get(X_SCRIPTFETCH) !== H_TRUE) {
+            return FetchRes;
+        };
+    } 
+    throw Error(event);
 };
 
 const netFetchErrorHandler = async (path, event, error) => {

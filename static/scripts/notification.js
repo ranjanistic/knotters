@@ -17,6 +17,7 @@ const togglePushSubscription = async ({
         options: {
             credentials: "include",
         },
+        slient: true
     });
     callback(done);
 };

@@ -306,23 +306,24 @@ class BaseProject(models.Model):
         return Project.objects.filter(id=self.id,status=Code.REJECTED).exists() or CoreProject.objects.filter(id=self.id,status=Code.REJECTED).exists()
 
     def getProject(self,onlyApproved=False):
-        project = cache.get(f'{self.id}_subproject', None)
+        cacheKey = f'{self.id}_subproject_appr_{onlyApproved}'
+        project = cache.get(cacheKey, None)
         if project:
             return project
         try:
             project = FreeProject.objects.get(id=self.id)
-            cache.set(f'{self.id}_subproject', project, settings.CACHE_SHORT)
+            cache.set(cacheKey, project, settings.CACHE_SHORT)
         except:
             try:
                 project = Project.objects.get(id=self.id)
                 if onlyApproved and not project.isApproved():
                     return None
-                cache.set(f'{self.id}_subproject', project, settings.CACHE_SHORT)
+                cache.set(cacheKey, project, settings.CACHE_SHORT)
             except:
                 project = CoreProject.objects.get(id=self.id)
                 if onlyApproved and not project.isApproved():
                     return None
-                cache.set(f'{self.id}_subproject', project, settings.CACHE_SHORT)
+                cache.set(cacheKey, project, settings.CACHE_SHORT)
         return project
 
     @property
@@ -377,12 +378,57 @@ class BaseProject(models.Model):
             return False
         if self.is_free:
             FreeRepository.objects.filter(free_project=self.getProject()).delete()
+        oldcreator = self.creator
         self.migrated_by = self.creator
         self.creator = newcreator
         self.migrated = True
         self.migrated_on = timezone.now()
         self.save()
+        try:
+            if self.is_not_free and self.is_approved:
+                getproject = self.getProject()
+                try:
+                    nghid = newcreator.ghID
+                    if nghid:
+                        getproject.gh_repo.add_to_collaborators(nghid,permission='push')
+                    oghid = oldcreator.ghID
+                    if oghid:
+                        getproject.gh_repo.remove_from_collaborators(oghid)
+                except:
+                    pass
+                try:
+                    nghuser = newcreator.gh_user
+                    if nghuser:
+                        getproject.gh_team.add_membership(
+                            member=nghuser,
+                            role="maintainer"
+                        )
+                    oghuser = oldcreator.gh_user
+                    if oghuser:
+                        getproject.gh_team.remove_membership(
+                            member=oghuser
+                        )
+                except:
+                    pass
+        except:
+            pass
         return True
+    
+    @property
+    def assets(self):
+        return Asset.objects.filter(baseproject=self)
+
+    @property
+    def total_assets(self):
+        return Asset.objects.filter(baseproject=self).count()
+
+    @property
+    def public_assets(self):
+        return Asset.objects.filter(baseproject=self,public=True)
+
+    @property
+    def total_public_assets(self):
+        return Asset.objects.filter(baseproject=self,public=True).count()
 
 class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
@@ -421,51 +467,75 @@ class Project(BaseProject):
     def underModeration(self) -> bool:
         return self.status == Code.MODERATION
 
-    def getRepoLink(self) -> str:
+    @property
+    def gh_repo(self):
         try:
             if self.repo_id:
-                data = cache.get(f"gh_repo_data_{self.repo_id}")
-                if data:
-                    return data.html_url
-                try:
-                    data = Github.get_repo(int(self.repo_id))
-                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-                    return data.html_url
-                except:
-                    return self.reponame
+                repo = cache.get(f"gh_repo_data_{self.repo_id}", None)
+                if not repo:
+                    repo = GithubKnotters.get_repo(self.reponame)
+                    cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                return repo
             else:
-                try:
-                    data = GithubKnotters.get_repo(self.reponame)
-                    self.repo_id = data.id
-                    self.save()
-                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-                    return data.html_url
-                except:
-                    return self.reponame
+                repo = GithubKnotters.get_repo(self.reponame)
+                self.repo_id = repo.id
+                self.save()
+                cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                return repo
         except Exception as e:
             errorLog(e)
             return None
+
+    def getRepoLink(self) -> str:
+        repo = self.gh_repo
+        if not repo:
+            return self.get_link
+        return repo.html_url
+
+    @property
+    def gh_team_name(self):
+        return f'team-{self.reponame}'
+
+    @property
+    def gh_team(self):
+        try:
+            if not self.isApproved(): return None
+            cachekey = f"gh_team_data_{self.reponame}"
+            team = cache.get(cachekey, None)
+            if not team:
+                team = GithubKnotters.get_team_by_slug(self.gh_team_name)
+                cache.set(cachekey, team, settings.CACHE_LONG)
+            return team
+        except Exception as e:
+            return None
+
+    @property
+    def base(self):
+        return BaseProject.objects.get(id=self.id)
 
     @property
     def nickname(self):
         return self.reponame
 
     @property
+    def moderation(self):
+        return Moderation.objects.filter(project=self, type=APPNAME, status__in=[
+                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
+
+    @property
     def moderator(self):
-        mod = Moderation.objects.filter(project=self, type=APPNAME, status__in=[
-                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn').first()
+        mod = self.moderation
         return None if not mod else mod.moderator
 
     def getModerator(self) -> models.Model:
         if not self.isApproved():
             return None
-        mod = Moderation.objects.filter(
-            project=self, type=APPNAME, status=Code.APPROVED, resolved=True).order_by('-respondOn').first()
+        mod = self.moderation
         return None if not mod else mod.moderator
 
     def getModLink(self) -> str:
         try:
-            return (Moderation.objects.filter(project=self, type=APPNAME).order_by('requestOn').first()).getLink()
+            return self.moderation.getLink()
         except:
             return str()
 
@@ -475,7 +545,7 @@ class Project(BaseProject):
         return 0
 
     def canRetryModeration(self) -> bool:
-        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed
+        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed and not self.suspended
 
     def getTrashLink(self) -> str:
         return url.projects.trash(self.getID())
@@ -485,37 +555,59 @@ class Project(BaseProject):
             self.trashed = True
             self.creator.decreaseXP(by=2)
             self.save()
-            return self.trashed
         return self.trashed
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+
+    def transfer_moderation_to(self,newmoderator):
+        if self.status != Code.APPROVED or self.trashed or self.suspended:
+            return False
+        mod = self.moderation
+        if not mod:
+            return False
+        oldmoderator = mod.moderator
+        mod.moderator = newmoderator
+        mod.save()
+        try:
+            self.gh_repo.add_to_collaborators(newmoderator.ghID,permission='maintain')
+            self.gh_repo.remove_from_collaborators(oldmoderator.ghID)
+        except:
+            pass
+        try:
+            self.gh_team.add_membership(
+                member=newmoderator.gh_user,
+                role="maintainer"
+            )
+            self.gh_team.remove_membership(
+                member=oldmoderator.gh_user
+            )
+        except:
+            pass
+        return True
     
     @property
-    def assets(self):
-        return Asset.objects.filter(project=self)
+    def under_mod_invitation(self):
+        return ProjectModerationTransferInvitation.objects.filter(project=self, resolved=False).exists()
 
     @property
-    def total_assets(self):
-        return Asset.objects.filter(project=self).count()
+    def current_mod_invitation(self):
+        try:
+            return ProjectModerationTransferInvitation.objects.get(project=self, resolved=False)
+        except:
+            return None
 
-    @property
-    def public_assets(self):
-        return Asset.objects.filter(project=self,public=True)
-
-    @property
-    def total_public_assets(self):
-        return Asset.objects.filter(project=self,public=True).count()
-
+    def cancel_moderation_invitation(self):
+        return ProjectModerationTransferInvitation.objects.filter(project=self).delete()
 
 
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}_{uuid.uuid4().hex}.{fileparts[len(fileparts)-1]}"
 
 class Asset(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey(Project,on_delete=models.CASCADE)
+    baseproject = models.ForeignKey(BaseProject,on_delete=models.CASCADE)
     name = models.CharField(max_length=250, null=False, blank=False)
     file = models.FileField(upload_to=assetFilePath,max_length=500)
     public = models.BooleanField(default=False)
@@ -615,6 +707,7 @@ class CoreProject(BaseProject):
     codename = models.CharField(max_length=500, unique=True, null=False, blank=False)
     repo_id = models.IntegerField(default=0, null=True, blank=True)
     budget = models.FloatField(default=0)
+    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, related_name='core_project_mentor',null=True, blank=True)
     status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
@@ -648,29 +741,47 @@ class CoreProject(BaseProject):
     def underModeration(self) -> bool:
         return self.status == Code.MODERATION
 
-    def getRepoLink(self) -> str:
+    
+    @property
+    def gh_repo(self):
         try:
             if self.repo_id:
-                data = cache.get(f"gh_repo_data_{self.repo_id}")
-                if data:
-                    return data.html_url
-                try:
-                    data = Github.get_repo(int(self.repo_id))
-                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-                    return data.html_url
-                except:
-                    return self.codename
+                repo = cache.get(f"gh_repo_data_{self.repo_id}", None)
+                if not repo:
+                    repo = GithubKnotters.get_repo(self.codename)
+                    cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                return repo
             else:
-                try:
-                    data = GithubKnotters.get_repo(self.codename)
-                    self.repo_id = data.id
-                    self.save()
-                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-                    return data.html_url
-                except:
-                    return self.codename
+                repo = GithubKnotters.get_repo(self.codename)
+                self.repo_id = repo.id
+                self.save()
+                cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                return repo
         except Exception as e:
             errorLog(e)
+            return None
+
+    def getRepoLink(self) -> str:
+        repo = self.gh_repo
+        if not repo:
+            return self.get_link
+        return repo.html_url
+    
+    @property
+    def gh_team_name(self):
+        return f'team-{self.codename}'
+
+    @property
+    def gh_team(self):
+        try:
+            if not self.isApproved(): return None
+            cachekey = f"gh_team_data_{self.codename}"
+            team = cache.get(cachekey, None)
+            if not team:
+                team = GithubKnotters.get_team_by_slug(self.gh_team_name)
+                cache.set(cachekey, team, settings.CACHE_LONG)
+            return team
+        except Exception as e:
             return None
 
     @property
@@ -678,31 +789,38 @@ class CoreProject(BaseProject):
         return self.codename
 
     @property
+    def base(self):
+        return BaseProject.objects.get(id=self.id)
+
+    @property
+    def moderation(self):
+        return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
+                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
+                                        
+    @property
     def moderator(self):
-        mod = Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
-                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn').first()
+        mod = self.moderation
         return None if not mod else mod.moderator
 
     def getModerator(self) -> models.Model:
         if not self.isApproved():
             return None
-        mod = Moderation.objects.filter(
-            coreproject=self, type=CORE_PROJECT, status=Code.APPROVED, resolved=True).order_by('-respondOn').first()
+        mod = self.moderation
         return None if not mod else mod.moderator
 
     def getModLink(self) -> str:
         try:
-            return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT).order_by('requestOn').first()).getLink()
+            return self.moderation.getLink()
         except:
             return str()
 
     def moderationRetriesLeft(self) -> int:
         if self.status != Code.APPROVED:
-            return 1 - Moderation.objects.filter(type=CORE_PROJECT, coreproject=self).count()
+            return 2 - Moderation.objects.filter(type=CORE_PROJECT, coreproject=self).count()
         return 0
 
     def canRetryModeration(self) -> bool:
-        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed
+        return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed and not self.suspended
 
     def getTrashLink(self) -> str:
         return url.projects.trash(self.getID())
@@ -712,13 +830,51 @@ class CoreProject(BaseProject):
             self.trashed = True
             self.creator.decreaseXP(by=2)
             self.save()
-            return self.trashed
         return self.trashed
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
     
+    def transfer_moderation_to(self,newmoderator):
+        if self.status != Code.APPROVED or self.trashed or self.suspended:
+            return False
+        mod = self.moderation
+        if not mod:
+            return False
+        oldmoderator = mod.moderator
+        mod.moderator = newmoderator
+        mod.save()
+        try:
+            self.gh_repo.add_to_collaborators(newmoderator.ghID,permission='maintain')
+            self.gh_repo.remove_from_collaborators(oldmoderator.ghID)
+        except:
+            pass
+        try:
+            self.gh_team.add_membership(
+                member=newmoderator.gh_user,
+                role="maintainer"
+            )
+            self.gh_team.remove_membership(
+                member=oldmoderator.gh_user
+            )
+        except:
+            pass
+        return True
+    
+    @property
+    def under_mod_invitation(self):
+        return CoreModerationTransferInvitation.objects.filter(coreproject=self, resolved=False).exists()
 
+    @property
+    def current_mod_invitation(self):
+        try:
+            return CoreModerationTransferInvitation.objects.get(coreproject=self, resolved=False)
+        except:
+            return None
+
+    def cancel_moderation_invitation(self):
+        return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
+    
 class LegalDoc(models.Model):
     class Meta:
         unique_together = ('name', 'pseudonym')
@@ -882,9 +1038,71 @@ class ProjectTransferInvitation(Invitation):
         return done
 
     def decline(self):
+        if self.sender.is_blocked(self.receiver.user): return False
+        return super(ProjectTransferInvitation, self).decline()
+
+class CoreModerationTransferInvitation(Invitation):
+    coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='mod_invitation_coreproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_receiver')
+
+    class Meta:
+        unique_together = ('sender', 'receiver','coreproject')
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.coreModTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.coreModTransInviteAct(self.get_id)}"
+
+    def accept(self):
         if self.expired: return False
         if self.resolved: return False
         if self.sender.is_blocked(self.receiver.user): return False
+        done = self.coreproject.transfer_moderation_to(self.receiver)
+        if not done: return done
         self.resolve()
         self.save()
-        return True
+        return done
+
+    def decline(self):
+        if self.sender.is_blocked(self.receiver.user): return False
+        return super(CoreModerationTransferInvitation, self).decline()
+
+class ProjectModerationTransferInvitation(Invitation):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='mod_invitation_verifiedproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_verifiedtransfer_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_verifiedtransfer_invitation_receiver')
+
+    class Meta:
+        unique_together = ('sender', 'receiver','project')
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.verifiedModTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.verifiedModTransInviteAct(self.get_id)}"
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        if self.sender.is_blocked(self.receiver.user): return False
+        done = self.project.transfer_moderation_to(self.receiver)
+        if not done: return done
+        self.resolve()
+        self.save()
+        return done
+
+    def decline(self):
+        if self.sender.is_blocked(self.receiver.user): return False
+        return super(CoreModerationTransferInvitation, self).decline()

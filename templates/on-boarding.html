@@ -489,6 +489,9 @@
 {% endblock %}
 
 {% block in_scripts %}
+    <script src="{% static 'interactjs/interactjs.min.js' %}"></script>
+{% endblock %}
+{% block scripts %}
 <script>
     const moveBoarding = (current, step = 1) => {
         sessionStorage.setItem('on-boarding-step', current+step-1)

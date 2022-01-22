@@ -17,15 +17,15 @@ from django.conf import settings
 from main.bots import Github
 from allauth.account.models import EmailAddress
 from main.env import PUBNAME
-from main.decorators import github_remote_only, manager_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
+from main.decorators import github_remote_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, htmlmin, renderString, respondJson, respondRedirect
 from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
-from .mailers import coreProjectSubmissionNotification, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
+from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
+from .mailers import coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
 from .methods import addTagToDatabase, createCoreProject, createFreeProject, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
@@ -1455,10 +1455,16 @@ def handleOwnerInvitation(request: WSGIRequest):
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
             receiver = Profile.objects.get(
                 user__email=email, suspended=False, is_active=True, to_be_zombie=False)
-            if baseproject.is_verified:
+            if baseproject.is_not_free:
                 vproj = baseproject.getProject(True)
-                if receiver in [vproj.moderator, vproj.mentor]:
-                    return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+                cannot_inv = False
+                cannot_inv = receiver in [vproj.moderator, vproj.mentor]
+                if not cannot_inv and vproj.verified:
+                    cannot_inv = ProjectModerationTransferInvitation.objects.filter(project=vproj, receiver=receiver).exists()
+                if not cannot_inv and vproj.core:
+                    cannot_inv = CoreModerationTransferInvitation.objects.filter(coreproject=vproj, receiver=receiver).exists()
+                if cannot_inv:
+                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv, created = ProjectTransferInvitation.objects.get_or_create(
                 baseproject=baseproject, sender=request.user.profile, resolved=False,
                 defaults=dict(
@@ -1466,22 +1472,28 @@ def handleOwnerInvitation(request: WSGIRequest):
                     resolved=False
                 )
             )
+            alert = True
             if not created:
+                alert = False
                 if inv.receiver != receiver:
                     inv.receiver = receiver
                     inv.expiresOn = timezone.now() + timedelta(days=1)
                     inv.save()
-                    addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
+                    alert = True
                 else:
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            if alert:
+                addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
         elif action == Action.REMOVE:
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
             baseproject.cancel_invitation()
         return respondJson(Code.OK)
-    except Exception as e:
-        # errorLog(e)
+    except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
@@ -1495,6 +1507,7 @@ def projectTransferInvite(request: WSGIRequest, inviteID: UUID):
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 @normal_profile_required
@@ -1523,4 +1536,203 @@ def projectTransferInviteAction(request: WSGIRequest, inviteID: UUID):
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_JSON_body
+def handleVerModInvitation(request: WSGIRequest):
+    try:
+        action = request.POST['action']
+        projID = request.POST['projectID']
+        
+        if action == Action.CREATE:
+            email = request.POST['email'].lower()
+            if (request.user.email == email) or (email in request.user.emails):
+                raise ObjectDoesNotExist(email)
+            project = Project.objects.get(id=projID, suspended=False, trashed=False)
+            if project.moderator != request.user.profile:
+                raise ObjectDoesNotExist(request.user.profile)
+            receiver = Profile.objects.get(
+                user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
+            if receiver.isBlocked(request.user):
+                raise ObjectDoesNotExist(receiver, request.user)
+            if receiver in [project.moderator, project.mentor, project.creator]:
+                raise ObjectDoesNotExist(receiver, project)
+            if ProjectTransferInvitation.objects.filter(baseproject=project.base, receiver=receiver).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            inv, created = ProjectModerationTransferInvitation.objects.get_or_create(
+                project=project, 
+                sender=request.user.profile,
+                resolved=False,
+                defaults=dict(
+                    receiver=receiver,
+                    resolved=False
+                )
+            )
+            alert = True
+            if not created:
+                alert = False
+                if inv.receiver != receiver:
+                    inv.receiver = receiver
+                    inv.expiresOn = timezone.now() + timedelta(days=1)
+                    inv.save()
+                    alert = True
+                else:
+                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            if alert:
+                addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferInvitation.__name__}", inv)
+        elif action == Action.REMOVE:
+            project = Project.objects.get(id=projID, suspended=False, trashed=False)
+            if project.moderator != request.user.profile:
+                raise ObjectDoesNotExist(request.user.profile)
+            project.cancel_moderation_invitation()
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@moderator_only
+@require_GET
+def projectModTransferInvite(request: WSGIRequest, inviteID: UUID):
+    try:
+        invitation = ProjectModerationTransferInvitation.objects.get(id=inviteID, project__suspended=False,
+                                                           project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        return renderer(request, Template.Projects.VER_M_INVITATION,
+                 dict(invitation=invitation))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_JSON_body
+def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
+    try:
+        action = request.POST['action']
+        invitation = ProjectModerationTransferInvitation.objects.get(id=inviteID, project__suspended=False,
+                                                           project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.PROJECT_MOD_TRANSFER_ACCEPTED 
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferAcceptedInvitation.__name__}",invitation)
+        else:
+            message = Message.PROJECT_MOD_TRANSFER_DECLINED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferDeclinedInvitation.__name__}",invitation)
+        return redirect(invitation.project.getLink(alert=message))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_JSON_body
+def handleCoreModInvitation(request: WSGIRequest):
+    try:
+        action = request.POST['action']
+        projID = request.POST['projectID']
+        if action == Action.CREATE:
+            email = request.POST['email'].lower()
+            if (request.user.email == email) or (email in request.user.emails):
+                raise ObjectDoesNotExist(email)
+            coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
+            if coreproject.moderator != request.user.profile:
+                raise ObjectDoesNotExist(request.user.profile)
+            receiver = Profile.objects.get(
+                user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
+            if receiver in [coreproject.moderator, coreproject.mentor, coreproject.creator]:
+                raise ObjectDoesNotExist(receiver, coreproject)
+            if receiver.isBlocked(request.user):
+                raise ObjectDoesNotExist(receiver, request.user)
+
+            if ProjectTransferInvitation.objects.filter(baseproject=coreproject.base, receiver=receiver).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            inv, created = CoreModerationTransferInvitation.objects.get_or_create(
+                coreproject=coreproject, 
+                sender=request.user.profile,
+                resolved=False,
+                defaults=dict(
+                    receiver=receiver,
+                    resolved=False
+                )
+            )
+            alert = True
+            if not created:
+                alert = False
+                if inv.receiver != receiver:
+                    inv.receiver = receiver
+                    inv.expiresOn = timezone.now() + timedelta(days=1)
+                    inv.save()
+                    alert = True
+                else:
+                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            if alert:
+                addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferInvitation.__name__}", inv)
+        elif action == Action.REMOVE:
+            coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
+            if coreproject.moderator != request.user.profile:
+                raise ObjectDoesNotExist(request.user.profile)
+            coreproject.cancel_moderation_invitation()
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@moderator_only
+@require_GET
+def coreProjectModTransferInvite(request: WSGIRequest, inviteID: UUID):
+    try:
+        invitation = CoreModerationTransferInvitation.objects.get(id=inviteID, coreproject__suspended=False,
+                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        return renderer(request, Template.Projects.CORE_M_INVITATION,
+                 dict(invitation=invitation))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_JSON_body
+def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
+    try:
+        action = request.POST['action']
+        invitation = CoreModerationTransferInvitation.objects.get(id=inviteID, coreproject__suspended=False,
+                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.PROJECT_MOD_TRANSFER_ACCEPTED 
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferAcceptedInvitation.__name__}",invitation)
+        else:
+            message = Message.PROJECT_MOD_TRANSFER_DECLINED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferDeclinedInvitation.__name__}",invitation)
+        return redirect(invitation.coreproject.getLink(alert=message))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
         raise Http404(e)

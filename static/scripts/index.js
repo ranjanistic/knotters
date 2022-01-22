@@ -120,9 +120,9 @@ const loadGlobalEventListeners = () => {
     getElementsByTag("a").forEach((a) => {
         if (
             a.href &&
-            !a.href.startsWith("#") &&
-            !a.getAttribute("target") &&
-            a.getAttribute("download") === null
+            !a.hash &&
+            !a.target &&
+            a.download === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);
@@ -502,10 +502,10 @@ const initializeMultiSelector = ({
     return candidates;
 };
 
-const postRequest = async (path, data = {}, headers = {}, options = {}) => {
+const postRequest = async (path, data = {}, headers = {}, options = {}, silent=false) => {
     const body = { ...data };
     try {
-        subLoader();
+        if(!silent) subLoader();
         const response = await window.fetch(path, {
             method: "POST",
             headers: {
@@ -519,14 +519,14 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
             ...options,
         });
         const data = await response.text();
-        subLoader(false);
+        if(!silent) subLoader(false);
         try {
             return JSON.parse(data);
         } catch {
             return data || true;
         }
     } catch (e) {
-        subLoader(false);
+        if(!silent) subLoader(false);
         if (!navigator.onLine) {
             error(STRING.network_error_message);
         } else error(STRING.default_error_message, true);
@@ -534,9 +534,9 @@ const postRequest = async (path, data = {}, headers = {}, options = {}) => {
     }
 };
 
-const getRequest = async (url, query = {}, headers = {}, options = {}) => {
+const getRequest = async (url, query = {}, headers = {}, options = {}, silent=false) => {
     try {
-        subLoader();
+        if(!silent) subLoader();
         const response = await window.fetch(setUrlQueries(url, query), {
             method: "GET",
             headers: {
@@ -547,14 +547,14 @@ const getRequest = async (url, query = {}, headers = {}, options = {}) => {
             ...options,
         });
         const data = await response.text();
-        subLoader(false);
+        if(!silent) subLoader(false);
         try {
             return JSON.parse(data);
         } catch {
             return data || true;
         }
     } catch (e) {
-        subLoader(false);
+        if(!silent) subLoader(false);
         if (!navigator.onLine) {
             error(STRING.network_error_message);
         } else error(STRING.default_error_message, true);

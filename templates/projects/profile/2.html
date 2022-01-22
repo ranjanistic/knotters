@@ -251,22 +251,32 @@
                     {% endfor %}
                 </div>
             </div>
-            {% if iscreator %}
+            {% if iscreator or ismoderator %}
             <br/>
             <div class="w3-row">
                 <div class="pallete">
-                <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
-                <div class="w3-row">
+                    <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
+                    <div class="w3-row">
                     {% if project.under_invitation %}
                         <h6>Transfer invited</h6>
                         <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_invitation.expiresOn}}</b>
-                        <button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>
-                    {% else %}
+                        {% if iscreator %}<button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>{% endif %}
+                    {% elif iscreator %}
                         <br/>
                         <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
                     {% endif %}
-                </div>
+                    {% if project.under_mod_invitation %}
+                        <h6>Moderation transfer invited</h6>
+                        <a onclick="miniWindow('{{project.current_mod_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_mod_invitation.receiver.get_dp}}" width="25" />{{project.current_mod_invitation.receiver.get_name}}</button></a>
+                        <b>till {{project.current_mod_invitation.expiresOn}}</b>
+                        {% if ismoderator %}<button class="negative small" id='delete-project-mod-invitation' data-icon="delete">Delete</button>{% endif %}
+                    {% elif ismoderator %}
+                        <br/>
+                        <button class="negative" id='transfer-project-mod' data-icon="schedule_send">Transfer Project Moderatorship</button>
+                    {% endif %}
+                        {% comment %} <button class="negative" data-icon="delete" id='delete-project'>{% trans "Delete project" %}</button> {% endcomment %}
+                    </div>
                 </div>
             </div>
             {% endif %}
@@ -277,6 +287,7 @@
                     <center><h5 class="align"><i>description</i>&nbsp;Description</h5></center><br/>
                     <strong>{% trans "Created on" %} <span>{{project.createdOn}}</span></strong><br/><br/>
                     <strong>{% trans "Created by" %}</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
+                    <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
                 </div>
             </div>
@@ -330,6 +341,7 @@ const selfProject = "{{iscreator}}"==='True';
 const ismoderator = false;
 
 {% if not project.suspended %}
+
 if (selfProject){
     getElement('save-edit-projecttags').onclick= async ()=> {
         var obj = getFormDataById("edit-tag-inputs");
@@ -343,7 +355,20 @@ if (selfProject){
         error(resp.error)
     }
 
-    {% if not project.under_invitation %}
+    getElement('sociallinks-add').onclick=_=>{
+        const parent=getElement('edit-sociallinks-inputs');
+        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
+}
+
+{% if iscreator or ismoderator %}
+    {% if not project.under_invitation and iscreator %}
     
     getElement('transfer-project').onclick=(e)=>{
         Swal.fire({
@@ -382,7 +407,7 @@ if (selfProject){
             }
         })
     }
-    {% else %}
+    {% elif iscreator %}
         getElement('delete-project-invitation').onclick=async(e)=>{
             message("Deleting invitation...");
             const data = await postRequest2({
@@ -399,18 +424,66 @@ if (selfProject){
             error(data.error)
         }
     {% endif %}
-
-    getElement('sociallinks-add').onclick=_=>{
-        const parent=getElement('edit-sociallinks-inputs');
-        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-        const linkNumber=parent.childElementCount+1;
-        const newChild=document.createElement('div');
-        newChild.innerHTML = `
-            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-        `;
-        parent.insertBefore(newChild,parent.childNodes[0]);
+    
+    {% if not project.under_mod_invitation and ismoderator %}
+    
+    getElement('transfer-project-mod').onclick=(e)=>{
+        Swal.fire({
+            title: 'Transfer project moderatorship',
+            html: `<h6>Transfer project '{{project.nickname}}' to another moderator.<br/>
+            Invite the new moderator by their email to transfer moderation.</h6>
+            <br/>
+            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-mod-new-email" />
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Send Invite',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                let email = getElement("transfer-project-mod-new-email").value.trim()
+                if(email) return email
+                error('Email address required')
+                return false
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                message("Sending moderator invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_COREPROJECT_MOD,
+                    data: {
+                        action: 'create',
+                        projectID,
+                        email: result.value,
+                    }
+                })
+                if(data.code===code.OK){
+                    futuremessage("Invitation sent.")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        })
     }
-}
+    {% elif ismoderator %}
+        getElement('delete-project-mod-invitation').onclick=async(e)=>{
+            message("Deleting moderation invitation...");
+            const data = await postRequest2({
+                path: URLS.INVITE_COREPROJECT_MOD,
+                data: {
+                    action: 'remove',
+                    projectID,
+                }
+            })
+            if(data.code===code.OK){
+                futuremessage("Moderation Invitation cancelled")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    {% endif %}
+{% endif %}
+
+
 
 {% if iscreator %}
 getElement('save-edit-snapshot').onclick=(e)=>{

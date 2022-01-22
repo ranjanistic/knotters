@@ -288,7 +288,7 @@
                 </div>
             </div>
             <br/>
-            {% if iscreator %}
+            {% if iscreator or ismoderator %}
             <div class="w3-row">
                 <div class="pallete">
                     <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
@@ -297,10 +297,19 @@
                         <h6>Transfer invited</h6>
                         <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_invitation.expiresOn}}</b>
-                        <button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>
-                    {% else %}
+                        {% if iscreator %}<button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>{% endif %}
+                    {% elif iscreator %}
                         <br/>
                         <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
+                    {% endif %}
+                    {% if project.under_mod_invitation %}
+                        <h6>Moderation transfer invited</h6>
+                        <a onclick="miniWindow('{{project.current_mod_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_mod_invitation.receiver.get_dp}}" width="25" />{{project.current_mod_invitation.receiver.get_name}}</button></a>
+                        <b>till {{project.current_mod_invitation.expiresOn}}</b>
+                        {% if ismoderator %}<button class="negative small" id='delete-project-mod-invitation' data-icon="delete">Delete</button>{% endif %}
+                    {% elif ismoderator %}
+                        <br/>
+                        <button class="negative" id='transfer-project-mod' data-icon="schedule_send">Transfer Project Moderatorship</button>
                     {% endif %}
                         {% comment %} <button class="negative" data-icon="delete" id='delete-project'>{% trans "Delete project" %}</button> {% endcomment %}
                     </div>
@@ -365,9 +374,9 @@ if(!selfProject){
     if (!ismoderator){
         getElement('save-edit-projecttags').onclick= async ()=> {
             var obj = getFormData("edit-tag-inputs");
-            var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+            var resp=await postRequest2({path:setUrlParams(URLS.TAGSUPDATE, projectID), data:{
                 addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-            });
+            }, retainCache: true});
             console.log(resp)
             if (resp.code===code.OK){
                 subLoader()
@@ -385,64 +394,129 @@ if(!selfProject){
             `;
             parent.insertBefore(newChild,parent.childNodes[0]);
         }
-        {% if not project.under_invitation %}
-        getElement('transfer-project').onclick=(e)=>{
-            Swal.fire({
-                title: 'Transfer project',
-                html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
-                Invite the new owner by their email to transfer project.</h6>
-                <br/>
-                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Send Invite',
-                cancelButtonText: 'Cancel',
-                showLoaderOnConfirm: true,
-                preConfirm: async () => {
-                    let email = getElement("transfer-project-new-email").value.trim()
-                    if(email) return email
-                    error('New email address required')
-                    return false
-                }
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    message("Sending invitation...");
-                    const data = await postRequest2({
-                        path: URLS.INVITE_PROJECT_OWNER,
-                        data: {
-                            action: 'create',
-                            projectID,
-                            email: result.value,
-                        }
-                    })
-                    if(data.code===code.OK){
-                        futuremessage("Invitation sent.")
-                        return window.location.reload()
-                    }
-                    error(data.error)
-                }
-            })
-        }
-        {% else %}
-            getElement('delete-project-invitation').onclick=async(e)=>{
-                message("Deleting invitation...");
+    }
+}
+
+{% if iscreator or ismoderator %}
+    {% if not project.under_invitation and iscreator %}
+    
+    getElement('transfer-project').onclick=(e)=>{
+        Swal.fire({
+            title: 'Transfer project',
+            html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
+            Invite the new owner by their email to transfer project.</h6>
+            <br/>
+            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Send Invite',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                let email = getElement("transfer-project-new-email").value.trim()
+                if(email) return email
+                error('New email address required')
+                return false
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                message("Sending invitation...");
                 const data = await postRequest2({
                     path: URLS.INVITE_PROJECT_OWNER,
                     data: {
-                        action: 'remove',
+                        action: 'create',
                         projectID,
-                    }
+                        email: result.value,
+                    },
+                    retainCache: true
                 })
                 if(data.code===code.OK){
-                    futuremessage("Invitation cancelled")
+                    futuremessage("Invitation sent.")
                     return window.location.reload()
                 }
                 error(data.error)
             }
-
-        {% endif %}
+        })
     }
-}
+    {% elif iscreator %}
+        getElement('delete-project-invitation').onclick=async(e)=>{
+            message("Deleting invitation...");
+            const data = await postRequest2({
+                path: URLS.INVITE_PROJECT_OWNER,
+                data: {
+                    action: 'remove',
+                    projectID,
+                },
+                retainCache: true
+            })
+            if(data.code===code.OK){
+                futuremessage("Invitation cancelled")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    {% endif %}
+    
+    {% if not project.under_mod_invitation and ismoderator %}
+    
+    getElement('transfer-project-mod').onclick=(e)=>{
+        Swal.fire({
+            title: 'Transfer project moderatorship',
+            html: `<h6>Transfer project '{{project.nickname}}' to another moderator.<br/>
+            Invite the new moderator by their email to transfer moderation.</h6>
+            <br/>
+            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-mod-new-email" />
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Send Invite',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+                let email = getElement("transfer-project-mod-new-email").value.trim()
+                if(email) return email
+                error('Email address required')
+                return false
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                message("Sending moderator invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_VERPROJECT_MOD,
+                    data: {
+                        action: 'create',
+                        projectID,
+                        email: result.value,
+                    },
+                    retainCache: true
+                })
+                if(data.code===code.OK){
+                    futuremessage("Invitation sent.")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        })
+    }
+    {% elif ismoderator %}
+        getElement('delete-project-mod-invitation').onclick=async(e)=>{
+            message("Deleting moderation invitation...");
+            const data = await postRequest2({
+                path: URLS.INVITE_VERPROJECT_MOD,
+                data: {
+                    action: 'remove',
+                    projectID,
+                },
+                retainCache: true
+            })
+            if(data.code===code.OK){
+                futuremessage("Moderation Invitation cancelled")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    {% endif %}
+{% endif %}
+
 {% endif %}
 </script>
 {% endblock %}

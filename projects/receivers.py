@@ -1,8 +1,8 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 from main.methods import addMethodToAsyncQueue
-from .mailers import freeProjectDeleted, freeProjectCreated, projectTransferInvitation
-from .models import Project, Asset, FreeProject, ProjectTransferInvitation, Snapshot, defaultImagePath
+from .mailers import coreProjectModTransferInvitation, freeProjectDeleted, freeProjectCreated, projectModTransferInvitation, projectTransferInvitation
+from .models import CoreModerationTransferInvitation, Project, Asset, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation, Snapshot, defaultImagePath
 from .apps import APPNAME
 
 @receiver(post_save, sender=Project)
@@ -70,10 +70,26 @@ def on_snap_delete(sender, instance, **kwargs):
     except Exception as e:
         pass
 
-@receiver(post_save, sender=ProjectTransferInvitation)
-def on_transfer_invite_create(sender, instance, created, **kwargs):
-    """
-    Project invitaion created.
-    """
-    if created:
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}",instance)
+# @receiver(post_save, sender=ProjectTransferInvitation)
+# def on_transfer_invite_create(sender, instance, created, **kwargs):
+#     """
+#     Project invitaion created.
+#     """
+#     if created:
+#         addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}",instance)
+        
+# @receiver(post_save, sender=ProjectModerationTransferInvitation)
+# def on_transfer_invite_create(sender, instance, created, **kwargs):
+#     """
+#     Verified Project invitaion created.
+#     """
+#     if created:
+#         addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferInvitation.__name__}",instance)
+
+# @receiver(post_save, sender=CoreModerationTransferInvitation)
+# def on_transfer_invite_create(sender, instance, created, **kwargs):
+#     """
+#     Core Project invitaion created.
+#     """
+#     if created:
+#         addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferInvitation.__name__}",instance)

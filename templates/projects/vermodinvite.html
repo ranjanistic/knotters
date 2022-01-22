@@ -1,0 +1,30 @@
+{% extends 'projects/invitation.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block invite_body %}
+<div class="w3-row ">
+    <div class="w3-center"><i class="w3-jumbo">widgets</i></div>
+    <h4 class="w3-center"><a href="{{invitation.sender.get_link}}" target="_blank"><button class="primary"><img src="{{invitation.sender.get_dp}}" class="circle" width="25">&nbsp;{{invitation.sender.getName}}</button></a>
+    wants to transfer the moderatorship of the following project to you.</h4>
+    <br/>
+    <div class="w3-row">
+        <div class="w3-col w3-third"><br/></div>
+        <a href="{{invitation.project.get_link}}" target="_blank">
+        <div class="w3-col w3-third pallete">
+            <div class="w3-col w3-quarter pallate">
+                <img class="pallete " src="{{invitation.project.get_dp}}" width="100" />
+            </div>
+            <div class="w3-col w3-threequarter primary pallete w3-left w3-padding">
+                <h3 class="text-primary">{{invitation.project.name}}</h3>
+                <strong class="text-medium align w3-left">{{invitation.project.reponame}}{% if invitation.project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</strong>
+            </div>
+        </div>
+        </a>
+        <div class="w3-col w3-third pallete no-pad"></div>
+    </div>
+</div>
+{% endblock %}
