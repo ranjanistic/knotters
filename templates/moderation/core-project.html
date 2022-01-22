@@ -127,7 +127,7 @@
             {% if ismoderator %}
             <h6>
             <br/> Since this is a core project, it will be private to the people under {{APPNAME}} organization only, and you can add more people to this repository later.
-            <br/>You can also <a href="mailto:{{moderation.requestor.user.email}}?subject=Regarding {{moderation.coreproject.name}}'s moderation&cc={{CONTACTMAIL}}&body=Hello, I'm {{request.user.profile.get_name}}, the assigned moderator of your {{moderation.coreproject.name}} project.\n\n">contact the requestor directly</a>.
+            <br/>You can also <a href="mailto:{{moderation.requestor.user.email}}?subject=Regarding {{moderation.coreproject.name}}'s moderation&cc={{CONTACTMAIL}}&body=Hello, I'm {{request.user.profile.get_name}}, the assigned moderator of your {{moderation.coreproject.name}} project at {{APPNAME}}.">contact the requestor directly</a>.
             {% endif %}
             </h6>
         </div>
