@@ -527,9 +527,11 @@ const postRequest = async (path, data = {}, headers = {}, options = {}, silent=f
         }
     } catch (e) {
         if(!silent) subLoader(false);
-        if (!navigator.onLine) {
-            error(STRING.network_error_message);
-        } else error(STRING.default_error_message, true);
+        if(!silent){
+            if (!navigator.onLine) {
+                error(STRING.network_error_message);
+            } else error(STRING.default_error_message, true);
+        }
         return false;
     }
 };
@@ -555,9 +557,11 @@ const getRequest = async (url, query = {}, headers = {}, options = {}, silent=fa
         }
     } catch (e) {
         if(!silent) subLoader(false);
-        if (!navigator.onLine) {
-            error(STRING.network_error_message);
-        } else error(STRING.default_error_message, true);
+        if(!silent){
+            if (!navigator.onLine) {
+                error(STRING.network_error_message);
+            } else error(STRING.default_error_message, true);
+        }
         return false;
     }
 };

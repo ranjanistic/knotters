@@ -24,9 +24,9 @@ from moderation.models import Moderation
 from moderation.methods import requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category
-from .mailers import coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification
-from .methods import addTagToDatabase, createCoreProject, createFreeProject, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
+from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
+from .methods import addTagToDatabase, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -38,16 +38,16 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def allLicences(request: WSGIRequest) -> HttpResponse:
     try:
-        alllicenses = License.objects.filter()
-        public = alllicenses.filter(public=True)
-        custom = []
+        public = License.objects.filter()
+        owned = []
         if request.user.is_authenticated:
-            custom = alllicenses.filter(
+            owned = License.objects.filter(
                 public=False, creator=request.user.profile)
-        return renderer(request, Template.Projects.LICENSE_INDEX, dict(licenses=public, custom=custom))
+            public = public.exclude(creator=request.user.profile)
+        return renderer(request, Template.Projects.LICENSE_INDEX, dict(licenses=public, custom=owned))
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @require_GET
@@ -55,8 +55,11 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
         return renderer(request, Template.Projects.LICENSE_LIC, dict(license=license))
-    except:
-        raise Http404()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @require_GET
@@ -68,8 +71,7 @@ def create(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def createFree(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    licenses = License.objects.filter(
-        Q(creator=request.user.profile) | Q(public=True))
+    licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('default')
     return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
 
 
@@ -77,15 +79,15 @@ def createFree(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def createMod(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    licenses = License.objects.filter(
-        Q(creator=request.user.profile) | Q(public=True))[0:5]
+    licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('default')
     return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
 
 @normal_profile_required
 @require_GET
 def createCore(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    return renderer(request, Template.Projects.CREATE_CORE, dict(categories=categories))
+    licenses = License.objects.filter(creator=request.user.profile,public=False).order_by('name')
+    return renderer(request, Template.Projects.CREATE_CORE, dict(categories=categories,licenses=licenses))
 
 @normal_profile_required
 @require_JSON_body
@@ -107,8 +109,7 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
 @normal_profile_required
 @require_JSON_body
 def licences(request: WSGIRequest) -> JsonResponse:
-    licenses = License.objects.filter(
-        ~Q(id__in=request.POST.get('givenlicenses', []))).values()
+    licenses = License.objects.filter(public=True, creator=Profile.KNOTBOT()).exclude(id__in=request.POST.get('givenlicenses', [])).values()
     return respondJson(Code.OK, dict(licenses=list(licenses)))
 
 
@@ -281,10 +282,10 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
                 return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
             return respondRedirect(APPNAME, URL.projects.createCore(), error=Message.TERMS_UNACCEPTED)
         
-        name = request.POST["coreproject_projectname"]
-        about = request.POST["coreproject_projectabout"]
+        name = str(request.POST["coreproject_projectname"]).strip()
+        about = str(request.POST["coreproject_projectabout"]).strip()
         category_id = request.POST["coreproject_projectcategory"]
-        codename = request.POST["coreproject_codename"]
+        codename = str(request.POST["coreproject_codename"]).strip()
         userRequest = request.POST["coreproject_projectdescription"]
 
         chosenModID = request.POST.get("coreproject_moderator_id", False)
@@ -294,9 +295,8 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
         budget = float(request.POST.get("coreproject_projectbudget", 0))
         stale_days = int(request.POST.get("coreproject_stale_days", 3))
 
-        lic_name = request.POST["coreproject_license_name"]
-        lic_about = request.POST["coreproject_license_about"]
-        lic_cont = request.POST["coreproject_license_content"]
+        lic_id = request.POST.get("coreproject_license_id", None)
+        
 
         stale_days = stale_days if stale_days in range(1,16) else 3
         useInternalMods = useInternalMods and request.user.profile.is_manager
@@ -311,8 +311,15 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
             chosenModerator = Profile.objects.filter(user__id=chosenModID, is_moderator=True,is_active=True,suspended=False,to_be_zombie=False).first()
         if chosenModerator:
             useInternalMods = False
+        license = None
+        if lic_id:
+            license = License.objects.get(id=lic_id,creator=request.user.profile,public=False)
+        else:
+            lic_name = str(request.POST["coreproject_license_name"]).strip()
+            lic_about = str(request.POST["coreproject_license_about"]).strip()
+            lic_cont = str(request.POST["coreproject_license_content"]).strip()
+            license = License.objects.create(name=lic_name, description=lic_about, content=lic_cont, creator=request.user.profile,public=False)
 
-        license = License.objects.create(name=lic_name, description=lic_about, content=lic_cont, creator=request.user.profile,public=False)
         category = Category.objects.get(id=category_id)
         projectobj = createCoreProject(name=name,category=category, codename=codename, description=about,creator=request.user.profile, license=license,budget=budget)
         if not projectobj:
@@ -343,7 +350,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
-    except KeyError as e:
+    except (KeyError,ObjectDoesNotExist) as e:
         if projectobj:
             projectobj.delete()
         if json_body:
@@ -361,42 +368,47 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
 @normal_profile_required
 @require_JSON_body
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         project = BaseProject.objects.get(
             id=projID, creator=request.user.profile, trashed=False, suspended=False)
-        project.getProject().moveToTrash()
-        if request.headers.get('X-KNOT-REQ-SCRIPT', False):
-            return respondJson(Code.OK)
-        return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
+        if project.is_not_free and project.is_approved:
+            action = request.POST['action']
+            notfreeproj = project.getProject(True)
+            if not notfreeproj:
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            if action == Action.CREATE:
+                if notfreeproj.request_deletion():
+                    if notfreeproj.verified:
+                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", notfreeproj.current_del_request)
+                    else:
+                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", notfreeproj.current_del_request)
+                    return respondJson(Code.OK)
+                return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+            elif action == Action.REMOVE:
+                if notfreeproj.cancel_del_request():
+                    return respondJson(Code.OK)
+                return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        else:
+            moved = project.getProject().moveToTrash()
+            if moved and json_body:
+                return respondJson(Code.OK)
+            elif moved:
+                return redirect(request.user.profile.getLink(alert=Message.PROJECT_DELETED))
+            if json_body:
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            return redirect(project.getLink(alert=Message.ERROR_OCCURRED))
+                 
+    except (KeyError,ObjectDoesNotExist) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
     except Exception as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         errorLog(e)
-        raise Http404()
-
-
-@normal_profile_required
-@require_JSON_body
-def transferProjectOwnership(request: WSGIRequest, projID: UUID) -> HttpResponse:
-    try:
-        project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile, trashed=False, suspended=False)
-        newOwnerEmail = request.POST.get('newOwnerEmail', None)
-        if not newOwnerEmail:
-            return respondJson(Code.NO)
-        newOwnerEmail = str(newOwnerEmail).strip()
-        if project.creator.getEmail() == newOwnerEmail:
-            return respondJson(Code.NO)
-        newowner = Profile.objects.filter(
-            user__email=newOwnerEmail, suspended=False, is_active=True, to_be_zombie=False).first()
-        if not newowner:
-            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
-        if not project.is_verified:
-            project.creator = newowner
-            project.save()
-            return respondJson(Code.OK)
-        return respondJson(Code.NO)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
 
 
 @require_GET
@@ -533,14 +545,15 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 @require_JSON_body
 def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
-        project = Project.objects.get(
+        project = BaseProject.objects.get(
             id=projID, creator=request.user.profile, trashed=False, suspended=False)
+        project.is_approved
         if action == Action.ADD:
             name = str(request.POST['filename']).strip()
             file = base64ToFile(request.POST['filedata'])
             public = request.POST.get('public', False)
             asset = Asset.objects.create(
-                project=project, name=name, file=file, public=public)
+                baseproject=project, name=name, file=file, public=public)
             return respondJson(Code.OK, dict(asset=dict(
                 id=asset.id,
                 name=asset.name
@@ -549,12 +562,12 @@ def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonRespons
             assetID = request.POST['assetID']
             name = str(request.POST['filename']).strip()
             public = request.POST['public']
-            Asset.objects.filter(id=assetID, project=project).update(
+            Asset.objects.filter(id=assetID, baseproject=project).update(
                 name=name, public=public)
             return respondJson(Code.OK)
         elif action == Action.REMOVE:
             assetID = request.POST['assetID']
-            Asset.objects.filter(id=assetID, project=project).delete()
+            Asset.objects.filter(id=assetID, baseproject=project).delete()
             return respondJson(Code.OK)
         else:
             return respondJson(Code.NO)
@@ -597,6 +610,8 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.OK, dict(
             topics=topicslist
         ))
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -1731,6 +1746,94 @@ def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
             addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferDeclinedInvitation.__name__}",invitation)
         return redirect(invitation.coreproject.getLink(alert=message))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_GET
+def verProjectDeleteRequest(request, inviteID):
+    try:
+        invitation = VerProjectDeletionRequest.objects.get(id=inviteID, project__suspended=False,
+                                                           project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        return renderer(request, Template.Projects.VER_DEL_INVITATION, dict(invitation=invitation))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_JSON_body
+def verProjectDeleteRequestAction(request, inviteID):
+    try:
+        action = request.POST['action']
+        invitation = VerProjectDeletionRequest.objects.get(id=inviteID, project__suspended=False,
+                                                           project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.PROJECT_DEL_ACCEPTED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionAcceptedRequest.__name__}",invitation)
+            addMethodToAsyncQueue(f"{APPNAME}.methods.{deleteGhOrgVerifiedRepository.__name__}",invitation.project)
+            return redirect(request.user.profile.getLink(alert=message))
+        else:
+            message = Message.PROJECT_DEL_DECLINED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionDeclinedRequest.__name__}",invitation)
+            return redirect(invitation.project.getLink(alert=message))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_GET
+def coreProjectDeleteRequest(request, inviteID):
+    try:
+        invitation = CoreProjectDeletionRequest.objects.get(id=inviteID, coreproject__suspended=False,
+                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        return renderer(request, Template.Projects.CORE_DEL_INVITATION, dict(invitation=invitation))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@moderator_only
+@require_JSON_body
+def coreProjectDeleteRequestAction(request, inviteID):
+    try:
+        action = request.POST['action']
+        invitation = CoreProjectDeletionRequest.objects.get(id=inviteID, coreproject__suspended=False,
+                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.PROJECT_DEL_ACCEPTED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionAcceptedRequest.__name__}",invitation)
+            addMethodToAsyncQueue(f"{APPNAME}.methods.{deleteGhOrgCoreepository.__name__}",invitation.coreproject)
+            return redirect(request.user.profile.getLink(alert=message))
+        else:
+            message = Message.PROJECT_DEL_DECLINED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionDeclinedRequest.__name__}",invitation)
+            return redirect(invitation.coreproject.getLink(alert=message))
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:

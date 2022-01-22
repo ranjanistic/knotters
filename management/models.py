@@ -238,6 +238,13 @@ class Invitation(models.Model):
         self.resolved = True
         self.expiresOn = timezone.now()
         self.save()
+        return True
+
+    def unresolve(self):
+        self.resolved = False
+        self.expiresOn = self.createdOn+timedelta(days=1)
+        self.save()
+        return True
     
     @property
     def expired(self):

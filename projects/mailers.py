@@ -1,6 +1,6 @@
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
-from .models import CoreModerationTransferInvitation, CoreProject, Project, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation
+from .models import CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, Project, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation, VerProjectDeletionRequest
 
 
 def freeProjectCreated(project: FreeProject):
@@ -337,6 +337,151 @@ def coreProjectModTransferDeclinedInvitation(invite:CoreModerationTransferInvita
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Core Project Moderation Transfer Failed",
+        header=f"This is to inform you that your moderatorship of the core project, {invite.coreproject.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View Core Project',
+            'url': invite.coreproject.get_link
+        }],
+        footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+
+def verProjectDeletionRequest(invite:VerProjectDeletionRequest):
+    """
+    Request to delete a verified project
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Verified Project Deletion Request",
+        header=f"You've been requested to delete the verified project {invite.project.name} by its creator, {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Request',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd accept or decline to do so.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+    return sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Verified Project Deletion Requested",
+        header=f"This is to inform you that you've requested {invite.receiver.getName()} ({invite.receiver.getEmail()}) to delete the verified project {invite.project.name}.",
+        actions=[{
+            'text': 'View Verified Project',
+            'url': invite.project.get_link
+        }],
+        footer=f"If they decline, then the project will not get deleted, else, deletion will start permanently.",
+        conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this verified project on {PUBNAME}, as soon as possible."
+    )
+
+def verProjectDeletionAcceptedRequest(invite:VerProjectDeletionRequest):
+    """
+    Accepted request to verified project deletion
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Verified Project Deletion Accepted",
+        header=f"This is to inform you that your request to delete the verified project, {invite.project.name}, has been accepted by {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        footer=f"This action was irreversible, and the project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon.",
+        conclusion=f"This email was sent because you had requested deletion of a verified project."
+    )
+
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Verified Project Deletion Accepted",
+        header=f"This is to inform you that you've accepted to delete the verified project {invite.project.name}.",
+        footer=f"The project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon. This action was irreversible, as you should know already.",
+        conclusion=f"This email was sent because you've deleted a verified project."
+    )
+
+def verProjectDeletionDeclinedRequest(invite:VerProjectDeletionRequest):
+    """
+    Declinded request to verified project deletion
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Verified Project Deletion Failed",
+        header=f"This is to inform you that your deletion of the verified project, {invite.project.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        actions=[{
+            'text': 'View Verified Project',
+            'url': invite.project.get_link
+        }],
+        footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+def coreProjectDeletionRequest(invite:CoreProjectDeletionRequest):
+    """
+    Request to delete a core project
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Core Project Deletion Request",
+        header=f"You've been requested to delete the core project {invite.coreproject.name} by its creator, {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Request',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd accept or decline to do so.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+    return sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Core Project Deletion Requested",
+        header=f"This is to inform you that you've requested {invite.receiver.getName()} ({invite.receiver.getEmail()}) to delete the core project {invite.coreproject.name}.",
+        actions=[{
+            'text': 'View Core Project',
+            'url': invite.coreproject.get_link
+        }],
+        footer=f"If they decline, then the project will not get deleted, else, deletion will start permanently.",
+        conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this core project on {PUBNAME}, as soon as possible."
+    )
+
+def coreProjectDeletionAcceptedRequest(invite:CoreProjectDeletionRequest):
+    """
+    Accepted Request to core project deletion
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Core Project Deletion Accepted",
+        header=f"This is to inform you that your request to delete the core project, {invite.coreproject.name}, has been accepted by {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
+        footer=f"This action was irreversible, and the project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon.",
+        conclusion=f"This email was sent because you had requested deletion of a core project."
+    )
+
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Core Project Deletion Accepted",
+        header=f"This is to inform you that you've accepted to delete the core project {invite.coreproject.name}.",
+        footer=f"The project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon. This action was irreversible, as you should know already.",
+        conclusion=f"This email was sent because you've deleted a core project."
+    )
+
+def coreProjectDeletionDeclinedRequest(invite:CoreProjectDeletionRequest):
+    """
+    Declined Request to core project deletion
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Core Project Deletion Failed",
         header=f"This is to inform you that your moderatorship of the core project, {invite.coreproject.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
         actions=[{
             'text': 'View Core Project',

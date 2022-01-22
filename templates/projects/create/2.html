@@ -110,12 +110,16 @@
             <div class="w3-row">
                 <div class="pallete">
                     <center><h5>Proprietary license</h5></center><br/>
-                    <input type="text" placeholder="License name" class="create-project-input wide" name="coreproject_license_name" required maxlength="49" /><br/><br/>
-                    <input type="text" placeholder="About license" class="create-project-input wide" name="coreproject_license_about" required maxlength="500" /><br/><br/>
+                    <input type="text" placeholder="License name" class="create-project-input wide" name="coreproject_license_name" id="coreproject_license_name" required maxlength="49" /><br/><br/>
+                    <input type="text" placeholder="About license" class="create-project-input wide" name="coreproject_license_about" id="coreproject_license_about" required maxlength="500" /><br/><br/>
                     <textarea type="text" rows="5" 
                     placeholder="Something like: Copyright (C) {{request.user.profile.get_name}}, Inc - All Rights Reserved. Unauthorized copying..." class="create-project-input wide" 
-                        name="coreproject_license_content" required maxlength="50000">
+                        name="coreproject_license_content" id="coreproject_license_content" required maxlength="50000">
                     </textarea>
+                    <input type="text" hidden name="coreproject_license_id" id="coreproject_license_id" />
+                    {% for lic in licenses %}
+                    <button class="primary small existing-license-button" id="{{lic.id}}" data-name="{{lic.name}}" data-about="{{lic.description}}" data-content="{{lic.content}}" type="button">{{lic.name}}</button>
+                    {% endfor %}
                 </div>
             </div>
             <br/>
@@ -235,6 +239,48 @@
             }
         }
     })
+    
+    getElements("existing-license-button").forEach((lic)=>{
+        const liconclick=_=>{
+            getElements("existing-license-button").forEach((_lic)=>{
+                if(_lic.id!=lic.id){
+                    _lic.classList.remove("positive")
+                    _lic.classList.add("primary")
+                } else {
+                    _lic.classList.add("positive")
+                    _lic.classList.remove("primary")
+                }
+            });
+            getElement("coreproject_license_name").onchange=null;
+            getElement("coreproject_license_about").onchange=null;
+            getElement("coreproject_license_content").onchange=null;
+            lic.onclick=_=>{
+                getElement("coreproject_license_id").value = "";
+                getElements("existing-license-button").forEach((lic)=>{
+                    lic.classList.remove("positive");
+                    lic.classList.add("primary");
+                })
+                getElement("coreproject_license_name").value=''
+                getElement("coreproject_license_about").value=''
+                getElement("coreproject_license_content").value=''
+                getElement("coreproject_license_name").disabled=false;
+                getElement("coreproject_license_about").disabled=false;
+                getElement("coreproject_license_content").disabled=false;
+                lic.onclick=liconclick;
+            }
+            getElement("coreproject_license_id").value = lic.id;
+            getElement("coreproject_license_name").value = lic.dataset.name;
+            getElement("coreproject_license_about").value = lic.dataset.about;
+            getElement("coreproject_license_content").value = lic.dataset.content;
+            getElement("coreproject_license_name").disabled=true;
+            getElement("coreproject_license_about").disabled=true;
+            getElement("coreproject_license_content").disabled=true;
+        };
+        lic.onclick=liconclick;
+    });
+    getElement("coreproject_license_name").disabled=false;
+    getElement("coreproject_license_about").disabled=false;
+    getElement("coreproject_license_content").disabled=false;
 {% endif %}
 </script>
 {% endblock %}

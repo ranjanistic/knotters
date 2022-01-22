@@ -49,7 +49,7 @@
                 <div class="pallete">
                     <center><h5>Overview</h5><hr/></center>
                     <h6>Project Category</h6>
-                    <select class="wide text-medium" name="projectcategory" required>
+                    <select class="wide text-medium pallete-slab positive-text" name="projectcategory" required>
                         {% for cat in categories %}
                         <option value="{{cat.get_id}}">{{cat.name}}</option>
                         {% endfor %}

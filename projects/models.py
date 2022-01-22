@@ -8,7 +8,7 @@ from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
-from main.strings import CORE_PROJECT, Code, setURLAlerts, url, PEOPLE, project, MANAGEMENT, DOCS
+from main.strings import CORE_PROJECT, Code, Message, setURLAlerts, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
@@ -483,14 +483,22 @@ class Project(BaseProject):
                 cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
                 return repo
         except Exception as e:
+            if not GithubKnotters:
+                return None
             errorLog(e)
             return None
 
-    def getRepoLink(self) -> str:
+    @property
+    def gh_repo_link(self) -> str:
         repo = self.gh_repo
         if not repo:
-            return self.get_link
+            if not GithubKnotters:
+                return ''
+            return self.getLink(alert=Message.GH_REPO_NOT_SETUP)
         return repo.html_url
+
+    def getRepoLink(self) -> str:
+        return self.gh_repo_link
 
     @property
     def gh_team_name(self):
@@ -550,13 +558,6 @@ class Project(BaseProject):
     def getTrashLink(self) -> str:
         return url.projects.trash(self.getID())
 
-    def moveToTrash(self) -> bool:
-        if not self.isApproved():
-            self.trashed = True
-            self.creator.decreaseXP(by=2)
-            self.save()
-        return self.trashed
-
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
 
@@ -599,6 +600,40 @@ class Project(BaseProject):
 
     def cancel_moderation_invitation(self):
         return ProjectModerationTransferInvitation.objects.filter(project=self).delete()
+
+    @property
+    def under_del_request(self):
+        return VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=False).exists()
+
+    def cancel_del_request(self):
+        return VerProjectDeletionRequest.objects.filter(project=self).delete()
+
+    @property
+    def current_del_request(self):
+        try:
+            return VerProjectDeletionRequest.objects.get(project=self, resolved=False)
+        except:
+            return None
+
+    @property
+    def can_request_deletion(self):
+        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation or self.under_mod_invitation or self.under_del_request)
+
+    def request_deletion(self):
+        if not self.can_request_deletion:
+            return False
+        return VerProjectDeletionRequest.objects.create(project=self, sender=self.creator, receiver=self.moderator)
+    
+    def moveToTrash(self) -> bool:
+        if not self.isApproved():
+            self.trashed = True
+            self.creator.decreaseXP(by=2)
+            self.save()
+        elif VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
+            self.trashed = True
+            self.creator.decreaseXP(by=2)
+            self.save()
+        return self.trashed
 
 
 def assetFilePath(instance, filename):
@@ -874,6 +909,41 @@ class CoreProject(BaseProject):
 
     def cancel_moderation_invitation(self):
         return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
+
+    @property
+    def under_del_request(self):
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self, resolved=False).exists()
+
+    @property
+    def current_del_request(self):
+        try:
+            return CoreProjectDeletionRequest.objects.get(coreproject=self, resolved=False)
+        except:
+            return None
+
+    def cancel_del_request(self):
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()
+
+    @property
+    def can_request_deletion(self):
+        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation or self.under_mod_invitation or self.under_del_request)
+
+    def request_deletion(self):
+        if not self.can_request_deletion:
+            return False
+        return CoreProjectDeletionRequest.objects.create(coreproject=self, sender=self.creator, receiver=self.moderator)
+    
+    def moveToTrash(self) -> bool:
+        if not self.isApproved():
+            self.trashed = True
+            self.creator.decreaseXP(by=2)
+            self.save()
+        elif CoreProjectDeletionRequest.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
+            self.trashed = True
+            self.creator.decreaseXP(by=2)
+            self.save()
+        return self.trashed
+
     
 class LegalDoc(models.Model):
     class Meta:
@@ -1030,15 +1100,12 @@ class ProjectTransferInvitation(Invitation):
     def accept(self):
         if self.expired: return False
         if self.resolved: return False
-        if self.sender.is_blocked(self.receiver.user): return False
         done = self.baseproject.transfer_to(self.receiver)
         if not done: return done
         self.resolve()
-        self.save()
         return done
 
     def decline(self):
-        if self.sender.is_blocked(self.receiver.user): return False
         return super(ProjectTransferInvitation, self).decline()
 
 class CoreModerationTransferInvitation(Invitation):
@@ -1063,11 +1130,9 @@ class CoreModerationTransferInvitation(Invitation):
     def accept(self):
         if self.expired: return False
         if self.resolved: return False
-        if self.sender.is_blocked(self.receiver.user): return False
         done = self.coreproject.transfer_moderation_to(self.receiver)
         if not done: return done
         self.resolve()
-        self.save()
         return done
 
     def decline(self):
@@ -1096,13 +1161,75 @@ class ProjectModerationTransferInvitation(Invitation):
     def accept(self):
         if self.expired: return False
         if self.resolved: return False
-        if self.sender.is_blocked(self.receiver.user): return False
         done = self.project.transfer_moderation_to(self.receiver)
         if not done: return done
         self.resolve()
-        self.save()
         return done
 
     def decline(self):
         if self.sender.is_blocked(self.receiver.user): return False
         return super(CoreModerationTransferInvitation, self).decline()
+
+class VerProjectDeletionRequest(Invitation):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='deletion_request_project')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_receiver')
+
+    class Meta:
+        unique_together = ('sender', 'receiver','project')
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.verDeletionRequest(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.verDeletionRequestAct(self.get_id)}"
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        self.resolve()
+        done = self.project.moveToTrash()
+        if not done:
+            self.unresolve()
+        return done
+
+    def decline(self):
+        self.delete()
+        return True
+
+class CoreProjectDeletionRequest(Invitation):
+    coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='deletion_request_coreproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_coreproject_request_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_coreproject_request_receiver')
+
+    class Meta:
+        unique_together = ('sender', 'receiver','coreproject')
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.coreDeletionRequest(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    @property
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.coreDeletionRequestAct(self.get_id)}"
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        self.resolve()
+        done = self.coreproject.moveToTrash()
+        if not done:
+            self.unresolve()
+        return done
+
+    def decline(self):
+        self.delete()
+        return True

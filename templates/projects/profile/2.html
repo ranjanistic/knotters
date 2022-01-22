@@ -275,7 +275,13 @@
                         <br/>
                         <button class="negative" id='transfer-project-mod' data-icon="schedule_send">Transfer Project Moderatorship</button>
                     {% endif %}
-                        {% comment %} <button class="negative" data-icon="delete" id='delete-project'>{% trans "Delete project" %}</button> {% endcomment %}
+                    {% if project.under_del_request %}
+                        <strong class="negative-text">Under deletion request</strong><br/>
+                        Expires on: {{ project.current_del_request.expiresOn }}<br/>
+                        {% if iscreator %}<button class="accent" id='cancel-delete-project-request' data-icon="close">Cancel deletion request</button>{% endif %}
+                    {% elif project.can_request_deletion and iscreator %}
+                        <button class="negative" id='delete-project-request' data-icon="delete">Request Project Deletion</button>
+                    {% endif %}
                     </div>
                 </div>
             </div>
@@ -479,6 +485,59 @@ if (selfProject){
                 return window.location.reload()
             }
             error(data.error)
+        }
+    {% endif %}
+    {% if iscreator and project.under_del_request %}
+        getElement('cancel-delete-project-request').onclick=async(e)=>{
+            message("Deleting moderation invitation...");
+            const data = await postRequest2({
+                path: setUrlParams(URLS.TRASH, projectID),
+                data: {
+                    action: 'remove',
+                    projectID,
+                },
+                retainCache: true
+            })
+            if(data.code===code.OK){
+                futuremessage("Deletion request cancelled.")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    {% elif iscreator and project.can_request_deletion %}
+        getElement('delete-project-request').onclick=async(e)=>{
+            Swal.fire({
+                title: 'Request project deletion',
+                html: `<h6>Are you sure you want to request permanent deletion of '{{project.nickname}}' project?<br/>
+                The request will be sent to the moderator to decide.</h6>
+                `,
+                showCancelButton: true,
+                showConfirmButton: false,
+                cancelButtonText: 'No, go back',
+                showDenyButton: true,
+                denyButtonText: 'Yes, request deletion',
+                preConfirm: async () => {
+                
+                }
+            }).then(async (result) => {
+                if (result.isDenied) {
+                    message("Requesting project deletion...");
+                    const data = await postRequest2({
+                        path: setUrlParams(URLS.TRASH, projectID),
+                        data: {
+                            action: 'create',
+                            projectID,
+                        },
+                        retainCache: true
+                    })
+                    if(data.code===code.OK){
+                        futuremessage("Deletion request sent.")
+                        return window.location.reload()
+                    }
+                    error(data.error)
+                    
+                }
+            });
         }
     {% endif %}
 {% endif %}

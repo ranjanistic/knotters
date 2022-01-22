@@ -51,14 +51,16 @@
         </div>
     </div>
 <br/>
-    {% if not license.isCustom %}
-    {% cache CACHE_MAX license_source %}
-    <center><strong><span class="dead-text">{% trans "Source" %}:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> </strong></center>
-    {% endcache %}
+    {% if license.public %}
+        <center><strong><span class="dead-text">
+            {% if license.creator == knotbot %}
+                {% trans "Source" %}:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> 
+            {% else %}
+                <center><strong><span class="dead-text">{% blocktrans with license.creator.getLink as creatorlink %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from <a target="_blank" href="{{creatorlink}}">creator</a>{% endblocktrans %}.</strong></center>
+            {% endif %}
+        </strong></center>
     {% else %}
-    {% cache CACHE_MICRO license_source license.id %}
-    <center><strong><span class="dead-text">{% blocktrans with license.creator.getLink as creatorlink %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from <a target="_blank" href="{{creatorlink}}">creator</a>{% endblocktrans %}.</strong></center>
-    {% endcache %}
+        <center><strong><span class="dead-text">{% blocktrans %}This license is not intended to be used in open source projects.</a>{% endblocktrans %}</strong></center>
     {% endif %}
 </div>
 <br/>

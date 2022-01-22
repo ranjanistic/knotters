@@ -227,49 +227,6 @@ validationError.forEach((value) => {
 showStep(currentStep);
 actionLoader(false);
 
-getElement("more-licenses").onclick = async (_) => {
-    const data = await postRequest(URLS.LICENSES, {
-        givenlicenses: getElements("license-choice").map((elem) => elem.id),
-    });
-    if (!data) return;
-    if (data.code !== code.OK) {
-        return error(data.error);
-    }
-    let licenses = [];
-    data.licenses.forEach((license) => {
-        licenses.push(
-            `<button type="button" class="license-choice" id="${license.id.replaceAll(
-                "-",
-                ""
-            )}" title="${license.name}: ${license.description}">${
-                license.name
-            }</button>`
-        );
-    });
-    Swal.fire({
-        title: "Licenses",
-        html: `
-            <div class="w3-row" id="more-licenses-view">
-            ${licenses.join("")}
-            </div>
-        `,
-        showDenyButton: true,
-        confirmButtonText: "Set license",
-        didOpen: () => {
-            loadLicenseChoices();
-        },
-        preConfirm: () => {
-            return getElement("license").value;
-        },
-    }).then(async (res) => {
-        if (res.isConfirmed) {
-            let button = licenses.find((lic) => lic.includes(res.value));
-            if (!button) return;
-            getElement("licenses").innerHTML += button;
-            loadLicenseChoices();
-        }
-    });
-};
 
 // const customLicenseDialog = () => {
 //     Swal.fire({

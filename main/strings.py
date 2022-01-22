@@ -193,6 +193,7 @@ class Message():
     MODERATION_REAPPLIED = _("Re-applied for moderation to another moderator.")
     SETTING_APPROVED_PROJECT = _("Setting up approved project.")
     SETUP_APPROVED_PROJECT_DONE = _("Approved project setup done.")
+    GH_REPO_NOT_SETUP = _("GitHub repository has not been setup yet. Check again later.")
 
     ACCOUNT_PREF_SAVED = _("Account preferences saved.")
     SUCCESSOR_GH_UNLINKED = _(
@@ -236,6 +237,9 @@ class Message():
     PROJECT_MOD_TRANSFER_ACCEPTED = _("You\'re now the moderator of this project.")
     PROJECT_MOD_TRANSFER_DECLINED = _(
         "You\'ve declined the moderatorship of this project.")
+    PROJECT_DEL_ACCEPTED = _("You\'ve accepted to delete the project.")
+    PROJECT_DEL_DECLINED = _(
+        "You\'ve declined to delete this project.")
     ALREADY_INVITED = _("User already invited.")
     JOINED_MANAGEMENT = _("You\'ve joined this organization.")
     DECLINED_JOIN_MANAGEMENT = _(
@@ -958,6 +962,26 @@ class URL():
         def coreModTransInviteAct(self, inviteID):
             return setPathParams(self.CORE_MOD_TRANS_INVITE_ACT, inviteID)
 
+        VER_DEL_REQUEST = 'invitation/delrequest/1/<str:inviteID>'
+
+        def verDeletionRequest(self, inviteID):
+            return setPathParams(self.VER_DEL_REQUEST, inviteID)
+
+        CORE_DEL_REQUEST = 'invitation/delrequest/2/<str:inviteID>'
+
+        def coreDeletionRequest(self, inviteID):
+            return setPathParams(self.CORE_DEL_REQUEST, inviteID)
+
+        VER_DEL_REQUEST_ACT = 'invitation/action/delrequest/1/<str:inviteID>'
+
+        def verDeletionRequestAct(self, inviteID):
+            return setPathParams(self.VER_DEL_REQUEST_ACT, inviteID)
+
+        CORE_DEL_REQUEST_ACT = 'invitation/action/delrequest/2/<str:inviteID>'
+
+        def coreDeletionRequestAct(self, inviteID):
+            return setPathParams(self.CORE_DEL_REQUEST_ACT, inviteID)
+
         def getURLSForClient(self):
             URLS = dict()
 
@@ -1588,6 +1612,18 @@ class Template():
         @property
         def vermodinvite(self):
             return f'{self.DIRNAME}/{self.VER_M_INVITATION}.html'
+
+        VER_DEL_INVITATION = 'verdelinvite'
+
+        @property
+        def verdelinvite(self):
+            return f'{self.DIRNAME}/{self.VER_DEL_INVITATION}.html'
+
+        CORE_DEL_INVITATION = 'coredelinvite'
+
+        @property
+        def coredelinvite(self):
+            return f'{self.DIRNAME}/{self.CORE_DEL_INVITATION}.html'
 
         LICENSE_INDEX = 'license/index'
 

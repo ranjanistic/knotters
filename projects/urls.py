@@ -53,4 +53,9 @@ urlpatterns = [
     path(URL.Projects.INVITE_COREPROJECT_MOD, handleCoreModInvitation),
     path(URL.Projects.CORE_MOD_TRANS_INVITE, coreProjectModTransferInvite),
     path(URL.Projects.CORE_MOD_TRANS_INVITE_ACT, coreProjectModTransferInviteAction),
+
+    path(URL.Projects.VER_DEL_REQUEST, verProjectDeleteRequest),
+    path(URL.Projects.VER_DEL_REQUEST_ACT, verProjectDeleteRequestAction),
+    path(URL.Projects.CORE_DEL_REQUEST, coreProjectDeleteRequest),
+    path(URL.Projects.CORE_DEL_REQUEST_ACT, coreProjectDeleteRequestAction),
 ]

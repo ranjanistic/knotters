@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
 from main.bots import Github
+from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
 from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot
@@ -268,6 +269,13 @@ class Profile(models.Model):
 
     def getUserID(self) -> str:
         return self.getID() if self.is_zombie else self.user.get_id
+
+    def KNOTBOT():
+        knotbot = cache.get('profile_knottersbot')
+        if not knotbot:
+            knotbot = Profile.objects.get(user__email=BOTMAIL)
+            cache.set('profile_knottersbot', knotbot, settings.CACHE_MAX)
+        return knotbot
 
     @property
     def get_userid(self) -> str:

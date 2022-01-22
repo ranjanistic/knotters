@@ -486,4 +486,31 @@ def getProjectLiveData(project: Project):
     else:
         return [], []
 
+def deleteGhOrgVerifiedRepository(project: Project):
+    try:
+        ghOrgRepo = project.gh_repo
+        if ghOrgRepo:
+            ghOrgRepo.delete()
+        ghOrgteam  = project.gh_team
+        if ghOrgteam:
+            ghOrgteam.delete()
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+    
+
+def deleteGhOrgCoreepository(coreproject: CoreProject):
+    try:
+        ghOrgRepo = coreproject.gh_repo
+        if ghOrgRepo:
+            ghOrgRepo.delete()
+        ghOrgteam  = coreproject.gh_team
+        if ghOrgteam:
+            ghOrgteam.delete()
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+
 from .receivers import *
