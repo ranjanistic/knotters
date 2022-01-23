@@ -276,7 +276,7 @@
                         <button class="negative" id='transfer-project-mod' data-icon="schedule_send">Transfer Project Moderatorship</button>
                     {% endif %}
                     {% if project.under_del_request %}
-                        <strong class="negative-text">Under deletion request</strong><br/>
+                        <br/><strong class="negative-text">Under deletion request</strong><br/>
                         Expires on: {{ project.current_del_request.expiresOn }}<br/>
                         {% if iscreator %}<button class="accent" id='cancel-delete-project-request' data-icon="close">Cancel deletion request</button>{% endif %}
                     {% elif project.can_request_deletion and iscreator %}
@@ -489,7 +489,7 @@ if (selfProject){
     {% endif %}
     {% if iscreator and project.under_del_request %}
         getElement('cancel-delete-project-request').onclick=async(e)=>{
-            message("Deleting moderation invitation...");
+            message("Cancelling deletion request...");
             const data = await postRequest2({
                 path: setUrlParams(URLS.TRASH, projectID),
                 data: {
