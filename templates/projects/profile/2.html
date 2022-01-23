@@ -68,17 +68,14 @@
         </div>
         
         <br/>
-        {% if project.has_linked_repo %}
         <div class="w3-row w3-padding-small">
-            <a target="_blank" rel="noreferrer" href="{{project.linked_repo.repolink}}">
-                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.linked_repo.reponame}}</button>
+            <a {% if project.gh_repo %}target="_blank" rel="noreferrer"{% endif %} href="{{project.gh_repo_link}}">
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.codename}}</button>
             </a>
         </div>
         <br/>
-        {% endif %}
-
         <div class="w3-row w3-padding-small">
-        <strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong>
+        <a href="#" class="admirers-view-action" data-admirers-url="{{project.admirers_link}}"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
@@ -262,7 +259,7 @@
                         <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_invitation.expiresOn}}</b>
                         {% if iscreator %}<button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>{% endif %}
-                    {% elif iscreator %}
+                    {% elif iscreator and project.can_invite_owner %}
                         <br/>
                         <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
                     {% endif %}
@@ -271,15 +268,16 @@
                         <a onclick="miniWindow('{{project.current_mod_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_mod_invitation.receiver.get_dp}}" width="25" />{{project.current_mod_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_mod_invitation.expiresOn}}</b>
                         {% if ismoderator %}<button class="negative small" id='delete-project-mod-invitation' data-icon="delete">Delete</button>{% endif %}
-                    {% elif ismoderator %}
+                    {% elif ismoderator and project.can_invite_mod %}
                         <br/>
                         <button class="negative" id='transfer-project-mod' data-icon="schedule_send">Transfer Project Moderatorship</button>
                     {% endif %}
                     {% if project.under_del_request %}
                         <br/><strong class="negative-text">Under deletion request</strong><br/>
                         Expires on: {{ project.current_del_request.expiresOn }}<br/>
+                        {% if ismoderator %}<a href="{{project.current_del_request.get_link}}" target="_blank"><button class="accent" data-icon="open_in_new">View request</button></a>{% endif %}
                         {% if iscreator %}<button class="accent" id='cancel-delete-project-request' data-icon="close">Cancel deletion request</button>{% endif %}
-                    {% elif project.can_request_deletion and iscreator %}
+                    {% elif iscreator and project.can_request_deletion  %}
                         <button class="negative" id='delete-project-request' data-icon="delete">Request Project Deletion</button>
                     {% endif %}
                     </div>
@@ -431,7 +429,7 @@ if (selfProject){
         }
     {% endif %}
     
-    {% if not project.under_mod_invitation and ismoderator %}
+    {% if not project.under_mod_invitation and ismoderator and project.can_invite_mod %}
     
     getElement('transfer-project-mod').onclick=(e)=>{
         Swal.fire({

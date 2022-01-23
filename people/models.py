@@ -498,10 +498,9 @@ class Profile(models.Model):
                 except:
                     return data.extra_data['login']
             ghID = ghUser.login
-            if ghID:
-                if ghID != self.githubID:
-                    self.githubID = ghID
-                    self.save()
+            if ghID and ghID != self.githubID:
+                self.githubID = ghID
+                self.save()
             return ghID
         except:
             return None
@@ -513,10 +512,9 @@ class Profile(models.Model):
         """
         return not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
 
-    @property
     def gh_user(self):
         try:
-            if not self.ghID: return None
+            if not self.has_ghID: return None
             cachekey = f"gh_user_data_{self.ghID}"
             ghuser = cache.get(cachekey, None)
             if not ghuser:

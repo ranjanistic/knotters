@@ -355,14 +355,21 @@ class BaseProject(models.Model):
 
     @property
     def total_admiration(self):
-        return self.admirers.count()
+        cacheKey = f'{self.id}_total_admiration'
+        count = cache.get(cacheKey, None)
+        if not count:
+            count = self.admirers.count()
+            cache.set(cacheKey, count, settings.CACHE_MINI)
+        return count
 
     def isAdmirer(self, profile):
         return self.admirers.filter(id=profile.id).exists()
 
-    @property
     def under_invitation(self):
         return ProjectTransferInvitation.objects.filter(baseproject=self, resolved=False).exists()
+
+    def can_invite_owner(self):
+        return self.is_approved and not self.under_invitation() and not (self.is_not_free and (self.getProject().under_mod_invitation() or self.getProject().under_del_request()))
 
     def current_invitation(self):
         try:
@@ -390,22 +397,22 @@ class BaseProject(models.Model):
                 try:
                     nghid = newcreator.ghID
                     if nghid:
-                        getproject.gh_repo.add_to_collaborators(nghid,permission='push')
+                        getproject.gh_repo().add_to_collaborators(nghid,permission='push')
                     oghid = oldcreator.ghID
                     if oghid:
-                        getproject.gh_repo.remove_from_collaborators(oghid)
+                        getproject.gh_repo().remove_from_collaborators(oghid)
                 except:
                     pass
                 try:
                     nghuser = newcreator.gh_user
                     if nghuser:
-                        getproject.gh_team.add_membership(
+                        getproject.gh_team().add_membership(
                             member=nghuser,
                             role="maintainer"
                         )
                     oghuser = oldcreator.gh_user
                     if oghuser:
-                        getproject.gh_team.remove_membership(
+                        getproject.gh_team().remove_membership(
                             member=oghuser
                         )
                 except:
@@ -467,7 +474,6 @@ class Project(BaseProject):
     def underModeration(self) -> bool:
         return self.status == Code.MODERATION
 
-    @property
     def gh_repo(self):
         try:
             if self.repo_id:
@@ -488,9 +494,8 @@ class Project(BaseProject):
             errorLog(e)
             return None
 
-    @property
     def gh_repo_link(self) -> str:
-        repo = self.gh_repo
+        repo = self.gh_repo()
         if not repo:
             if not GithubKnotters:
                 return ''
@@ -498,13 +503,12 @@ class Project(BaseProject):
         return repo.html_url
 
     def getRepoLink(self) -> str:
-        return self.gh_repo_link
+        return self.gh_repo_link()
 
     @property
     def gh_team_name(self):
         return f'team-{self.reponame}'
 
-    @property
     def gh_team(self):
         try:
             if not self.isApproved(): return None
@@ -517,7 +521,6 @@ class Project(BaseProject):
         except Exception as e:
             return None
 
-    @property
     def base(self):
         return BaseProject.objects.get(id=self.id)
 
@@ -527,7 +530,15 @@ class Project(BaseProject):
 
     @property
     def moderation(self):
-        return Moderation.objects.filter(project=self, type=APPNAME, status__in=[
+        try:
+            cacheKey = f"project_moderation_{self.id}"
+            moderation = cache.get(cacheKey, None)
+            if not moderation:
+                moderation = Moderation.objects.get(project=self, type=APPNAME, status=Code.APPROVED, resolved=True)
+                cache.set(cacheKey, moderation, settings.CACHE_LONG) 
+            return moderation
+        except:
+            return Moderation.objects.filter(project=self, type=APPNAME, status__in=[
                                         Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
 
     @property
@@ -561,37 +572,13 @@ class Project(BaseProject):
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
 
-    def transfer_moderation_to(self,newmoderator):
-        if self.status != Code.APPROVED or self.trashed or self.suspended:
-            return False
-        mod = self.moderation
-        if not mod:
-            return False
-        oldmoderator = mod.moderator
-        mod.moderator = newmoderator
-        mod.save()
-        try:
-            self.gh_repo.add_to_collaborators(newmoderator.ghID,permission='maintain')
-            self.gh_repo.remove_from_collaborators(oldmoderator.ghID)
-        except:
-            pass
-        try:
-            self.gh_team.add_membership(
-                member=newmoderator.gh_user,
-                role="maintainer"
-            )
-            self.gh_team.remove_membership(
-                member=oldmoderator.gh_user
-            )
-        except:
-            pass
-        return True
-    
-    @property
+
     def under_mod_invitation(self):
         return ProjectModerationTransferInvitation.objects.filter(project=self, resolved=False).exists()
 
-    @property
+    def can_invite_mod(self):
+        return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
+
     def current_mod_invitation(self):
         try:
             return ProjectModerationTransferInvitation.objects.get(project=self, resolved=False)
@@ -601,26 +588,52 @@ class Project(BaseProject):
     def cancel_moderation_invitation(self):
         return ProjectModerationTransferInvitation.objects.filter(project=self).delete()
 
-    @property
+    def transfer_moderation_to(self,newmoderator):
+        if not (self.isApproved() or self.trashed or self.suspended):
+            return False
+        elif ProjectModerationTransferInvitation.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
+            mod = self.moderation
+            if not mod:
+                return False
+            oldmoderator = mod.moderator
+            mod.moderator = newmoderator
+            mod.save()
+            try:
+                self.gh_repo().add_to_collaborators(newmoderator.ghID,permission='maintain')
+                self.gh_repo().remove_from_collaborators(oldmoderator.ghID)
+            except:
+                pass
+            try:
+                self.gh_team().add_membership(
+                    member=newmoderator.gh_user,
+                    role="maintainer"
+                )
+                self.gh_team().remove_membership(
+                    member=oldmoderator.gh_user
+                )
+            except:
+                pass
+            return True
+        return False
+
+
     def under_del_request(self):
         return VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=False).exists()
 
     def cancel_del_request(self):
         return VerProjectDeletionRequest.objects.filter(project=self).delete()
 
-    @property
     def current_del_request(self):
         try:
             return VerProjectDeletionRequest.objects.get(project=self, resolved=False)
         except:
             return None
 
-    @property
     def can_request_deletion(self):
-        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation or self.under_mod_invitation or self.under_del_request)
+        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation() or self.under_mod_invitation() or self.under_del_request())
 
     def request_deletion(self):
-        if not self.can_request_deletion:
+        if not self.can_request_deletion():
             return False
         return VerProjectDeletionRequest.objects.create(project=self, sender=self.creator, receiver=self.moderator)
     
@@ -684,31 +697,31 @@ class FreeRepository(models.Model):
     free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
     repo_id = models.IntegerField()
 
-    @property
-    def reponame(self):
+    def gh_repo(self):
         try:
             data = cache.get(f"gh_repo_data_{self.repo_id}")
             if data:
-                return data.name
+                return data
             data = Github.get_repo(int(self.repo_id))
             cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
-            return data.name
+            return data
         except Exception as e:
-            errorLog(e)
             return None
 
     @property
+    def reponame(self):
+        data = self.gh_repo()
+        if data:
+            return data.name
+        return None
+        
+
+    @property
     def repolink(self):
-        try:
-            data = cache.get(f"gh_repo_data_{self.repo_id}")
-            if data:
-                return data.html_url
-            data = Github.get_repo(int(self.repo_id))
-            cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+        data = self.gh_repo()
+        if data:
             return data.html_url
-        except Exception as e:
-            errorLog(e)
-            return None
+        return None
 
 
 class ProjectTag(models.Model):
@@ -777,7 +790,6 @@ class CoreProject(BaseProject):
         return self.status == Code.MODERATION
 
     
-    @property
     def gh_repo(self):
         try:
             if self.repo_id:
@@ -793,20 +805,26 @@ class CoreProject(BaseProject):
                 cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
                 return repo
         except Exception as e:
+            if not GithubKnotters:
+                return None
             errorLog(e)
             return None
 
-    def getRepoLink(self) -> str:
-        repo = self.gh_repo
+    def gh_repo_link(self) -> str:
+        repo = self.gh_repo()
         if not repo:
-            return self.get_link
+            if not GithubKnotters:
+                return ''
+            return self.getLink(alert=Message.GH_REPO_NOT_SETUP)
         return repo.html_url
+
+    def getRepoLink(self) -> str:
+        return self.gh_repo_link()
     
     @property
     def gh_team_name(self):
         return f'team-{self.codename}'
 
-    @property
     def gh_team(self):
         try:
             if not self.isApproved(): return None
@@ -823,7 +841,6 @@ class CoreProject(BaseProject):
     def nickname(self):
         return self.codename
 
-    @property
     def base(self):
         return BaseProject.objects.get(id=self.id)
 
@@ -860,81 +877,74 @@ class CoreProject(BaseProject):
     def getTrashLink(self) -> str:
         return url.projects.trash(self.getID())
 
-    def moveToTrash(self) -> bool:
-        if not self.isApproved():
-            self.trashed = True
-            self.creator.decreaseXP(by=2)
-            self.save()
-        return self.trashed
-
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
     
-    def transfer_moderation_to(self,newmoderator):
-        if self.status != Code.APPROVED or self.trashed or self.suspended:
-            return False
-        mod = self.moderation
-        if not mod:
-            return False
-        oldmoderator = mod.moderator
-        mod.moderator = newmoderator
-        mod.save()
-        try:
-            self.gh_repo.add_to_collaborators(newmoderator.ghID,permission='maintain')
-            self.gh_repo.remove_from_collaborators(oldmoderator.ghID)
-        except:
-            pass
-        try:
-            self.gh_team.add_membership(
-                member=newmoderator.gh_user,
-                role="maintainer"
-            )
-            self.gh_team.remove_membership(
-                member=oldmoderator.gh_user
-            )
-        except:
-            pass
-        return True
-    
-    @property
     def under_mod_invitation(self):
         return CoreModerationTransferInvitation.objects.filter(coreproject=self, resolved=False).exists()
 
-    @property
     def current_mod_invitation(self):
         try:
             return CoreModerationTransferInvitation.objects.get(coreproject=self, resolved=False)
         except:
             return None
 
+    def can_invite_mod(self):
+        return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
+
     def cancel_moderation_invitation(self):
         return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
 
-    @property
+    def transfer_moderation_to(self,newmoderator):
+        if not (self.isApproved() or self.trashed or self.suspended):
+            return False
+        elif CoreModerationTransferInvitation.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
+            mod = self.moderation
+            if not mod:
+                return False
+            oldmoderator = mod.moderator
+            mod.moderator = newmoderator
+            mod.save()
+            try:
+                self.gh_repo().add_to_collaborators(newmoderator.ghID,permission='maintain')
+                self.gh_repo().remove_from_collaborators(oldmoderator.ghID)
+            except:
+                pass
+            try:
+                self.gh_team().add_membership(
+                    member=newmoderator.gh_user,
+                    role="maintainer"
+                )
+                self.gh_team().remove_membership(
+                    member=oldmoderator.gh_user
+                )
+            except:
+                pass
+            return True
+        return False
+
     def under_del_request(self):
         return CoreProjectDeletionRequest.objects.filter(coreproject=self, resolved=False).exists()
 
-    @property
     def current_del_request(self):
         try:
             return CoreProjectDeletionRequest.objects.get(coreproject=self, resolved=False)
         except:
             return None
 
-    def cancel_del_request(self):
-        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()
-
-    @property
     def can_request_deletion(self):
-        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation or self.under_mod_invitation or self.under_del_request)
+        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation() or self.under_mod_invitation() or self.under_del_request())
 
     def request_deletion(self):
-        if not self.can_request_deletion:
+        if not self.can_request_deletion():
             return False
         return CoreProjectDeletionRequest.objects.create(coreproject=self, sender=self.creator, receiver=self.moderator)
+
+    def cancel_del_request(self):
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()
     
     def moveToTrash(self) -> bool:
-        if not self.isApproved():
+        if not (self.isApproved() or self.trashed or self.suspended):
             self.trashed = True
             self.creator.decreaseXP(by=2)
             self.save()

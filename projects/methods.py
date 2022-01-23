@@ -11,7 +11,7 @@ from django.conf import settings
 from main.env import ISPRODUCTION, SITE
 from .models import Category, CoreProject, FreeProject, License, Project, ProjectSocial, Tag
 from .apps import APPNAME
-from .mailers import sendProjectApprovedNotification
+from .mailers import sendProjectApprovedNotification, sendCoreProjectApprovedNotification
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -212,15 +212,15 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
     """
     try:
         if not project.isApproved():
-            return False
-        if not project.creator.ghID or not moderator.ghID:
-            return False
+            return False, "Verified project not approved"
+        if not project.creator.has_ghID or not moderator.has_ghID:
+            return False, "Creator or moderator has no github ID"
 
-        ghUser = Github.get_user(project.creator.ghID)
-        ghMod = Github.get_user(moderator.ghID)
+        ghUser = project.creator.gh_user()
+        ghMod = moderator.gh_user()
 
-        ghOrgRepo = getGhOrgRepo(project.reponame)
-
+        ghOrgRepo = project.gh_repo()
+        msg = 'init setup: '
         if not ghOrgRepo:
             if project.license.keyword:
                 ghOrgRepo = GithubKnotters.create_repo(
@@ -239,6 +239,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                     allow_rebase_merge=False,
                     delete_branch_on_merge=False
                 )
+                msg += 'repository done, license done, '
             else:
                 ghOrgRepo = GithubKnotters.create_repo(
                     name=project.reponame,
@@ -255,15 +256,15 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                     allow_rebase_merge=False,
                     delete_branch_on_merge=False
                 )
-        
-        try:
-            ghOrgRepo.create_file('LICENSE','Add LICENSE',str(project.license.content))
-        except:
-            pass
+                msg += 'repository done, '
+                try:
+                    ghOrgRepo.create_file('LICENSE','Add LICENSE',str(project.license.content))
+                    msg += 'license done, '
+                except:
+                    pass
         
         try:
             ghBranch = ghOrgRepo.get_branch("main")
-
             ghBranch.edit_protection(
                 strict=True,
                 enforce_admins=False,
@@ -271,21 +272,22 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                 required_approving_review_count=1,
                 user_push_restrictions=[moderator.ghID],
             )
+            msg += 'branch done, '
         except:
             pass
-
-        teamname = project.gh_team_name
-        ghrepoteam = getGhOrgTeam(teamname)
+        
+        ghrepoteam = project.gh_team()
 
         try:
             if not ghrepoteam:
                 ghrepoteam = GithubKnotters.create_team(
-                    name=teamname,
+                    name=project.gh_team_name,
                     repo_names=[ghOrgRepo],
                     permission="push",
                     description=f"{project.name}'s team",
                     privacy='closed'
                 )
+                msg += 'team done, '
         except:
             pass
         try:
@@ -295,11 +297,13 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                         member=ghMod,
                         role="maintainer"
                     )
+                    msg += 'team maintainer done, '
                 if not ghrepoteam.has_in_members(ghUser):
                     ghrepoteam.add_membership(
                         member=ghUser,
                         role="member"
                     )
+                    msg += 'team member done, '
         except:
             pass
         
@@ -307,10 +311,11 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
             if not ghOrgRepo.has_in_collaborators(ghMod):
                 ghOrgRepo.add_to_collaborators(
                     collaborator=ghMod, permission="maintain")
-            
+                msg += 'repo maintainer done, '
             if not ghOrgRepo.has_in_collaborators(ghUser):
                 ghOrgRepo.add_to_collaborators(
                     collaborator=ghUser, permission="push")
+                msg += 'repo collaborator done, '
         except:
             pass
         
@@ -325,16 +330,17 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
                     digest=Code.SHA256
                 )
             )
+            msg += 'hook done, '
         except:
             pass
         cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
-        return True
+        return True, msg
     except Exception as e:
         errorLog(e)
-        return False
+        return False, e
 
-def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -> bool:
+def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
 
@@ -344,18 +350,17 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
     """
     try:
         if not coreproject.isApproved():
-            return False
-        if not moderator.ghID:
-            return False
-        ghUser = None
-        try:
-            ghUser = Github.get_user(coreproject.creator.ghID)
-        except:
-            pass
+            return False, "Core project is not approved"
+        if not moderator.has_ghID:
+            return False, "Moderator has no github account"
+        
+        ghUser = coreproject.creator.gh_user()
+        
+        ghMod = moderator.gh_user()
 
-        ghMod = Github.get_user(moderator.ghID)
+        ghOrgRepo = coreproject.gh_repo()
 
-        ghOrgRepo = getGhOrgRepo(coreproject.codename)
+        msg = 'init setup: '
 
         if not ghOrgRepo:
             ghOrgRepo = GithubKnotters.create_repo(
@@ -373,26 +378,27 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
                 allow_rebase_merge=True,
                 delete_branch_on_merge=False
             )
-
+            msg = "repository done, "
         try:
             ghOrgRepo.create_file('LICENSE','Add LICENSE',str(coreproject.license.content))
+            msg = msg + "license done, "
         except:
             pass
 
-        teamname = coreproject.gh_team_name
-        ghrepoteam = getGhOrgTeam(teamname)
-
+        ghrepoteam = coreproject.gh_team()
         try:
             if not ghrepoteam:
                 ghrepoteam = GithubKnotters.create_team(
-                    name=teamname,
+                    name=coreproject.gh_team_name,
                     repo_names=[ghOrgRepo],
                     permission="push",
                     description=f"{coreproject.name}'s team",
                     privacy='closed'
                 )
+                msg = msg + "team done, "
         except:
             pass
+
         try:
             if ghrepoteam:
                 if not ghrepoteam.has_in_members(ghMod):
@@ -400,12 +406,14 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
                         member=ghMod,
                         role="maintainer"
                     )
+                    msg = msg + "team maintainer done, "
                 if ghUser:
                     if not ghrepoteam.has_in_members(ghUser):
                         ghrepoteam.add_membership(
                             member=ghUser,
                             role="member"
                         )
+                        msg = msg + "team member done, "
         except:
             pass
 
@@ -413,10 +421,12 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
             if not ghOrgRepo.has_in_collaborators(ghMod):
                 ghOrgRepo.add_to_collaborators(
                     collaborator=ghMod, permission="maintain")
+                msg = msg + "repo maintainer done, "
             if ghUser:
                 if not ghOrgRepo.has_in_collaborators(ghUser):
                     ghOrgRepo.add_to_collaborators(
                         collaborator=ghUser, permission="push")
+                    msg = msg + "repo member done, "
         except:
             pass
         
@@ -431,14 +441,15 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile) -
                     digest=Code.SHA256
                 )
             )
+            msg = msg + "hook done."
         except:
             pass
         cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",coreproject)
-        return True
+        addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendCoreProjectApprovedNotification.__name__}",coreproject)
+        return True, msg
     except Exception as e:
         errorLog(e)
-        return False
+        return False, e
 
 
 def getGhOrgRepo(reponame: str) -> Repository:
@@ -488,29 +499,38 @@ def getProjectLiveData(project: Project):
 
 def deleteGhOrgVerifiedRepository(project: Project):
     try:
-        ghOrgRepo = project.gh_repo
-        if ghOrgRepo:
-            ghOrgRepo.delete()
-        ghOrgteam  = project.gh_team
+        ghOrgteam = project.gh_team()
         if ghOrgteam:
             ghOrgteam.delete()
-        return True
     except Exception as e:
         errorLog(e)
-        return False
-    
+        pass
+    try:
+        ghOrgRepo = project.gh_repo()
+        if ghOrgRepo:
+            ghOrgRepo.edit(archive=True)
+    except Exception as e:
+        errorLog(e)
+        pass
+    return True
+
 
 def deleteGhOrgCoreepository(coreproject: CoreProject):
     try:
-        ghOrgRepo = coreproject.gh_repo
-        if ghOrgRepo:
-            ghOrgRepo.delete()
-        ghOrgteam  = coreproject.gh_team
+        ghOrgteam = coreproject.gh_team()
         if ghOrgteam:
             ghOrgteam.delete()
-        return True
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    try:
+        ghOrgRepo = coreproject.gh_repo()
+        if ghOrgRepo:
+            ghOrgRepo.edit(archive=True)
+    except Exception as e:
+        errorLog(e)
+        pass
+    return True
+
 
 from .receivers import *

@@ -24,6 +24,7 @@
         <h5 class="dead-text">{% trans "Status" %}: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">{% trans "Type" %}: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
         <h5 class="dead-text">{% trans "Category" %}: <span class="text-primary">{{moderation.coreproject.category.name}}</span></h5>
+        <h5 class="dead-text">{% trans "License" %}: <a onclick="miniWindow('{{moderation.coreproject.license.getLink}}')" target="_blank">{{moderation.coreproject.license.name}}</a></h5>
         {% if ismoderator %}
         <h5 class="dead-text">{% trans "Requested by" %}</h5><a href="{{moderation.requestor.get_link}}" target="_blank"><button class="primary"><img class="circle" src="{{moderation.requestor.get_dp}}"  width="20"/>&nbsp;{{moderation.requestor.getName}}{% if moderation.requestor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
         {% else %}
@@ -81,7 +82,7 @@
             </h6>
             <button class="big-button positive modaction" id="approve" data-icon="done">{% trans "Approve" %}</button>
             <button class="big-button negative modaction" id="reject" data-icon="close">{% trans "Reject" %}</button><br/>
-            <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+            <br/><strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
             {% endif %}
         {% else %}
             <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
@@ -91,32 +92,34 @@
             <a href="{{moderation.coreproject.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
             {% endif %}
             {% if not ismoderator %}
-            {{forwarded.id}}
-                {% if moderation.resolved and moderation.isRejected and not forwarded %}
-                    {% if moderation.coreproject.canRetryModeration or moderation.is_stale %}
-                        {% if moderation.is_stale and not moderation.isRejected%}
-                        <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
-                        {% else %}
-                        <h2>{{moderation.coreproject.moderationRetriesLeft}} {% trans "retry left." %}</h2>
-                        {% endif %}
-                        <form method="POST" action="{{moderation.reapplyLink}}">
-                        {% csrf_token %}
-                        <button class="secondary" type="submit" data-icon="refresh">{% trans "Re-apply for moderation" %}</button>
-                        </form>
-                    {% endif %}
-                    {% if not moderation.coreproject.trashed %}
-                        <form method="POST" action="{{URLS.PROJECTS}}{{moderation.coreproject.getTrashLink}}">
-                        {% csrf_token %}
-                        <button class="negative" type="submit" data-icon="delete">{% trans "Delete project" %}</button>
-                        </form>
-                    {% else %}
-                        <h4>{% trans "Project deleted" %}</h4>
-                    {% endif %}
-                {% elif not moderation.resolved and not moderation.isRejected and forwarded %}
+                {% if forwarded %}
                     <h4>{% trans "Moderation re-applied" %}</h4>
                     <a href="{{forwarded.getLink}}"><button class="positive" data-icon="open_in_new">{% trans "View moderation" %}</button></a>
-                {% elif not moderation.resolved %}
-                    <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+                {% elif moderation.coreproject.trashed %}
+                    <h4>{% trans "Project deleted" %}</h4>
+                {% else %}
+                    {% if not moderation.resolved %}
+                        {% if moderation.is_stale %}
+                        
+                            <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
+                            {% if moderation.coreproject.canRetryModeration %}
+                                <h2>{{moderation.coreproject.moderationRetriesLeft}} {% trans "retry left." %}</h2>
+                                <form method="POST" action="{{moderation.reapplyLink}}">
+                                {% csrf_token %}
+                                <button class="secondary" type="submit" data-icon="refresh">{% trans "Re-apply for moderation" %}</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+                        {% endif %}
+                    {% endif %}
+                    {% if not forwarded and not moderation.isApproved and not moderation.coreproject.trashed %}
+                        <form method="POST" action="{{URLS.PROJECTS}}{{moderation.coreproject.getTrashLink}}">
+                        {% csrf_token %}
+                        <br/>
+                        <button class="negative" type="submit" data-icon="delete">{% trans "Delete project" %}</button>
+                        </form>
+                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}

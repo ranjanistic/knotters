@@ -292,12 +292,14 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
 
         referURL = request.POST.get("coreproject_referurl", "")
         budget = float(request.POST.get("coreproject_projectbudget", 0))
-        stale_days = int(request.POST.get("coreproject_stale_days", 3))
+        stale_days = request.POST.get("coreproject_stale_days", 3)
 
         lic_id = request.POST.get("coreproject_license_id", None)
         
-
-        stale_days = stale_days if stale_days in range(1,16) else 3
+        if stale_days == '':
+            stale_days = 3
+        else:
+            stale_days = int(stale_days) if int(stale_days) in range(1,16) else 3
         useInternalMods = useInternalMods and request.user.profile.is_manager
 
         if not uniqueRepoName(codename):
@@ -374,14 +376,14 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if project.is_not_free and project.is_approved:
             action = request.POST['action']
             notfreeproj = project.getProject(True)
-            if not notfreeproj:
+            if not notfreeproj or not notfreeproj.can_request_deletion():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             if action == Action.CREATE:
                 if notfreeproj.request_deletion():
                     if notfreeproj.verified:
-                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", notfreeproj.current_del_request)
+                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", notfreeproj.current_del_request())
                     else:
-                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", notfreeproj.current_del_request)
+                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", notfreeproj.current_del_request())
                     return respondJson(Code.OK)
                 return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
             elif action == Action.REMOVE:
@@ -1567,13 +1569,15 @@ def handleVerModInvitation(request: WSGIRequest):
             project = Project.objects.get(id=projID, suspended=False, trashed=False)
             if project.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
+            if not project.can_invite_mod():
+                raise Exception("cannot invite mod: ", project)
             receiver = Profile.objects.get(
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
             if receiver.isBlocked(request.user):
                 raise ObjectDoesNotExist(receiver, request.user)
             if receiver in [project.moderator, project.mentor, project.creator]:
                 raise ObjectDoesNotExist(receiver, project)
-            if ProjectTransferInvitation.objects.filter(baseproject=project.base, receiver=receiver).exists():
+            if ProjectTransferInvitation.objects.filter(baseproject=project.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv, created = ProjectModerationTransferInvitation.objects.get_or_create(
                 project=project, 
@@ -1665,6 +1669,8 @@ def handleCoreModInvitation(request: WSGIRequest):
             coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
             if coreproject.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
+            if not coreproject.can_invite_mod():
+                raise Exception("cannot invite mod: ", coreproject)
             receiver = Profile.objects.get(
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
             if receiver in [coreproject.moderator, coreproject.mentor, coreproject.creator]:
@@ -1672,7 +1678,7 @@ def handleCoreModInvitation(request: WSGIRequest):
             if receiver.isBlocked(request.user):
                 raise ObjectDoesNotExist(receiver, request.user)
 
-            if ProjectTransferInvitation.objects.filter(baseproject=coreproject.base, receiver=receiver).exists():
+            if ProjectTransferInvitation.objects.filter(baseproject=coreproject.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv, created = CoreModerationTransferInvitation.objects.get_or_create(
                 coreproject=coreproject, 

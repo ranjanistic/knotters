@@ -87,6 +87,24 @@ def sendProjectApprovedNotification(project: Project):
         conclusion=f"This email was generated because a project submission received from your {PUBNAME} account has been approved. If this is unfamiliar, then please report to us."
     )
 
+def sendCoreProjectApprovedNotification(project: CoreProject):
+    """
+    Core Project has been approved by moderator
+    """
+    return sendActionEmail(
+        to=project.creator.getEmail(),
+        username=project.creator.getFName(),
+        subject='Core Project Status: Approved',
+        header=f"Congratulations! Your submitted core project - {project.name} - has been reviewed, and has been approved by the assigned moderator. " +
+        "You can get more details on this by visiting the moderation page of your project submission.",
+        actions=[{
+            'text': 'View moderation',
+            'url': project.getModLink()
+        }],
+        footer=f"Your project's profile page & other related setup will be available in a few moments. The moderator & community at {PUBNAME} will be working on {project.name}.",
+        conclusion=f"This email was sent because a core project submission received from your {PUBNAME} account has been approved. If this is unfamiliar, then please report to us."
+    )
+
 
 def projectRejectedNotification(project: Project):
     """

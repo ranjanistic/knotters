@@ -10,7 +10,9 @@
 <div class="w3-row ">
     <div class="w3-center"><i class="w3-jumbo">widgets</i></div>
     <h4 class="w3-center"><a href="{{invitation.sender.get_link}}" target="_blank"><button class="primary"><img src="{{invitation.sender.get_dp}}" class="circle" width="25">&nbsp;{{invitation.sender.getName}}</button></a>
-    wants to delete the following project. If you accept to delete, then the following project will be deleted permanently, and it will be irreversible.</h4>
+    wants to delete the following project.<br/>
+    If you accept to delete, then the following project will be deleted permanently, and it will be irreversible!
+    <br/>The associated repository and team on GitHub will also get deleted, permanently!</h4>
     <br/>
     <div class="w3-row">
         <div class="w3-col w3-third"><br/></div>
@@ -30,7 +32,7 @@
 </div>
 {% endblock %}
 
-{% block accept_text %}Yes, DELETE THE PROJECT{% endblock %}
+{% block accept_text %}Yes, DELETE THE PROJECT AND REPOSITORY{% endblock %}
 {% block decline_text %}No, go back!{% endblock %}
 {% block accept_theme %}negative{% endblock %}
 {% block decline_theme %}positive{% endblock %}

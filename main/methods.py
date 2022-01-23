@@ -207,12 +207,12 @@ class JsonEncoder(DjangoJSONEncoder):
         return super(JsonEncoder, self).default(obj)
 
 
-def errorLog(error, raiseErr=True):
+def errorLog(*args, raiseErr=True):
     if not ISTESTING:
-        logging.log(logging.ERROR, error)
-        if ISDEVELOPMENT:
-            if raiseErr:
-                raise Exception(error)
+        logging.log(logging.ERROR, args)
+        # if ISDEVELOPMENT:
+        #     if raiseErr:
+        #         raise Exception(args)
 
 
 def getNumberSuffix(value: int) -> str:
