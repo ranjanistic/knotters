@@ -91,9 +91,22 @@ def moderator_only(function):
         if request.user.profile.is_moderator:
             return function(request, *args, **kwargs)
         else:
-            raise Http404()
+            if request.method == 'GET':
+                raise Http404('Unauthorized moderator access')
+            return HttpResponseForbidden('Unauthorized moderator access')
     return wrap
 
+@decDec(normal_profile_required)
+def mentor_only(function):
+    @wraps(function)
+    def wrap(request, *args, **kwargs):
+        if request.user.profile.is_mentor:
+            return function(request, *args, **kwargs)
+        else:
+            if request.method == 'GET':
+                raise Http404('Unauthorized mentor access')
+            return HttpResponseForbidden('Unauthorized mentor access')
+    return wrap
 
 @decDec(normal_profile_required)
 def manager_only(function):
@@ -104,7 +117,7 @@ def manager_only(function):
         else:
             if request.method == 'GET':
                 raise Http404('Unauthorized manager access')
-            return HttpResponseForbidden('Unauthorized access')
+            return HttpResponseForbidden('Unauthorized management access')
     return wrap
 
 
