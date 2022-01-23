@@ -116,6 +116,10 @@ admin.site.register(ReportedProject)
 admin.site.register(ProjectAdmirer)
 admin.site.register(FileExtension)
 admin.site.register(ProjectTransferInvitation)
+admin.site.register(CoreModerationTransferInvitation)
+admin.site.register(ProjectModerationTransferInvitation)
+admin.site.register(VerProjectDeletionRequest)
+admin.site.register(CoreProjectDeletionRequest)
 
 @admin.register(TopicFileExtension)
 class TopicFileExtensionAdmin(admin.ModelAdmin):
