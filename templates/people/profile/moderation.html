@@ -31,6 +31,11 @@
                             <h6>{{mod.competition.title}}</h6>
                             <span>{{mod.competition.tagline|truncatechars:20}}</span>
                             <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">{% trans "View" %}</button></a>
+                            {% else %}
+                             <img class="w3-circle w3-right" width="30" src="{{mod.coreproject.getDP}}" />
+                             <h6>{{mod.coreproject.name}}</h6>
+                             <span>{{mod.coreproject.codename}}</span>
+                             <a href="{{mod.coreproject.getLink}}" class="w3-right"><button class="positive small" data-icon="open_in_new"></button></a>
                             {% endif %}
                         </div>
                         {% empty %}
@@ -63,6 +68,10 @@
                         <img class="w3-round w3-right" width="80" src="{{mod.competition.getBanner}}" />
                         <h6>{{mod.competition.title}}</h6>
                         <span>{{mod.competition.tagline}}</span>
+                        {% else %}
+                        <img class="w3-circle w3-right" width="30" src="{{mod.coreproject.getDP}}" />
+                        <h6>{{mod.coreproject.name}}</h6>
+                        <span>{{mod.coreproject.codename}}</span>
                         {% endif %}
                         <a href="{{mod.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">{% trans "Review" %}</button></a>
                         </div>
@@ -98,6 +107,10 @@
                             {% elif mod.type == SUBAPPS.compete %}
                             <h6>{{mod.competition.title}}</h6>
                             <span>{{mod.competition.tagline}}</span>
+                            {% else %}
+                             <img class="w3-circle w3-right" width="30" src="{{mod.coreproject.getDP}}" />
+                             <h6>{{mod.coreproject.name}}</h6>
+                             <span>{{mod.coreproject.codename}}</span>
                             {% endif %}
                             <a href="{{mod.getLink}}" class="w3-right"><button class="tertiary dead-text small" data-icon="open_in_new"></button></a>
                         </div>
@@ -131,6 +144,13 @@
                     <h6>{{mod.competition.title}}</h6>
                     <span>{{mod.competition.tagline}}</span>
                     <a href="{{mod.competition.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
+                </div>
+               {% else %}
+                <div class="pallete-slab">
+                    <img class="w3-circle w3-right" width="30" src="{{mod.coreproject.getDP}}" />
+                    <h6>{{mod.coreproject.name}}</h6>
+                    <span>{{mod.coreproject.reponame}}</span>
+                    <a href="{{mod.coreproject.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">View</button></a>
                 </div>
                 {% endif %}
             </div>
