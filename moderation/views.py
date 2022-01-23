@@ -36,20 +36,24 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
                 data = dict(
                     **data, allSubmissionsMarkedByJudge=moderation.competition.allSubmissionsMarkedByJudge(request.user.profile))
         if moderation.type == PROJECTS and (moderation.resolved or moderation.is_stale):
-            forwarded = Moderation.objects.filter(
-                ~Q(id=id), type=PROJECTS, project=moderation.project, resolved=False).order_by('-requestOn').first()
+            forwarded = None
+            forwardeds = Moderation.objects.filter(type=PROJECTS, project=moderation.project, resolved=False).order_by('-requestOn','-respondOn')
+            if len(forwardeds) and forwardeds[0].moderator != moderation.moderator:
+                forwarded = forwardeds[0]
             data = dict(**data, forwarded=forwarded)
         elif moderation.type == CORE_PROJECT and (moderation.resolved or moderation.is_stale):
-            forwarded = Moderation.objects.filter(
-                ~Q(id=id), type=CORE_PROJECT, coreproject=moderation.coreproject, resolved=False).order_by('-respondOn').first()
+            forwarded = None
+            forwardeds = Moderation.objects.filter(type=CORE_PROJECT, coreproject=moderation.coreproject, resolved=False).order_by('-requestOn','-respondOn')
+            if len(forwardeds) and forwardeds[0].moderator != moderation.moderator:
+                forwarded = forwardeds[0]
             data = dict(**data, forwarded=forwarded)
-        
         return renderer(request, moderation.type, data)
     except ObjectDoesNotExist as o:
-        Http404(o)
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+    
 
 
 @normal_profile_required

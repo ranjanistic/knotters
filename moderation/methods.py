@@ -65,14 +65,15 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     Implementes round robin algorithm to retreive an available moderator, along with other restrictions.
 
     :type: The type of sub application for which the entity is to be moderated
-    :object: The model object of the entity to be moderated. (Profile | Project | Competition)
+    :object: The instance of the entity to be moderated. (Profile | Project | Coreproject | Competition)
     :ignoreModProfiles: The profile object list of moderators to be ignored, optionally.
-    :preferModProfiles: The profile object list of moderators to be considered preferably, optionally.
+    :preferModProfiles: The profile object list of moderators to be considered preferable, optionally.
     :onlyModProfiles: The profile object list of moderators to only be considered, optionally. Suitable for organizations.
-
+    :samplesize: The number of moderators in a set to be considered.
+    :internal: If the moderation is internal or not (useful for managements).
     If :preferModProfiles: and :onlyModProfiles: are provided simultaneously, :onlyModProfiles: will only be considered.
 
-    In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles: or :preferModProfiles:, :ignoreModProfiles: will be preferred.
+    In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles: or :preferModProfiles:, :ignoreModProfiles: will be the deciding factor.
 
     """
 
@@ -100,7 +101,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
                 query = Q(query, id__in=onlyModProfileIDs)
             if len(onlyModProfileIDs) == 1 and creator.is_manager:
                 mprof = list(filter(lambda m: m.id == onlyModProfileIDs[0], list(onlyModProfiles)))[0]
-                if mprof.isBlocked(creator.user):
+                if mprof.isBlockedProfile(creator):
                     return False
                 return mprof
     elif len(preferModProfiles) > 0:
@@ -126,7 +127,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     finalAvailableModProfiles = availableModProfiles
     
     for modprof in availableModProfiles:
-        if modprof.isBlocked(creator.user):
+        if modprof.isBlockedProfile(creator):
             finalAvailableModProfiles.remove(modprof)
 
     finalAvailableModProfiles = sorted(finalAvailableModProfiles, key=lambda m: m.xp, reverse=True)
@@ -304,7 +305,7 @@ def requestModerationForCoreProject(
         onlyModProfiles = None
         
         if chosenModerator:
-            if chosenModerator.is_moderator and chosenModerator.is_normal and not chosenModerator.isBlocked(coreproject.creator.user):
+            if chosenModerator.is_moderator and chosenModerator.is_normal and not chosenModerator.isBlockedProfile(coreproject.creator):
                 onlyModProfiles = [chosenModerator]
             else:
                 raise Exception("Chosen moderator", chosenModerator ,"is not available for ", coreproject)

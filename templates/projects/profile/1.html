@@ -75,7 +75,7 @@
         </div>
         <br/>
         <div class="w3-row w3-padding-small">
-        <strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong>
+        <a id="show-admirations"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
@@ -405,7 +405,7 @@ if(!selfProject){
 }
 
 {% if iscreator or ismoderator %}
-    {% if not project.under_invitation and iscreator %}
+    {% if iscreator and project.can_invite_owner %}
     
     getElement('transfer-project').onclick=(e)=>{
         Swal.fire({
@@ -444,7 +444,7 @@ if(!selfProject){
             }
         })
     }
-    {% elif iscreator %}
+    {% elif iscreator and project.under_invitation %}
         getElement('delete-project-invitation').onclick=async(e)=>{
             message("Deleting invitation...");
             const data = await postRequest2({
@@ -522,7 +522,7 @@ if(!selfProject){
     {% endif %}
     {% if iscreator and project.under_del_request %}
         getElement('cancel-delete-project-request').onclick=async(e)=>{
-            message("Deleting moderation invitation...");
+            message("Cancelling deletion request...");
             const data = await postRequest2({
                 path: setUrlParams(URLS.TRASH, projectID),
                 data: {
@@ -574,7 +574,12 @@ if(!selfProject){
         }
     {% endif %}
 {% endif %}
-
+getElement('show-admirations').onclick=async(_)=>{
+    Swal.fire({ 
+        html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, projectID)}), 
+        title:"<h4 class='positive-text'>Admirers</h4>"
+    })
+}
 {% endif %}
 </script>
 {% endblock %}

@@ -75,7 +75,7 @@
         </div>
         <br/>
         <div class="w3-row w3-padding-small">
-        <a href="#" class="admirers-view-action" data-admirers-url="{{project.admirers_link}}"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
+        <a id="show-admirations"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
@@ -292,7 +292,8 @@
                     <strong>{% trans "Created on" %} <span>{{project.createdOn}}</span></strong><br/><br/>
                     <strong>{% trans "Created by" %}</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
-                    <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/>
+                    <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/><br/>
+                    <strong>{% trans "Budget" %}: &#x20B9; <a onclick="message('The budget of this core project')">{{project.budget}}</a></strong><br/>
                 </div>
             </div>
             <br/>
@@ -346,216 +347,219 @@ const ismoderator = false;
 
 {% if not project.suspended %}
 
-if (selfProject){
-    getElement('save-edit-projecttags').onclick= async ()=> {
-        var obj = getFormDataById("edit-tag-inputs");
-        var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
-            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-        });
-        if (resp.code===code.OK){
-            subLoader()
-            return window.location.reload()
+    if (selfProject){
+        getElement('save-edit-projecttags').onclick= async ()=> {
+            var obj = getFormDataById("edit-tag-inputs");
+            var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+                addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+            });
+            if (resp.code===code.OK){
+                subLoader()
+                return window.location.reload()
+            }
+            error(resp.error)
         }
-        error(resp.error)
+
+        getElement('sociallinks-add').onclick=_=>{
+            const parent=getElement('edit-sociallinks-inputs');
+            if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+            const linkNumber=parent.childElementCount+1;
+            const newChild=document.createElement('div');
+            newChild.innerHTML = `
+                <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+            `;
+            parent.insertBefore(newChild,parent.childNodes[0]);
+        }
     }
 
-    getElement('sociallinks-add').onclick=_=>{
-        const parent=getElement('edit-sociallinks-inputs');
-        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-        const linkNumber=parent.childElementCount+1;
-        const newChild=document.createElement('div');
-        newChild.innerHTML = `
-            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-        `;
-        parent.insertBefore(newChild,parent.childNodes[0]);
-    }
-}
-
-{% if iscreator or ismoderator %}
-    {% if not project.under_invitation and iscreator %}
-    
-    getElement('transfer-project').onclick=(e)=>{
-        Swal.fire({
-            title: 'Transfer project',
-            html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
-            Invite the new owner by their email to transfer project.</h6>
-            <br/>
-            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Send Invite',
-            cancelButtonText: 'Cancel',
-            showLoaderOnConfirm: true,
-            preConfirm: async () => {
-                let email = getElement("transfer-project-new-email").value.trim()
-                if(email) return email
-                error('New email address required')
-                return false
-            }
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                message("Sending invitation...");
-                const data = await postRequest2({
-                    path: URLS.INVITE_PROJECT_OWNER,
-                    data: {
-                        action: 'create',
-                        projectID,
-                        email: result.value,
-                    }
-                })
-                if(data.code===code.OK){
-                    futuremessage("Invitation sent.")
-                    return window.location.reload()
-                }
-                error(data.error)
-            }
-        })
-    }
-    {% elif iscreator %}
-        getElement('delete-project-invitation').onclick=async(e)=>{
-            message("Deleting invitation...");
-            const data = await postRequest2({
-                path: URLS.INVITE_PROJECT_OWNER,
-                data: {
-                    action: 'remove',
-                    projectID,
-                }
-            })
-            if(data.code===code.OK){
-                futuremessage("Invitation cancelled")
-                return window.location.reload()
-            }
-            error(data.error)
-        }
-    {% endif %}
-    
-    {% if not project.under_mod_invitation and ismoderator and project.can_invite_mod %}
-    
-    getElement('transfer-project-mod').onclick=(e)=>{
-        Swal.fire({
-            title: 'Transfer project moderatorship',
-            html: `<h6>Transfer project '{{project.nickname}}' to another moderator.<br/>
-            Invite the new moderator by their email to transfer moderation.</h6>
-            <br/>
-            <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-mod-new-email" />
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Send Invite',
-            cancelButtonText: 'Cancel',
-            showLoaderOnConfirm: true,
-            preConfirm: async () => {
-                let email = getElement("transfer-project-mod-new-email").value.trim()
-                if(email) return email
-                error('Email address required')
-                return false
-            }
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                message("Sending moderator invitation...");
-                const data = await postRequest2({
-                    path: URLS.INVITE_COREPROJECT_MOD,
-                    data: {
-                        action: 'create',
-                        projectID,
-                        email: result.value,
-                    }
-                })
-                if(data.code===code.OK){
-                    futuremessage("Invitation sent.")
-                    return window.location.reload()
-                }
-                error(data.error)
-            }
-        })
-    }
-    {% elif ismoderator %}
-        getElement('delete-project-mod-invitation').onclick=async(e)=>{
-            message("Deleting moderation invitation...");
-            const data = await postRequest2({
-                path: URLS.INVITE_COREPROJECT_MOD,
-                data: {
-                    action: 'remove',
-                    projectID,
-                }
-            })
-            if(data.code===code.OK){
-                futuremessage("Moderation Invitation cancelled")
-                return window.location.reload()
-            }
-            error(data.error)
-        }
-    {% endif %}
-    {% if iscreator and project.under_del_request %}
-        getElement('cancel-delete-project-request').onclick=async(e)=>{
-            message("Cancelling deletion request...");
-            const data = await postRequest2({
-                path: setUrlParams(URLS.TRASH, projectID),
-                data: {
-                    action: 'remove',
-                    projectID,
-                },
-                retainCache: true
-            })
-            if(data.code===code.OK){
-                futuremessage("Deletion request cancelled.")
-                return window.location.reload()
-            }
-            error(data.error)
-        }
-    {% elif iscreator and project.can_request_deletion %}
-        getElement('delete-project-request').onclick=async(e)=>{
+    {% if iscreator or ismoderator %}
+        {% if iscreator and project.can_invite_owner %}
+        
+        getElement('transfer-project').onclick=(e)=>{
             Swal.fire({
-                title: 'Request project deletion',
-                html: `<h6>Are you sure you want to request permanent deletion of '{{project.nickname}}' project?<br/>
-                The request will be sent to the moderator to decide.</h6>
+                title: 'Transfer project',
+                html: `<h6>Transfer project '{{project.nickname}}' to another user.<br/>
+                Invite the new owner by their email to transfer project.</h6>
+                <br/>
+                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-new-email" />
                 `,
                 showCancelButton: true,
-                showConfirmButton: false,
-                cancelButtonText: 'No, go back',
-                showDenyButton: true,
-                denyButtonText: 'Yes, request deletion',
+                confirmButtonText: 'Send Invite',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
                 preConfirm: async () => {
-                
+                    let email = getElement("transfer-project-new-email").value.trim()
+                    if(email) return email
+                    error('New email address required')
+                    return false
                 }
             }).then(async (result) => {
-                if (result.isDenied) {
-                    message("Requesting project deletion...");
+                if (result.isConfirmed) {
+                    message("Sending invitation...");
                     const data = await postRequest2({
-                        path: setUrlParams(URLS.TRASH, projectID),
+                        path: URLS.INVITE_PROJECT_OWNER,
                         data: {
                             action: 'create',
                             projectID,
-                        },
-                        retainCache: true
+                            email: result.value,
+                        }
                     })
                     if(data.code===code.OK){
-                        futuremessage("Deletion request sent.")
+                        futuremessage("Invitation sent.")
                         return window.location.reload()
                     }
                     error(data.error)
-                    
                 }
-            });
+            })
         }
+        {% elif iscreator and project.under_invitation %}
+            getElement('delete-project-invitation').onclick=async(e)=>{
+                message("Deleting invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_PROJECT_OWNER,
+                    data: {
+                        action: 'remove',
+                        projectID,
+                    }
+                })
+                if(data.code===code.OK){
+                    futuremessage("Invitation cancelled")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        {% endif %}
+        
+        {% if not project.under_mod_invitation and ismoderator %}
+        
+        getElement('transfer-project-mod').onclick=(e)=>{
+            Swal.fire({
+                title: 'Transfer project moderatorship',
+                html: `<h6>Transfer project '{{project.nickname}}' to another moderator.<br/>
+                Invite the new moderator by their email to transfer moderation.</h6>
+                <br/>
+                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="transfer-project-mod-new-email" />
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Send Invite',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: async () => {
+                    let email = getElement("transfer-project-mod-new-email").value.trim()
+                    if(email) return email
+                    error('Email address required')
+                    return false
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    message("Sending moderator invitation...");
+                    const data = await postRequest2({
+                        path: URLS.INVITE_COREPROJECT_MOD,
+                        data: {
+                            action: 'create',
+                            projectID,
+                            email: result.value,
+                        }
+                    })
+                    if(data.code===code.OK){
+                        futuremessage("Invitation sent.")
+                        return window.location.reload()
+                    }
+                    error(data.error)
+                }
+            })
+        }
+        {% elif ismoderator %}
+            getElement('delete-project-mod-invitation').onclick=async(e)=>{
+                message("Deleting moderation invitation...");
+                const data = await postRequest2({
+                    path: URLS.INVITE_COREPROJECT_MOD,
+                    data: {
+                        action: 'remove',
+                        projectID,
+                    }
+                })
+                if(data.code===code.OK){
+                    futuremessage("Moderation Invitation cancelled")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        {% endif %}
+        {% if iscreator and project.under_del_request %}
+            getElement('cancel-delete-project-request').onclick=async(e)=>{
+                message("Cancelling deletion request...");
+                const data = await postRequest2({
+                    path: setUrlParams(URLS.TRASH, projectID),
+                    data: {
+                        action: 'remove',
+                        projectID,
+                    },
+                    retainCache: true
+                })
+                if(data.code===code.OK){
+                    futuremessage("Deletion request cancelled.")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        {% elif iscreator and project.can_request_deletion %}
+            getElement('delete-project-request').onclick=async(e)=>{
+                Swal.fire({
+                    title: 'Request project deletion',
+                    html: `<h6>Are you sure you want to request permanent deletion of '{{project.nickname}}' project?<br/>
+                    The request will be sent to the moderator to decide.</h6>
+                    `,
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                    cancelButtonText: 'No, go back',
+                    showDenyButton: true,
+                    denyButtonText: 'Yes, request deletion',
+                    preConfirm: async () => {
+                    
+                    }
+                }).then(async (result) => {
+                    if (result.isDenied) {
+                        message("Requesting project deletion...");
+                        const data = await postRequest2({
+                            path: setUrlParams(URLS.TRASH, projectID),
+                            data: {
+                                action: 'create',
+                                projectID,
+                            },
+                            retainCache: true
+                        })
+                        if(data.code===code.OK){
+                            futuremessage("Deletion request sent.")
+                            return window.location.reload()
+                        }
+                        error(data.error)
+                        
+                    }
+                });
+            }
+        {% endif %}
     {% endif %}
-{% endif %}
 
-
-
-{% if iscreator %}
-getElement('save-edit-snapshot').onclick=(e)=>{
-    e.preventDefault();
-    e.target.form.submit()
-}
-
-{% endif %}
-if(!selfProject){
-    if(authenticated){
-        getElement('report-project').onclick=async()=>{
-            await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
+    {% if iscreator %}
+    getElement('save-edit-snapshot').onclick=(e)=>{
+        e.preventDefault();
+        e.target.form.submit()
+    }
+    {% endif %}
+    if(!selfProject){
+        if(authenticated){
+            getElement('report-project').onclick=async()=>{
+                await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
+            }
         }
     }
-}
+    getElement('show-admirations').onclick=async(_)=>{
+        Swal.fire({ 
+            html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, projectID)}), 
+            title:"<h4 class='positive-text'>Admirers</h4>"
+        })
+    }
 {% endif %}
 </script>
 {% endblock %}

@@ -5,6 +5,7 @@ const STRING = {
     static_cache_name: `static-cache-{{VERSION}}`,
     dynamic_cache_name: `dynamic-cache-{{VERSION}}`,
     updating: `{% trans "Updating..." %}`,
+    okay: `{% trans "Okay" %}`,
     update_supressed: `{% trans "Okay, we won\'t remind you in this session." %}`,
     internal_error: `{% trans "An internal error occurred. We humbly request you to reload this page." %}`,
     app_update_success: `{% trans "App updated successfully." %}`,

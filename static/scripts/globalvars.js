@@ -32,4 +32,13 @@ const _BROWSER = navigator.userAgent
     .match(/(firefox|msie|chrome|safari|trident)/gi)[0]
     .toLowerCase();
 
-Swal = Swal.mixin({ scrollbarPadding: false });
+Swal = Swal.mixin({ 
+    scrollbarPadding: false,
+    confirmButtonText: STRING.okay,
+    didOpen:()=>{
+        loadGlobalEventListeners();
+        loadGlobalEditors();
+        loadCarousels({});
+        loadBrowserSwiper();
+    }
+});

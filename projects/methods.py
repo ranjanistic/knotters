@@ -171,7 +171,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         if not project.isApproved():
             return False
         task = cache.get(f'approved_project_setup_{project.id}')
-        if task in [Message.SETTING_APPROVED_PROJECT, Message.SETUP_APPROVED_PROJECT_DONE]:
+        if task in [Message.SETTING_APPROVED_PROJECT]:
             return True
         cache.set(f'approved_project_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
         addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
@@ -192,7 +192,7 @@ def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> bool:
         if not project.isApproved():
             return False
         task = cache.get(f'approved_coreproject_setup_{project.id}')
-        if task in [Message.SETTING_APPROVED_PROJECT, Message.SETUP_APPROVED_PROJECT_DONE]:
+        if task in [Message.SETTING_APPROVED_PROJECT]:
             return True
         cache.set(f'approved_coreproject_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
         addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgCoreGihtubRepository.__name__}",project,moderator)
@@ -202,7 +202,7 @@ def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> bool:
         return False
 
 
-def setupOrgGihtubRepository(project: Project, moderator: Profile) -> bool:
+def setupOrgGihtubRepository(project: Project, moderator: Profile):
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
 

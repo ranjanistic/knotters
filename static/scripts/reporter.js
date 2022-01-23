@@ -96,7 +96,7 @@ const violationReportDialog = async (
     reportTarget = "",
     reportCatURL = ""
 ) => {
-    const data = await getRequest(reportCatURL || URLS.REPORT_CATEGORIES);
+    const data = await getRequest2({ path:reportCatURL || URLS.REPORT_CATEGORIES, allowCache:true, retainCache: true });
     if (!data) return false;
     if (data.code !== code.OK) {
         error(data.error);

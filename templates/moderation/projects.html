@@ -61,7 +61,6 @@
             Last response on <strong>{{moderation.respondOn}}</strong><br/>
         {% endif %}
     </div>
-    
     <div class="w3-col w3-half w3-padding">
         <div class="w3-row pallete accent w3-center">
         <br/>
@@ -92,31 +91,36 @@
             <a href="{{moderation.project.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
             {% endif %}
             {% if not ismoderator %}
-                {% if moderation.resolved and moderation.isRejected and not forwarded %}
-                    {% if moderation.project.canRetryModeration or moderation.is_stale %}
-                        {% if moderation.is_stale and not moderation.isRejected%}
-                        <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
-                        {% else %}
-                        <h2>{{moderation.project.moderationRetriesLeft}} {% trans "retry left." %}</h2>
-                        {% endif %}
-                        <form method="POST" action="{{moderation.reapplyLink}}">
-                        {% csrf_token %}
-                        <button class="secondary" type="submit" data-icon="refresh">{% trans "Re-apply for moderation" %}</button>
-                        </form>
-                    {% endif %}
-                    {% if not moderation.project.trashed %}
-                        <form method="POST" action="{{URLS.PROJECTS}}{{moderation.project.getTrashLink}}">
-                        {% csrf_token %}
-                        <button class="negative" type="submit" data-icon="delete">{% trans "Delete project" %}</button>
-                        </form>
-                    {% else %}
-                        <h4>{% trans "Project deleted" %}</h4>
-                    {% endif %}
-                {% elif not moderation.resolved and not moderation.isRejected and forwarded %}
+                {% if forwarded %}
                     <h4>{% trans "Moderation re-applied" %}</h4>
                     <a href="{{forwarded.getLink}}"><button class="positive" data-icon="open_in_new">{% trans "View moderation" %}</button></a>
-                {% elif not moderation.resolved %}
-                    <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+                {% elif moderation.project.trashed %}
+                    <h4>{% trans "Project deleted" %}</h4>
+                {% else %}
+                    {% if not moderation.resolved %}
+                        {% if moderation.is_stale %}
+                        
+                            <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
+                            {% if moderation.project.canRetryModeration %}
+                                <h5>{{moderation.project.moderationRetriesLeft}} {% trans "retries left." %}</h5>
+                                <form method="POST" action="{{moderation.reapplyLink}}">
+                                {% csrf_token %}
+                                <button class="secondary" type="submit" data-icon="refresh">{% trans "Re-apply for moderation" %}</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
+                        {% endif %}
+                    {% endif %}
+                    {% if not forwarded and not moderation.project.trashed %}
+                        {% if not moderation.isApproved or moderation.is_stale %}
+                            <form method="POST" action="{{URLS.PROJECTS}}{{moderation.project.getTrashLink}}">
+                            {% csrf_token %}
+                            <br/>
+                            <button class="negative" type="submit" data-icon="delete">{% trans "Delete project" %}</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}
@@ -155,7 +159,7 @@ getElements("modaction").forEach((action)=>{
     action.addEventListener('click',()=>{
         Swal.fire({
             title: `{% trans "Final confirmation" %}`,
-            html:`<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this project {{moderation.coreproject.name}} (@{{moderation.coreproject.codename}}) 
+            html:`<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this project {{moderation.project.name}} (@{{moderation.project.codename}}) 
             will be your final decision?
                 <br/><br/>
             <h5>{% trans "This action is irreversible." %}</h5>`,

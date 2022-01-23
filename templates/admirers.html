@@ -1,0 +1,19 @@
+{% comment %} Component file, to be used within a document {% endcomment %}
+<div class="w3-col w3-left">
+    {% for adm in admirers %}
+    <div class="w3-row">
+    <a href="{{adm.get_link}}" target="_blank">
+        <div class="pallete-slab" align='left'>
+            <img src="{{adm.get_dp}}" alt="{{adm.get_name}}" class="w3-circle primary" width="40" />
+            <strong class="">{{adm.get_name}}{% if not adm.is_verified %} <i class="material-icons positive-text w3-large">verified</i>{% endif %}</strong>
+            {% for label in adm.get_labels %}
+              <strong class="w3-tiny w3-round w3-tag {{label.theme}} w3-padding-small">{{label.name}}</strong>
+            {% endfor %}
+            <i class="w3-right material-icons positive-text">volunteer_activism</i>
+        </div>
+    </a>
+    </div>
+    {% empty %}
+        <h4>No admirers yet.</h4>
+    {% endfor %}
+</div>

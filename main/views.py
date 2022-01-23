@@ -510,6 +510,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.ADMIRATIONS}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.SNAP_ADMIRATIONS}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.FRAMEWORK}"),

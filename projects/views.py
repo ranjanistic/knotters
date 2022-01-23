@@ -12,7 +12,7 @@ from moderation.views import action
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.conf import settings
 from main.bots import Github
 from allauth.account.models import EmailAddress
@@ -24,7 +24,7 @@ from moderation.models import Moderation
 from moderation.methods import requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
+from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, SnapshotAdmirer, Tag, Category, VerProjectDeletionRequest
 from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
 from .methods import addTagToDatabase, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
@@ -375,19 +375,21 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
             id=projID, creator=request.user.profile, trashed=False, suspended=False)
         if project.is_not_free and project.is_approved:
             action = request.POST['action']
-            notfreeproj = project.getProject(True)
-            if not notfreeproj or not notfreeproj.can_request_deletion():
+            subproject = project.getProject(True)
+            if not subproject:
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             if action == Action.CREATE:
-                if notfreeproj.request_deletion():
-                    if notfreeproj.verified:
-                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", notfreeproj.current_del_request())
+                if not subproject.can_request_deletion():
+                    return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+                if subproject.request_deletion():
+                    if subproject.verified:
+                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", subproject.current_del_request())
                     else:
-                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", notfreeproj.current_del_request())
+                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", subproject.current_del_request())
                     return respondJson(Code.OK)
                 return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
             elif action == Action.REMOVE:
-                if notfreeproj.cancel_del_request():
+                if subproject.cancel_del_request():
                     return respondJson(Code.OK)
                 return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -898,21 +900,25 @@ def projectAdmirations(request, projID):
     try:
         project = BaseProject.objects.get(
             id=projID, trashed=False, suspended=False)
-        admirers = project.admirers.all()
+        admirers = project.admirers.filter(is_active=True, suspended=False)
+        if request.user.is_authenticated:
+            admirers = request.user.profile.filterBlockedProfiles(admirers)
         if json_body:
             jadmirers = []
-            for adm in project.admirers.all():
+            for adm in admirers:
                 jadmirers.append(
                     dict(
+                        id=adm.get_userid,
                         name=adm.get_name,
                         dp=adm.get_dp,
+                        url=adm.get_link,
                     )
                 )
             return respondJson(Code.OK, dict(admirers=jadmirers))
-        return renderer(request, Template.ADMIRERS, dict(admirers=admirers))
+        return render(request, Template().admirers, dict(admirers=admirers))
     except ObjectDoesNotExist as o:
         if json_body:
-            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
         if json_body:
@@ -924,23 +930,27 @@ def projectAdmirations(request, projID):
 def snapAdmirations(request, snapID):
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        snap = BaseProject.objects.get(
+        snap = Snapshot.objects.get(
             id=snapID, trashed=False, suspended=False)
-        admirers = snap.admirers.all()
+        admirers = snap.admirers.filter(is_active=True, suspended=False)
+        if request.user.is_authenticated:
+            admirers = request.user.profile.filterBlockedProfiles(admirers)
         if json_body:
             jadmirers = []
-            for adm in snap.admirers.all():
+            for adm in admirers:
                 jadmirers.append(
                     dict(
+                        id=adm.get_userid,
                         name=adm.get_name,
                         dp=adm.get_dp,
+                        url=adm.get_link,
                     )
                 )
             return respondJson(Code.OK, dict(admirers=jadmirers))
         return renderer(request, Template.ADMIRERS, dict(admirers=admirers))
     except ObjectDoesNotExist as o:
         if json_body:
-            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
         if json_body:
@@ -1524,18 +1534,13 @@ def handleOwnerInvitation(request: WSGIRequest):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
+            if not baseproject.can_invite_owner():
+                raise ObjectDoesNotExist("Cannot invite owner for", baseproject)
             receiver = Profile.objects.get(
                 user__email=email, suspended=False, is_active=True, to_be_zombie=False)
-            if baseproject.is_not_free:
-                vproj = baseproject.getProject(True)
-                cannot_inv = False
-                cannot_inv = receiver in [vproj.moderator, vproj.mentor]
-                if not cannot_inv and vproj.verified:
-                    cannot_inv = ProjectModerationTransferInvitation.objects.filter(project=vproj, receiver=receiver).exists()
-                if not cannot_inv and vproj.core:
-                    cannot_inv = CoreModerationTransferInvitation.objects.filter(coreproject=vproj, receiver=receiver).exists()
-                if cannot_inv:
-                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            if not baseproject.can_invite_owner_profile(receiver):
+                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+
             inv, created = ProjectTransferInvitation.objects.get_or_create(
                 baseproject=baseproject, sender=request.user.profile, resolved=False,
                 defaults=dict(
@@ -1543,18 +1548,15 @@ def handleOwnerInvitation(request: WSGIRequest):
                     resolved=False
                 )
             )
-            alert = True
+
+            if not created and inv.receiver == receiver:
+                return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+
             if not created:
-                alert = False
-                if inv.receiver != receiver:
-                    inv.receiver = receiver
-                    inv.expiresOn = timezone.now() + timedelta(days=1)
-                    inv.save()
-                    alert = True
-                else:
-                    return respondJson(Code.NO, error=Message.ALREADY_INVITED)
-            if alert:
-                addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
+                inv.receiver = receiver
+                inv.expiresOn = timezone.now() + timedelta(days=1)
+                inv.save()
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
         elif action == Action.REMOVE:
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
@@ -1625,13 +1627,12 @@ def handleVerModInvitation(request: WSGIRequest):
             if project.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
             if not project.can_invite_mod():
-                raise Exception("cannot invite mod: ", project)
+                raise ObjectDoesNotExist("cannot invite mod: ", project)
             receiver = Profile.objects.get(
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
-            if receiver.isBlocked(request.user):
-                raise ObjectDoesNotExist(receiver, request.user)
-            if receiver in [project.moderator, project.mentor, project.creator]:
-                raise ObjectDoesNotExist(receiver, project)
+            if not project.can_invite_profile(receiver):
+                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+            
             if ProjectTransferInvitation.objects.filter(baseproject=project.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv, created = ProjectModerationTransferInvitation.objects.get_or_create(
@@ -1725,13 +1726,11 @@ def handleCoreModInvitation(request: WSGIRequest):
             if coreproject.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
             if not coreproject.can_invite_mod():
-                raise Exception("cannot invite mod: ", coreproject)
+                raise ObjectDoesNotExist("cannot invite mod: ", coreproject)
             receiver = Profile.objects.get(
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
-            if receiver in [coreproject.moderator, coreproject.mentor, coreproject.creator]:
-                raise ObjectDoesNotExist(receiver, coreproject)
-            if receiver.isBlocked(request.user):
-                raise ObjectDoesNotExist(receiver, request.user)
+            if not coreproject.can_invite_profile(receiver):
+                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
 
             if ProjectTransferInvitation.objects.filter(baseproject=coreproject.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)

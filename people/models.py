@@ -699,8 +699,14 @@ class Profile(models.Model):
     def isBlocked(self, user: User) -> bool:
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()
 
+    def isBlockedProfile(self, profile) -> bool:
+        return BlockedUser.objects.filter(Q(profile=self, blockeduser=profile.user) | Q(blockeduser=self.user, profile=profile)).exists()
+
     def is_blocked(self, user: User) -> bool:
         return self.isBlocked(user)
+
+    def is_blocked_profile(self, profile) -> bool:
+        return self.isBlockedProfile(profile)
 
     def reportUser(self, user: User, category):
         report, _ = ReportedUser.objects.get_or_create(user=user, profile=self, category=category, defaults=dict(
@@ -764,10 +770,10 @@ class Profile(models.Model):
         return profiles
 
     def filterBlockedProfiles(self,profiles) -> list:
-        filteredProfiles = []
+        filteredProfiles = profiles
         for profile in profiles:
-            if not self.isBlocked(profile.user):
-                filteredProfiles.append(profile)
+            if self.isBlockedProfile(profile):
+                filteredProfiles.remove(profile)
         return filteredProfiles
 
 

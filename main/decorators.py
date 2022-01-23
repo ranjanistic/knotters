@@ -80,7 +80,9 @@ def normal_profile_required(function):
     def wrap(request, *args, **kwargs):
         if request.user.profile.is_normal:
             return function(request, *args, **kwargs)
-        raise Http404()
+        if request.method == 'GET':
+            raise Http404('abnormal user')
+        return HttpResponseForbidden('Abnormal user access')
     return wrap
 
 

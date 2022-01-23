@@ -170,3 +170,10 @@ const deleteSnap = (snapID, projectID, afterDel = null) => {
         }
     });
 };
+
+const showSnapAdmirers = async(snapID) => {
+    Swal.fire({ 
+        html: await getRequest2({ path:setUrlParams(URLS.Projects.SNAP_ADMIRATIONS, projectID)}), 
+        title:"<h4 class='positive-text'>Admirers</h4>"
+    })
+}

@@ -287,11 +287,11 @@ class BaseProject(models.Model):
 
     @property
     def is_verified(self):
-        return not self.is_free and self.is_approved and not self.is_core
+        return Project.objects.filter(id=self.id).exists()
 
     @property
     def is_core(self):
-        return not self.is_free and CoreProject.objects.filter(id=self.id).exists() and self.is_approved
+        return CoreProject.objects.filter(id=self.id).exists()
 
     @property
     def is_approved(self):
@@ -359,7 +359,7 @@ class BaseProject(models.Model):
         count = cache.get(cacheKey, None)
         if not count:
             count = self.admirers.count()
-            cache.set(cacheKey, count, settings.CACHE_MINI)
+            cache.set(cacheKey, count, settings.CACHE_INSTANT)
         return count
 
     def isAdmirer(self, profile):
@@ -370,6 +370,12 @@ class BaseProject(models.Model):
 
     def can_invite_owner(self):
         return self.is_approved and not self.under_invitation() and not (self.is_not_free and (self.getProject().under_mod_invitation() or self.getProject().under_del_request()))
+
+    def can_invite_profile(self, profile):
+        return self.getProject().can_invite_profile(profile)
+
+    def can_invite_owner_profile(self, profile):
+        return self.can_invite_owner() and self.can_invite_profile(profile) and (profile.is_manager if self.is_core else True)
 
     def current_invitation(self):
         try:
@@ -497,8 +503,6 @@ class Project(BaseProject):
     def gh_repo_link(self) -> str:
         repo = self.gh_repo()
         if not repo:
-            if not GithubKnotters:
-                return ''
             return self.getLink(alert=Message.GH_REPO_NOT_SETUP)
         return repo.html_url
 
@@ -531,7 +535,7 @@ class Project(BaseProject):
     @property
     def moderation(self):
         try:
-            cacheKey = f"project_moderation_{self.id}"
+            cacheKey = f"project_moderation_{self.get_id}"
             moderation = cache.get(cacheKey, None)
             if not moderation:
                 moderation = Moderation.objects.get(project=self, type=APPNAME, status=Code.APPROVED, resolved=True)
@@ -560,7 +564,7 @@ class Project(BaseProject):
 
     def moderationRetriesLeft(self) -> int:
         if self.status != Code.APPROVED:
-            return 2 - Moderation.objects.filter(type=APPNAME, project=self).count()
+            return 2 - Moderation.objects.filter(type=APPNAME, project=self, resolved=True).count()
         return 0
 
     def canRetryModeration(self) -> bool:
@@ -579,6 +583,14 @@ class Project(BaseProject):
     def can_invite_mod(self):
         return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
 
+    def can_invite_profile(self, profile):
+        return (profile not in [self.creator, self.moderator, self.mentor]) and not (
+            self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
+        )
+
+    def can_invite_mod_profile(self, profile):
+        return self.can_invite_mod() and self.can_invite_profile(profile)
+
     def current_mod_invitation(self):
         try:
             return ProjectModerationTransferInvitation.objects.get(project=self, resolved=False)
@@ -591,13 +603,14 @@ class Project(BaseProject):
     def transfer_moderation_to(self,newmoderator):
         if not (self.isApproved() or self.trashed or self.suspended):
             return False
-        elif ProjectModerationTransferInvitation.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
+        elif ProjectModerationTransferInvitation.objects.filter(project=self, sender=self.moderator, receiver=newmoderator, resolved=True).exists():
             mod = self.moderation
             if not mod:
                 return False
             oldmoderator = mod.moderator
             mod.moderator = newmoderator
             mod.save()
+            cache.delete(f"project_moderation_{self.get_id}")
             try:
                 self.gh_repo().add_to_collaborators(newmoderator.ghID,permission='maintain')
                 self.gh_repo().remove_from_collaborators(oldmoderator.ghID)
@@ -688,6 +701,9 @@ class FreeProject(BaseProject):
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
+
+    def can_invite_profile(self, profile):
+        return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile))
 
 class FreeRepository(models.Model):
     """
@@ -813,8 +829,6 @@ class CoreProject(BaseProject):
     def gh_repo_link(self) -> str:
         repo = self.gh_repo()
         if not repo:
-            if not GithubKnotters:
-                return ''
             return self.getLink(alert=Message.GH_REPO_NOT_SETUP)
         return repo.html_url
 
@@ -846,8 +860,16 @@ class CoreProject(BaseProject):
 
     @property
     def moderation(self):
-        return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
-                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
+        try:
+            cacheKey = f"coreproject_moderation_{self.get_id}"
+            moderation = cache.get(cacheKey, None)
+            if not moderation:
+                moderation = Moderation.objects.get(coreproject=self, type=CORE_PROJECT, status=Code.APPROVED, resolved=True)
+                cache.set(cacheKey, moderation, settings.CACHE_LONG) 
+            return moderation
+        except:
+            return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
+                                            Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
                                         
     @property
     def moderator(self):
@@ -892,19 +914,28 @@ class CoreProject(BaseProject):
     def can_invite_mod(self):
         return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
 
+    def can_invite_profile(self, profile):
+        return (profile not in [self.creator, self.moderator, self.mentor]) and not (
+            self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
+        )
+
+    def can_invite_mod_profile(self, profile):
+        return self.can_invite_mod() and self.can_invite_profile(profile)
+
     def cancel_moderation_invitation(self):
         return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
 
     def transfer_moderation_to(self,newmoderator):
         if not (self.isApproved() or self.trashed or self.suspended):
             return False
-        elif CoreModerationTransferInvitation.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
+        elif CoreModerationTransferInvitation.objects.filter(coreproject=self, sender=self.moderator, receiver=newmoderator, resolved=True).exists():
             mod = self.moderation
             if not mod:
                 return False
             oldmoderator = mod.moderator
             mod.moderator = newmoderator
             mod.save()
+            cache.delete(f"coreproject_moderation_{self.get_id}")
             try:
                 self.gh_repo().add_to_collaborators(newmoderator.ghID,permission='maintain')
                 self.gh_repo().remove_from_collaborators(oldmoderator.ghID)
@@ -1140,13 +1171,13 @@ class CoreModerationTransferInvitation(Invitation):
     def accept(self):
         if self.expired: return False
         if self.resolved: return False
-        done = self.coreproject.transfer_moderation_to(self.receiver)
-        if not done: return done
         self.resolve()
+        done = self.coreproject.transfer_moderation_to(self.receiver)
+        if not done:
+            self.unresolve()
         return done
 
     def decline(self):
-        if self.sender.is_blocked(self.receiver.user): return False
         return super(CoreModerationTransferInvitation, self).decline()
 
 class ProjectModerationTransferInvitation(Invitation):
@@ -1171,14 +1202,14 @@ class ProjectModerationTransferInvitation(Invitation):
     def accept(self):
         if self.expired: return False
         if self.resolved: return False
-        done = self.project.transfer_moderation_to(self.receiver)
-        if not done: return done
         self.resolve()
+        done = self.project.transfer_moderation_to(self.receiver)
+        if not done:
+            self.unresolve()
         return done
 
     def decline(self):
-        if self.sender.is_blocked(self.receiver.user): return False
-        return super(CoreModerationTransferInvitation, self).decline()
+        return super(ProjectModerationTransferInvitation, self).decline()
 
 class VerProjectDeletionRequest(Invitation):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='deletion_request_project')

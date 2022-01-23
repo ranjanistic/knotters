@@ -72,7 +72,7 @@
         <br/>
         {% if ismoderator and not moderation.resolved %}
             <i class="w3-jumbo">warning</i>
-            <h3 class="text-accent">{% trans "Take Action" %}</h3>
+            <h3 class="">{% trans "Take Action" %}</h3>
             {% if moderation.is_stale %}
                 <h4>It is too late now. This moderation waited for 3 days for you to respond.</h4>
                 <h5>In future, do not be late in responding, as we also notify you before it's too late.</h5>
@@ -113,7 +113,7 @@
                             <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
                         {% endif %}
                     {% endif %}
-                    {% if not forwarded and not moderation.isApproved and not moderation.coreproject.trashed %}
+                    {% if not forwarded and not moderation.coreproject.trashed and not moderation.isApproved %}
                         <form method="POST" action="{{URLS.PROJECTS}}{{moderation.coreproject.getTrashLink}}">
                         {% csrf_token %}
                         <br/>

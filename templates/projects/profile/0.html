@@ -76,7 +76,7 @@
         {% endif %}
 
         <div class="w3-row w3-padding-small">
-        <strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong>
+        <a id="show-admirations"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
@@ -352,24 +352,29 @@ if (selfProject){
 
     {% if not project.under_invitation %}
     getElement('delete-project').onclick=_=>{
-        alertify.confirm('{% trans "Delete Project" %}', 
-        `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and
-        this action is permanent.</h4>`,
-        ()=>{
-            message('Phew!')
-        },
-        async ()=>{
-            loader()
-            const data = await postRequest(setUrlParams(URLS.TRASH,projectID))
-            if(!data) return loader(false)
-            if(data.code===code.OK){
-                futuremessage('{{project.nickname}} was deleted.')
-                return window.location.href=URLS.PROJECTS
+        Swal.fire({
+            title: '{% trans "Delete Project" %}',
+            html: `<h4>Are you sure you want to delete your project '{{project.name}}' ({{project.nickname}})? All associated data will also be deleted, and
+                    this action is permanent.</h4>`,
+            showDenyButton: true,
+            showCancelButton: false,
+            denyButtonText: 'Yes, DELETE',
+            confirmButtonText: 'No, wait!',
+        }).then(async(result)=>{
+            if(result.isDenied){
+                loader()
+                const data = await postRequest2({path:setUrlParams(URLS.TRASH,projectID)})
+                if(!data) return loader(false)
+                if(data.code===code.OK){
+                    futuremessage('{{project.nickname}} was deleted.')
+                    return window.location.href=URLS.PROJECTS
+                }
+                error(data.error)
+                loader(false)
+            } else {
+                message('Phew!')
             }
-            error(data.error)
-            loader(false)
-        }
-        ).set('closable', false).set('labels',{ok:'No, wait', cancel:'Yes delete'})
+        })
     }
     getElement('transfer-project').onclick=(e)=>{
         Swal.fire({
@@ -533,6 +538,12 @@ if(!selfProject){
             await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
         }
     }
+}
+getElement('show-admirations').onclick=async(_)=>{
+    Swal.fire({ 
+        html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, projectID)}), 
+        title:"<h4 class='positive-text'>Admirers</h4>"
+    })
 }
 {% endif %}
 </script>
