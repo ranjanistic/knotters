@@ -52,9 +52,10 @@ const loadBrowsers = () => {
         getElements("browser-view").map(async (view) => {
             let method = async () => {
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
-                const data = await getRequest(
-                    setUrlParams(URLS.BROWSER, view.getAttribute("data-type"))
-                );
+                const data = await getRequest2({
+                    path: setUrlParams(URLS.BROWSER, view.getAttribute("data-type")),
+                    silent: true
+                });
                 if (!data) {
                     setHtmlContent(
                         view,
