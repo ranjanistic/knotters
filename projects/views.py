@@ -38,11 +38,10 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def allLicences(request: WSGIRequest) -> HttpResponse:
     try:
-        public = License.objects.filter()
+        public = License.objects.filter(public=True)
         owned = []
         if request.user.is_authenticated:
-            owned = License.objects.filter(
-                public=False, creator=request.user.profile)
+            owned = License.objects.filter(creator=request.user.profile)
             public = public.exclude(creator=request.user.profile)
         return renderer(request, Template.Projects.LICENSE_INDEX, dict(licenses=public, custom=owned))
     except Exception as e:
