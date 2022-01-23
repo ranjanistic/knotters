@@ -13,6 +13,7 @@ const loadBrowseSnaps = async () => {
         data: { excludeIDs: snapshotExcludeIDS },
         retainCache: true,
         allowCache: true,
+        silent: true
     });
     if (!snapdata) return false;
     if (snapdata.code === code.OK && snapdata.snapIDs.length) {
