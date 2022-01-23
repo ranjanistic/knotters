@@ -9,7 +9,7 @@ const getRequest2 = async ({
     options = {},
     retainCache = null,
     allowCache = null,
-    slient = false,
+    silent = false,
 }) =>
     await getRequest(
         path,
@@ -20,7 +20,7 @@ const getRequest2 = async ({
             ...(allowCache != null && { "X-KNOT-ALLOW-CACHE": allowCache }),
         },
         options,
-        slient
+        silent
     );
 
 /**
@@ -34,7 +34,7 @@ const postRequest2 = async ({
     options = {},
     retainCache = null,
     allowCache = null,
-    slient = false,
+    silent = false,
 }) =>
     await postRequest(
         path,
@@ -45,5 +45,5 @@ const postRequest2 = async ({
             ...(allowCache != null && { "X-KNOT-ALLOW-CACHE": allowCache }),
         },
         options,
-        slient
+        silent
     );
