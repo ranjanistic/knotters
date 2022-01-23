@@ -926,7 +926,9 @@ class URL():
         REPORT_SNAPSHOT = 'reportsnapshot/'
 
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
+        ADMIRATIONS = 'admirations/<str:projID>/'
         TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
+        SNAP_ADMIRATIONS = 'admirations/snapshot/<str:snapID>/'
         INVITE_PROJECT_OWNER = 'invite/ownership/'
         INVITE_VERPROJECT_MOD = 'invite/ownership/1'
         INVITE_COREPROJECT_MOD = 'invite/ownership/2'
@@ -1131,6 +1133,12 @@ class Template():
     @property
     def branding(self):
         return f'{self.BRANDING}.html'
+
+    ADMIRERS = 'admirers'
+
+    @property
+    def admirers(self):
+        return f'{self.ADMIRERS}.html'
 
     FORWARD = 'forward'
 

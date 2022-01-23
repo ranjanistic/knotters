@@ -892,6 +892,61 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
         raise Http404()
 
+@decode_JSON
+def projectAdmirations(request, projID):
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        project = BaseProject.objects.get(
+            id=projID, trashed=False, suspended=False)
+        admirers = project.admirers.all()
+        if json_body:
+            jadmirers = []
+            for adm in project.admirers.all():
+                jadmirers.append(
+                    dict(
+                        name=adm.get_name,
+                        dp=adm.get_dp,
+                    )
+                )
+            return respondJson(Code.OK, dict(admirers=jadmirers))
+        return renderer(request, Template.ADMIRERS, dict(admirers=admirers))
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(o)
+    except Exception as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        errorLog(e)
+        raise Http404(e)
+
+@decode_JSON
+def snapAdmirations(request, snapID):
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        snap = BaseProject.objects.get(
+            id=snapID, trashed=False, suspended=False)
+        admirers = snap.admirers.all()
+        if json_body:
+            jadmirers = []
+            for adm in snap.admirers.all():
+                jadmirers.append(
+                    dict(
+                        name=adm.get_name,
+                        dp=adm.get_dp,
+                    )
+                )
+            return respondJson(Code.OK, dict(admirers=jadmirers))
+        return renderer(request, Template.ADMIRERS, dict(admirers=admirers))
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(o)
+    except Exception as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        errorLog(e)
+        raise Http404(e)
 
 @normal_profile_required
 @require_JSON_body

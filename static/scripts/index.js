@@ -121,8 +121,8 @@ const loadGlobalEventListeners = () => {
         if (
             a.href &&
             !a.hash &&
-            !a.target &&
-            a.download === null
+            !a.getAttribute("target") &&
+            a.getAttribute("download") === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);
