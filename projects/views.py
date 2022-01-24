@@ -947,7 +947,7 @@ def snapAdmirations(request, snapID):
                     )
                 )
             return respondJson(Code.OK, dict(admirers=jadmirers))
-        return renderer(request, Template.ADMIRERS, dict(admirers=admirers))
+        return render(request, Template().admirers, dict(admirers=admirers))
     except ObjectDoesNotExist as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
