@@ -86,7 +86,7 @@
             {% endif %}
         {% else %}
             <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
-            <h3 class="text-accent">Action {% if moderation.resolved %}taken{% endif %}</h3>
+            <h3>Action {% if moderation.resolved %}taken{% endif %}</h3>
             <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}{% trans "Pending" %}{% endif %}</h4>
             {% if moderation.coreproject.isLive and moderation.resolved %} 
             <a href="{{moderation.coreproject.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
