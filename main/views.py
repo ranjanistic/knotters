@@ -466,7 +466,7 @@ class ServiceWorker(TemplateView):
             ignorelist=json.dumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
-                f"/{URL.WEBPUSH}*"
+                f"/{URL.WEBPUSH}*",
                 f"/{URL.ROBOTS_TXT}",
                 f"/{URL.VERSION_TXT}",
                 f"/{URL.REDIRECTOR}*",
