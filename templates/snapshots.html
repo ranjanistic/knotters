@@ -49,11 +49,11 @@
                 {% if not request.user.is_authenticated %}
                 </a>
                 {% endif %}
-                <div class="w3-col l4 m4 s4 navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}">
-                    <button class="accent" id="snap-share-{{snap.get_id}}"><i class="text-big">share</i></button>
+                <div class="w3-col l4 m4 s4">
+                   <button class="accent navigator-share-action" data-icon="share" data-title="A snapshot of {{snap.base_project.name}} project!" data-text="{{snap.text}}" data-url="{{snap.getLink}}" id="snap-share-{{snap.get_id}}"><i class="text-big">share</i></button>
                 </div>
-                <div class="w3-col l4 m4 s4" onclick="showSnapshotMoreBtn('{{snap.get_id}}')">
-                    <button class="tertiary" id="snap-more-{{snap.get_id}}"><i class="text-big">more_horiz</i><span class="w3-hide-small">More</span></button>
+                <div class="w3-col l4 m4 s4">
+                    <button class="tertiary" onclick="showSnapshotMoreBtn('{{snap.get_id}}')" id="snap-more-{{snap.get_id}}"><i class="text-big">more_horiz</i><span class="w3-hide-small">More</span></button>
                 </div>
             </div>
         </div>
