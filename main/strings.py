@@ -928,7 +928,7 @@ class URL():
         TOGGLE_ADMIRATION = 'admiration/<str:projID>/'
         ADMIRATIONS = 'admirations/<str:projID>/'
         TOGGLE_SNAP_ADMIRATION = 'admiration/snapshot/<str:snapID>/'
-        SNAP_ADMIRATIONS = 'snap/adm/<str:snapID>/'
+        SNAP_ADMIRATIONS = 'adm/snap/<str:snapID>/'
         INVITE_PROJECT_OWNER = 'invite/ownership/'
         INVITE_VERPROJECT_MOD = 'invite/ownership/1'
         INVITE_COREPROJECT_MOD = 'invite/ownership/2'
