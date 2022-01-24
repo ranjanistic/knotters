@@ -52,14 +52,14 @@
     <div class="w3-col w3-third">
         <div class="w3-row primary w3-padding">
             <h3>{% trans "Certificate Details" %}</h3>
-            <h6><span class="dead-text">{% trans "Name" %} </span>{{compete.title}} at {{APPNAME}}</h6>
-            <h6><span class="dead-text">{% trans "Issuing Organization" %} </span>{{APPNAME}}</h6>
-            <h6><span class="dead-text">{% trans "Issue Date" %} </span>{{compete.resultDeclaredOn|or:compete.endAt}}</h6>
-            <h6><span class="dead-text">{% trans "Expiration Date" %} </span>{% trans "Does not expire" %}</h6>
+            <h6><span class="dead-text">{% trans "Name" %}</span> {{compete.title}} at {{APPNAME}}</h6>
+            <h6><span class="dead-text">{% trans "Issuing Organization" %}</span> {{APPNAME}}</h6>
+            <h6><span class="dead-text">{% trans "Issue Date" %}</span> {{compete.resultDeclaredOn|or:compete.endAt}}</h6>
+            <h6><span class="dead-text">{% trans "Expiration Date" %}</span> {% trans "Does not expire" %}</h6>
             {% if certID %}
-            <h6><span class="dead-text">{% trans "Credential ID" %} </span><a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
+            <h6><span class="dead-text">{% trans "Credential ID" %}</span> <a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
             {% else %}
-            <h6 ><span class="dead-text">{% trans "Credential ID" %} </span>{% trans "Will be available soon." %}</h6>
+            <h6 ><span class="dead-text">{% trans "Credential ID" %}</span> {% trans "Will be available soon." %}</h6>
             {% endif %}
             <h6><span class="dead-text">{% trans "Credential URL" %}</span> <a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{request.build_absolute_uri}}">{% trans "Copy to clipboard" %}</a></h6>
         </div>
