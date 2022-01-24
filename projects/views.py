@@ -1331,12 +1331,10 @@ def browseSearch(request: WSGIRequest):
                 projects = BaseProject.objects.exclude(trashed=True).exclude(
                     suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(dbquery).order_by('name').distinct()[0:limit]
                 projects = list(filter(lambda m: m.is_approved, list(projects)))
-                if verified != None:
-                    projects = list(filter(lambda m: verified ==
-                                    m.is_verified, list(projects)))
-                elif core != None:
-                    projects = list(filter(lambda m: core ==
-                                    m.is_core, list(projects)))
+                if verified != None and verified:
+                    projects = list(filter(lambda m: m.is_verified, list(projects)))
+                if core != None and core:
+                    projects = list(filter(lambda m: m.is_core, list(projects)))
 
                 if len(projects):
                     cache.set(cachekey, projects, settings.CACHE_SHORT)
@@ -1403,7 +1401,7 @@ def licenseSearch(request: WSGIRequest):
         return Http404(e)
 
 @require_JSON_body
-def snapshots(request: WSGIRequest, projID: UUID, limit: int = 10):
+def snapshots(request: WSGIRequest, projID: UUID, limit: int):
     # In Project Snapshot view
     try:
         if limit < 1:
@@ -1418,7 +1416,7 @@ def snapshots(request: WSGIRequest, projID: UUID, limit: int = 10):
         snapIDs = [snap.id for snap in snaps]
         
         if not len(snaps):
-            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False,suspended=False).exclude(id__in=excludeIDs).order_by('-created_on')[:limit]
+            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False,suspended=False).exclude(id__in=excludeIDs).order_by('-created_on')[0:limit]
             snapIDs = [snap.id for snap in snaps]
             if len(snaps):
                 cache.set(cachekey, snaps, settings.CACHE_INSTANT)
