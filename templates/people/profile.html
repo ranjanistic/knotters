@@ -39,7 +39,7 @@
 
 {% block nav_auth_user %}
   {% if user.is_authenticated and user == person %}
-    <a href="{{ URLS.AUTH }}"><button class="primary"><i class="w3-spin">settings</i><span class="w3-hide-small">{% trans "Settings" %}</span></button></a>
+    <a href="{{ URLS.AUTH }}"><button class="primary"><i class="">settings</i><span class="w3-hide-small">{% trans "Settings" %}</span></button></a>
     <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">{% trans "Logout" %}</span></button></a>
   {% elif user.is_authenticated and user != person %}
     <a href="{% if user.profile %}{{user.profile.getLink}}{% else %}{{user.getLink}}{% endif %}"><button title="Logged in as {{user.profile.getName}}" class="accent"><img src="{{user.profile.getDP}}" id="navbarprofilepic" /></button></a>
