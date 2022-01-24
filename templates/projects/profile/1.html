@@ -382,7 +382,7 @@ if(!selfProject){
 {% if iscreator or ismoderator %}
    
         getElement('save-edit-projecttags').onclick= async ()=> {
-            var obj = getFormData("edit-tag-inputs");
+            var obj = getFormDataById("edit-tag-inputs");
             var resp=await postRequest2({path:setUrlParams(URLS.TAGSUPDATE, projectID), data:{
                 addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
             }, retainCache: true});
