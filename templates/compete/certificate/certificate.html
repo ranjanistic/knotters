@@ -46,14 +46,14 @@
         <div class="w3-row primary w3-padding">
         {% cache CACHE_MICRO participant_certificate_details result.getCertLink|params:member.getUserID|add:LANGUAGE_CODE %}
             <h3>{% trans "Certificate Details" %}</h3>
-            <h6><span class="dead-text">{% trans "Name" %} </span>{{result.competition.title}} at {{APPNAME}}</h6>
-            <h6><span class="dead-text">{% trans "Issuing Organization" %} </span>{{APPNAME}}</h6>
-            <h6><span class="dead-text">{% trans "Issue Date" %} </span>{{result.competition.resultDeclaredOn|or:result.submission.submitOn}}</h6>
-            <h6><span class="dead-text">{% trans "Expiration Date" %} </span>{% trans "Does not expire" %}</h6>
+            <h6><span class="dead-text">{% trans "Name" %}</span> {{result.competition.title}} at {{APPNAME}}</h6>
+            <h6><span class="dead-text">{% trans "Issuing Organization" %}</span> {{APPNAME}}</h6>
+            <h6><span class="dead-text">{% trans "Issue Date" %}</span> {{result.competition.resultDeclaredOn|or:result.submission.submitOn}}</h6>
+            <h6><span class="dead-text">{% trans "Expiration Date" %}</span> {% trans "Does not expire" %}</h6>
             {% if certID %}
-            <h6><span class="dead-text">{% trans "Credential ID" %} </span><a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
+            <h6><span class="dead-text">{% trans "Credential ID" %}</span> <a class="click-to-copy" title="{% trans "Click to copy" %}" data-copy="{{certID|upper}}">{{certID|upper}}</a></h6>
             {% else %}
-            <h6 ><span class="dead-text">{% trans "Credential ID" %} </span>Will be available soon.</h6>
+            <h6 ><span class="dead-text">{% trans "Credential ID" %}</span> Will be available soon.</h6>
             {% endif %}
             <h6><span class="dead-text">{% trans "Credential URL" %}</span> <a class="click-to-copy" title="Click to copy" data-copy="{{SITE}}{{result.getCertLink|params:member.getUserID}}">{% trans "Copy to clipboard" %}</a></h6>
         {% endcache %}
