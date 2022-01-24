@@ -488,10 +488,13 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = BaseProject.objects.get(
-            id=projectID, creator=request.user.profile, trashed=False, suspended=False)
+            id=projectID, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
-            raise Exception(f'{projectID} project not found')
+            raise ObjectDoesNotExist(f'{projectID} project not found')
+        if request.user.profile != project.creator:
+            if request.user.profile != project.moderator:
+                raise ObjectDoesNotExist()
         if section == 'pallete':
             changed = False
             try:
@@ -537,11 +540,11 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
             else:
                 return redirect(project.getLink(), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
-    except ObjectDoesNotExist:
-        return HttpResponseForbidden()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        return HttpResponseForbidden()
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -549,8 +552,13 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile, trashed=False, suspended=False)
-        project.is_approved
+            id=projID, trashed=False, suspended=False)
+        sproject = project.getProject(True)
+        if not sproject:
+            raise Exception(f'{projID} project not found')
+        if request.user.profile != project.creator:
+            if request.user.profile != sproject.moderator:
+                raise ObjectDoesNotExist()
         if action == Action.ADD:
             name = str(request.POST['filename']).strip()
             file = base64ToFile(request.POST['filedata'])
@@ -588,10 +596,13 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             return respondJson(Code.NO)
 
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID, trashed=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
+        if request.user.profile != project.creator:
+            if request.user.profile != project.moderator:
+                raise ObjectDoesNotExist()
         excluding = []
         if project:
             for topic in project.getTopics():
@@ -632,11 +643,13 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtopics = request.POST.get('addtopics', None)
 
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile, trashed=False, suspended=False)
+            id=projID, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-
+        if request.user.profile != project.creator:
+            if request.user.profile != project.moderator:
+                raise ObjectDoesNotExist()
         if not (addtopicIDs or removetopicIDs or addtopics):
             if json_body:
                 return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
@@ -710,10 +723,13 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not query or not query.strip():
             return respondJson(Code.NO)
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile)
+            id=projID, trashed=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
+        if request.user.profile != project.creator:
+            if request.user.profile != project.moderator:
+                raise ObjectDoesNotExist()
         excludeIDs = []
         if project:
             for tag in project.tags.all():
@@ -753,11 +769,13 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtags = request.POST.get('addtags', None)
         removetagIDs = request.POST.get('removetagIDs', None)
         project = BaseProject.objects.get(
-            id=projID, creator=request.user.profile, trashed=False, suspended=False)
+            id=projID, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
             raise Exception(f'{projID} project not found')
-
+        if request.user.profile != project.creator:
+            if request.user.profile != project.moderator:
+                raise ObjectDoesNotExist()
         next = request.POST.get('next', project.getLink())
 
         if not (addtagIDs or removetagIDs or addtags):
@@ -1279,7 +1297,7 @@ def browseSearch(request: WSGIRequest):
                         if special.strip().lower() == 'type':
                             verified = specialq.strip().lower() == 'verified'
                             core = specialq.strip().lower() == 'core'
-                            if not verified or not core:
+                            if not verified and not core:
                                 invalidQuery = True
                                 break
                         else:
