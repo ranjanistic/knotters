@@ -44,7 +44,7 @@
                     >share</i>
                 </div>
             </div>
-            {% if iscreator %}
+            {% if iscreator or ismoderator %}
             <div class="pallete w3-center" id="edit-pallete">
                 <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
                 <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
@@ -96,7 +96,7 @@
             <button class="small tertiary negative-text" data-icon="report" id='report-project'>Report</button>
         </div>
         <br />
-		{% endif %}
+       {% endif %}
 
         <div class="w3-row pallete">
             <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
@@ -150,7 +150,7 @@
                 {% for asset in project.assets %}
 
                 {% empty %}
-                    {% if iscreator %}
+                    {% if iscreator or ismoderator %}
                     <center >
                     <div class="w3-jumbo material-icons">add_circle</div>
                     <h5>Add assets</h5>
@@ -183,7 +183,7 @@
                             </button>
                         </a>
                     {% empty %}
-                        {% if iscreator %}
+                        {% if iscreator or ismoderator %}
                             <button class="accent edit-action big-button" data-edittarget="projecttopics" data-icon="add">Add topics</button>
                         {% else %}
                             <br/>
@@ -193,9 +193,9 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                    {% if iscreator and project.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="projecttopics">edit</i>{% endif %}
+                    {% if iscreator or ismoderator and project.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="projecttopics">edit</i>{% endif %}
                     </div>
-                    {% if iscreator %}
+                    {% if iscreator or ismoderator %}
                     <div id="edit-projecttopics">
                         <br/>
                         <strong class="dead-text">Total 5 topics allowed</strong>
@@ -226,9 +226,9 @@
                 {% empty %}
                     <h5 class="dead-text">No tags assigned</h5>
                 {% endfor %}
-                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+                {% if iscreator or ismoderator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
                 </div>
-                {% if iscreator %}
+                {% if iscreator or ismoderator %}
                 <div id="edit-projecttags">
                     <strong class="dead-text">Total 5 tags allowed</strong>
                     <form class="no-auto" id="edit-tag-inputs">
@@ -377,8 +377,10 @@ if(!selfProject){
             await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
         }
     }
-} else {
-    if (!ismoderator){
+}
+
+{% if iscreator or ismoderator %}
+   
         getElement('save-edit-projecttags').onclick= async ()=> {
             var obj = getFormData("edit-tag-inputs");
             var resp=await postRequest2({path:setUrlParams(URLS.TAGSUPDATE, projectID), data:{
@@ -401,10 +403,7 @@ if(!selfProject){
             `;
             parent.insertBefore(newChild,parent.childNodes[0]);
         }
-    }
-}
-
-{% if iscreator or ismoderator %}
+    
     {% if iscreator and project.can_invite_owner %}
     
     getElement('transfer-project').onclick=(e)=>{
