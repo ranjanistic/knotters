@@ -121,6 +121,8 @@ const admireSnap = async (snapID) => {
     getElement(`snap-admire-${snapID}`).classList[admire ? "remove" : "add"](
         "primary"
     );
+    getElement(`snap-admirecount-${snapID}`).innerHTML = Number(
+         getElement(`snap-admirecount-${snapID}`).innerHTML) + (admire?1:-1)
 };
 
 const reportSnap = async (snapID) =>
@@ -173,7 +175,7 @@ const deleteSnap = (snapID, projectID, afterDel = null) => {
 
 const showSnapAdmirers = async(snapID) => {
     Swal.fire({ 
-        html: await getRequest2({ path:setUrlParams(URLS.Projects.SNAP_ADMIRATIONS, projectID)}), 
+        html: await getRequest2({ path:setUrlParams(URLS.Projects.SNAP_ADMIRATIONS, snapID)}), 
         title:"<h4 class='positive-text'>Admirers</h4>"
     })
 }
