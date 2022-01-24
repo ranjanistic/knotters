@@ -34,7 +34,7 @@
                 <center>{{project.description}}</center>
                 </div>
                 <div class="w3-row w3-padding-small">
-                    {% if user.is_authenticated and user.profile == project.creator %}
+                    {% if iscreator or ismoderator %}
                     <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
                     {% endif %}
                     <i class="w3-left pointer navigator-share-action" 
