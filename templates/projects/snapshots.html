@@ -40,7 +40,7 @@
                         id="snap-admire-{{snap.get_id}}">
                         <i class="material-icons text-big">volunteer_activism</i>
                     </button>
-                    &nbsp;<strong class="positive-text pointer" onclick="showSnapAdmirers('{{snap.get_id}}')">{{snap.admirers.count}}</strong>
+                    &nbsp;<strong class="positive-text pointer" id="snap-admirecount-{{snap.get_id}}" onclick="showSnapAdmirers('{{snap.get_id}}')">{{snap.admirers.count}}</strong>
                 </div>
                 {% if not request.user.is_authenticated %}
                 </a>
