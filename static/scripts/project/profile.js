@@ -1,4 +1,4 @@
-if (selfProject) {
+if (selfProject || ismoderator) {
     getElement("uploadprojectimage").onchange = (e) => {
         handleCropImageUpload(
             e,
@@ -351,8 +351,7 @@ if (selfProject) {
         }
     };
     loadExistingTags();
-}
-if (ismoderator || selfProject) {
+
     getElement("snap-file").onchange = (e) => {
         handleCropImageUpload(
             e,
