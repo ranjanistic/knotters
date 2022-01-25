@@ -276,6 +276,20 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
         except Exception as e:
             msg += f'branch err: {e},'
             pass
+
+        try:
+            if not ghOrgRepo.has_in_collaborators(ghMod):
+                ghOrgRepo.add_to_collaborators(
+                    collaborator=ghMod, permission="maintain")
+                msg += 'repo maintainer done, '
+            if not ghOrgRepo.has_in_collaborators(ghUser):
+                ghOrgRepo.add_to_collaborators(
+                    collaborator=ghUser, permission="push")
+                msg += 'repo collaborator done, '
+        except Exception as e:
+            msg += f'repo collab err: {e},'
+            pass
+        
         
         ghrepoteam = project.gh_team()
 
@@ -309,19 +323,6 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                     msg += 'team member done, '
         except Exception as e:
             msg += f'team member err: {e},'
-            pass
-        
-        try:
-            if not ghOrgRepo.has_in_collaborators(ghMod):
-                ghOrgRepo.add_to_collaborators(
-                    collaborator=ghMod, permission="maintain")
-                msg += 'repo maintainer done, '
-            if not ghOrgRepo.has_in_collaborators(ghUser):
-                ghOrgRepo.add_to_collaborators(
-                    collaborator=ghUser, permission="push")
-                msg += 'repo collaborator done, '
-        except Exception as e:
-            msg += f'repo collab err: {e},'
             pass
         
         try:
@@ -394,6 +395,20 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
             msg += f'license err: {e},'
             pass
 
+        try:
+            if not ghOrgRepo.has_in_collaborators(ghMod):
+                ghOrgRepo.add_to_collaborators(
+                    collaborator=ghMod, permission="maintain")
+                msg = msg + "repo maintainer done, "
+            if ghUser:
+                if not ghOrgRepo.has_in_collaborators(ghUser):
+                    ghOrgRepo.add_to_collaborators(
+                        collaborator=ghUser, permission="push")
+                    msg = msg + "repo member done, "
+        except Exception as e:
+            msg += f'repo collab: {e},'
+            pass
+
         ghrepoteam = coreproject.gh_team()
         try:
             if not ghrepoteam:
@@ -426,20 +441,6 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
                         msg = msg + "team member done, "
         except Exception as e:
             msg += f'team member err: {e},'
-            pass
-
-        try:
-            if not ghOrgRepo.has_in_collaborators(ghMod):
-                ghOrgRepo.add_to_collaborators(
-                    collaborator=ghMod, permission="maintain")
-                msg = msg + "repo maintainer done, "
-            if ghUser:
-                if not ghOrgRepo.has_in_collaborators(ghUser):
-                    ghOrgRepo.add_to_collaborators(
-                        collaborator=ghUser, permission="push")
-                    msg = msg + "repo member done, "
-        except Exception as e:
-            msg += f'repo collab: {e},'
             pass
         
         try:
