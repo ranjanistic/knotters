@@ -269,7 +269,13 @@ class BaseProject(models.Model):
 
     @property
     def socialsites(self):
-        return ProjectSocial.objects.filter(project=self)
+        cacheKey = f"baseproject_socialsites_{self.id}"
+        sites = cache.get(cacheKey, [])
+        if not len(sites):
+            sites = ProjectSocial.objects.filter(project=self)
+            if len(sites):
+                cache.set(cacheKey, sites, settings.CACHE_INSTANT)
+        return sites
 
     def addSocial(self, site:str):
         return ProjectSocial.objects.create(project=self,site=site)
@@ -279,7 +285,12 @@ class BaseProject(models.Model):
     
     @property
     def is_free(self):
-        return FreeProject.objects.filter(id=self.id).exists()
+        cacheKey = f"baseproject_is_free_{self.id}"
+        isFree = cache.get(cacheKey, None)
+        if isFree is None:
+            isFree = FreeProject.objects.filter(id=self.id).exists()
+            cache.set(cacheKey, isFree, settings.CACHE_LONG)
+        return isFree
 
     @property
     def is_not_free(self):
@@ -287,23 +298,51 @@ class BaseProject(models.Model):
 
     @property
     def is_verified(self):
-        return Project.objects.filter(id=self.id).exists()
+        cacheKey = f"baseproject_is_verified_{self.id}"
+        isVerified = cache.get(cacheKey, None)
+        if isVerified is None:
+            isVerified = Project.objects.filter(id=self.id).exists()
+            cache.set(cacheKey, isVerified, settings.CACHE_LONG)
+        return isVerified
 
     @property
     def is_core(self):
-        return CoreProject.objects.filter(id=self.id).exists()
+        cacheKey = f"baseproject_is_core_{self.id}"
+        isCore = cache.get(cacheKey, None)
+        if isCore is None:
+            isCore = CoreProject.objects.filter(id=self.id).exists()
+            cache.set(cacheKey, isCore, settings.CACHE_LONG)
+        return isCore
 
     @property
     def is_approved(self):
-        return self.is_free or Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or CoreProject.objects.filter(id=self.id,status=Code.APPROVED).exists()
+        cacheKey = f"baseproject_is_approved_{self.id}"
+        isApproved = cache.get(cacheKey, None)
+        if isApproved is None:
+            isApproved = self.is_free or Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or CoreProject.objects.filter(id=self.id,status=Code.APPROVED).exists()
+            if isApproved:
+                cache.set(cacheKey, isApproved, settings.CACHE_LONG)
+        return isApproved
 
     @property
     def is_pending(self):
-        return Project.objects.filter(id=self.id,status=Code.MODERATION).exists() or CoreProject.objects.filter(id=self.id,status=Code.MODERATION).exists()
+        cacheKey = f"baseproject_is_pending_{self.id}"
+        isPending = cache.get(cacheKey, None)
+        if isPending is None:
+            isPending = Project.objects.filter(id=self.id,status=Code.MODERATION).exists() or CoreProject.objects.filter(id=self.id,status=Code.MODERATION).exists()
+            if not isPending:
+                cache.set(cacheKey, isPending, settings.CACHE_LONG)
+        return isPending
 
     @property
     def is_rejected(self):
-        return Project.objects.filter(id=self.id,status=Code.REJECTED).exists() or CoreProject.objects.filter(id=self.id,status=Code.REJECTED).exists()
+        cacheKey = f"baseproject_is_rejected_{self.id}"
+        isRejected = cache.get(cacheKey, None)
+        if isRejected is None:
+            isRejected = Project.objects.filter(id=self.id,status=Code.REJECTED).exists() or CoreProject.objects.filter(id=self.id,status=Code.REJECTED).exists()
+            if isRejected:
+                cache.set(cacheKey, isRejected, settings.CACHE_LONG)
+        return isRejected 
 
     def getProject(self,onlyApproved=False):
         cacheKey = f'{self.id}_subproject_appr_{onlyApproved}'
@@ -359,7 +398,8 @@ class BaseProject(models.Model):
         count = cache.get(cacheKey, None)
         if not count:
             count = self.admirers.count()
-            cache.set(cacheKey, count, settings.CACHE_INSTANT)
+            if count:
+                cache.set(cacheKey, count, settings.CACHE_INSTANT)
         return count
 
     def isAdmirer(self, profile):
@@ -427,19 +467,15 @@ class BaseProject(models.Model):
             pass
         return True
     
-    @property
     def assets(self):
         return Asset.objects.filter(baseproject=self)
 
-    @property
     def total_assets(self):
         return Asset.objects.filter(baseproject=self).count()
 
-    @property
     def public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True)
 
-    @property
     def total_public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True).count()
 
@@ -526,7 +562,12 @@ class Project(BaseProject):
             return None
 
     def base(self):
-        return BaseProject.objects.get(id=self.id)
+        cacheKey = f"baseproject_of_project_{self.id}"
+        projectbase = cache.get(cacheKey, None)
+        if projectbase is None:
+            projectbase = BaseProject.objects.get(id=self.id)
+            cache.set(cacheKey, projectbase, settings.CACHE_LONG)
+        return projectbase
 
     @property
     def nickname(self):
@@ -693,11 +734,24 @@ class FreeProject(BaseProject):
 
     @property
     def has_linked_repo(self) -> bool:
-        return FreeRepository.objects.filter(free_project=self).exists()
+        cacheKey = f"freeproject_freerepo_exists_{self.id}"
+        freerepo = cache.get(cacheKey, None)
+        if freerepo is None:
+            freerepo = FreeRepository.objects.filter(free_project=self).exists()
+            cache.set(cacheKey, freerepo, settings.CACHE_INSTANT)
+        return freerepo
 
     @property
     def linked_repo(self):
-        return FreeRepository.objects.get(free_project=self)
+        try:
+            cacheKey = f"freeproject_freerepo_{self.id}"
+            freerepo = cache.get(cacheKey, None)
+            if freerepo is None:
+                freerepo = FreeRepository.objects.get(free_project=self)
+                cache.set(cacheKey, freerepo, settings.CACHE_INSTANT)
+            return freerepo
+        except:
+            return None
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
@@ -716,10 +770,10 @@ class FreeRepository(models.Model):
     def gh_repo(self):
         try:
             data = cache.get(f"gh_repo_data_{self.repo_id}")
-            if data:
-                return data
-            data = Github.get_repo(int(self.repo_id))
-            cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+            if not data:
+                data = Github.get_repo(int(self.repo_id))
+                if data:
+                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
             return data
         except Exception as e:
             return None
@@ -856,7 +910,12 @@ class CoreProject(BaseProject):
         return self.codename
 
     def base(self):
-        return BaseProject.objects.get(id=self.id)
+        cacheKey = f"baseproject_of_coreproject_{self.id}"
+        projectbase = cache.get(cacheKey, None)
+        if projectbase is None:
+            projectbase = BaseProject.objects.get(id=self.id)
+            cache.set(cacheKey, projectbase, settings.CACHE_LONG)
+        return projectbase
 
     @property
     def moderation(self):
@@ -1063,12 +1122,20 @@ class Snapshot(models.Model):
     def get_video(self):
         return f"{settings.MEDIA_URL}{str(self.video)}"
 
+    @property
+    def get_link(self) -> str:
+        return self.getLink()
+
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot()}{url.view_snapshot(snapID=self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
     def is_admirer(self, profile):
-        return SnapshotAdmirer.objects.filter(snapshot=self, profile=profile).exists()
-
+        cacheKey = f"admirer_{profile.id}_of_snap_{self.id}"
+        isadm = cache.get(cacheKey, None)
+        if isadm is None:
+            isadm = SnapshotAdmirer.objects.filter(snapshot=self, profile=profile).exists()
+            cache.set(cacheKey, isadm, settings.CACHE_LONG)
+        return isadm
 
 class ReportedProject(models.Model):
     class Meta:
@@ -1124,7 +1191,8 @@ class FileExtension(models.Model):
         topics = cache.get(f"file_ext_topics_{self.id}",[], settings.CACHE_INSTANT)
         if not len(topics):
             topics = self.topics.all()
-            cache.set(f"file_ext_topics_{self.id}", topics, settings.CACHE_INSTANT)
+            if len(topics):
+                cache.set(f"file_ext_topics_{self.id}", topics, settings.CACHE_INSTANT)
         return topics
 
 class TopicFileExtension(models.Model):

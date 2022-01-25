@@ -115,6 +115,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def getName(self) -> str:
         return self.get_name
 
+    @property
+    def get_link(self) -> str:
+        return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getID())}"
+
     def getLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getID())}"
     
@@ -151,7 +155,12 @@ class Topic(models.Model):
 
     @property
     def get_name(self) -> str:
-        return self.name.lower().capitalize()
+        cacheKey = f"topic_name_{self.id}"
+        topicname = cache.get(cacheKey, None)
+        if topicname is None:
+            topicname = self.name.lower().capitalize()
+            cache.set(cacheKey, topicname, settings.CACHE_LONG)
+        return topicname
 
     @property
     def label_type(self) -> str:
@@ -165,39 +174,64 @@ class Topic(models.Model):
     def getLink(self) -> str:
         return f"{url.getRoot(MANAGEMENT)}{url.management.label(self.label_type,self.get_id)}"
 
-    @property
-    def totalProfiles(self):
-        return Profile.objects.filter(topics=self).count()
 
     @property
     def getProfiles(self):
-        return Profile.objects.filter(topics=self)
+        cacheKey = f"topic_profiles_{self.id}"
+        topicprofiles = cache.get(cacheKey, None)
+        if topicprofiles is None:
+            topicprofiles = Profile.objects.filter(topics=self)
+            cache.set(cacheKey, topicprofiles, settings.CACHE_SHORT)
+        return topicprofiles
+
+    @property
+    def totalProfiles(self):
+        return self.getProfiles.count()
 
     @property
     def getProfilesLimited(self):
-        return Profile.objects.filter(topics=self)[0:50]
-
-    @property
-    def totalTags(self):
-        return self.tags.count()
+        return self.getProfiles[0:50]
 
     @property
     def getTags(self):
-        return self.tags.all()
+        cacheKey = f"topic_tags_{self.id}"
+        topictags = cache.get(cacheKey, None)
+        if topictags is None:
+            topictags = self.tags.all()
+            cache.set(cacheKey, topictags, settings.CACHE_SHORT)
+        return topictags
 
     @property
-    def totalProjects(self):
-        from projects.models import Project
-        return Project.objects.filter(topics=self).count()
+    def totalTags(self):
+        cacheKey = f"topic_tagscount_{self.id}"
+        topictagscount = cache.get(cacheKey, None)
+        if topictagscount is None:
+            topictagscount = self.tags.count()
+            cache.set(cacheKey, topictagscount, settings.CACHE_SHORT)
+        return topictagscount
 
     @property
     def getProjects(self):
-        from projects.models import Project
-        return Project.objects.filter(topics=self)
+        cacheKey = f"topic_projects_{self.id}"
+        topicprojects = cache.get(cacheKey, None)
+        if topicprojects is None:
+            from projects.models import Project
+            topicprojects = Project.objects.filter(topics=self)
+            cache.set(cacheKey, topicprojects, settings.CACHE_SHORT)
+        return topicprojects
+
+    @property
+    def totalProjects(self):
+        return self.getProjects.count()
 
     @property
     def totalXP(self):
-        return (ProfileTopic.objects.filter(topic=self).aggregate(models.Sum('points')))['points__sum']
+        cacheKey = f"topic_totalxp_{self.id}"
+        topictotalxp = cache.get(cacheKey, None)
+        if topictotalxp is None:
+            topictotalxp = (ProfileTopic.objects.filter(topic=self).aggregate(models.Sum('points')))['points__sum']
+            cache.set(cacheKey, topictotalxp, settings.CACHE_SHORT)
+        return topictotalxp
 
     @property
     def isDeletable(self) -> bool:
@@ -297,7 +331,12 @@ class Profile(models.Model):
 
     @property
     def is_manager(self):
-        return Management.objects.filter(profile=self).exists()
+        cacheKey = f"profile_ismanager_{self.id}"
+        data = cache.get(cacheKey, None)
+        if data is None:
+            data = Management.objects.filter(profile=self).exists()
+            cache.set(cacheKey, data, settings.CACHE_SHORT)
+        return data
 
     @property
     def phone_number(self):
@@ -314,7 +353,12 @@ class Profile(models.Model):
     @property
     def management(self):
         try:
-            return Management.objects.get(profile=self)
+            cacheKey = f"profile_management_{self.id}"
+            data = cache.get(cacheKey, None)
+            if data is None:
+                data = Management.objects.get(profile=self)
+                cache.set(cacheKey, data, settings.CACHE_SHORT)
+            return data
         except ObjectDoesNotExist:
             return False
         except Exception as e:
@@ -333,7 +377,12 @@ class Profile(models.Model):
 
     @property
     def managements(self):
-        return Management.objects.filter(people=self)
+        cacheKey = f"profile_management_person_{self.id}"
+        data = cache.get(cacheKey, None)
+        if data is None:
+            data = Management.objects.filter(people=self)
+            cache.set(cacheKey, data, settings.CACHE_MINI)
+        return data
     
     def addToManagement(self, mgmID) -> bool:
         try:
@@ -358,9 +407,7 @@ class Profile(models.Model):
 
     def convertToManagement(self, force=False) -> bool:
         try:
-            if not self.is_normal:
-                raise Exception()
-            if self.is_manager:
+            if not self.is_normal or self.is_manager:
                 raise Exception()
             if force:
                 if self.is_moderator:
@@ -514,7 +561,13 @@ class Profile(models.Model):
         """
         Github linked or not.
         """
-        return not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
+        cacheKey = f"profile_hasghID_{self.id}"
+        data = cache.get(cacheKey, None)
+        if data is None:
+            data = not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
+            if data:
+                cache.set(cacheKey, data, settings.CACHE_INSTANT)
+        return data
 
     def gh_user(self):
         try:
@@ -531,7 +584,13 @@ class Profile(models.Model):
     @property
     def get_ghLink(self) -> str:
         try:
-            return SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()
+            cacheKey = f"profile_ghlink_{self.id}"
+            data = cache.get(cacheKey, None)
+            if data is None:
+                data = SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()
+                if data:
+                    cache.set(cacheKey, data, settings.CACHE_MINI)
+            return data
         except:
             return None
 
@@ -636,10 +695,14 @@ class Profile(models.Model):
 
     @property
     def getTopicIds(self):
-        topIDs = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points').values_list('topic__id', flat=True)
-        def hexize(topUUID):
-            return topUUID.hex
-        return list(map(hexize,topIDs))
+        cacheKey = f"profile_topicIDs_{self.id}"
+        data = cache.get(cacheKey, None)
+        if data is None:
+            topIDs = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points').values_list('topic__id', flat=True)
+            data = list(map(lambda t: t.hex,list(topIDs)))
+            if len(data):
+                cache.set(cacheKey, data, settings.CACHE_MINI)
+        return data
 
     def getTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
@@ -783,19 +846,30 @@ class Profile(models.Model):
 
     @property
     def tags(self) -> list:
-        return self.topics.values_list('tags',flat=True).distinct()
+        cacheKey = f"profile_tags_{self.id}"
+        data = cache.get(cacheKey, None)
+        if data is None:
+            topIDs = self.topics.values_list('tags',flat=True).distinct()
+            if len(data):
+                cache.set(cacheKey, data, settings.CACHE_MINI)
+        return data
     
     def recommended_projects(self, atleast=3, atmost=4):
         def approved_only(project):
             return project.is_approved
         try:
-            constquery = Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles)
-            query = Q(topics__in=self.topics.all())
-            projects = BaseProject.objects.filter(~constquery,query).order_by('-admirers').distinct()
-            projects = list(set(list(filter(approved_only,projects))))
-            if len(projects) < atleast:
-                projects = BaseProject.objects.filter(~constquery).order_by('-admirers').distinct()
+            cacheKey = f"profile_recommendedprojects_{self.id}"
+            projects = cache.get(cacheKey, None)
+            if projects is None:
+                constquery = Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles)
+                query = Q(topics__in=self.topics.all())
+                projects = BaseProject.objects.filter(~constquery,query).order_by('-admirers').distinct()
                 projects = list(set(list(filter(approved_only,projects))))
+                if len(projects) < atleast:
+                    projects = BaseProject.objects.filter(~constquery).order_by('-admirers').distinct()
+                    projects = list(set(list(filter(approved_only,projects))))
+                if len(projects):
+                    cache.set(cacheKey, data, settings.CACHE_SHORT)
             return projects[:atmost]
         except Exception as e:
             errorLog(e)
@@ -803,8 +877,13 @@ class Profile(models.Model):
 
     def recommended_topics(self, atleast=1, atmost=5):
         try:
-            topics = Topic.objects.exclude(id__in=self.getAllTopicIds)[:atmost]
-            return topics
+            cacheKey = f"profile_recommendedtopics_{self.id}"
+            data = cache.get(cacheKey, None)
+            if data is None:
+                data = Topic.objects.exclude(id__in=self.getAllTopicIds)
+                if len(data):
+                    cache.set(cacheKey, data, settings.CACHE_MINI)
+            return data[:atmost]
         except Exception as e:
             errorLog(e)
             return []

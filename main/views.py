@@ -572,8 +572,7 @@ def browser(request: WSGIRequest, type: str):
                 if not len(snaps):
                     snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
-                    if len(snaps):
-                        cache.set(cachekey, snaps, settings.CACHE_INSTANT)
+                    cache.set(cachekey, snaps, settings.CACHE_INSTANT)
                 
                 data = dict(
                     html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
@@ -590,23 +589,11 @@ def browser(request: WSGIRequest, type: str):
                     excludeUserIDs.append(request.user.profile.getUserID())
                 profiles = Profile.objects.exclude(user__id__in=excludeUserIDs).filter(
                     user__emailaddress__verified=True,
-                    createdOn__gte=(timezone.now()+timedelta(days=-15)),
+                    createdOn__gte=(
+                        timezone.now()+timedelta(days=-60)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
-                if len(profiles) < 5:
-                    profiles = Profile.objects.exclude(user__id__in=excludeUserIDs).filter(
-                        user__emailaddress__verified=True,
-                        createdOn__gte=(
-                            timezone.now()+timedelta(days=-30)),
-                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
-                if len(profiles) < 10:
-                    profiles = Profile.objects.exclude(user__id__in=excludeUserIDs).filter(
-                        user__emailaddress__verified=True,
-                        createdOn__gte=(
-                            timezone.now()+timedelta(days=-60)),
-                        suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
-                if len(profiles):
-                    cache.set(cachekey, profiles, settings.CACHE_MINI)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
+                cache.set(cachekey, profiles, settings.CACHE_MINI)
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=count))
 
         elif type == Browse.NEW_PROJECTS:
             projects = cache.get(cachekey,[])
@@ -615,18 +602,16 @@ def browser(request: WSGIRequest, type: str):
                     timezone.now()+timedelta(days=-30)), suspended=False, trashed=False).exclude(creator__user__id__in=excludeUserIDs).order_by('-createdOn')[:limit]
 
                 projects = list(set(list(filter(lambda p: p.is_approved, projects))))
-                if len(projects):
-                    cache.set(cachekey, projects, settings.CACHE_MINI)
+                cache.set(cachekey, projects, settings.CACHE_MINI)
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
 
         elif type == Browse.RECENT_WINNERS:
-            results = cache.get(cachekey, [])
-            if not len(results):
+            results = cache.get(cachekey, None)
+            if results is None:
                 results = Result.objects.filter(competition__resultDeclared=True, competition__startAt__gte=(
                     timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[:limit]
-                if len(results):
-                    cache.set(cachekey, results, settings.CACHE_MINI)
+                cache.set(cachekey, results, settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
 
         elif type == Browse.RECOMMENDED_PROJECTS:
@@ -640,35 +625,25 @@ def browser(request: WSGIRequest, type: str):
                 
                 projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery, query).exclude(creator__user__id__in=excludeUserIDs)[:limit]
                 projects = list(set(list(filter(lambda p: p.is_approved,projects))))
-                
-                if len(projects) < 3:
+                count = len(projects)
+                if count < 1:
                     projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery).exclude(creator__user__id__in=excludeUserIDs)[:limit]
                     projects = list(set(list(filter(lambda p: p.is_approved,projects))))
-                if len(projects):
+                    count = len(projects)
+
+                if count:
                     cache.set(cachekey, projects, settings.CACHE_MINI)
             
-            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=len(projects)))
+            return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=count))
         elif type == Browse.TRENDING_TOPICS:
             # TODO
             return HttpResponseBadRequest(Browse.TRENDING_TOPICS)
         elif type == Browse.TRENDING_PROJECTS:
             projects = cache.get(cachekey,[])
             if not len(projects):
-                query = Q()
-                authquery = query
-                if request.user.is_authenticated:
-                    query = Q(topics__in=request.user.profile.getTopics())
-                    authquery = ~Q(creator=request.user.profile)
-
-                projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery, query).exclude(creator__user__id__in=excludeUserIDs)[:limit]
+                projects = BaseProject.objects.filter(Q(trashed=False,suspended=False)).exclude(creator__user__id__in=excludeUserIDs)[:limit]
                 projects = list(set(list(filter(lambda p: p.is_approved,projects))))
-
-                if len(projects) < 3:
-                    projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery).exclude(creator__user__id__in=excludeUserIDs)[:limit]
-                    projects = list(set(list(filter(lambda p: p.is_approved,projects))))
-                if len(projects):
-                    cache.set(cachekey, projects, settings.CACHE_MINI)
-    
+                cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
             # TODO
@@ -683,8 +658,7 @@ def browser(request: WSGIRequest, type: str):
             competitions = cache.get(cachekey,[])
             if not len(competitions):
                 competitions=Competition.objects.filter(hidden=False,is_draft=False).order_by("-startAt")[:limit]
-                if len(competitions):
-                    cache.set(cachekey,competitions,settings.CACHE_MINI)
+                cache.set(cachekey,competitions,settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         elif type == Browse.TRENDING_MENTORS:
             mentors = cache.get(cachekey,[])
@@ -692,8 +666,7 @@ def browser(request: WSGIRequest, type: str):
                 mentors = Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
                 if request.user.is_authenticated:
                     mentors = request.user.profile.filterBlockedProfiles(mentors)
-                if len(mentors):
-                    cache.set(cachekey, mentors, settings.CACHE_MINI)
+                cache.set(cachekey, mentors, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
         elif type == Browse.TRENDING_MODERATORS:
             moderators = cache.get(cachekey,[])
@@ -701,20 +674,18 @@ def browser(request: WSGIRequest, type: str):
                 moderators = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
                 if request.user.is_authenticated:
                     moderators = request.user.profile.filterBlockedProfiles(moderators)
-                if len(moderators):
-                    cache.set(cachekey, moderators, settings.CACHE_MINI)
+                cache.set(cachekey, moderators, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MODS, dict(moderators=moderators, count=len(moderators)))
         elif type == Browse.DISPLAY_MENTORS:
             dmentors = cache.get(cachekey,[])
             if not len(dmentors):
                 dmentors = DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
-                if len(dmentors):
-                    cache.set(cachekey, dmentors, settings.CACHE_MINI)
+                cache.set(cachekey, dmentors, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
         else:
             return HttpResponseBadRequest(type)
     except Exception as e:
-        errorLog(e)
         if request.POST.get(Code.JSON_BODY, False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        errorLog(e)
         raise Http404(e)

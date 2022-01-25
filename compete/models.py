@@ -838,7 +838,7 @@ class Result(models.Model):
     
     @property
     def topic_points(self):
-        topicscore = cache.get(f"submission_topic_score_result_{self.id}")
+        topicscore = cache.get(f"submission_topic_score_result_{self.id}",None)
         if not topicscore:
             topicscore = SubmissionTopicPoint.objects.filter(submission=self.submission).values('topic__id','topic__name').annotate(score=Sum('points'))
             cache.set(f"submission_topic_score_result_{self.id}", topicscore, settings.CACHE_MAX)
