@@ -51,7 +51,7 @@ def auth_index_tab(request:WSGIRequest, section:str):
         if data:
             return HttpResponse(data)
         else:
-            raise Exception('No such section')
+            raise Exception('No section data')
     except Exception as e:
         errorLog(e)
         raise Http404(e)

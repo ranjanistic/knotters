@@ -4,3 +4,16 @@
 {% load tz %}
 {% load cache %}
 {% load custom_tags %}
+
+<div class="w3-row w3-padding">
+<div class="pallete-slab">
+<h4 class="dead-text">Email addresses</h4>
+ {% for email in request.user.get_emailaddresses %}
+    {{email}}
+ {% endfor %}
+<h4 class="dead-text">Password</h4>
+Coming soon.
+<h4 class="dead-text">Linked accounts</h4>
+Coming soon.
+</div>
+</div>

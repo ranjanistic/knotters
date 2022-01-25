@@ -180,7 +180,7 @@ const loadGlobalEventListeners = () => {
         }
     });
     getElementsByTag("i").forEach((icon) => {
-        icon.classList.add("material-icons");
+        icon.classList.add("material-icons", "w3-animate-zoom");
     });
 
     getElements("preview-type-image").forEach((image) => {
@@ -319,7 +319,7 @@ const _processReCaptcha = (
 };
 
 const Icon = (name, classnames = "") =>
-    `<i class="material-icons ${classnames}">${name}</i>`;
+    `<i class="material-icons ${classnames} w3-animate-zoom">${name}</i>`;
 
 const loadCarousels = ({
     container = "swiper-container",

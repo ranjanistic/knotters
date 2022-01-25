@@ -93,13 +93,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True
 
-    @property
     def emails(self):
         return EmailAddress.objects.filter(user=self).values_list('email', flat=True)
 
-    @property
+    def get_emailaddresses(self):
+        return EmailAddress.objects.filter(user=self)
+
     def phones(self):
         return PhoneNumber.objects.filter(user=self).values_list('number', flat=True)
+
+    def get_phonenumbers(self):
+        return PhoneNumber.objects.filter(user=self)
 
     @property
     def get_name(self) -> str:

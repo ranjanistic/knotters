@@ -13,7 +13,7 @@
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
 
-{% block nav_back_theme %}{{request.user.profile.text_theme}} primary{% endblock %}
+{% block nav_back_theme %}primary{% endblock %}
 
 {% block nav_style %}{{ request.user.profile.theme }}{% endblock %}
 {% block nav_text_style %}{{ request.user.profile.text_theme }}{% endblock %}
@@ -39,6 +39,7 @@
     <button class="auth-nav-tab" id="security" data-icon="security"><span class="w3-hide-small">Security</span></button>
     <button class="auth-nav-tab" id="preference" data-icon="tune"><span class="w3-hide-small">Preference</span></button>
 </div>
+<br/>
 <div class="w3-row">
     <div id="tabview"></div>
 </div>
@@ -57,10 +58,7 @@
         uniqueID: "authtab",
         tabindex,
         tabsClass: "auth-nav-tab",
-        onShowTab: async (tab) => {
-
-            
-            
+        onShowTab: async (tab) => {   
         },
     });
 </script>

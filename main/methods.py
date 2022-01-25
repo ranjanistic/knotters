@@ -4,6 +4,7 @@ import requests
 import base64
 from uuid import uuid4
 from htmlmin.minify import html_minify
+import traceback
 import re
 import json
 from django.core.handlers.wsgi import WSGIRequest
@@ -210,9 +211,8 @@ class JsonEncoder(DjangoJSONEncoder):
 def errorLog(*args, raiseErr=True):
     if not ISTESTING:
         logging.log(logging.ERROR, args)
-        # if ISDEVELOPMENT:
-        #     if raiseErr:
-        #         raise Exception(args)
+        if ISDEVELOPMENT:
+            return traceback.print_exc()
 
 
 def getNumberSuffix(value: int) -> str:

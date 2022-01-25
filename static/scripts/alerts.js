@@ -283,7 +283,7 @@ const loaderHTML = (loaderID = "loader") =>
 const loadErrorHTML = (
     retryID = "retryload"
 ) => `<div class="w3-center w3-padding-32">
-<i class="negative-text material-icons w3-jumbo">error</i>
+${Icon("error", "w3-jumbo negative-text")}
 <h3>${
     STRING.oops_something_went_wrong
 }</h3><button class="primary" id="${retryID}">${Icon("refresh")} ${
