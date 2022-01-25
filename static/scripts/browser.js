@@ -65,7 +65,7 @@ const loadBrowsers = () => {
                         method();
                     return;
                 }
-                setHtmlContent(view, data, loadBrowserSwiper);
+                setHtmlContent(view, data===true?'':data, loadBrowserSwiper);
                 loadBrowserSwiper();
             };
             return await method();

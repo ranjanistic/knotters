@@ -18,7 +18,7 @@ from main.bots import Github
 from allauth.account.models import EmailAddress
 from main.env import PUBNAME
 from main.decorators import github_remote_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, htmlmin, renderString, respondJson, respondRedirect
+from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import requestModerationForCoreProject, requestModerationForObject
@@ -1416,12 +1416,12 @@ def snapshots(request: WSGIRequest, projID: UUID, limit: int):
         snapIDs = [snap.id for snap in snaps]
         
         if not len(snaps):
-            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False,suspended=False).exclude(id__in=excludeIDs).order_by('-created_on')[0:limit]
+            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False,suspended=False).exclude(id__in=excludeIDs).order_by('-created_on')[0:int(limit)]
             snapIDs = [snap.id for snap in snaps]
             if len(snaps):
                 cache.set(cachekey, snaps, settings.CACHE_INSTANT)
         return respondJson(Code.OK, dict(
-            html=htmlmin(renderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)), True),
+            html=renderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
             snapIDs=snapIDs
         ))
     except Exception as e:
