@@ -6,13 +6,18 @@
 {% load cache %}
 {% load custom_tags %}
 
+{% block meta_description %}A new project is always a good start. Create a Quick, Verified, or Core project at {{APPNAME}}.{% endblock %}
+
 {% block og_url %}{{URLS.CREATE}}{% endblock %}
+{% block og_description %}A new project is always a good start. Create a Quick, Verified, or Core project at {{APPNAME}}.{% endblock %}
 {% block og_title %}{% trans "Create Project" %}{% endblock %}
 {% block og_site_name %}{% trans "Create Project" %}{% endblock %}
 
 {% block tw_url %}{{URLS.CREATE}}{% endblock %}
 {% block tw_title %}{% trans "Create Project" %}{% endblock %}
 {% block tw_site_name %}{% trans "Create Project" %}{% endblock %}
+{% block tw_description %}A new project is always a good start. Create a Quick, Verified, or Core project at {{APPNAME}}.{% endblock %}
+
 {% block title%}{% trans "Create project" %}{%endblock%}
 
 {% block nav_extra_links %}

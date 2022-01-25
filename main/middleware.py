@@ -11,6 +11,7 @@ from django.contrib.sessions.backends.base import UpdateError
 from django.core.exceptions import SuspiciousOperation
 from django.utils.cache import patch_vary_headers
 from django.utils.http import http_date
+from rjsmin import jsmin
 from django.conf import settings
 from .strings import message, URL, Code
 from .env import ADMINPATH

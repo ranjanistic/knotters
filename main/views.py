@@ -576,7 +576,7 @@ def browser(request: WSGIRequest, type: str):
                         cache.set(cachekey, snaps, settings.CACHE_INSTANT)
                 
                 data = dict(
-                    html=htmlmin(renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)), True),
+                    html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
                     snapIDs=snapIDs,
                     recommended=False
                 )

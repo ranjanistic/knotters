@@ -949,7 +949,7 @@ def snapAdmirations(request, snapID):
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         snap = Snapshot.objects.get(
-            id=snapID, trashed=False, suspended=False)
+            id=snapID,  suspended=False)
         admirers = snap.admirers.filter(is_active=True, suspended=False)
         if request.user.is_authenticated:
             admirers = request.user.profile.filterBlockedProfiles(admirers)

@@ -75,6 +75,7 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'main.middleware.TwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
+    # 'csp.middleware.CSPMiddleware',
     # "main.middleware.ActivityMiddleware",
     # "main.middleware.AuthAccessMiddleware",
     "main.middleware.MinifyMiddleware",
@@ -238,6 +239,7 @@ if not env.STATIC_ROOT in STATICFILES_DIRS:
     STATIC_ROOT = env.STATIC_ROOT
 elif DEBUG:
     STATIC_ROOT = env.STATIC_ROOT
+
 
 
 CORS_ORIGIN_ALLOW_ALL = False

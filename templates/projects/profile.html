@@ -6,10 +6,10 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block meta_description %}{{ project.description }}{% endblock %}
+{% block meta_description %}Checkout {{project.name}} at {{APPNAME}}. {{ project.description }}{% endblock %}
 {% block og_url %}{{project.getLink}}{% endblock %}
 {% block og_title %}{{project.name}}{% endblock %}
-{% block og_description %}{{ project.description }}{% endblock %}
+{% block og_description %}Checkout {{project.name}} at {{APPNAME}}. {{ project.description }}{% endblock %}
 {% block og_site_name %}{{project.name}}{% endblock %}
 {% block og_image_url %}{{project.getDP}}{% endblock %}
 
@@ -18,7 +18,7 @@
 {% block tw_image_url %}{{project.getDP}}{% endblock %}
 {% block tw_url %}{{project.getLink}}{% endblock %}
 {% block tw_title %}{{project.name}}{% endblock %}
-{% block tw_description %}{{ project.description }}{% endblock %}
+{% block tw_description %}Checkout {{project.name}} at {{APPNAME}}. {{ project.description }}{% endblock %}
 
 {% block title %}{{project.name}}{% endblock %}
 

@@ -4,8 +4,8 @@ from django.core.cache import cache
 from django.http.response import HttpResponse
 from people.models import Profile
 from github import NamedUser, Repository
-from main.bots import Github, GithubKnotters
-from main.strings import Code, Event, url, Message
+from main.bots import GithubKnotters
+from main.strings import Code, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
@@ -273,7 +273,8 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                 user_push_restrictions=[moderator.ghID],
             )
             msg += 'branch done, '
-        except:
+        except Exception as e:
+            msg += f'branch err: {e},'
             pass
         
         ghrepoteam = project.gh_team()
@@ -288,8 +289,10 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                     privacy='closed'
                 )
                 msg += 'team done, '
-        except:
+        except Exception as e:
+            msg += f'team err: {e},'
             pass
+
         try:
             if ghrepoteam:
                 if not ghrepoteam.has_in_members(ghMod):
@@ -304,7 +307,8 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                         role="member"
                     )
                     msg += 'team member done, '
-        except:
+        except Exception as e:
+            msg += f'team member err: {e},'
             pass
         
         try:
@@ -316,7 +320,8 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                 ghOrgRepo.add_to_collaborators(
                     collaborator=ghUser, permission="push")
                 msg += 'repo collaborator done, '
-        except:
+        except Exception as e:
+            msg += f'repo collab err: {e},'
             pass
         
         try:
@@ -331,8 +336,10 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                 )
             )
             msg += 'hook done, '
-        except:
+        except Exception as e:
+            msg += f'hook err: {e},'
             pass
+        
         cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
         return True, msg
@@ -379,10 +386,12 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
                 delete_branch_on_merge=False
             )
             msg = "repository done, "
+
         try:
             ghOrgRepo.create_file('LICENSE','Add LICENSE',str(coreproject.license.content))
             msg = msg + "license done, "
-        except:
+        except Exception as e:
+            msg += f'license err: {e},'
             pass
 
         ghrepoteam = coreproject.gh_team()
@@ -396,7 +405,8 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
                     privacy='closed'
                 )
                 msg = msg + "team done, "
-        except:
+        except Exception as e:
+            msg += f'team err: {e},'
             pass
 
         try:
@@ -414,7 +424,8 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
                             role="member"
                         )
                         msg = msg + "team member done, "
-        except:
+        except Exception as e:
+            msg += f'team member err: {e},'
             pass
 
         try:
@@ -427,7 +438,8 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
                     ghOrgRepo.add_to_collaborators(
                         collaborator=ghUser, permission="push")
                     msg = msg + "repo member done, "
-        except:
+        except Exception as e:
+            msg += f'repo collab: {e},'
             pass
         
         try:
@@ -442,8 +454,10 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
                 )
             )
             msg = msg + "hook done."
-        except:
+        except Exception as e:
+            msg += f'hook err: {e},'
             pass
+        
         cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendCoreProjectApprovedNotification.__name__}",coreproject)
         return True, msg

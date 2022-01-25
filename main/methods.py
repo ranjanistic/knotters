@@ -83,7 +83,7 @@ def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: 
     :data: The dict data to be render in the view.
     :fromApp: The subapplication division name under which the given view named template file resides
     """
-    return render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request)
+    return htmlmin(render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request))
 
 
 def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str()) -> JsonResponse:
@@ -377,10 +377,13 @@ def removeUnverified():
         return delusers, profs
     return False
 
-def htmlmin(htmlstr, fragment=False, *args, **kwargs):
+def htmlmin(htmlstr:str, *args, **kwargs):
     if settings.DEBUG:
         return htmlstr
-    mincode = html_minify(htmlstr, *args, **kwargs)
-    if not fragment:
-        return mincode
-    return re.sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
+    try:
+        mincode = html_minify(htmlstr, *args, **kwargs)
+        if len(re.findall(r'<(html|\/html|)>',htmlstr)) != 0:
+            return mincode
+        return re.sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
+    except:
+        return htmlstr.strip()

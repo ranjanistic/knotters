@@ -911,8 +911,8 @@ class URL():
 
         GITHUB_EVENTS = 'github-events/<str:type>/<str:projID>'
 
-        def githubEvents(self, type, event, projID):
-            return setPathParams(self.GITHUB_EVENTS, type, event, projID)
+        def githubEvents(self, type, projID):
+            return setPathParams(self.GITHUB_EVENTS, type, projID)
 
         GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
 
