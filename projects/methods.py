@@ -1,15 +1,21 @@
+import traceback
 from uuid import UUID
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models.query_utils import Q, InvalidQuery
 from django.core.cache import cache
 from django.http.response import HttpResponse
+from allauth.account.models import EmailAddress
+from django_q.models import Success
+from management.models import HookRecord
 from people.models import Profile
 from github import NamedUser, Repository
 from main.bots import GithubKnotters
-from main.strings import Code, url, Message
+from main.strings import Code, Event, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
-from .models import Category, CoreProject, FreeProject, License, Project, ProjectSocial, Tag
+from .models import Category, CoreProject, FileExtension, FreeProject, License, Project, ProjectHookRecord, ProjectSocial, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification, sendCoreProjectApprovedNotification
 
@@ -547,5 +553,145 @@ def deleteGhOrgCoreepository(coreproject: CoreProject):
         pass
     return True
 
+
+def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
+    try:
+        status = cache.get(f'gh_event_hook_status_{hookrecordID}', Code.NO)
+        if status == Code.OK:
+            return True, 'Processing or processed'
+        cache.set(f'gh_event_hook_status_{hookrecordID}', Code.OK, settings.CACHE_LONG)
+        hookrecord = HookRecord.objects.get(id=hookrecordID, success=False)
+        if ghevent == Event.PUSH:
+            commits = postData["commits"]
+            committers = {}
+            un_committers = []
+            for commit in commits:
+                commit_author_ghID = commit["author"]["username"]
+                commit_author_email = commit["author"]["email"]
+                if commit_author_ghID not in un_committers:
+                    commit_committer = committers.get(commit_author_ghID, None)
+                    if not commit_committer:
+                        commit_committer = Profile.objects.filter(Q(Q(githubID=commit_author_ghID) | Q(
+                            user__email=commit_author_email)), is_active=True, suspended=False, to_be_zombie=False).first()
+                        if not commit_committer:
+                            emailaddr = EmailAddress.objects.filter(
+                                email=commit_author_email, verified=True).first()
+                            if not emailaddr:
+                                un_committers.append(commit_author_ghID)
+                                continue
+                            else:
+                                commit_committer = emailaddr.user.profile
+                            committers[commit_author_ghID] = commit_committer
+                        else:
+                            committers[commit_author_ghID] = commit_committer
+                    added = commit.get("added",[])
+                    removed = commit.get("removed",[])
+                    modified = commit.get("modified",[])
+                    changed = added + removed + modified
+                    extensions = {}
+                    for change in changed:
+                        parts = change.split('.')
+                        if len(parts) < 1:
+                            continue
+                        ext = parts[len(parts)-1]
+                        extdic = extensions.get(ext, {})
+                        fileext = extdic.get('fileext', None)
+                        if not fileext:
+                            fileext, _ = FileExtension.objects.get_or_create(
+                                extension__iexact=ext, defaults=dict(extension=ext))
+                            extensions[ext] = dict(fileext=fileext, topics=[])
+                            try:
+                                fileext.topics.set(project.topics.all())
+                            except:
+                                pass
+                        extensions[ext]['topics'] = list(set(extensions[ext]['topics'] + list(fileext.getTopics())))
+                        for topic in fileext.topics.all():
+                            hastopic = False
+                            increase = True
+                            lastxp = 0
+                            tpos = 0
+                            if len(extensions[ext]['topics']) > 0:
+                                for top in extensions[ext]['topics']:
+                                    tpos = tpos + 1
+                                    if top['topic'] == topic:
+                                        hastopic = True
+                                        lastxp = top['xp']
+                                        if lastxp > 9:
+                                            increase = False
+                                        break
+
+                            if increase and len(extensions[ext]['topics']) > 0:
+                                by = 1
+                                commit_committer.increaseTopicPoints(
+                                    by=by, topic=topic)
+                                if hastopic:
+                                    extensions[ext]['topics'][tpos]['xp'] = lastxp+by
+                                else:
+                                    extensions[ext]['topics'].append(
+                                        dict(topic=topic, xp=(lastxp+by)))
+            if len(changed) > 1:
+                project.creator.increaseXP(
+                    by=(((len(commits)//len(committers))//2) or 1))
+                project.moderator.increaseXP(
+                    by=(((len(commits)//len(committers))//3) or 1))
+        elif ghevent == Event.PR:
+            pr = postData.get('pull_request', None)
+            if pr:
+                action = postData.get('action', None)
+                pr_creator_ghID = pr['user']['login']
+                if action == 'opened':
+                    pr_creator = Profile.objects.filter(
+                        githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
+                    if pr_creator:
+                        pr_creator.increaseXP(by=2)
+                elif action == 'closed':
+                    pr_creator = Profile.objects.filter(
+                        githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
+                    if pr['merged']:
+                        if pr_creator:
+                            pr_creator.increaseXP(by=3)
+                        project.creator.increaseXP(by=2)
+                        project.moderator.increaseXP(by=1)
+                    else:
+                        if pr_creator:
+                            pr_creator.decreaseXP(by=2)
+                elif action == 'reopened':
+                    pr_creator = Profile.objects.filter(
+                        githubID=pr_creator_ghID, is_active=True ,suspended=False,to_be_zombie=False).first()
+                    if pr_creator:
+                        pr_creator.increaseXP(by=2)
+                elif action == 'review_requested':
+                    pr_reviewer = Profile.objects.filter(
+                        githubID=pr['requested_reviewer']['login'], is_active=True, suspended=False,to_be_zombie=False).first()
+                    if pr_reviewer:
+                        pr_reviewer.increaseXP(by=4)
+                elif action == 'review_request_removed':
+                    pr_reviewer = Profile.objects.filter(
+                        githubID=pr['requested_reviewer']['login'], is_active=True, suspended=False,to_be_zombie=False).first()
+                    if pr_reviewer:
+                        pr_reviewer.decreaseXP(by=3)
+                else:
+                    return False, f"Unhandled '{ghevent}' action: {action}"
+            else:
+                return False, f"Unhandled '{ghevent}': no pull_request data"
+        elif ghevent == Event.STAR:
+            action = postData.get('action', None)
+            if action == 'created':
+                project.creator.increaseXP(by=2)
+                project.moderator.increaseXP(by=1)
+            elif action == 'deleted':
+                project.creator.decreaseXP(by=2)
+                project.moderator.decreaseXP(by=1)
+            else:
+                return False, f"Unhandled '{ghevent}' action: {action}"
+        else:
+            return False, f"Unhandled '{ghevent}'"
+        hookrecord.success = True
+        hookrecord.save()
+        return True, f"hook record ID: {hookrecordID}"
+    except ObjectDoesNotExist:
+        return True, f"hook record ID: {hookrecordID}"
+    except:
+        return False, traceback.format_exc()
 
 from .receivers import *

@@ -378,8 +378,6 @@ def removeUnverified():
     return False
 
 def htmlmin(htmlstr:str, *args, **kwargs):
-    if settings.DEBUG:
-        return htmlstr
     try:
         mincode = html_minify(htmlstr, *args, **kwargs)
         if len(re.findall(r'<(html|\/html|)>',htmlstr)) != 0:

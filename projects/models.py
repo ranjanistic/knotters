@@ -1021,6 +1021,12 @@ class ProjectHookRecord(HookRecord):
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='hook_record_project')
 
+class CoreProjectHookRecord(HookRecord):
+    """
+    Github Webhook event record to avoid redelivery misuse.
+    """
+    coreproject = models.ForeignKey(CoreProject, on_delete=models.CASCADE, related_name='hook_record_project')
+
 def snapMediaPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/snapshots/{str(instance.get_id)}-{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
@@ -1113,6 +1119,13 @@ class FileExtension(models.Model):
         for topic in self.topics.all():
             tags = tags + list(topic.getTags())
         return tags
+
+    def getTopics(self):
+        topics = cache.get(f"file_ext_topics_{self.id}",[], settings.CACHE_INSTANT)
+        if not len(topics):
+            topics = self.topics.all()
+            cache.set(f"file_ext_topics_{self.id}", topics, settings.CACHE_INSTANT)
+        return topics
 
 class TopicFileExtension(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

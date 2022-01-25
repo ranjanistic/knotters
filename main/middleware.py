@@ -1,5 +1,4 @@
 from django.shortcuts import redirect
-from htmlmin.minify import html_minify
 from django.http.response import HttpResponseForbidden
 from django.urls import resolve
 from ipaddress import ip_address
@@ -8,14 +7,13 @@ import time
 from allauth_2fa.middleware import AllauthTwoFactorMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.sessions.backends.base import UpdateError
-from django.core.exceptions import SuspiciousOperation
 from django.utils.cache import patch_vary_headers
 from django.utils.http import http_date
 from rjsmin import jsmin
 from django.conf import settings
 from .strings import message, URL, Code
 from .env import ADMINPATH
-from .methods import allowBypassDeactivated, activity
+from .methods import allowBypassDeactivated, activity, htmlmin
 from django.core.handlers.wsgi import WSGIRequest
 
 
@@ -57,13 +55,12 @@ class MinifyMiddleware(object):
 
     def __call__(self, request: WSGIRequest):
         response = self.get_response(request)
-        if not settings.DEBUG:
-            if response.status_code == 200 and response['Content-Type'] == f'text/html; charset={Code.UTF_8}' and not request.headers.get('X-KNOT-REQ-SCRIPT', False):
-                try:
-                    minified = html_minify(response.content.decode(Code.UTF_8))
-                    response.content = minified.encode(Code.UTF_8)
-                except:
-                    pass
+        if response.status_code == 200 and response['Content-Type'] == f'text/html; charset={Code.UTF_8}' and not request.headers.get('X-KNOT-REQ-SCRIPT', False):
+            try:
+                minified = htmlmin(response.content.decode(Code.UTF_8))
+                response.content = minified.encode(Code.UTF_8)
+            except:
+                pass
         return response
 
 class ActivityMiddleware(object):
@@ -166,7 +163,6 @@ class ExtendedSessionMiddleware(SessionMiddleware):
         """
         try:
             accessed = request.session.accessed
-            modified = request.session.modified
             empty = request.session.is_empty()
         except AttributeError:
             return response
