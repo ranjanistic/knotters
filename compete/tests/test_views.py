@@ -366,6 +366,7 @@ class TestViews(TestCase):
         resp = client.get(follow=True,path=root(url.compete.invitation(
             getRandomStr(), self.user.getID())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+
         resp = client.get(follow=True,path=root(url.compete.invitation(
             subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)

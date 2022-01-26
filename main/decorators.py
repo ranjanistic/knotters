@@ -1,3 +1,4 @@
+import traceback
 from urllib.parse import unquote
 import hmac
 from hashlib import sha256
@@ -37,8 +38,8 @@ def require_JSON_body(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = dict(
-                **request.POST, **json.loads(request.body.decode(Code.UTF_8)), JSON_BODY=True)
+            loadedbody = json.loads(request.body.decode(Code.UTF_8))
+            request.POST = dict(**loadedbody,**request.POST,JSON_BODY=True)
             return function(request, *args, **kwargs)
         except Exception as e:
             if request.method == Code.POST:
@@ -54,8 +55,8 @@ def decode_JSON(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            request.POST = dict(
-                **request.POST, **json.loads(request.body.decode(Code.UTF_8)), JSON_BODY=True)
+            loadedbody = json.loads(request.body.decode(Code.UTF_8))
+            request.POST = dict(**loadedbody,**request.POST,JSON_BODY=True)
             return function(request, *args, **kwargs)
         except Exception as e:
             pass
@@ -80,7 +81,7 @@ def normal_profile_required(function):
     def wrap(request, *args, **kwargs):
         if request.user.profile.is_normal:
             return function(request, *args, **kwargs)
-        if request.method == 'GET':
+        if request.method == Code.GET:
             raise Http404('abnormal user')
         return HttpResponseForbidden('Abnormal user access')
     return wrap
@@ -93,7 +94,7 @@ def moderator_only(function):
         if request.user.profile.is_moderator:
             return function(request, *args, **kwargs)
         else:
-            if request.method == 'GET':
+            if request.method == Code.GET:
                 raise Http404('Unauthorized moderator access')
             return HttpResponseForbidden('Unauthorized moderator access')
     return wrap
@@ -105,7 +106,7 @@ def mentor_only(function):
         if request.user.profile.is_mentor:
             return function(request, *args, **kwargs)
         else:
-            if request.method == 'GET':
+            if request.method == Code.GET:
                 raise Http404('Unauthorized mentor access')
             return HttpResponseForbidden('Unauthorized mentor access')
     return wrap
@@ -117,7 +118,7 @@ def manager_only(function):
         if request.user.profile.is_manager:
             return function(request, *args, **kwargs)
         else:
-            if request.method == 'GET':
+            if request.method == Code.GET:
                 raise Http404('Unauthorized manager access')
             return HttpResponseForbidden('Unauthorized management access')
     return wrap

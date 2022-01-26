@@ -145,7 +145,7 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
 
 @normal_profile_required
 @require_POST
-@ratelimit(key='user', rate='10/m', block=True, method=('POST'))
+@ratelimit(key='user', rate='10/m', block=True, method=(Code.POST))
 def submitFreeProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     alerted = False
@@ -484,7 +484,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
         project = BaseProject.objects.get(
@@ -634,7 +634,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 @normal_profile_required
 @require_POST
 @decode_JSON
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     json_body = request.POST.get("JSON_BODY", False)
     try:
@@ -759,7 +759,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
 @normal_profile_required
 @require_POST
 @decode_JSON
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
     json_body = request.POST.get(Code.JSON_BODY, False)
     next = None
@@ -851,7 +851,7 @@ def userGithubRepos(request):
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def linkFreeGithubRepo(request):
     try:
         repoID = int(request.POST['repoID'])
@@ -872,7 +872,7 @@ def linkFreeGithubRepo(request):
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def unlinkFreeGithubRepo(request: WSGIRequest):
     try:
         project = FreeProject.objects.get(
@@ -891,7 +891,7 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
 
 @normal_profile_required
 @decode_JSON
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def toggleAdmiration(request: WSGIRequest, projID: UUID):
     project = None
     try:
@@ -978,7 +978,7 @@ def snapAdmirations(request, snapID):
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID):
     snap = None
     try:
@@ -1252,7 +1252,7 @@ def browseSearch(request: WSGIRequest):
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        return Http404(e)
+        raise Http404(e)
 
 @ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
@@ -1295,7 +1295,7 @@ def licenseSearch(request: WSGIRequest):
     except Exception as e:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        return Http404(e)
+        raise Http404(e)
 
 @require_JSON_body
 def snapshots(request: WSGIRequest, projID: UUID, limit: int):
@@ -1328,7 +1328,7 @@ def snapshots(request: WSGIRequest, projID: UUID, limit: int):
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def snapshot(request: WSGIRequest, projID: UUID, action: str):
     json_body = request.POST.get(Code.JSON_BODY, False)
     baseproject = None
@@ -1404,7 +1404,7 @@ def reportCategories(request: WSGIRequest):
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def reportProject(request: WSGIRequest):
     try:
         report = request.POST['report']
@@ -1421,7 +1421,7 @@ def reportProject(request: WSGIRequest):
 
 @normal_profile_required
 @require_JSON_body
-@ratelimit(key='user', rate='1/s', block=True, method=('POST'))
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def reportSnapshot(request: WSGIRequest):
     try:
         report = request.POST['report']
@@ -1443,7 +1443,7 @@ def handleOwnerInvitation(request: WSGIRequest):
         projID = request.POST['projectID']
         if action == Action.CREATE:
             email = request.POST['email'].lower()
-            if (request.user.email == email) or (email in request.user.emails):
+            if (request.user.email == email) or (email in request.user.emails()):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
@@ -1534,7 +1534,7 @@ def handleVerModInvitation(request: WSGIRequest):
         
         if action == Action.CREATE:
             email = request.POST['email'].lower()
-            if (request.user.email == email) or (email in request.user.emails):
+            if (request.user.email == email) or (email in request.user.emails()):
                 raise ObjectDoesNotExist(email)
             project = Project.objects.get(id=projID, suspended=False, trashed=False)
             if project.moderator != request.user.profile:
@@ -1633,7 +1633,7 @@ def handleCoreModInvitation(request: WSGIRequest):
         projID = request.POST['projectID']
         if action == Action.CREATE:
             email = request.POST['email'].lower()
-            if (request.user.email == email) or (email in request.user.emails):
+            if (request.user.email == email) or (email in request.user.emails()):
                 raise ObjectDoesNotExist(email)
             coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
             if coreproject.moderator != request.user.profile:

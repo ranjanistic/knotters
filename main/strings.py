@@ -164,6 +164,7 @@ class Message():
     INVALID_ID = _('Invalid ID')
     USER_NOT_EXIST = _('User doesn\'t exist.')
     USER_PARTICIPANT_OR_INVITED = _("User already participating or invited.")
+    INVITE_NOTEXIST = _("Invitation does not exists")
     SUBMITTED_ALREADY = _("Already submitted")
     SUBMITTED_SUCCESS = _("Submitted successfully")
     SUBMITTED_LATE = _("Submitted, but late.")

@@ -43,7 +43,8 @@
     <strong class="dead-text text-medium w3-padding">Your next project can be anyone of the following.</strong>
     </center>
     <br/>
-    <div class="w3-col w3-third w3-padding">
+    <div class="w3-row">
+        <div class="w3-col w3-third w3-padding">
             <div class="pallete primary positive">
                 <center><h2 class="text-positive">{% trans "Quick Project" %}</h2></center><br/>
                 <div class="pallete-slab primary">
@@ -62,8 +63,8 @@
                     <br/>
                 </div>
             </div>
-    </div>
-    <div class="w3-col w3-third w3-padding">
+        </div>
+        <div class="w3-col w3-third w3-padding">
             <div class="pallete accent">
                 <center><h2>{% trans "Verified Project" %}</h2></center><br/>
                 <div class="pallete-slab primary">
@@ -76,18 +77,18 @@
                     <strong class="text-medium">&#183;&nbsp;&nbsp;Separate Discord channel on Knotters Discord Server</strong><br/><br/>
                     <center>
                     <a href="{{URLS.CREATE_MOD}}">
-                        <button class="big-button accent" data-icon="send">New Verified Project</button>
+                        <button class="big-button accent" data-icon="verified">New Verified Project</button>
                     </a>
                     </center>
                     <br/>
                 </div>
             </div>
-    </div>
-    <div class="w3-col w3-third w3-padding">
+        </div>
+        <div class="w3-col w3-third w3-padding">
             <div class="pallete primary positive-text">
                 <center><h2>{% trans "Core Project" %}</h2></center><br/>
                 <div class="pallete-slab tertiary">
-                    <h4>Submit a request to get an approved project with a private preset repository at <a href="https://github.com/Knotters">{{APPNAME}}</a>.</h4><br/>
+                    <h4>Request a project with a private preset repository at <a href="https://github.com/Knotters">{{APPNAME}}</a>.</h4><br/>
                     <strong class="text-medium">&#183;&nbsp;&nbsp;Everything of the Verified Project</strong><br/><br/>
                     <strong class="text-medium">&#183;&nbsp;&nbsp;A preset repository and team on GitHub, hidden from rest of the world.</strong><br/><br/>
                     <strong class="text-medium">&#183;&nbsp;&nbsp;Pay as you associate static assets</strong><br/><br/>
@@ -101,6 +102,77 @@
                     <br/>
                 </div>
             </div>
+        </div>
+    </div>
+    <br/>
+    <br/>
+    <div class="w3-row">
+        <div class='w3-col w3-half w3-padding-large'>
+            <div class='w3-row'>
+                <h1 class='w3-hide-small'>{% blocktrans %}Quick Projects{% endblocktrans %}</h1>
+                <br/>
+                <strong class='text-medium'>
+                    {% trans "A quick project can be created quickly, without waiting for anyone's approval. This is the fastest way to start a new project here. Any kind of project can be created under this category." %}
+                    <br/><br/>
+                    {% trans "You can link your own public github repository to track contribution progress with it." %}
+                </strong>
+            </div>
+            <a href="{{URLS.CREATE_FREE}}">
+                <button class="big-button positive" data-icon="add">New Quick Project</button>
+            </a>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row">
+        <div class='w3-col w3-quarter w3-padding-large'>
+        </div>
+        <div class='w3-col w3-half w3-center w3-padding-large'>
+            <div class='w3-row'>
+                <h1 class='w3-hide-small'>{% blocktrans %}Verified Projects{% endblocktrans %}
+                <i>verified</i>
+                </h1>
+                <br/>
+                <strong class='text-medium'>
+                    Project under this category will be provided its own Github repository under {{APPNAME}} organization on GitHub,
+                    and much more.
+                    <br/><br/>But to fall under this category, your project has to undergo a review procedure
+                    by the moderators at {{APPNAME}}.
+                </strong>
+            </div>
+            <a href="{{URLS.CREATE_MOD}}">
+                <button class="big-button accent" data-icon="verified">New Verified Project</button>
+            </a>
+        </div>
+        <div class='w3-col w3-quarter w3-padding-large'>
+        </div>
+    </div>
+    <br/>
+    <div class="w3-row">
+        <div class='w3-col w3-half w3-padding-large'>
+        </div>
+        <div class='w3-col w3-half w3-padding-large'>
+            <div class='w3-row' align='right'>
+                <h1 class='w3-hide-small'>{% blocktrans %}Core Projects{% endblocktrans %}
+                <i>lock</i>
+                </h1>
+                <br/>
+                <strong class='text-medium'>
+                    This is currently available to management/organization accounts only.
+                    Under this category, a closed source project can be requested,
+                    and it will be available to certain people at {{APPNAME}}, for contribution.
+                    <br/>The source code of these kind of projects will <br/>remain private under {{APPNAME}} organization.
+                    <br/><br/>
+                    Organizations may also provide incentives to the people<br/> who contribute to it by setting a budget.
+                </strong>
+            </div>
+            <a href="{{URLS.CREATE_CORE}}" class="w3-right">
+                <button class="big-button primary" data-icon="lock">New Core Project</button>
+            </a>
+        </div>
+    </div>
+    <br/><br/>
+    <div class="w3-row">
+        <center><h2>Learn more on <a href="{{URLS.LANDING}}#projects">The Landing Page<i>open_in_new</i></a></h2></center>
     </div>
 </div>
 <br/>

@@ -1,3 +1,4 @@
+import traceback
 from uuid import UUID
 from django.core.exceptions import ObjectDoesNotExist
 from main.exceptions import InactiveCompetitionError
@@ -154,7 +155,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             id=subID, members=request.user.profile, submitted=False)
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
-        if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID or (userID in request.user.emails):
+        if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID or (userID in request.user.emails()):
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID), Q(
             is_active=True, suspended=False, to_be_zombie=False, user__emailaddress__verified=True)).first()
@@ -171,7 +172,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
         except:
             if not submission.competition.isActive():
-                raise Exception()
+                raise ObjectDoesNotExist('inactive:', submission.competition)
             if submission.competition.isJudge(person) or submission.competition.isModerator(person):
                 return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
             submission.members.add(person)
@@ -193,19 +194,19 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """
     try:
         if request.user.getID() != userID:
-            raise Exception()
+            raise ObjectDoesNotExist(userID)
         submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
-            raise Exception('inactive competition invite render')
+            raise ObjectDoesNotExist('inactive competition invite render')
         if not submission.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception('not allowed to part invite render')
+            raise ObjectDoesNotExist('not allowed to part invite render')
         try:
             SubmissionParticipant.objects.get(
                 submission=submission, profile=request.user.profile, confirmed=False)
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission))
         except ObjectDoesNotExist:
-            return redirect(submission.competition.getLink())
+            return redirect(submission.competition.getLink(error=Message.INVITE_NOTEXIST))
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -221,13 +222,13 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
     """
     try:
         if request.user.getID() != userID:
-            raise Exception(request.user.getID())
+            raise ObjectDoesNotExist(userID)
         submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
-            raise Exception()
+            raise ObjectDoesNotExist('inactive competition invite action')
         if not submission.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception(request.user.profile)
+            raise ObjectDoesNotExist(request.user.profile)
         if action == Action.DECLINE:
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).delete()
@@ -240,7 +241,7 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
                 f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission, accepted=True))
         else:
-            raise Exception(action)
+            raise ObjectDoesNotExist(action)
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -302,7 +303,7 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                                       competition__endAt__gte=now, competition__resultDeclared=False, members=request.user.profile
                                       )
         if not subm.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception('not allowed to part save subm')
+            raise ObjectDoesNotExist('not allowed to part save subm')
         subm.repo = str(request.POST.get('submissionurl', '')).strip()
         subm.modifiedOn = now
         subm.save()
@@ -326,9 +327,9 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
             id=subID, competition__id=compID, competition__resultDeclared=False, members=request.user.profile, submitted=False)
         message = Message.SUBMITTED_SUCCESS
         if submission.isInvitee(request.user.profile):
-            raise Exception('unconfirmed participant try final subm')
+            raise ObjectDoesNotExist('unconfirmed participant try final subm')
         if not submission.competition.isAllowedToParticipate(request.user.profile):
-            raise Exception('not allowd to part final subm')
+            raise ObjectDoesNotExist('not allowd to part final subm')
         if submission.competition.moderated():
             return respondJson(Code.OK, error=Message.SUBMISSION_TOO_LATE)
         if submission.competition.endAt < now:
@@ -370,9 +371,9 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         competition = submissions.first().competition
 
         if competition.allSubmissionsMarkedByJudge(judge=request.user.profile):
-            raise Exception('already submpoints')
+            raise ObjectDoesNotExist('already submpoints')
         if competition.isAllowedToParticipate(request.user.profile):
-            raise Exception('allowd participant try submpoints')
+            raise ObjectDoesNotExist('allowd participant try submpoints')
 
         topics = competition.getTopics()
 
@@ -451,7 +452,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
             id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile)
 
         if comp.isAllowedToParticipate(request.user.profile):
-            raise Exception('allowed to part declaring results')
+            raise ObjectDoesNotExist('allowed to part declaring results')
 
         if not (comp.moderated() and comp.allSubmissionsMarked()):
             return redirect(comp.getManagementLink(error=Message.INVALID_REQUEST))
@@ -478,7 +479,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         result = Result.objects.get(submission__competition__id=compID,
                                     submission__id=subID, submission__members=request.user.profile)
         if request.user.profile in result.xpclaimers.all():
-            raise Exception()
+            raise ObjectDoesNotExist()
         profile = Profile.objects.get(user=request.user)
         profile.increaseXP(by=result.points)
         result.xpclaimers.add(profile)
@@ -576,7 +577,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
                 user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and member.isBlocked(request.user):
-            raise Exception()
+            raise ObjectDoesNotExist()
 
         result = Result.objects.get(id=resID, submission__members=member)
 
@@ -605,7 +606,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
                 user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and person.isBlocked(request.user):
-            raise Exception()
+            raise ObjectDoesNotExist()
 
         appcert = AppreciationCertificate.objects.filter(
             competition__id=compID, appreciatee=person).first()
@@ -660,7 +661,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
         if request.user.getID() == userID:
             member = request.user.profile
         else:
-            raise Exception()
+            raise ObjectDoesNotExist()
         partcert = ParticipantCertificate.objects.get(
             result__id=resID, profile=member)
 
@@ -673,7 +674,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response
-        raise Exception()
+        raise ObjectDoesNotExist()
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -689,7 +690,7 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
         if request.user.getID() == userID:
             person = request.user.profile
         else:
-            raise Exception()
+            raise ObjectDoesNotExist()
         appcert = AppreciationCertificate.objects.get(
             competition__id=compID, appreciatee=person)
 
@@ -701,7 +702,7 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response
-        raise Exception()
+        raise ObjectDoesNotExist()
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:

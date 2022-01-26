@@ -47,13 +47,16 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
                         githubID=userID, to_be_zombie=False, suspended=False, is_active=True)
                     person = profile.user
                 except:
-                    raise Exception()
+                    raise ObjectDoesNotExist()
             if request.user.is_authenticated:
                 if person.profile.isBlocked(request.user):
-                    raise Exception()
+                    raise ObjectDoesNotExist()
         return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
-        raise Http404()
+        errorLog(e)
+        raise Http404(e)
 
 
 @require_GET
@@ -66,8 +69,10 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
                 user__id=userID)
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
-                raise Exception()
+                raise ObjectDoesNotExist(profile)
         return getProfileSectionHTML(profile, section, request)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
@@ -81,15 +86,16 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
         if data:
             return data
         else:
-            raise Exception()
+            raise Exception(data)
     except Exception as e:
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
 @decode_JSON
 def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
+    json_body = request.POST.get(Code.JSON_BODY,False)
     try:
         profile = Profile.objects.get(user=request.user)
         nextlink = request.POST.get('next', None)
@@ -122,14 +128,27 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                     profile.user.save()
                 if profilechanged:
                     profile.save()
+                    if json_body:
+                        return respondJson(Code.OK, message=Message.PROFILE_UPDATED)
                     return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
+                if json_body:
+                    return respondJson(Code.OK)
                 return redirect(nextlink or profile.getLink())
             except Exception as e:
+                if json_body:
+                    return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
                 return redirect(nextlink or profile.getLink(error=Message.ERROR_OCCURRED))
         else:
-            raise Exception()
+            raise ObjectDoesNotExist(section)
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
     except Exception as e:
-        return HttpResponseForbidden()
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        errorLog(e)
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -254,6 +273,10 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(request.user.profile.getLink())
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         if json_body:
@@ -272,15 +295,15 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
     deactivate = request.POST.get('deactivate', None)
     try:
         if activate == deactivate:
-            return respondJson(Code.NO)
+            raise ObjectDoesNotExist()
         if activate and not request.user.profile.is_active:
             is_active = True
         elif deactivate and request.user.profile.is_active:
             is_active = False
         else:
-            return respondJson(Code.NO)
+            raise ObjectDoesNotExist()
         if is_active and request.user.profile.suspended:
-            return respondJson(Code.NO)
+            raise ObjectDoesNotExist()
 
         done = Profile.objects.filter(
             user=request.user).update(is_active=is_active)
@@ -293,6 +316,8 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
             addMethodToAsyncQueue(
                 f"{APPNAME}.mailers.{accountInactiveAlert.__name__}", request.user.profile)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -323,7 +348,7 @@ def profileSuccessor(request: WSGIRequest):
                 except Exception as e:
                     errorLog(e)
                     return respondJson(Code.NO)
-            elif userID and request.user.email != userID and not (userID in request.user.emails):
+            elif userID and request.user.email != userID and not (userID in request.user.emails()):
                 try:
                     if request.user.profile.is_manager:
                         smgm = Management.objects.get(profile__user__email=userID)
@@ -345,18 +370,20 @@ def profileSuccessor(request: WSGIRequest):
                 except Exception as e:
                     return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
             else:
-                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+                raise ObjectDoesNotExist()
         elif unset and request.user.profile.successor:
             successor = None
             successor_confirmed = False
         else:
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            raise ObjectDoesNotExist()
         Profile.objects.filter(user=request.user).update(
             successor=successor, successor_confirmed=successor_confirmed)
         if successor and not successor_confirmed:
             addMethodToAsyncQueue(
                 f"{APPNAME}.mailers.{successorInvite.__name__}", successor, request.user)
         return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -403,12 +430,12 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
 
     try:
         if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
-            raise Exception()
+            raise ObjectDoesNotExist()
 
         predecessor = User.objects.get(id=predID)
 
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise Exception()
+            raise ObjectDoesNotExist()
 
         if accept:
             successor = request.user
@@ -442,8 +469,11 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         if not deleted:
             return redirect(predecessor.profile.getLink(alert=alert))
         return redirect(request.user.profile.getLink(alert=alert))
-    except:
-        return HttpResponseForbidden()
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -671,7 +701,7 @@ def browseSearch(request: WSGIRequest):
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        return Http404(e)
+        raise Http404(e)
 
 @normal_profile_required
 @require_GET

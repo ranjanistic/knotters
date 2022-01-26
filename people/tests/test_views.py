@@ -1,5 +1,6 @@
 import json
 from django.core.exceptions import ObjectDoesNotExist
+from django.http.response import HttpResponseNotFound
 from django.test import TestCase, Client, tag
 from django.http import HttpResponse, HttpResponseForbidden
 from main.strings import Code, url, template, Message, Action
@@ -137,10 +138,11 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
 
+    @tag("editprof")
     def test_editProfile(self):
         resp = self.client.post(follow=True, path=root(
             url.people.profileEdit(getRandomStr())))
-        self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
         resp = self.client.post(follow=True, path=root(
             url.people.profileEdit('pallete')))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -186,6 +188,7 @@ class TestViews(TestCase):
         self.assertEqual(self.profile.totalTopics(), 2)
         self.assertEqual(self.profile.totalTrashedTopics(), 2)
 
+    @tag('acctiv')
     def test_accountActivation(self):
         resp = self.client.post(follow=True, path=root(
             url.people.ACCOUNTACTIVATION), data={'deactivate': True})
@@ -209,10 +212,11 @@ class TestViews(TestCase):
             url.people.ACCOUNTACTIVATION), data={'activate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json.loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         Profile.objects.filter(user=user).update(
             is_active=True, suspended=False)
 
+    @tag("profsuc")
     def test_profileSuccessor(self):
         resp = self.client.post(
             follow=True, path=root(url.people.INVITESUCCESSOR))

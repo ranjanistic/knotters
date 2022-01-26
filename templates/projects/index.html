@@ -30,7 +30,7 @@
 
 {% block nav_extra_links %}
 {% block nav_noauth_licenses %}<a href="{{URLS.ALLLICENSES}}"><button title="Licenses" class="primary" data-icon="article"><span class="w3-hide-small">{% trans "Licenses" %}</span></button></a>{% endblock %}
-<a href="{{URLS.CREATE}}"><button title="New project" class="positive" data-icon="add"><span class="w3-hide-small">{% trans "New project" %}</span></button></a>
+<a href="{{URLS.CREATE}}"><button title="{% trans "New project" %}" class="positive" data-icon="add"><span class="w3-hide-small">{% trans "New project" %}</span></button></a>
 {% endblock %}
 
 {% block nav_noauth_projects %}{% endblock %} 
@@ -52,13 +52,18 @@
   </div>
   <div class='w3-row w3-padding'>
     <a href='{{URLS.LANDING}}'>
-      <button class='positive big-button' data-icon='flight_land'>
+      <button class='primary big-button' data-icon='flight_land'>
         {% trans "Learn More" %}
       </button>
     </a>
     <button class='big-button accent' id='close-projects-intro-banner' data-icon='flight_takeoff'>
       {% trans "I'm ready" %}
     </button>
+    <a href="{{URLS.CREATE}}">
+    <button class='big-button positive' data-icon='add'>
+      {% trans "New Project" %}
+    </button>
+    </a>
   </div>
 </div>
 
