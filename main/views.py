@@ -593,7 +593,7 @@ def browser(request: WSGIRequest, type: str):
                         timezone.now()+timedelta(days=-60)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=count))
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
 
         elif type == Browse.NEW_PROJECTS:
             projects = cache.get(cachekey,[])
