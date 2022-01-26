@@ -293,7 +293,7 @@
                     <strong>{% trans "Created by" %}</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/><br/>
-                    <strong>{% trans "Budget" %}: &#x20B9; <a onclick="message('The budget of this core project')">{{project.budget}}</a></strong><br/>
+                    <strong>{% trans "Current Budget" %}: &#x20B9; <a onclick="message('The budget of this core project')">{{project.budget}}</a></strong><br/>
                 </div>
             </div>
             <br/>

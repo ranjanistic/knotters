@@ -175,7 +175,7 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
             sociallinks=sociallinks
         )
         if not projectobj:
-            raise Exception()
+            raise Exception(projectobj)
         try:
             imageData = request.POST['projectimage']
             imageFile = base64ToImageFile(imageData)
@@ -186,6 +186,10 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
             pass
         alerted = True
         return redirect(projectobj.getLink(success=Message.FREE_PROJECT_CREATED))
+    except KeyError:
+        if projectobj and not alerted:
+            projectobj.delete()
+        return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.SUBMISSION_ERROR)
     except Exception as e:
         errorLog(e)
         if projectobj and not alerted:
@@ -422,7 +426,7 @@ def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
             iscreator = False if not request.user.is_authenticated else coreproject.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else coreproject.moderator == request.user.profile
             if coreproject.suspended and not (iscreator or ismoderator):
-                raise Exception()
+                raise ObjectDoesNotExist('suspended', coreproject)
             isAdmirer = request.user.is_authenticated and coreproject.isAdmirer(
                 request.user.profile)
             return renderer(request, Template.Projects.PROFILE_CORE, dict(project=coreproject, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
@@ -432,7 +436,7 @@ def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
                     Code.REJECTED, Code.MODERATION]).order_by('-respondOn','-requestOn').first()
                 if coreproject.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
-            raise Exception(codename)
+            raise ObjectDoesNotExist(codename)
     except ObjectDoesNotExist as e:
         raise Http404(e)
     except Exception as e:
@@ -446,7 +450,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
             nickname=nickname, trashed=False, suspended=False)
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
-            raise Exception(nickname)
+            raise ObjectDoesNotExist(nickname)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
             request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
@@ -465,7 +469,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
             iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             if project.suspended and not (iscreator or ismoderator):
-                raise Exception()
+                raise ObjectDoesNotExist()
             isAdmirer = request.user.is_authenticated and project.isAdmirer(
                 request.user.profile)
             return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
@@ -475,7 +479,7 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
                     Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
-            raise Exception(reponame)
+            raise ObjectDoesNotExist(reponame)
     except ObjectDoesNotExist as e:
         return profileFree(request, reponame)
     except Exception as e:
@@ -555,7 +559,7 @@ def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonRespons
             id=projID, trashed=False, suspended=False)
         sproject = project.getProject(True)
         if not sproject:
-            raise Exception(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != sproject.moderator:
                 raise ObjectDoesNotExist()
@@ -582,9 +586,11 @@ def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonRespons
             return respondJson(Code.OK)
         else:
             return respondJson(Code.NO)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
@@ -599,7 +605,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             id=projID, trashed=False)
         project = project.getProject(True)
         if not project:
-            raise Exception(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
                 raise ObjectDoesNotExist()
@@ -646,7 +652,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             id=projID, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
-            raise Exception(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
                 raise ObjectDoesNotExist()
@@ -708,11 +714,15 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        raise Http404()
+        raise Http404(e)
 
 
 @normal_profile_required
@@ -726,7 +736,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             id=projID, trashed=False)
         project = project.getProject(True)
         if not project:
-            raise Exception(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
                 raise ObjectDoesNotExist()
@@ -751,6 +761,8 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.OK, dict(
             tags=tagslist
         ))
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -772,7 +784,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             id=projID, trashed=False, suspended=False)
         project = project.getProject(True)
         if not project:
-            raise Exception(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
                 raise ObjectDoesNotExist()
@@ -824,6 +836,12 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(next)
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if next:
+            return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         if json_body:
@@ -1338,7 +1356,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
         if action == Action.CREATE:
             if request.user.profile != baseproject.creator:
                 if request.user.profile != baseproject.getProject().moderator:
-                    raise Exception()
+                    raise ObjectDoesNotExist()
             text = request.POST.get('snaptext', None)
             image = request.POST.get('snapimage', None)
             video = request.POST.get('snapvideo', None)
@@ -1382,8 +1400,14 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
             return respondJson(Code.OK, message=Message.SNAP_DELETED)
 
         return respondJson(Code.NO)
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if baseproject:
+            return redirect(baseproject.getLink(error=Message.INVALID_REQUEST))
+        raise Http404(o)
     except Exception as e:
-        errorLog(e, False)
+        errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         if baseproject:
