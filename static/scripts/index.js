@@ -95,18 +95,18 @@ const setUrlQueries = (path, query = {}) => {
 
 const loadGlobalEventListeners = () => {
     getElements("first-time-view").forEach((view) => {
-        if (localStorage.getItem(`first-intro-${view.id}`) == 1) {
-            hide(view);
-        } else {
-            if (!view.innerHTML.trim())
-                view.innerHTML = view.getAttribute("data-html");
-            getElement(`close-${view.id}`).addEventListener("click", () => {
-                localStorage.setItem(`first-intro-${view.id}`, 1);
-                message(STRING.re_introduction, (t) => {
-                    t.onclick = (_) => (window.location.href = URLS.LANDING);
+        hide(view);
+        if (localStorage.getItem(`first-intro-${view.id}`) != 1) {
+            show(view)
+            try{
+                getElement(`close-${view.id}`).addEventListener("click", () => {
+                    localStorage.setItem(`first-intro-${view.id}`, 1);
+                    message(STRING.re_introduction, (t) => {
+                        t.onclick = (_) => (window.location.href = URLS.LANDING);
+                    });
+                    hide(view);
                 });
-                hide(view);
-            });
+            } catch{}
         }
     });
     getElementsByTag("form").forEach((form) => {
@@ -1127,3 +1127,13 @@ const getFormDataById = (id) => {
     }
     return obj;
 };
+
+const randomizeArray =(array=[])=> {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex != 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}

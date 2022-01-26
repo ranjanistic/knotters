@@ -17,7 +17,6 @@
 {% block tw_description %}Community projects, open for everyone, to everyone. Contribute to existing ideas, or submit your own to make it real together with everyone.{% endblock %}
 {% block tw_site_name %}{{SUBAPPNAME|capfirst}}{% endblock %}
 
-
 {% block themecolor %}positive{% endblock %}
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 
@@ -38,9 +37,8 @@
 
 
 {% block content %}
-<div class="w3-row w3-padding welcome-row first-time-view" id='projects-intro-banner'
-  data-html="
-  <br/>
+<div class="w3-row w3-padding welcome-row first-time-view" id='projects-intro-banner'>
+<br/>
   <br/>
   <div class='w3-row w3-padding'>
   <h1>{% trans "Projects" %}</h1>
@@ -61,7 +59,7 @@
     <button class='big-button accent' id='close-projects-intro-banner' data-icon='flight_takeoff'>
       {% trans "I'm ready" %}
     </button>
-  </div>">
+  </div>
 </div>
 
 <div class="w3-row" id="mainframe">
@@ -84,7 +82,7 @@
   <div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROJECTS}}" id='{{BROWSE.NEW_PROJECTS}}-view'>
   </div>
   <br/>
-  <div class="w3-row align snapshot-viewer" id="snap-view-1">
+  <div class="w3-row snapshot-viewer-parent" id="snap-view-1">
   </div>
   <div class="w3-row w3-padding w3-center dead-text">
     <div class="material-icons w3-jumbo">done</div>

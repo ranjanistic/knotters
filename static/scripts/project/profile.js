@@ -385,13 +385,16 @@ loadsnaps.onclick = (_) => {
         if (!data || data.code!==CODE.OK) {
             return error(data?data.error:'')
         }
+        let newdiv = document.createElement("div");
+        newdiv.classList.add("w3-row")
+        snapsview.appendChild(newdiv);
         if (!data.snapIDs.length||data.snapIDs.some((id)=>excludeProjectSnapIDs.includes(id))) {
-            snapsview.innerHTML += `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`;
+            setHtmlContent(newdiv, `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`);
             return hide(loadsnaps);
         }
-        excludeProjectSnapIDs = excludeProjectSnapIDs.concat(data.snapIDs);
-        appendHtmlContent(snapsview,data.html)
+        setHtmlContent(newdiv, data.html);
         show(loadsnaps);
+        excludeProjectSnapIDs = excludeProjectSnapIDs.concat(data.snapIDs);
         getElements("delete-snapshot").forEach((btn) => {
             btn.onclick = async (e) => {
                 await deleteSnap(btn.dataset.snapid, projectID, () => {

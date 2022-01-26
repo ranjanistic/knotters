@@ -664,7 +664,7 @@ def browser(request: WSGIRequest, type: str):
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=count))
         elif type == Browse.TRENDING_TOPICS:
             # TODO
-            return HttpResponseBadRequest(Browse.TRENDING_TOPICS)
+            pass
         elif type == Browse.TRENDING_PROJECTS:
             projects = cache.get(cachekey,[])
             if not len(projects):
@@ -674,13 +674,13 @@ def browser(request: WSGIRequest, type: str):
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
             # TODO
-            return HttpResponseBadRequest(type)
+            pass
         elif type == Browse.NEWLY_MODERATED:
             # TODO
-            return HttpResponseBadRequest(type)
+            pass
         elif type == Browse.HIGHEST_MONTH_XP_PROFILES:
             # TODO
-            return HttpResponseBadRequest(type)
+            pass
         elif type == Browse.LATEST_COMPETITIONS:
             competitions = cache.get(cachekey,[])
             if not len(competitions):
@@ -711,6 +711,7 @@ def browser(request: WSGIRequest, type: str):
             return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
         else:
             return HttpResponseBadRequest(type)
+        return HttpResponse()
     except Exception as e:
         if request.POST.get(Code.JSON_BODY, False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

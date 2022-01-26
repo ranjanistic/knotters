@@ -48,14 +48,22 @@ const loadBrowserSwiper = () => {
 };
 
 const loadBrowsers = () => {
+    let browseList = randomizeArray(Object.values(BROWSE));
+    let browseIndex = -1;
     Promise.all(
         getElements("browser-view").map(async (view) => {
+            browseList = browseList.filter((t) => t!=view.getAttribute('data-type'))
+            browseIndex++;
             let method = async () => {
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest2({
-                    path: setUrlParams(URLS.BROWSER, view.getAttribute("data-type")),
+                    path: setUrlParams(URLS.BROWSER, view.getAttribute('data-type')||browseList[browseIndex]),
                     silent: true
                 });
+                if(browseIndex >= browseList.length){
+                    browseList = randomizeArray(Object.values(browseList));
+                    browseIndex = 0;
+                };
                 if (!data) {
                     setHtmlContent(
                         view,
@@ -65,7 +73,11 @@ const loadBrowsers = () => {
                         method();
                     return;
                 }
-                setHtmlContent(view, data===true?'':data, loadBrowserSwiper);
+                let nildata = data===true||data.code;
+                if(nildata){
+                    browseIndex--;
+                }
+                setHtmlContent(view, nildata?'':data, loadBrowserSwiper);
                 loadBrowserSwiper();
             };
             return await method();

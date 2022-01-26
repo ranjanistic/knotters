@@ -825,3 +825,7 @@ label > input[type="checkbox"] {
 .draggable-topic {
     touch-action: none;
 }
+
+.first-time-view{
+    display: none;
+}

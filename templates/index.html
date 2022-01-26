@@ -74,6 +74,8 @@
 
         <link rel="manifest" href="{{MANIFESTURL}}" />
         <title>{% block title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}</title>
+        {% block head_scripts %}
+        {% endblock %}
     </head>
     {% endblock %}
     <body>
@@ -110,7 +112,7 @@
             {% block nav_title %}
             <a
                 style="padding:8px"
-                {% if request.GET.previous %}href="{{request.GET.previous}}{% else %}href="{% block nav_href %}{{ROOT}}{% endblock %}{% endif %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
+                href="{% block nav_href %}{% if request.GET.previous %}{{request.GET.previous}}{% else %}{{ROOT}}{% endif %}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
                 class="w3-left w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
                 {% block nav_icon_hide %}
@@ -189,13 +191,14 @@
         {% endblock %}
         <div style="min-height: 50vh;">
             {% block content %}
+            {% block localalert %}
             <div class="w3-row accent w3-padding w3-center first-time-view" id="mod-mentor-looking">
-              <strong>We are actively looking for mentors and moderators. <a class="underline text-accent" href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank">Click here to request</a> to be one.</strong>
-              <button class='accent w3-right small no-pad' id='close-mod-mentor-looking' data-icon='close'></button>
+              <strong class="">We are actively looking for mentors and moderators. <a class="underline text-accent" href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank">Click here to request</a> to be one.</strong>
+              <span class="w3-right no-pad w3-large pointer" id='close-mod-mentor-looking'><i class="w3-large">close</i></span>
             </div>
+            {% endblock %}
             <div class="w3-row">
-                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:75vh;"
-                    data-html="
+                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:75vh;" hidden>
                     <br/>
                     <div class='w3-row'>
                         <div class='w3-col w3-half w3-padding-large'>
@@ -222,107 +225,95 @@
                         <div class='w3-col w3-half'>
                             <img src='{{ICON}}' width='70%' class='darkimg' />
                         </div>
-                    </div>"
-                >
+                    </div>
                 </div>
-                <div class="w3-row">
-                    <div class="w3-row align snapshot-viewer" id="snap-view-1">
-                    </div>
-                    <div class="w3-row browser-view" data-type="{{BROWSE.LATEST_COMPETITIONS}}" id='{{BROWSE.LATEST_COMPETITIONS}}-view'>
-                    </div>
-                    <div class="w3-row w3-padding-large first-time-view" id='projects-admire-banner' style="height:70vh"
-                        data-html="
-                        <br/>
-                        <div class='w3-row'>
-                            <div class='w3-col w3-half'>
-                                <img src='{{ICON}}' width='50%' class='darkimg' />
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-1">
+                </div>
+                <div class="w3-row w3-padding-large first-time-view" id='projects-admire-banner' style="height:70vh">
+                    <br/>
+                    <div class='w3-row'>
+                        <div class='w3-col w3-half'>
+                            <img src='{{ICON}}' width='50%' class='darkimg' />
+                        </div>
+                        <div class='w3-col w3-half w3-padding-large'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
+                                <br/>
+                                <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
                             </div>
-                            <div class='w3-col w3-half w3-padding-large'>
-                                <div class='w3-row'>
-                                    <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
-                                    <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
-                                    <br/>
-                                    <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
-                                </div>
-                                <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
-                                <button class='big-button accent' id='close-projects-admire-banner' data-icon='done'>{% trans "Got it!" %}</button>
-                                <br/><br/>
-                                <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
+                            <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
+                            <button class='big-button accent' id='close-projects-admire-banner' data-icon='done'>{% trans "Got it!" %}</button>
+                            <br/><br/>
+                            <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
+                        </div>
+                    </div>
+                </div>            
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-2">
+                </div>
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-2">
+                </div>
+                <div class="w3-row w3-padding-large first-time-view" id='compete-participate-banner' style="height:60vh;">
+                    <br/>
+                    <div class='w3-row w3-center'>
+                        <div class='w3-col w3-padding-large'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Participate{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Participate{% endblocktrans %}</h2>
+                                <br/>
+                                <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
                             </div>
-                        </div>"
-                    >
-                    </div>
-                    <div class="w3-row">
-                        <div class="w3-row browser-view" data-type="{{BROWSE.DISPLAY_MENTORS}}" id='{{BROWSE.DISPLAY_MENTORS}}-view'>
-                        </div>
-                        <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_MENTORS}}" id='{{BROWSE.TRENDING_MENTORS}}-view'>
-                        </div>
-                        <div class="w3-row align snapshot-viewer" id="snap-view-2">
-                        </div>
-                        <div class="w3-row browser-view" data-type="{{BROWSE.RECOMMENDED_PROJECTS}}" id='{{BROWSE.RECOMMENDED_PROJECTS}}-view'>
-                        </div>
-                        <div class="w3-row align snapshot-viewer" id="snap-view-3">
+                            <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
+                            <button class='big-button positive' id='close-compete-participate-banner' data-icon='done'>{% trans "Got it!" %}</button>
+                            <br/><br/>
+                            <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
                         </div>
                     </div>
-                    <div class="w3-row w3-padding-large first-time-view" id='compete-participate-banner' style="height:60vh;"
-                        data-html="
-                        <br/>
-                        <div class='w3-row w3-center'>
-                            <div class='w3-col w3-padding-large'>
-                                <div class='w3-row'>
-                                    <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Participate{% endblocktrans %}</h2>
-                                    <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Participate{% endblocktrans %}</h2>
-                                    <br/>
-                                    <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
-                                </div>
-                                <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
-                                <button class='big-button positive' id='close-compete-participate-banner' data-icon='done'>{% trans "Got it!" %}</button>
-                                <br/><br/>
-                                <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
+                </div>
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-3">
+                </div>
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-4">
+                </div>
+                <div class="w3-row w3-padding-large first-time-view" id="existence-reason-banner" style="height:60vh;">
+                    <br/>
+                    <div class='w3-row w3-center'>
+                        <div class='w3-col w3-padding-large'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>Why {{APPNAME}}?</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>Why {{APPNAME}}?</h2>
+                                <br/>
+                                <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
                             </div>
-                        </div>"
-                    >
-                    </div>
-                    <div class="w3-row">
-                        <div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROJECTS}}" id='{{BROWSE.NEW_PROJECTS}}-view'>
-                        </div>
-                        <div class="w3-row align snapshot-viewer" id="snap-view-4">
-                        </div>
-                        <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_PROJECTS}}" id='{{BROWSE.TRENDING_PROJECTS}}-view'>
+                            <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
+                            <button class='big-button primary' id='close-existence-reason-banner' data-icon='done'>{% trans "Understood" %}</button>
+                            <br/><br/>
+                            <span class='text-medium dead-text'>Click 'Understood' to hide this.</span>
                         </div>
                     </div>
-                    <div class="w3-row w3-padding-large first-time-view" id="existence-reason-banner" style="height:60vh;"
-                        data-html="<br/>
-                            <div class='w3-row w3-center'>
-                                <div class='w3-col w3-padding-large'>
-                                    <div class='w3-row'>
-                                        <h2 class='w3-jumbo w3-hide-small'>Why {{APPNAME}}?</h2>
-                                        <h2 class='w3-hide-large w3-hide-medium'>Why {{APPNAME}}?</h2>
-                                        <br/>
-                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
-                                    </div>
-                                    <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
-                                    <button class='big-button primary' id='close-existence-reason-banner' data-icon='done'>{% trans "Understood" %}</button>
-                                    <br/><br/>
-                                    <span class='text-medium dead-text'>Click 'Understood' to hide this.</span>
-                                </div>
-                            </div>"
-                    ></div>
-                    <div class="w3-row">
-                        <div class="w3-row align snapshot-viewer" id="snap-view-5">
-                        </div>
-                        <div class="w3-row browser-view" data-type="{{BROWSE.RECENT_WINNERS}}" id='{{BROWSE.RECENT_WINNERS}}-view'>
-                        </div>
-                        <div class="w3-row align snapshot-viewer" id="snap-view-6">
-                        </div>
-                        <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_MODERATORS}}" id='{{BROWSE.TRENDING_MODERATORS}}-view'>
-                        </div>
-                    </div>
-                    <div class="w3-row w3-padding w3-center dead-text">
-                        <div class="material-icons w3-jumbo">done</div>
-                        <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
-                        <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
-                    </div>
+                </div>
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-5">
+                </div>
+                <div class="w3-row browser-view">
+                </div>
+                <div class="w3-row snapshot-viewer-parent" id="snap-view-6">
+                </div>
+                <div class="w3-row w3-padding w3-center dead-text first-time-view" id="that-is-all">
+                    <div class="material-icons w3-jumbo">done</div>
+                    <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
+                    <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
+                    <span id="close-that-is-all" hidden></span>
                 </div>
             </div>
             {% endblock %}

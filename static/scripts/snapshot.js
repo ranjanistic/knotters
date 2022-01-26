@@ -1,6 +1,6 @@
 const snapshotExcludeIDS = [];
 const loadBrowseSnaps = async () => {
-    const viewers = getElements("snapshot-viewer");
+    const viewers = getElements("snapshot-viewer-parent");
     let viewer = viewers.find((view) => view.innerHTML.trim() == "");
     if (!viewer) {
         viewer = viewers[viewers.length - 1];
@@ -20,7 +20,10 @@ const loadBrowseSnaps = async () => {
         if (snapshotExcludeIDS.some((id) => snapdata.snapIDs.includes(id))) {
             return false;
         }
-        setHtmlContent(viewer, viewer.innerHTML + snapdata.html);
+        let newdiv = document.createElement("div");
+        newdiv.classList.add("align", "snapshot-viewer","w3-row")
+        viewer.appendChild(newdiv);
+        setHtmlContent(newdiv, snapdata.html);
         snapshotExcludeIDS.push(...snapdata.snapIDs);
         return true;
     }
@@ -28,7 +31,7 @@ const loadBrowseSnaps = async () => {
 };
 
 const loadSnapshotScroller = async () => {
-    const viewers = getElements("snapshot-viewer");
+    const viewers = getElements("snapshot-viewer-parent");
     if (viewers.length) {
         let done = await loadBrowseSnaps();
         if (done) {
