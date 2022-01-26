@@ -40,6 +40,7 @@ urlpatterns = [
     path(URL.SERVICE_WORKER, ServiceWorker.as_view(), name=URL.SERVICE_WORKER),
     path(URL.STRINGS, Strings.as_view(), name=URL.STRINGS),
     path(URL.VERSION_TXT, Version.as_view(), name=URL.VERSION_TXT),
+    path("sitemap.xml", Sitemap.as_view(), name='sitemap'),
     path(URL.SWITCH_LANG, include('django.conf.urls.i18n')),
     path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path(URL.AUTH, include('allauth_2fa.urls')),

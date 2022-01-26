@@ -336,7 +336,7 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
         raise Http404()
 
 
-@method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
+# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
     content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
@@ -351,6 +351,31 @@ class Robots(TemplateView):
             cache.set(cacheKey,suspended,settings.CACHE_SHORT)
         context = dict(**context, media=settings.MEDIA_URL,
                        suspended=suspended, ISBETA=ISBETA)
+        return context
+
+@method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
+class Sitemap(TemplateView):
+    content_type = Code.APPLICATION_XML
+    template_name = Template.SITEMAP
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cacheKey = f"sitemap_content_links"
+        LINKS = cache.get(cacheKey,[])
+        if not len(LINKS):
+            FILTER = lambda u:"*" not in u and not u.startswith("http") and not u.endswith(('.png','.svg'))
+            ROOTS=list(filter(FILTER,URL().getURLSForClient().values()))
+            PROJECTS=list(filter(FILTER,URL.projects.getURLSForClient().values()))
+            COMPETE=list(filter(FILTER,URL.compete.getURLSForClient().values()))
+            COMMUNITY=list(filter(FILTER,URL.people.getURLSForClient().values()))
+            AUTH=list(filter(FILTER,URL.auth.getURLSForClient().values()))
+            MGM=list(filter(FILTER,URL.management.getURLSForClient().values()))
+            LINKS = [ROOTS,PROJECTS,COMPETE,COMMUNITY,AUTH,MGM]
+            cache.set(cacheKey,LINKS,settings.CACHE_LONGER)
+        context = dict(**context, 
+            media=settings.MEDIA_URL,
+            LINKS=LINKS
+        )
         return context
 
 
@@ -468,6 +493,7 @@ class ServiceWorker(TemplateView):
                 f"/{ADMINPATH}",
                 f"/{URL.WEBPUSH}*",
                 f"/{URL.ROBOTS_TXT}",
+                f"/{URL.SITEMAP}",
                 f"/{URL.VERSION_TXT}",
                 f"/{URL.REDIRECTOR}*",
                 f"/{URL.AUTH}",

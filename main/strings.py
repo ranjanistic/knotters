@@ -89,6 +89,7 @@ class Code():
     APPLICATION_JSON = 'application/json'
     TEXT_PLAIN = 'text/plain'
     APPLICATION_JS = 'application/javascript'
+    APPLICATION_XML = 'application/xml'
 
     TOPIC = 'topic'
     CATEGORY = 'category'
@@ -402,6 +403,7 @@ class URL():
     INDEX = ''
     FAVICON = 'favicon.ico'
     ROBOTS_TXT = 'robots.txt'
+    SITEMAP = 'sitemap.xml'
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
     STRINGS = 'strings.js'
@@ -1111,6 +1113,7 @@ url = URL()
 class Template():
 
     ROBOTS_TXT = "robots.txt"
+    SITEMAP = "sitemap.xml"
     SW_JS = "service-worker.js"
     STRINGS = "strings.js"
     VERSION = "version.txt"

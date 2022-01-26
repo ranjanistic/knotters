@@ -1,3 +1,4 @@
+{% spaceless %}
 # NOTICE: Collection of data on {{APPNAME}} via automated means is
 # prohibited unless an express written permission from Knotters is granted,
 # and should only be conducted for the limited purpose contained in said
@@ -6,9 +7,25 @@
 # We have a dedicated api for our data provision at: https://api.knotters.org
 
 User-agent: *
+{% spaceless %}
 {% if ISBETA %}
 Disallow: /
 {% endif %}
 {% for sus in suspended %}
 Disallow: {{sus.getLink}}
 {% endfor %}
+{% endspaceless %}
+
+{% spaceless %}
+User-agent: Pinterestbot
+Disallow: {{media}}
+
+User-agent: baiduspider
+Disallow: {{media}}
+
+User-agent: TelegramBot
+Disallow: {{media}}
+{% endspaceless %}
+
+Sitemap: {{SITE}}{{URLS.SITEMAP}}
+{% endspaceless %}
