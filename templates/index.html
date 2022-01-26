@@ -440,7 +440,6 @@
         <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
-
         <script>
             const SITE = "{{SITE}}";
             const STATIC_URL = "{% static '*' %}";
@@ -456,29 +455,18 @@
             const ICON_SHADOW = "{{ICON_SHADOW}}";
             const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
             const VAPID_KEY = "{{VAPID_KEY}}";
-            if("{{request.GET.e}}") {
-                error("{{request.GET.e}}");
-            } 
-            if("{{request.GET.a}}") {
-                message("{{request.GET.a}}");
-            }
-            if("{{request.GET.s}}") {
-                success("{{request.GET.s}}");
-            }
-            if("{{request.GET.report}}"==="1"){
-                reportFeedbackView();
-            }
+            if("{{request.GET.e}}") error("{{request.GET.e}}");
+            if("{{request.GET.a}}") message("{{request.GET.a}}");
+            if("{{request.GET.s}}") success("{{request.GET.s}}");
+            if("{{request.GET.report}}"==="1") reportFeedbackView();
             const URLS = Object.freeze({{URLS|or:'{}'|safe}});
             const BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}});
         </script>
-
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
-
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
-
         {% block messages %}
         <script>
         {% if messages %}
