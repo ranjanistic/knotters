@@ -642,7 +642,8 @@ def browser(request: WSGIRequest, type: str):
 
         elif type == Browse.RECOMMENDED_PROJECTS:
             projects = cache.get(cachekey,[])
-            if not len(projects):
+            count = len(projects)
+            if not count:
                 query = Q()
                 authquery = query
                 if request.user.is_authenticated:
