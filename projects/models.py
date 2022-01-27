@@ -1188,7 +1188,7 @@ class FileExtension(models.Model):
         return tags
 
     def getTopics(self):
-        topics = cache.get(f"file_ext_topics_{self.id}",[], settings.CACHE_INSTANT)
+        topics = cache.get(f"file_ext_topics_{self.id}",[])
         if not len(topics):
             topics = self.topics.all()
             if len(topics):
