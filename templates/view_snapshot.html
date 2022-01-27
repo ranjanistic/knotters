@@ -56,10 +56,11 @@
                 </a>
             </div>
             <div class="w3-col l8 m8 s8 w3-center">
-                {% if not request.user.is_authenticated %}
-                <a href="{{URLS.Auth.LOGIN}}?next={{snapshot.getLink}}">
-                {% endif %}
+                
                 <div class="w3-col l4 m4 s4">
+                 {% if not request.user.is_authenticated %}
+                  <a href="{{URLS.Auth.LOGIN}}?next={{snapshot.getLink}}">
+                {% endif %}
                   <button
                     {% if request.user.profile in snapshot.admirers.all %}
                      data-admires="1"
@@ -72,11 +73,12 @@
                         id="snap-admire-{{snapshot.get_id}}">
                         <i class="text-big">volunteer_activism</i>
                     </button>
+                  {% if not request.user.is_authenticated %}
+                   </a>
+                  {% endif %}
                    &nbsp;<strong class="positive-text pointer" id="snap-admirecount-{{snapshot.get_id}}" onclick="showSnapAdmirers('{{snapshot.get_id}}')">{{snapshot.admirers.count}}</strong>
                 </div>
-                {% if not request.user.is_authenticated %}
-                </a>
-                {% endif %}
+                
                 <div class="w3-col l4 m4 s4">
                   <button class="accent navigator-share-action" data-title="A snapshot of {{snapshot.base_project.name}} project!" data-text="{{snapshot.text}}" data-url="{{snapshot.getLink}}"
                     id="snap-share-{{snapshot.get_id}}"><i class="text-big">share</i></button>
