@@ -604,7 +604,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                                 fileext.topics.set(project.topics.all())
                             except:
                                 pass
-                        extensions[ext]['topics'] = list(set(extensions[ext]['topics'] + list(fileext.getTopics())))
+                       # extensions[ext]['topics'] = list(set(extensions[ext]['topics'] + list(fileext.getTopics())))
                         for topic in fileext.topics.all():
                             hastopic = False
                             increase = True
@@ -620,7 +620,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                                             increase = False
                                         break
 
-                            if increase and len(extensions[ext]['topics']) > 0:
+                            if increase:
                                 by = 1
                                 commit_committer.increaseTopicPoints(
                                     by=by, topic=topic)
