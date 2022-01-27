@@ -602,7 +602,8 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                             extensions[ext] = dict(fileext=fileext, topics=[])
                             try:
                                 ftops = fileext.getTopics()
-                                fileext.topics.set(ftops|project.topics.all())
+                                if not len(ftops):
+                                    fileext.topics.set(ftops|project.topics.all())
                             except:
                                 pass
                        # extensions[ext]['topics'] = list(set(extensions[ext]['topics'] + list(fileext.getTopics())))
