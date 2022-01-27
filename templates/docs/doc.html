@@ -34,6 +34,7 @@
     </center>
      <br/>
      <button class="w3-right primary" onclick="window.print()" data-icon="print"></button>
+     <button class="w3-right primary navigator-share-action" data-icon="share" data-url="{{request.path}}" data-title="{{doc.name}}" data-text="{{doc.about|or:''}}"></button>
     <div class="w3-row text-medium">
     {{doc.content|safe}}
     </div>
