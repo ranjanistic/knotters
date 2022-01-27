@@ -113,10 +113,10 @@ class ProfileActivationMiddleware(object):
 
     def __call__(self, request: WSGIRequest):
         if request.user.is_authenticated and not request.user.profile.is_active:
-            if request.method == 'POST' or request.headers.get('X-KNOT-REQ-SCRIPT', False) == 'true':
+            if request.method == Code.POST or request.headers.get('X-KNOT-REQ-SCRIPT', False) == 'true':
                 if not allowBypassDeactivated(request.get_full_path()):
                     return HttpResponseForbidden()
-            if request.method == 'GET':
+            if request.method == Code.GET:
                 if not (request.get_full_path().startswith(request.user.profile.getLink()) or allowBypassDeactivated(request.get_full_path())):
                     return redirect(request.user.profile.getLink())
         return self.get_response(request)
