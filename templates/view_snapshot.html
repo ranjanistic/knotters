@@ -34,7 +34,7 @@
         <br/>
         <div class="w3-row w3-padding">
         <a href="{{snapshot.creator.getLink}}" title="{{snapshot.creator.getName}}"><img alt="{{snapshot.creator.getName}}" class="w3-right w3-circle" src="{{snapshot.creator.getDP}}" width="50" /></a>
-        <span class="text-tertiary text-medium">{{snapshot.text|truncatechars:950|urlize}}</span><br/>
+        <span class="text-tertiary text-medium" style="overflow-wrap: break-word;">{{snapshot.text|truncatechars:950|urlize}}</span><br/>
         <span class='dead-text'>{{snapshot.created_on}}</span>
         </div>
         <br/>
