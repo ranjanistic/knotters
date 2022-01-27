@@ -432,32 +432,16 @@
         <script src="{% static 'scripts/snapshot.js' %}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script>
-            const SITE = "{{SITE}}";
-            const STATIC_URL = "{% static '*' %}";
-            const csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True';
-            const activeuser = authenticated && "{{request.user.profile.is_active}}" == 'True';
-            const ROOT = "{{ROOT}}";
-            const APPNAME = "{{APPNAME}}";
-            const VERSION = "{{VERSION}}";
-            const SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}};
-            const SUBAPPNAME = "{{SUBAPPNAME}}";
-            const ICON = "{{ICON}}";
-            const ICON_DARK = "{{ICON_DARK}}";
-            const ICON_SHADOW = "{{ICON_SHADOW}}";
-            const RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}";
-            const VAPID_KEY = "{{VAPID_KEY}}";
-            if("{{request.GET.e}}") error("{{request.GET.e}}");
-            if("{{request.GET.a}}") message("{{request.GET.a}}");
-            if("{{request.GET.s}}") success("{{request.GET.s}}");
-            if("{{request.GET.report}}"==="1") reportFeedbackView();
-            const URLS = Object.freeze({{URLS|or:'{}'|safe}});
-            const BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}});
+            const SITE = "{{SITE}}", STATIC_URL = "{% static '*' %}", csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True', activeuser = authenticated && "{{request.user.profile.is_active}}" == 'True', ROOT = "{{ROOT}}", APPNAME = "{{APPNAME}}", VERSION = "{{VERSION}}", SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}}, SUBAPPNAME = "{{SUBAPPNAME}}", ICON = "{{ICON}}", ICON_DARK = "{{ICON_DARK}}", ICON_SHADOW = "{{ICON_SHADOW}}", RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}", VAPID_KEY = "{{VAPID_KEY}}";
+            if("{{request.GET.e}}") error("{{request.GET.e}}"); if("{{request.GET.a}}") message("{{request.GET.a}}"); if("{{request.GET.s}}") success("{{request.GET.s}}"); if("{{request.GET.report}}"==="1") reportFeedbackView();
+            const URLS = Object.freeze({{URLS|or:'{}'|safe}}), BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}});
         </script>
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
+        {% spaceless %}
         {% block messages %}
         <script>
         {% if messages %}
@@ -481,5 +465,6 @@
         {% endif %}
         </script>
         {% endblock %}
+        {% endspaceless %}
     </body>
 </html>
