@@ -642,14 +642,15 @@ class Profile(models.Model):
     def getXP(self) -> str:
         return self.get_xp
 
-    def increaseXP(self, by: int = 0) -> int:
+    def increaseXP(self, by: int = 0, notify = True) -> int:
         if not self.is_active:
             return self.xp
         if self.xp == None:
             self.xp = 0
         self.xp = self.xp + by
         self.save()
-        user_device_notify(self.user, "Profile XP Increased!", f"You have gained +{by} XP!", self.get_abs_link)
+        if notify:
+            user_device_notify(self.user, "Profile XP Increased!", f"You have gained +{by} XP!", self.get_abs_link)
         return self.xp
 
     def decreaseXP(self, by: int = 0) -> int:
@@ -668,7 +669,7 @@ class Profile(models.Model):
         self.save()
         return self.xp
 
-    def increaseTopicPoints(self, topic, by: int = 0) -> int:
+    def increaseTopicPoints(self, topic, by: int = 0, notify = True) -> int:
         proftop, _ = ProfileTopic.objects.get_or_create(
             profile=self, topic=topic, defaults=dict(
                 profile=self,
@@ -677,7 +678,7 @@ class Profile(models.Model):
                 points=0,
             )
         )
-        return proftop.increasePoints(by)
+        return proftop.increasePoints(by, notify)
         
     def xpTarget(self):
         xp = self.xp
@@ -920,7 +921,7 @@ class ProfileTopic(models.Model):
     def hidden(self) -> bool:
         return self.trashed
 
-    def increasePoints(self, by: int = 0) -> int:
+    def increasePoints(self, by: int = 0, notify = True) -> int:
         points = 0
         if not self.points:
             points = by
@@ -928,7 +929,8 @@ class ProfileTopic(models.Model):
             points = self.points + by
         self.points = points
         self.save()
-        user_device_notify(self.profile.user, "Topic XP Increased!", f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
+        if notify:
+            user_device_notify(self.profile.user, "Topic XP Increased!", f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
         return self.points
 
     def decreasePoints(self, by: int = 0) -> int:
