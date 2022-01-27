@@ -24,7 +24,7 @@ To setup environment variables, use any one of the two following methods.
 
 #### Manual creation
 
-Set the values in [main/.env](main/.env) and [main/.env.testing](main/.env.testing) accordingly.
+Set the values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) accordingly.
 
 #### Interactive CLI
 
@@ -39,16 +39,13 @@ The above cmd will generate env vars step by step.
 ```bash
 pip install -r requirements.txt
 ```
-
-If there's a ```Microsoft Visual c++ 14.0``` required error with installation of _rcssmin_ or related modules of _django-compressor_, then do following execution if you want to **avoid installing** ```Microsoft C++ Build Tools```
-
-```bash
-# Only if an error occurs
-pip install rcssmin --install-option="--without-c-extensions"
-pip install rjsmin --install-option="--without-c-extensions"
-pip install django-compressor --upgrade
-pip install -r requirements.txt
-```
+> If there's a ```Microsoft Visual c++ 14.0``` required error with installation of _rcssmin_ or related modules, then do following execution if you want to **avoid installing** ```Microsoft C++ Build Tools```
+>```bash
+> # Only if an error occurs
+> pip install rcssmin --install-option="--without-c-extensions"
+> pip install rjsmin --install-option="--without-c-extensions"
+> pip install -r requirements.txt
+> ```
 
 ### Language Setup
 
@@ -92,7 +89,7 @@ Use this anytime if you want to have control over client side service worker upd
 py manage.py makemessages --extension=html,js
 ```
 
-To generate `.po` files for translation.
+To generate `.po` files for translation at locale destination specified in your [`main/.env`](main/.env) file.
 
 ```bash
 py manage.py compilemessages
@@ -102,7 +99,7 @@ To compile `.po` files to `.mo` files.
 
 ## Testing
 
-Make sure that [main/.env.testing](main/.env.testing) is set appropriately.
+Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.
 
 ```bash
 py testmanage.py test
@@ -131,3 +128,7 @@ coverage html
 - Try to separate changes in client side & server side code using separate branches, for efficient workflow run.
 
 - Try to publish the server sided changes before client side ones for better update delivery.
+
+- Try to group changes in [`static`](static) directory under single commit to avoid instantaneous multiple client side updates.
+
+- Always deploy changes in [`templates`](templates) directory separately from other changes, and if possible, deploy after other changes have been deployed successfully.
