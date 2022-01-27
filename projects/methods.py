@@ -623,7 +623,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                             if increase:
                                 by = 1
                                 commit_committer.increaseTopicPoints(
-                                    by=by, topic=topic)
+                                    topic=topic, by=by, notify = False)
                                 if hastopic:
                                     extensions[ext]['topics'][tpos]['xp'] = lastxp+by
                                 else:
@@ -631,9 +631,9 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                                         dict(topic=topic, xp=(lastxp+by)))
             if len(changed) > 1:
                 project.creator.increaseXP(
-                    by=(((len(commits)//len(committers))//2) or 1))
+                    by=(((len(commits)//len(committers))//2) or 1),notify = False)
                 project.moderator.increaseXP(
-                    by=(((len(commits)//len(committers))//3) or 1))
+                    by=(((len(commits)//len(committers))//3) or 1),notify = False)
         elif ghevent == Event.PR:
             pr = postData.get('pull_request', None)
             if pr:
@@ -643,15 +643,15 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                     pr_creator = Profile.objects.filter(
                         githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
                     if pr_creator:
-                        pr_creator.increaseXP(by=2)
+                        pr_creator.increaseXP(by=2,notify = False)
                 elif action == 'closed':
                     pr_creator = Profile.objects.filter(
                         githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
                     if pr['merged']:
                         if pr_creator:
-                            pr_creator.increaseXP(by=3)
-                        project.creator.increaseXP(by=2)
-                        project.moderator.increaseXP(by=1)
+                            pr_creator.increaseXP(by=3,notify = False)
+                        project.creator.increaseXP(by=2,notify = False)
+                        project.moderator.increaseXP(by=1,notify = False)
                     else:
                         if pr_creator:
                             pr_creator.decreaseXP(by=2)
@@ -659,12 +659,12 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                     pr_creator = Profile.objects.filter(
                         githubID=pr_creator_ghID, is_active=True ,suspended=False,to_be_zombie=False).first()
                     if pr_creator:
-                        pr_creator.increaseXP(by=2)
+                        pr_creator.increaseXP(by=2,notify = False)
                 elif action == 'review_requested':
                     pr_reviewer = Profile.objects.filter(
                         githubID=pr['requested_reviewer']['login'], is_active=True, suspended=False,to_be_zombie=False).first()
                     if pr_reviewer:
-                        pr_reviewer.increaseXP(by=4)
+                        pr_reviewer.increaseXP(by=4,notify = False)
                 elif action == 'review_request_removed':
                     pr_reviewer = Profile.objects.filter(
                         githubID=pr['requested_reviewer']['login'], is_active=True, suspended=False,to_be_zombie=False).first()
@@ -677,8 +677,8 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
         elif ghevent == Event.STAR:
             action = postData.get('action', None)
             if action == 'created':
-                project.creator.increaseXP(by=2)
-                project.moderator.increaseXP(by=1)
+                project.creator.increaseXP(by=2,notify = False)
+                project.moderator.increaseXP(by=1,notify = False)
             elif action == 'deleted':
                 project.creator.decreaseXP(by=2)
                 project.moderator.decreaseXP(by=1)
