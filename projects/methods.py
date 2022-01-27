@@ -609,7 +609,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                             hastopic = False
                             increase = True
                             lastxp = 0
-                            tpos = 0
+                            tpos = -1
                             if len(extensions[ext]['topics']) > 0:
                                 for top in extensions[ext]['topics']:
                                     tpos = tpos + 1
