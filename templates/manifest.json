@@ -39,5 +39,19 @@
         }
         {% if forloop.counter < SUBAPPSLIST|length %},{% endif %}
     {% endfor %}
+     {% if request.user.is_authenticated %}
+       ,{
+            "name": "{{request.user.profile.get_name}}",
+            "short_name": "{{request.user.profile.get_name}}",
+            "url": "{{request.user.profile.get_link}}",
+            "icons": [
+                {
+                    "src": "{{ request.user.profile.get_dp }}",
+                    "type": "image/png",
+                    "purpose": "any"
+                }
+            ]
+        }
+     {% endif %}
     ]
 }
