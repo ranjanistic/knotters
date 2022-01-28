@@ -864,10 +864,10 @@ class Profile(models.Model):
             if projects is None:
                 constquery = Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles)
                 query = Q(topics__in=self.topics.all())
-                projects = BaseProject.objects.filter(~constquery,query).order_by('-admirers').distinct()
+                projects = BaseProject.objects.filter(~constquery,query).distinct()
                 projects = list(set(list(filter(approved_only,projects))))
                 if len(projects) < atleast:
-                    projects = BaseProject.objects.filter(~constquery).order_by('-admirers').distinct()
+                    projects = BaseProject.objects.filter(~constquery).distinct()
                     projects = list(set(list(filter(approved_only,projects))))
                 if len(projects):
                     cache.set(cacheKey, data, settings.CACHE_SHORT)
