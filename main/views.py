@@ -81,7 +81,7 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 @normal_profile_required
 @require_GET
 def at_me(request:WSGIRequest) -> HttpResponse:
-    return respondRedirect(path=request.user.profile.get_abs_link)
+    return redirect(request.user.profile.get_link)
 
 @normal_profile_required
 @require_GET
