@@ -181,12 +181,12 @@
                 <a onclick="newTab('{{URLS.Projects.CREATE_FREE}}')"><button class='big-button positive' data-icon="add">New quick project</button></a>
                 <br/><br/>
                 <h1 id="verified-projects"><span class="accent" >Verified Project <i>verified</i></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#verified-projects"><i>link</i></a></h1>
-                <strong class="text-medium">
+                <span class="text-medium">
                     A project under this category will have its own Github repository under {{APPNAME}} organization,
                     and much more. But to fall under this category, your project has to undergo a review procedure
                     (Moderators are there for that, we'll discuss them later).
                     Currently recommended for coding based projects only.
-                </strong>
+                </span>
                 <br/>
                 <a onclick="newTab('{{URLS.Projects.CREATE_MOD}}')"><button class='big-button accent' data-icon="add">New verified project</button></a>
                 <br/><br/>
@@ -198,7 +198,8 @@
                     The source code of these kind of projects will also remain under {{APPNAME}} organization, but with limited visibility.
                     Organizations may also provide incentives to the people who contribute to it.
                 </strong>
-                
+                <br/>
+                <a onclick="newTab('{{URLS.Projects.CREATE_CORE}}')"><button class='big-button primary' data-icon="add">New core project</button></a>
                 <br/><br/>
                 <h4>
                     And it doesn't end here
