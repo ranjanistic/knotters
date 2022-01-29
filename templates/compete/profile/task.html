@@ -5,12 +5,20 @@
 {% load custom_tags %}
 
 <div class="w3-row w3-padding-small">
-    <h4 class="dead-text">{% trans "Summary" %}</h4>
-    <p class="text-medium" style="word-break:break-word">{{compete.taskSummary|safe}}</p>
+    {% if not compete.is_markdown %}
+        <h4 class="dead-text">{% trans "Summary" %}</h4>
+        <p class="text-medium" style="word-break:break-word">{{compete.taskSummary|safe}}</p>
+        
+        <h4 class="dead-text">{% trans "Detail" %}</h4>
+        <p class="text-medium" style="word-break:break-word">{{compete.taskDetail|safe}}</p>
 
-    <h4 class="dead-text">{% trans "Detail" %}</h4>
-    <p class="text-medium" style="word-break:break-word">{{compete.taskDetail|safe}}</p>
-
-    <h4 class="dead-text">{% trans "Sample" %}</h4>
-    <p class="text-medium" style="word-break:break-word">{{compete.taskSample|safe}}</p>
+        <h4 class="dead-text">{% trans "Sample" %}</h4>
+        <p class="text-medium" style="word-break:break-word">{{compete.taskSample|safe}}</p>
+    {% else %}
+    
+        <h4 class="dead-text">{% trans "Task of this competition" %}</h4>
+        <textarea id="compete-task-summary">{{compete.taskSummary}}</textarea>
+        <textarea id="compete-task-detail">{{compete.taskDetail}}</textarea>
+        <textarea id="compete-task-sample">{{compete.taskSample}}</textarea>
+    {% endif %}
 </div>

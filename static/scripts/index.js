@@ -119,10 +119,7 @@ const loadGlobalEventListeners = () => {
     });
     getElementsByTag("a").forEach((a) => {
         if (
-            a.href &&
-            !a.hash &&
-            !a.getAttribute("target") &&
-            a.getAttribute("download") === null
+            (a.href.startsWith(window.location.origin)||a.href.startsWith('/')) && !a.getAttribute("target") && !a.hash && a.getAttribute("download") === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);
@@ -144,6 +141,13 @@ const loadGlobalEventListeners = () => {
         if (button.dataset.icon) {
             if (!button.innerHTML.includes("material-icons")) {
                 button.innerHTML = `${Icon(button.getAttribute("data-icon"))}${
+                    button.innerHTML
+                }`;
+            }
+        }
+        if (button.dataset.img) {
+            if (!button.innerHTML.includes("img")) {
+                button.innerHTML = `<img src="${button.getAttribute("data-img")}" class="circle" />&nbsp;${
                     button.innerHTML
                 }`;
             }

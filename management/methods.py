@@ -34,10 +34,6 @@ def createCompetition(creator, title, tagline, shortdescription,
         if reg_fee < 0:
             raise Exception(f"invalid reg_fee")
 
-        taskSummary = taskSummary.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
-        taskDetail = taskDetail.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
-        taskSample = taskSample.replace('href=\"', 'target="_blank" href=\"/redirector?n=').replace('</script>', '!script!').replace('onclick=','').replace('()','[]')
-
         compete = Competition.objects.create(
             creator=creator,
             title=title,

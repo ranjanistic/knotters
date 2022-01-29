@@ -33,13 +33,6 @@ window.addEventListener("load", () => {
         localStorage.removeItem(Key.futureMessage);
     }
 
-    if (sessionStorage.getItem("device-theme") == 1) {
-        message(
-            `${STRING.theme_set_sys_default} ${STRING.use} ${Icon(
-                "brightness_medium"
-            )} ${STRING.to_toggle_it}`
-        );
-    }
     if (window.location.host.startsWith("beta.")) {
         getElements("beta-alert-view").forEach((elem) => show(elem));
         if (!window.sessionStorage.getItem("beta-alerted")) betaAlert();
@@ -54,7 +47,7 @@ window.addEventListener("load", () => {
     sessionStorage.removeItem(KEY.message_fired);
     sessionStorage.removeItem(KEY.error_fired);
     sessionStorage.removeItem(KEY.success_fired);
-
+    
     if (window.location.href.split("#").length > 1) {
         const elem = getElement(window.location.href.split("#")[1]);
         if (elem) {
@@ -81,6 +74,14 @@ window.addEventListener("load", () => {
         document.title,
         window.location.pathname.replace(/'(\?)+[ae]+(\=)+[a-zA-Z0-9]+'/, "")
     );
+    if (sessionStorage.getItem("device-theme") == 1) {
+        message(
+            `${STRING.theme_set_sys_default} ${STRING.use} ${Icon(
+                "brightness_medium"
+            )} ${STRING.to_toggle_it}`
+        );
+    }
+    firstTimeMessage('cookie-alt', `We use cookies to ensure smooth functioning, and by continuing, you agree to our <a class="underline text-accent" href='${setUrlParams(URLS.Docs.TYPE, 'privacypolicy')}' target="_blank">privacy policy & cookie policy</a>.`);
     subLoader(false);
 });
 

@@ -54,8 +54,23 @@ try {
     };
 } catch {}
 
+let taskinit = false;
 const loadTabScript = (attr, tab) => {
     switch (attr) {
+        case "task": {
+            try{
+                [getElement('compete-task-summary'),getElement('compete-task-detail'),getElement('compete-task-sample')].forEach(e=>{
+                    let s = new SimpleMDE({
+                        element: e,
+                        toolbar: false,
+                        status: false
+                    });
+                    s.togglePreview();
+                    s.codemirror.options.readOnly = true;
+                })
+                taskinit = true;
+            } catch {}
+        } break;
         case "submission":
             {
                 if (isActive) {
@@ -75,7 +90,7 @@ const loadTabScript = (attr, tab) => {
                                             path: setUrlParams(
                                                 URLS.REMOVEMEMBER,
                                                 compdata.subID,
-                                                remove.dataset.userID
+                                                remove.dataset.userid
                                             ),
                                         });
                                         if (!data) return;
@@ -142,9 +157,7 @@ const loadTabScript = (attr, tab) => {
                                             );
                                             tab.click();
                                         } else {
-                                            getElement(
-                                                "dialoginviteerr"
-                                            ).innerHTML = data.error;
+                                            error(data.error);
                                         }
                                     }
                                 });
@@ -384,6 +397,17 @@ const loadTabScript = (attr, tab) => {
             });
         };
     } catch {}
+    if (!taskinit && attr=='task'){
+        [getElement('compete-task-summary'),getElement('compete-task-detail'),getElement('compete-task-sample')].forEach(e=>{
+            let s = new SimpleMDE({
+                element: e,
+                toolbar: false,
+                status: false
+            });
+            s.togglePreview();
+            s.codemirror.options.readOnly = true;
+        })
+    }
 };
 
 initializeTabsView({

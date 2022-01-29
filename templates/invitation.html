@@ -15,6 +15,7 @@
     {% endblock %}
     <br/>
     <div class="w3-row w3-padding w3-center">
+        {% block invite_actions %}
         <form method="POST" action="{% block accept_action %}{% endblock %}" id="invite-accept-form">
             {% csrf_token %}
             {% block accept_formdata %}{% endblock %}
@@ -28,6 +29,7 @@
             <input hidden type="text" value="decline" name="action" id="invite-decline-action" />
             <button type="submit" class="{% block decline_theme %}negative{% endblock %}" data-icon="{% block decline_icon %}close{% endblock %}">{% block decline_text %}{% trans "Decline Politely" %}{% endblock %}</button>
         </form>
+        {% endblock %}
     </div>
 </div>
 <br/>

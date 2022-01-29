@@ -8,6 +8,8 @@ urlpatterns = [
     path(URL.Management.COMPETITIONS, competitions),
     path(URL.Management.CREATE_COMP, createCompete),
     path(URL.Management.SUBMIT_COMP, submitCompetition),
+    path(URL.Management.EDIT_COMP, editCompetition),
+    path(URL.Management.DRAFT_DEL_COMP, draftDeleteCompete),
     path(URL.Management.COMPETITION, competition),
     path(URL.Management.TOPICSEARCH, searchTopic),
     path(URL.Management.JUDGESEARCH, searchJudge),

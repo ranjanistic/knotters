@@ -1005,6 +1005,8 @@ class URL():
         COMPETITIONS = 'competitions'
         CREATE_COMP = 'competitions/create'
         SUBMIT_COMP = 'competitions/submit'
+        EDIT_COMP = 'competitions/edit/<str:compID>'
+        DRAFT_DEL_COMP = 'competitions/ddel/<str:compID>'
         COMPETITION = 'competitions/<str:compID>'
 
         def competition(self, compID):

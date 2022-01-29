@@ -40,5 +40,8 @@ Swal = Swal.mixin({
         loadGlobalEditors();
         loadCarousels({});
         loadBrowserSwiper();
+        if(sessionStorage.getItem(KEY.success_firing)){
+            
+        }
     }
 });

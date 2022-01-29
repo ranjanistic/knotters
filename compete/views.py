@@ -46,13 +46,22 @@ def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         compete = Competition.objects.get(id=compID)
-        data = dict(compete=compete)
+        isManager = request.user.is_authenticated and compete.creator == request.user.profile
+        if compete.is_draft:
+            if isManager:
+                return redirect(compete.getManagementLink())
+            raise ObjectDoesNotExist('isdraft: ', compete)
+            
         if request.user.is_authenticated:
             data = dict(
-                **data,
+                compete=compete,
                 isJudge=compete.isJudge(request.user.profile),
                 isMod=compete.isModerator(request.user.profile),
-                isManager=(compete.creator == request.user.profile),
+                isManager=isManager
+            )
+        else:
+            data = dict(
+                compete=compete
             )
         return renderer(request, Template.Compete.PROFILE, data)
     except ObjectDoesNotExist as o:
@@ -91,7 +100,7 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
 @require_GET
 def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResponse:
     try:
-        compete = Competition.objects.get(id=compID)
+        compete = Competition.objects.get(id=compID, is_draft=False)
         data = getCompetitionSectionHTML(compete, section, request)
         if data:
             return HttpResponse(data)

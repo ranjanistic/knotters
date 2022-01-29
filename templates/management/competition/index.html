@@ -1,4 +1,8 @@
 {% extends 'management/index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load cache %}
+{% load static %}
 {% load custom_tags %}
 
 {% block title %}Manage Competitions{% endblock %}
@@ -8,6 +12,10 @@
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'simplemde/simplemde.min.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="w3-row w3-padding">
@@ -29,4 +37,8 @@
     </div>
 </div>
 <br/>
+{% endblock %}
+
+{% block in_scripts %}
+<script src="{% static 'simplemde/simplemde.min.js' %}"></script>
 {% endblock %}

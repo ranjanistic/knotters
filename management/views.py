@@ -1,11 +1,11 @@
 from uuid import UUID
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.cache import cache
 from main.decorators import manager_only, normal_profile_required, require_JSON_body
@@ -160,6 +160,7 @@ def mentors(request: WSGIRequest):
         mgm = Management.objects.get(profile=request.user.profile)
         mentors = mgm.people.filter(is_mentor=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = mgm.people.filter(is_mentor=False, is_moderator=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        profiles = list(filter(lambda x: not x.is_manager, profiles))
         return renderer(request, Template.Management.COMMUNITY_MENTORS, dict(mentors=mentors, profiles=profiles))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -625,6 +626,128 @@ def submitCompetition(request) -> HttpResponse:
 
 
 @manager_only
+@require_JSON_body
+def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
+    try:
+        compete = Competition.objects.get(id=compID,creator=request.user.profile)
+        if not compete.canBeEdited():
+            raise ObjectDoesNotExist('cannot edit compete:', compete)
+        
+        title = str(request.POST.get("comptitle",'')).strip()
+        if title and title != compete.title:
+            compete.title = title
+        tagline = str(request.POST.get("comptagline",'')).strip()
+        if tagline and tagline != compete.tagline:
+            compete.tagline = tagline
+        shortdescription = str(request.POST.get("compshortdesc",'')).strip()
+        if shortdescription and shortdescription != compete.shortdescription:
+            compete.shortdescription = shortdescription
+
+        description = str(request.POST.get("compdesc",'')).strip()
+        if description and description != compete.description:
+            compete.description = description
+
+        startAt = request.POST.get("compstartAt",None)
+        if startAt and startAt != compete.startAt:
+            compete.startAt = startAt
+
+        endAt = request.POST.get("compendAt",None)
+        if endAt and endAt != compete.endAt and endAt > compete.startAt:
+            compete.endAt = endAt
+
+        eachTopicMaxPoint = request.POST.get("compeachTopicMaxPoint",None)
+        if eachTopicMaxPoint and eachTopicMaxPoint != compete.eachTopicMaxPoint:
+            compete.eachTopicMaxPoint = eachTopicMaxPoint
+        if compete.reg_fee:
+            reg_fee = request.POST.get("compregfee",None)
+            if reg_fee and reg_fee != compete.reg_fee:
+                compete.reg_fee = reg_fee
+            feelink = request.POST.get("compfeelink",None)
+            if feelink and feelink != compete.feelink:
+                compete.feelink = feelink
+        taskSummary = request.POST.get("comptaskSummary",None)
+        if taskSummary and taskSummary != compete.taskSummary:
+            compete.taskSummary = taskSummary
+        taskDetail = request.POST.get("comptaskDetail",None)
+        if taskDetail and taskDetail != compete.taskDetail:
+            compete.taskDetail = taskDetail
+        taskSample = request.POST.get("comptaskSample",None)
+        if taskSample and taskSample != compete.taskSample:
+            compete.taskSample = taskSample
+
+        topicIDs = request.POST.get("comptopicIDs",None)
+        if topicIDs and len(topicIDs) > 0:
+            topics = Topic.objects.filter(id__in=topicIDs)
+            compete.topics.set(topics)
+
+        modID = request.POST.get("compmodID",None)
+        if modID:
+            newmod = Profile.objects.filter(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).first()
+            if newmod:
+                moderation = compete.moderation()
+                moderation.moderator = newmod
+                moderation.save()
+
+        judgeIDs = request.POST.get("compjudgeIDs",None)
+        if judgeIDs and len(judgeIDs) > 0:
+            newjudges = Profile.objects.filter(user__id__in=judgeIDs,is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
+            compete.judges.set(newjudges)
+
+        try:
+            bannerdata = request.POST['compbanner']
+            bannerfile = base64ToImageFile(bannerdata)
+            if bannerfile:
+                compete.banner = bannerfile
+        except Exception as e:
+            pass
+
+        try:
+            associatedata = request.POST['compassociate']
+            associatefile = base64ToImageFile(associatedata)
+            if associatefile:
+                compete.associate = associatefile
+        except Exception as e:
+            pass
+        
+        compete.save()
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, ValidationError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@manager_only
+@require_JSON_body
+def draftDeleteCompete(request:WSGIRequest, compID: UUID)->HttpResponse:
+    try:
+        compete = Competition.objects.get(id=compID,creator=request.user.profile)
+        delete = request.POST.get('delete', False)
+        draft = request.POST.get('draft', None)
+        confirmed = request.POST.get('confirmed', False)
+        if not confirmed:
+            raise ObjectDoesNotExist('not confirmed', compete)
+            
+        if draft is not None:
+            if draft and not compete.canBeSetToDraft():
+                raise ObjectDoesNotExist('cannot set to draft', compete)
+            compete.is_draft = draft
+            compete.save()
+        elif delete:
+            if not compete.canBeDeleted():
+                raise ObjectDoesNotExist('cannot delete compete', compete)
+            compete.judges.clear()
+            compete.delete()
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, ValidationError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+    
+
+@manager_only
 @require_GET
 # @cache_page(settings.CACHE_LONG)
 def reportFeedbacks(request: WSGIRequest):
@@ -704,7 +827,7 @@ def sendPeopleInvite(request: WSGIRequest):
         action = request.POST['action']
         if action == Action.CREATE:
             email = request.POST['email'].lower()
-            if (request.user.email == email) or (email in request.user.emails):
+            if (request.user.email == email) or (email in request.user.emails()):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             receiver = Profile.objects.get(user__email=email, suspended=False, is_active=True, to_be_zombie=False)
             if request.user.profile.management.people.filter(id=receiver.id).exists():

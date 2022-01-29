@@ -108,6 +108,7 @@ class Competition(models.Model):
     taskSummary = models.CharField(max_length=50000)
     taskDetail = models.CharField(max_length=100000)
     taskSample = models.CharField(max_length=10000)
+    is_markdown = models.BooleanField(default=True)
 
     resultDeclared = models.BooleanField(
         default=False, help_text='Whether the results have been declared or not. Strictly restricted to be edited via server.')
@@ -244,27 +245,22 @@ class Competition(models.Model):
 
     @property
     def moderator(self)->Profile:
-        mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn').first()
+        mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn','-respondOn').first()
         return None if not mod else mod.moderator
+
+    
+    def moderation(self)-> Moderation:
+        return Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn','-respondOn').first()
             
 
     def isModerator(self, profile: Profile) -> bool:
         """
         Whether the given profile is assigned as moderator of this competition or not.
         """
-        try:
-            Moderation.objects.get(
-                type=APPNAME, competition=self, moderator=profile)
-            return True
-        except Exception as e:
-            return False
+        return self.moderator == profile
 
     def getModerator(self) -> Profile:
-        try:
-            mod = Moderation.objects.get(type=APPNAME, competition=self)
-            return mod.moderator
-        except:
-            return None
+        return self.moderator
 
     def moderated(self) -> bool:
         """
@@ -272,7 +268,7 @@ class Competition(models.Model):
         Being moderated indicates that the valid submissions in this competition are ready to be marked.
         """
         return True if Moderation.objects.filter(
-            type=APPNAME, competition=self, resolved=True).order_by('-requestOn').first() else False
+            type=APPNAME, competition=self, resolved=True).order_by('-requestOn','-respondOn').first() else False
 
     def isJudge(self, profile: Profile) -> bool:
         """
@@ -394,6 +390,22 @@ class Competition(models.Model):
         Count all submissions irrespective of their validity.
         """
         return Submission.objects.filter(competition=self).count()
+
+    def totalSubmittedSubmissions(self) -> int:
+        """
+        Count all submitted submissions irrespective of their validity.
+        """
+        return Submission.objects.filter(competition=self,submitted=True).count()
+
+    def canBeEdited(self):
+        return self.isUpcoming() or self.totalSubmittedSubmissions() == 0
+
+    def canBeDeleted(self):
+        return self.isUpcoming() or self.totalSubmissions() == 0
+
+    def canBeSetToDraft(self):
+        
+        return not self.is_draft and (self.isUpcoming() or (self.totalSubmissions() == 0))
 
     def getValidSubmissions(self) -> list:
         """

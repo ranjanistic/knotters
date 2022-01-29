@@ -45,6 +45,19 @@
     {% endif %}
     </div>
 {% endblock %}
+{% block invite_actions %}
+{% if not declined and not accepted  %}
+<form method="POST" action="{{URLS.INVITEACTION|params:submission.getID|params:request.user.getID|params:'accept'}}" id="invite-accept-form">
+    {% csrf_token %}
+    <input hidden type="text" value="accept" name="action" id="invite-accept-action" />
+    <button type="submit" class="positive" data-icon="check">{% trans "Accept Invitation" %}</button>
+</form>
+<br/>
+<form method="POST" action="{{URLS.INVITEACTION|params:submission.getID|params:request.user.getID|params:'decline'}}" id="invite-decline-form">
+    {% csrf_token %}
+    <input hidden type="text" value="decline" name="action" id="invite-decline-action" />
+    <button type="submit" class="negative" data-icon="close">{% trans "Decline Politely" %}</button>
+</form>
+{% endif %}
+{% endblock %}
 
-{% block accept_action %}{{URLS.INVITEACTION|params:submission.getID|params:request.user.getID|params:'accept'}}{% endblock %}
-{% block decline_action %}{{URLS.INVITEACTION|params:submission.getID|params:request.user.getID|params:'decline'}}{% endblock %}
