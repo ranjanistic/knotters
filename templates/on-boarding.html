@@ -248,7 +248,7 @@
                     </a>
                     <div class="w3-row w3-padding">
                         <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        <span>{{ project.description|truncatechars:25 }}</span>
+                        <span>{{ project.description|truncatechars:45 }}</span>
                         <br/><br/>
                         <button onclick="onboardAdmireProject('{{project.get_id}}')" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism">Admire</button>
                     </div>
