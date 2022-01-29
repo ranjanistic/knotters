@@ -8,7 +8,7 @@ from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from django.conf import settings
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString, COMPETE
-from projects.models import BaseProject, Project
+from projects.models import BaseProject, CoreProject, FreeProject, FreeRepository, Project
 from moderation.models import Moderation
 from compete.models import Competition, CompetitionJudge, Result
 from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
@@ -250,12 +250,27 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
 def migrateUserAssets(predecessor: User, successor: User) -> bool:
     try:
         if predecessor == successor: return True
-        Competition.objects.filter(creator=predecessor.profile).update(creator=successor.profile)
-        Project.objects.filter(creator=predecessor.profile,
-                               status=Code.MODERATION).delete()
-        BaseProject.objects.filter(creator=predecessor.profile).update(migrated=True, creator=successor.profile)
+        Project.objects.filter(creator=predecessor.profile,status=Code.MODERATION).delete()
+        CoreProject.objects.filter(creator=predecessor.profile,status=Code.MODERATION).delete()
+        FreeRepository.objects.filter(free_project__creator=predecessor.profile).delete()
+        FreeProject.objects.filter(creator=predecessor.profile,trashed=False).update(migrated=True,migrated_by=predecessor.profile, migrated_on=timezone.now(), creator=successor.profile)
+        Project.objects.filter(creator=predecessor.profile,trashed=False).update(migrated=True,migrated_by=predecessor.profile, migrated_on=timezone.now(), creator=successor.profile)
+
         if predecessor.profile.hasPredecessors:
             predecessor.profile.predecessors.update(successor=successor)
+
+        comps = Competition.objects.filter(creator=predecessor.profile)
+        if len(comps):
+            if successor.profile.is_manager:
+                comps.update(creator=successor.profile)
+            else:
+                raise Exception("Cannot migrate competitions, successor is not manager.", predecessor, successor)
+        cprojs = CoreProject.objects.filter(creator=predecessor.profile,trashed=False)
+        if len(cprojs):
+            if successor.profile.is_manager:
+                cprojs.update(migrated=True,migrated_by=predecessor.profile, migrated_on=timezone.now(), creator=successor.profile)
+            else:
+                raise Exception("Cannot migrate core projects, successor is not manager.", predecessor, successor)
         return True
     except Exception as e:
         errorLog(e)

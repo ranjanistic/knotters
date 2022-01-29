@@ -850,7 +850,7 @@ class Profile(models.Model):
         cacheKey = f"profile_tags_{self.id}"
         data = cache.get(cacheKey, None)
         if data is None:
-            topIDs = self.topics.values_list('tags',flat=True).distinct()
+            data = self.topics.values_list('tags',flat=True).distinct()
             if len(data):
                 cache.set(cacheKey, data, settings.CACHE_MINI)
         return data
@@ -870,7 +870,7 @@ class Profile(models.Model):
                     projects = BaseProject.objects.filter(~constquery).distinct()
                     projects = list(set(list(filter(approved_only,projects))))
                 if len(projects):
-                    cache.set(cacheKey, data, settings.CACHE_SHORT)
+                    cache.set(cacheKey, projects, settings.CACHE_SHORT)
             return projects[:atmost]
         except Exception as e:
             errorLog(e)
