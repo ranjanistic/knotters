@@ -618,7 +618,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                                     if top['topic'] == topic:
                                         hastopic = True
                                         lastxp = top['xp']
-                                        if lastxp > 9:
+                                        if lastxp > 4:
                                             increase = False
                                         break
 
