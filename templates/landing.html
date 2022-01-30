@@ -95,12 +95,12 @@
             <img src="{{ICON}}"  width="50" />
         </div>
         <div class="w3-col w3-half" align='right'>
-            <strong class="w3-large">
+            <span class="w3-large">
             <p class="text-medium">
                 Has the story started? It did when you first visited this page. It's all about patience.
                 Ofcourse you can speed scroll all the way down to the bottom of this page to get rid of this slow character buildup. But, where's the fun in that?
             </p>
-            </strong>
+            </span>
         </div>
     </div>
     <br/>
@@ -315,7 +315,7 @@
              to the project, things which are not being conveyed via any source code or markdown files of the project. This feature is available to all kinds of projects,
              and if you admire a project, you'll see its latest snapshots on your homepage. Moderators can also post snapshots along with the creators of projects.
         </span><br/>
-        <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button primary' data-icon="open_in_new">View licenses</button></a>
+        <a href="{{URLS.Projects.PROFILE|params:"skivvy"}}#snaps" target="_blank"><button class='big-button primary' data-icon="camera">View Skivvy's Snapshots</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="profile">
         <h1>{% trans "Your profile" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#profile"><i>link</i></a></h1>
