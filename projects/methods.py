@@ -536,7 +536,6 @@ def getProjectLiveData(project):
                     files=commit.files,
                 )
                 break
-        print(commit)
         return contributors, languages, [commit]
     except:
         return [], [], []
