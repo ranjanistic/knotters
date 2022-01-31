@@ -257,7 +257,7 @@ class Competition(models.Model):
         """
         Whether the given profile is assigned as moderator of this competition or not.
         """
-        return self.moderator == profile
+        return profile and self.moderator == profile
 
     def getModerator(self) -> Profile:
         return self.moderator
@@ -299,7 +299,8 @@ class Competition(models.Model):
             return self.getLink()
 
     def isAllowedToParticipate(self, profile:Profile, checkqualifier=True) -> bool:    
-        allowed = not (self.creator == profile or self.moderator == profile or self.isJudge(profile) or profile.is_manager or profile.getEmail() == BOTMAIL)
+        allowed = not (self.creator == profile or self.moderator == profile or self.isJudge(profile) or profile.is_manager() or profile.getEmail() == BOTMAIL)
+        
         if allowed and checkqualifier:
             if self.qualifier:
                 if not self.qualifier.resultDeclared:

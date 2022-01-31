@@ -196,6 +196,7 @@ class Message():
     SETTING_APPROVED_PROJECT = _("Setting up approved project.")
     SETUP_APPROVED_PROJECT_DONE = _("Approved project setup done.")
     GH_REPO_NOT_SETUP = _("GitHub repository has not been setup yet. Check again later.")
+    GH_ORG_NOT_LINKED = _("No GitHub organization has been linked.")
 
     ACCOUNT_PREF_SAVED = _("Account preferences saved.")
     SUCCESSOR_GH_UNLINKED = _(
@@ -519,6 +520,7 @@ class URL():
         NOTIF_ENABLED = 'push-notify/enabled'
         TAB_SECTION = 'section/<str:section>/'
         VERIFY_REAUTH = 're-auth/verify/'
+        CHANGE_GHORG = 'org/gh/change'
 
         def getURLSForClient(self):
             URLS = dict()

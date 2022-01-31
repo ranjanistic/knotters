@@ -855,7 +855,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @require_JSON_body
 def userGithubRepos(request):
     try:
-        ghuser = Github.get_user(request.user.profile.ghID)
+        ghuser = Github.get_user(request.user.profile.ghID())
         repos = ghuser.get_repos('public')
         data = []
         for repo in repos:
@@ -877,7 +877,7 @@ def linkFreeGithubRepo(request):
             id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         if FreeRepository.objects.filter(free_project=project).exists():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        ghuser = Github.get_user(request.user.profile.ghID)
+        ghuser = Github.get_user(request.user.profile.ghID())
         repo = Github.get_repo(repoID)
         if repo.owner == ghuser:
             FreeRepository.objects.create(free_project=project, repo_id=repoID)
@@ -896,7 +896,7 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
         project = FreeProject.objects.get(
             id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         freerepo = FreeRepository.objects.get(free_project=project)
-        ghuser = Github.get_user(request.user.profile.ghID)
+        ghuser = Github.get_user(request.user.profile.ghID())
         repo = Github.get_repo(int(freerepo.repo_id))
         if repo.owner == ghuser:
             freerepo.delete()

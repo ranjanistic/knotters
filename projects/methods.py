@@ -219,7 +219,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
     try:
         if not project.isApproved():
             return False, "Verified project not approved"
-        if not project.creator.has_ghID or not moderator.has_ghID:
+        if not project.creator.has_ghID() or not moderator.has_ghID():
             return False, "Creator or moderator has no github ID"
 
         ghUser = project.creator.gh_user()
@@ -276,7 +276,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
                 enforce_admins=False,
                 dismiss_stale_reviews=True,
                 required_approving_review_count=1,
-                user_push_restrictions=[moderator.ghID],
+                user_push_restrictions=[moderator.ghID()],
             )
             msg += 'branch done, '
         except Exception as e:
@@ -365,7 +365,7 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
     try:
         if not coreproject.isApproved():
             return False, "Core project is not approved"
-        if not moderator.has_ghID:
+        if not moderator.has_ghID():
             return False, "Moderator has no github account"
         
         ghUser = coreproject.creator.gh_user()

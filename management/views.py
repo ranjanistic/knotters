@@ -46,7 +46,7 @@ def moderators(request: WSGIRequest):
         mgm = Management.objects.get(profile=request.user.profile)
         moderators = mgm.people.filter(is_moderator=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = mgm.people.filter(is_moderator=False,is_mentor=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
-        profiles = list(filter(lambda x: not x.is_manager, profiles))
+        profiles = list(filter(lambda x: not x.is_manager(), profiles))
         return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
     except Exception as e:
         raise Http404(e)
@@ -69,7 +69,7 @@ def searchEligibleModerator(request: WSGIRequest) -> JsonResponse:
         )).first()
         if not profile:
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
-        if profile.isBlocked(request.user) or profile.is_manager:
+        if profile.isBlocked(request.user) or profile.is_manager():
             raise Exception("blocked or mgr", profile, request.user)
         return respondJson(Code.OK, dict(mod=dict(
             id=profile.user.id,
@@ -160,7 +160,7 @@ def mentors(request: WSGIRequest):
         mgm = Management.objects.get(profile=request.user.profile)
         mentors = mgm.people.filter(is_mentor=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = mgm.people.filter(is_mentor=False, is_moderator=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
-        profiles = list(filter(lambda x: not x.is_manager, profiles))
+        profiles = list(filter(lambda x: not x.is_manager(), profiles))
         return renderer(request, Template.Management.COMMUNITY_MENTORS, dict(mentors=mentors, profiles=profiles))
     except ObjectDoesNotExist as o:
         raise Http404(o)

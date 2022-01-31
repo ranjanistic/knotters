@@ -153,7 +153,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                 data[Code.APPROVED] = mods.filter(resolved=True,status=Code.APPROVED).order_by('-respondOn')
                 data[Code.REJECTED] = mods.filter(resolved=True,status=Code.REJECTED).order_by('-respondOn')
         elif section == profileString.COMPETITIONS:
-            if profile.is_manager:
+            if profile.is_manager():
                 data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile).order_by("-createdOn")
         elif section == profileString.PEOPLE:
             mgm = profile.management
@@ -256,18 +256,18 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
         FreeProject.objects.filter(creator=predecessor.profile,trashed=False).update(migrated=True,migrated_by=predecessor.profile, migrated_on=timezone.now(), creator=successor.profile)
         Project.objects.filter(creator=predecessor.profile,trashed=False).update(migrated=True,migrated_by=predecessor.profile, migrated_on=timezone.now(), creator=successor.profile)
 
-        if predecessor.profile.hasPredecessors:
-            predecessor.profile.predecessors.update(successor=successor)
+        if predecessor.profile.hasPredecessors():
+            predecessor.profile.predecessors().update(successor=successor)
 
         comps = Competition.objects.filter(creator=predecessor.profile)
         if len(comps):
-            if successor.profile.is_manager:
+            if successor.profile.is_manager():
                 comps.update(creator=successor.profile)
             else:
                 raise Exception("Cannot migrate competitions, successor is not manager.", predecessor, successor)
         cprojs = CoreProject.objects.filter(creator=predecessor.profile,trashed=False)
         if len(cprojs):
-            if successor.profile.is_manager:
+            if successor.profile.is_manager():
                 cprojs.update(migrated=True,migrated_by=predecessor.profile, migrated_on=timezone.now(), creator=successor.profile)
             else:
                 raise Exception("Cannot migrate core projects, successor is not manager.", predecessor, successor)

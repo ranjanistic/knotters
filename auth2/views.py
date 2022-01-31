@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from rjsmin import jsmin
@@ -6,8 +7,8 @@ from django.views.decorators.http import require_GET
 from django.http.response import Http404, HttpResponse
 from people.models import User
 from django.conf import settings
-from main.strings import URL, Template,Code
-from main.decorators import normal_profile_required, require_JSON
+from main.strings import URL, Message, Template,Code
+from main.decorators import manager_only, normal_profile_required, require_JSON
 from main.methods import errorLog, respondJson, user_device_notify, renderData
 from .methods import get_auth_section_html, renderer
 from .apps import APPNAME
@@ -70,3 +71,23 @@ def verify_authorization(request:WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
+
+@manager_only
+@require_JSON
+def change_ghorg(request:WSGIRequest):
+    try:
+        newghorgID = request.POST['newghorgID']
+        if newghorgID == False:
+            mgm = request.user.profile.update_management(githubOrgID=None)
+        elif newghorgID not in map(lambda id: str(id), request.user.profile.get_ghOrgIDs()):
+            raise ObjectDoesNotExist(newghorgID)
+        else:
+            mgm = request.user.profile.update_management(githubOrgID=str(newghorgID))
+        if mgm:
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except (ObjectDoesNotExist, KeyError) as e:
+        return respondJson(Code.NO,error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

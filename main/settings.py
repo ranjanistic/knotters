@@ -437,27 +437,27 @@ GH_HOOK_SECRET = env.GH_HOOK_SECRET
 GOOGLE_RECAPTCHA_SECRET_KEY = env.RECAPTCHA_SECRET
 GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
 
-if env.ASYNC_CLUSTER:
-    Q_CLUSTER = {
-        'name': env.PUBNAME,
-        'workers': 8,
-        'recycle': 500,
-        'timeout': 60,
-        'retry': 70,
-        'sync': env.ISTESTING,
-        'compress': True,
-        'save_limit': 250,
-        'queue_limit': 500,
-        'cpu_affinity': 1,
-        'max_attempts': 10,
-        'label': f"{env.PUBNAME} Django Q",
-        'redis':  {
-            'host': env.REDIS_HOST,
-            'port': env.REDIS_PORT,
-            'password': env.REDIS_PASSWORD,
-            'db': env.REDIS_DB + 1,
-        }
+# if env.ASYNC_CLUSTER:
+Q_CLUSTER = {
+    'name': env.PUBNAME,
+    'workers': 8,
+    'recycle': 500,
+    'timeout': 60,
+    'retry': 70,
+    'sync': env.ISTESTING,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'max_attempts': 10,
+    'label': f"{env.PUBNAME} Django Q",
+    'redis':  {
+        'host': env.REDIS_HOST,
+        'port': env.REDIS_PORT,
+        'password': env.REDIS_PASSWORD,
+        'db': env.REDIS_DB + 1,
     }
+}
 
 
 RATELIMIT_ENABLE = env.ISPRODUCTION

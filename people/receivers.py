@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 from allauth.account.signals import user_signed_up, user_logged_in, password_changed, password_reset, email_changed, email_confirmed, email_added, email_removed
@@ -129,7 +130,9 @@ def social_removed(request, socialaccount, **kwargs):
     try:
         profile = Profile.objects.get(user=socialaccount.user)
         if socialaccount.provider == GitHubProvider.id:
-            profile.githubID = None
+            profile.update_githubID(None)
+            if profile.is_manager():
+                profile.update_management(githubOrgID=None)
         provider = isPictureSocialImage(profile.picture)
         if provider and provider == socialaccount.provider:
             profile.picture = defaultImagePath()
@@ -149,7 +152,7 @@ def social_added(request, sociallogin, **kwargs):
                 data = SocialAccount.objects.get(
                     user=sociallogin.user, provider=GitHubProvider.id)
                 if data:
-                    profile.githubID = getUsernameFromGHSocial(data)
+                    profile.update_githubID(getUsernameFromGHSocial(data))
                     changed = True
             except: pass
         if str(profile.picture) == defaultImagePath():

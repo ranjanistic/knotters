@@ -37,12 +37,8 @@ def Global(request):
     # id = uuid4()
     # cache.set(f"global_alerts_{id}",{'message':'haha this the alert', 'url':'/compete/shit', 'id':id}, settings.CACHE_MICRO)
     # alerts = cache.get(f"global_alerts_{id}") or []
-    knotbot = cache.get('profile_knottersbot')
-    if not knotbot:
-        knotbot = Profile.objects.get(user__email=BOTMAIL)
-        cache.set('profile_knottersbot', knotbot, settings.CACHE_MAX)
 
-    data = dict(**GlobalContextData,alerts=[],knotbot=knotbot,BROWSE=Browse.getAllKeys(),SUBAPPS=dict(),SUBAPPSLIST=[])
+    data = dict(**GlobalContextData,alerts=[],knotbot=Profile.KNOTBOT(),BROWSE=Browse.getAllKeys(),SUBAPPS=dict(),SUBAPPSLIST=[])
 
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div

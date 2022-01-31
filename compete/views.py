@@ -164,7 +164,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             id=subID, members=request.user.profile, submitted=False)
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
-        if request.user.email.lower() == userID or str(request.user.profile.ghID).lower() == userID or (userID in request.user.emails()):
+        if request.user.email.lower() == userID or str(request.user.profile.ghID()).lower() == userID or (userID in request.user.emails()):
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID), Q(
             is_active=True, suspended=False, to_be_zombie=False, user__emailaddress__verified=True)).first()

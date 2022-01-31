@@ -21,15 +21,12 @@
     <h1>Linked Accounts</h1>
     <br/>
     {% if form.accounts %}
-    <h4>You can also sign in to your Knotters account using any of your following linked accounts.</h4>
+    <strong class="text-medium">You can also sign in to your Knotters account using any of your following linked accounts.</strong>
     <br/>
     <form method="post" action="{% url 'socialaccount_connections' %}?miniwin={{request.GET.miniwin}}">
         {% csrf_token %}
         
-        <h5>Choose one to unlink</h5>
-        {% if form.non_field_errors %}
-        <div id="errorMsg">{{ form.non_field_errors }}</div>
-        {% endif %}
+        <strong class="text-medium">Choose one to unlink</strong>
 
         {% for base_account in form.accounts %}
             {% with base_account.get_provider_account as account %}
@@ -49,42 +46,66 @@
         
     </form>
     {% else %}
-    <h5>You currently have no 3rd party accounts linked.</h5>
+    <strong class="text-medium">You currently have no 3rd party accounts linked.</strong>
     {% endif %}
     <br/>
     <div id="account-linking">
-    <h2>Link a 3rd Party Account</h2>
-    <div class="w3-row w3-padding">
-        {% get_providers as socialaccount_providers %}
-        {% for provider in socialaccount_providers %}
-            <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
-                href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}&miniwin={{request.GET.miniwin}}">
-                <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
-                    <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
-                    Link {{provider.name}} account
-                </button>
-            </a>
-        {% endfor %}
-    </div>
+        <h2>Link a 3rd party account</h2>
+        <div class="w3-row w3-padding">
+            {% get_providers as socialaccount_providers %}
+            {% if request.user.profile.is_manager %}
+                {% with scope='read:org' %}
+                {% for provider in socialaccount_providers %}
+                    <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
+                        href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                        <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
+                            <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                            &nbsp;Link {{provider.name}} account
+                        </button>
+                    </a>
+                {% endfor %}
+                {% endwith %}
+            {% else %}
+                {% for provider in socialaccount_providers %}
+                    <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
+                        href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                        <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
+                            <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                            &nbsp;Link {{provider.name}} account
+                        </button>
+                    </a>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <br/>
+        {% if request.user.profile.is_manager %}
+            <li>Since your account is an organization account, please make sure that your third party account has access to the relevant organization on its platform as well.</li>
+            <li>If linking a GitHub account, then make sure that the GitHub account has access to your organization on GitHub, and grant {{APPNAME}} access to the organization as well.</li>
+            <li>Please make sure that you are allowed to represent your organization on Knotters.</li>
+        {% endif %}
     </div>
 </div>
+<br/>
 {% endblock %}
 {% block in_scripts %}
 <script>
-const socialaccounts = []
+const socialaccounts = [];
 {% for base_account in form.accounts %}
-socialaccounts.push("{{base_account.provider}}")
+socialaccounts.push("{{base_account.provider}}");
 {% endfor %}
-console.log(socialaccounts)
-const allproviders = getElements("oauth-providers")
+
+const allproviders = getElements("oauth-providers");
+
 allproviders.forEach((provider)=>{
-    visibleElement(provider.id,!socialaccounts.includes(provider.id))
+    visibleElement(provider.id,!socialaccounts.includes(provider.id));
 })
 
 if(socialaccounts.length===allproviders.length){
-    hide(getElement('account-linking'))
+    hide(getElement('account-linking'));
 }
-
+{% if form.non_field_errors %}
+    error("{{ form.non_field_errors }}");
+{% endif %}
 </script>
 {% endblock %}
 {% block footer %}{%endblock %}

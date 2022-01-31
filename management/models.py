@@ -1,8 +1,13 @@
 from datetime import timedelta
+from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from django.db import models
 import uuid
-from main.strings import url, Code, PEOPLE
+from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.providers.github.provider import GitHubProvider
+from main.bots import Github
+from main.strings import Message, url, Code, PEOPLE
 from .apps import APPNAME
 
 class Report(models.Model):
@@ -115,12 +120,12 @@ class Management(models.Model):
     people = models.ManyToManyField(f'{PEOPLE}.Profile', through="ManagementPerson", related_name='management_people', default=[])
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    githubOrgID = models.CharField(max_length=100, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
         return super(Management, self).save(*args, **kwargs)
 
-    @property
     def get_accountid(self):
         return self.profile.get_userid
 
@@ -145,7 +150,20 @@ class Management(models.Model):
     def __str__(self):
         return self.profile.getName()
 
-    @property
+    def get_ghorgUrl(self):
+        try:
+            if self.githubOrgID:
+                return list(filter(lambda ghorg:str(ghorg.id) == self.githubOrgID, self.profile.get_ghOrgs()))[0].url.replace('api.','')
+            return self.getLink(message=Message.GH_ORG_NOT_LINKED)
+        except:
+            return self.getLink(message=Message.GH_ORG_NOT_LINKED)
+
+    def get_ghorgName(self):
+        try:
+            return list(filter(lambda idn: str(idn['id'])==self.githubOrgID, self.profile.get_ghOrgsIDName()))[0]['name']
+        except Exception as e:
+            return None
+
     def has_invitations(self):
         return ManagementInvitation.objects.filter(management=self, resolved=False).exists()
 
@@ -155,35 +173,29 @@ class Management(models.Model):
     def getPeople(self):
         return self.people.all()
     
-    @property
     def total_moderators(self):
         return self.people.filter(is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).count()
 
-    @property
     def moderators(self):
         return self.people.filter(is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
 
-    @property
+
     def total_moderators_abs(self):
         return self.people.filter(is_moderator=True, to_be_zombie=False).count()
 
-    @property
+    
     def moderators_abs(self):
         return self.people.filter(is_moderator=True, to_be_zombie=False)
 
-    @property
     def total_mentors(self):
         return self.people.filter(is_mentor=True, is_active=True, to_be_zombie=False, suspended=False).count()
 
-    @property
     def mentors(self):
         return self.people.filter(is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
 
-    @property
     def total_mentors_abs(self):
         return self.people.filter(is_mentor=True, to_be_zombie=False).count()
 
-    @property
     def mentors_abs(self):
         return self.people.filter(is_mentor=True, to_be_zombie=False)
         

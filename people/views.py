@@ -32,14 +32,14 @@ def index(request: WSGIRequest) -> HttpResponse:
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
         self = False
-        if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.ghID == userID):
+        if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.ghID() == userID):
             person = request.user
             self = True
         else:
             try:
                 person = User.objects.get(
                     id=userID, profile__to_be_zombie=False, profile__suspended=False, profile__is_active=True)
-                if person.profile.ghID:
+                if person.profile.has_ghID():
                     return redirect(person.profile.getLink())
             except:
                 try:
@@ -51,7 +51,13 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             if request.user.is_authenticated:
                 if person.profile.isBlocked(request.user):
                     raise ObjectDoesNotExist()
-        return renderer(request, Template.People.PROFILE, dict(person=person, self=self))
+        gh_orgID = None
+        has_ghID = person.profile.has_ghID()
+        if has_ghID:
+            gh_orgID = person.profile.gh_orgID()
+
+        is_manager = person.profile.is_manager()
+        return renderer(request, Template.People.PROFILE, dict(person=person, self=self,has_ghID=has_ghID,gh_orgID=gh_orgID,is_manager=is_manager))
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -182,9 +188,9 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
     excluding = []
     if request.user.is_authenticated:
         if excludeProfileAllTopics:
-            excluding = excluding + request.user.profile.getAllTopicIds
+            excluding = excluding + request.user.profile.getAllTopicIds()
         elif excludeProfileTopics:
-            excluding = excluding + request.user.profile.getTopicIds
+            excluding = excluding + request.user.profile.getTopicIds()
     topics = Topic.objects.exclude(id__in=excluding).filter(
         Q(name__istartswith=query)
         | Q(name__iendswith=query)
@@ -350,7 +356,7 @@ def profileSuccessor(request: WSGIRequest):
                     return respondJson(Code.NO)
             elif userID and request.user.email != userID and not (userID in request.user.emails()):
                 try:
-                    if request.user.profile.is_manager:
+                    if request.user.profile.is_manager():
                         smgm = Management.objects.get(profile__user__email=userID)
                         successor = smgm.profile.user
                     else:
@@ -359,7 +365,7 @@ def profileSuccessor(request: WSGIRequest):
 
                     if successor.profile.isBlocked(request.user):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-                    if not successor.profile.ghID and not successor.profile.githubID:
+                    if not successor.profile.ghID() and not successor.profile.githubID:
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
@@ -618,7 +624,7 @@ def browseSearch(request: WSGIRequest):
         excludeIDs = []
         cachekey = f'people_browse_search_{query}{request.LANGUAGE_CODE}'
         if request.user.is_authenticated:
-            excludeIDs = request.user.profile.blockedIDs
+            excludeIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
     
         profiles = cache.get(cachekey,[])
@@ -678,7 +684,7 @@ def browseSearch(request: WSGIRequest):
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).order_by('user__first_name').distinct()[0:limit]
 
                 if is_manager:
-                    profiles=list(filter(lambda p: p.is_manager, profiles))
+                    profiles=list(filter(lambda p: p.is_manager(), profiles))
                 if len(profiles):
                     cache.set(cachekey, profiles, settings.CACHE_SHORT)
 
@@ -687,7 +693,7 @@ def browseSearch(request: WSGIRequest):
                 profiles=list(map(lambda m: dict(
                     name=m.get_name,
                     is_verified=m.is_verified,
-                    is_manager=m.is_manager,
+                    is_manager=m.is_manager(),
                     is_mentor=m.is_mentor,
                     is_moderator=m.is_moderator,
                     url=m.get_abs_link,

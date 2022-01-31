@@ -12,4 +12,5 @@ urlpatterns = [
     path(URL.Auth.NOTIF_ENABLED, notification_enabled),
     path(URL.Auth.TAB_SECTION, auth_index_tab),
     path(URL.Auth.VERIFY_REAUTH, verify_authorization),
+    path(URL.Auth.CHANGE_GHORG, change_ghorg),
 ]

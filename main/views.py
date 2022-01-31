@@ -586,7 +586,7 @@ def browser(request: WSGIRequest, type: str):
         cachekey = f"main_browser_{type}{request.LANGUAGE_CODE}"
         excludeUserIDs = []
         if request.user.is_authenticated:
-            excludeUserIDs = request.user.profile.blockedIDs
+            excludeUserIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
         limit = int(request.POST.get('limit', request.GET.get('limit', 10)))

@@ -48,7 +48,8 @@ def require_JSON_body(function):
     return wrap
 
 
-require_JSON = require_JSON_body
+def require_JSON(function):
+    return require_JSON_body(function)
 
 
 def decode_JSON(function):
@@ -115,7 +116,7 @@ def mentor_only(function):
 def manager_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        if request.user.profile.is_manager:
+        if request.user.profile.is_manager():
             return function(request, *args, **kwargs)
         else:
             if request.method == Code.GET:
