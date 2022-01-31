@@ -25,6 +25,8 @@ urlpatterns = [
     path(URL.People.GITHUB_EVENTS, githubEventsListener),
     path(URL.People.BROWSE_SEARCH, browseSearch),
 
+    path(URL.People.TOGGLE_ADMIRATION, toggleAdmiration),
+    path(URL.People.ADMIRATIONS, profileAdmirations),
     path(URL.People.CREATE_FRAME, create_framework),
     path(URL.People.PUBLISH_FRAME, publish_framework),
     path(URL.People.FRAMEWORK, view_framework),

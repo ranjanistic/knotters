@@ -786,6 +786,9 @@ class URL():
         GITHUB_EVENTS = 'github-events/<str:type>/<str:event>'
         BROWSE_SEARCH = 'browse/search'
 
+        TOGGLE_ADMIRATION = 'toggleadmiration/<str:userID>/'
+        ADMIRATIONS = 'admirations/<str:userID>/'
+
         CREATE_FRAME = 'frameworks/create'
         PUBLISH_FRAME = 'frameworks/publish'
         FRAMEWORK = 'framework/:frameworkID'
@@ -1658,6 +1661,12 @@ class Template():
         @property
         def profile_contribs(self):
             return f'{self.DIRNAME}/{self.PROFILE_CONTRIBS}.html'
+
+        PROFILE_COMMITS = 'profile/commits'
+
+        @property
+        def profile_commits(self):
+            return f'{self.DIRNAME}/{self.PROFILE_COMMITS}.html'
 
         BROWSE_NEWBIE = 'browse/newbie'
 

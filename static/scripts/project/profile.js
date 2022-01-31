@@ -408,21 +408,41 @@ loadsnaps.onclick = (_) => {
 loadsnaps.click();
 
 const loadLiveData = async () => {
-    const contribview = getElement("project-contibutors-view");
     const languageview = getElement("project-languages-view");
+    const contribview = getElement("project-contibutors-view");
+    const commitsview = getElement("project-commits-view");
     const langdefaulthtml = languageview ? languageview.innerHTML : "";
+    const contribDefhtml = contribview ? contribview.innerHTML : "";
+    const commitsDefhtml = commitsview ? commitsview.innerHTML : "";
     if (contribview) setHtmlContent(contribview, loaderHTML());
     if (languageview) setHtmlContent(languageview, loaderHTML());
-    if (contribview || languageview) {
+    if (commitsview) setHtmlContent(commitsview, loaderHTML());
+    if (contribview || languageview || commitsview) {
         const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID));
         if (!data || data.code !== code.OK) {
-            setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
-            setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
-            getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
-            getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
+            if(languageview){
+                setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
+                getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
+
+            }
+            if (commitsview){
+                setHtmlContent(commitsview, loadErrorHTML(`livecommitdataretry`));
+                getElement(`livecommitdataretry`).onclick = (_) => loadLiveData();
+            }
+            if (contribview){
+                setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
+                getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
+            }
             return;
         }
-        if (contribview) setHtmlContent(contribview, data.contributorsHTML);
+        if (contribview){
+            if(data.contributorsHTML) setHtmlContent(contribview, data.contributorsHTML);
+            else setHtmlContent(contribview, contribDefhtml);
+        } 
+        if (commitsview){
+            if (data.commitsHTML) setHtmlContent(commitsview, data.commitsHTML);
+            else setHtmlContent(commitsview, commitsDefhtml);
+        } 
         if (languageview) {
             if (Object.keys(data.languages).length) {
                 setHtmlContent(

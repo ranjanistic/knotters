@@ -912,6 +912,7 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def toggleAdmiration(request: WSGIRequest, projID: UUID):
     project = None
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         project = BaseProject.objects.get(
             id=projID, trashed=False, suspended=False)
@@ -919,12 +920,16 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
             project.admirers.add(request.user.profile)
         elif request.POST['admire'] in ["false", False]:
             project.admirers.remove(request.user.profile)
-        if request.POST.get(Code.JSON_BODY, False):
+        if json_body:
             return respondJson(Code.OK)
         return redirect(project.getProject().getLink())
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        if request.POST.get(Code.JSON_BODY, False):
+        if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if project:
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
@@ -1013,23 +1018,28 @@ def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID):
 
 def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
     try:
-        project = Project.objects.get(
-            id=projID, status=Code.APPROVED, trashed=False, suspended=False)
-        data = cache.get(f"project_livedata_json_{projID}")
-        if not data:
-            contributors, languages = getProjectLiveData(project)
-            contributorsHTML = renderString(request, Template.Projects.PROFILE_CONTRIBS, dict(
-                contributors=contributors), APPNAME)
-            data = dict(
-                languages=languages,
-                contributorsHTML=str(contributorsHTML),
-            )
-            cache.set(
-                f"project_livedata_json_{projID}", data, settings.CACHE_SHORT)
+        try:
+            project = Project.objects.get(
+                id=projID, status=Code.APPROVED, trashed=False, suspended=False)
+        except:
+            project = CoreProject.objects.get(
+                id=projID, status=Code.APPROVED, trashed=False, suspended=False)
+        contributors, languages, commits = getProjectLiveData(project)
+        contributorsHTML = renderString(request, Template.Projects.PROFILE_CONTRIBS, dict(
+            contributors=contributors), APPNAME)
+        commitsHTML = renderString(request, Template.Projects.PROFILE_COMMITS, dict(
+            commits=commits), APPNAME)
+        data = dict(
+            languages=languages,
+            contributorsHTML=str(contributorsHTML),
+            commitsHTML=commitsHTML
+        )
         return respondJson(Code.OK, data)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
 @csrf_exempt

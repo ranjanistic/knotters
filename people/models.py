@@ -285,6 +285,8 @@ class Profile(models.Model):
 
     on_boarded = models.BooleanField(default=False)
 
+    admirers = models.ManyToManyField('Profile', through="ProfileAdmirer", default=[], related_name='admirer_profiles')
+
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
 
@@ -319,6 +321,7 @@ class Profile(models.Model):
             gh_socialacc = f"socialaccount_gh_{self.id}"
             gh_user_data =  f"gh_user_data_{self.id}"
             gh_user_ghorgs = f"gh_user_ghorgs_{self.id}"
+            total_admirations = f'{self.id}_profile_total_admiration'
         return CKEYS()
 
     @property
@@ -352,6 +355,15 @@ class Profile(models.Model):
         if self.user:
             return PhoneNumber.objects.filter(user=self.user,verified=True)
         return []
+
+    def total_admiration(self):
+        cacheKey = self.CACHE_KEYS.total_admirations
+        count = cache.get(cacheKey, None)
+        if not count:
+            count = self.admirers.count()
+            if count:
+                cache.set(cacheKey, count, settings.CACHE_INSTANT)
+        return count
 
     def management(self):
         try:
@@ -1169,3 +1181,11 @@ class FrameworkReport(models.Model):
     framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='reported_framework')
     category = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_framework_category')
+
+class ProfileAdmirer(models.Model):
+    class Meta:
+        unique_together = ('profile', 'admirer')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admired_profile')

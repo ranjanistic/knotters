@@ -75,19 +75,15 @@
         </div>
         <br/>
         <div class="w3-row w3-padding-small">
-        <a id="show-admirations"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
+        <a id="show-admirations"><strong>{{ project.total_admiration }} admirer{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
                 <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-                {% if isAdmirer %}
-                <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
-                {% else %}
-                <button type="submit" class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button>
-                {% endif %}
+                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
             </form>
         {% else %}
-            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button></a>
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
         {% endif %}
         </div>
         <br/>
@@ -248,6 +244,20 @@
                     {% endfor %}
                 </div>
             </div>
+            <br/>
+            <div class="w3-row">
+                <div class="pallete">
+                <center><h5 class="align"><i>build</i>&nbsp;Latest commit</h5></center><br/>
+                  <div class="w3-row" id="project-commits-view">
+                   <br/>
+                    <center class="dead-text">
+                    <div class="w3-jumbo material-icons">build</div>
+                    <h5>None yet</h5>
+                    </center>
+                  </div>           
+                </div>
+            </div>
+            
             {% if iscreator or ismoderator %}
             <br/>
             <div class="w3-row">

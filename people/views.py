@@ -55,9 +55,11 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         has_ghID = person.profile.has_ghID()
         if has_ghID:
             gh_orgID = person.profile.gh_orgID()
-
         is_manager = person.profile.is_manager()
-        return renderer(request, Template.People.PROFILE, dict(person=person, self=self,has_ghID=has_ghID,gh_orgID=gh_orgID,is_manager=is_manager))
+        is_admirer = False
+        if request.user.is_authenticated:
+            is_admirer = person.profile.admirers.filter(user=request.user).exists()
+        return renderer(request, Template.People.PROFILE, dict(person=person, self=self,has_ghID=has_ghID,gh_orgID=gh_orgID,is_manager=is_manager,is_admirer=is_admirer))
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -725,3 +727,64 @@ def publish_framework(request:WSGIRequest):
 def view_framework(request:WSGIRequest, frameworkID: UUID):
     
     raise Http404()
+
+
+@normal_profile_required
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+def toggleAdmiration(request: WSGIRequest, userID: UUID):
+    profile = None
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        profile = Profile.objects.get(
+            user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
+        if request.POST['admire'] in ["true", True]:
+            profile.admirers.add(request.user.profile)
+        elif request.POST['admire'] in ["false", False]:
+            profile.admirers.remove(request.user.profile)
+        if json_body:
+            return respondJson(Code.OK)
+        return redirect(profile.getLink())
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if profile:
+            return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
+        raise Http404(e)
+
+@decode_JSON
+def profileAdmirations(request, userID):
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        profile = Profile.objects.get(
+            user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
+        admirers = profile.admirers.filter(suspended=False, is_active=True, to_be_zombie=False)
+        if request.user.is_authenticated:
+            admirers = request.user.profile.filterBlockedProfiles(admirers)
+        if json_body:
+            jadmirers = []
+            for adm in admirers:
+                jadmirers.append(
+                    dict(
+                        id=adm.get_userid,
+                        name=adm.get_name,
+                        dp=adm.get_dp,
+                        url=adm.get_link,
+                    )
+                )
+            return respondJson(Code.OK, dict(admirers=jadmirers))
+        return render(request, Template().admirers, dict(admirers=admirers))
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        errorLog(e)
+        raise Http404(e)

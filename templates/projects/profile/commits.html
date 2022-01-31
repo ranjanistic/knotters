@@ -1,0 +1,34 @@
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% if commits|length %}
+<div class="w3-row">
+{% for commit in commits %}
+<div class="w3-row pallete-slab">
+    <div class="w3-col s10 m9">
+        <div class="w3-row">
+            <strong>{{commit.message}}</strong>
+        </div>
+        <div class="w3-row">
+            <strong class="align w3-left dead-text">{{commit.files|length}} file{{commit.files|length|pluralize}} changed</strong>
+        </div>
+        <div class="w3-row">
+        <a href="{{commit.url}}" target="_blank">View</a>
+        </div>
+    </div>
+    <div class="w3-col s2 m3">
+        <div class="w3-row">
+        <a href="{{commit.profile.get_link}}" class="w3-right"><img src="{{commit.profile.getDP}}" class="w3-circle primary" width="40" /></a>
+        </div>
+        <div class="w3-row">
+        <strong class="w3-right">{{commit.profile.githubID}}</strong>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endif %}

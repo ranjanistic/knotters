@@ -76,19 +76,15 @@
         {% endif %}
 
         <div class="w3-row w3-padding-small">
-        <a id="show-admirations"><strong>{{ project.total_admiration }} admiration{{ project.total_admiration|pluralize }}</strong></a>
+        <a id="show-admirations"><strong>{{ project.total_admiration }} admirer{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
                 <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-                {% if isAdmirer %}
-                <button type="submit" class="w3-right small tertiary negative-text" data-icon="volunteer_activism">{% trans "Disadmire" %}</button>
-                {% else %}
-                <button type="submit" class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button>
-                {% endif %}
+                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
             </form>
         {% else %}
-            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism">{% trans "Admire" %}</button></a>
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
         {% endif %}
         </div>
         <br/>

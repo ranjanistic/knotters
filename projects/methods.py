@@ -504,19 +504,42 @@ def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profi
     return True
 
 
-def getProjectLiveData(project: Project):
-    if ISPRODUCTION:
-        ghOrgRepo = getGhOrgRepo(project.reponame)
-        contribs = ghOrgRepo.get_contributors()
-        languages = ghOrgRepo.get_languages()
-        ghIDs = []
-        for cont in contribs:
-            ghIDs.append(str(cont.login))
-        contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
-        contributors = list(filter(lambda c: not c.is_manager, list(contributors)))
-        return contributors, languages
-    else:
-        return [], []
+def getProjectLiveData(project):
+    try:
+        ghOrgRepo = project.gh_repo()
+        contributors = cache.get(f"project_livedata_contribs_{project.id}", None)
+        if not contributors:
+            contribs = ghOrgRepo.get_contributors()
+            ghIDs = []
+            for cont in contribs:
+                ghIDs.append(str(cont.login))
+            contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
+            contributors = list(filter(lambda c: not c.is_manager, list(contributors)))
+            cache.set(f"project_livedata_contribs_{project.id}", contributors, settings.CACHE_SHORT)
+        languages = cache.get(f"project_livedata_langs_{project.id}", None)
+        if not languages:
+            languages = ghOrgRepo.get_languages()
+            cache.set(f"project_livedata_langs_{project.id}", languages, settings.CACHE_SHORT)
+        commits = cache.get(f"project_livedata_commits_{project.id}", None)
+        if not commits:
+            commits = ghOrgRepo.get_commits()[:20]
+            cache.set(f"project_livedata_commits_{project.id}", commits, settings.CACHE_MINI)
+        commit = None
+        for commit in commits:
+            if Profile.objects.filter(githubID=commit.author.login).exists():
+                commit = dict(
+                    sha=commit.sha,
+                    url=commit.html_url,
+                    profile=Profile.objects.get(githubID=commit.author.login),
+                    date=commit.commit.author.date,
+                    message=commit.commit.message,
+                    files=commit.files,
+                )
+                break
+        print(commit)
+        return contributors, languages, [commit]
+    except:
+        return [], [], []
 
 def deleteGhOrgVerifiedRepository(project: Project):
     try:

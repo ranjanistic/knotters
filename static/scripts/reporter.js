@@ -109,8 +109,8 @@ const violationReportDialog = async (
     await Swal.fire({
         title: `${STRING.report} ${reportTarget}`,
         html: `
-            ${STRING.select_category}
-        <select class="text-medium wide negative-text" id='violation-report-category' required>
+            ${STRING.select_category}<br/><br/>
+        <select class="text-medium wide negative-text pallete-slab" id='violation-report-category' required>
                 ${options}
             </select>
         `,
