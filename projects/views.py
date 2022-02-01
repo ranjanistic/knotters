@@ -901,7 +901,7 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
         freerepo = FreeRepository.objects.get(free_project=project)
         ghuser = request.user.profile.gh_user()
         repo = request.user.profile.gh_api().get_repo(int(freerepo.repo_id))
-        if repo.owner in [ghuser, request.user.profile.gh_org()]
+        if repo.owner in [ghuser, request.user.profile.gh_org()]:
             freerepo.delete()
             return respondJson(Code.OK)
         return respondJson(Code.NO)
