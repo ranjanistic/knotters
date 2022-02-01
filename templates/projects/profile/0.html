@@ -449,7 +449,8 @@ getElement('link-github-repository').onclick=async()=>{
         if(data.code===code.OK){
             let options = '';
             data.repos.forEach((repo)=>{
-                options+=`<option value=${repo.id}>${repo.name}</option>`
+                if(!repo.taken)
+                    options+=`<option value=${repo.id}>${repo.name}</option>`
             })
             return Swal.fire({
                 title: 'Link GitHub repository',
