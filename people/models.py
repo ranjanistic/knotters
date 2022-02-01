@@ -546,6 +546,12 @@ class Profile(models.Model):
             return 'positive-text'
         return "text-positive"
 
+    def gh_org(self):
+        try:
+            return self.management().get_ghorg()
+        except Exception as e:
+            return None
+
     def gh_orgID(self):
         try:
             return self.management().get_ghorgName()
