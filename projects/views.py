@@ -1194,7 +1194,7 @@ def browseSearch(request: WSGIRequest):
         excludecreatorIDs = []
         cachekey = f'project_browse_search_{query}{request.LANGUAGE_CODE}'
         if request.user.is_authenticated:
-            excludecreatorIDs = request.user.profile.blockedIDs
+            excludecreatorIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
         projects = cache.get(cachekey,[])
