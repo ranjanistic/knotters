@@ -25,7 +25,7 @@
         <a href="{{commit.profile.get_link}}"><img src="{{commit.profile.getDP}}" class="w3-circle primary" width="40" /></a>
         </div>
         <div class="w3-row">
-            <strong class="{% if commit.profile.is_verified %}align{% endif %}">{{commit.profile.githubID}}{% if commit.profile.is_verified %}<i class="w3-large positive-text">verified</i>{% endif %}</strong>
+            <strong class="{% if commit.profile.is_verified %}align{% endif %} w3-right">{{commit.profile.githubID}}{% if commit.profile.is_verified %}<i class="w3-large positive-text">verified</i>{% endif %}</strong>
         </div>
         <div class="w3-row">
             <strong class="dead-text">{{commit.date}}</strong>
