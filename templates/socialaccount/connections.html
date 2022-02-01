@@ -53,29 +53,19 @@
         <h2>Link a 3rd party account</h2>
         <div class="w3-row w3-padding">
             {% get_providers as socialaccount_providers %}
-            {% if request.user.profile.is_manager %}
-                {% with scope='read:org' %}
                 {% for provider in socialaccount_providers %}
                     <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
-                        href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
+                        {% if request.user.profile.is_manager and provider.name == "GitHub" %}
+                          href="{% provider_login_url provider.id process='connect' scope='read:org' auth_params=auth_params %}"
+                        {% else %}
+                          href="{% provider_login_url provider.id process='connect' auth_params=auth_params %}"
+                        >
                         <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
                             <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
                             &nbsp;Link {{provider.name}} account
                         </button>
                     </a>
                 {% endfor %}
-                {% endwith %}
-            {% else %}
-                {% for provider in socialaccount_providers %}
-                    <a id="{{provider.id}}" title="{{provider.name}}" class="oauth-providers w3-padding-small socialaccount_provider {{provider.id}}" 
-                        href="{% provider_login_url provider.id process='connect' scope=scope auth_params=auth_params %}">
-                        <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
-                            <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
-                            &nbsp;Link {{provider.name}} account
-                        </button>
-                    </a>
-                {% endfor %}
-            {% endif %}
         </div>
         <br/>
         {% if request.user.profile.is_manager %}
