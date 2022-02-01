@@ -860,7 +860,7 @@ def userGithubRepos(request):
         if request.user.profile.is_manager():
             repos = list(repos) + list(request.user.profile.gh_org().get_repos('public'))
         for repo in repos:
-            taken = FreeRepository.objects.filter(repo_id=repo.id).exists()
+            taken = FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()
             data.append({'name': repo.name, 'id': repo.id, 'taken': taken})
         return respondJson(Code.OK, dict(repos=data))
     except Exception as e:
@@ -880,7 +880,7 @@ def linkFreeGithubRepo(request):
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         ghuser = request.user.profile.gh_user()
         repo = request.user.profile.gh_api().get_repo(repoID)
-        if not repo.private and repo.owner in [ghuser, request.user.profile.gh_org()]:
+        if not repo.private and repo.owner in [ghuser, request.user.profile.gh_org()] and not (FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()):
             FreeRepository.objects.create(free_project=project, repo_id=repo.id)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
