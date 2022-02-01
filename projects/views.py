@@ -878,12 +878,14 @@ def linkFreeGithubRepo(request):
             id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         if FreeRepository.objects.filter(free_project=project).exists():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        ghuser = Github.get_user(request.user.profile.ghID())
-        repo = Github.get_repo(repoID)
-        if repo.owner == ghuser:
-            FreeRepository.objects.create(free_project=project, repo_id=repoID)
+        ghuser = request.user.profile.gh_user()
+        repo = request.user.profile.gh_api().get_repo(repoID)
+        if not repo.private and repo.owner in [ghuser, request.user.profile.gh_org()]:
+            FreeRepository.objects.create(free_project=project, repo_id=repo.id)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -897,12 +899,14 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
         project = FreeProject.objects.get(
             id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         freerepo = FreeRepository.objects.get(free_project=project)
-        ghuser = Github.get_user(request.user.profile.ghID())
-        repo = Github.get_repo(int(freerepo.repo_id))
-        if repo.owner == ghuser:
+        ghuser = request.user.profile.gh_user()
+        repo = request.user.profile.gh_api().get_repo(int(freerepo.repo_id))
+        if repo.owner in [ghuser, request.user.profile.gh_org()]
             freerepo.delete()
             return respondJson(Code.OK)
         return respondJson(Code.NO)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
