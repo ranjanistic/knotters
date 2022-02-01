@@ -317,6 +317,15 @@
         </span><br/>
         <a href="{{URLS.Projects.PROFILE|params:"skivvy"}}#snaps" target="_blank"><button class='big-button primary' data-icon="camera">View Skivvy's Snapshots</button></a>
     </div>
+    <div class="w3-row w3-padding-large" id="admiration">
+        <h1>{% trans "Admiration" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#admiration"><i>link</i></a></h1>
+        <span class="text-medium">
+             You can admire projects, people and snapshots on {{APPNAME}}. If you admire a project, you'll see its latest snapshots and other updates on your homepage.
+             If you admire a person, you'll see their latest projects and posted snapshots on your homepage. If you admire a snapshot, the creator of snapshot will be glad.
+             Admiring also affects the recommendations of projects and profiles you get.
+        </span><br/>
+        <a href="{{URLS.People.PROFILE|params:"knottersbot"}}" target="_blank"><button class='big-button primary' data-icon="volunteer_activism">Admire Knotters</button></a>
+    </div>
     <div class="w3-row w3-padding-large" id="profile">
         <h1>{% trans "Your profile" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#profile"><i>link</i></a></h1>
         <span class="text-medium">
