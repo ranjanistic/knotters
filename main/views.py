@@ -601,7 +601,7 @@ def browser(request: WSGIRequest, type: str):
                 snapIDs = [snap.id for snap in snaps]
                 
                 if not len(snaps):
-                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
+                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)|Q(creator__admirers=request.user.profile)),base_project__suspended=False,base_project__trashed=False,suspended=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
                     cache.set(cachekey, snaps, settings.CACHE_INSTANT)
                 
