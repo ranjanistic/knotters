@@ -59,6 +59,7 @@
                           href="{% provider_login_url provider.id process='connect' scope='read:org' auth_params=auth_params %}"
                         {% else %}
                           href="{% provider_login_url provider.id process='connect' auth_params=auth_params %}"
+                         {% endif %}
                         >
                         <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
                             <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
@@ -101,4 +102,5 @@ if(socialaccounts.length===allproviders.length){
 {% endif %}
 </script>
 {% endblock %}
-{% block footer %}{%endblock %}
+{% block footer %}{% endblock %}
+{% block show_lite_footer %}{% endblock %}
