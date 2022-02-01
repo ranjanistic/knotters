@@ -546,9 +546,15 @@ class Profile(models.Model):
             return 'positive-text'
         return "text-positive"
 
-    def gh_token():
+    def gh_token(self):
         try:
             return (SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)).token
+        except:
+            return None
+
+    def gh_api(self):
+        try:
+            return GH_API(self.gh_token())
         except:
             return None
 
@@ -579,7 +585,7 @@ class Profile(models.Model):
             ghUser = cache.get(f"gh_user_data_{data.uid}")
             if not ghUser:
                 try:
-                    ghUser = GH_API(self.gh_token()).get_user_by_id(int(data.uid))
+                    ghUser = self.gh_api().get_user_by_id(int(data.uid))
                     cache.set(f"gh_user_data_{data.uid}",ghUser, settings.CACHE_SHORT)
                 except:
                     return data.extra_data['login']
@@ -609,7 +615,7 @@ class Profile(models.Model):
             cachekey = f"{self.CACHE_KEYS.gh_user}{self.ghID()}"
             ghuser = cache.get(cachekey, None)
             if not ghuser:
-                ghuser = GH_API(self.gh_token()).get_user(self.ghID())
+                ghuser = self.gh_api().get_user(self.ghID())
                 cache.set(cachekey, ghuser, settings.CACHE_LONG)
             return ghuser
         except Exception as e:
@@ -638,7 +644,7 @@ class Profile(models.Model):
             cacheKey2 = self.CACHE_KEYS.gh_user_data
             ghUser = cache.get(cacheKey2)
             if not ghUser:
-                ghUser = GH_API(self.gh_token()).get_user_by_id(int(data.uid))
+                ghUser = self.gh_api().get_user_by_id(int(data.uid))
                 cache.set(cacheKey2,ghUser, settings.CACHE_SHORT)
             cacheKey3 = self.CACHE_KEYS.gh_user_ghorgs
             orgs = cache.get(cacheKey3, None)
