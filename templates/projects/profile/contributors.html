@@ -5,7 +5,7 @@
 {% load cache %}
 {% load custom_tags %}
 
-
+{% if contributors|length %}
 <div class="w3-row">
 {% for contributor in contributors %}
 <div class="w3-row pallete-slab">
@@ -26,3 +26,4 @@
 </div>
 {% endfor %}
 </div>
+{% endif %}
