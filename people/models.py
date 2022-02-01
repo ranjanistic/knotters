@@ -8,7 +8,7 @@ from deprecated import deprecated
 from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
-from main.bots import Github
+from main.bots import Github, GH_API
 from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
@@ -546,6 +546,12 @@ class Profile(models.Model):
             return 'positive-text'
         return "text-positive"
 
+    def gh_token():
+        try:
+            return (SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)).token
+        except:
+            return None
+
     def gh_org(self):
         try:
             return self.management().get_ghorg()
@@ -573,7 +579,7 @@ class Profile(models.Model):
             ghUser = cache.get(f"gh_user_data_{data.uid}")
             if not ghUser:
                 try:
-                    ghUser = Github.get_user_by_id(int(data.uid))
+                    ghUser = GH_API(self.gh_token()).get_user_by_id(int(data.uid))
                     cache.set(f"gh_user_data_{data.uid}",ghUser, settings.CACHE_SHORT)
                 except:
                     return data.extra_data['login']
@@ -603,7 +609,7 @@ class Profile(models.Model):
             cachekey = f"{self.CACHE_KEYS.gh_user}{self.ghID()}"
             ghuser = cache.get(cachekey, None)
             if not ghuser:
-                ghuser = Github.get_user(self.ghID())
+                ghuser = GH_API(self.gh_token()).get_user(self.ghID())
                 cache.set(cachekey, ghuser, settings.CACHE_LONG)
             return ghuser
         except Exception as e:
@@ -632,7 +638,7 @@ class Profile(models.Model):
             cacheKey2 = self.CACHE_KEYS.gh_user_data
             ghUser = cache.get(cacheKey2)
             if not ghUser:
-                ghUser = Github.get_user_by_id(int(data.uid))
+                ghUser = GH_API(self.gh_token()).get_user_by_id(int(data.uid))
                 cache.set(cacheKey2,ghUser, settings.CACHE_SHORT)
             cacheKey3 = self.CACHE_KEYS.gh_user_ghorgs
             orgs = cache.get(cacheKey3, None)
