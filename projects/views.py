@@ -855,9 +855,10 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @require_JSON_body
 def userGithubRepos(request):
     try:
-        ghuser = Github.get_user(request.user.profile.ghID())
-        repos = ghuser.get_repos('public')
+        repos = request.user.profile.gh_user().get_repos('public')
         data = []
+        if request.user.profile.is_manager():
+            repos = list(repos) + list(request.user.profile.gh_org().get_repos('public'))
         for repo in repos:
             taken = FreeRepository.objects.filter(repo_id=repo.id).exists()
             data.append({'name': repo.name, 'id': repo.id, 'taken': taken})
