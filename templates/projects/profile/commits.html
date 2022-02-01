@@ -9,7 +9,7 @@
 <div class="w3-row">
 {% for commit in commits %}
 <div class="w3-row pallete-slab">
-    <div class="w3-col s10 m9">
+    <div class="w3-col s8 m8">
         <div class="w3-row">
             <strong>{{commit.message}}</strong>
         </div>
@@ -20,7 +20,7 @@
         <a href="{{commit.url}}" target="_blank">View</a>
         </div>
     </div>
-    <div class="w3-col s2 m3">
+    <div class="w3-col s4 m4">
         <div class="w3-row">
         <a href="{{commit.profile.get_link}}" class="w3-right"><img src="{{commit.profile.getDP}}" class="w3-circle primary" width="40" /></a>
         </div>
