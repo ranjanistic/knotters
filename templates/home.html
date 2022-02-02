@@ -1,0 +1,51 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load account %}
+{% load socialaccount %}
+{% load custom_tags %}
+
+{% block subcontent %}
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-1">
+</div>
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-2">
+</div>
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-2">
+</div>
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-3">
+</div>
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-4">
+</div>
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-5">
+</div>
+<div class="w3-row browser-view">
+</div>
+<div class="w3-row snapshot-viewer-parent" id="snap-view-6">
+</div>
+<div class="w3-row w3-padding w3-center dead-text first-time-view" id="that-is-all">
+    <div class="material-icons w3-jumbo">done</div>
+    <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
+        {% if request.user.is_authenticated %}
+    <strong>{% trans "Browse other things meanwhile." %}</strong>
+        {% else %}
+        <strong><a href="{{URLS.Auth.LOGIN}}">Login or Signup</a> for more content.</strong>
+        {% endif %}
+        <br/><br/>
+    <span id="close-that-is-all" hidden></span>
+</div>
+{% endblock %}

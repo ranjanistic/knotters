@@ -60,10 +60,12 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    if request.user.is_authenticated and not request.user.profile.on_boarded:
-        return respondRedirect(path=URL.ON_BOARDING)
-    competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
-    return renderView(request, Template.INDEX, dict(competition=competition))
+    if request.user.is_authenticated:
+        if not request.user.profile.on_boarded:
+            return respondRedirect(path=URL.ON_BOARDING)
+        competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
+        return renderView(request, Template.HOME, dict(competition=competition))
+    return renderView(request, Template.INDEX)
 
 
 @require_GET

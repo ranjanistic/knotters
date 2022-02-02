@@ -1133,6 +1133,12 @@ class Template():
     def index(self):
         return f'{self.INDEX}.html'
 
+    HOME = 'home'
+    
+    @property
+    def home(self):
+        return f'{self.INDEX}.html'
+
     OFFLINE = 'offline'
 
     @property

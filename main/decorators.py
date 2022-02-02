@@ -5,7 +5,7 @@ from hashlib import sha256
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseServerError
 from django.utils.encoding import force_bytes
-from allauth.account.decorators import login_required
+from allauth.account.decorators import verified_email_required
 from functools import wraps
 from ipaddress import ip_address, ip_network
 from .methods import errorLog
@@ -76,15 +76,17 @@ def dev_only(function):
     return wrap
 
 
-@decDec(login_required)
+@decDec(verified_email_required)
 def normal_profile_required(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        if request.user.profile.is_normal:
-            return function(request, *args, **kwargs)
-        if request.method == Code.GET:
-            raise Http404('abnormal user')
-        return HttpResponseForbidden('Abnormal user access')
+        try:
+            if request.user.profile.is_normal:
+                return function(request, *args, **kwargs)
+        except:
+            if request.method == Code.GET:
+                raise Http404('abnormal user')
+            return HttpResponseForbidden('Abnormal user access')
     return wrap
 
 

@@ -126,12 +126,17 @@
                             <br/><br/>
                         </div>
                         <div class="w3-col w3-half xyz-in" xyz="fade left-100%">
-                            <strong>Did we get your name correct?<br/>
+                            <strong>
+                            Did we get your name correct 🤔?<br/>
                             <input type="text" class="wide" name="displayname" autocomplete="name" required maxlength="70" placeholder="Your name" value="{{request.user.getName}}" />
-                            <br/><br/>
-                            Tell us about yourself a bit.<br/>
-                            <textarea type="text" name="profilebio" class="wide" rows="3" required maxlength="300" autocomplete="name" placeholder="Your bio, max 50 words.">{{request.user.profile.getBio}}</textarea>
                             </strong>
+                            <span class="dead-text">Your name will be used in crucial places, like certificates and acheivements.</span>
+                            <br/><br/>
+                            <strong>
+                            Tell us about yourself a bit 😎<br/>
+                            <textarea type="text" name="profilebio" class="wide" rows="3" required maxlength="300" autocomplete="organization" placeholder="About you, in a sentence or two.">{{request.user.profile.getBio}}</textarea>
+                            </strong>
+                            <br/>
                         </div>
                     </div>
                     <br/>
@@ -162,7 +167,6 @@
             <div class="w3-col w3-half w3-center w3-padding">
                 <div class="w3-row">
                     <h3>Your visible topics</h3>
-                    <strong>Maximum 5 visible topics allowed. Drop topics here.</strong>
                     <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh" xyz="stagger-5 narrow-100%">
                         {% for topicdata in request.user.profile.getTopicsData %}
                             <button class="big-button accent draggable-topic xyz-in" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
@@ -173,26 +177,19 @@
                                 No topics yet.<br/>
                             </h4>
                             <h6 class="dead-text">
-                                Drag and drop a topic here to add. Maximum 5 visible topics allowed.
+                                Drag and drop a topic here to add at most 5 topics.
                             </h6>
                             </div>
                         {% endfor %}
                     </div>
                 </div>
-                <br/>
-                <div class="w3-row">
-                    <div class="w3-row">
-                        <h4>Search topics to drag</h4>
-                        <input class="wide" type="text" placeholder="Start typing to search" id="search-topics-input" />
-                    </div>                    
-                </div>
+                
             </div>
             <div class="w3-col w3-half w3-center w3-padding">
+                {% if request.user.profile.totalTrashedTopics %}
                 <div class="w3-row">
                     <h3>Your hidden talents</h3>
-                    {% if request.user.profile.totalTrashedTopics %}
                     <strong>Drag to update your visible topics.</strong>
-                    {% endif %}
                 </div>
                 <div class="w3-row" xyz="stagger-5 narrow-100%">
                 {% for topicdata in request.user.profile.getTrashedTopicsData %}
@@ -204,13 +201,15 @@
                             None that we know of.
                         </h4>
                         <h6 class="dead-text">
-                            Don't worry, you must be new here. Keep doing thigs, we'll automatically find your hidden talents.
+                            We'll automatically find your hidden talents soon.
                         </h6>
                     </div>
                 {% endfor %}
                 </div>
                 <br/>
+                {% endif %}
                 <div class="w3-row topics-search-results" id="topic-search-results-view" xyz="stagger-5 narrow-100%">
+                    <h3>Recommended topics</h3>
                    {% for topic in request.user.profile.recommended_topics %}
                     <button id="editable-topic" data-topicID="{{topic.get_id}}" class="big-button positive draggable-topic xyz-in">{{topic.name}} +0</button>
                    {% endfor %}
@@ -219,14 +218,12 @@
         </div>
         <br/>
         <div class="w3-row w3-center">
-            You can change these details anytime.<br/>
             <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
             <button class="accent small" onclick="saveVisibleTopics()" type="submit" data-icon="done">Save changes</button>
         </div>
         <br/>
         <center><strong>
-        The +N on each topic represents your XP in them.
-        <br/>Don't worry if they are low, they'll increase overtime depending upon your activity on {{APPNAME}}.
+        The +N on topics represents your XP in them, increasing overtime depending upon your activity on {{APPNAME}}.
         </strong></center>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
             <button onclick="moveBoarding(4, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
@@ -511,7 +508,7 @@
             }
         }).then((res)=>{
             if(res.code === code.OK){
-                window.location.href=("{{request.GET.next}}"||"{{request.user.profile.get_link}}?s=Profile XP increased")
+                window.location.href=("{{request.GET.next}}"||"{{request.user.profile.get_link}}{% if not request.user.profile.on_boarded %}?s=Profile XP increased{% endif %}")
             } else {
                 loader(false)
                 error(res.error)
@@ -565,26 +562,6 @@
         
     }
 
-    getElement('search-topics-input').oninput =async(e)=>{
-        const query = String(e.target.value).trim()
-        const view = getElement('topic-search-results-view')
-        if(!query) return
-        const data = await postRequest2({
-            path: URLS.People.TOPICSEARCH,
-            data: {
-                query,excludeProfileAllTopics:true
-            },
-            retainCache:true
-        })
-        if(!data) return
-        if(data.code!==code.OK) return error(data.error)
-        let topicsdata = ''
-        data.topics.forEach((topic)=>{
-            topicsdata+=`<button id="editable-topic" data-topicID="${topic.id}" class="big-button positive draggable-topic">${topic.name} + 0</button>`
-        })
-        setHtmlContent(view, topicsdata||'No topics found')
-    }
-    
     let visibleTopicIDs = [];
     {% for topid in request.user.profile.getTopicIds %}
         visibleTopicIDs.push('{{topid}}');
@@ -667,7 +644,7 @@
             path:URLS.People.TOPICSUPDATE,
             data: {
                 visibleTopicIDs
-            }, retainCache:true
+            },
         })
         if(!data) return
         if(data.code===code.OK) {

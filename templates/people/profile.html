@@ -56,7 +56,7 @@
 
 {% block content %}
 <div class="w3-row">
-  {% if self and not request.user.profile.is_active %}
+  {% if self and request.user.profile.suspended or not request.user.profile.is_active %}
     <br/>
     <div class="w3-row w3-center w3-padding">
       <i class="w3-jumbo negative-text">toggle_off</i>
@@ -74,6 +74,11 @@
     <br/>
   {% else %}
     <div class="w3-row tertiary">
+      {% if not request.user.profile.on_boarded %}
+        <div class="w3-row positive w3-padding w3-center">
+          <span>You have not completed on-boarding yet. <a href="{{URLS.ON_BOARDING}}" class="text-positive underline">Click here to do so</a>, and gain free profile XP!</span>
+        </div>
+      {% endif %}
       <br/>
       <div class="w3-col w3-container m4 l3 w3-animate-left">
         <div class="pallete w3-center w3-animate-zoom" style="padding: 0" id="view-pallete">

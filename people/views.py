@@ -243,6 +243,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         removetopicIDs = request.POST.get('removetopicIDs', None)
         visibleTopicIDs = request.POST.get('visibleTopicIDs', None)
         addtopics = request.POST.get('addtopics', None)
+        updated = False
         if not (addtopicIDs or removetopicIDs or visibleTopicIDs or addtopics):
             if json_body:
                 return respondJson(Code.NO)
@@ -254,6 +255,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 removetopicIDs = removetopicIDs.strip(',').split(',')
             ProfileTopic.objects.filter(
                 profile=request.user.profile, topic__id__in=removetopicIDs).update(trashed=True)
+            updated = True
 
         if addtopicIDs:
             if not json_body:
@@ -271,6 +273,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             if request.user.profile.totalTopics() != newcount:
                 for topic in Topic.objects.filter(id__in=addtopicIDs):
                     request.user.profile.topics.add(topic)
+                updated = True
 
         if visibleTopicIDs and len(visibleTopicIDs) > 0:
             if len(visibleTopicIDs)>5: return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
@@ -278,6 +281,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 request.user.profile.topics.add(topic)
             ProfileTopic.objects.filter(profile=request.user.profile).exclude(topic__id__in=visibleTopicIDs).update(trashed=True)
             ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=visibleTopicIDs).update(trashed=False)
+            updated = True
 
         if addtopics and len(addtopics) > 0:
             count = ProfileTopic.objects.filter(profile=request.user.profile,trashed=False).count()
@@ -299,6 +303,10 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 profiletopics.append(ProfileTopic(topic=topic,profile=request.user.profile))
             if len(profiletopics) > 0:
                 ProfileTopic.objects.bulk_create(profiletopics)
+                updated = True
+                
+        if updated:
+            cache.delete(request.user.profile.CACHE_KEYS.topic_ids)
 
         if json_body:
             return respondJson(Code.OK)
