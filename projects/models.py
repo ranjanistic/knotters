@@ -771,7 +771,10 @@ class FreeRepository(models.Model):
         try:
             data = cache.get(f"gh_repo_data_{self.repo_id}")
             if not data:
-                data = Github.get_repo(int(self.repo_id))
+                api = self.free_project.creator.gh_api()
+                if not api:
+                    api = Github
+                data = api.get_repo(int(self.repo_id))
                 if data:
                     cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
             return data
@@ -784,7 +787,6 @@ class FreeRepository(models.Model):
         if data:
             return data.name
         return None
-        
 
     @property
     def repolink(self):

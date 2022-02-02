@@ -18,7 +18,7 @@ from main.env import BOTMAIL
 from main.strings import Action, Code, Event, Message, Template
 from management.models import Management, ReportCategory
 from .apps import APPNAME
-from .models import ProfileSetting, ProfileTopic, Topic, User, Profile
+from .models import ProfileSetting, ProfileSocial, ProfileTopic, Topic, User, Profile
 from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
 from .mailers import successorAccepted, successorDeclined, successorInvite, accountReactiveAlert, accountInactiveAlert
 
@@ -146,6 +146,28 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 if json_body:
                     return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
                 return redirect(nextlink or profile.getLink(error=Message.ERROR_OCCURRED))
+        elif section == "sociallinks":
+            sociallinks = []
+            for key in request.POST.keys():
+                if str(key).startswith('sociallink'):
+                    link = str(request.POST[key]).strip()
+                    if link:
+                        sociallinks.append(link)
+            sociallinks = list(set(sociallinks))[:5]
+            ProfileSocial.objects.filter(profile=request.user.profile).delete()
+            if len(sociallinks) > 0:
+                profileSocials = []
+                for link in sociallinks:
+                    profileSocials.append(
+                        ProfileSocial(profile=request.user.profile, site=link))
+                ProfileSocial.objects.bulk_create(profileSocials)
+                if json_body:
+                    return respondJson(Code.OK, message=Message.PROFILE_UPDATED)
+                return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
+            else:
+                if json_body:
+                    return respondJson(Code.OK)
+                return redirect(nextlink or profile.getLink())
         else:
             raise ObjectDoesNotExist(section)
     except ObjectDoesNotExist as o:

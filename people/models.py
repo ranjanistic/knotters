@@ -322,6 +322,7 @@ class Profile(models.Model):
             gh_user_data =  f"gh_user_data_{self.id}"
             gh_user_ghorgs = f"gh_user_ghorgs_{self.id}"
             total_admirations = f'{self.id}_profile_total_admiration'
+            profile_socialsites = f"profile_socialsites_{self.id}"
         return CKEYS()
 
     @property
@@ -545,6 +546,15 @@ class Profile(models.Model):
         if self.is_manager():
             return 'positive-text'
         return "text-positive"
+
+    def socialsites(self):
+        cacheKey = self.CACHE_KEYS.profile_socialsites
+        sites = cache.get(cacheKey, [])
+        if not len(sites):
+            sites = ProfileSocial.objects.filter(profile=self)
+            if len(sites):
+                cache.set(cacheKey, sites, settings.CACHE_INSTANT)
+        return sites
 
     def gh_token(self):
         try:
@@ -1207,3 +1217,8 @@ class ProfileAdmirer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admired_profile')
+
+class ProfileSocial(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    site = models.URLField(max_length=800)

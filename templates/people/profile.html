@@ -153,6 +153,48 @@
         {% endif %}
         </div>
         <br/>
+        <div class="w3-row pallete">
+            <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
+            <div class="" id="view-sociallinks">    
+                {% for site in person.profile.socialsites %}
+                    <a class="" href="{{site.site}}" target="_blank" rel="noreferrer">
+                        <div class="pallete-slab align w3-left positive-text">
+                        <i class="w3-large">open_in_new</i>&nbsp;<strong>{{site.site|noprotocol|truncatechars:30}}</strong>
+                        </div>
+                    </a>
+                {% empty %}
+                    <br/>
+                    <center class="dead-text">
+                        <div class="w3-jumbo material-icons">link_off</div>
+                        <h5>No links</h5>
+                    </center>
+                {% endfor %}
+                {% if self %}
+                    <div class="w3-row">
+                    <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
+                    </div>
+                {% endif %}
+            </div>
+            {% if self %}
+            <div class="w3-center" id="edit-sociallinks" hidden>
+                <form method="POST" action="{{URLS.PROFILEEDIT|params:'sociallinks'}}">
+                {% csrf_token %}
+                <div id="edit-sociallinks-inputs">
+                {% for site in person.profile.socialsites %}
+                    <div>
+                        <input type="url" class="wide"  placeholder="Link to anything relevant" value="{{site.site}}" name="sociallink{{forloop.counter}}" id="sociallink{{forloop.counter}}" /><br/><br/>
+                    </div>
+                {% endfor %}
+                </div>
+                <br/>
+                <button class="primary" type="button" id="sociallinks-add" data-icon='add'>Add link</button><br/><br/>
+                <button id="save-edit-sociallinks" data-icon="done">{% trans "Save" %}</button>
+                <button id="discard-edit-sociallinks" data-icon="close">{% trans "Discard" %}</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        <br/>
 
         {% if self %}
         <div class="w3-row pallete">
@@ -254,7 +296,8 @@
       error(data.error)
     }
   }catch{}
-  {% if person.profile.is_active and not person.profile.suspended %}
+
+{% if person.profile.is_active and not person.profile.suspended %}
 
   if (!selfProfile && activeuser){
     getElement('block-account').onclick=async()=>{
@@ -267,6 +310,19 @@
       
     }
   }
+
+  {% if self %}
+    getElement('sociallinks-add').onclick=_=>{
+        const parent=getElement('edit-sociallinks-inputs');
+        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
+  {% endif %}
 
   {% if self and is_manager and has_ghID %}
   getElement("link-gh-org-mgm").onclick=_=>{
@@ -327,7 +383,7 @@
             title:"<h4 class='positive-text'>Admirers</h4>"
         })
     }
-  {% endif %}
+{% endif %}
 </script>
 {% endblock %} 
 
