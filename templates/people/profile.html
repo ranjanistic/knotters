@@ -94,14 +94,19 @@
             <span>{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
+          <i class="w3-left pointer navigator-share-action" 
+            data-title="{{ person.getName }}"
+            data-text="{{ person.profile.getBio|or:'Checkout this profile!' }}"
+            data-url="{{ person.profile.getLink }}"
+            >share</i>
           {% if self %}
             <i class="edit-action w3-right" data-edittarget="pallete">edit</i>
+          {% else %}
+            <strong class="w3-right w3-tiny"><br/>{{person.profile.getXP}}</strong>
           {% endif %}
-          <i class="w3-left pointer navigator-share-action" 
-          data-title="{{ person.getName }}"
-          data-text="{{ person.profile.getBio|or:'Checkout this profile!' }}"
-          data-url="{{ person.profile.getLink }}"
-          >share</i>
+          {% if person.profile.totalAllTopics %}
+            <a href="{{URLS.PEOPLE}}?search=topic:{{person.profile.getAllTopics.0}}"><button class="small {{person.profile.theme}} {{person.profile.text_theme}}">{{person.profile.getAllTopics.0.name}}</button></a>
+          {% endif %}
           </div>
         </div>
 
@@ -252,6 +257,7 @@
           <i class="w3-right w3-spin">settings</i><h3>{% trans "Settings" %}</h3>
           </div>
           <div class="w3-row w3-padding-small w3-center">
+              <div class="material-icons w3-jumbo w3-spin">settings</div>
               <h4>Settings have been moved from here.</h4>
               <a href="{{URLS.AUTH}}"><button class="big-button positive" data-icon="open_in_new">Show new settings</button></a>
               <button class="big-button primary" onclick="highlightElementByID('new-settings-action')" data-icon="search">Find new settings button</button>

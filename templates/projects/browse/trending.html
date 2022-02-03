@@ -13,23 +13,22 @@
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for project in projects %}
             <div class="swiper-slide w3-animate-zoom">
-                <a href="{{project.getLink}}">
-                    <div class="pallete w3-center no-pad">
-                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
-                        <div class="w3-row w3-padding">
-                            <h5 class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
-                            <span>{{ project.description|truncatechars:45 }}</span>
-                        </div>
+                <div class="pallete w3-center no-pad">
+                    <a href="{{project.getLink}}">
+                        <img class="primary pallete wide no-pad" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                    </a>
+                    <div class="w3-row w3-padding">
+                        <h5 style class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
+                        <span>{{ project.description|or:project.get_nickname|truncatechars:45 }}</span>
                         <br/>
+                        {% if project.totalTopics %}
+                        <a href="{{URLS.PROJECTS}}?search=topic:{{project.getTopics.0}}"><button class="small {{project.theme}} {{project.text_theme}}">{{project.getTopics.0.name}}</button></a>
+                        {% endif %}
                     </div>
-                </a>
-            </div>
-            {% empty %}
-            <div class="w3-padding w3-col">
-            <center class="dead-text w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No projects yet." %} {% trans "Yours could be the first!" %}</h3>
-            </center>
+                    {% if not project.totalTopics %}
+                    <br/>
+                    {% endif %}
+                </div>
             </div>
 			{% endfor %} 
         </div>
@@ -38,23 +37,22 @@
         <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for project in projects %}
             <div class="w3-col w3-animate-zoom">
-                <a href="{{project.getLink}}">
-                    <div class="pallete pallete_i w3-center">
-                        <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" />
-                        <div class="w3-row w3-padding">
-                            <h5 class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
-                            <span>{{ project.description|truncatechars:45 }}</span>
-                        </div>
+                <div class="pallete pallete_i no-pad w3-center">
+                    <a href="{{project.getLink}}">
+                        <img class="primary pallete wide no-pad" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                    </a>
+                    <div class="w3-row w3-padding">
+                        <h5 class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
+                        <span>{{ project.description|or:project.get_nickname|truncatechars:45 }}</span>
                         <br/>
+                        {% if project.totalTopics %}
+                        <a href="{{URLS.PROJECTS}}?search=topic:{{project.getTopics.0}}"><button class="small {{project.theme}} {{project.text_theme}}">{{project.getTopics.0.name}}</button></a>
+                        {% endif %}
                     </div>
-                </a>
-            </div>
-            {% empty %}
-            <div class="w3-padding w3-col">
-            <center class="dead-text w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No projects yet." %} {% trans "Yours could be the first!" %}</h3>
-            </center>
+                    {% if not project.totalTopics %}
+                    <br/>
+                    {% endif %}
+                </div>
             </div>
 			{% endfor %} 
         </div>

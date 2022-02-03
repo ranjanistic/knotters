@@ -7,33 +7,34 @@
 {% if count %}
 <div class="w3-row tertiary">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
-    <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a>
+    {% comment %} <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a> {% endcomment %}
     <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Newbie profiles" %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for profile in profiles %}
             <div class="swiper-slide w3-animate-zoom">
-                <a href="{{profile.getLink}}">
                 <div class="pallete w3-center no-pad">
-                    <img class="primary" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                    <a href="{{profile.getLink}}">
+                        <img class="primary pallete no-pad wide" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                    </a>
                     <div class="w3-row w3-padding">
-                        <h5 style="{% if profile.has_labels %}margin:4px{% endif %}">{{ profile.getName }}</h5>
+                        <h5 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
                         {% for label in profile.get_labels %}
-                            <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
-                        {% endfor %}{% if profile.has_labels %}<br/>{% endif %}
-                        <span>{{ profile.getBio|or:profile.getXP|truncatechars:45 }}</span>
+                            <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
+                        {% endfor %}
+                        {% if not profile.has_labels %}
+                            <strong class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
+                        {% endif %}<br/>
+                        <span>{{ profile.getBio|or:profile.nickname|or:profile.emoticon|or:profile.githubID|truncatechars:45 }}</span><br/>
+                        {% if profile.totalAllTopics %}
+                        <a href="{{URLS.PEOPLE}}?search=topic:{{profile.getAllTopics.0}}"><button class="small {{profile.theme}} {{profile.text_theme}}">{{profile.getAllTopics.0.name}}</button></a>
+                        {% endif %}
                     </div>
+                    {% if not profile.totalAllTopics %}
                     <br/>
+                    {% endif %}
                 </div>
-                </a>
-            </div>
-            {% empty %}
-            <div class="w3-padding w3-col">
-            <center class="w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No profiles yet. You're the first one!" %}</h3>
-            </center>
             </div>
 			{% endfor %} 
         </div>
@@ -42,26 +43,27 @@
         <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for profile in profiles %}
             <div class="w3-col w3-animate-zoom">
-                <a href="{{profile.getLink}}">
-                <div class="pallete pallete_i w3-center">
-                    <img class="primary" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                <div class="pallete pallete_i no-pad w3-center">
+                    <a href="{{profile.getLink}}">
+                        <img class="primary pallete no-pad wide" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                    </a>
                     <div class="w3-row w3-padding">
-                        <h5 style="{% if profile.has_labels %}margin:4px{% endif %}" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        <h5 style="margin:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
                         {% for label in profile.get_labels %}
-                            <strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong>
-                        {% endfor %}{% if profile.has_labels %}<br/>{% endif %}
-                        <span>{{ profile.getBio|or:profile.getXP|truncatechars:45 }}</span>
+                            <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
+                        {% endfor %}
+                        {% if not profile.has_labels %}
+                            <strong class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
+                        {% endif %}<br/>
+                        <span>{{ profile.getBio|or:profile.nickname|or:profile.emoticon|or:profile.githubID|truncatechars:45 }}</span><br/>
+                        {% if profile.totalAllTopics %}
+                        <a href="{{URLS.PEOPLE}}?search=topic:{{profile.getAllTopics.0}}"><button class="small {{profile.theme}}">{{profile.getAllTopics.0.name}}</button></a>
+                        {% endif %}
                     </div>
+                    {% if not profile.totalAllTopics %}
                     <br/>
+                    {% endif %}
                 </div>
-                </a>
-            </div>
-            {% empty %}
-            <div class="w3-padding w3-col">
-            <center class="w3-padding">
-                <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No profiles yet. You're the first one!" %}</h3>
-            </center>
             </div>
 			{% endfor %} 
         </div>

@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% if count %}
+<div class="w3-row secondary" style="background-image: url('{{ICON_SHADOW}}');">
+    <div class="w3-row w3-animate-right" style="padding:16px 4px">
+    {% comment %} <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a> {% endcomment %}
+    <h3 class="w3-center"><span class="pallete-slab accent">{% trans "At the core of Knotters" %}</span></h3>
+    </div>
+    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
+        <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
+            {% for core in coremems %}
+            <div class="swiper-slide w3-animate-zoom">
+                <div class="pallete w3-center no-pad" style="border:4px solid var(--positive)">
+                    <a href="{{core.profile.getLink}}">
+                        <img class="primary pallete no-pad wide" src="{{ core.profile.getDP }}" style="border-bottom:4px solid var(--accent)" alt="{{ core.profile.name }}" />
+                    </a>
+                    <div class="w3-row w3-padding">
+                        <h5 class="{% if core.profile.is_verified %}align{% endif %}">{{ core.profile.getName }}{% if core.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        <span>{{ core.get_about }}</span><br/>
+                    </div>
+                    <br/>
+                </div>
+            </div>
+			{% endfor %} 
+        </div>
+    </div>
+    <div class="w3-hide-large  w3-row">
+        <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
+            {% for core in coremems %}
+            <div class="w3-col w3-animate-zoom">
+                <div class="pallete pallete_i no-pad w3-center" style="border:4px solid var(--accent)">
+                    <a href="{{core.profile.getLink}}">
+                        <img class="primary pallete no-pad wide" src="{{ core.profile.getDP }}" alt="{{ core.profile.name }}" style="border-bottom:4px solid var(--positive)" />
+                    </a>
+                    <div class="w3-row w3-padding">
+                        <h5  class="{% if core.profile.is_verified %}align{% endif %}">{{ core.profile.getName }}{% if core.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        <span>{{ core.get_about }}</span><br/>
+                    </div>
+                    <br/>
+                </div>
+            </div>
+			{% endfor %} 
+        </div>
+    </div>
+    <br />
+</div>
+{% endif %}

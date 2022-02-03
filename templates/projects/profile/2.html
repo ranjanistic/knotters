@@ -155,7 +155,7 @@
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
-                            <button class="accent big-button topic-name">
+                            <button class="primary big-button topic-name">
                             <b>{{topicdata.topic}}</b>
                             </button>
                         </a>
@@ -211,7 +211,7 @@
                     <form class="no-auto" id="edit-tag-inputs">
                         {% csrf_token %}
                         <input class="wide" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
-                        <div class="w3-row w3-padding" id="topics-viewer">
+                        <div class="w3-row w3-padding" id="tags-viewer">
                             {% for tag in project.tags.all %}
                             <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
                             {% endfor %}
@@ -372,6 +372,7 @@
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = "{{ismoderator}}" === 'True';
+const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--positive').trim().replace('#','');
 
 {% if not project.suspended %}
 

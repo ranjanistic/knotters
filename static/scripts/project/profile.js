@@ -455,7 +455,7 @@ const loadLiveData = async () => {
                     Object.keys(data.languages).map(
                         (key) => data.languages[key]
                     ),
-                    "12e49d"
+                    projectcolor
                 );
             } else {
                 setHtmlContent(languageview, langdefaulthtml);

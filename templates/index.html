@@ -210,11 +210,11 @@
                                 <strong class='text-medium'>{% trans "Ready to takeoff? Virtually ofcourse." %}</strong>
                             </div>
                             <div class='w3-row'>
-                                <a href='{% if request.user.is_authenticated %}{{URLS.ON_BOARDING}}{% else %}{{URLS.LANDING}}{% endif %}'><button class='big-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
                                 {% if not request.user.is_authenticated %}
                                  <a href='{% url 'account_signup' %}?next={{request.path}}'><button class='big-button positive' data-icon='person_add'>{% trans "Sign up" %}</button></a>
-                                 <a href='{% url 'account_login' %}?next={{request.path}}'><button class='big-button primary' data-icon='login'>{% trans "Login" %}</button></a>
+                                 <a href='{% url 'account_login' %}?next={{request.path}}'><button class='big-button accent' data-icon='login'>{% trans "Login" %}</button></a>
                                 {% endif %}
+                                <a href='{% if request.user.is_authenticated %}{{URLS.ON_BOARDING}}{% else %}{{URLS.LANDING}}{% endif %}'><button class='big-button primary' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
                             </div>
                             <br/>
                         </div>
@@ -241,6 +241,8 @@
                             <br/><br/>
                         </div>
                     </div>
+                </div>
+                <div class="w3-row browser-view" data-type="{{BROWSE.CORE_MEMBERS}}">
                 </div>
                 <div class="w3-row w3-padding-large" id='compete-participate-banner' style="height:60vh;">
                     <br/>
@@ -298,7 +300,7 @@
             {% endif %}
             </div>
             <div class="w3-col w3-half primary-text w3-padding">
-            <img class="w3-right" src="{{ICON_SHADOW}}" width="100" />
+                <a href="/" onclick="window.close()"><img class="w3-right" src="{{ICON_SHADOW}}" width="100" /></a>
             </div>
             <div class="w3-row w3-center">
             <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="dead-text">{% trans "Copyright" %} {% now "Y" %} Knotters</a>

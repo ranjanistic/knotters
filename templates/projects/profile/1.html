@@ -175,13 +175,13 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5 class="align"><i>notes</i>&nbsp;Overview</h5></center><br/>
-                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab positive-text text-big">{{project.category.name|capfirst}}</strong></a>
+                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab accent text-big">{{project.category.name|capfirst}}</strong></a>
                     <br/>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
                             <button class="accent big-button topic-name">
-                            <b>{{topicdata.topic}}</b>
+                            {{topicdata.topic}}
                             </button>
                         </a>
                     {% empty %}
@@ -236,7 +236,7 @@
                     <form class="no-auto" id="edit-tag-inputs">
                         {% csrf_token %}
                         <input class="wide" placeholder="Search tags" id="tag-search-input" />
-                        <div class="w3-row w3-padding" id="topics-viewer">
+                        <div class="w3-row w3-padding" id="tags-viewer">
                             {% for tag in project.tags.all %}
                             <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
                             {% endfor %}
@@ -384,6 +384,7 @@
 const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = "{{ismoderator}}"==='True';
+const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--accent').trim().replace('#','');
 
 {% if not project.suspended %}
 if(!selfProject){

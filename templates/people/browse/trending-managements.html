@@ -15,23 +15,23 @@
             {% for moderator in moderators %}
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
-                    <a href="{{moderator.getLink}}">
-                        <img class="primary pallete no-pad wide" src="{{ moderator.getDP }}" alt="{{ moderator.name }}" />
+                    <a href="{{manager.getLink}}">
+                        <img class="primary pallete no-pad wide" src="{{ manager.getDP }}" alt="{{ manager.name }}" />
                     </a>
                     <div class="w3-row w3-padding">
-                        <h5 style="margin-bottom:2px" class="{% if moderator.is_verified %}align{% endif %}">{{ moderator.getName }}{% if moderator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in moderator.get_labels %}
+                        <h5 style="margin-bottom:2px" class="{% if manager.is_verified %}align{% endif %}">{{ manager.getName }}{% if manager.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        {% for label in manager.get_labels %}
                             <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
                         {% endfor %}
-                        {% if not moderator.has_labels %}
-                            <strong class="w3-tiny w3-round w3-tag tertiary">{{moderator.getXP}}</strong>
+                        {% if not manager.has_labels %}
+                            <strong class="w3-tiny w3-round w3-tag tertiary">{{manager.getXP}}</strong>
                         {% endif %}<br/>
-                        <span>{{ moderator.getBio|or:moderator.nickname|or:moderator.emoticon|or:moderator.githubID|truncatechars:45 }}</span><br/>
-                        {% if moderator.totalAllTopics %}
-                        <a href="{{URLS.PEOPLE}}?search=topic:{{moderator.getAllTopics.0}}"><button class="small {{moderator.theme}} {{moderator.text_theme}}">{{moderator.getAllTopics.0.name}}</button></a>
+                        <span>{{ manager.getBio|or:manager.nickname|or:manager.emoticon|or:manager.githubID|truncatechars:45 }}</span><br/>
+                        {% if manager.totalAllTopics %}
+                        <a href="{{URLS.PEOPLE}}?search=topic:{{manager.getAllTopics.0}}"><button class="small {{manager.theme}} {{manager.text_theme}}">{{manager.getAllTopics.0.name}}</button></a>
                         {% endif %}
                     </div>
-                    {% if not moderator.totalAllTopics %}
+                    {% if not manager.totalAllTopics %}
                     <br/>
                     {% endif %}
                 </div>
@@ -44,23 +44,23 @@
             {% for moderator in moderators %}
             <div class="w3-col w3-animate-zoom">
                 <div class="pallete pallete_i no-pad w3-center">
-                    <a href="{{moderator.getLink}}">
-                        <img class="primary pallete no-pad wide" src="{{ moderator.getDP }}" alt="{{ moderator.name }}" />
+                    <a href="{{manager.getLink}}">
+                        <img class="primary pallete no-pad wide" src="{{ manager.getDP }}" alt="{{ manager.name }}" />
                     </a>
                     <div class="w3-row w3-padding">
-                        <h5 style="margin:2px" class="{% if moderator.is_verified %}align{% endif %}">{{ moderator.getName }}{% if moderator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in moderator.get_labels %}
+                        <h5 style="margin:2px" class="{% if manager.is_verified %}align{% endif %}">{{ manager.getName }}{% if manager.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                        {% for label in manager.get_labels %}
                             <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
                         {% endfor %}
-                        {% if not moderator.has_labels %}
-                            <strong class="w3-tiny w3-round w3-tag tertiary">{{moderator.getXP}}</strong>
+                        {% if not manager.has_labels %}
+                            <strong class="w3-tiny w3-round w3-tag tertiary">{{manager.getXP}}</strong>
                         {% endif %}<br/>
-                        <span>{{ moderator.getBio|or:moderator.nickname|or:moderator.emoticon|or:moderator.githubID|truncatechars:45 }}</span><br/>
-                        {% if moderator.totalAllTopics %}
-                        <a href="{{URLS.PEOPLE}}?search=topic:{{moderator.getAllTopics.0}}"><button class="small {{moderator.theme}}">{{moderator.getAllTopics.0.name}}</button></a>
+                        <span>{{ manager.getBio|or:manager.nickname|or:manager.emoticon|or:manager.githubID|truncatechars:45 }}</span><br/>
+                        {% if manager.totalAllTopics %}
+                        <a href="{{URLS.PEOPLE}}?search=topic:{{manager.getAllTopics.0}}"><button class="small {{manager.theme}}">{{manager.getAllTopics.0.name}}</button></a>
                         {% endif %}
                     </div>
-                    {% if not moderator.totalAllTopics %}
+                    {% if not manager.totalAllTopics %}
                     <br/>
                     {% endif %}
                 </div>
