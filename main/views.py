@@ -83,6 +83,14 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 def at_me(request:WSGIRequest) -> HttpResponse:
     return redirect(request.user.profile.get_link)
 
+@require_GET
+def at_emoji(request:WSGIRequest, emoticon) -> HttpResponse:
+    try:
+        profile = Profile.objects.get(emoticon=emoticon)
+        return redirect(profile.get_link)
+    except:
+        raise Http404()
+
 @normal_profile_required
 @require_GET
 def on_boarding(request:WSGIRequest) -> HttpResponse:
