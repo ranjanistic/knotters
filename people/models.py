@@ -286,6 +286,7 @@ class Profile(models.Model):
     on_boarded = models.BooleanField(default=False)
 
     admirers = models.ManyToManyField('Profile', through="ProfileAdmirer", default=[], related_name='admirer_profiles')
+    emoticon = models.CharField(max_length=30, null=True, default=None, blank=True)
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
