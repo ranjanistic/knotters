@@ -964,8 +964,7 @@ class TestViews(TestCase):
             self.assertTemplateUsed(resp, template.compete.profile)
             self.assertEqual(
                 resp.context['request'].GET['a'], Message.XP_ADDED)
-            resp = client.post(follow=True,path=root(url.compete.claimXP(
-                self.comp.getID(), subID)))
+            resp = client.post(follow=True,path=root(url.compete.claimXP(self.comp.getID(), subID)))
             self.assertEqual(resp.status_code,
                              HttpResponseNotFound.status_code)
             topicpoints = SubmissionTopicPoint.objects.filter(

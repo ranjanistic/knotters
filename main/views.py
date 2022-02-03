@@ -24,7 +24,7 @@ from management.models import HookRecord, GhMarketPlan, GhMarketApp
 from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
-from people.models import DisplayMentor, Profile, GHMarketPurchase
+from people.models import CoreMember, DisplayMentor, Profile, GHMarketPurchase
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
@@ -720,15 +720,29 @@ def browser(request: WSGIRequest, type: str):
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MODS, dict(moderators=moderators, count=len(moderators)))
         elif type == Browse.DISPLAY_MENTORS:
             dmentors = cache.get(cachekey,[])
-            if not len(dmentors):
+            count = len(dmentors)
+            if not count:
                 dmentors = DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
-                cache.set(cachekey, dmentors, settings.CACHE_MINI)
-            return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
-        elif type == Browse.CORE_TEAM: pass
+                count = len(dmentors)
+                if count:
+                    cache.set(cachekey, dmentors, settings.CACHE_MINI)
+            return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=count))
+        elif type == Browse.CORE_MEMBERS:
+            coremems = cache.get(cachekey,[])
+            count = len(coremems)
+            if not count:
+                coremems = CoreMember.objects.filter(hidden=False)
+                count = len(coremems)
+                if count:
+                    cache.set(cachekey, coremems, settings.CACHE_MINI)
+            return peopleRendererstr(request, Template.People.BROWSE_CORE_MEMBERS, dict(coremems=coremems, count=count))
         elif type == Browse.TOPIC_PROJECTS: pass
         elif type == Browse.TOPIC_PROFILES: pass
+        elif type == Browse.TRENDING_CORE: pass
+        elif type == Browse.TRENDING_VERIFIED: pass
+        elif type == Browse.TRENDING_QUICK: pass
         else:
-            pass
+            return HttpResponseBadRequest(type)
         return HttpResponse()
     except Exception as e:
         if request.POST.get(Code.JSON_BODY, False):

@@ -74,7 +74,7 @@ def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
 @require_JSON_body
 def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     try:
-        compete = Competition.objects.get(id=compID)
+        compete = Competition.objects.get(id=compID,is_draft=False)
         data = dict(timeleft=compete.secondsLeft(),
                     startTimeLeft=compete.startSecondsLeft())
         if request.user.is_authenticated:
@@ -85,7 +85,7 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
                             participated=True,
                             subID=submp.submission.getID()
                             )
-            except:
+            except ObjectDoesNotExist:
                 data = dict(**data,
                             participated=False,
                             )
@@ -123,13 +123,13 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         now = timezone.now()
         competition = Competition.objects.get(
-            id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False)
+            id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
         try:
             # filter.delete doesn't work !?
             subpart = SubmissionParticipant.objects.get(
                 submission__competition=competition, profile=request.user.profile, confirmed=False)
             subpart.delete()
-        except Exception as e:
+        except ObjectDoesNotExist:
             pass
         if competition.isNotAllowedToParticipate(request.user.profile):
             return redirect(competition.getLink(alert=Message.PARTICIPATION_PROHIBITED))
@@ -458,7 +458,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     try:
         comp = Competition.objects.get(
-            id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile)
+            id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile,is_draft=False)
 
         if comp.isAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist('allowed to part declaring results')
@@ -625,7 +625,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
         if appcert:
             compete = appcert.competition
         else:
-            compete = Competition.objects.get(id=compID)
+            compete = Competition.objects.get(id=compID,is_draft=False)
         return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(compete=compete, appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -640,7 +640,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
 def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
         competition = Competition.objects.get(
-            id=compID, creator=request.user.profile, resultDeclared=True)
+            id=compID, creator=request.user.profile, resultDeclared=True,is_draft=False)
         if not (competition.resultDeclared and competition.allResultsDeclared()):
             return redirect(competition.getManagementLink(alert=Message.RESULT_NOT_DECLARED))
         if competition.certificatesGenerated():

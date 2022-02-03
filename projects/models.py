@@ -266,6 +266,21 @@ class BaseProject(models.Model):
 
     def totalTags(self):
         return self.tags.count()
+    
+    def theme(self):
+        if self.is_verified:
+            return 'accent'
+        if self.is_core:
+            return 'tertiary'
+        return "positive"
+
+    def text_theme(self):
+        if self.is_verified:
+            return 'text-accent'
+        if self.is_core:
+            return "positive-text"
+        return "text-positive"
+
 
     @property
     def socialsites(self):

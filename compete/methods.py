@@ -33,21 +33,21 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
         if section == Compete.ACTIVE:
             try:
                 actives = Competition.objects.filter(
-                    startAt__lte=now, endAt__gt=now).order_by('-endAt')
+                    startAt__lte=now, endAt__gt=now,is_draft=False).order_by('-endAt')
             except:
                 actives = list()
             data[Compete.ACTIVE] = actives
         elif section == Compete.UPCOMING:
             try:
                 upcomings = Competition.objects.filter(
-                    startAt__gt=now).order_by('-startAt')
+                    startAt__gt=now,is_draft=False).order_by('-startAt')
             except:
                 upcomings = list()
             data[Compete.UPCOMING] = upcomings
         elif section == Compete.HISTORY:
             try:
                 history = Competition.objects.filter(
-                    endAt__lte=now, hidden=False).order_by('-endAt')
+                    endAt__lte=now, hidden=False,is_draft=False).order_by('-endAt')
             except:
                 history = list()
             data[Compete.HISTORY] = history

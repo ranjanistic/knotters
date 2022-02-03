@@ -140,6 +140,7 @@ class TestViews(TestCase):
         self.assertEqual(json.loads(
             resp.context['assets']), json.loads(store.value))
 
+    @tag('browse')
     def test_browser(self):
         resp = self.client.get(
             follow=True, path=root(url.browser(getRandomStr())))

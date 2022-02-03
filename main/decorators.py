@@ -1,21 +1,29 @@
+from json.decoder import JSONDecodeError
 import traceback
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+from allauth.account.models import EmailAddress
+from allauth.account.utils import send_email_confirmation
+
 from urllib.parse import unquote
 import hmac
 from hashlib import sha256
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseServerError
 from django.utils.encoding import force_bytes
-from allauth.account.decorators import verified_email_required
+
 from functools import wraps
 from ipaddress import ip_address, ip_network
-from .methods import errorLog
+from .methods import addMethodToAsyncQueue, errorLog
 from .strings import Code, Event
 import json
 import requests
 from django.conf import settings
 from django.views.decorators.http import require_POST
 
-from .env import ISPRODUCTION
+from .env import ISPRODUCTION, ISTESTING
 
 
 def decDec(inner_dec):
@@ -41,7 +49,7 @@ def require_JSON_body(function):
             loadedbody = json.loads(request.body.decode(Code.UTF_8))
             request.POST = dict(**loadedbody,**request.POST,JSON_BODY=True)
             return function(request, *args, **kwargs)
-        except Exception as e:
+        except JSONDecodeError:
             if request.method == Code.POST:
                 return function(request, *args, **kwargs)
             return HttpResponseNotAllowed(permitted_methods=[Code.POST])
@@ -59,7 +67,7 @@ def decode_JSON(function):
             loadedbody = json.loads(request.body.decode(Code.UTF_8))
             request.POST = dict(**loadedbody,**request.POST,JSON_BODY=True)
             return function(request, *args, **kwargs)
-        except Exception as e:
+        except JSONDecodeError:
             pass
         return function(request, *args, **kwargs)
     return wrap
@@ -75,15 +83,33 @@ def dev_only(function):
 
     return wrap
 
+def verified_email_required(
+    function=None, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME
+):
+    def decorator(view_func):
+        @login_required(redirect_field_name=redirect_field_name, login_url=login_url)
+        def _wrapped_view(request, *args, **kwargs):
+            if not EmailAddress.objects.filter(
+                user=request.user, verified=True
+            ).exists() and not ISTESTING:
+                send_email_confirmation(request, request.user)
+                return render(request, "account/verified_email_required.html")
+            return view_func(request, *args, **kwargs)
+
+        return _wrapped_view
+
+    if function:
+        return decorator(function)
+    return decorator
+
 
 @decDec(verified_email_required)
 def normal_profile_required(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        try:
-            if request.user.profile.is_normal:
-                return function(request, *args, **kwargs)
-        except:
+        if request.user.profile.is_normal:
+            return function(request, *args, **kwargs)
+        else:
             if request.method == Code.GET:
                 raise Http404('abnormal user')
             return HttpResponseForbidden('Abnormal user access')

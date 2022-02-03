@@ -287,6 +287,7 @@ class Profile(models.Model):
 
     admirers = models.ManyToManyField('Profile', through="ProfileAdmirer", default=[], related_name='admirer_profiles')
     emoticon = models.CharField(max_length=30, null=True, default=None, blank=True)
+    nickname = models.CharField(max_length=30, null=True, default=None, blank=True)
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -805,7 +806,7 @@ class Profile(models.Model):
         return data
 
     def getTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self, trashed=False)
+        proftops = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points')
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
@@ -854,7 +855,11 @@ class Profile(models.Model):
         return list(map(lambda tid: tid.hex,topIDs))
 
     def getAllTopics(self):
-        return self.topics.all()
+        proftops = ProfileTopic.objects.filter(profile=self).order_by('-points')
+        topics = []
+        for proftop in proftops:
+            topics.append(proftop.topic)
+        return topics
 
     def getAllTopicsData(self):
         return ProfileTopic.objects.filter(profile=self).order_by('-points')
@@ -1223,3 +1228,15 @@ class ProfileSocial(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     site = models.URLField(max_length=800)
+
+class CoreMember(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='core_member_profile')
+    hidden = models.BooleanField(default=False)
+    about = models.CharField(max_length=500, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.profile.get_name
+
+    def get_about(self):
+        return self.about or self.profile.getBio()

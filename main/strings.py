@@ -391,6 +391,9 @@ class Browse():
     RECOMMENDED_PROJECTS = "recommended-projects"
     TRENDING_TOPICS = "trending-topics"
     TRENDING_PROJECTS = "trending-projects"
+    TRENDING_CORE = "trending-projects-core"
+    TRENDING_VERIFIED = "trending-projects-verified"
+    TRENDING_QUICK = "trending-projects-quick"
     TRENDING_PROFILES = "trending-profiles"
     NEWLY_MODERATED = "newly-moderated"
     HIGHEST_MONTH_XP_PROFILES = "highest-month-xp-profiles"
@@ -398,7 +401,8 @@ class Browse():
     TRENDING_MENTORS = "trending-mentors"
     TRENDING_MODERATORS = "trending-moderators"
     DISPLAY_MENTORS = "display-mentors"
-    CORE_TEAM = "core-team-people"
+    DISPLAY_MENTORS = "display-mentors"
+    CORE_MEMBERS = "core-members"
     TOPIC_PROJECTS = "topic-wise-projects"
     TOPIC_PROFILES = "topic-wise-profiles"
 
@@ -1501,6 +1505,8 @@ class Template():
         @property
         def display_mentors(self):
             return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
+
+        BROWSE_CORE_MEMBERS = 'browse/core-members'
 
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
