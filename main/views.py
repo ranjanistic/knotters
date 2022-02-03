@@ -716,8 +716,11 @@ def browser(request: WSGIRequest, type: str):
                 dmentors = DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
                 cache.set(cachekey, dmentors, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
+        elif type == Browse.CORE_TEAM: pass
+        elif type == Browse.TOPIC_PROJECTS: pass
+        elif type == Browse.TOPIC_PROFILES: pass
         else:
-            return HttpResponseBadRequest(type)
+            pass
         return HttpResponse()
     except Exception as e:
         if request.POST.get(Code.JSON_BODY, False):
