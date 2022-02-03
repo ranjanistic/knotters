@@ -53,6 +53,7 @@ urlpatterns = [
     path(URL.Auth.REGISTER,RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
     path(URL.WEBPUSH, include('webpush.urls')),
     path("@me", at_me),
+    path("@/<str:emoticon>", at_emoji),
     path(URL.ON_BOARDING, on_boarding),
     path(URL.ON_BOARDING_UPDATE, on_boarding_update),
     path(URL.LANDING, landing),
