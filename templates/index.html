@@ -198,7 +198,8 @@
             </div>
             {% endblock %}
             <div class="w3-row">
-                <div class="w3-row w3-padding-large first-time-view" id='intro-banner' style="height:75vh;" hidden>
+                {% block subcontent %}
+                <div class="w3-row w3-padding-large" id='intro-banner' style="height:75vh;">
                     <br/>
                     <div class='w3-row'>
                         <div class='w3-col w3-half w3-padding-large'>
@@ -210,32 +211,24 @@
                             </div>
                             <div class='w3-row'>
                                 <a href='{% if request.user.is_authenticated %}{{URLS.ON_BOARDING}}{% else %}{{URLS.LANDING}}{% endif %}'><button class='big-button accent' data-icon='flight_land'>{% trans "Get ready" %}</button></a>
-                                {% if request.user.is_authenticated %}
-                                <button class='big-button positive' id='close-intro-banner' data-icon='flight_takeoff'>{% trans "I'm ready" %}</button>
-                                {% else %}
-                                 <span id='close-intro-banner' hidden></span>
+                                {% if not request.user.is_authenticated %}
                                  <a href='{% url 'account_signup' %}?next={{request.path}}'><button class='big-button positive' data-icon='person_add'>{% trans "Sign up" %}</button></a>
+                                 <a href='{% url 'account_login' %}?next={{request.path}}'><button class='big-button primary' data-icon='login'>{% trans "Login" %}</button></a>
                                 {% endif %}
                             </div>
                             <br/>
-                             {% if request.user.is_authenticated %}
-                            <span class='text-medium dead-text'>Click {% trans "I'm ready" %} to hide this.</span>
-                             {% endif %}
                         </div>
-                        <div class='w3-col w3-half'>
-                            <img src='{{ICON}}' width='70%' class='darkimg' />
+                        <div class='w3-col w3-half' align='right'>
+                            <img src='{{ICON}}' width='50%' class='darkimg' />
                         </div>
                     </div>
                 </div>
-                <div class="w3-row browser-view">
+                <div class="w3-row browser-view" data-type="{{BROWSE.DISPLAY_MENTORS}}">
                 </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-1">
-                </div>
-                <div class="w3-row w3-padding-large first-time-view" id='projects-admire-banner' style="height:70vh">
+                <div class="w3-row w3-padding-large" id='projects-admire-banner' style="height:70vh">
                     <br/>
                     <div class='w3-row'>
                         <div class='w3-col w3-half'>
-                            <img src='{{ICON}}' width='50%' class='darkimg' />
                         </div>
                         <div class='w3-col w3-half w3-padding-large'>
                             <div class='w3-row'>
@@ -245,21 +238,11 @@
                                 <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
                             </div>
                             <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
-                            <button class='big-button accent' id='close-projects-admire-banner' data-icon='done'>{% trans "Got it!" %}</button>
                             <br/><br/>
-                            <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
                         </div>
                     </div>
-                </div>            
-                <div class="w3-row browser-view">
                 </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-2">
-                </div>
-                <div class="w3-row browser-view">
-                </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-2">
-                </div>
-                <div class="w3-row w3-padding-large first-time-view" id='compete-participate-banner' style="height:60vh;">
+                <div class="w3-row w3-padding-large" id='compete-participate-banner' style="height:60vh;">
                     <br/>
                     <div class='w3-row w3-center'>
                         <div class='w3-col w3-padding-large'>
@@ -270,21 +253,11 @@
                                 <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
                             </div>
                             <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
-                            <button class='big-button positive' id='close-compete-participate-banner' data-icon='done'>{% trans "Got it!" %}</button>
                             <br/><br/>
-                            <span class='text-medium dead-text'>Click 'Got it' to hide this.</span>
                         </div>
                     </div>
                 </div>
-                <div class="w3-row browser-view">
-                </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-3">
-                </div>
-                <div class="w3-row browser-view">
-                </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-4">
-                </div>
-                <div class="w3-row w3-padding-large first-time-view" id="existence-reason-banner" style="height:60vh;">
+                <div class="w3-row w3-padding-large" id="existence-reason-banner" style="height:60vh;">
                     <br/>
                     <div class='w3-row w3-center'>
                         <div class='w3-col w3-padding-large'>
@@ -295,26 +268,18 @@
                                 <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
                             </div>
                             <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
-                            <button class='big-button primary' id='close-existence-reason-banner' data-icon='done'>{% trans "Understood" %}</button>
                             <br/><br/>
-                            <span class='text-medium dead-text'>Click 'Understood' to hide this.</span>
                         </div>
                     </div>
                 </div>
-                <div class="w3-row browser-view">
+                <div class="w3-row w3-padding-large w3-center">
+                    {% if not request.user.is_authenticated %}
+                        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
+                        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
+                    {% endif %}
                 </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-5">
-                </div>
-                <div class="w3-row browser-view">
-                </div>
-                <div class="w3-row snapshot-viewer-parent" id="snap-view-6">
-                </div>
-                <div class="w3-row w3-padding w3-center dead-text first-time-view" id="that-is-all">
-                    <div class="material-icons w3-jumbo">done</div>
-                    <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
-                    <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
-                    <span id="close-that-is-all" hidden></span>
-                </div>
+                <br/>
+                {% endblock %}
             </div>
             {% endblock %}
         </div>
@@ -439,10 +404,10 @@
         <script async src="{% static 'html2canvas.min.js' %}"></script>
         {% spaceless %}
         {% block messages %}
-        <script>{% if messages %}{% for message in messages %}message('{{message}}'){% endfor %}{% endif %}</script>
+        <script>{% if messages %}{% for message in messages %}message("{{message}}");{% endfor %}{% endif %}</script>
         {% endblock %}
         {% block errors %}
-        <script>{% if form.errors %}{% for field in form %}{% for error in field.errors %}error("{{ error|escape }}"){% endfor %}{% endfor %}{% for error in form.non_field_errors %}error("{{ error|escape }}"){% endfor %}{% endif %}</script>
+        <script>{% if form.errors %}{% for field in form %}{% for error in field.errors %}error("{{ error|escape }}");{% endfor %}{% endfor %}{% for error in form.non_field_errors %}error("{{ error|escape }}");{% endfor %}{% endif %}</script>
         {% endblock %}
         {% endspaceless %}
     </body>

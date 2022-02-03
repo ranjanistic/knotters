@@ -394,6 +394,9 @@ class Browse():
     TRENDING_MENTORS = "trending-mentors"
     TRENDING_MODERATORS = "trending-moderators"
     DISPLAY_MENTORS = "display-mentors"
+    CORE_TEAM = "core-team-people"
+    TOPIC_PROJECTS = "topic-wise-projects"
+    TOPIC_PROFILES = "topic-wise-profiles"
 
     def getAllKeys():
         def cond(key, value):
@@ -1131,6 +1134,12 @@ class Template():
 
     @property
     def index(self):
+        return f'{self.INDEX}.html'
+
+    HOME = 'home'
+    
+    @property
+    def home(self):
         return f'{self.INDEX}.html'
 
     OFFLINE = 'offline'

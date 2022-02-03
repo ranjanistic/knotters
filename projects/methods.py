@@ -514,7 +514,7 @@ def getProjectLiveData(project):
             for cont in contribs:
                 ghIDs.append(str(cont.login))
             contributors = Profile.objects.filter(githubID__in=ghIDs).order_by('-xp')
-            contributors = list(filter(lambda c: not c.is_manager, list(contributors)))
+            contributors = list(filter(lambda c: not c.is_manager(), list(contributors)))
             cache.set(f"project_livedata_contribs_{project.id}", contributors, settings.CACHE_SHORT)
         languages = cache.get(f"project_livedata_langs_{project.id}", None)
         if not languages:

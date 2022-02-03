@@ -8,7 +8,7 @@ from deprecated import deprecated
 from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
-from main.bots import Github
+from main.bots import Github, GH_API
 from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
@@ -323,6 +323,7 @@ class Profile(models.Model):
             gh_user_data =  f"gh_user_data_{self.id}"
             gh_user_ghorgs = f"gh_user_ghorgs_{self.id}"
             total_admirations = f'{self.id}_profile_total_admiration'
+            profile_socialsites = f"profile_socialsites_{self.id}"
         return CKEYS()
 
     @property
@@ -547,6 +548,33 @@ class Profile(models.Model):
             return 'positive-text'
         return "text-positive"
 
+    def socialsites(self):
+        cacheKey = self.CACHE_KEYS.profile_socialsites
+        sites = cache.get(cacheKey, [])
+        if not len(sites):
+            sites = ProfileSocial.objects.filter(profile=self)
+            if len(sites):
+                cache.set(cacheKey, sites, settings.CACHE_INSTANT)
+        return sites
+
+    def gh_token(self):
+        try:
+            return (SocialAccount.objects.get(user=self.user, provider=GitHubProvider.id)).token
+        except:
+            return None
+
+    def gh_api(self):
+        try:
+            return GH_API(self.gh_token())
+        except:
+            return None
+
+    def gh_org(self):
+        try:
+            return self.management().get_ghorg()
+        except Exception as e:
+            return None
+
     def gh_orgID(self):
         try:
             return self.management().get_ghorgName()
@@ -568,7 +596,7 @@ class Profile(models.Model):
             ghUser = cache.get(f"gh_user_data_{data.uid}")
             if not ghUser:
                 try:
-                    ghUser = Github.get_user_by_id(int(data.uid))
+                    ghUser = self.gh_api().get_user_by_id(int(data.uid))
                     cache.set(f"gh_user_data_{data.uid}",ghUser, settings.CACHE_SHORT)
                 except:
                     return data.extra_data['login']
@@ -598,7 +626,7 @@ class Profile(models.Model):
             cachekey = f"{self.CACHE_KEYS.gh_user}{self.ghID()}"
             ghuser = cache.get(cachekey, None)
             if not ghuser:
-                ghuser = Github.get_user(self.ghID())
+                ghuser = self.gh_api().get_user(self.ghID())
                 cache.set(cachekey, ghuser, settings.CACHE_LONG)
             return ghuser
         except Exception as e:
@@ -627,7 +655,7 @@ class Profile(models.Model):
             cacheKey2 = self.CACHE_KEYS.gh_user_data
             ghUser = cache.get(cacheKey2)
             if not ghUser:
-                ghUser = Github.get_user_by_id(int(data.uid))
+                ghUser = self.gh_api().get_user_by_id(int(data.uid))
                 cache.set(cacheKey2,ghUser, settings.CACHE_SHORT)
             cacheKey3 = self.CACHE_KEYS.gh_user_ghorgs
             orgs = cache.get(cacheKey3, None)
@@ -1190,3 +1218,8 @@ class ProfileAdmirer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admired_profile')
+
+class ProfileSocial(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    site = models.URLField(max_length=800)

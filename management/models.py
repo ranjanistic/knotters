@@ -150,11 +150,17 @@ class Management(models.Model):
     def __str__(self):
         return self.profile.getName()
 
-    def get_ghorgUrl(self):
+    def get_ghorg(self):
         try:
             if self.githubOrgID:
-                return list(filter(lambda ghorg:str(ghorg.id) == self.githubOrgID, self.profile.get_ghOrgs()))[0].url.replace('api.','')
-            return self.getLink(message=Message.GH_ORG_NOT_LINKED)
+                return list(filter(lambda ghorg:str(ghorg.id) == self.githubOrgID, self.profile.get_ghOrgs()))[0]
+            return None
+        except:
+            return None
+
+    def get_ghorgUrl(self):
+        try:
+            return self.get_ghorg().url.replace('api.','')
         except:
             return self.getLink(message=Message.GH_ORG_NOT_LINKED)
 

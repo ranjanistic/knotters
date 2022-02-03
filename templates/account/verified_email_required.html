@@ -19,17 +19,27 @@
 <i class="w3-jumbo">hourglass_top</i>
 <h1>{% trans "Verify your email address." %}</h1>
 <br/>
-<h5>{% trans "This part of the site requires us to verify that
-you are who you claim to be." %}<br/>
-{% trans "For this purpose, we require that you
-verify ownership of your e-mail address." %}</h5>
+<strong class="text-medium">{% trans "This part of Knotters requires us to verify that you are who you claim to be." %}</strong>
+<br/><strong class="text-medium">{% trans "For this purpose, we require that you verify ownership of your e-mail address." %}</strong>
+<br/>
 <br/>
 <span class="positive-text">{% blocktrans %}We have sent an email at <strong>{{user}}</strong> for
 verification.{% endblocktrans %} {% trans "Please click on the link inside that email." %}</span>
 <br/><br/>
 <h4>If your email address is not correct, then</h4>
 <br/>
+<a href="{{URLS.REDIRECTOR}}?n={{request.path}}"><button class="primary" data-icon="send">{% trans "Re-send verification" %}</button></a>
 <button onclick="miniWindow('{% url 'account_email' %}')" class="accent" data-icon="edit">{% trans "Change email address" %}</button>
+<a href="{{URLS.REDIRECTOR}}?n={{request.path}}?done=1"><button class="positive" data-icon="done">{% trans "I've verified it!" %}</button></a>
+<a href="{{URLS.Auth.LOGOUT}}"><button class="negative" data-icon="logout">{% trans "Logout" %}</button></a>
 </div>
 <br/>
+{% endblock %}
+
+{% block scripts %}
+<script>
+if('{{request.GET.done}}'=='1'){
+    message("No, you haven't verified your email yet.")
+}
+</script>
 {% endblock %}

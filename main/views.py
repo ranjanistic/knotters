@@ -60,10 +60,12 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    if request.user.is_authenticated and not request.user.profile.on_boarded:
-        return respondRedirect(path=URL.ON_BOARDING)
-    competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
-    return renderView(request, Template.INDEX, dict(competition=competition))
+    if request.user.is_authenticated:
+        if not request.user.profile.on_boarded:
+            return respondRedirect(path=URL.ON_BOARDING)
+        competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
+        return renderView(request, Template.HOME, dict(competition=competition))
+    return renderView(request, Template.INDEX)
 
 
 @require_GET
@@ -609,7 +611,7 @@ def browser(request: WSGIRequest, type: str):
                 snapIDs = [snap.id for snap in snaps]
                 
                 if not len(snaps):
-                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)),base_project__suspended=False,base_project__trashed=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
+                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)|Q(creator__admirers=request.user.profile)),base_project__suspended=False,base_project__trashed=False,suspended=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
                     cache.set(cachekey, snaps, settings.CACHE_INSTANT)
                 
@@ -722,8 +724,11 @@ def browser(request: WSGIRequest, type: str):
                 dmentors = DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
                 cache.set(cachekey, dmentors, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=len(dmentors)))
+        elif type == Browse.CORE_TEAM: pass
+        elif type == Browse.TOPIC_PROJECTS: pass
+        elif type == Browse.TOPIC_PROFILES: pass
         else:
-            return HttpResponseBadRequest(type)
+            pass
         return HttpResponse()
     except Exception as e:
         if request.POST.get(Code.JSON_BODY, False):

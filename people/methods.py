@@ -156,7 +156,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             if profile.is_manager():
                 data[Code.COMPETITIONS] = Competition.objects.filter(creator=profile).order_by("-createdOn")
         elif section == profileString.PEOPLE:
-            mgm = profile.management
+            mgm = profile.management()
             if mgm:
                 data[Code.PEOPLE] = mgm.people.filter(is_active=True,suspended=False,to_be_zombie=False).order_by("user__first_name")
         elif section == profileString.MENTORSHIP:

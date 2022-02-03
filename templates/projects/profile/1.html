@@ -27,9 +27,9 @@
 {% else %}
     <div class="w3-col w3-quarter w3-padding">
         <div class="w3-row">
-            <div class="pallete" style="padding:0" id="view-pallete">
+            <div class="pallete w3-center w3-animate-zoom" style="padding:0" id="view-pallete">
                 <img src="{{project.getDP}}" alt="{{project.name}}" class="preview-type-image" />
-                <div class="w3-row w3-center w3-padding-small">
+                <div class="w3-row w3-padding">
                 <h5 class="align">{{project.name}}<a class="align" href="{{URLS.PROJECTS}}?search=type:verified"><i class="positive-text w3-large">verified</i></a></h5>
                 <center>{{project.description}}</center>
                 </div>
@@ -96,13 +96,17 @@
 
         <div class="w3-row pallete">
             <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
-            <div class="text-medium" id="view-sociallinks">    
+            <div class="" id="view-sociallinks">    
                 {% if project.socialsites.count or project.url %}
                     {% if project.url %}
                         <a target="_blank" rel="noreferrer" href="{{project.url}}"><strong class="text-medium">{{project.url|noprotocol|truncatechars:25}}</strong></a><br/>
                     {% endif %}
                     {% for site in project.socialsites %}
-                        <a href="{{site.site}}" target="_blank" rel="noreferrer"><strong>{{site.site|noprotocol|truncatechars:30}}<i class="w3-small">open_in_new</i></strong></a><br/>
+                        <a class="" href="{{site.site}}" target="_blank" rel="noreferrer">
+                            <div class="pallete-slab w3-left align positive-text">
+                            <i class="w3-large">open_in_new</i>&nbsp;<strong>{{site.site|noprotocol|truncatechars:30}}</strong>
+                            </div>
+                        </a>
                     {% endfor %}
                 {% else %}
                     <br/>
@@ -112,7 +116,9 @@
                     </center>
                 {% endif %}
                 {% if iscreator or ismoderator %}
+                    <div class="w3-row">
                     <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
+                    </div>
                 {% endif %}
             </div>
             <div class="w3-center" id="edit-sociallinks" hidden>

@@ -855,11 +855,12 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @require_JSON_body
 def userGithubRepos(request):
     try:
-        ghuser = Github.get_user(request.user.profile.ghID())
-        repos = ghuser.get_repos('public')
+        repos = request.user.profile.gh_user().get_repos('public')
         data = []
+        if request.user.profile.is_manager():
+            repos = list(repos) + list(request.user.profile.gh_org().get_repos('public'))
         for repo in repos:
-            taken = FreeRepository.objects.filter(repo_id=repo.id).exists()
+            taken = FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()
             data.append({'name': repo.name, 'id': repo.id, 'taken': taken})
         return respondJson(Code.OK, dict(repos=data))
     except Exception as e:
@@ -877,12 +878,14 @@ def linkFreeGithubRepo(request):
             id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         if FreeRepository.objects.filter(free_project=project).exists():
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        ghuser = Github.get_user(request.user.profile.ghID())
-        repo = Github.get_repo(repoID)
-        if repo.owner == ghuser:
-            FreeRepository.objects.create(free_project=project, repo_id=repoID)
+        ghuser = request.user.profile.gh_user()
+        repo = request.user.profile.gh_api().get_repo(repoID)
+        if not repo.private and repo.owner in [ghuser, request.user.profile.gh_org()] and not (FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()):
+            FreeRepository.objects.create(free_project=project, repo_id=repo.id)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -896,12 +899,14 @@ def unlinkFreeGithubRepo(request: WSGIRequest):
         project = FreeProject.objects.get(
             id=request.POST['projectID'], creator=request.user.profile, trashed=False, suspended=False)
         freerepo = FreeRepository.objects.get(free_project=project)
-        ghuser = Github.get_user(request.user.profile.ghID())
-        repo = Github.get_repo(int(freerepo.repo_id))
-        if repo.owner == ghuser:
+        ghuser = request.user.profile.gh_user()
+        repo = request.user.profile.gh_api().get_repo(int(freerepo.repo_id))
+        if repo.owner in [ghuser, request.user.profile.gh_org()]:
             freerepo.delete()
             return respondJson(Code.OK)
         return respondJson(Code.NO)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -1193,7 +1198,7 @@ def browseSearch(request: WSGIRequest):
         excludecreatorIDs = []
         cachekey = f'project_browse_search_{query}{request.LANGUAGE_CODE}'
         if request.user.is_authenticated:
-            excludecreatorIDs = request.user.profile.blockedIDs
+            excludecreatorIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
         projects = cache.get(cachekey,[])

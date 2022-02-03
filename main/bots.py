@@ -15,6 +15,8 @@ except Exception as e:
     Github = None
     GithubKnotters = None
 
+def GH_API(token=GITHUBBOTTOKEN):
+    return GHub(token)
 
 class Sender():
     def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
