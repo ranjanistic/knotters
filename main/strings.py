@@ -55,6 +55,8 @@ def setURLAlerts(url, alert: str = '', error: str = '', success: str = '', other
             success) else ''
     return f"{url}{error}{alert}{success}"
 
+class DB():
+    DEFAULT = 'default'
 
 class Code():
     OK = "OK"
@@ -365,13 +367,15 @@ class Auth2():
     DEVICE = "device"
     SECURITY = "security"
     PREFERENCE = "preference"
+    NOTIFICATION = "notification"
 
     def __init__(self) -> None:
         self.AUTH2_SECTIONS = [
             self.ACCOUNT,
             self.DEVICE,
             self.SECURITY,
-            self.PREFERENCE
+            self.PREFERENCE,
+            self.NOTIFICATION
         ]
 
 
@@ -524,6 +528,8 @@ class URL():
         TAB_SECTION = 'section/<str:section>/'
         VERIFY_REAUTH = 're-auth/verify/'
         CHANGE_GHORG = 'org/gh/change'
+        NOTIFICATION_TOGGLE_EMAIL = "notification/toggle/e/<str:notifID>"
+        NOTIFICATION_TOGGLE_DEVICE = "notification/toggle/d/<str:notifID>"
 
         def getURLSForClient(self):
             URLS = dict()

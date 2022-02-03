@@ -6,12 +6,37 @@
 {% load custom_tags %}
 
 <div class="w3-row w3-padding">
-<div class="pallete-slab">
-<h4 class="dead-text">Account security</h4>
+<div class="pallete-slab dead-text">
+<h4 >Account security</h4>
+    <button class="accent" onclick="miniWindow('/auth/two_factor/setup')" data-icon="open_in_new">{% trans "2FA TOTP Device" %}</button>
+<h4 >Personal Info privacy</h4>
 Coming soon.
-<h4 class="dead-text">Identity Security</h4>
+<h4 class="dead-text">Content privacy</h4>
 Coming soon.
-<h4 class="dead-text">Content Encryption</h4>
-Coming soon.
+<h4>{% trans "Blocked Accounts" %}</h4>
+{% for blocked in request.user.profile.blocklist.all %}
+<div class="w3-col w3-third w3-padding-small">
+    <div class="w3-row pallete-slab">
+        <div class="w3-col w3-quarter">
+            <img src="{{blocked.profile.getDP}}" class="w3-circle primary" width="25" />
+        </div>
+        <div class="w3-col w3-half" >
+            <div class="w3-row negative-text">
+                <strong>{{blocked.profile.getName}}</strong>
+            </div>
+        </div>
+        <div class="w3-col w3-quarter"> 
+            <button class="small primary w3-right unblock-button" data-userID="{{blocked.get_id}}" data-username="{{blocked.profile.getName}}" data-icon="remove_circle_outline" title="Unblock"></button>
+        </div>
+    </div>
+</div>
+{% empty %}
+    {% trans "No one blocked." %} {% trans "You can block a user from their profile." %}
+{% endfor %}
+<h4 class="negative-text">Danger settings</h4>
+{% if request.user.profile != knotbot %}
+    <button class="accent" data-icon="toggle_off" id="deactivateaccount">{% trans "Deactivate Account" %}</button>
+    <button class="negative" data-icon="delete" id="deleteaccount">{% trans "Delete Account" %}</button>
+{% endif %}
 </div>
 </div>

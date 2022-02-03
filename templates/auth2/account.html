@@ -6,14 +6,25 @@
 {% load custom_tags %}
 
 <div class="w3-row w3-padding">
-<div class="pallete-slab">
-<h4 class="dead-text">Email addresses</h4>
- {% for email in request.user.get_emailaddresses %}
-    {{email}}
- {% endfor %}
-<h4 class="dead-text">Password</h4>
-Coming soon.
-<h4 class="dead-text">Linked accounts</h4>
-Coming soon.
+<div class="w3-row pallete-slab">
+   <div class="w3-col w3-half">
+      <h4 class="dead-text">Email addresses</h4>
+         <button class="accent" onclick="miniWindow('{% url 'account_email' %}')" data-icon="open_in_new">{% trans "Email addresses" %}</button>
+      <h4 class="dead-text">Personal nickname</h4>
+         Coming soon.
+      <h4 class="dead-text">Personal Emoticon</h4>
+         Coming soon.
+      <h4 class="dead-text">Password</h4>
+         <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">{% trans "Change Password" %}</button>
+         <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">{% trans "Forgot Password" %}</button>
+      <h4 class="dead-text">Linked accounts</h4>
+         <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">{% trans "Linked Accounts" %}</button>
+   </div>
+   <div class="w3-col w3-half">
+      <h4 class="dead-text">Phone numbers</h4>
+         Coming soon.
+      <h4 class="dead-text">Birthday</h4>
+         Coming soon.   
+   </div>
 </div>
 </div>

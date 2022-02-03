@@ -1,0 +1,59 @@
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+<div class="w3-row w3-padding">
+    <div class="pallete-slab">
+        <div class="w3-row">
+            <div class="w3-row  w3-padding">
+                <div class="w3-col w3-half">
+                    <h5 class="dead-text">Notification subscriptions</h5>
+                </div>
+                <div class="w3-col w3-half w3-center">
+                    <div class="w3-col w3-half">
+                        <h5 class="dead-text">Email&nbsp;<input class="pointer" type="checkbox" id="notification-toggle-email-all" /></h5>    
+                    </div>
+                    <div class="w3-col w3-half">
+                        <h5 class="dead-text">Device&nbsp;<input class="pointer" type="checkbox" id="notification-toggle-device-all" /></h5>
+                        
+                    </div>
+                </div>
+            </div>
+            {% for notif in notifications %}
+                <div class="w3-row pallete-slab primary">
+                    <div class="w3-col w3-half">
+                        <h6>{{notif.name}}</h6>
+                        <span>{{notif.description}}</span>
+                    </div>
+                    <div class="w3-col w3-half w3-center">
+                        <div class="w3-col w3-half">
+                            <label for="email-{{notif.id}}" class="w3-hide-large w3-hide-medium">Email&nbsp;</label>
+                            <input type="checkbox" class="pointer notification-toggle-email"
+                                data-notification-id="{{notif.id}}"
+                                data-notification-name="{{notif.name}}"
+                                id="email-{{notif.id}}"
+                                {% for enotif in email_notifs %}
+                                    {% if enotif.notification == notif %}checked{% endif %}
+                                {% endfor %}
+                            >
+                        </div>
+                        <div class="w3-col w3-half">
+                            <label for="device-{{notif.id}}" class="w3-hide-large w3-hide-medium">Device&nbsp;</label>
+                            <input type="checkbox" class="pointer notification-toggle-device"
+                                data-notification-id="{{notif.id}}"
+                                data-notification-name="{{notif.name}}"
+                                id="device-{{notif.id}}"
+                                {% for dnotif in device_notifs %}
+                                    {% if dnotif.notification == notif %}checked{% endif %}
+                                {% endfor %}
+                            >
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

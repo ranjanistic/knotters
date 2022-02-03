@@ -97,16 +97,17 @@ const loadGlobalEventListeners = () => {
     getElements("first-time-view").forEach((view) => {
         hide(view);
         if (localStorage.getItem(`first-intro-${view.id}`) != 1) {
-            show(view)
-            try{
+            show(view);
+            try {
                 getElement(`close-${view.id}`).addEventListener("click", () => {
                     localStorage.setItem(`first-intro-${view.id}`, 1);
                     message(STRING.re_introduction, (t) => {
-                        t.onclick = (_) => (window.location.href = URLS.LANDING);
+                        t.onclick = (_) =>
+                            (window.location.href = URLS.LANDING);
                     });
                     hide(view);
                 });
-            } catch{}
+            } catch {}
         }
     });
     getElementsByTag("form").forEach((form) => {
@@ -119,7 +120,11 @@ const loadGlobalEventListeners = () => {
     });
     getElementsByTag("a").forEach((a) => {
         if (
-            (a.href.startsWith(window.location.origin)||a.href.startsWith('/')) && !a.getAttribute("target") && !a.hash && a.getAttribute("download") === null
+            (a.href.startsWith(window.location.origin) ||
+                a.href.startsWith("/")) &&
+            !a.getAttribute("target") &&
+            !a.hash &&
+            a.getAttribute("download") === null
         ) {
             a.addEventListener("click", (e) => {
                 subLoader(true);
@@ -147,9 +152,9 @@ const loadGlobalEventListeners = () => {
         }
         if (button.dataset.img) {
             if (!button.innerHTML.includes("img")) {
-                button.innerHTML = `<img src="${button.getAttribute("data-img")}" class="circle" />&nbsp;${
-                    button.innerHTML
-                }`;
+                button.innerHTML = `<img src="${button.getAttribute(
+                    "data-img"
+                )}" class="circle" />&nbsp;${button.innerHTML}`;
             }
         }
         if (!button.title) {
@@ -506,10 +511,16 @@ const initializeMultiSelector = ({
     return candidates;
 };
 
-const postRequest = async (path, data = {}, headers = {}, options = {}, silent=false) => {
+const postRequest = async (
+    path,
+    data = {},
+    headers = {},
+    options = {},
+    silent = false
+) => {
     const body = { ...data };
     try {
-        if(!silent) subLoader();
+        if (!silent) subLoader();
         const response = await window.fetch(path, {
             method: "POST",
             headers: {
@@ -523,15 +534,15 @@ const postRequest = async (path, data = {}, headers = {}, options = {}, silent=f
             ...options,
         });
         const data = await response.text();
-        if(!silent) subLoader(false);
+        if (!silent) subLoader(false);
         try {
             return JSON.parse(data);
         } catch {
             return data || true;
         }
     } catch (e) {
-        if(!silent) subLoader(false);
-        if(!silent){
+        if (!silent) subLoader(false);
+        if (!silent) {
             if (!navigator.onLine) {
                 error(STRING.network_error_message);
             } else error(STRING.default_error_message, true);
@@ -540,9 +551,15 @@ const postRequest = async (path, data = {}, headers = {}, options = {}, silent=f
     }
 };
 
-const getRequest = async (url, query = {}, headers = {}, options = {}, silent=false) => {
+const getRequest = async (
+    url,
+    query = {},
+    headers = {},
+    options = {},
+    silent = false
+) => {
     try {
-        if(!silent) subLoader();
+        if (!silent) subLoader();
         const response = await window.fetch(setUrlQueries(url, query), {
             method: "GET",
             headers: {
@@ -553,15 +570,15 @@ const getRequest = async (url, query = {}, headers = {}, options = {}, silent=fa
             ...options,
         });
         const data = await response.text();
-        if(!silent) subLoader(false);
+        if (!silent) subLoader(false);
         try {
             return JSON.parse(data);
         } catch {
             return data || true;
         }
     } catch (e) {
-        if(!silent) subLoader(false);
-        if(!silent){
+        if (!silent) subLoader(false);
+        if (!silent) {
             if (!navigator.onLine) {
                 error(STRING.network_error_message);
             } else error(STRING.default_error_message, true);
@@ -1132,12 +1149,39 @@ const getFormDataById = (id) => {
     return obj;
 };
 
-const randomizeArray =(array=[])=> {
-    let currentIndex = array.length, randomIndex;
+const randomizeArray = (array = []) => {
+    let currentIndex = array.length,
+        randomIndex;
     while (currentIndex != 0) {
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-      [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+        ];
     }
     return array;
-}
+};
+
+const highlightElement = (elem) => {
+    setTimeout(() => {
+        elem.scrollIntoView();
+        setTimeout(() => {
+            let op = 1;
+            let times = 0;
+            let x = setInterval(() => {
+                op = op < 1 ? op * 2 : op / 2;
+                elem.style.opacity = op;
+                times++;
+                if (times > 7) {
+                    clearInterval(x);
+                    elem.style.opacity = 1;
+                }
+            }, 100);
+        }, 900);
+    }, 300);
+};
+
+const highlightElementByID = (elemID) => {
+    highlightElement(getElement(elemID));
+};

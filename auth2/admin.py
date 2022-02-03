@@ -6,6 +6,11 @@ from .models import *
 admin.site.register(Country)
 admin.site.register(Address)
 admin.site.register(PhoneNumber)
+admin.site.register(Notification)
+admin.site.register(EmailNotification)
+admin.site.register(EmailNotificationSubscriber)
+admin.site.register(DeviceNotification)
+admin.site.register(DeviceNotificationSubscriber)
 
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):

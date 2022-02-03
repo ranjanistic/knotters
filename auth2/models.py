@@ -4,6 +4,7 @@ from django.db import models
 from main.strings import PEOPLE
 from django.conf import settings
 from django.utils import timezone
+from webpush.models import Group
 
 class Country(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -68,3 +69,45 @@ class Address(models.Model):
 
     def __str__(self):
         return self.user.get_name
+
+
+class Notification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=80)
+    description = models.CharField(max_length=200, null=True,blank=True)
+    disabled = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now=False,default=timezone.now)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class EmailNotification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    notification = models.OneToOneField(Notification, on_delete=models.CASCADE, related_name='email_notification_notif',default=None)
+    subscribers = models.ManyToManyField(f"{PEOPLE}.User", through="EmailNotificationSubscriber", default=[], related_name='email_notification_subscribers')
+
+    def __str__(self) -> str:
+        return self.notification
+
+
+class DeviceNotification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    notification = models.OneToOneField(Notification, on_delete=models.CASCADE, related_name='device_notification_notif', default=None)
+    subscribers = models.ManyToManyField(f"{PEOPLE}.User", through="DeviceNotificationSubscriber",default=[], related_name='device_notification_subscribers')
+
+    def __str__(self) -> str:
+        return self.notification
+    
+
+class EmailNotificationSubscriber(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='enotification_sub_user')
+    email_notification = models.ForeignKey(EmailNotification, on_delete=models.CASCADE, related_name='enotification_sub_notification')
+    created_at = models.DateTimeField(auto_now=False,default=timezone.now)
+
+class DeviceNotificationSubscriber(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='dnotification_sub_user')
+    device_notification = models.ForeignKey(DeviceNotification, on_delete=models.CASCADE, related_name='dnotification_sub_notification')
+    created_at = models.DateTimeField(auto_now=False,default=timezone.now)

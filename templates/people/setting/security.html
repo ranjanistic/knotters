@@ -7,41 +7,18 @@
 <div class="w3-row">
     <div class="w3-row">
         <h4>{% trans "Oauth Accounts" %}</h4>
-        <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">{% trans "Linked Accounts" %}</button>
+        
         <br/>
     </div>
     <div class="w3-row">
         <h4>{% trans "Two-Factor authentication" %}</h4>
-        <button class="accent" onclick="miniWindow('/auth/two_factor/setup')" data-icon="open_in_new">{% trans "Manage" %} 2FA</button>
+        
         <br/>
     </div>
     <div class="w3-row">
         <h4>{% trans "Blocked Accounts" %}</h4>
-        {% for blocked in user.profile.blocklist.all %}
-        <div class="w3-col w3-third w3-padding-small">
-            <div class="w3-row pallete-slab">
-                <div class="w3-col w3-quarter">
-                    <img src="{{blocked.profile.getDP}}" class="w3-circle primary" width="25" />
-                </div>
-                <div class="w3-col w3-half" >
-                    <div class="w3-row negative-text">
-                        <strong>{{blocked.profile.getName}}</strong>
-                    </div>
-                </div>
-                <div class="w3-col w3-quarter"> 
-                    <button class="small primary  w3-right unblock-button" data-userID="{{blocked.get_id}}" data-username="{{blocked.profile.getName}}" data-icon="remove_circle_outline" title="Unblock"></button>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <h6 class="dead-text">{% trans "No one blocked." %} {% trans "You can block a user from their profile." %}</h6>
-        {% endfor %}
     </div>
     <div class="w3-row">
-        {% if request.user.profile != knotbot %}
         <h4>{% trans "Danger" %}</h4>
-        <button class="accent" data-icon="toggle_off" id="deactivateaccount">{% trans "Deactivate Account" %}</button>
-        <button class="negative" data-icon="delete" id="deleteaccount">{% trans "Delete Account" %}</button>
-        {% endif %}
     </div>
 </>

@@ -51,22 +51,7 @@ window.addEventListener("load", () => {
     if (window.location.href.split("#").length > 1) {
         const elem = getElement(window.location.href.split("#")[1]);
         if (elem) {
-            setTimeout(() => {
-                elem.scrollIntoView();
-                setTimeout(() => {
-                    let op = 1;
-                    let times = 0;
-                    x = setInterval(() => {
-                        op = op < 1 ? op * 2 : op / 2;
-                        elem.style.opacity = op;
-                        times++;
-                        if (times > 7) {
-                            clearInterval(x);
-                            elem.style.opacity = 1;
-                        }
-                    }, 100);
-                }, 900);
-            }, 300);
+            highlightElement(elem);
         }
     }
     window.history.pushState(

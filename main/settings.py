@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from .strings import DOCS, url, DIVISIONS, PEOPLE, AUTH2, MANAGEMENT
+from .strings import DOCS, url, DIVISIONS, PEOPLE, AUTH2, MANAGEMENT, DB
 from . import env
 from .env import env as env_
 
@@ -149,7 +149,7 @@ DB_HOST_API = env.DBLINK
 
 if not DEBUG:
     DATABASES = {
-        "default": {
+        DB.DEFAULT: {
             "ENGINE": "djongo",
             "CLIENT": {
                 "name": env.DBNAME,
@@ -163,7 +163,7 @@ if not DEBUG:
     }
 else:
     DATABASES = {
-        "default": {
+        DB.DEFAULT: {
             "ENGINE": "djongo",
             "NAME": env.DBNAME,
             "CLIENT": {
@@ -175,7 +175,7 @@ else:
 
 if not env.ISTESTING and env.ASYNC_CLUSTER:
     CACHES = {
-        'default': {} if not env.REDIS_LOCATION else {
+        DB.DEFAULT: {} if not env.REDIS_LOCATION else {
             'BACKEND': 'redis_cache.RedisCache',
             'LOCATION': env.REDIS_LOCATION,
             'OPTIONS': {} if not env.REDIS_PASSWORD else {

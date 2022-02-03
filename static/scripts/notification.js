@@ -24,7 +24,9 @@ const togglePushSubscription = async ({
 
 const subscribeToPush = async (
     group = null,
-    done = (subscription, err = null) => {}
+    title = APPNAME,
+    silent = false,
+    done = async (subscription, err = null) => {}
 ) => {
     const reg = await navigator.serviceWorker.getRegistration();
     reg.pushManager.getSubscription().then((subscription) => {
@@ -35,11 +37,12 @@ const subscribeToPush = async (
                 group,
                 callback: (response) => {
                     if (response) {
-                        message(
-                            STRING.subscribed_to_notif_of +
-                                " " +
-                                (group ? group : APPNAME)
-                        );
+                        if(!silent){
+                            message(
+                                STRING.subscribed_to_notif_of +
+                                    " " + title
+                            );
+                        }
                         done(subscription);
                     }
                     return response;
@@ -58,22 +61,23 @@ const subscribeToPush = async (
                         group,
                         callback: (response) => {
                             if (response) {
-                                message(
-                                    STRING.subscribed_to_notif_of +
-                                        " " +
-                                        (group ? group : APPNAME)
-                                );
-                                done(subscription);
+                                if(!silent){
+                                    message(
+                                        STRING.subscribed_to_notif_of +
+                                            " " + title
+                                    );
+                                }
+                                done(subscription, null);
+                            } else {
+                                done(response)
                             }
-
                             return response;
                         },
                     });
                 })
                 .catch((error) => {
                     console.log("Subscription error.", error);
-                    // error("Subscription error.");
-                    done(null, error);
+                    done(false, error);
                     return false;
                 });
         }
@@ -89,17 +93,22 @@ const urlB64ToUint8Array = (base64String) => {
     const rawData = window.atob(base64);
     const outputArray = new Uint8Array(rawData.length);
 
-    for (var i = 0; i < rawData.length; ++i) {
+    for (let i = 0; i < rawData.length; ++i) {
         outputArray[i] = rawData.charCodeAt(i);
     }
     return outputArray;
 };
 
-const unsubscribeFromPush = async (group = null) => {
+const unsubscribeFromPush = async (
+    group = null,
+    title = null,
+    silent = false,
+    done = async(subscription, err = null) => {}
+) => {
     const reg = await navigator.serviceWorker.getRegistration();
     reg.pushManager.getSubscription().then(function (subscription) {
         if (!subscription) {
-            message(STRING.subscription_unavailable);
+            done(true, null);
             return true;
         }
         return togglePushSubscription({
@@ -111,20 +120,23 @@ const unsubscribeFromPush = async (group = null) => {
                     return subscription
                         .unsubscribe()
                         .then((successful) => {
-                            console.log(successful);
-                            message(
-                                STRING.unsubscribed_from_notif_of +
-                                    " " +
-                                    (group ? group : APPNAME)
-                            );
+                            if(successful){
+                                if(!silent){
+                                    message(
+                                        STRING.unsubscribed_from_notif_of +
+                                            " " + title
+                                    );
+                                }
+                                done(subscription, null)
+                            } else {
+                                done(successful)
+                            }
                             return successful;
                         })
                         .catch((error) => {
-                            console.log(error);
-                            error();
-                            // message(
-                            //     "Error during unsubscribe from Push Notification"
-                            // );
+                            console.log("Unsubscription error.", error);
+                            done(false,error)
+                            return false;
                         });
                 }
             },

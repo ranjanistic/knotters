@@ -115,6 +115,9 @@ const STRING = {
     deactivating_acc: `{% trans "Deactivating account..." %}`,
     acc_deactivated: `{% trans "Your account has been deactivated." %}`,
     no_go_back: `{% trans "No, go back!" %}`,
+    unable_to_sub_device_notif: `{% trans "Unable to subscribe to device notifications. Please check our notification permissions and try again." %}`,
+    unable_to_sub_device_notif: `{% trans "Unable to subscribe to device notifications. Please check our notification permissions and try again." %}`,
+    unable_to_unsub_device_notif: `{% trans "Unable to unsubscribe from device notifications." %}`
 };
 
 Object.freeze(STRING);
