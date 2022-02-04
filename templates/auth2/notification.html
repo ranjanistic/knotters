@@ -13,10 +13,10 @@
                     <h5 class="dead-text">Notification subscriptions</h5>
                 </div>
                 <div class="w3-col w3-half w3-center">
-                    <div class="w3-col w3-half">
+                    <div class="w3-col m6 l6 s6">
                         <h5 class="dead-text">Email&nbsp;<input class="pointer" type="checkbox" id="notification-toggle-email-all" /></h5>    
                     </div>
-                    <div class="w3-col w3-half">
+                    <div class="w3-col m6 l6 s6">
                         <h5 class="dead-text">Device&nbsp;<input class="pointer" type="checkbox" id="notification-toggle-device-all" /></h5>
                         
                     </div>
@@ -29,7 +29,7 @@
                         <span>{{notif.description}}</span>
                     </div>
                     <div class="w3-col w3-half w3-center">
-                        <div class="w3-col w3-half">
+                        <div class="w3-col m6 l6 s6">
                             <label for="email-{{notif.id}}" class="w3-hide-large w3-hide-medium">Email&nbsp;</label>
                             <input type="checkbox" class="pointer notification-toggle-email"
                                 data-notification-id="{{notif.id}}"
@@ -40,7 +40,7 @@
                                 {% endfor %}
                             >
                         </div>
-                        <div class="w3-col w3-half">
+                        <div class="w3-col m6 l6 s6">
                             <label for="device-{{notif.id}}" class="w3-hide-large w3-hide-medium">Device&nbsp;</label>
                             <input type="checkbox" class="pointer notification-toggle-device"
                                 data-notification-id="{{notif.id}}"
