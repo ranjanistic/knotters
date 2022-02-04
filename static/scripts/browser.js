@@ -79,6 +79,32 @@ const loadBrowsers = () => {
                 }
                 setHtmlContent(view, nildata?'':data, loadBrowserSwiper);
                 loadBrowserSwiper();
+                getElements("browse-admire-project-action").forEach((act)=>{
+                    act.onclick=async(_)=>{
+                        const pid = act.getAttribute("data-projectID");
+                        const admire = act.getAttribute("data-admires") == '0';
+                        const data = await postRequest2({
+                            path: setUrlParams(URLS.Projects.TOGGLE_ADMIRATION,pid),
+                            data: {
+                                admire,
+                            },
+                            retainCache: true,
+                        });
+                        if (data.code !== code.OK) {
+                            return error(data.error);
+                        }
+                        act.setAttribute(
+                                "data-admires",
+                                admire ? 1 : 0
+                        );
+                        act.classList[admire ? "add" : "remove"](
+                            "positive"
+                        );
+                        act.classList[admire ? "remove" : "add"](
+                            "primary"
+                        );
+                    }
+                });
             };
             return await method();
         })
