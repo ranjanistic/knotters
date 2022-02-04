@@ -78,7 +78,7 @@ def createFree(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def createMod(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('default')
+    licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('-default')
     return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
 
 @normal_profile_required
