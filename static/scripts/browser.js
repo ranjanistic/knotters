@@ -105,6 +105,32 @@ const loadBrowsers = () => {
                         );
                     }
                 });
+                getElements("browse-admire-profile-action").forEach((act)=>{
+                    act.onclick=async(_)=>{
+                        const uid = act.getAttribute("data-userID");
+                        const admire = act.getAttribute("data-admires") == '0';
+                        const data = await postRequest2({
+                            path: setUrlParams(URLS.People.TOGGLE_ADMIRATION,uid),
+                            data: {
+                                admire,
+                            },
+                            retainCache: true,
+                        });
+                        if (data.code !== code.OK) {
+                            return error(data.error);
+                        }
+                        act.setAttribute(
+                                "data-admires",
+                                admire ? 1 : 0
+                        );
+                        act.classList[admire ? "add" : "remove"](
+                            "positive"
+                        );
+                        act.classList[admire ? "remove" : "add"](
+                            "primary"
+                        );
+                    }
+                });
             };
             return await method();
         })
