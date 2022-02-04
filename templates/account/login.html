@@ -41,11 +41,17 @@
 					<br/>
 					{% with next=request.GET.next|or:URLS.ROOT %}
 						{% with x=URLS.REDIRECTOR|getquery:"n:"|add:next %}
-						<a class="w3-row hide-beta" href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=x %}{% endfilter %}">
-							<button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
+						<a class="w3-row hide-beta"
+                                                     {% if provider.id != 'github' %}
+                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=x %}{% endfilter %}"
+                                                     {% else %}
+                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' scope='read:org' next=x %}{% endfilter %}"
+                                                     {% endif %}
+                                                 >
+                                                     <button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
 								{% with logo="graphics/thirdparty/"|add:provider.id|add:".png" %}
 									<img src="{% static logo %}" width="{% if provider.id == 'discord' %}20{% else %}25{% endif %}" {% if provider.id == 'github' %}class="darkimg-static"{% endif %} />
-									{% trans "Continue via" %} {{provider.name}}
+									&nbsp;{% trans "Continue via" %} {{provider.name}}
 								{% endwith %}
 							</button>
 						</a>
