@@ -12,13 +12,13 @@
 
     <div class="swiper-wrapper">
       <div class="w3-col w3-padding-small w3-third swiper-slide">
-        <div class="pallete active text-active" style="height:65vh;">
+        <div class="pallete active text-active" style="min-height:65vh; max-height:85vh;">
           <center>
           <i title="Visible to everyone">lock_open</i>
           <h4>{% trans "Live" %}</h4>
           </center>
 
-          <div class="w3-row" style="height:55vh;overflow-y:scroll">
+          <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
           {% for project in approved %}
           <div class="w3-row pallete-slab primary">
             <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
@@ -39,12 +39,12 @@
       </div>
     
       <div class="w3-col w3-padding-small w3-third swiper-slide">
-        <div class="pallete accent text-accent" style="height:65vh;">
+        <div class="pallete accent text-accent" style="min-height:65vh; max-height:85vh;">
           <center>
           <i  title="Private to you">lock</i>
           <h4 class="text-accent">{% trans "Under review" %}</h4>
           </center>
-          <div class="w3-row" style="height:55vh;overflow-y:scroll">
+          <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
           {% for project in moderation %}
           <div class="w3-row pallete-slab">
             <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
@@ -67,12 +67,12 @@
       </div>
     
       <div class="w3-col w3-padding-small w3-third swiper-slide">
-        <div class="pallete tertiary text-tertiary" style="height:65vh">
+        <div class="pallete tertiary text-tertiary" style="min-height:65vh; max-height:85vh;">
           <center>
           <i  title="Private to you">lock</i>
           <h4 class="text-tertiary">{% trans "Rejected" %}</h4>
           </center>
-          <div class="w3-row" style="height:55vh;overflow-y:scroll">
+          <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
           {% for project in rejected %}
           <div class="w3-row pallete-slab dead-text">
             <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
