@@ -24,6 +24,7 @@
                         {% if project.totalTopics %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{project.getTopics.0}}"><button class="small {{project.theme}} {{project.text_theme}}">{{project.getTopics.0.name}}</button></a>
                         {% endif %}
+                        <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small browse-admire-project-action {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
                     </div>
                     {% if not project.totalTopics %}
                     <br/>
@@ -48,6 +49,8 @@
                         {% if project.totalTopics %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{project.getTopics.0}}"><button class="small {{project.theme}} {{project.text_theme}}">{{project.getTopics.0.name}}</button></a>
                         {% endif %}
+                        <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small browse-admire-project-action {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+
                     </div>
                     {% if not project.totalTopics %}
                     <br/>
