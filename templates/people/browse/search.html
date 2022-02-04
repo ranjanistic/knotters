@@ -35,7 +35,14 @@
                     {% endif %}
                 </div>
             </div>
-	        {% endfor %} 
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">search</i>
+                <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
+            </center>
+            </div>
+	    {% endfor %} 
         </div>
     </div>
     <div class="w3-hide-large w3-row">
@@ -64,7 +71,14 @@
                     {% endif %}
                 </div>
             </div>
-			{% endfor %} 
+            {% empty %}
+            <div class="w3-padding w3-col">
+            <center class="w3-padding">
+                <i class="w3-jumbo">search</i>
+                <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
+            </center>
+            </div>
+	    {% endfor %} 
         </div>
     </div>
     <br />
