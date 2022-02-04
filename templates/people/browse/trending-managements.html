@@ -8,7 +8,7 @@
 <div class="w3-row accent">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
     {% comment %} <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a> {% endcomment %}
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending moderators" %}</h4>
+    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending managements" %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
@@ -29,6 +29,13 @@
                         <span>{{ manager.getBio|or:manager.nickname|or:manager.emoticon|or:manager.githubID|truncatechars:45 }}</span><br/>
                         {% if manager.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{manager.getAllTopics.0}}"><button class="small {{manager.theme}} {{manager.text_theme}}">{{manager.getAllTopics.0.name}}</button></a>
+                        {% endif %}
+                        {% if not request.user.is_authenticated %}
+                        <a href="{{URLS.Auth.LOGIN}}?next={{manager.get_link}}">
+                        {% endif %}
+                        <button data-userID="{{manager.get_userid}}" data-admires="{% if request.user.profile in manager.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in manager.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                        {% if not request.user.is_authenticated %}
+                        </a>
                         {% endif %}
                     </div>
                     {% if not manager.totalAllTopics %}
@@ -58,6 +65,13 @@
                         <span>{{ manager.getBio|or:manager.nickname|or:manager.emoticon|or:manager.githubID|truncatechars:45 }}</span><br/>
                         {% if manager.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{manager.getAllTopics.0}}"><button class="small {{manager.theme}}">{{manager.getAllTopics.0.name}}</button></a>
+                        {% endif %}
+                        {% if not request.user.is_authenticated %}
+                        <a href="{{URLS.Auth.LOGIN}}?next={{manager.get_link}}">
+                        {% endif %}
+                        <button data-userID="{{manager.get_userid}}" data-admires="{% if request.user.profile in manager.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in manager.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                        {% if not request.user.is_authenticated %}
+                        </a>
                         {% endif %}
                     </div>
                     {% if not manager.totalAllTopics %}
