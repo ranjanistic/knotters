@@ -33,7 +33,7 @@
                         {% if not request.user.is_authenticated %}
                         <a href="{{URLS.Auth.LOGIN}}?next={{mentor.get_link}}">
                         {% endif %}
-                        <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                        <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
                         {% if not request.user.is_authenticated %}
                         </a>
                         {% endif %}
@@ -69,7 +69,7 @@
                         {% if not request.user.is_authenticated %}
                         <a href="{{URLS.Auth.LOGIN}}?next={{mentor.get_link}}">
                         {% endif %}
-                        <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                        <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
                         {% if not request.user.is_authenticated %}
                         </a>
                         {% endif %}
