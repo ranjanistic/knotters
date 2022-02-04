@@ -30,6 +30,13 @@
                         {% if profile.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{profile.getAllTopics.0}}"><button class="small {{profile.theme}} {{profile.text_theme}}">{{profile.getAllTopics.0.name}}</button></a>
                         {% endif %}
+                        {% if not request.user.is_authenticated %}
+                        <a href="{{URLS.Auth.LOGIN}}?next={{profile.get_link}}">
+                        {% endif %}
+                        <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                        {% if not request.user.is_authenticated %}
+                        </a>
+                        {% endif %}
                     </div>
                     {% if not profile.totalAllTopics %}
                     <br/>
@@ -58,6 +65,13 @@
                         <span>{{ profile.getBio|or:profile.nickname|or:profile.emoticon|or:profile.githubID|truncatechars:45 }}</span><br/>
                         {% if profile.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{profile.getAllTopics.0}}"><button class="small {{profile.theme}}">{{profile.getAllTopics.0.name}}</button></a>
+                        {% endif %}
+                        {% if not request.user.is_authenticated %}
+                        <a href="{{URLS.Auth.LOGIN}}?next={{profile.get_link}}">
+                        {% endif %}
+                        <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                        {% if not request.user.is_authenticated %}
+                        </a>
                         {% endif %}
                     </div>
                     {% if not profile.totalAllTopics %}
