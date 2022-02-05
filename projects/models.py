@@ -175,6 +175,18 @@ class License(models.Model):
     def isCustom(self):
         return self.is_custom
 
+    def projects(self):
+        cacheKey = f"license_baseprojects_{self.id}"
+        projects = cache.get(cacheKey, [])
+        if not len(projects):
+            projects = BaseProject.objects.filter(license=self)
+            if len(projects):
+                cache.set(cacheKey, projects, settings.CACHE_INSTANT)
+        return projects
+
+    def totalprojects(self):
+        return self.projects().count()
+
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.getID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
