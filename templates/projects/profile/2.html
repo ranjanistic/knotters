@@ -315,8 +315,9 @@
         </div>
         <div class="w3-col w3-half w3-padding">
             <div class="w3-row">
-                <div class="pallete" id="view-description">
-                    <center><h5 class="align"><i>description</i>&nbsp;Description</h5></center><br/>
+                <div class="pallete">
+                   <center><h5 class="align"><i>description</i>&nbsp;Description</h5></center><br/>
+                   <div class="w3-row" id="view-description">
                      {% if iscreator %}
                       <i class="material-icons edit-action w3-right" data-edittarget="description">edit</i>
                      {% endif %}
@@ -325,19 +326,20 @@
                     <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/><br/>
                     <strong>{% trans "Current Budget" %}: &#x20B9; <a onclick="message('The budget of this core project')">{{project.budget}}</a></strong><br/>
-                </div>
-                {% if iscreator %}
-                <div class="pallete" id="edit-description">
-                 <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'description'}}">
+                   </div>
+                  {% if iscreator %}
+                  <div class="w3-row" id="edit-description">
+                   <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'description'}}">
                    {% csrf_token %}
                      <h6>Project Budget (&#x20B9;)</h6>
-                     <input type="number" min="{{project.budget}}" max="1000000" step="0.01" required placeholder="Project budget INR (&#x20B9;) (cannot be decreased)" id="projectbudget" name="projectbudget" value="{{project.budget}}" />
+                     <input type="number" class="wide" min="{{project.budget}}" max="1000000" step="0.01" required placeholder="Project budget INR (&#x20B9;) (cannot be decreased)" id="projectbudget" name="projectbudget" value="{{project.budget}}" />
                     <br/>
                     <button id="save-edit-description" data-icon="done">{% trans "Save" %}</button>
                     <button id="discard-edit-description" data-icon="close">{% trans "Cancel" %}</button>             
-                 </form>
+                   </form>
+                  </div>
+                 {% endif %}
                 </div>
-                {% endif %}
             </div>
             <br/>
             <div class="w3-row pallete no-pad" id="snaps">
