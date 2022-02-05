@@ -713,7 +713,7 @@ def browseSearch(request: WSGIRequest):
                     | Q(topics__name__istartswith=pquery)
                 ))
             if not invalidQuery:
-                profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).order_by('user__first_name').distinct()[0:limit]
+                profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).distinct()[0:limit]
 
                 if is_manager:
                     profiles=list(filter(lambda p: p.is_manager(), profiles))
