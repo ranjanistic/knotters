@@ -1205,7 +1205,7 @@ def browseSearch(request: WSGIRequest):
         
         if not len(projects):
             
-            specials = ('tag:', 'category:', 'topic:', 'creator:', 'type:')
+            specials = ('tag:', 'category:', 'topic:', 'creator:', 'license:', 'type:')
             verified = None
             core = None
             pquery = None
@@ -1218,6 +1218,7 @@ def browseSearch(request: WSGIRequest):
                         Q(category__name__iexact=q), 
                         Q(topics__name__iexact=q), 
                         Q(Q(creator__user__first_name__iexact=q)|Q(creator__user__last_name__iexact=q)|Q(creator__user__email__iexact=q)|Q(creator__githubID__iexact=q)),
+                        Q(Q(license__name__iexact=q)|Q(license__name__istartswith=q)),
                         Q()
                     ]
                 commaparts = query.split(",")
@@ -1256,6 +1257,8 @@ def browseSearch(request: WSGIRequest):
                     | Q(category__name__istartswith=pquery)
                     | Q(topics__name__istartswith=pquery)
                     | Q(tags__name__istartswith=pquery)
+                    | Q(license__name__iexact=q)
+                    | Q(license__name__istartswith=q)
                 ))
             if not invalidQuery:
                 projects = BaseProject.objects.exclude(trashed=True).exclude(
