@@ -45,34 +45,32 @@
     <center><h4>{% trans "Your private custom licenses" %}</h4></center>
     <br/>
     <div class="w3-row">
-    {% comment %} {% cache CACHE_MICRO private_licenses request.user.id %} {% endcomment %}
     {% for license in custom %}
         <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
         <h4>{{license}}</h4>
         <strong>{{license.description}}</strong>
-        <a href="{{license.getLink}}" class="w3-right"><button class="primary">View</button></a>
+        <a href="{{license.getLink}}" class="w3-right"><button class="small positive" data-icon="open_in_new"></button></a>
+        <a href="{{URLS.PROJECTS}}?search=license:{{license.name}}" class="w3-right">{{license.totalprojects}}</a>
         </div>
         </div>
     {% endfor %}
-    {% comment %} {% endcache %} {% endcomment %}
     </div>
     {% endif %}
     <br/>
     <center><h4>{% trans "Public licenses" %}</h4></center>
     <br/>
     <div class="w3-row">
-    {% cache CACHE_SHORT public_licenses %}
     {% for license in licenses %}
         <div class="w3-col w3-half w3-padding-small">
         <div class="w3-row pallete-slab">
         <h4>{{license}}</h4>
         <strong>{{license.description}}</strong>
-        <a href="{{license.getLink}}" class="w3-right"><button class="primary">{% trans "View" %}</button></a>
+        <a href="{{license.getLink}}" class="w3-right"><button class="small positive" data-icon="open_in_new"></button></a>
+        <a href="{{URLS.PROJECTS}}?search=license:{{license.name}}" class="w3-right">{{license.totalprojects}}</a>
         </div>
         </div>
-    {% endfor%}
-    {% endcache %}
+    {% endfor %}
     </div>
 </div>
 <br/>
