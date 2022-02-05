@@ -30,12 +30,14 @@
                         {% if mentor.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{mentor.getAllTopics.0}}"><button class="small {{mentor.theme}} {{mentor.text_theme}}">{{mentor.getAllTopics.0.name}}</button></a>
                         {% endif %}
+                        {% if request.user.profile != mentor %}
                         {% if not request.user.is_authenticated %}
                         <a href="{{URLS.Auth.LOGIN}}?next={{mentor.get_link}}">
                         {% endif %}
                         <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
                         {% if not request.user.is_authenticated %}
                         </a>
+                        {% endif %}
                         {% endif %}
                     </div>
                     {% if not mentor.totalAllTopics %}
@@ -66,12 +68,14 @@
                         {% if mentor.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{mentor.getAllTopics.0}}"><button class="small {{mentor.theme}}">{{mentor.getAllTopics.0.name}}</button></a>
                         {% endif %}
+                        {% if request.user.profile != mentor %}
                         {% if not request.user.is_authenticated %}
                         <a href="{{URLS.Auth.LOGIN}}?next={{mentor.get_link}}">
                         {% endif %}
                         <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
                         {% if not request.user.is_authenticated %}
                         </a>
+                        {% endif %}
                         {% endif %}
                     </div>
                     {% if not mentor.totalAllTopics %}
