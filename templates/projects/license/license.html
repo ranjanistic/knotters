@@ -30,7 +30,7 @@
         <h1>{{license.name}}</h1>
         <strong>{{license.description}}</strong>
         <br/>
-        <h6>Applies to {{license.totalprojects}} projects</h6>
+        <h6>Applies to <a href="{{URLS.PROJECTS}}?search=license:{{license.name}}">{{license.totalprojects}} project{{license.totalprojects|pluralize}}</a></h6>
         <br/>
         <h3>CONTENT</h3>
         <div class="w3-col" style="white-space: pre-wrap; word-wrap: break-word;">
