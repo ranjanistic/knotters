@@ -27,16 +27,11 @@
 <br/>
 <div class="w3-row w3-padding">
     <div class="w3-row w3-padding">
-        {% if not license.isCustom %}
-        {% cache CACHE_LONG license_heading license.id %}
         <h1>{{license.name}}</h1>
         <strong>{{license.description}}</strong>
-        {% endcache %}
-        {% else %}
-        <h1>{{license.name}}</h1>
-        <strong>{{license.description}}</strong>
-        {% endif %}
-        <br/><br/>
+        <br/>
+        <h2>Applies to {{license.totalprojects}} projects</h2>
+        <br/>
         <h3>CONTENT</h3>
         <div class="w3-col" style="white-space: pre-wrap; word-wrap: break-word;">
         {% if not license.isCustom %}
