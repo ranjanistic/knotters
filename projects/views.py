@@ -1271,7 +1271,7 @@ def browseSearch(request: WSGIRequest):
                 ))
             if not invalidQuery:
                 projects = BaseProject.objects.exclude(trashed=True).exclude(
-                    suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(dbquery).order_by('name').distinct()[0:limit]
+                    suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(dbquery).distinct()[0:limit]
                 projects = list(filter(lambda m: m.is_approved, list(projects)))
                 if verified != None and verified:
                     projects = list(filter(lambda m: m.is_verified, list(projects)))
