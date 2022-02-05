@@ -1257,8 +1257,8 @@ def browseSearch(request: WSGIRequest):
                     | Q(category__name__istartswith=pquery)
                     | Q(topics__name__istartswith=pquery)
                     | Q(tags__name__istartswith=pquery)
-                    | Q(license__name__iexact=q)
-                    | Q(license__name__istartswith=q)
+                    | Q(license__name__iexact=pquery)
+                    | Q(license__name__istartswith=pquery)
                 ))
             if not invalidQuery:
                 projects = BaseProject.objects.exclude(trashed=True).exclude(
