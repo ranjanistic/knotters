@@ -491,9 +491,9 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResponse:
     try:
-        project = BaseProject.objects.get(
+        bproject = BaseProject.objects.get(
             id=projectID, trashed=False, suspended=False)
-        project = project.getProject(True)
+        project = bproject.getProject(True)
         if not project:
             raise ObjectDoesNotExist(f'{projectID} project not found')
         if request.user.profile != project.creator:
@@ -543,8 +543,17 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                 return redirect(project.getLink(success=Message.PROFILE_UPDATED), permanent=True)
             else:
                 return redirect(project.getLink(), permanent=True)
+        elif section == "description":
+            if bproject.is_core:
+                newbudget = float(request.POST['projectbudget'])
+                if newbudget < project.budget:
+                    if bproject.is_approved:
+                        return redirect(project.getLink(error=Message.INVALID_REQUEST), permanent=True)
+                project.budget = newbudget
+                project.save()
+            return redirect(project.getLink(), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,KeyError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
