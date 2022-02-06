@@ -81,7 +81,7 @@
   </div>
 	<div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROFILES}}" id='{{BROWSE.NEW_PROFILES}}-view'>
   </div>
-  <div class="w3-row w3-padding-large first-time-view" id='community-framework-banner' style="height:60vh;">
+  <div class="w3-row w3-padding-large first-time-view" id='community-framework-banner' style="height:40vh;">
     <br/>
     <div class='w3-row w3-center'>
         <div class='w3-col w3-padding-large'>
@@ -100,7 +100,12 @@
   <div class="w3-row w3-padding w3-center dead-text">
     <div class="material-icons w3-jumbo">done</div>
     <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
-    <strong>{% trans "Browse other things meanwhile." %}</strong><br/><br/>
+    {% if request.user.is_authenticated %}
+    <strong>{% trans "Browse other things meanwhile." %}</strong>
+        {% else %}
+        <strong><a href="{{URLS.Auth.LOGIN}}">Login or Signup</a> for more content.</strong>
+        {% endif %}
+    <br/><br/>
   </div>
 </div>
 {% endblock %}
