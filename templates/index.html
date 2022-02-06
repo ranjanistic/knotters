@@ -394,7 +394,7 @@
         <script src="{% static 'scripts/alerts.js' %}"></script>
         <script src="{% static 'scripts/reporter.js' %}"></script>
         <script src="{% static 'scripts/device.js' %}"></script>
-        <script async src="{% static 'scripts/browser.js' %}"></script>
+        <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
         <script>const SITE = "{{SITE}}", STATIC_URL = "{% static '*' %}", csrfmiddlewaretoken = "{{csrf_token}}", authenticated = "{{request.user.is_authenticated}}" == 'True', activeuser = authenticated && "{{request.user.profile.is_active}}" == 'True', ROOT = "{{ROOT}}", APPNAME = "{{APPNAME}}", VERSION = "{{VERSION}}", SUBAPPSLIST = {{SUBAPPSLIST|or:'[]'|safe}}, SUBAPPNAME = "{{SUBAPPNAME}}", ICON = "{{ICON}}", ICON_DARK = "{{ICON_DARK}}", ICON_SHADOW = "{{ICON_SHADOW}}", RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}", VAPID_KEY = "{{VAPID_KEY}}", URLS = Object.freeze({{URLS|or:'{}'|safe}}), BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}});
