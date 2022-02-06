@@ -401,7 +401,7 @@
         if("{{request.GET.e}}") error("{{request.GET.e}}"); if("{{request.GET.a}}") message("{{request.GET.a}}"); if("{{request.GET.s}}") success("{{request.GET.s}}"); if("{{request.GET.report}}"==="1") reportFeedbackView();</script>
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
-        <script src="{% static 'scripts/autostart.js' %}"></script>
+        <script async src="{% static 'scripts/autostart.js' %}"></script>
         {% block scripts %}{% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
         {% spaceless %}
