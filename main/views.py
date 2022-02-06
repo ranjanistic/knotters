@@ -736,7 +736,19 @@ def browser(request: WSGIRequest, type: str):
                 if count:
                     cache.set(cachekey, coremems, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_CORE_MEMBERS, dict(coremems=coremems, count=count))
-        elif type == Browse.TOPIC_PROJECTS: pass
+        elif type == Browse.TOPIC_PROJECTS:
+            if request.user.is_authenticated:
+                projects = cache.get(cachekey,[])
+                if not len(projects):
+                    if request.user.profile.totalAllTopics():
+                        topic = request.user.profile.getAllTopics()[0]
+                    else:
+                        topic = request.user.profile.recommended_topics()[0]
+                    projects = BaseProject.objects.filter(trashed=False,suspended=False, topics=topic).exclude(creator__user__id__in=excludeUserIDs)[:limit]
+                    projects = list(set(list(filter(lambda p: p.is_approved,projects))))
+                    cache.set(cachekey, projects, settings.CACHE_MINI)
+                return projectsRendererstr(request, Template.Projects.BROWSE_TOPIC_PROJECTS, dict(projects=projects, count=len(projects), topic=topic))
+            else: pass
         elif type == Browse.TOPIC_PROFILES: pass
         elif type == Browse.TRENDING_CORE: pass
         elif type == Browse.TRENDING_VERIFIED: pass
