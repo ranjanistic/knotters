@@ -1707,6 +1707,12 @@ class Template():
         def browse_trending(self):
             return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
 
+        BROWSE_TOPIC_PROJECTS = 'browse/topic-projects'
+
+        @property
+        def browse_topic_projects(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TOPIC_PROJECTS}.html'
+
         BROWSE_SEARCH = 'browse/search'
 
         @property
