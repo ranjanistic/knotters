@@ -344,7 +344,7 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
         for tag in request.user.profile.tags.all():
             excludeIDs.append(tag.id)
 
-        cacheKey = f"tagssearch_{request.user.id}" + "".join(map(lambda i: str(i), excludeIDs))
+        cacheKey = f"tagssearch_{query}{request.user.id}" + "".join(map(lambda i: str(i), excludeIDs))
         tagslist = cache.get(cacheKey, [])
 
         if not len(tagslist):
