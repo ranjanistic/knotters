@@ -1,7 +1,7 @@
-from management.models import Management, ManagementInvitation, ManagementPerson
+from management.models import ContactRequest, Management, ManagementInvitation, ManagementPerson
 from people.models import Profile
-from main.env import PUBNAME
-from main.mailers import sendActionEmail, sendAlertEmail
+from main.env import BOTMAIL, PUBNAME
+from main.mailers import sendActionEmail, sendAlertEmail, sendEmail
 
 def alertLegalUpdate(docname, docurl):
     emails = Profile.objects.filter(is_active=True,to_be_zombie=False).values_list('user__email',flat=True)
@@ -71,3 +71,11 @@ def managementPersonRemoved(mgm:Management, person:Profile):
         conclusion=f"This email was sent because your membership has been terminated from the organization in Knotters."
     )
 
+
+def newContactRequestAlert(contactRequest:ContactRequest):
+    return sendEmail(
+        to=BOTMAIL,
+        subject="New Contact Request",
+        body=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.\n\nCategory: {contactRequest.contactCategory.name}\n\nRequest Message: {contactRequest.message}\n",
+        html=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.\n\nCategory: {contactRequest.contactCategory.name}\n\nRequest Message: {contactRequest.message}\n"
+    )

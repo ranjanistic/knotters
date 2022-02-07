@@ -35,13 +35,13 @@ const _BROWSER = navigator.userAgent
 Swal = Swal.mixin({ 
     scrollbarPadding: false,
     confirmButtonText: STRING.okay,
-    didOpen:()=>{
+    didOpen:(d)=>{
         loadGlobalEventListeners();
         loadGlobalEditors();
         loadCarousels({});
         loadBrowserSwiper();
-        if(sessionStorage.getItem(KEY.success_firing)){
-            
+        if(d.getAttribute("role")=='dialog'){
+            clearToastQueue();
         }
     }
 });

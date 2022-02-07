@@ -16,9 +16,9 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
     <div class="w3-col w3-padding-small l2 m4 s6">
         <div class="w3-row pallete-slab {% if profile.is_moderator or profile.is_mentor %}{{profile.theme}}{% else %}tertiary{% endif %} no-pad">
             <a onclick="miniWindow('{{profile.getLink}}')">
-            <img class="primary wide" src="{{profile.getDP}}" />
+            <img class="primary wide pallete-slab no-pad" src="{{profile.getDP}}" />
             </a>
-            <div class="w3-row w3-padding-small {% if profile.is_moderator or profile.is_mentor %}text-{{profile.theme}}{% else %}positive-text{% endif %}">
+            <div class="w3-row w3-tag w3-round primary">
             <strong style="word-break:break-word">{{profile.getName|truncatechars:18}}</strong>{% if profile.is_verified %}<i class="w3-small">verified</i>{% endif %}
             </div>
             <div class="w3-row w3-padding-small">

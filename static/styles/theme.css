@@ -13,7 +13,7 @@
     --positive-text: #eeeeee;
     --negative: #cc352a;
     --negative-text: #fcfcfc;
-    --dead-text: #818181;
+    --dead-text: #5e5e5e;
     --head-font: "Poppins", sans-serif;
     --body-font: "Questrial", sans-serif;
     --delay: 0.3s;
@@ -35,5 +35,5 @@
     --positive-text: #000000;
     --negative: #ce6862;
     --negative-text: #000000;
-    --dead-text: #7c7c7c;
+    --dead-text: #817f7f;
 }

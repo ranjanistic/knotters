@@ -28,6 +28,7 @@ window.addEventListener("load", () => {
     loadReporters();
     loadBrowserSwiper();
     serviceWorkerRegistration();
+    clearToastQueue();
     if (localStorage.getItem(Key.futureMessage)) {
         message(localStorage.getItem(Key.futureMessage));
         localStorage.removeItem(Key.futureMessage);
@@ -38,16 +39,6 @@ window.addEventListener("load", () => {
         if (!window.sessionStorage.getItem("beta-alerted")) betaAlert();
         getElements("hide-beta").forEach((elem) => hide(elem));
     }
-    sessionStorage.removeItem(KEY.message_firing);
-    sessionStorage.removeItem(KEY.error_firing);
-    sessionStorage.removeItem(KEY.success_firing);
-    sessionStorage.removeItem(KEY.message_queue);
-    sessionStorage.removeItem(KEY.error_queue);
-    sessionStorage.removeItem(KEY.success_queue);
-    sessionStorage.removeItem(KEY.message_fired);
-    sessionStorage.removeItem(KEY.error_fired);
-    sessionStorage.removeItem(KEY.success_fired);
-    
     if (window.location.href.split("#").length > 1) {
         const elem = getElement(window.location.href.split("#")[1]);
         if (elem) {
@@ -68,6 +59,10 @@ window.addEventListener("load", () => {
     }
     firstTimeMessage('cookie-alt', `We use cookies to ensure smooth functioning, and by continuing, you agree to our <a class="underline text-accent" href='${setUrlParams(URLS.Docs.TYPE, 'privacypolicy')}' target="_blank">privacy policy & cookie policy</a>.`);
     subLoader(false);
+    window.addEventListener("beforeunload",(e)=> {
+        subLoader(true);
+        return null;
+    });
 });
 
 addEventListener("keydown", (e) => {

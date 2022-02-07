@@ -74,7 +74,8 @@ const STRING = {
     or: `{% trans "or" %}`,
     your_id_remain_private: `{% trans "Your identity will remain private." %}`,
     optional: `{% trans "optional" %}`,
-    your_email_addr: `{% trans "Your email address" %}`,
+    your_name: `{% trans "Your name (or organization name)" %}`,
+    your_email_addr: `{% trans "Your email address (we will contact you on this)" %}`,
     explain_in_detail: `{% trans "Explain everything here in detail" %}`,
     short_desc: `{% trans "Short description" %}`,
     short_desc_required: `{% trans "Short description required" %}`,
@@ -117,7 +118,19 @@ const STRING = {
     no_go_back: `{% trans "No, go back!" %}`,
     unable_to_sub_device_notif: `{% trans "Unable to subscribe to device notifications. Please check our notification permissions and try again." %}`,
     unable_to_sub_device_notif: `{% trans "Unable to subscribe to device notifications. Please check our notification permissions and try again." %}`,
-    unable_to_unsub_device_notif: `{% trans "Unable to unsubscribe from device notifications." %}`
+    unable_to_unsub_device_notif: `{% trans "Unable to unsubscribe from device notifications." %}`,
+    contact_us: `{% trans "Contact Us" %}`,
+    dont_hesitate_contact_us: `{% trans "Please do not hesitate to contact us anytime😊!" %}`,
+    contact_reason_required: `{% trans "Please select a reason to contact us" %}`,
+    your_email_required: `{% trans "Your valid email address is needed for this." %}`,
+    your_name_required: `{% trans "Your name is needed for this." %}`,
+    contact_message: `{% trans "Your additional details and reasons to contact us." %}`,
+    contact_message_required: `{% trans "Please describe your message to contact us." %}`,
+    contact_request_received: `{% trans "We have received your request, and we'll reach out to you on your email shortly!😊" %}`,
+    password_to_continue: `{% trans "Please provide your account password to continue" %}`,
+    password_required: `{% trans "Your account password is required" %}`,
+    password: `{% trans "Password" %}`,
+    continue: `{% trans "Continue" %}`,
 };
 
 Object.freeze(STRING);

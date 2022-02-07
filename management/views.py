@@ -1,14 +1,17 @@
 from uuid import UUID
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import validate_email
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
+from ratelimit.decorators import ratelimit
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.cache import cache
-from main.decorators import manager_only, normal_profile_required, require_JSON_body
+from main.decorators import manager_only, normal_profile_required, require_JSON, require_JSON_body
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, respondRedirect, errorLog, respondJson
 from main.strings import COMPETE, MODERATION, URL, Action, Message, Code, Template
 from management.mailers import managementInvitationAccepted, managementInvitationSent, managementPersonRemoved
@@ -21,7 +24,7 @@ from moderation.models import Moderation
 from projects.methods import addTagToDatabase, addCategoryToDatabase
 from people.methods import addTopicToDatabase
 from .methods import renderer, createCompetition, rendererstr
-from .models import Management, ManagementInvitation, Report, Feedback
+from .models import ContactCategory, ContactRequest, Management, ManagementInvitation, Report, Feedback
 from .apps import APPNAME
 
 
@@ -350,6 +353,43 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
     except:
         return respondJson(Code.NO)
 
+
+def contact_categories(request: WSGIRequest) -> HttpResponse:
+    try:
+        cacheKey = 'contact_categories'
+        categories = cache.get(cacheKey,[])
+        if not len(categories):
+            cats = ContactCategory.objects.filter(disabled=False)
+            for cat in cats:
+                categories.append(dict(id=cat.id, name=cat.name))
+            if len(categories):
+                cache.set(cacheKey, categories, settings.CACHE_INSTANT)
+        return respondJson(Code.OK, dict(categories=categories))
+    except (ObjectDoesNotExist, KeyError, ValidationError) as e:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        
+@require_JSON
+@ratelimit(key='user_or_ip', rate='10/m', block=True, method=(Code.POST))
+def contact_subm(request: WSGIRequest) -> HttpResponse:
+    try:
+        contactCategoryID = request.POST['contactCategoryID']
+        contactCategory = ContactCategory.objects.get(id=contactCategoryID)
+        senderName = request.POST['senderName']
+        senderEmail = request.POST['senderEmail']
+        validate_email(senderEmail)
+        senderMessage = request.POST['senderMessage']
+        created = ContactRequest.objects.create(contactCategory=contactCategory, senderName=senderName, senderEmail=senderEmail, message=senderMessage)
+        if not created:
+            raise Exception('Failed to create contact request')
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, KeyError, ValidationError) as e:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 @manager_only
 @require_GET

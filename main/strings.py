@@ -143,6 +143,7 @@ class Message():
     ERROR_OCCURRED = _("An error occurred.")
     INVALID_REQUEST = _("Invalid request")
     INVALID_RESPONSE = _("Invalid response")
+    INVALID_CREDENTIALS = _("Invalid credentials")
     SAVED = _("Saved")
     PROFILE_UPDATED = _(
         "Profile updated, it might take some time for changes to appear.")
@@ -530,8 +531,25 @@ class URL():
         NOTIFY_SW = 'notify-sw.js'
         NOTIF_ENABLED = 'push-notify/enabled'
         TAB_SECTION = 'section/<str:section>/'
+        VERIFY_REAUTH_METHOD = 're-auth/verify/method'
         VERIFY_REAUTH = 're-auth/verify/'
         CHANGE_GHORG = 'org/gh/change'
+
+        ACCOUNTACTIVATION = "account/activation"
+        GETSUCCESSOR = 'account/successor'
+        INVITESUCCESSOR = 'account/successor/invite'
+        ACCOUNTDELETE = "account/delete"
+
+        SUCCESSORINVITE = 'invitation/successor/<str:predID>'
+
+        def successorInvite(self, predID):
+            return setPathParams(self.SUCCESSORINVITE, predID)
+
+        SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
+
+        def successorInviteAction(self, action):
+            return setPathParams(self.SUCCESSORINVITEACTION, action)
+
         NOTIFICATION_TOGGLE_EMAIL = "notification/toggle/e/<str:notifID>"
         NOTIFICATION_TOGGLE_DEVICE = "notification/toggle/d/<str:notifID>"
 
@@ -769,20 +787,8 @@ class URL():
         TOPICSEARCH = "topics/search"
         TOPICSUPDATE = "topics/update"
 
-        ACCOUNTACTIVATION = "account/activation"
-        GETSUCCESSOR = 'account/successor'
-        INVITESUCCESSOR = 'account/successor/invite'
-        ACCOUNTDELETE = "account/delete"
-
-        SUCCESSORINVITE = 'invitation/successor/<str:predID>'
-
-        def successorInvite(self, predID):
-            return setPathParams(self.SUCCESSORINVITE, predID)
-
-        SUCCESSORINVITEACTION = 'invitation/successor/action/<str:action>'
-
-        def successorInviteAction(self, action):
-            return setPathParams(self.SUCCESSORINVITEACTION, action)
+        TAGSEARCH = "tags/search"
+        TAGSUPDATE = "tags/update"
 
         ZOMBIE = 'zombie/<str:profileID>'
 
@@ -1020,6 +1026,9 @@ class URL():
 
     class Management():
 
+        CONTACT_REQUEST_CATEGORIES = 'contact/categories'
+        CONTACT_SUBM = 'contact/submit'
+        
         COMPETITIONS = 'competitions'
         CREATE_COMP = 'competitions/create'
         SUBMIT_COMP = 'competitions/submit'
@@ -1312,6 +1321,12 @@ class Template():
         def notify_sw_js(self):
             return f"{self.DIRNAME2}/{self.NOTIFY_SW_JS}"
 
+        INVITATION = 'invitation'
+
+        @property
+        def invitation(self):
+            return f'{self.DIRNAME2}/{self.INVITATION}.html'
+
     auth = Auth()
 
     class Docs():
@@ -1470,11 +1485,6 @@ class Template():
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
 
-        INVITATION = 'invitation'
-
-        @property
-        def invitation(self):
-            return f'{self.DIRNAME}/{self.INVITATION}.html'
 
         BROWSE_NEWBIE = 'browse/newbie'
 

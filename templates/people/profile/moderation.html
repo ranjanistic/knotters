@@ -10,12 +10,12 @@
         <div class="swiper-wrapper">
 
             <div class="w3-col w3-padding-small swiper-slide">
-                <div class="pallete active" style="height:65vh;">
+                <div class="pallete active" style="min-height:65vh; max-height:85vh;">
                     <center>
                         <i class="material-icons" title="Public">lock_open</i>
                         <h6>{% trans "Approved" %}</h6>
                     </center>
-                    <div class="w3-row" style="height:55vh;overflow-y:scroll">
+                    <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
                         {% for mod in approved %}
                         <div class="pallete-slab">
                             {% if mod.type == SUBAPPS.projects %}
@@ -52,12 +52,12 @@
             </div>
 
             <div class="w3-col w3-padding-small swiper-slide">
-                <div class="pallete accent" style="height:65vh;">
+                <div class="pallete accent" style="min-height:65vh; max-height:85vh;">
                     <center>
                         <i class="material-icons" title="{% trans "Private to you" %}">lock</i>
                         <h6>{% trans "Pending" %}</h6>
                     </center>
-                    <div class="w3-row" style="height:55vh;overflow-y:scroll">
+                    <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
                         {% for mod in unresolved %}
                         <div class="pallete-slab">
                         {% if mod.type == SUBAPPS.projects %}
@@ -89,12 +89,12 @@
             </div>
 
             <div class="w3-col w3-padding-small swiper-slide">
-                <div class="pallete tertiary text-tertiary" style="height:65vh;">
+                <div class="pallete tertiary text-tertiary" style="min-height:65vh; max-height:85vh;">
                     <center>
                         <i class="material-icons" title="{% trans "Private to you" %}">lock</i>
                         <h6>{% trans "Rejected" %}</h6>
                     </center>
-                    <div class="w3-row" style="height:55vh;overflow-y:scroll">
+                    <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
                         {% for mod in rejected %}
                         <div class="pallete-slab dead-text">
                             {% if mod.type == SUBAPPS.projects %}
@@ -130,7 +130,7 @@
     </div>
     {% else %}
         {% for mod in approved %}
-            <div class="w3-col w3-half w3-padding-small">
+            <div class="w3-col w3-third w3-padding-small">
                 {% if mod.type == SUBAPPS.projects %}
                 <div class="pallete-slab">
                     <img class="w3-circle w3-right" width="30" src="{{mod.project.getDP}}" />

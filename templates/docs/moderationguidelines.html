@@ -27,7 +27,7 @@
     <center>
         <div class="material-icons w3-jumbo">widgets</div>
         <h1>{% trans "Project Guidelines" %}</h1>
-        <h3>{% trans "How we approve verified projects, or reject sometimes." %}</h3>
+        <h3>{% trans "How we to submit verified, core, or quick projects." %}</h3>
     </center><br/>
     <button class="w3-right primary" onclick="window.print()" data-icon="print"></button>
    <button class="w3-right primary navigator-share-action" data-icon="share" data-url="{{request.path}}" data-title="Project Guidelines" data-text="How we approve verified projects, or reject sometimes."></button>
@@ -56,6 +56,17 @@
        <li>
           Before submitting a project for verification for the first time, go through <a href="{{URLS.TYPE|params:'communityguidelines'}}">community guidelines</a> and <a href="{{URLS.TYPE|params:'legal-faqs'}}">community FAQs</a> as well.
        </li><br/>
+       <li>
+          Core projects are currently reserved for organizations/companies/club accounts only (collectively called management accounts on {{APPNAME}}).
+       </li><br/>
+       <li>
+          Core projects have a budget set by the manager (creator), and the source code remains private at {{APPNAME}}.
+          The manager can set their moderator and in this process, the moderator and creator can see each other while project is being reviewed.
+       </li><br/>
+       <li>
+          Moderator if approves the project, then they can invite others or others may request to work on the core project. Core projects also have profiles like verified and quick projects.
+          <b>The budget of a core project cannot be decreased once it is approved.</b>
+       </li><br/>
         <h5>{% trans "For moderators" %}</h5>
         <li>
           Verified Projects on our platform focus on overall effect they cause to their surroundings, the people who contribute to them, and those who moderate them.
@@ -71,6 +82,9 @@
          For example - A simple note making app project is a good fit to be a quick project, not verified one.
          However, if the same note making app project intends to revolutionize the way people take notes (maybe using AI,ML, Data science), then this intention is needed
          to be considered while deciding the future of the project.
+       </li><br/>
+       <li>
+          Moderator, if approves the project, can invite others or others may request to work on the project on Github team.
        </li><br/>
     </div>
 </div>

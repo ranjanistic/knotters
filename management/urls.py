@@ -5,6 +5,8 @@ from .views import *
 
 urlpatterns = [
     path(URL.INDEX, index),
+    path(URL.Management.CONTACT_REQUEST_CATEGORIES, contact_categories),
+    path(URL.Management.CONTACT_SUBM, contact_subm),
     path(URL.Management.COMPETITIONS, competitions),
     path(URL.Management.CREATE_COMP, createCompete),
     path(URL.Management.SUBMIT_COMP, submitCompetition),

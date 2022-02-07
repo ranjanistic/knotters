@@ -269,7 +269,7 @@ BYPASS_DEACTIVE_PATHS = BYPASS_2FA_PATHS + (
     url.REDIRECTOR,
     url.WEBPUSH_SUB,
     f"{url.getRoot(AUTH2)}{url.Auth.LOGOUT}",
-    f"{url.getRoot(PEOPLE)}{url.People.ACCOUNTACTIVATION}",
+    f"{url.getRoot(AUTH2)}{url.Auth.ACCOUNTACTIVATION}",
     f"{url.getRoot(DOCS)}",
     f"{url.getRoot(DOCS)}{url.Docs.TYPE}",
     f"{url.getRoot(MANAGEMENT)}{url.Management.CREATE_REPORT}",

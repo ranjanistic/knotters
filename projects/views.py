@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q, InvalidQuery
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
 from moderation.views import action
 from ratelimit.decorators import ratelimit
@@ -54,7 +54,7 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
         return renderer(request, Template.Projects.LICENSE_LIC, dict(license=license))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -407,7 +407,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             return redirect(project.getLink(alert=Message.ERROR_OCCURRED))
                  
-    except (KeyError,ObjectDoesNotExist) as o:
+    except (KeyError,ObjectDoesNotExist,ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
@@ -639,7 +639,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.OK, dict(
             topics=topicslist
         ))
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist,ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -723,7 +723,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
@@ -770,7 +770,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.OK, dict(
             tags=tagslist
         ))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -845,7 +845,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(next)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if next:
@@ -864,10 +864,11 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @require_JSON_body
 def userGithubRepos(request):
     try:
-        repos = request.user.profile.gh_user().get_repos('public')
         data = []
         if request.user.profile.is_manager():
-            repos = list(repos) + list(request.user.profile.gh_org().get_repos('public'))
+            repos = request.user.profile.gh_org().get_repos('public')
+        else:
+            repos = request.user.profile.gh_user().get_repos('public')
         for repo in repos:
             taken = FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()
             data.append({'name': repo.name, 'id': repo.id, 'taken': taken})
@@ -937,7 +938,7 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
         if json_body:
             return respondJson(Code.OK)
         return redirect(project.getProject().getLink())
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
@@ -1049,7 +1050,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
             commitsHTML=commitsHTML
         )
         return respondJson(Code.OK, data)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1541,7 +1542,7 @@ def projectTransferInvite(request: WSGIRequest, inviteID: UUID):
                                                            baseproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.INVITATION,
                  dict(invitation=invitation))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1570,7 +1571,7 @@ def projectTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             message = Message.PROJECT_TRANSFER_DECLINED
             addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferDeclinedInvitation.__name__}",invitation)
         return redirect(invitation.baseproject.getLink(alert=message))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1641,7 +1642,7 @@ def projectModTransferInvite(request: WSGIRequest, inviteID: UUID):
                                                            project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.VER_M_INVITATION,
                  dict(invitation=invitation))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1670,7 +1671,7 @@ def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
             addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferDeclinedInvitation.__name__}",invitation)
         return redirect(invitation.project.getLink(alert=message))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1740,7 +1741,7 @@ def coreProjectModTransferInvite(request: WSGIRequest, inviteID: UUID):
                                                            coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.CORE_M_INVITATION,
                  dict(invitation=invitation))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1769,7 +1770,7 @@ def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
             addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferDeclinedInvitation.__name__}",invitation)
         return redirect(invitation.coreproject.getLink(alert=message))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)

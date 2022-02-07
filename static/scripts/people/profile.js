@@ -367,30 +367,6 @@ initializeTabsView({
 });
 
 if (selfProfile) {
-    initializeTabsView({
-        onEachTab: async (tab) => {
-            return await getRequest(setUrlParams(URLS.SETTINGTAB, tab.id));
-        },
-        uniqueID: "profilestab",
-        tabsClass: "set-tab",
-        activeTabClass: isMentor
-            ? "active"
-            : isModerator
-            ? "accent"
-            : "positive",
-        inactiveTabClass:
-            "primary " +
-            (isMentor
-                ? "text-primary"
-                : isModerator
-                ? "text-primary"
-                : "positive-text"),
-        viewID: "stabview",
-        spinnerID: "sloader",
-        onShowTab: loadTabScript,
-        tabindex,
-    });
-
     getElement("uploadprofilepic").onchange = (e) => {
         handleCropImageUpload(
             e,
@@ -402,4 +378,180 @@ if (selfProfile) {
             }
         );
     };
+
+    const loadExistingTags = () => {
+        initializeMultiSelector({
+            candidateClass: "tag-existing",
+            selectedClass: "negative",
+            deselectedClass: "primary negative-text",
+            onSelect: (btn) => {
+                if (!getElement("removetagIDs").value.includes(btn.id))
+                    getElement("removetagIDs").value += getElement(
+                        "removetagIDs"
+                    ).value
+                        ? "," + btn.id
+                        : btn.id;
+                return true;
+            },
+            onDeselect: (btn) => {
+                let addtagids = getElement("addtagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtags = getElement("addtags")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtaglen = addtagids.length + addtags.length;
+                let remtagids = getElement("removetagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let remtaglen = remtagids.length;
+                if (
+                    getElements("tag-existing").length -
+                        remtaglen +
+                        addtaglen ===
+                    5
+                ) {
+                    error(STRING.upto_5_tags_allowed);
+                    return false;
+                }
+
+                getElement("removetagIDs").value = getElement("removetagIDs")
+                    .value.replaceAll(btn.id, "")
+                    .split(",")
+                    .filter((x) => x)
+                    .join(",");
+                return true;
+            },
+        });
+    };
+    const loadNewTags = () => {
+        initializeMultiSelector({
+            candidateClass: "tag-new",
+            selectedClass: "positive",
+            deselectedClass: "primary",
+            onSelect: (btn) => {
+                let addtagids = getElement("addtagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtags = getElement("addtags")
+                    .value.split(",")
+                    .filter((x) => x);
+                let addtaglen = addtagids.length + addtags.length;
+                let remtagids = getElement("removetagIDs")
+                    .value.split(",")
+                    .filter((x) => x);
+                let remtaglen = remtagids.length;
+
+                if (
+                    getElements("tag-existing").length -
+                        remtaglen +
+                        addtaglen ===
+                    5
+                ) {
+                    error(STRING.upto_5_tags_allowed);
+                    return false;
+                }
+                if (btn.classList.contains("tag-name")) {
+                    if (!getElement("addtags").value.includes(btn.id))
+                        getElement("addtags").value += getElement("addtags")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                } else {
+                    if (!getElement("addtagIDs").value.includes(btn.id))
+                        getElement("addtagIDs").value += getElement("addtagIDs")
+                            .value
+                            ? "," + btn.id
+                            : btn.id;
+                }
+                return true;
+            },
+            onDeselect: (btn) => {
+                if (!btn.classList.contains("tag-name")) {
+                    getElement("addtagIDs").value = getElement("addtagIDs")
+                        .value.replaceAll(btn.id, "")
+                        .split(",")
+                        .filter((x) => x)
+                        .join(",");
+                } else {
+                    getElement("addtags").value = getElement("addtags")
+                        .value.replaceAll(btn.id, "")
+                        .split(",")
+                        .filter((x) => x)
+                        .join(",");
+                }
+                return true;
+            },
+        });
+    };
+    let lasttagquery = "";
+    getElement("tag-search-input").oninput = async (e) => {
+        if (!e.target.value.trim()) return;
+        if (e.target.value.length != lasttagquery.length) {
+            if (e.target.value.length < lasttagquery.length) {
+                lasttagquery = e.target.value;
+                return;
+            } else {
+                lasttagquery = e.target.value;
+            }
+        }
+        getElement("tags-viewer-new").innerHTML = "";
+        const data = await postRequest2({
+            path: setUrlParams(URLS.TAGSEARCH),
+            data: {
+                query: e.target.value,
+            },
+        });
+        if (!data) return;
+        if (data.code === code.OK) {
+            let buttons = [];
+            data.tags.forEach((tag) => {
+                buttons.push(
+                    `<button type="button" class="small ${
+                        getElement("addtagIDs").value.includes(tag.id)
+                            ? "positive"
+                            : "primary"
+                    } tag-new" id="${tag.id}">${Icon("add")}${
+                        tag.name
+                    }</button>`
+                );
+            });
+            if (buttons.length) {
+                getElement("tags-viewer-new").innerHTML = buttons.join("");
+                loadNewTags();
+                loadExistingTags();
+            } else {
+                buttons.push(
+                    `<button type="button" class="small ${
+                        getElement("addtags").value.includes(e.target.value)
+                            ? "positive"
+                            : "primary"
+                    } tag-new tag-name" id="${e.target.value}">${Icon("add")}${
+                        e.target.value
+                    }</button>`
+                );
+                getElement("tags-viewer-new").innerHTML = buttons.join("");
+                loadNewTags();
+                loadExistingTags();
+            }
+        } else {
+            error(data.error);
+        }
+    };
+    loadExistingTags();
+    getElement('save-edit-profiletags').onclick= async ()=> {
+        let obj = getFormDataById("edit-tag-inputs");
+        let resp = await postRequest2({
+            path:URLS.TAGSUPDATE,
+            data:{
+                addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+            },
+            retainCache:true,
+        });
+        if (resp.code===code.OK){
+            subLoader()
+            return window.location.reload()
+        }
+        error(resp.error)
+    }
 }

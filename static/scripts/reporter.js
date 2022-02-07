@@ -157,3 +157,68 @@ const loadReporters = () => {
         });
     });
 };
+
+const contactRequestDialog = async () => {
+    const data = await getRequest2({ path: URLS.Management.CONTACT_REQUEST_CATEGORIES });
+    let options = `<option class="text-medium" value="">Click to choose</option>`;
+    data.categories.forEach((rep) => {
+        options += `<option class="text-medium" value='${rep.id}'>${rep.name}</option>`;
+    });
+    Swal.fire({
+        title: STRING.contact_us,
+        html: `
+        <div class="w3-row w3-center">
+            <input class="wide" type="text" autocomplete="name" id="contact-name" placeholder="${STRING.your_name}" /><br/><br/>
+            <input class="wide" type="email" autocomplete="email" id="contact-email" placeholder="${STRING.your_email_addr}" /><br/><br/>
+            <br/><span>Your reason to contact us</span><br/>
+            <select class="wide pallete-slab" id="contact-category-id">${options}</select>
+            <textarea class="wide" rows="5" autocomplete="organization" id="contact-message" placeholder="${STRING.contact_message}" ></textarea>
+            <strong class="negative-text" id="contact-error"></strong>
+        </div>
+        `,
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: STRING.send,
+        cancelButtonText: STRING.cancel,
+        preConfirm: () => {
+            const error = getElement("contact-error");
+            
+            const senderName = String(getElement("contact-name").value).trim();
+            if (!senderName) {
+                error.innerHTML = STRING.your_name_required;
+                return false;
+            }
+            const senderEmail = String(getElement("contact-email").value).trim();
+            if (!senderEmail||!isValidEmail(senderEmail)) {
+                error.innerHTML = STRING.your_email_required;
+                return false;
+            }
+            const contactCategoryID = String(getElement("contact-category-id").value).trim();
+            if (!contactCategoryID) {
+                error.innerHTML = STRING.contact_reason_required;
+                return false;
+            }
+            const senderMessage = String(getElement("contact-message").value).trim();
+            if (!senderMessage) {
+                error.innerHTML = STRING.contact_message_required;
+                return false;
+            }
+            return {contactCategoryID, senderName, senderEmail, senderMessage}
+        },
+        preDeny: () => {
+            message(STRING.dont_hesitate_contact_us);
+        },
+    }).then(async (result) => {
+        if (result.isConfirmed && result.value.senderEmail){
+            const done = await postRequest2({
+                path: URLS.Management.CONTACT_SUBM,
+                data: result.value,
+                retainCache: true,
+            })
+            if(done&&done.code==CODE.OK){
+                return message(STRING.contact_request_received)
+            }
+            error(data.error)
+        }
+    })
+}

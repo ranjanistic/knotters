@@ -9,7 +9,7 @@ from allauth.socialaccount.providers.github.provider import GitHubProvider
 from main.bots import Sender
 from main.methods import errorLog, addMethodToAsyncQueue
 from .models import ProfileSetting, User, Profile, defaultImagePath, isPictureDeletable, Framework, Frame
-from .mailers import accountDeleteAlert, emailAddAlert, emailRemoveAlert, passordChangeAlert, emailUpdateAlert, welcomeAlert
+from .mailers import welcomeAlert
 from .methods import getProfileImageBySocialAccount, isPictureSocialImage, getUsernameFromGHSocial
 from .apps import APPNAME
 
@@ -34,33 +34,6 @@ def on_profile_create(sender, instance:Profile, created, **kwargs):
         ProfileSetting.objects.create(profile=instance)
         Sender.addUserToMailingServer(instance.user.email, instance.user.first_name, instance.user.last_name)
 
-
-@receiver(post_delete, sender=User)
-def on_user_delete(sender, instance, **kwargs):
-    """
-    User cleanup.
-    """
-    try:
-        Profile.objects.filter(id=instance.profile.id).update(
-            to_be_zombie=True,
-            is_zombie=True, 
-            githubID=None, 
-            is_moderator=False, 
-            is_active=False,
-            zombied_on=timezone.now(),
-            picture=defaultImagePath()
-        )
-        if isPictureDeletable(instance.profile.picture):
-            instance.profile.picture.delete(save=False)
-    except Exception as e:
-        errorLog(e)
-        pass
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{accountDeleteAlert.__name__}",instance)
-    try:
-        Sender.removeUserFromMailingServer(instance.email)
-    except Exception as e:
-        errorLog(e)
-        pass
 
 
 @receiver(post_delete, sender=Profile)
@@ -98,31 +71,6 @@ def on_user_signup(request, user, **kwargs):
     except:
         pass
 
-
-@receiver(password_changed)
-def user_password_changed(request, user, **kwargs):
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{passordChangeAlert.__name__}", user)
-
-
-@receiver(password_reset)
-def user_password_reset(request, user, **kwargs):
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{passordChangeAlert.__name__}", user)
-
-
-@receiver(email_changed)
-def user_email_changed(request, user, from_email_address, to_email_address, **kwargs):
-    if from_email_address != to_email_address:
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{emailUpdateAlert.__name__}",user, from_email_address, to_email_address)
-
-
-@receiver(email_added)
-def user_email_added(request, user, email_address, **kwargs):
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{emailAddAlert.__name__}", user, email_address)
-
-
-@receiver(email_removed)
-def user_email_removed(request, user, email_address, **kwargs):
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{emailRemoveAlert.__name__}", user, email_address)
 
 
 @receiver(social_account_removed)

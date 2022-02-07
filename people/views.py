@@ -1,6 +1,8 @@
 from uuid import UUID
 import re
 from django.core.cache import cache
+from projects.methods import addTagToDatabase
+from projects.models import Tag
 from ratelimit.decorators import ratelimit
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
@@ -15,12 +17,11 @@ from django.views.decorators.http import require_GET, require_POST
 from main.decorators import decode_JSON, github_only, require_JSON_body, normal_profile_required
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
 from main.env import BOTMAIL
-from main.strings import Action, Code, Event, Message, Template
+from main.strings import Action, Code, Event, Message, Template, setURLAlerts
 from management.models import Management, ReportCategory
 from .apps import APPNAME
-from .models import ProfileSetting, ProfileSocial, ProfileTopic, Topic, User, Profile
-from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, migrateUserAssets, rendererstr, profileString
-from .mailers import successorAccepted, successorDeclined, successorInvite, accountReactiveAlert, accountInactiveAlert
+from .models import ProfileSetting, ProfileSocial, ProfileTag, ProfileTopic, Topic, User, Profile
+from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, rendererstr
 
 
 @require_GET
@@ -210,23 +211,32 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
     if not query:
         return respondJson(Code.NO)
     excluding = []
+
+    cacheKey = f"topicssearch"
     if request.user.is_authenticated:
         if excludeProfileAllTopics:
             excluding = excluding + request.user.profile.getAllTopicIds()
         elif excludeProfileTopics:
             excluding = excluding + request.user.profile.getTopicIds()
-    topics = Topic.objects.exclude(id__in=excluding).filter(
-        Q(name__istartswith=query)
-        | Q(name__iendswith=query)
-        | Q(name__iexact=query)
-        | Q(name__icontains=query)
-    )[0:5]
-    topicslist = []
-    for topic in topics:
-        topicslist.append(dict(
-            id=topic.get_id,
-            name=topic.name
-        ))
+        cacheKey = f"{cacheKey}_{request.user.id}" + "".join(map(lambda i: str(i), excluding))
+    
+    topicslist = cache.get(cacheKey, [])
+
+    if not len(topicslist):
+        topics = Topic.objects.exclude(id__in=excluding).filter(
+            Q(name__istartswith=query)
+            | Q(name__iendswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[0:5]
+        
+        for topic in topics:
+            topicslist.append(dict(
+                id=topic.get_id,
+                name=topic.name
+            ))
+        
+        cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
 
     return respondJson(Code.OK, dict(
         topics=topicslist
@@ -322,228 +332,119 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         raise Http404(e)
 
 
-@login_required
-@require_JSON_body
-def accountActivation(request: WSGIRequest) -> JsonResponse:
-    """
-    Activate or deactivate account.
-    Does not delete anything, just meant to hide profile from the world whenever the requesting user wants.
-    """
-    activate = request.POST.get('activate', None)
-    deactivate = request.POST.get('deactivate', None)
-    try:
-        if activate == deactivate:
-            raise ObjectDoesNotExist()
-        if activate and not request.user.profile.is_active:
-            is_active = True
-        elif deactivate and request.user.profile.is_active:
-            is_active = False
-        else:
-            raise ObjectDoesNotExist()
-        if is_active and request.user.profile.suspended:
-            raise ObjectDoesNotExist()
-
-        done = Profile.objects.filter(
-            user=request.user).update(is_active=is_active)
-        if not done:
-            return respondJson(Code.NO)
-        if is_active:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{accountReactiveAlert.__name__}", request.user.profile)
-        else:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{accountInactiveAlert.__name__}", request.user.profile)
-        return respondJson(Code.OK)
-    except ObjectDoesNotExist:
-        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-
-
 @normal_profile_required
 @require_JSON_body
-def profileSuccessor(request: WSGIRequest):
-    """
-    To set/modify/unset profile successor. If default is chosen by the requestor, then sets the default successor and successor confirmed as true.
-    Otherwise, updates successor and sends invitation email to successor if set, and sets successor confirmed as false,
-    which will change only when the invited successor acts on invitation.
-    """
-    set = request.POST.get('set', None)
-    userID = request.POST.get('userID', None)
-    usedefault = request.POST.get('useDefault', False)
-    unset = request.POST.get('unset', None)
-
+def tagsSearch(request: WSGIRequest) -> JsonResponse:
     try:
-        if set == unset:
+        query = request.POST.get('query', None)
+        if not query or not query.strip():
             return respondJson(Code.NO)
-        successor = None
-        if set:
-            if usedefault or userID == BOTMAIL:
-                try:
-                    successor = User.objects.get(email=BOTMAIL)
-                    successor_confirmed = True
-                except Exception as e:
-                    errorLog(e)
-                    return respondJson(Code.NO)
-            elif userID and request.user.email != userID and not (userID in request.user.emails()):
-                try:
-                    if request.user.profile.is_manager():
-                        smgm = Management.objects.get(profile__user__email=userID)
-                        successor = smgm.profile.user
-                    else:
-                        successor = User.objects.get(
-                            email=userID)
+        
+        excludeIDs = []
+        for tag in request.user.profile.tags.all():
+            excludeIDs.append(tag.id)
 
-                    if successor.profile.isBlocked(request.user):
-                        return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-                    if not successor.profile.ghID() and not successor.profile.githubID:
-                        return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
-                    if successor.profile.successor == request.user:
-                        if not successor.profile.successor_confirmed:
-                            addMethodToAsyncQueue(
-                                f"{APPNAME}.mailers.{successorInvite.__name__}", request.user, successor)
-                        return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
-                    successor_confirmed = userID == BOTMAIL
-                except Exception as e:
-                    return respondJson(Code.NO, error=Message.SUCCESSOR_NOT_FOUND)
-            else:
-                raise ObjectDoesNotExist()
-        elif unset and request.user.profile.successor:
-            successor = None
-            successor_confirmed = False
-        else:
-            raise ObjectDoesNotExist()
-        Profile.objects.filter(user=request.user).update(
-            successor=successor, successor_confirmed=successor_confirmed)
-        if successor and not successor_confirmed:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{successorInvite.__name__}", successor, request.user)
-        return respondJson(Code.OK)
-    except ObjectDoesNotExist:
-        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        cacheKey = f"tagssearch_{request.user.id}" + "".join(map(lambda i: str(i), excludeIDs))
+        tagslist = cache.get(cacheKey, [])
 
+        if not len(tagslist):
+            tags = Tag.objects.exclude(id__in=excludeIDs).filter(
+                Q(name__istartswith=query)
+                | Q(name__iendswith=query)
+                | Q(name__iexact=query)
+                | Q(name__icontains=query)
+            )[0:5]
+            for tag in tags:
+                tagslist.append(dict(
+                    id=tag.getID(),
+                    name=tag.name
+                ))
+            cache.set(cacheKey, tagslist, settings.CACHE_INSTANT)
 
-@normal_profile_required
-@require_JSON_body
-def getSuccessor(request: WSGIRequest) -> JsonResponse:
-    if request.user.profile.successor:
         return respondJson(Code.OK, dict(
-            successorID=(
-                request.user.profile.successor.email if request.user.profile.successor.email != BOTMAIL else '')
+            tags=tagslist
         ))
-    return respondJson(Code.NO)
-
-
-@normal_profile_required
-@require_GET
-def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
-    """
-    Render profile successor invitation view.
-    """
-    try:
-        predecessor = User.objects.get(id=predID)
-        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise ObjectDoesNotExist(predecessor.profile.successor)
-        return renderer(request, Template.People.INVITATION, dict(predecessor=predecessor))
-    except ObjectDoesNotExist as e:
-        raise Http404(e)
+    except ObjectDoesNotExist as o:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        raise Http404(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
 @require_POST
-def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
-    """
-    Sets the successor if accepted, or sets default successor.
-    Also deletes the predecessor account and migrates assets, only if it was scheduled to be deleted.
-    """
-    predID = request.POST.get('predID', None)
-    accept = action == Action.ACCEPT
-
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+def tagsUpdate(request: WSGIRequest) -> HttpResponse:
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    next = None
     try:
-        if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
-            raise ObjectDoesNotExist()
+        addtagIDs = request.POST.get('addtagIDs', None)
+        addtags = request.POST.get('addtags', None)
+        removetagIDs = request.POST.get('removetagIDs', None)
+        profile = request.user.profile
+        
+        next = request.POST.get('next', profile.getLink())
 
-        predecessor = User.objects.get(id=predID)
+        if not (addtagIDs or removetagIDs or addtags):
+            return respondJson(Code.NO)
 
-        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise ObjectDoesNotExist()
+        if removetagIDs:
+            if not json_body:
+                removetagIDs = removetagIDs.strip(',').split(",")
+            ProfileTag.objects.filter(
+                profile=profile, tag__id__in=removetagIDs).delete()
 
-        if accept:
-            successor = request.user
-            predecessor.profile.successor_confirmed = True
-        else:
-            if predecessor.profile.to_be_zombie:
-                successor = User.objects.get(email=BOTMAIL)
-                predecessor.profile.successor_confirmed = True
+        currentcount = ProfileTag.objects.filter(profile=profile).count()
+        if addtagIDs:
+            if not json_body:
+                addtagIDs = addtagIDs.strip(',').split(",")
+            if len(addtagIDs) < 1:
+                if json_body:
+                    return respondJson(Code.NO, error=Message.NO_TAGS_SELECTED)
+                return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
+            if currentcount + len(addtagIDs) > 5:
+                if json_body:
+                    return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
+                return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
+
+            for tag in Tag.objects.filter(id__in=addtagIDs):
+                profile.tags.add(tag)
+                for topic in profile.getTopics():
+                    topic.tags.add(tag)
+            currentcount = currentcount + len(addtagIDs)
+
+        if addtags:
+            if not json_body:
+                addtags = addtags.strip(',').split(",")
+            if (currentcount + len(addtags)) <= 5:
+                for addtag in addtags:
+                    tag = addTagToDatabase(addtag, request.user.profile)
+                    profile.tags.add(tag)
+                    for topic in profile.getTopics():
+                        topic.tags.add(tag)
+                currentcount = currentcount + len(addtags)
             else:
-                successor = None
+                if json_body:
+                    return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
+                return redirect(setURLAlerts(next, error=Message.MAX_TAGS_ACHEIVED))
 
-        predecessor.profile.successor = successor
-        predecessor.profile.save()
-
-        deleted = False
-        if predecessor.profile.to_be_zombie:
-            migrateUserAssets(predecessor, successor)
-            predecessor.delete()
-            deleted = True
-
-        if accept:
-            alert = Message.SUCCESSORSHIP_ACCEPTED
-            if not deleted:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{successorAccepted.__name__}", successor, predecessor)
-        else:
-            alert = Message.SUCCESSORSHIP_DECLINED
-            if not deleted:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{successorDeclined.__name__}", request.user, predecessor)
-        if not deleted:
-            return redirect(predecessor.profile.getLink(alert=alert))
-        return redirect(request.user.profile.getLink(alert=alert))
+        if json_body:
+            return respondJson(Code.OK)
+        return redirect(next)
     except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if next:
+            return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
         raise Http404(o)
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO)
+        if next:
+            return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
         raise Http404(e)
-
-
-@normal_profile_required
-@require_JSON_body
-def accountDelete(request: WSGIRequest) -> JsonResponse:
-    """
-    Account for deletion, only if a successor is set.
-    If successor has not been confirmed yet,
-    then just schedules account to be deleted at the moment the successor is confirmed.
-    Otherwise, deletes the account and makes the profile a zombie.
-
-    For the requesting user, successfull response of this endpoint should imply permanent inaccess to their account,
-    regardless of successor confirmation state.
-    """
-    confirmed = request.POST.get('confirmed', False)
-    if not confirmed:
-        return respondJson(Code.NO)
-    if not request.user.profile.successor:
-        return respondJson(Code.NO, error=Message.SUCCESSOR_UNSET)
-    try:
-        done = Profile.objects.filter(
-            user=request.user).update(to_be_zombie=True)
-        User.objects.filter(id=request.user.id).update(is_active=False)
-        if request.user.profile.successor_confirmed:
-            user = User.objects.get(id=request.user.id)
-            migrateUserAssets(user, user.profile.successor)
-            user.delete()
-        return respondJson(Code.OK if done else Code.NO, message=Message.ACCOUNT_DELETED)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO)
-
 
 @normal_profile_required
 def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
@@ -662,14 +563,18 @@ def browseSearch(request: WSGIRequest):
         profiles = cache.get(cachekey,[])
         
         if not len(profiles):
-            specials = ('topic:','type:')
+            specials = ('topic:','tag:','type:')
             pquery = None
             is_moderator = is_mentor = is_verified = is_manager = None
             dbquery = Q()
             invalidQuery = False
             if query.startswith(specials):
                 def specquerieslist(q):
-                    return [Q(topics__name__iexact=q), Q()]
+                    return [
+                        Q(topics__name__iexact=q), 
+                        Q(tags__name__iexact=q), 
+                        Q()
+                    ]
                 commaparts = query.split(",")
                 for cpart in commaparts:
                     if cpart.strip().lower().startswith(specials):    
@@ -711,6 +616,8 @@ def browseSearch(request: WSGIRequest):
                     | Q(user__last_name__iexact=(lname or fname))
                     | Q(topics__name__iexact=pquery)
                     | Q(topics__name__istartswith=pquery)
+                    | Q(tags__name__iexact=pquery)
+                    | Q(tags__name__istartswith=pquery)
                 ))
             if not invalidQuery:
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).distinct()[0:limit]

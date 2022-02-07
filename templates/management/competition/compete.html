@@ -26,58 +26,100 @@
         <img src="{{compete.get_associate}}" class="pallete preview-type-image" width="80%" />
         {% endif %}
         <div class="w3-row" align='left'>
-        <br/>
-        <h6>Manager: <a href="{{compete.creator.getLink}}" target="_blank">{{compete.creator.getName}}</a></h6>
-        <h6>Moderator </h6><a onclick="miniWindow('{{compete.getModerator.getLink}}')"><button class="accent" data-img="{{compete.getModerator.get_dp}}">{{compete.getModerator.getName}}</button></a>
-        <h6>Judges </h6>
-        {%for judge in compete.getJudges %}
-        <a onclick="miniWindow('{{judge.getLink}}')"><button class="active" data-img="{{judge.get_dp}}">{{judge.getName}}</button></a> 
-        {% endfor %}
-        <h6>Topics:</h6> 
-        {% for topic in compete.getTopics %}
-            <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="positive" >{{topic.name}}</button></a>
-        {% endfor %}
-        <br/><br/>
-        <strong>Prize Fee: &#x20B9; {{compete.reg_fee|or:0}}</strong><br/>
-        <strong>Start At: {{compete.startAt}}</strong><br/>
-        <strong>End At: {{compete.endAt}}</strong><br/>
-        {% if compete.isUpcoming %}
-        <strong>Is Upcoming</strong><br/>
-        {% elif compete.isActive %}
-        <strong>Is Active</strong><br/>
-        {% else %}
-        <strong>Is History</strong><br/>
-        {% endif %}
-        <strong>Max members in a group: {{compete.max_grouping}}</strong><br/>
-        <strong>Max points for a topic: {{compete.eachTopicMaxPoint}}</strong><br/>
-        <strong>Short description: {{compete.shortdescription|truncatechars:100}}</strong><br/>
-        <strong>Description: {{compete.description|truncatechars:100}}</strong><br/>
-        <strong>Perks: <br/>
-        {% for perk in compete.getPerks %}
-            {% if perk.name %}
-                {{perk.rank|numsuffix}} : {{perk.name}} + Certificate + XP<br/>
+            <br/>
+            <h6>Manager: <a href="{{compete.creator.getLink}}" target="_blank">{{compete.creator.getName}}</a></h6>
+            <h6>Moderator </h6><a onclick="miniWindow('{{compete.getModerator.getLink}}')"><button class="accent" data-img="{{compete.getModerator.get_dp}}">{{compete.getModerator.getName}}</button></a>
+            <h6>Judges </h6>
+            {%for judge in compete.getJudges %}
+            <a onclick="miniWindow('{{judge.getLink}}')"><button class="active" data-img="{{judge.get_dp}}">{{judge.getName}}</button></a> 
+            {% endfor %}
+            <h6>Topics:</h6> 
+            {% for topic in compete.getTopics %}
+                <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="positive" >{{topic.name}}</button></a>
+            {% endfor %}
+            <br/><br/>
+            <strong>Prize Fee: &#x20B9; {{compete.reg_fee|or:0}}</strong><br/>
+            <strong>Start At: {{compete.startAt}}</strong><br/>
+            <strong>End At: {{compete.endAt}}</strong><br/>
+            {% if compete.isUpcoming %}
+            <strong>Is Upcoming</strong><br/>
+            {% elif compete.isActive %}
+            <strong>Is Active</strong><br/>
             {% else %}
-                {{ forloop.counter|numsuffix }}{{perk}} + Certificate + XP<br/>
+            <strong>Is History</strong><br/>
             {% endif %}
-        {% endfor %}</strong><br/>
-        {% if compete.qualifier %}
-        <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
-        <strong>Qualifier rank: {{compete.qualifier_rank}}</strong>
-        {% endif %}
-        <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
-        <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
-        <strong>Moderated? {{compete.moderated|yesno}}</strong><br/>
-        {% if compete.is_draft %}
-            <br/>
-            <button class="primary" id="comp-publish-draft">Publish</button>
-        {% elif compete.canBeSetToDraft  %}
-            <br/>
-            <button class="primary" id="comp-make-draft">Make draft</button>
-        {% endif %}
-        {% if compete.canBeDeleted %}
-        <br/><br/>
-        <button class="negative" id="comp-delete-permanent">Delete competition</button>
-        {% endif %}
+            <strong>Max members in a group: {{compete.max_grouping}}</strong><br/>
+            <strong>Max points for a topic: {{compete.eachTopicMaxPoint}}</strong><br/>
+            <strong>Short description: {{compete.shortdescription|truncatechars:100}}</strong><br/>
+            <strong>Description: {{compete.description|truncatechars:100}}</strong><br/>
+            <strong>Perks: <br/>
+            {% for perk in compete.getPerks %}
+                {% if perk.name %}
+                    {{perk.rank|numsuffix}} : {{perk.name}} + Certificate + XP<br/>
+                {% else %}
+                    {{ forloop.counter|numsuffix }} : {{perk}} + Certificate + XP<br/>
+                {% endif %}
+            {% endfor %}</strong><br/>
+            {% if compete.qualifier %}
+            <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
+            <strong>Qualifier rank: {{compete.qualifier_rank}}</strong>
+            {% endif %}
+            <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
+            <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
+            <strong>Moderated? {{compete.moderated|yesno}}</strong><br/>
+            {% if compete.is_draft %}
+                <br/>
+                <button class="primary" id="comp-publish-draft">Publish</button>
+            {% elif compete.canBeSetToDraft  %}
+                <br/>
+                <button class="primary" id="comp-make-draft">Make draft</button>
+            {% endif %}
+            {% if compete.canBeDeleted %}
+            <br/><br/>
+            <button class="negative" id="comp-delete-permanent">Delete competition</button>
+            {% endif %}
+            
+            {% if compete.isHistory %}
+                <strong>All submissions marked? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
+                {% if compete.allSubmissionsMarked %}
+                    {% if compete.resultDeclared %}
+                        <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
+                        <strong>Certificates Generated: {{compete.certificatesGenerated|yesno}}</strong><br/>
+                        {% if iscreator and not compete.certificatesGenerated %}
+                            {% if not generating %}
+                            <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
+                                {% csrf_token %}
+                                <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
+                            </form>
+                            {% else %}
+                            Certificates generation in progress, refresh page to check status.
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <strong>Results ready to be declared? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
+                        {% if iscreator %}
+                            {% if not declaring %}
+                            <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
+                                {% csrf_token %}
+                                <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
+                            </form>
+                            {% else  %}
+                            Results declaration in progress, refresh page to check status.
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                {% elif not compete.allSubmissionsMarked %}
+                    <strong>{{compete.countJudgesWhoMarkedSubmissions}}/{{compete.totalJudges}} judges have marked submissions.</strong>
+                    <br/>
+                    {% for judge in compete.judgesWhoMarkedSubmissions %}
+                        <strong>{{judge.getName}}</strong>,
+                    {% endfor %} have marked submissions.<br/>
+                    {% for judge in compete.judgesWhoNotMarkedSubmissions %}
+                        <strong>{{judge.getName}}</strong>,
+                    {% endfor %}have NOT marked submissions.<br/>
+                    
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 
@@ -103,47 +145,47 @@
         <button class="active small" type="button" data-icon="upload"><label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label></button>
         {% endif %}
         <div class="w3-row" align='left'>
-        <br/>
-        <h6>Moderator:</h6>
-            <span id="selectedmodview">
-                <button type='button' title="Moderator" class="primary negative-text selected-compete-mod" data-modID='{{compete.getModerator.get_userid}}' id="removemod{{compete.getModerator.get_userid}}" data-icon="close">
-                    <img src="{{compete.getModerator.get_dp}}" width="20" class="circle" /> {{compete.getModerator.get_name}}
-                </button>
+            <br/>
+            <h6>Moderator:</h6>
+                <span id="selectedmodview">
+                    <button type='button' title="Moderator" class="primary negative-text selected-compete-mod" data-modID='{{compete.getModerator.get_userid}}' id="removemod{{compete.getModerator.get_userid}}" data-icon="close">
+                        <img src="{{compete.getModerator.get_dp}}" width="20" class="circle" /> {{compete.getModerator.get_name}}
+                    </button>
+                </span>
+            <button title="Moderator to moderate submissions before judgement, after competition ends." type="button" class="primary active-text" data-icon="add" id="selectmodbutton" hidden>Select moderator</button>
+            <h6>Judges:</h6>
+            <span id="selectedjudgesview">
+                {% for judge in compete.getJudges %}
+                    <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='{{judge.get_userid}}' id="removejudge{{judge.get_userid}}" data-icon="close">
+                        <img src="{{judge.get_dp}}" class="circle" /> {{judge.get_name}}
+                    </button>
+                {% endfor %}
             </span>
-        <button title="Moderator to moderate submissions before judgement, after competition ends." type="button" class="primary active-text" data-icon="add" id="selectmodbutton" hidden>Select moderator</button>
-        <h6>Judges:</h6>
-        <span id="selectedjudgesview">
-            {% for judge in compete.getJudges %}
-                <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='{{judge.get_userid}}' id="removejudge{{judge.get_userid}}" data-icon="close">
-                    <img src="{{judge.get_dp}}" class="circle" /> {{judge.get_name}}
-                </button>
-            {% endfor %}
-        </span>
-        <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
-        <h6>Topics:</h6>
-        <span id="selectedtopicsview">
-            {% for topic in compete.getTopics %}
-                <button type='button' class="primary negative-text selected-compete-topic" data-topicID="{{topic.get_id}}" id="removetopic{{topic.get_id}}" data-icon="close">{{topic.name}}</button>
-            {% endfor %}
-        </span>
-        <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
-        <br/><br/>
-        {% if compete.reg_fee %}
-            <input title="Fee for prize" placeholder="Min 0" type="number" min="0" max="{{compete.reg_fee}}" value="{{compete.reg_fee}}" name="compregfee" id="compregfee">
-            <input title="Fee payment link" placeholder="Payment link (if fee)" type="url" maxlength="1000" value="{{compete.fee_link}}" name="compfeelink" id="compfeelink">
-        {% endif %}
-        Start at<br/>
-        <input placeholder="Start at" value="{{compete.startAt|date:'Y-m-d'}}T{{compete.startAt|time:'H:i:s'}}" type="datetime-local" name="compstartAt" id="compstartAt" title="Begin time"><br/>
-        End at<br/><input placeholder="End at" value="{{compete.endAt|date:'Y-m-d'}}T{{compete.endAt|time:'H:i:s'}}" type="datetime-local" name="compendAt" id="compendAt" title="Ending time" /><br/>
-        Max topic points <input title="Max points for each topic" class="wide" placeholder="Max 100" type="number" min="{{compete.eachTopicMaxPoint}}" value="{{compete.eachTopicMaxPoint}}" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/>
-        Short Description <textarea rows="5" cols="20" class="wide" placeholder="Short description of competition (max 400 characters)" type="text" name="compshortdesc" id="compshortdesc" maxlength="400">
-            {{compete.shortdescription}}
-        </textarea>
-        Description <textarea rows="4" cols="18" class="wide" placeholder="Competition description (max 1000 characters)" type="text" name="compdesc" id="compdesc" maxlength="1000">{{compete.description}}</textarea><br/><br/>
-        {% if compete.qualifier %}
-            <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
-            <input type='number' name='qualifier-competition-rank' id="qualifier-competition-rank" class="create-compete-input" title='Qualifing rank' value="{{compete.qualifier_rank}}" inputmode='numeric' placeholder='Qualifing rank' />
-        {% endif %}
+            <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
+            <h6>Topics:</h6>
+            <span id="selectedtopicsview">
+                {% for topic in compete.getTopics %}
+                    <button type='button' class="primary negative-text selected-compete-topic" data-topicID="{{topic.get_id}}" id="removetopic{{topic.get_id}}" data-icon="close">{{topic.name}}</button>
+                {% endfor %}
+            </span>
+            <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
+            <br/><br/>
+            {% if compete.reg_fee %}
+                <input title="Fee for prize" placeholder="Min 0" type="number" min="0" max="{{compete.reg_fee}}" value="{{compete.reg_fee}}" name="compregfee" id="compregfee">
+                <input title="Fee payment link" placeholder="Payment link (if fee)" type="url" maxlength="1000" value="{{compete.fee_link}}" name="compfeelink" id="compfeelink">
+            {% endif %}
+            Start at<br/>
+            <input placeholder="Start at" value="{{compete.startAt|date:'Y-m-d'}}T{{compete.startAt|time:'H:i:s'}}" type="datetime-local" name="compstartAt" id="compstartAt" title="Begin time"><br/>
+            End at<br/><input placeholder="End at" value="{{compete.endAt|date:'Y-m-d'}}T{{compete.endAt|time:'H:i:s'}}" type="datetime-local" name="compendAt" id="compendAt" title="Ending time" /><br/>
+            Max topic points <input title="Max points for each topic" class="wide" placeholder="Max 100" type="number" min="{{compete.eachTopicMaxPoint}}" value="{{compete.eachTopicMaxPoint}}" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/>
+            Short Description <textarea rows="5" cols="20" class="wide" placeholder="Short description of competition (max 400 characters)" type="text" name="compshortdesc" id="compshortdesc" maxlength="400">
+                {{compete.shortdescription}}
+            </textarea>
+            Description <textarea rows="4" cols="18" class="wide" placeholder="Competition description (max 1000 characters)" type="text" name="compdesc" id="compdesc" maxlength="1000">{{compete.description}}</textarea><br/><br/>
+            {% if compete.qualifier %}
+                <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
+                <input type='number' name='qualifier-competition-rank' id="qualifier-competition-rank" class="create-compete-input" title='Qualifing rank' value="{{compete.qualifier_rank}}" inputmode='numeric' placeholder='Qualifing rank' />
+            {% endif %}
         </div>
     </div>
 
@@ -159,47 +201,6 @@
         <strong>Task sample: </strong><br/>
         <textarea class="task-view-segment" id="comptaskSample">{{compete.taskSample }}</textarea><br/>
         
-        {% if compete.isHistory %}
-            <strong>All submissions marked? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
-            {% if compete.allSubmissionsMarked %}
-                {% if compete.resultDeclared %}
-                    <strong>Results Declared: {{compete.resultDeclared|yesno}}</strong><br/>
-                    <strong>Certificates Generated: {{compete.certificatesGenerated|yesno}}</strong><br/>
-                    {% if not compete.certificatesGenerated and iscreator %}
-                        {% if not generating %}
-                        <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
-                            {% csrf_token %}
-                            <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
-                        </form>
-                        {% else %}
-                        Certificates generation in progress, refresh page to check status.
-                        {% endif %}
-                    {% endif %}
-                {% else %}
-                    <strong>Results ready to be declared? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
-                    {% if iscreator %}
-                        {% if not declaring %}
-                        <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
-                            {% csrf_token %}
-                            <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
-                        </form>
-                        {% else  %}
-                        Results declaration in progress, refresh page to check status.
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
-            {% elif not compete.allSubmissionsMarked %}
-                <strong>{{compete.countJudgesWhoMarkedSubmissions}}/{{compete.totalJudges}} judges have marked submissions.</strong>
-                <br/>
-                {% for judge in compete.judgesWhoMarkedSubmissions %}
-                    <strong>{{judge.getName}}</strong>,
-                {% endfor %} have marked submissions.<br/>
-                {% for judge in compete.judgesWhoNotMarkedSubmissions %}
-                    <strong>{{judge.getName}}</strong>,
-                {% endfor %}have NOT marked submissions.<br/>
-                
-            {% endif %}
-        {% endif %}
     </div>
 </div>
 <br/>

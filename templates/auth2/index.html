@@ -37,7 +37,7 @@
 <br/>
 <div class="w3-row w3-center">
     <button class="auth-nav-tab" id="account" data-icon="manage_accounts"><span class="w3-hide-small">Account</span></button>
-    <button class="auth-nav-tab" id="device" data-icon="devices"><span class="w3-hide-small">Device</span></button>
+    <button class="auth-nav-tab" id="device" data-icon="devices"><span class="w3-hide-small">Application</span></button>
     <button class="auth-nav-tab" id="preference" data-icon="tune"><span class="w3-hide-small">Preference</span></button>
     <button class="auth-nav-tab" id="notification" data-icon="notifications"><span class="w3-hide-small">Notification</span></button>
     <button class="auth-nav-tab" id="security" data-icon="security"><span class="w3-hide-small">Security</span></button>
@@ -163,7 +163,7 @@
                                 message(STRING.deactivating_acc);
                                 loaders(true);
                                 const data = await postRequest2({
-                                    path: URLS.People.ACCOUNTACTIVATION,
+                                    path: URLS.ACCOUNTACTIVATION,
                                     data: {
                                         deactivate: true,
                                     },
@@ -178,7 +178,7 @@
                         });
                     };
                     getElement("deactivateaccount").onclick = async (_) => {
-                        deactivationDialog();
+                        _reauthenticate(deactivationDialog);
                     };
 
                     const accountDeletionDialog = async () => {
@@ -186,7 +186,7 @@
                         let successorID = "";
                         let useDefault = false;
                         loader();
-                        let sdata = await postRequest2({ path: URLS.People.GETSUCCESSOR });
+                        let sdata = await postRequest2({ path: URLS.GETSUCCESSOR });
                         if (!sdata) return loader(sdata);
                         if (sdata.code === code.OK) {
                             successorSet = true;
@@ -255,7 +255,7 @@
                                     message("Preparing for deletion");
                                     loaders();
                                     const data = await postRequest2({
-                                        path: URLS.People.ACCOUNTDELETE,
+                                        path: URLS.ACCOUNTDELETE,
                                         data: {
                                             confirmed: true,
                                         },
@@ -285,7 +285,7 @@
 
                         getElement("defaultsuccessor").onchange = async (e) => {
                             let done = await postRequest2({
-                                path: URLS.People.INVITESUCCESSOR,
+                                path: URLS.INVITESUCCESSOR,
                                 data: {
                                     set: e.target.checked,
                                     unset: !e.target.checked,
@@ -314,7 +314,7 @@
                                     "Successor email required, or set default successor."
                                 );
                             const data = await postRequest2({
-                                path: URLS.People.INVITESUCCESSOR,
+                                path: URLS.INVITESUCCESSOR,
                                 data: {
                                     set: true,
                                     userID: successorID || false,
@@ -345,7 +345,7 @@
                     };
 
                     getElement("deleteaccount").onclick = (_) => {
-                        accountDeletionDialog();
+                        _reauthenticate(accountDeletionDialog);
                     };
 
                     getElements("unblock-button").forEach((unblock) => {

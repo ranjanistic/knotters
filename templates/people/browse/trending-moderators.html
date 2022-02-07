@@ -26,7 +26,7 @@
                         {% if not moderator.has_labels %}
                             <strong class="w3-tiny w3-round w3-tag tertiary">{{moderator.getXP}}</strong>
                         {% endif %}<br/>
-                        <span>{{ moderator.getBio|or:moderator.nickname|or:moderator.emoticon|or:moderator.githubID|truncatechars:45 }}</span><br/>
+                        <span>{{ moderator.getBio|or:moderator.nickname|or:moderator.emoticon|or:moderator.githubID|or:''|truncatechars:45 }}</span><br/>
                         {% if moderator.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{moderator.getAllTopics.0}}"><button class="small {{moderator.theme}} {{moderator.text_theme}}">{{moderator.getAllTopics.0.name}}</button></a>
                         {% endif %}
@@ -64,7 +64,7 @@
                         {% if not moderator.has_labels %}
                             <strong class="w3-tiny w3-round w3-tag tertiary">{{moderator.getXP}}</strong>
                         {% endif %}<br/>
-                        <span>{{ moderator.getBio|or:moderator.nickname|or:moderator.emoticon|or:moderator.githubID|truncatechars:45 }}</span><br/>
+                        <span>{{ moderator.getBio|or:moderator.nickname|or:moderator.emoticon|or:moderator.githubID|or:''|truncatechars:45 }}</span><br/>
                         {% if moderator.totalAllTopics %}
                         <a href="{{URLS.PEOPLE}}?search=topic:{{moderator.getAllTopics.0}}"><button class="small {{moderator.theme}}">{{moderator.getAllTopics.0.name}}</button></a>
                         {% endif %}

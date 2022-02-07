@@ -350,3 +350,22 @@ class APIKey(models.Model):
 
     def __str__(self):
         return self.name or self.get_id
+
+class ContactCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, unique=True)
+    disabled = models.BooleanField(default=False)
+    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+
+    def __str__(self):
+        return self.name
+
+class ContactRequest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    resolved = models.BooleanField(default=False)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    senderName = models.CharField(max_length=100)
+    senderEmail = models.EmailField(max_length=100)
+    contactCategory = models.ForeignKey(ContactCategory, on_delete=models.CASCADE)
+    message = models.TextField(max_length=1000)

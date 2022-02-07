@@ -8,7 +8,7 @@ from deprecated import deprecated
 from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
-from main.bots import Github, GH_API
+from main.bots import GH_API
 from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
@@ -275,6 +275,7 @@ class Profile(models.Model):
         default=False, help_text='Illegal activities make this true.')
 
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
+    tags = models.ManyToManyField(f'{PROJECTS}.Tag', through='ProfileTag', default=[])
 
     xp = models.IntegerField(default=1, help_text='Experience count')
 
@@ -589,16 +590,18 @@ class Profile(models.Model):
         if self.is_zombie:
             return None
         try:
-            data = cache.get(f"socialaccount_gh_{self.get_userid}")
+            cacheKey = f"socialaccount_gh_{self.get_userid}"
+            data = cache.get(cacheKey)
             if not (data and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()):
                 data = SocialAccount.objects.get(
                     user=self.user, provider=GitHubProvider.id)
-                cache.set(f"socialaccount_gh_{self.get_userid}", data, settings.CACHE_SHORT)
-            ghUser = cache.get(f"gh_user_data_{data.uid}")
+                cache.set(cacheKey, data, settings.CACHE_SHORT)
+            cacheKey2 = f"gh_user_data_{data.uid}"
+            ghUser = cache.get(cacheKey2)
             if not ghUser:
                 try:
                     ghUser = self.gh_api().get_user_by_id(int(data.uid))
-                    cache.set(f"gh_user_data_{data.uid}",ghUser, settings.CACHE_SHORT)
+                    cache.set(cacheKey2,ghUser, settings.CACHE_SHORT)
                 except:
                     return data.extra_data['login']
             ghID = ghUser.login
@@ -945,7 +948,7 @@ class Profile(models.Model):
                 filteredProfiles.remove(profile)
         return filteredProfiles
 
-    def tags(self) -> list:
+    def all_tags(self) -> list:
         cacheKey = self.CACHE_KEYS.tags
         data = cache.get(cacheKey, None)
         if data is None:
@@ -1003,6 +1006,12 @@ class ProfileSetting(models.Model):
 
     def savePreferencesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.ACCOUNTPREFERENCES}"
+
+class ProfileTag(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='tag_profile')
+    tag = models.ForeignKey(f'{PROJECTS}.Tag', on_delete=models.CASCADE, related_name='profile_tag')
+
 
 class ProfileTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

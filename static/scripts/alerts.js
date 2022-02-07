@@ -508,3 +508,72 @@ const firstTimeMessage = (key, _message = "") => {
         localStorage.setItem(`first-intro-${key}`, 1);
     }
 };
+
+const _reauthenticate = async (afterSuccess=_=>{}, afterFailure=_=>{}) => {
+    if(!authenticated) return afterFailure();
+    loader()
+    const vdata = await postRequest2({path:URLS.Auth.VERIFY_REAUTH_METHOD, retainCache:true})
+    loader(false)
+    if(!vdata||vdata.code!=CODE.OK){
+        return error(vdata.error)
+    }
+    let authinput = '';
+    if(vdata.method=='password'){
+        authinput = `<input type="password" id="reauth-input" placeholder="${STRING.password}" />`
+    } else {
+        return afterSuccess();
+    }
+    Swal.fire({
+        title: "Verify yourself",
+        html: `
+        <div class="w3-row w3-padding">
+        <h6>
+        ${STRING.password_to_continue}
+        </h6>
+        ${authinput}
+        </div>
+        `,
+        confirmButtonText: STRING.continue,
+        showCancelButton: false,
+        showDenyButton: true,
+        denyButtonText: STRING.cancel,
+        preConfirm: () => {
+            const password = getElement("reauth-input").value;
+            if (!password) {
+                error(STRING.password_required);
+                return false
+            }
+            return password
+        }
+    }).then(async(res) => {
+        if (res.isConfirmed) {
+            loader();
+            const data = await postRequest2({
+                path:URLS.Auth.VERIFY_REAUTH, 
+                data:{
+                    password: res.value,
+                }
+            });
+            loader(false);
+            if (data&&data.code === code.OK){
+                return afterSuccess();
+            } 
+            error(data.error);
+            afterFailure();
+        }
+    })
+
+}
+
+const clearToastQueue = () => {
+    sessionStorage.removeItem(KEY.message_firing);
+    sessionStorage.removeItem(KEY.error_firing);
+    sessionStorage.removeItem(KEY.success_firing);
+    sessionStorage.removeItem(KEY.message_queue);
+    sessionStorage.removeItem(KEY.error_queue);
+    sessionStorage.removeItem(KEY.success_queue);
+    sessionStorage.removeItem(KEY.message_fired);
+    sessionStorage.removeItem(KEY.error_fired);
+    sessionStorage.removeItem(KEY.success_fired);
+    
+}
