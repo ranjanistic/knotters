@@ -212,7 +212,7 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO)
     excluding = []
 
-    cacheKey = f"topicssearch"
+    cacheKey = f"topicssearch_{query}"
     if request.user.is_authenticated:
         if excludeProfileAllTopics:
             excluding = excluding + request.user.profile.getAllTopicIds()
