@@ -1,6 +1,6 @@
 from django.test import TestCase, tag
 from main.strings import Code
-from people.tests.utils import getTestEmail, getTestFName
+from auth2.tests.utils import getTestEmail, getTestFName
 from .utils import getRandomStr, getTestUrl
 from main.mailers import *
 

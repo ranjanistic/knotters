@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from main.env import BOTMAIL
 from compete.models import SubmissionTopicPoint
 from uuid import uuid4
@@ -8,11 +9,10 @@ from django.test import TestCase, tag
 from people.models import Profile, Topic
 from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject
-from people.tests.utils import getTestEmail, getTestName, getTestPassword
-from main.methods import getDeepFilePaths
 from main.tests.utils import getRandomStr
-from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst, getTestTopicsInst
-from .utils import getCompTitle, getCompPerks, getCompBanner, getSubmissionRepos
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
+from people.tests.utils import getTestUsersInst, getTestTopicsInst
+from .utils import getCompTitle, getSubmissionRepos
 from compete.apps import APPNAME
 from compete.methods import *
 from random import randint
@@ -45,7 +45,7 @@ class CompeteMethodsTest(TestCase):
         self.judge = Profile.objects.filter(user__in=users)[0:1][0]
         self.comp.judges.add(self.judge)
         now = timezone.now()
-        self.user = Profile.objects.filter(user__in=users)[1:2][0]
+        self.user1 = Profile.objects.filter(user__in=users)[1:2][0]
         self.user2 = Profile.objects.filter(user__in=users)[2:3][0]
         self.user3 = Profile.objects.filter(user__in=users)[2:3][0]
         self.user4 = Profile.objects.filter(user__in=users)[3:4][0]
@@ -55,7 +55,7 @@ class CompeteMethodsTest(TestCase):
         self.moderator.save()
         self.subm = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
-        self.subm.members.add(self.user)
+        self.subm.members.add(self.user1)
         self.subm2 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
         self.subm2.members.add(self.user2)
@@ -83,9 +83,9 @@ class CompeteMethodsTest(TestCase):
         Moderation.objects.filter(type=APPNAME,competition=self.comp,moderator=self.moderator).update(resolved=True)
         return super().setUpTestData()
 
+    
     def test_competition_section_data(self):
-        self.assertIsNone(getCompetitionSectionData(
-            getRandomStr(), self.comp, self.user))
+        self.assertIsNone(getCompetitionSectionData(getRandomStr(), self.comp, self.user))
         self.assertDictEqual(getCompetitionSectionData(
             Compete.OVERVIEW, self.comp, self.user), dict(compete=self.comp))
         self.assertDictEqual(getCompetitionSectionData(
@@ -94,9 +94,13 @@ class CompeteMethodsTest(TestCase):
             Compete.GUIDELINES, self.comp, self.user), dict(compete=self.comp))
         self.assertDictEqual(getCompetitionSectionData(
             Compete.SUBMISSION, self.comp, self.user), dict(compete=self.comp, submission=None))
-        self.assertDictEqual(getCompetitionSectionData(
-            Compete.RESULT, self.comp, self.user), dict(compete=self.comp, results=None))
+        if not self.comp.resultDeclared:
+            self.assertDictEqual(getCompetitionSectionData(
+                Compete.RESULT, self.comp, self.user), dict(compete=self.comp, results=None))
+        else:
+            self.assertEqual(len(getCompetitionSectionData(Compete.RESULT, self.comp, self.user)['results']), len(Result.objects.filter(competition=self.comp)))
 
+    
     def test_certificate_generator(self):
         self.comp.endAt = timezone.now()
         self.comp.save()

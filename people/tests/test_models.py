@@ -2,20 +2,22 @@
 Tests for models & signal receivers of people subapplication.
 """
 
+from django.db.utils import IntegrityError
 from django.test import TestCase, tag
 from django.core.exceptions import ObjectDoesNotExist
 from allauth.account.models import EmailAddress
 from main.env import BOTMAIL
 from people.apps import APPNAME
 from people.models import *
-from .utils import getTestDP, getTestGHID, getTestName, getTestEmail, getTestPassword, getTestEmails, getTestNames, getTestPasswords, getTestTopics
+from auth2.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword
+from .utils import getTestDP, getTestTopics
 
 
 @tag(Code.Test.MODEL, APPNAME)
 class UserTest(TestCase):
 
     def test_setting_creation_fail(self):
-        with self.assertRaises(ObjectDoesNotExist):
+        with self.assertRaises((ObjectDoesNotExist,IntegrityError)):
             settings = ProfileSetting.objects.create()
             self.assertIsNone(settings.profile)
 

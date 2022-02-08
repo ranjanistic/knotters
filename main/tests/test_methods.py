@@ -1,7 +1,7 @@
 from main.env import BOTMAIL
 from django.test import TestCase, tag
 from people.models import User
-from people.tests.utils import getTestPassword
+from auth2.tests.utils import getTestPassword
 from main.strings import Code, Message, classAttrsToDict
 from main.methods import *
 from .utils import B64

@@ -21,10 +21,10 @@ from main.decorators import github_remote_only, manager_only, moderator_only, re
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
-from moderation.methods import requestModerationForCoreProject, requestModerationForObject
+from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, FileExtension, FreeProject, Asset, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, SnapshotAdmirer, Tag, Category, VerProjectDeletionRequest
+from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, SnapshotAdmirer, Tag, Category, VerProjectDeletionRequest
 from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
 from .methods import addTagToDatabase, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
@@ -1863,3 +1863,110 @@ def coreProjectDeleteRequestAction(request, inviteID):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
+
+@normal_profile_required
+@require_JSON_body
+def coreVerificationRequest(request: WSGIRequest):
+    try:
+        action = request.POST['action']
+        projID = request.POST['projectID']
+        if action == Action.CREATE:
+            coreproject = CoreProject.objects.get(id=projID,creator=request.user.profile, suspended=False, trashed=False)
+            if not coreproject.can_request_verification():
+                raise ObjectDoesNotExist("cannot request verification: ", coreproject)
+
+            if Project.objects.filter(reponame=coreproject.codename, creator=request.user.profile).exists():
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+
+            if CoreProjectVerificationRequest.objects.filter(coreproject=coreproject).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
+            requestData = request.POST['requestData']
+            referURL = request.POST['referURL']
+
+            verifiedproject = createProject(coreproject.name,coreproject.category.name,coreproject.codename,coreproject.description,coreproject.creator, request.POST['licenseID'])
+            if not verifiedproject:
+                raise Exception(verifiedproject)
+            vreq = CoreProjectVerificationRequest.objects.create(
+                coreproject=coreproject,
+                verifiedproject=verifiedproject,
+                resolved=False
+            )
+            if not vreq:
+                raise Exception('err verrequest', vreq)
+            done = assignModeratorToObject(APPNAME,verifiedproject, coreproject.moderator, requestData,referURL, internal_mod=coreproject.moderation.internal_mod)
+            if not done:
+                verifiedproject.delete()
+                raise Exception('err verrequest moderation assign', done)
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
+            return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
+        elif action == Action.REMOVE:
+            coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
+            if not coreproject.cancel_verification_request():
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+@normal_profile_required
+@require_JSON_body
+def freeVerificationRequest(request: WSGIRequest):
+    try:
+        action = request.POST['action']
+        projID = request.POST['projectID']
+        if action == Action.CREATE:
+            freeproject = FreeProject.objects.get(id=projID,creator=request.user.profile, suspended=False, trashed=False)
+            if not freeproject.can_request_verification():
+                raise ObjectDoesNotExist("cannot request verification: ", freeproject)
+
+            if Project.objects.filter(reponame=freeproject.nickname, creator=request.user.profile).exists():
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+
+            if FreeProjectVerificationRequest.objects.filter(freeproject=freeproject).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
+
+            requestData = request.POST['requestData']
+            referURL = request.POST['referURL']
+            stale_days = str(request.POST.get('stale_days', '')).strip()
+            if not stale_days:
+                stale_days = 3
+            else:
+                stale_days = int(stale_days)
+
+            useInternalMods = request.POST.get('useInternalMods', False)
+
+            verifiedproject = createProject(freeproject.name,freeproject.category.name,freeproject.nickname,freeproject.description,freeproject.creator,freeproject.license.id)
+            if not verifiedproject:
+                raise Exception(verifiedproject)
+            vreq = FreeProjectVerificationRequest.objects.create(
+                freeproject=freeproject,
+                verifiedproject=verifiedproject,
+                resolved=False
+            )
+            if not vreq:
+                raise Exception('err verrequest', vreq)
+
+            mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
+            if not mod:
+                verifiedproject.delete()
+                if useInternalMods:
+                    if request.user.profile.management.total_moderators == 0:
+                        return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
+                raise Exception('err verrequest moderation assign', mod)
+            else:
+                addMethodToAsyncQueue(
+                    f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
+                return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
+        elif action == Action.REMOVE:
+            freeproject = FreeProject.objects.get(id=projID, suspended=False, trashed=False)
+            if not freeproject.cancel_verification_request():
+                return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        return respondJson(Code.OK)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

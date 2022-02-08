@@ -130,15 +130,18 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": env.VAPID_ADMIN_MAIL,
 }
 
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-    'django.contrib.auth.hashers.Argon2PasswordHasher',
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-    'django.contrib.auth.hashers.SHA1PasswordHasher',
-    'django.contrib.auth.hashers.MD5PasswordHasher',
-    'django.contrib.auth.hashers.CryptPasswordHasher'
-]
+if env.ISTESTING:
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+else:
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+        'django.contrib.auth.hashers.Argon2PasswordHasher',
+        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+        'django.contrib.auth.hashers.SHA1PasswordHasher',
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+        'django.contrib.auth.hashers.CryptPasswordHasher'
+    ]
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -162,16 +165,24 @@ if not DEBUG:
         }
     }
 else:
-    DATABASES = {
-        DB.DEFAULT: {
-            "ENGINE": "djongo",
-            "NAME": env.DBNAME,
-            "CLIENT": {
-                "host": DB_HOST_API,
-            },
-            "CONN_MAX_AGE": None if env.ISTESTING else 0
+    if env.ISTESTING:
+        DATABASES = {
+            DB.DEFAULT: {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": ":memory:",
+            }
         }
-    }
+    else:    
+        DATABASES = {
+            DB.DEFAULT: {
+                "ENGINE": "djongo",
+                "NAME": env.DBNAME,
+                "CLIENT": {
+                    "host": DB_HOST_API,
+                },
+                "CONN_MAX_AGE": None if env.ISTESTING else 0
+            }
+        }
 
 if not env.ISTESTING and env.ASYNC_CLUSTER:
     CACHES = {

@@ -1,5 +1,8 @@
+from datetime import timedelta
+from django.utils import timezone
 from projects.models import Category, License
-from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
+from people.tests.utils import getTestUsersInst
 from people.models import User
 from django.test import TestCase, tag
 from main.env import BOTMAIL
@@ -30,11 +33,11 @@ class ModerationMethodTest(TestCase):
         self.mguser = User.objects.create_user(email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
-        self.competition = Competition.objects.create(title=getCompTitle(),creator=self.mguser.profile)
+        self.competition = Competition.objects.create(title=getCompTitle(),creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
         self.competition.judges.add(self.profiles[1])
         self.competition.judges.add(self.profiles[2])
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.project = Project.objects.create(name=getProjName(), creator=self.profiles[3], reponame=getProjRepo(),category=self.category, license=self.license)
         return super().setUpTestData()
 

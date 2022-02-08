@@ -4,7 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from people.models import Topic, User, Profile
 from main.env import BOTMAIL
 from moderation.methods import requestModerationForObject
-from people.tests.utils import getTestName, getTestPassword, getTestEmail, getTestTopicsInst, getTestUsersInst
+from auth2.tests.utils import getTestName, getTestPassword, getTestEmail
+from people.tests.utils import getTestTopicsInst, getTestUsersInst
 from projects.models import *
 from .utils import getLicDesc, getLicName, getProjCategory, getProjImage, getProjName, getProjRepo, getTag, getTestTagsInst
 
@@ -19,7 +20,7 @@ class ProjectTest(TestCase):
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(), creator=self.bot.profile,public=True)
 
     def test_project_create_invalid(self):
         with self.assertRaises(ObjectDoesNotExist):
@@ -48,7 +49,7 @@ class ProjectAttributeTest(TestCase):
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.project = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
 
     def test_project_default_methods(self):
@@ -74,6 +75,8 @@ class ProjectAttributeTest(TestCase):
         self.project.save()
         self.project.image = defaultImagePath()
         self.project.save()
+        self.project.status = Code.MODERATION
+        self.project.save()
         users = User.objects.bulk_create(getTestUsersInst())
         Profile.objects.create(user=users[0], is_moderator=True)
         requestModerationForObject(self.project, APPNAME)
@@ -92,7 +95,7 @@ class TagTest(TestCase):
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.project = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
         return super().setUpTestData()
 
@@ -140,7 +143,7 @@ class CategoryTest(TestCase):
         user = User.objects.create_user(
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.category = Category.objects.create(name=getProjCategory())
         return super().setUpTestData()
 
@@ -191,7 +194,7 @@ class TopicTest(TestCase):
             first_name=getTestName(), password=getTestPassword(), email=getTestEmail())
         self.creator = Profile.objects.get(user=user)
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.project = Project.objects.create(name=getProjName(), creator=self.creator, reponame=getProjRepo(),category=self.category, license=self.license)
         return super().setUpTestData()
 

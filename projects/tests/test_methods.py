@@ -1,9 +1,10 @@
-from people.tests.utils import getTestPassword, getTestUsersInst
 from main.strings import Code
 from people.models import User
 from django.test import TestCase, tag
 from main.env import BOTMAIL
-from .utils import getProjName, getProjRepo, getProjCategory, getProjDesc, getTag, getLicName, getLicDesc, getTestTags
+from auth2.tests.utils import getTestPassword
+from people.tests.utils import getTestUsersInst
+from .utils import getProjName, getProjRepo, getProjCategory, getProjDesc, getTag, getLicName, getLicDesc
 from projects.methods import *
 
 
@@ -17,7 +18,7 @@ class ProjectsMethodTest(TestCase):
         self.creator = Profile.objects.create(user=users[0])
         self.mod = Profile.objects.create(user=users[1], is_moderator=True)
         self.license = License.objects.create(
-            name=getLicName(), description=getLicDesc())
+            name=getLicName(), description=getLicDesc(),creator=self.bot.profile, public=True)
         return super().setUpTestData()
 
     def test_uniqueRepoName(self):
@@ -33,6 +34,7 @@ class ProjectsMethodTest(TestCase):
     def test_addTagToDatabase(self):
         self.assertIsInstance(addTagToDatabase(getTag()), Tag)
 
+    @tag('create')
     def test_createProject(self):
         self.assertIsInstance(createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), self.creator, self.license.getID()), Project)
         pass

@@ -737,7 +737,7 @@ class Profile(models.Model):
         return Profile.objects.filter(successor=self.user)
 
     def getSuccessorInviteLink(self) -> str:
-        return f"{url.getRoot(APPNAME)}{url.people.successorInvite(predID=self.getUserID())}"
+        return f"{url.getRoot(APPNAME)}{url.auth.successorInvite(predID=self.getUserID())}"
 
     @property
     def get_xp(self) -> str:

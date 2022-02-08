@@ -3,7 +3,9 @@ from django.test import TestCase, tag
 from main.tests.utils import getRandomStr
 from main.env import BOTMAIL
 from people.methods import *
-from .utils import getTestBio, getTestEmail, getTestFName, getTestLName, getTestName, getTestPassword
+from auth2.methods import migrateUserAssets
+from auth2.tests.utils import getTestEmail, getTestFName, getTestLName, getTestName, getTestName, getTestPassword
+from .utils import getTestBio
 
 
 @tag(Code.Test.METHOD, APPNAME)

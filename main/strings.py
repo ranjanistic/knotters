@@ -92,6 +92,7 @@ class Code():
     TEXT_PLAIN = 'text/plain'
     APPLICATION_JS = 'application/javascript'
     APPLICATION_XML = 'application/xml'
+    APPLICATION_PDF = "application/pdf"
 
     TOPIC = 'topic'
     CATEGORY = 'category'
@@ -1010,6 +1011,9 @@ class URL():
 
         def coreDeletionRequestAct(self, inviteID):
             return setPathParams(self.CORE_DEL_REQUEST_ACT, inviteID)
+        
+        FREE_VERIFICATION_REQUEST = 'request/verification/0'
+        CORE_VERIFICATION_REQUEST = 'request/verification/2'
 
         def getURLSForClient(self):
             URLS = dict()

@@ -8,7 +8,8 @@ from compete.models import Competition
 from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
 from projects.models import Category, License, Project
 from compete.tests.utils import getCompTitle
-from people.tests.utils import getTestEmail, getTestName, getTestPassword, getTestUsersInst
+from people.tests.utils import getTestUsersInst
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword 
 from moderation.apps import APPNAME
 from .utils import getLocalKey, getLocalValue
 from moderation.models import *
@@ -30,9 +31,9 @@ class ModerationTest(TestCase):
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
         self.competition = Competition.objects.create(
-            title=getCompTitle(), creator=self.mguser.profile)
+            title=getCompTitle(), creator=self.mguser.profile,endAt=timezone.now()+timedelta(days=3))
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.project = Project.objects.create(name=getProjName(), creator=self.profile, reponame=getProjRepo(),category=self.category, license=self.license)
 
         return super().setUpTestData()
@@ -72,14 +73,14 @@ class ModerationAttributeTest(TestCase):
 
         self.profile = Profile.objects.create(user=users[1])
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc())
+        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.project = Project.objects.create(name=getProjName(), creator=self.profile, reponame=getProjRepo(),category=self.category, license=self.license)
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
         self.competition = Competition.objects.create(
-            title=getCompTitle(), creator=self.mguser.profile)
+            title=getCompTitle(), creator=self.mguser.profile,endAt=timezone.now()+timedelta(days=3))
         self.mod = Moderation.objects.create(
             moderator=self.moderator, type=PROJECTS, project=self.project)
 

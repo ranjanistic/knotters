@@ -13,13 +13,11 @@ from django.utils import timezone
 from django.db.models import Q
 from django.conf import settings
 from django.core.cache import cache
-from allauth.account.models import EmailAddress
-from main.decorators import decode_JSON, require_JSON_body, normal_profile_required, manager_only
+from main.decorators import decode_JSON, require_JSON_body, normal_profile_required, manager_only, mentor_only
 from main.methods import addMethodToAsyncQueue, errorLog, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from .models import Competition, ParticipantCertificate, AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
-from .decorators import judge_only
 from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates, rendererstr, rendererstrResponse
 from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
 from .apps import APPNAME
@@ -361,8 +359,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@normal_profile_required
-@judge_only
+@mentor_only
 @require_JSON_body
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
@@ -376,7 +373,6 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
         submissions = Submission.objects.filter(competition__id=compID, competition__judges=request.user.profile,
                                                 competition__resultDeclared=False, competition__endAt__lt=timezone.now(), valid=True).order_by('submitOn')
-
         competition = submissions.first().competition
 
         if competition.allSubmissionsMarkedByJudge(judge=request.user.profile):
@@ -442,7 +438,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
                 profiletopic.increasePoints(by=judgeXP)
         request.user.profile.increaseXP(by=judgeXP)
         return respondJson(Code.OK)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,KeyError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -521,7 +517,6 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         raise Http404(e)
 
 
-# @normal_profile_required
 @require_JSON_body
 def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
     try:
@@ -670,7 +665,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
         if request.user.getID() == userID:
             member = request.user.profile
         else:
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(userID)
         partcert = ParticipantCertificate.objects.get(
             result__id=resID, profile=member)
 
@@ -679,11 +674,11 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
                 response = HttpResponse(
-                    fh.read(), content_type="application/pdf")
+                    fh.read(), content_type=Code.APPLICATION_PDF)
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response
-        raise ObjectDoesNotExist()
+        raise ObjectDoesNotExist(file_path)
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -699,7 +694,7 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
         if request.user.getID() == userID:
             person = request.user.profile
         else:
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(userID)
         appcert = AppreciationCertificate.objects.get(
             competition__id=compID, appreciatee=person)
 
@@ -707,16 +702,16 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
         if os.path.exists(file_path):
             with open(file_path, 'rb') as fh:
                 response = HttpResponse(
-                    fh.read(), content_type="application/pdf")
+                    fh.read(), content_type=Code.APPLICATION_PDF)
                 response['Content-Disposition'] = 'inline; filename=' + \
                     os.path.basename(file_path)
                 return response
-        raise ObjectDoesNotExist()
+        raise ObjectDoesNotExist(file_path)
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 @ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON

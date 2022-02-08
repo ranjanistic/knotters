@@ -1,4 +1,3 @@
-from pydoc import resolve
 import uuid
 from deprecated import deprecated
 from django.db import models
@@ -8,7 +7,7 @@ from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
-from main.strings import CORE_PROJECT, Code, Message, setURLAlerts, url, PEOPLE, project, MANAGEMENT, DOCS
+from main.strings import CORE_PROJECT, Code, Message, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
@@ -526,9 +525,10 @@ class Project(BaseProject):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return (Moderation.objects.filter(project=self, type=APPNAME, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error,success=success)
+                return self.moderation.getLink(alert=alert, error=error,success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
-        except:
+        except Exception as e:
+            errorLog(e)
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
 
     def isApproved(self) -> bool:
@@ -729,7 +729,7 @@ class Project(BaseProject):
             self.save()
         return self.trashed
 
-
+    
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}_{uuid.uuid4().hex}.{fileparts[len(fileparts)-1]}"
@@ -785,6 +785,43 @@ class FreeProject(BaseProject):
 
     def can_invite_profile(self, profile):
         return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile))
+
+    def under_verification_request(self):
+        return FreeProjectVerificationRequest.objects.filter(freeproject=self, resolved=False).exists()
+
+    def cancel_verification_request(self):
+        req = self.current_verification_request()
+        if req:
+            if not req.verifiedproject.isApproved():
+                req.verifiedproject.delete()
+                FreeProjectVerificationRequest.objects.filter(freeproject=self).delete()
+                return True
+        return False
+
+    def current_verification_request(self):
+        try:
+            return FreeProjectVerificationRequest.objects.get(freeproject=self, resolved=False)
+        except:
+            return None
+
+    def can_request_verification(self):
+        return not (self.trashed or self.suspended or self.under_invitation() or self.under_verification_request())
+
+    def request_verification(self):
+        if not self.can_request_deletion():
+            return False
+        return FreeProjectVerificationRequest.objects.create(freeproject=self)
+    
+    def moveToVerified(self) -> bool:
+        try:
+            fpvr = FreeProjectVerificationRequest.objects.get(freeproject=self, resolved=True)
+            if not fpvr.verifiedproject.isApproved():
+                return False
+            self.delete()
+            return True
+        except:
+            return False
+
 
 class FreeRepository(models.Model):
     """
@@ -871,7 +908,7 @@ class CoreProject(BaseProject):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()).getLink(alert=alert, error=error,success=success)
+                return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()).getLink(alert=alert, error=error,success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
         except:
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
@@ -1073,7 +1110,44 @@ class CoreProject(BaseProject):
             self.save()
         return self.trashed
 
+    def under_verification_request(self):
+        return CoreProjectVerificationRequest.objects.filter(coreproject=self, resolved=False).exists()
+
+    def cancel_verification_request(self):
+        req = self.current_verification_request()
+        if req:
+            if not req.verifiedproject.isApproved():
+                req.verifiedproject.delete()
+                CoreProjectVerificationRequest.objects.filter(coreproject=self).delete()
+                return True
+        return False
+
+    def current_verification_request(self):
+        try:
+            return CoreProjectVerificationRequest.objects.get(coreproject=self, resolved=False)
+        except:
+            return None
+
+    def can_request_verification(self):
+        return not (self.trashed or self.suspended or self.under_invitation() or self.under_verification_request())
+
+    def request_verification(self):
+        if not self.can_request_deletion():
+            return False
+        return CoreProjectVerificationRequest.objects.create(coreproject=self)
     
+    def moveToVerified(self) -> bool:
+        try:
+            cpvr = CoreProjectVerificationRequest.objects.get(coreproject=self, resolved=True)
+            if not cpvr.verifiedproject.isApproved():
+                return False
+            self.gh_repo().edit(private=False)
+            self.delete()
+            return True
+        except:
+            return False
+
+
 class LegalDoc(models.Model):
     class Meta:
         unique_together = ('name', 'pseudonym')
@@ -1377,6 +1451,48 @@ class CoreProjectDeletionRequest(Invitation):
         if self.resolved: return False
         self.resolve()
         done = self.coreproject.moveToTrash()
+        if not done:
+            self.unresolve()
+        return done
+
+    def decline(self):
+        self.delete()
+        return True
+
+class FreeProjectVerificationRequest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    freeproject = models.OneToOneField(FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
+    verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
+    
+    class Meta:
+        unique_together = ('freeproject', 'verifiedproject')
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        self.resolve()
+        done = self.freeproject.moveToVerified()
+        if not done:
+            self.unresolve()
+        return done
+
+    def decline(self):
+        self.delete()
+        return True
+
+class CoreProjectVerificationRequest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
+    verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
+    
+    class Meta:
+        unique_together = ('coreproject', 'verifiedproject')
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        self.resolve()
+        done = self.coreproject.moveToVerified()
         if not done:
             self.unresolve()
         return done

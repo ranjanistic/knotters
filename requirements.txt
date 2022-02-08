@@ -51,6 +51,7 @@ fuzzywuzzy==0.18.0
 html5lib==1.1
 http-ece==1.1.0
 idna==2.10
+importlib-metadata==4.10.1
 ipaddress==1.0.23
 jinxed==1.1.0
 jsonfield==3.1.0
@@ -61,6 +62,7 @@ phonenumbers==8.12.31
 Pillow==9.0.0
 ply==3.11
 polib==1.1.1
+psutil==5.8.0
 py-vapid==1.8.2
 pyasn1==0.4.8
 pycodestyle==2.7.0
@@ -92,6 +94,7 @@ six==1.16.0
 sortedcontainers==2.4.0
 soupsieve==2.2.1
 sqlparse==0.2.4
+tblib==1.7.0
 toml==0.10.2
 typing-extensions==3.10.0.0
 ua-parser==0.10.0
@@ -101,3 +104,4 @@ wcwidth==0.2.5
 webencodings==0.5.1
 wrapt==1.12.1
 yarl==1.6.3
+zipp==3.7.0

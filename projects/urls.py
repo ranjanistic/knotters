@@ -60,4 +60,7 @@ urlpatterns = [
     path(URL.Projects.VER_DEL_REQUEST_ACT, verProjectDeleteRequestAction),
     path(URL.Projects.CORE_DEL_REQUEST, coreProjectDeleteRequest),
     path(URL.Projects.CORE_DEL_REQUEST_ACT, coreProjectDeleteRequestAction),
+
+    path(URL.Projects.FREE_VERIFICATION_REQUEST, freeVerificationRequest),
+    path(URL.Projects.CORE_VERIFICATION_REQUEST, coreVerificationRequest),
 ]

@@ -8,7 +8,8 @@ from main.strings import Code, url, template, Message
 from allauth.account.models import EmailAddress
 from main.tests.utils import getRandomStr
 from people.models import Profile, Topic, User
-from people.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword, getTestTopicsInst
+from auth2.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword
+from people.tests.utils import getTestTopicsInst
 from projects.models import Project, License, Category, Tag, defaultImagePath
 from moderation.models import Moderation
 from projects.apps import APPNAME
@@ -23,7 +24,7 @@ class TestViews(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.client = Client()
         self.license = License.objects.create(
-            name=getLicName(), description=getLicDesc())
+            name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         self.email = getTestEmail()
         self.ghID = getTestGHID()
         self.password = getTestPassword()
@@ -37,7 +38,7 @@ class TestViews(TestCase):
         self.modprofile.save()
         self.category = Category.objects.create(name=getProjCategory())
         self.license = License.objects.create(
-            name=getLicName(), description=getLicDesc())
+            name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
         EmailAddress.objects.get_or_create(user=self.user,email=self.email,verified=True,primary=True)
         return super().setUpTestData()
 

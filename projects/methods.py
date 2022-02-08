@@ -47,7 +47,7 @@ def createFreeProject(name: str, category: str, nickname: str, description: str,
         nickname = uniqueRepoName(nickname)
         if not nickname:
             return False
-        license = License.objects.get(id=licenseID)
+        license = License.objects.get(id=licenseID,public=True)
         category = Category.objects.get(id=category)
         project = FreeProject.objects.create(creator=creator, name=name, description=description, category=category, license=license, nickname=nickname)
         socials = []
@@ -75,13 +75,14 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
         reponame = uniqueRepoName(reponame)
         if not reponame:
             return False
-        license = License.objects.get(id=licenseID)
+        license = License.objects.get(id=licenseID,public=True)
         categoryObj = addCategoryToDatabase(category, creator)
         if not categoryObj:
             return False
         return Project.objects.create(
             creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
     except Exception as e:
+        print(e)
         errorLog(e)
         return False
 

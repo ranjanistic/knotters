@@ -3,12 +3,11 @@ from django.http.response import HttpResponseBadRequest
 from django.test import TestCase, Client, tag
 import json
 from main.env import PUBNAME, BOTMAIL, SITE, VERSION
-from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from main.strings import Code, url, template, COMPETE, PEOPLE, PROJECTS, DIVISIONS
 from projects.models import LegalDoc
 from moderation.models import LocalStorage
-from people.tests.utils import getTestEmail, getTestName, getTestPassword
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
 from .utils import root, docroot, authroot, getRandomStr, getLegalName, getLegalPseudonym, getLegalContent
 from compete.methods import *
 
@@ -89,27 +88,6 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.landing)
-
-    def _test_applanding(self):
-        resp = self.client.get(follow=True, path=root(
-            url.applanding(getRandomStr())))
-        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-
-        resp = self.client.get(follow=True, path=root(url.applanding(COMPETE)))
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTemplateUsed(resp, template.index)
-        self.assertTemplateUsed(resp, template.compete.landing)
-
-        resp = self.client.get(follow=True, path=root(url.applanding(PEOPLE)))
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTemplateUsed(resp, template.index)
-        self.assertTemplateUsed(resp, template.people.landing)
-
-        resp = self.client.get(
-            follow=True, path=root(url.applanding(PROJECTS)))
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTemplateUsed(resp, template.index)
-        self.assertTemplateUsed(resp, template.projects.landing)
 
     @tag(Code.Test.STATIC)
     def test_robots(self):

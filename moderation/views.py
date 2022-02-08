@@ -15,6 +15,7 @@ from compete.mailers import submissionsModeratedAlert
 from main.methods import errorLog, respondJson, respondRedirect, addMethodToAsyncQueue, user_device_notify
 from main.strings import CORE_PROJECT, Code, Message, PROJECTS, PEOPLE, COMPETE, URL, Template
 from main.decorators import decode_JSON, require_JSON_body, moderator_only, normal_profile_required
+from projects.models import CoreProjectVerificationRequest, FreeProjectVerificationRequest
 from .apps import APPNAME
 from .mailers import moderationAssignedAlert
 from .models import Moderation
@@ -94,7 +95,6 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
                 raise Exception()
             if mod.request != requestData:
                 mod.request = requestData
-                dp = None
                 user_device_notify(mod.requestor.user, f"Moderation Response Update", f"Requestor said: {requestData}", url=mod.getLink(), image=mod.getImageByType())
                 mod.save()
             return redirect(mod.getLink(alert=Message.REQ_MESSAGE_SAVED))
@@ -145,6 +145,10 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             if not approve:
                 done = mod.reject()
                 if done and mod.type == PROJECTS:
+                    if FreeProjectVerificationRequest.objects.filter(verifiedproject=mod.project,resolved=False).exists():
+                        done = (FreeProjectVerificationRequest.objects.get(verifiedproject=mod.project,resolved=False)).decline()
+                    elif CoreProjectVerificationRequest.objects.filter(verifiedproject=mod.project,resolved=False).exists():
+                        done = (CoreProjectVerificationRequest.objects.get(verifiedproject=mod.project,resolved=False)).decline()
                     addMethodToAsyncQueue(
                         f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}", mod.project)
                 if done and mod.type == CORE_PROJECT:
@@ -155,13 +159,21 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 done = mod.approve()
                 if done:
                     if mod.type == PROJECTS:
-                        done = setupApprovedProject(mod.project, mod.moderator)
+                        if FreeProjectVerificationRequest.objects.filter(verifiedproject=mod.project,resolved=False).exists():
+                            done = (FreeProjectVerificationRequest.objects.get(verifiedproject=mod.project,resolved=False)).accept()
+                            if done:
+                                done = setupApprovedProject(mod.project, mod.moderator)
+                        elif CoreProjectVerificationRequest.objects.filter(verifiedproject=mod.project,resolved=False).exists():
+                            done = (CoreProjectVerificationRequest.objects.get(verifiedproject=mod.project,resolved=False)).accept()
+                        else:
+                            done = setupApprovedProject(mod.project, mod.moderator)
                         if not done:
                             mod.revertApproval()
                     elif mod.type == CORE_PROJECT:
                         done = setupApprovedCoreProject(mod.coreproject, mod.moderator)
                         if not done:
                             mod.revertApproval()
+
                 return respondJson(Code.OK if done else Code.NO, error=Message.ERROR_OCCURRED if not done else str())
             else:
                 return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
