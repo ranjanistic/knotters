@@ -61,7 +61,7 @@ jobs:
         python3 manage.py migrate --noinput
     - name: Run tests
       run: |
-        python3 manage.py test --noinput --verbosity=1 --keepdb --exclude-tag=model --exclude-tag=method
+        python3 manage.py test --noinput --verbosity=1 --parallel --exclude-tag=model --exclude-tag=method
     - name: Clear environment
       run: |
         sudo rm -f ${{ secrets.ENVPATH }}
