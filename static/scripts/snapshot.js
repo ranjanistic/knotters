@@ -43,14 +43,14 @@ const loadSnapshotScroller = async () => {
                         if (done) {
                             observer.observe(
                                 document.querySelector(
-                                    `#snap-${snapshotExcludeIDS[0].replaceAll("-", "")}`
+                                    `#snap-${snapshotExcludeIDS[Math.floor(snapshotExcludeIDS.length/2)].replaceAll("-", "")}`
                                 )
                             );
                         } else {
                             if (navigator.onLine) {
                                 observer.unobserve(
                                     document.querySelector(
-                                        `#snap-${snapshotExcludeIDS[0].replaceAll("-", "")}`
+                                        `#snap-${snapshotExcludeIDS[Math.floor(snapshotExcludeIDS.length/2)].replaceAll("-", "")}`
                                     )
                                 );
                             }
@@ -65,7 +65,7 @@ const loadSnapshotScroller = async () => {
             );
             observer.observe(
                 document.querySelector(
-                    `#snap-${snapshotExcludeIDS[0].replaceAll("-", "")}`
+                    `#snap-${snapshotExcludeIDS[Math.floor(snapshotExcludeIDS.length/2)].replaceAll("-", "")}`
                 )
             );
         }
