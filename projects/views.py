@@ -5,17 +5,15 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models.query_utils import Q, InvalidQuery
+from django.db.models.query_utils import Q
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
 from moderation.views import action
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.conf import settings
-from main.bots import Github
-from allauth.account.models import EmailAddress
 from main.env import PUBNAME
 from main.decorators import github_remote_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
@@ -24,9 +22,9 @@ from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
 from management.models import ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, SnapshotAdmirer, Tag, Category, VerProjectDeletionRequest
+from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
 from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
-from .methods import addTagToDatabase, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .methods import addTagToDatabase, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
 
 
@@ -48,6 +46,21 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
         errorLog(e)
         raise Http404(e)
 
+@decode_JSON
+def public_licenses(request:WSGIRequest) -> HttpResponse:
+    try:
+        content = request.POST.get('content', False)
+        licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('-default')
+        publices = []
+        for l in licenses:
+            if content:
+                publices.append(dict(id=l.id, name=l.name, keyword=l.keyword, description=l.description, content=l.content))
+            else:
+                publices.append(dict(id=l.id, name=l.name, keyword=l.keyword, description=l.description,))
+        return respondJson(Code.OK, dict(licenses=publices))
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 @require_GET
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
@@ -245,7 +258,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         if not mod:
             projectobj.delete()
             if useInternalMods:
-                if request.user.profile.management.total_moderators == 0:
+                if request.user.profile.management().total_moderators == 0:
                     if json_body:
                         return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
                     return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.NO_INTERNAL_MODERATORS)
@@ -342,7 +355,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
         if not mod:
             projectobj.delete()
             if useInternalMods:
-                if request.user.profile.management.total_moderators == 0:
+                if request.user.profile.management().total_moderators == 0:
                     if json_body:
                         return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
                     return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.NO_INTERNAL_MODERATORS)
@@ -419,10 +432,22 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 
 @require_GET
+def profileBase(request: WSGIRequest, nickname: str) -> HttpResponse:
+    try:
+        project = FreeProject.objects.filter(nickname=nickname,trashed=False).first()
+        if not project:
+            project = Project.objects.filter(reponame=nickname,trashed=False).first()
+            if not project:
+                project = CoreProject.objects.get(codename=nickname,trashed=False)
+        return redirect(project.get_link)
+    except:
+        raise Http404()
+
+@require_GET
 def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
     try:
-        coreproject = CoreProject.objects.get(codename=codename, trashed=False, suspended=False)
-        if coreproject.status == Code.APPROVED:
+        try:
+            coreproject = CoreProject.objects.get(codename=codename, trashed=False, status=Code.APPROVED)
             iscreator = False if not request.user.is_authenticated else coreproject.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else coreproject.moderator == request.user.profile
             if coreproject.suspended and not (iscreator or ismoderator):
@@ -430,14 +455,15 @@ def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
             isAdmirer = request.user.is_authenticated and coreproject.isAdmirer(
                 request.user.profile)
             return renderer(request, Template.Projects.PROFILE_CORE, dict(project=coreproject, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
-        else:
+        except:
             if request.user.is_authenticated:
+                coreproject = CoreProject.objects.get(codename=codename, trashed=False, status__in=[Code.MODERATION,Code.REJECTED])
                 mod = Moderation.objects.filter(coreproject=coreproject, type=CORE_PROJECT, status__in=[
                     Code.REJECTED, Code.MODERATION]).order_by('-respondOn','-requestOn').first()
                 if coreproject.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
             raise ObjectDoesNotExist(codename)
-    except ObjectDoesNotExist as e:
+    except (ObjectDoesNotExist,ValidationError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
@@ -454,18 +480,19 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
             request.user.profile)
         return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
-    except ObjectDoesNotExist as e:
-        return profileCore(request, nickname)
+    except (ObjectDoesNotExist,ValidationError) as e:
+        raise Http404(e)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 
 @require_GET
 def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
-        project = Project.objects.get(
-            reponame=reponame, trashed=False, suspended=False)
-        if project.status == Code.APPROVED:
+        try:
+            project = Project.objects.get(
+                reponame=reponame, trashed=False, status=Code.APPROVED)
             iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
             ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
             if project.suspended and not (iscreator or ismoderator):
@@ -473,16 +500,18 @@ def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
             isAdmirer = request.user.is_authenticated and project.isAdmirer(
                 request.user.profile)
             return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
-        else:
+        except Exception as e:
             if request.user.is_authenticated:
+                project = Project.objects.get(reponame=reponame, trashed=False, status__in=[Code.MODERATION,Code.REJECTED])
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
                     Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
             raise ObjectDoesNotExist(reponame)
-    except ObjectDoesNotExist as e:
-        return profileFree(request, reponame)
+    except (ObjectDoesNotExist,ValidationError) as e:
+        raise Http404(e)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 
@@ -1213,8 +1242,7 @@ def browseSearch(request: WSGIRequest):
 
         projects = cache.get(cachekey,[])
         
-        if not len(projects):
-            
+        if not len(projects):    
             specials = ('tag:', 'category:', 'topic:', 'creator:', 'license:', 'type:')
             verified = None
             core = None
@@ -1876,15 +1904,21 @@ def coreVerificationRequest(request: WSGIRequest):
             if not coreproject.can_request_verification():
                 raise ObjectDoesNotExist("cannot request verification: ", coreproject)
 
-            if Project.objects.filter(reponame=coreproject.codename, creator=request.user.profile).exists():
+            if Project.objects.filter(reponame=coreproject.codename, creator=request.user.profile, status__in=[Code.MODERATION,Code.APPROVED], trashed=False).exists():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
             if CoreProjectVerificationRequest.objects.filter(coreproject=coreproject).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
-            requestData = request.POST['requestData']
-            referURL = request.POST['referURL']
 
-            verifiedproject = createProject(coreproject.name,coreproject.category.name,coreproject.codename,coreproject.description,coreproject.creator, request.POST['licenseID'])
+            if not request.user.profile.has_ghID():
+                return respondJson(Code.NO, error=Message.GH_ID_NOT_LINKED)
+
+            requestData = request.POST['requestData']
+            stale_days = int(request.POST.get("stale_days", 3))
+            stale_days = stale_days if stale_days in range(1,16) else coreproject.moderation.stale_days
+            referURL = coreproject.get_abs_link
+
+            verifiedproject = createConversionProjectFromCore(coreproject, request.POST['licenseID'])
             if not verifiedproject:
                 raise Exception(verifiedproject)
             vreq = CoreProjectVerificationRequest.objects.create(
@@ -1894,7 +1928,11 @@ def coreVerificationRequest(request: WSGIRequest):
             )
             if not vreq:
                 raise Exception('err verrequest', vreq)
-            done = assignModeratorToObject(APPNAME,verifiedproject, coreproject.moderator, requestData,referURL, internal_mod=coreproject.moderation.internal_mod)
+            verifiedproject.image = coreproject.image
+            verifiedproject.topics.set(coreproject.topics.all())
+            verifiedproject.tags.set(coreproject.tags.all())
+            verifiedproject.save()
+            done = assignModeratorToObject(APPNAME,verifiedproject, coreproject.moderator, requestData,referURL,stale_days, internal_mod=coreproject.moderation.internal_mod)
             if not done:
                 verifiedproject.delete()
                 raise Exception('err verrequest moderation assign', done)
@@ -1922,23 +1960,25 @@ def freeVerificationRequest(request: WSGIRequest):
             if not freeproject.can_request_verification():
                 raise ObjectDoesNotExist("cannot request verification: ", freeproject)
 
-            if Project.objects.filter(reponame=freeproject.nickname, creator=request.user.profile).exists():
+            if Project.objects.filter(reponame=freeproject.nickname, creator=request.user.profile, status__in=[Code.MODERATION,Code.APPROVED], trashed=False).exists():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
             if FreeProjectVerificationRequest.objects.filter(freeproject=freeproject).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
 
+            if not request.user.profile.has_ghID():
+                return respondJson(Code.NO, error=Message.GH_ID_NOT_LINKED)
+
             requestData = request.POST['requestData']
-            referURL = request.POST['referURL']
-            stale_days = str(request.POST.get('stale_days', '')).strip()
-            if not stale_days:
-                stale_days = 3
-            else:
-                stale_days = int(stale_days)
+            stale_days = int(request.POST.get("stale_days", 3))
+            stale_days = stale_days if stale_days in range(1,16) else 3
+            referURL = freeproject.get_abs_link
 
             useInternalMods = request.POST.get('useInternalMods', False)
+            if useInternalMods and not request.user.profile.is_manager():
+                useInternalMods = False
 
-            verifiedproject = createProject(freeproject.name,freeproject.category.name,freeproject.nickname,freeproject.description,freeproject.creator,freeproject.license.id)
+            verifiedproject = createConversionProjectFromFree(freeproject)
             if not verifiedproject:
                 raise Exception(verifiedproject)
             vreq = FreeProjectVerificationRequest.objects.create(
@@ -1948,12 +1988,15 @@ def freeVerificationRequest(request: WSGIRequest):
             )
             if not vreq:
                 raise Exception('err verrequest', vreq)
-
+            verifiedproject.image = freeproject.image
+            verifiedproject.topics.set(freeproject.topics.all())
+            verifiedproject.tags.set(freeproject.tags.all())
+            verifiedproject.save()
             mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
             if not mod:
                 verifiedproject.delete()
                 if useInternalMods:
-                    if request.user.profile.management.total_moderators == 0:
+                    if request.user.profile.management().total_moderators == 0:
                         return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
                 raise Exception('err verrequest moderation assign', mod)
             else:

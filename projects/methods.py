@@ -8,14 +8,14 @@ from django.http.response import HttpResponse
 from allauth.account.models import EmailAddress
 from django_q.models import Success
 from management.models import HookRecord
-from people.models import Profile
+from people.models import Profile, Topic
 from github import NamedUser, Repository
 from main.bots import GithubKnotters
 from main.strings import Code, Event, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
 from main.env import ISPRODUCTION, SITE
-from .models import Category, CoreProject, FileExtension, FreeProject, License, Project, ProjectHookRecord, ProjectSocial, Tag
+from .models import Category, CoreProject, CoreProjectVerificationRequest, FileExtension, FreeProject, FreeProjectVerificationRequest, License, Project, ProjectHookRecord, ProjectSocial, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification, sendCoreProjectApprovedNotification
 
@@ -59,7 +59,7 @@ def createFreeProject(name: str, category: str, nickname: str, description: str,
         errorLog(e)
         return False
 
-def createProject(name: str, category: str, reponame: str, description: str, creator: Profile, licenseID: UUID, url: str = str()) -> Project or bool:
+def createProject(name: str, category: str, reponame: str, description: str, creator: Profile, licenseID: UUID, url: str = str(), forConversion = False) -> Project or bool:
     """
     Creates project on knotters under moderation status.
 
@@ -72,7 +72,7 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
     :url: A display link for project, optional
     """
     try:
-        reponame = uniqueRepoName(reponame)
+        reponame = uniqueRepoName(reponame, forConversion)
         if not reponame:
             return False
         license = License.objects.get(id=licenseID,public=True)
@@ -82,7 +82,6 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
         return Project.objects.create(
             creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
     except Exception as e:
-        print(e)
         errorLog(e)
         return False
 
@@ -106,6 +105,38 @@ def createCoreProject(name: str, category: Category, codename: str, description:
         errorLog(e)
         return False
 
+def createConversionProjectFromFree(freeproject:FreeProject) -> Project:    
+    try:
+        if Project.objects.filter(reponame=freeproject.nickname,status__in=[Code.MODERATION,Code.APPROVED], trashed=False,suspended=False).exists():
+            return False
+        return Project.objects.create(
+            creator=freeproject.creator,
+            name=freeproject.name,
+            reponame=freeproject.nickname,
+            description=freeproject.description,
+            category=freeproject.category,
+            license=freeproject.license
+        )
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def createConversionProjectFromCore(coreproject:CoreProject, licenseID: UUID) -> Project:    
+    try:
+        if Project.objects.filter(reponame=coreproject.codename,status__in=[Code.MODERATION,Code.APPROVED], trashed=False,suspended=False).exists():
+            return False
+        license = License.objects.get(id=licenseID,public=True)
+        return Project.objects.create(
+            creator=coreproject.creator,
+            name=coreproject.name,
+            reponame=coreproject.codename,
+            description=coreproject.description,
+            category=coreproject.category,
+            license=license
+        )
+    except Exception as e:
+        errorLog(e)
+        return False
 
 def addCategoryToDatabase(category: str, creator = None) -> Category:
     category = str(category).strip().replace('\n', str())
@@ -133,7 +164,7 @@ def addTagToDatabase(tag: str, creator = None) -> Tag:
     return tagobj
 
 
-def uniqueRepoName(reponame: str) -> bool:
+def uniqueRepoName(reponame: str, forConversion = False) -> bool:
     """
     Checks for unique repository name among existing projects
     """
@@ -150,10 +181,27 @@ def uniqueRepoName(reponame: str) -> bool:
             return False
         if project.underModeration() or project.isApproved():
             return False
-    elif FreeProject.objects.filter(nickname__iexact=str(reponame), trashed=False).exists():
-        return False
-    return reponame if reponame and reponame != str() else False
 
+    if FreeProject.objects.filter(nickname__iexact=str(reponame), trashed=False).exists():
+        if not (forConversion and FreeProjectVerificationRequest.objects.filter(freeproject__nickname__iexact=str(reponame), resolved=False).exists()):
+            return False
+        else:
+            return False
+
+    project = CoreProject.objects.filter(
+        codename=str(reponame), trashed=False).first()
+    if project:
+        if project.rejected() and project.canRetryModeration():
+            return False
+        if project.underModeration():
+            return False
+        if project.isApproved():
+            if not (forConversion and CoreProjectVerificationRequest.objects.filter(coreproject__nickname__iexact=str(reponame), resolved=False).exists()):
+                return False
+            else:
+                return False
+            
+    return reponame if reponame and reponame != str() else False
 
 
 def uniqueTag(tagname: str) -> Tag:
@@ -180,7 +228,7 @@ def setupApprovedProject(project: Project, moderator: Profile) -> bool:
         task = cache.get(f'approved_project_setup_{project.id}')
         if task in [Message.SETTING_APPROVED_PROJECT]:
             return True
-        cache.set(f'approved_project_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
+        cache.set(f'approved_project_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, settings.CACHE_LONG)
         addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}",project,moderator)
         return True
     except Exception as e:
@@ -201,7 +249,7 @@ def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> bool:
         task = cache.get(f'approved_coreproject_setup_{project.id}')
         if task in [Message.SETTING_APPROVED_PROJECT]:
             return True
-        cache.set(f'approved_coreproject_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, None)
+        cache.set(f'approved_coreproject_setup_{project.id}', Message.SETTING_APPROVED_PROJECT, settings.CACHE_LONG)
         addMethodToAsyncQueue(f"{APPNAME}.methods.{setupOrgCoreGihtubRepository.__name__}",project,moderator)
         return True
     except Exception as e:
@@ -348,7 +396,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
             msg += f'hook err: {e},'
             pass
         
-        cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
+        cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
         return True, msg
     except Exception as e:
@@ -466,7 +514,7 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
             msg += f'hook err: {e},'
             pass
         
-        cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, None)
+        cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendCoreProjectApprovedNotification.__name__}",coreproject)
         return True, msg
     except Exception as e:
@@ -586,6 +634,9 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
         hookrecord = HookRecord.objects.get(id=hookrecordID, success=False)
         if ghevent == Event.PUSH:
             commits = postData["commits"]
+            repository = postData["repository"]
+            if not Topic.objects.filter(name__iexact=repository['language']).exists():
+                Topic.objects.create(name=repository['language'])
             committers = {}
             un_committers = []
             for commit in commits:
@@ -629,7 +680,6 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                                     fileext.topics.set(ftops|project.topics.all())
                             except:
                                 pass
-                       # extensions[ext]['topics'] = list(set(extensions[ext]['topics'] + list(fileext.getTopics())))
                         for topic in fileext.topics.all():
                             hastopic = False
                             increase = True
@@ -648,7 +698,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                             if increase:
                                 by = 1
                                 commit_committer.increaseTopicPoints(
-                                    topic=topic, by=by, notify = False)
+                                    topic=topic, by=by, notify = False, reason=f"{commit_author_ghID} committed to {project.name}")
                                 if hastopic:
                                     extensions[ext]['topics'][tpos]['xp'] = lastxp+by
                                 else:
@@ -656,57 +706,77 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                                         dict(topic=topic, xp=(lastxp+by)))
             if len(changed) > 1:
                 project.creator.increaseXP(
-                    by=(((len(commits)//len(committers))//2) or 1),notify = False)
+                    by=(((len(commits)//len(committers))//2) or 1),notify = False, reason=f"Commits pushed to {project.name}")
                 project.moderator.increaseXP(
-                    by=(((len(commits)//len(committers))//3) or 1),notify = False)
+                    by=(((len(commits)//len(committers))//3) or 1),notify = False, reason=f"Commits pushed to {project.name}")
         elif ghevent == Event.PR:
             pr = postData.get('pull_request', None)
-            if pr:
-                action = postData.get('action', None)
-                pr_creator_ghID = pr['user']['login']
-                if action == 'opened':
-                    pr_creator = Profile.objects.filter(
-                        githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
+            action = postData.get('action', None)
+            pr_creator_ghID = pr['user']['login']
+            if action == 'opened':
+                pr_creator = Profile.objects.filter(
+                    githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
+                if pr_creator:
+                    pr_creator.increaseXP(by=2,notify = False, reason=f"PR opened by {pr_creator_ghID} on {project.name}")
+            elif action == 'closed':
+                pr_creator = Profile.objects.filter(
+                    githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
+                if pr['merged']:
                     if pr_creator:
-                        pr_creator.increaseXP(by=2,notify = False)
-                elif action == 'closed':
-                    pr_creator = Profile.objects.filter(
-                        githubID=pr_creator_ghID, is_active=True, suspended=False,to_be_zombie=False).first()
-                    if pr['merged']:
-                        if pr_creator:
-                            pr_creator.increaseXP(by=3,notify = False)
-                        project.creator.increaseXP(by=2,notify = False)
-                        project.moderator.increaseXP(by=1,notify = False)
-                    else:
-                        if pr_creator:
-                            pr_creator.decreaseXP(by=2)
-                elif action == 'reopened':
-                    pr_creator = Profile.objects.filter(
-                        githubID=pr_creator_ghID, is_active=True ,suspended=False,to_be_zombie=False).first()
-                    if pr_creator:
-                        pr_creator.increaseXP(by=2,notify = False)
-                elif action == 'review_requested':
-                    pr_reviewer = Profile.objects.filter(
-                        githubID=pr['requested_reviewer']['login'], is_active=True, suspended=False,to_be_zombie=False).first()
-                    if pr_reviewer:
-                        pr_reviewer.increaseXP(by=4,notify = False)
-                elif action == 'review_request_removed':
-                    pr_reviewer = Profile.objects.filter(
-                        githubID=pr['requested_reviewer']['login'], is_active=True, suspended=False,to_be_zombie=False).first()
-                    if pr_reviewer:
-                        pr_reviewer.decreaseXP(by=3)
+                        pr_creator.increaseXP(by=3,notify = False, reason=f"PR by {pr_creator_ghID} merged on {project.name}")
+                    project.creator.increaseXP(by=1,notify = False , reason=f"PR by {pr_creator_ghID} merged on {project.name}")
+                    project.moderator.increaseXP(by=1,notify = False , reason=f"PR by {pr_creator_ghID} merged on {project.name}")
                 else:
-                    return False, f"Unhandled '{ghevent}' action: {action}"
+                    if pr_creator:
+                        pr_creator.decreaseXP(by=2, notify = False, reason=f"PR by {pr_creator_ghID} closed unmerged on {project.name}")
+            elif action == 'reopened':
+                pr_creator = Profile.objects.filter(
+                    githubID=pr_creator_ghID, is_active=True ,suspended=False,to_be_zombie=False).first()
+                if pr_creator:
+                    pr_creator.increaseXP(by=2,notify = False, reason=f"PR by {pr_creator_ghID} reopened on {project.name}")
+            elif action == 'review_requested':
+                reviewer_gh_id = pr['requested_reviewer']['login']
+                pr_reviewer = Profile.objects.filter(
+                    githubID=reviewer_gh_id, is_active=True, suspended=False,to_be_zombie=False).first()
+                if pr_reviewer:
+                    pr_reviewer.increaseXP(by=2, notify=False, reason=f"PR by {pr_creator_ghID} requested review by {reviewer_gh_id} on {project.name}")
+            elif action == 'review_request_removed':
+                reviewer_gh_id = pr['requested_reviewer']['login']
+                pr_reviewer = Profile.objects.filter(
+                    githubID=reviewer_gh_id, is_active=True, suspended=False,to_be_zombie=False).first()
+                if pr_reviewer:
+                    pr_reviewer.decreaseXP(by=2, notify=False, reason=f"PR by {pr_creator_ghID} removed review by {reviewer_gh_id} on {project.name}")
             else:
-                return False, f"Unhandled '{ghevent}': no pull_request data"
+                return False, f"Unhandled '{ghevent}' action: {action}"
+        elif ghevent == Event.PR_REVIEW:
+            pr = postData.get('pull_request', None)
+            pr_creator_ghID = pr['user']['login']
+            review = postData.get('review', None)
+            action = postData.get('action', None)
+            reviewer_gh_id = review['user']['login']
+            # pr['requested_reviewers']
+            if action == 'submitted':
+                pr_reviewer = Profile.objects.filter(
+                    githubID=reviewer_gh_id, is_active=True, suspended=False,to_be_zombie=False).first()
+                if pr_reviewer:
+                    for topic in project.topics.all():
+                        pr_reviewer.increaseTopicPoints(topic=topic, by=1,notify=False, reason=f"PR by {pr_creator_ghID} reviewed by {reviewer_gh_id} on {project.name}")
+            elif action == 'dismissed':
+                pr_reviewer = Profile.objects.filter(
+                    githubID=reviewer_gh_id, is_active=True, suspended=False,to_be_zombie=False).first()
+                if pr_reviewer:
+                    for topic in project.topics.all():
+                        pr_reviewer.decreaseTopicPoints(topic=topic, by=1,notify=False, reason=f"PR by {pr_creator_ghID} dismissed review by {reviewer_gh_id} on {project.name}")
+            else:
+                return False, f"Unhandled '{ghevent}' action: {action}"
         elif ghevent == Event.STAR:
             action = postData.get('action', None)
             if action == 'created':
-                project.creator.increaseXP(by=2,notify = False)
-                project.moderator.increaseXP(by=1,notify = False)
+                project.creator.increaseXP(by=1,notify = False, reason=f"Starred {project.name}")
+                project.moderator.increaseXP(by=1,notify = False, reason=f"Starred {project.name}")
             elif action == 'deleted':
-                project.creator.decreaseXP(by=2)
-                project.moderator.decreaseXP(by=1)
+                project.creator.decreaseXP(by=1, notify = False, reason=f"Unstarred {project.name}")
+                project.moderator.decreaseXP(by=1, notify = False, reason=f"Unstarred {project.name}")
             else:
                 return False, f"Unhandled '{ghevent}' action: {action}"
         else:

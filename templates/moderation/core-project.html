@@ -46,19 +46,20 @@
         <strong>{{moderation.requestor.get_name}}'s request</strong>
         {% if ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">{% trans "Report" %}</button><br/>{% endif %}
         <textarea required name="requestdata" class="wide" rows="4" maxlength="6000" placeholder="{% trans "This is visible to the moderator." %}"
-        {% if ismoderator or moderation.resolved %}disabled{% endif %}
+
+        {% if ismoderator or moderation.resolved or moderation.coreproject.trashed %}disabled{% endif %}
         >{{moderation.request}}</textarea>
-        {% if not ismoderator and not moderation.resolved and not moderation.is_stale %}
+        {% if not ismoderator and not moderation.resolved and not moderation.is_stale and not moderation.coreproject.trashed %}
         <button type="submit" class="positive small w3-right" data-icon="send">{% trans "Save" %}</button>
         {% endif %}
         <br/><br/>
         <strong>{{moderation.moderator.get_name}}'s response</strong>
         <textarea required name="responsedata" class="wide" rows="4" maxlength="8000"
-        {% if not ismoderator or moderation.resolved or moderation.is_stale%}disabled placeholder="{% trans "No response" %}"{% endif %}
+        {% if not ismoderator or moderation.resolved or moderation.is_stale %}disabled placeholder="{% trans "No response" %}"{% endif %}
         {% if ismoderator and not moderation.resolved %}placeholder="{% trans "This is visible to the requestor." %}"{% endif %}
         >{% if moderation.response %}{{moderation.response}}{% endif %}</textarea>
         {% if not ismoderator %}<button class="w3-right small negative-text primary" type='button' data-icon="report" id="report-moderation">{% trans "Report" %}</button><br/>{% endif %}
-        {% if ismoderator and not moderation.resolved and not moderation.is_stale %}
+        {% if ismoderator and not moderation.resolved and not moderation.is_stale and not moderation.coreproject.trashed %}
         <button type="submit" class="positive small w3-right" data-icon="send">{% trans "Save" %}</button>
         {% endif %}
         </form>
@@ -70,7 +71,7 @@
     <div class="w3-col w3-half w3-padding">
         <div class="w3-row pallete positive-text w3-center">
         <br/>
-        {% if ismoderator and not moderation.resolved %}
+        {% if ismoderator and not moderation.resolved and not moderation.coreproject.trashed %}
             <i class="w3-jumbo">warning</i>
             <h3 class="">{% trans "Take Action" %}</h3>
             {% if moderation.is_stale %}
@@ -85,9 +86,9 @@
             <br/><strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
             {% endif %}
         {% else %}
-            <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% else %}pending{% endif %}</i>
+            <i class="w3-jumbo">{% if moderation.resolved %}task_alt{% elif moderation.coreproject.trashed %}delete{% else %}pending{% endif %}</i>
             <h3>Action {% if moderation.resolved %}taken{% endif %}</h3>
-            <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% else %}{% trans "Pending" %}{% endif %}</h4>
+            <h4>{% if moderation.resolved %}{{moderation.status|capfirst}}{% elif moderation.coreproject.trashed %}Deleted{% else %}{% trans "Pending" %}{% endif %}</h4>
             {% if moderation.coreproject.isLive and moderation.resolved %} 
             <a href="{{moderation.coreproject.getLink}}" target="_blank"><button class="positive" data-icon="open_in_new">{% trans "View project" %}</button></a>
             {% endif %}
@@ -95,12 +96,9 @@
                 {% if forwarded %}
                     <h4>{% trans "Moderation re-applied" %}</h4>
                     <a href="{{forwarded.getLink}}"><button class="positive" data-icon="open_in_new">{% trans "View moderation" %}</button></a>
-                {% elif moderation.coreproject.trashed %}
-                    <h4>{% trans "Project deleted" %}</h4>
                 {% else %}
                     {% if not moderation.resolved %}
                         {% if moderation.is_stale %}
-                        
                             <h2>No activity for {{moderation.stale_days|or:3}} days.</h2>
                             {% if moderation.coreproject.canRetryModeration %}
                                 <h2>{{moderation.coreproject.moderationRetriesLeft}} {% trans "retry left." %}</h2>
@@ -113,7 +111,7 @@
                             <strong>Expires after {{moderation.stale_days|or:3}} days of no response</strong>
                         {% endif %}
                     {% endif %}
-                    {% if not forwarded and not moderation.coreproject.trashed and not moderation.isApproved %}
+                    {% if not moderation.isApproved and not moderation.coreproject.trashed %}
                         <form method="POST" action="{{URLS.PROJECTS}}{{moderation.coreproject.getTrashLink}}">
                         {% csrf_token %}
                         <br/>

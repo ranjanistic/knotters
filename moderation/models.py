@@ -114,13 +114,13 @@ class Moderation(models.Model):
             return self.competition.isJudge(profile) or self.requestor == profile
 
     def isPending(self) -> bool:
-        return self.status == Code.MODERATION
+        return self.status == Code.MODERATION and not self.resolved
 
     def isRejected(self) -> bool:
-        return self.status == Code.REJECTED
+        return self.status == Code.REJECTED and self.resolved
 
     def isApproved(self) -> bool:
-        return self.status == Code.APPROVED
+        return self.status == Code.APPROVED and self.resolved
 
     def getModerateeFieldByType(self, type: str = '') -> models.Model:
         type = type if type else self.type

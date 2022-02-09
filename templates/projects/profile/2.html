@@ -287,7 +287,8 @@
                         <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_invitation.expiresOn}}</b>
                         {% if iscreator %}<button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>{% endif %}
-                    {% elif iscreator and project.can_invite_owner %}
+                    {% endif %}
+                    {% if iscreator and project.can_invite_owner %}
                         <br/>
                         <button class="negative" id='transfer-project' data-icon="schedule_send">Transfer Project</button>
                     {% endif %}
@@ -296,7 +297,8 @@
                         <a onclick="miniWindow('{{project.current_mod_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_mod_invitation.receiver.get_dp}}" width="25" />{{project.current_mod_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_mod_invitation.expiresOn}}</b>
                         {% if ismoderator %}<button class="negative small" id='delete-project-mod-invitation' data-icon="delete">Delete</button>{% endif %}
-                    {% elif ismoderator and project.can_invite_mod %}
+                    {% endif %}
+                    {% if ismoderator and project.can_invite_mod %}
                         <br/>
                         <button class="negative" id='transfer-project-mod' data-icon="schedule_send">Transfer Project Moderatorship</button>
                     {% endif %}
@@ -305,8 +307,19 @@
                         Expires on: {{ project.current_del_request.expiresOn }}<br/>
                         {% if ismoderator %}<a href="{{project.current_del_request.get_link}}" target="_blank"><button class="accent" data-icon="open_in_new">View request</button></a>{% endif %}
                         {% if iscreator %}<button class="accent" id='cancel-delete-project-request' data-icon="close">Cancel deletion request</button>{% endif %}
-                    {% elif iscreator and project.can_request_deletion  %}
+                    {% endif %}
+                    {% if iscreator and project.can_request_deletion  %}
                         <button class="negative" id='delete-project-request' data-icon="delete">Request Project Deletion</button>
+                    {% endif %}
+                    {% if project.under_verification_request %}
+                        <h6>Under verification review</h6>
+                        <a href="{{project.current_verification_request.getLink}}" target="_blank"><button class="accent" data-icon="open_in_new">View verification status</button></a>
+                        {% if iscreator %}
+                        <button class="negative" id="cancel-verification-request" data-icon="close">Cancel verification request</button>
+                        {% endif %}
+                    {% endif %}
+                    {% if iscreator and project.can_request_verification %}
+                        <button class="accent" id="request-verification" data-icon="pending">Request verification</button>
                     {% endif %}
                     </div>
                 </div>
@@ -393,32 +406,8 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
 
 {% if not project.suspended %}
 
-    {% if iscreator or ismoderator %}
-        getElement('save-edit-projecttags').onclick= async ()=> {
-            var obj = getFormDataById("edit-tag-inputs");
-            var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
-                addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-            });
-            if (resp.code===code.OK){
-                subLoader()
-                return window.location.reload()
-            }
-            error(resp.error)
-        }
-
-        getElement('sociallinks-add').onclick=_=>{
-            const parent=getElement('edit-sociallinks-inputs');
-            if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-            const linkNumber=parent.childElementCount+1;
-            const newChild=document.createElement('div');
-            newChild.innerHTML = `
-                <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-            `;
-            parent.insertBefore(newChild,parent.childNodes[0]);
-        }
-
-        {% if iscreator and project.can_invite_owner %}
-        
+    {% if iscreator %}
+        {% if project.can_invite_owner %}
         getElement('transfer-project').onclick=(e)=>{
             Swal.fire({
                 title: 'Transfer project',
@@ -456,7 +445,7 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 }
             })
         }
-        {% elif iscreator and project.under_invitation %}
+        {% elif project.under_invitation %}
             getElement('delete-project-invitation').onclick=async(e)=>{
                 message("Deleting invitation...");
                 const data = await postRequest2({
@@ -473,9 +462,175 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 error(data.error)
             }
         {% endif %}
-        
-        {% if not project.under_mod_invitation and ismoderator %}
-        
+        {% if project.under_del_request %}
+            getElement('cancel-delete-project-request').onclick=async(e)=>{
+                message("Cancelling deletion request...");
+                const data = await postRequest2({
+                    path: setUrlParams(URLS.TRASH, projectID),
+                    data: {
+                        action: 'remove',
+                        projectID,
+                    },
+                    retainCache: true
+                })
+                if(data.code===code.OK){
+                    futuremessage("Deletion request cancelled.")
+                    return window.location.reload()
+                }
+                error(data.error)
+            }
+        {% elif project.can_request_deletion %}
+            getElement('delete-project-request').onclick=async(e)=>{
+                Swal.fire({
+                    title: 'Request project deletion',
+                    html: `<h6>Are you sure you want to request permanent deletion of '{{project.nickname}}' project?<br/>
+                    The request will be sent to the moderator to decide.</h6>
+                    `,
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                    cancelButtonText: 'No, go back',
+                    showDenyButton: true,
+                    denyButtonText: 'Yes, request deletion',
+                    preConfirm: async () => {
+                    
+                    }
+                }).then(async (result) => {
+                    if (result.isDenied) {
+                        message("Requesting project deletion...");
+                        const data = await postRequest2({
+                            path: setUrlParams(URLS.TRASH, projectID),
+                            data: {
+                                action: 'create',
+                                projectID,
+                            },
+                            retainCache: true
+                        })
+                        if(data.code===code.OK){
+                            futuremessage("Deletion request sent.")
+                            return window.location.reload()
+                        }
+                        error(data.error)
+                        
+                    }
+                });
+            }
+        {% endif %}
+
+        {% if project.can_request_verification %}
+        getElement('request-verification').onclick=async(e)=>{
+            const ldata = await getRequest2({path:URLS.PUB_LICENSES});
+            if(!ldata||ldata.code!=CODE.OK) return error(ldata.error);
+            const licenses = ldata.licenses.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+            Swal.fire({
+                title: 'Request verification',
+                html: `
+                    <strong>
+                    By requesting verification, you are submitting your project for review by the current moderator.
+                    If approved, your project will no longer exist as Core project, and the linked source code will be made publicly visible,
+                    and your project will become a verified project on Knotters.</strong>
+                    <br/><br/>
+                    Choose a license<br/>
+                    <select class="pallete-slab positive-text wide" id="verification-license">
+                        ${licenses}
+                    </select>
+                    <br/>
+                    Project detail for moderator to read<br/>
+                    <textarea class="wide" placeholder="Reason for verification" id="request-verification-reason"></textarea>
+                    <br/>
+                    Maximum days to review<br/>
+                    <input type="number" class="wide" min="1" max="15" placeholder="Stale days (min 1, max 15)" value="3" id="request-verification-stale-days" />
+                    <br/>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Send Request',
+                cancelButtonText: 'Cancel',
+                preConfirm: async () => {
+                    const licenseID = getElement('verification-license').value.trim()
+                    if(!licenseID){
+                        error('License required');
+                        return false;
+                    }
+                    const reason = getElement('request-verification-reason').value.trim()
+                    if(!reason){
+                        error('Reason required')
+                        return false;
+                    }
+                    const stale_days = getElement('request-verification-stale-days').value
+                    if(!stale_days){
+                        error('Stale days required')
+                        return false;
+                    }
+                    return {
+                        reason,
+                        stale_days:Number(stale_days), 
+                        licenseID
+                    }
+                }
+            }).then(async(result)=>{
+                if(result.isConfirmed){
+                    loader()
+                    message("Sending request...");
+                    const data = await postRequest2({
+                        path: setUrlParams(URLS.CORE_VERIFICATION_REQUEST),
+                        data: {
+                            action: 'create',
+                            projectID,
+                            requestData: result.value.reason,
+                            stale_days:result.value.stale_days,
+                            licenseID:result.value.licenseID,
+                        }
+                    })
+                    if(data.code===CODE.OK){
+                        futuremessage("Verification request sent.")
+                        return window.location.reload()
+                    }
+                    loader(false)
+                    error(data.error)
+                }
+            })
+        }
+        {% elif project.under_verification_request %}
+        getElement('cancel-verification-request').onclick=async(e)=>{
+            Swal.fire({
+                title: 'Cancel verification request',
+                html: `
+                    <strong>By cancelling verification request, you are cancelling your project's verification request.
+                    The assigned moderator will no longer be able to review your project.
+                    Please note that if the project has already been approved before you could cancel the request,
+                    then cancellation will not be possible, and this core project may already have been deleted.</strong>
+                `,
+                showCancelButton: false,
+                showDenyButton: true,
+                confirmButtonText: 'No, wait!',
+                denyButtonText: 'Cancel verification',
+            }).then(async(result)=>{
+                if(result.isDenied){
+                    loader()
+                    message("Cancelling verification request...");
+                    const data = await postRequest2({
+                        path: setUrlParams(URLS.CORE_VERIFICATION_REQUEST),
+                        data: {
+                            action: 'remove',
+                            projectID,
+                        }
+                    })
+                    if(data.code===CODE.OK){
+                        futuremessage("Verification request cancelled.")
+                        return window.location.reload()
+                    }
+                    loader(false)
+                    error(data.error)
+                }
+            })
+        }
+        {% endif %}
+    {% elif ismoderator %}
+        if(authenticated){
+            getElement('report-project').onclick=async()=>{
+                await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
+            }
+        }
+        {% if not project.under_mod_invitation %}
         getElement('transfer-project-mod').onclick=(e)=>{
             Swal.fire({
                 title: 'Transfer project moderatorship',
@@ -513,7 +668,7 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 }
             })
         }
-        {% elif ismoderator %}
+        {% else %}
             getElement('delete-project-mod-invitation').onclick=async(e)=>{
                 message("Deleting moderation invitation...");
                 const data = await postRequest2({
@@ -530,74 +685,37 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 error(data.error)
             }
         {% endif %}
-        {% if iscreator and project.under_del_request %}
-            getElement('cancel-delete-project-request').onclick=async(e)=>{
-                message("Cancelling deletion request...");
-                const data = await postRequest2({
-                    path: setUrlParams(URLS.TRASH, projectID),
-                    data: {
-                        action: 'remove',
-                        projectID,
-                    },
-                    retainCache: true
-                })
-                if(data.code===code.OK){
-                    futuremessage("Deletion request cancelled.")
-                    return window.location.reload()
-                }
-                error(data.error)
-            }
-        {% elif iscreator and project.can_request_deletion %}
-            getElement('delete-project-request').onclick=async(e)=>{
-                Swal.fire({
-                    title: 'Request project deletion',
-                    html: `<h6>Are you sure you want to request permanent deletion of '{{project.nickname}}' project?<br/>
-                    The request will be sent to the moderator to decide.</h6>
-                    `,
-                    showCancelButton: true,
-                    showConfirmButton: false,
-                    cancelButtonText: 'No, go back',
-                    showDenyButton: true,
-                    denyButtonText: 'Yes, request deletion',
-                    preConfirm: async () => {
-                    
-                    }
-                }).then(async (result) => {
-                    if (result.isDenied) {
-                        message("Requesting project deletion...");
-                        const data = await postRequest2({
-                            path: setUrlParams(URLS.TRASH, projectID),
-                            data: {
-                                action: 'create',
-                                projectID,
-                            },
-                            retainCache: true
-                        })
-                        if(data.code===code.OK){
-                            futuremessage("Deletion request sent.")
-                            return window.location.reload()
-                        }
-                        error(data.error)
-                        
-                    }
-                });
-            }
-        {% endif %}
     {% endif %}
 
-    {% if iscreator %}
-    getElement('save-edit-snapshot').onclick=(e)=>{
-        e.preventDefault();
-        e.target.form.submit()
-    }
-    {% endif %}
-    if(!selfProject){
-        if(authenticated){
-            getElement('report-project').onclick=async()=>{
-                await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
+    {% if iscreator or ismoderator %}
+        getElement('save-edit-projecttags').onclick= async ()=> {
+            var obj = getFormDataById("edit-tag-inputs");
+            var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+                addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+            });
+            if (resp.code===code.OK){
+                subLoader()
+                return window.location.reload()
             }
+            error(resp.error)
         }
-    }
+
+        getElement('sociallinks-add').onclick=_=>{
+            const parent=getElement('edit-sociallinks-inputs');
+            if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+            const linkNumber=parent.childElementCount+1;
+            const newChild=document.createElement('div');
+            newChild.innerHTML = `
+                <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+            `;
+            parent.insertBefore(newChild,parent.childNodes[0]);
+        }
+        getElement('save-edit-snapshot').onclick=(e)=>{
+            e.preventDefault();
+            e.target.form.submit()
+        }
+    {% endif %}
+
     getElement('show-admirations').onclick=async(_)=>{
         Swal.fire({ 
             html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, projectID)}), 
@@ -607,6 +725,7 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
 {% endif %}
 </script>
 {% endblock %}
+
 {% block scripts %}
 {% if not project.suspended %}
 <script src="{% static 'scripts/project/profile.js' %}" ></script>

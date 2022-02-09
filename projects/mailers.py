@@ -118,7 +118,7 @@ def projectRejectedNotification(project: Project):
         "You can get more details on this by visiting the moderation page of your project submission.",
         actions=[{
             'text': 'View moderation',
-            'url': project.getModLink()
+            'url': project.getLink()
         }],
         footer=f"The moderator must have found something unacceptable, but if you think this is a mistake, then you might be able to resubmit the same project for moderation. This is unfortunate.",
         conclusion=f"This email was generated we have rejected a project submission received from your {PUBNAME} account. If this is unfamiliar, then please report to us."

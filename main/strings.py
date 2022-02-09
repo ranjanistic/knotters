@@ -125,12 +125,16 @@ class Event():
     PING = 'ping'
     PUSH = 'push'
     PR = 'pull_request'
+    PR_REVIEW = 'pull_request_review'
     STAR = 'star'
     MEMBER_ADDED = 'member_added'
     MEMBER_REMOVED = 'member_removed'
     ORG = 'organization'
     TEAMS = 'team'
     CREATED = 'created'
+    SUBMITTED = 'submitted'
+    EDITED = 'edited'
+    DISMISSED = 'dismissed'
     RELEASE = 'release'
     MARKETPLACE_PURCHASE = 'marketplace_purchase'
     PUBLISHED = 'published'
@@ -201,6 +205,7 @@ class Message():
     SETUP_APPROVED_PROJECT_DONE = _("Approved project setup done.")
     GH_REPO_NOT_SETUP = _("GitHub repository has not been setup yet. Check again later.")
     GH_ORG_NOT_LINKED = _("No GitHub organization has been linked.")
+    GH_ID_NOT_LINKED = _("No GitHub account has been linked.")
 
     ACCOUNT_PREF_SAVED = _("Account preferences saved.")
     SUCCESSOR_GH_UNLINKED = _(
@@ -838,6 +843,7 @@ class URL():
         LICENSES = 'license/all/'
 
         ADDLICENSE = 'license/add/'
+        PUB_LICENSES = 'public_licenses/'
 
         LICENSE_SEARCH = 'license/search/'
 
@@ -878,18 +884,20 @@ class URL():
         def trash(self, projID):
             return setPathParams(self.TRASH, projID)
 
-        PROFILE_FREE = 'profile/<str:nickname>'
+        PROFILE_BASE = 'profile/<str:nickname>'
+
+        PROFILE_FREE = 'profile/0/<str:nickname>'
 
         def profileFree(self, nickname):
             return setPathParams(self.PROFILE_FREE, nickname)
 
 
-        PROFILE_MOD = 'profile/<str:reponame>'
+        PROFILE_MOD = 'profile/1/<str:reponame>'
 
         def profileMod(self, reponame):
             return setPathParams(self.PROFILE_MOD, reponame)
 
-        PROFILE_CORE = 'profile/<str:codename>'
+        PROFILE_CORE = 'profile/2/<str:codename>'
 
         def profileCore(self, codename):
             return setPathParams(self.PROFILE_CORE, codename)

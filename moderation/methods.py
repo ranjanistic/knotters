@@ -99,7 +99,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
                     onlyModProfileIDs.append(onlyModProfile.id)
             if len(onlyModProfileIDs)>0:
                 query = Q(query, id__in=onlyModProfileIDs)
-            if len(onlyModProfileIDs) == 1 and creator.is_manager:
+            if len(onlyModProfileIDs) == 1 and creator.is_manager():
                 mprof = list(filter(lambda m: m.id == onlyModProfileIDs[0], list(onlyModProfiles)))[0]
                 if mprof.isBlockedProfile(creator):
                     return False
@@ -140,7 +140,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     robinIndexkey = Code.MODERATOR
     lastModeratorkey = Code.LAST_MODERATOR
 
-    if internal and creator.is_manager:
+    if internal and creator.is_manager():
         robinIndexkey = f"moderator_rr_{creator.manager_id}"
         lastModeratorkey = f"{lastModeratorkey}_{creator.manager_id}"
     
@@ -227,10 +227,10 @@ def requestModerationForObject(
         preferModProfiles = None
         onlyModProfiles = None
         
-        useInternalMods = useInternalMods and object.creator.is_manager
+        useInternalMods = useInternalMods and object.creator.is_manager()
 
         if useInternalMods:
-            onlyModProfiles = object.creator.management.moderators
+            onlyModProfiles = object.creator.management().moderators()
             if not len(onlyModProfiles): return False
         else:
             if type == PROJECTS:
@@ -263,6 +263,7 @@ def requestModerationForObject(
             referURL = referURL if referURL else mod.referURL
 
             newmod = assignModeratorToObject(type, object, newmoderator, requestData, referURL, stale_days=stale_days,internal_mod=useInternalMods)
+            
             if not newmod:
                 return False
 
@@ -309,8 +310,8 @@ def requestModerationForCoreProject(
                 onlyModProfiles = [chosenModerator]
             else:
                 raise Exception("Chosen moderator", chosenModerator ,"is not available for ", coreproject)
-        elif useInternalMods and coreproject.creator.is_manager:
-            onlyModProfiles = coreproject.creator.management.moderators
+        elif useInternalMods and coreproject.creator.is_manager():
+            onlyModProfiles = coreproject.creator.management().moderators()
             if not len(onlyModProfiles): return False
         else:
             preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=coreproject.category.topics).distinct()

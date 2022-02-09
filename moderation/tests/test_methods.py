@@ -25,7 +25,7 @@ class ModerationMethodTest(TestCase):
         for user in users:
             profiles.append(Profile(
                 user=user,
-                is_moderator=choices[c]
+                is_moderator=True
             ))
             c += 1
         self.profiles = Profile.objects.bulk_create(profiles)
@@ -82,6 +82,7 @@ class ModerationMethodTest(TestCase):
         moderation = requestModerationForObject(self.project, PROJECTS)
         self.assertIsInstance(moderation, Moderation)
         moderation.status = Code.REJECTED
+        moderation.resolved = True
         moderation.save()
         self.assertFalse(requestModerationForObject(self.project, PROJECTS))
         self.assertIsInstance(requestModerationForObject(

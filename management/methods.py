@@ -13,14 +13,14 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
-def createCompetition(creator, title, tagline, shortdescription,
+def createCompetition(creator:Profile, title, tagline, shortdescription,
                       description, perks, startAt, endAt, eachTopicMaxPoint, topicIDs,
                       judgeIDs, taskSummary, taskDetail, taskSample, max_grouping,
                       reg_fee, fee_link, qualifier, qualifier_rank
                       ) -> Competition:
     compete = None
     try:
-        if not creator.is_manager:
+        if not creator.is_manager():
             raise Exception(f"Unauthorized manager")
 
         if len(perks) < 1:

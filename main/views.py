@@ -548,7 +548,9 @@ class ServiceWorker(TemplateView):
             netFirstList=json.dumps([
                 f"/{URL.LANDING}",
                 f"/{URL.FAME_WALL}",
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_CORE}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.ADMIRATIONS}"),

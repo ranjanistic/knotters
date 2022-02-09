@@ -746,7 +746,7 @@ class Profile(models.Model):
     def getXP(self) -> str:
         return self.get_xp
 
-    def increaseXP(self, by: int = 0, notify = True) -> int:
+    def increaseXP(self, by: int = 0, notify = True, reason = '') -> int:
         if not self.is_active:
             return self.xp
         if self.xp == None:
@@ -755,9 +755,10 @@ class Profile(models.Model):
         self.save()
         if notify:
             user_device_notify(self.user, "Profile XP Increased!", f"You have gained +{by} XP!", self.get_abs_link)
+        ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
-    def decreaseXP(self, by: int = 0) -> int:
+    def decreaseXP(self, by: int = 0,notify = True, reason='') -> int:
         if not self.is_active:
             return self.xp
         if self.xp == None:
@@ -771,9 +772,12 @@ class Profile(models.Model):
             return self.xp
         self.xp = int(diff)
         self.save()
+        if notify:
+            user_device_notify(self.user, "Profile XP Decreased", f"You have lost -{by} XP.", self.get_abs_link)
+        ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
-    def increaseTopicPoints(self, topic, by: int = 0, notify = True) -> int:
+    def increaseTopicPoints(self, topic, by: int = 0, notify = True, reason='') -> int:
         proftop, _ = ProfileTopic.objects.get_or_create(
             profile=self, topic=topic, defaults=dict(
                 profile=self,
@@ -782,7 +786,18 @@ class Profile(models.Model):
                 points=0,
             )
         )
-        return proftop.increasePoints(by, notify)
+        return proftop.increasePoints(by, notify, reason)
+
+    def decreaseTopicPoints(self, topic, by: int = 0, notify = True, reason='') -> int:
+        proftop, _ = ProfileTopic.objects.get_or_create(
+            profile=self, topic=topic, defaults=dict(
+                profile=self,
+                topic=topic,
+                trashed=True,
+                points=0,
+            )
+        )
+        return proftop.decreasePoints(by, notify, reason)
         
     def xpTarget(self):
         xp = self.xp
@@ -1029,7 +1044,7 @@ class ProfileTopic(models.Model):
     def hidden(self) -> bool:
         return self.trashed
 
-    def increasePoints(self, by: int = 0, notify = True) -> int:
+    def increasePoints(self, by: int = 0, notify = True,reason='') -> int:
         points = 0
         if not self.points:
             points = by
@@ -1039,9 +1054,10 @@ class ProfileTopic(models.Model):
         self.save()
         if notify:
             user_device_notify(self.profile.user, "Topic XP Increased!", f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
+        ProfileTopicXPRecord.objects.create(profile_topic=self, xp=by, reason=reason)
         return self.points
 
-    def decreasePoints(self, by: int = 0) -> int:
+    def decreasePoints(self, by: int = 0, notify = True,reason='') -> int:
         if not self.points:
             points = 0
         elif self.points - by < 0:
@@ -1050,6 +1066,9 @@ class ProfileTopic(models.Model):
             points = self.points - by
         self.points = points
         self.save()
+        if notify:
+            user_device_notify(self.profile.user, "Topic XP decreased.", f"You have lost -{by} XP in {self.topic.get_name}. {self.points} is your current XP.", self.profile.get_abs_link)
+        ProfileTopicXPRecord.objects.create(profile_topic=self, xp=by, reason=reason)
         return self.points
     
     def get_points(self, raw=False):
@@ -1249,3 +1268,17 @@ class CoreMember(models.Model):
 
     def get_about(self):
         return self.about or self.profile.getBio()
+
+class ProfileXPRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_xp_record_profile')
+    xp = models.IntegerField(default=0, editable=False)
+    reason = models.TextField(max_length=500, null=True, blank=True)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+class ProfileTopicXPRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile_topic = models.ForeignKey(ProfileTopic, on_delete=models.CASCADE, related_name='profilet_xp_record_profilet')
+    xp = models.IntegerField(default=0, editable=False)
+    reason = models.TextField(max_length=500, null=True, blank=True)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)

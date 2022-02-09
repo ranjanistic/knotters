@@ -870,13 +870,13 @@ def sendPeopleInvite(request: WSGIRequest):
             if (request.user.email == email) or (email in request.user.emails()):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             receiver = Profile.objects.get(user__email=email, suspended=False, is_active=True, to_be_zombie=False)
-            if request.user.profile.management.people.filter(id=receiver.id).exists():
+            if request.user.profile.management().people.filter(id=receiver.id).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
             if receiver.isBlocked(request.user):
                 return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
 
             inv, created = ManagementInvitation.objects.get_or_create(
-                management=request.user.profile.management,
+                management=request.user.profile.management(),
                 sender=request.user.profile,
                 resolved=False,
                 receiver=receiver,

@@ -2,7 +2,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 from main.methods import addMethodToAsyncQueue
 from .mailers import coreProjectModTransferInvitation, freeProjectDeleted, freeProjectCreated, projectModTransferInvitation, projectTransferInvitation
-from .models import CoreModerationTransferInvitation, Project, Asset, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation, Snapshot, defaultImagePath
+from .models import BaseProject, Project, Asset, FreeProject, Snapshot, defaultImagePath,CoreProject
 from .apps import APPNAME
 
 @receiver(post_save, sender=Project)
@@ -29,7 +29,7 @@ def on_project_delete(sender, instance, **kwargs):
     Project cleanup.
     """
     try:
-        if instance.image != defaultImagePath():
+        if instance.image != defaultImagePath() and not BaseProject.objects.filter(image=instance.image).exists():
             instance.image.delete(save=False)
     except Exception as e:
         pass
@@ -51,11 +51,23 @@ def on_freeproject_delete(sender, instance, **kwargs):
     """
     
     try:
-        if instance.image != defaultImagePath():
+        if instance.image != defaultImagePath() and not BaseProject.objects.filter(image=instance.image).exists():
             instance.image.delete(save=False)
     except Exception as e:
         pass
     addMethodToAsyncQueue(f"{APPNAME}.mailers.{freeProjectDeleted.__name__}", instance)
+
+@receiver(post_delete, sender=CoreProject)
+def on_coreproject_delete(sender, instance, **kwargs):
+    """
+    Project cleanup.
+    """
+    
+    try:
+        if instance.image != defaultImagePath() and not BaseProject.objects.filter(image=instance.image).exists():
+            instance.image.delete(save=False)
+    except Exception as e:
+        pass
 
 @receiver(post_delete, sender=Snapshot)
 def on_snap_delete(sender, instance, **kwargs):

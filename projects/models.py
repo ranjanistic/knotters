@@ -1,6 +1,7 @@
 import uuid
 from deprecated import deprecated
 from django.db import models
+from django.db.models.lookups import In
 from django.utils import timezone
 from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL
@@ -402,12 +403,8 @@ class BaseProject(models.Model):
         return f"{settings.SITE}{self.get_link}"
   
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
-        project = self.getProject()
-        if project.verified:
-            return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=project.reponame)}{url.getMessageQuery(alert,error,success)}"
-        if project.core:
-            return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=project.codename)}{url.getMessageQuery(alert,error,success)}"
-        return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=project.nickname)}{url.getMessageQuery(alert,error,success)}"
+        return self.getProject().getLink(success, error, alert)
+        
   
     @property
     def get_nickname(self):
@@ -601,17 +598,8 @@ class Project(BaseProject):
         return self.reponame
 
     @property
-    def moderation(self):
-        try:
-            cacheKey = f"project_moderation_{self.get_id}"
-            moderation = cache.get(cacheKey, None)
-            if not moderation:
-                moderation = Moderation.objects.get(project=self, type=APPNAME, status=Code.APPROVED, resolved=True)
-                cache.set(cacheKey, moderation, settings.CACHE_LONG) 
-            return moderation
-        except:
-            return Moderation.objects.filter(project=self, type=APPNAME, status__in=[
-                                        Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
+    def moderation(self) -> Moderation:
+        return Moderation.objects.filter(project=self, type=APPNAME).order_by('-requestOn','-respondOn').first()
 
     @property
     def moderator(self):
@@ -631,9 +619,10 @@ class Project(BaseProject):
             return str()
 
     def moderationRetriesLeft(self) -> int:
+        maxtries = 0
         if self.status != Code.APPROVED:
-            return 2 - Moderation.objects.filter(type=APPNAME, project=self, resolved=True).count()
-        return 0
+            maxtries = 1 - Moderation.objects.filter(type=APPNAME, project=self, resolved=True).count()
+        return maxtries
 
     def canRetryModeration(self) -> bool:
         return self.status != Code.APPROVED and self.moderationRetriesLeft() > 0 and not self.trashed and not self.suspended
@@ -723,6 +712,9 @@ class Project(BaseProject):
             self.trashed = True
             self.creator.decreaseXP(by=2)
             self.save()
+            if self.moderation and self.moderation.isPending():
+                self.moderation.delete()
+                self.delete()
         elif VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2)
@@ -755,6 +747,8 @@ class FreeProject(BaseProject):
         return f"{url.getRoot(APPNAME)}{url.projects.profileFree(nickname=self.nickname)}{url.getMessageQuery(alert,error,success)}"
 
     def moveToTrash(self) -> bool:
+        if not self.can_delete():
+            return False
         self.creator.decreaseXP(by=2)
         self.delete()
         return True
@@ -783,8 +777,19 @@ class FreeProject(BaseProject):
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
 
+    def base(self):
+        cacheKey = f"baseproject_of_freeproject_{self.id}"
+        projectbase = cache.get(cacheKey, None)
+        if projectbase is None:
+            projectbase = BaseProject.objects.get(id=self.id)
+            cache.set(cacheKey, projectbase, settings.CACHE_LONG)
+        return projectbase
+
     def can_invite_profile(self, profile):
         return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile))
+
+    def can_delete(self):
+        return not (self.trashed or self.suspended or self.under_invitation() or self.under_verification_request())
 
     def under_verification_request(self):
         return FreeProjectVerificationRequest.objects.filter(freeproject=self, resolved=False).exists()
@@ -794,7 +799,6 @@ class FreeProject(BaseProject):
         if req:
             if not req.verifiedproject.isApproved():
                 req.verifiedproject.delete()
-                FreeProjectVerificationRequest.objects.filter(freeproject=self).delete()
                 return True
         return False
 
@@ -808,7 +812,7 @@ class FreeProject(BaseProject):
         return not (self.trashed or self.suspended or self.under_invitation() or self.under_verification_request())
 
     def request_verification(self):
-        if not self.can_request_deletion():
+        if not self.can_request_verification():
             return False
         return FreeProjectVerificationRequest.objects.create(freeproject=self)
     
@@ -817,6 +821,9 @@ class FreeProject(BaseProject):
             fpvr = FreeProjectVerificationRequest.objects.get(freeproject=self, resolved=True)
             if not fpvr.verifiedproject.isApproved():
                 return False
+            Snapshot.objects.filter(base_project=self.base()).update(base_project=fpvr.verifiedproject.base())
+            ProjectSocial.objects.filter(project=self.base()).update(project=fpvr.verifiedproject.base())
+            fpvr.verifiedproject.admirers.set(self.admirers.all())
             self.delete()
             return True
         except:
@@ -984,17 +991,8 @@ class CoreProject(BaseProject):
         return projectbase
 
     @property
-    def moderation(self):
-        try:
-            cacheKey = f"coreproject_moderation_{self.get_id}"
-            moderation = cache.get(cacheKey, None)
-            if not moderation:
-                moderation = Moderation.objects.get(coreproject=self, type=CORE_PROJECT, status=Code.APPROVED, resolved=True)
-                cache.set(cacheKey, moderation, settings.CACHE_LONG) 
-            return moderation
-        except:
-            return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
-                                            Code.APPROVED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()
+    def moderation(self) -> Moderation:
+        return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT).order_by('-requestOn','-respondOn').first()
                                         
     @property
     def moderator(self):
@@ -1089,7 +1087,7 @@ class CoreProject(BaseProject):
             return None
 
     def can_request_deletion(self):
-        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation() or self.under_mod_invitation() or self.under_del_request())
+        return not (self.trashed or self.suspended or self.status != Code.APPROVED or self.under_invitation() or self.under_mod_invitation() or self.under_del_request() or self.under_verification_request())
 
     def request_deletion(self):
         if not self.can_request_deletion():
@@ -1104,6 +1102,9 @@ class CoreProject(BaseProject):
             self.trashed = True
             self.creator.decreaseXP(by=2)
             self.save()
+            if self.moderation and self.moderation.isPending():
+                self.moderation.delete()
+                self.delete()
         elif CoreProjectDeletionRequest.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator, resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2)
@@ -1118,7 +1119,6 @@ class CoreProject(BaseProject):
         if req:
             if not req.verifiedproject.isApproved():
                 req.verifiedproject.delete()
-                CoreProjectVerificationRequest.objects.filter(coreproject=self).delete()
                 return True
         return False
 
@@ -1129,10 +1129,10 @@ class CoreProject(BaseProject):
             return None
 
     def can_request_verification(self):
-        return not (self.trashed or self.suspended or self.under_invitation() or self.under_verification_request())
+        return not (self.trashed or self.suspended or self.under_invitation() or self.under_verification_request() or self.under_del_request() or self.under_mod_invitation())
 
     def request_verification(self):
-        if not self.can_request_deletion():
+        if not self.can_request_verification():
             return False
         return CoreProjectVerificationRequest.objects.create(coreproject=self)
     
@@ -1141,6 +1141,9 @@ class CoreProject(BaseProject):
             cpvr = CoreProjectVerificationRequest.objects.get(coreproject=self, resolved=True)
             if not cpvr.verifiedproject.isApproved():
                 return False
+            Snapshot.objects.filter(base_project=self.base()).update(base_project=cpvr.verifiedproject.base())
+            ProjectSocial.objects.filter(project=self.base()).update(project=cpvr.verifiedproject.base())
+            cpvr.verifiedproject.admirers.set(self.admirers.all())
             self.gh_repo().edit(private=False)
             self.delete()
             return True
@@ -1459,8 +1462,8 @@ class CoreProjectDeletionRequest(Invitation):
         self.delete()
         return True
 
-class FreeProjectVerificationRequest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class FreeProjectVerificationRequest(Invitation):
+    
     freeproject = models.OneToOneField(FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
     verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
     
@@ -1480,8 +1483,11 @@ class FreeProjectVerificationRequest(models.Model):
         self.delete()
         return True
 
-class CoreProjectVerificationRequest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return self.verifiedproject.getLink(success, error, alert)
+
+class CoreProjectVerificationRequest(Invitation):
+    
     coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
     verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
     
@@ -1500,3 +1506,6 @@ class CoreProjectVerificationRequest(models.Model):
     def decline(self):
         self.delete()
         return True
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return self.verifiedproject.getLink(success, error, alert)

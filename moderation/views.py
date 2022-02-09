@@ -124,8 +124,8 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
             if mod.type == CORE_PROJECT or mod.type == COMPETE:
                 return redirect(mod.getLink(error=Message.INVALID_REQUEST))
             onlyModProfiles = None
-            if mod.internal_mod and mod.requestor.is_manager:
-                onlyModProfiles = mod.requestor.management.moderators.exclude(id=mod.moderator.id)
+            if mod.internal_mod and mod.requestor.is_manager():
+                onlyModProfiles = mod.requestor.management().moderators().exclude(id=mod.moderator.id)
                 if not len(onlyModProfiles):
                     return redirect(mod.getLink(error=Message.NO_MODERATORS_AVAILABLE))
 
