@@ -20,7 +20,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect, render
-from management.models import HookRecord, GhMarketPlan, GhMarketApp
+from management.models import HookRecord, GhMarketPlan, GhMarketApp, ThirdPartyLicense
 from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
