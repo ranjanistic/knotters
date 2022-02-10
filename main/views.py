@@ -129,7 +129,10 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
         return renderView(request, Template.Docs.DOC, fromApp=DOCS, data=dict(doc=doc))
     except Exception as e:
         try:
-            return renderView(request, type, fromApp=DOCS)
+            tpls = []
+            if type == 'osl':
+                tpls = ThirdPartyLicense.objects.all()
+            return renderView(request, type, fromApp=DOCS, data=dict(tpls=tpls))
         except Exception as e:
             raise Http404()
 
