@@ -131,7 +131,7 @@ def docs(request: WSGIRequest, type: str) -> HttpResponse:
         try:
             tpls = []
             if type == 'osl':
-                tpls = ThirdPartyLicense.objects.all()
+                tpls = ThirdPartyLicense.objects.filter().order_by("title")
             return renderView(request, type, fromApp=DOCS, data=dict(tpls=tpls))
         except Exception as e:
             raise Http404()
