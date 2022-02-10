@@ -15,7 +15,7 @@ from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.conf import settings
 from main.env import PUBNAME
-from main.decorators import github_remote_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
+from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
@@ -1087,7 +1087,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 
 @csrf_exempt
-@github_remote_only
+@github_bot_only
 def githubEventsListenerFree(request: WSGIRequest, type: str, projID: UUID) -> HttpResponse:
     raise Http404()
     try:
