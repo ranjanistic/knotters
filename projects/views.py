@@ -20,9 +20,9 @@ from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,
 from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
-from management.models import ReportCategory
+from management.models import GhMarketApp, ReportCategory
 from people.models import Profile, Topic
-from .models import BaseProject, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
+from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
 from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
 from .methods import addTagToDatabase, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
 from .apps import APPNAME
@@ -1088,87 +1088,49 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
 @csrf_exempt
 @github_bot_only
-def githubEventsListenerFree(request: WSGIRequest, type: str, projID: UUID) -> HttpResponse:
-    raise Http404()
+def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
     try:
-        if type != Code.HOOK:
-            return HttpResponseBadRequest('Invaild link type')
-        event = request.POST['ghevent']
-        reponame = request.POST["repository"]["name"]
-        owner_ghID = request.POST["repository"]["owner"]["login"]
-        hookID = request.POST['hookID']
-        try:
-            project = Project.objects.get(
-                id=projID, reponame=reponame, trashed=False, suspended=False)
-            if owner_ghID != PUBNAME:
-                return HttpResponseBadRequest('Invalid owner')
-        except Exception as e:
-            errorLog(f"HOOK: {e}")
-            return HttpResponse(Code.NO)
-        hookrecord, _ = ProjectHookRecord.objects.get_or_create(hookID=hookID, defaults=dict(
-            success=False,
-            project=project,
-        ))
+        hookID = request.POST['id']
+        event = request.POST['name']
+        payload = request.POST['payload']
+        ghapp = GhMarketApp.objects.get(gh_id=botID)
+        hookrecord, _ = BotHookRecord.objects.get_or_create(
+            hookID=hookID, 
+            ghmarketapp=ghapp,
+            defaults=dict(
+                success=False,
+            )
+        )
         if hookrecord.success:
             return HttpResponse(Code.NO)
-        if event == Event.PUSH:
-            pusher = request.POST['pusher']
-            committer = Profile.objects.filter(Q(Q(githubID=pusher['name']) | Q(
-                user__email=pusher['email'])), is_active=True, to_be_zombie=False).first()
-            if committer:
-                committer.increaseXP(by=2)
-                project.creator.increaseXP(by=2)
-                project.moderator.increaseXP(by=2)
-        elif event == Event.PR:
-            pr = request.POST.get('pull_request', None)
-            if pr:
-                action = request.POST.get('action', None)
-                pr_creator_ghID = pr['user']['login']
-                if action == 'opened':
-                    pr_creator = Profile.objects.filter(
-                        githubID=pr_creator_ghID, is_active=True).first()
-                    if pr_creator:
-                        pr_creator.increaseXP(by=5)
-                elif action == 'closed':
-                    pr_creator = Profile.objects.filter(
-                        githubID=pr_creator_ghID, is_active=True).first()
-                    if pr['merged']:
-                        if pr_creator:
-                            pr_creator.increaseXP(by=10)
-                        project.creator.increaseXP(by=5)
-                        project.moderator.increaseXP(by=5)
-                    else:
-                        if pr_creator:
-                            pr_creator.decreaseXP(by=2)
-                elif action == 'reopened':
-                    pr_creator = Profile.objects.filter(
-                        githubID=pr_creator_ghID, is_active=True).first()
-                    if pr_creator:
-                        pr_creator.increaseXP(by=2)
-                elif action == 'review_requested':
-                    pr_reviewer = Profile.objects.filter(
-                        githubID=pr['requested_reviewer']['login'], is_active=True).first()
-                    if pr_reviewer:
-                        pr_reviewer.increaseXP(by=5)
-                elif action == 'review_request_removed':
-                    pr_reviewer = Profile.objects.filter(
-                        githubID=pr['requested_reviewer']['login'], is_active=True).first()
-                    if pr_reviewer:
-                        pr_reviewer.decreaseXP(by=5)
-                else:
-                    return HttpResponseBadRequest(event)
-            else:
-                return HttpResponseBadRequest(event)
-        elif event == Event.STAR:
-            action = request.POST.get('action', None)
+        if event == "installation":
+            action = payload['action']
+            installation = payload['installation']
+            account = installation['account']
+            permissions = installation['permissions']
+            frepos = FreeRepository.objects.filter(free_project__creator__githubID=account["login"])
             if action == 'created':
-                project.creator.increaseXP(by=2)
-                project.moderator.increaseXP(by=2)
+                repositories = payload['repositories']
+                repo_ids = map(lambda r: r['id'] ,repositories)
+                frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                apprepos = []
+                for frepo in frepos:
+                    apprepos.append(AppRepository(
+                        free_repo=frepo,
+                        gh_app=ghapp,
+                        permissions=permissions
+                    ))
+                AppRepository.objects.bulk_create(apprepos)
             elif action == 'deleted':
-                project.creator.decreaseXP(by=2)
-                project.moderator.decreaseXP(by=2)
+                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).delete()
+            elif action == 'suspend':
+                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(suspended=True)
+            elif action == 'unsuspend':
+                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(suspended=False)
+            elif action == 'new_permissions_accepted':
+                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(permissions=permissions)
             else:
-                return HttpResponseBadRequest(event)
+                raise Exception("Invalid action", action)
         else:
             return HttpResponseBadRequest(event)
         hookrecord.success = True

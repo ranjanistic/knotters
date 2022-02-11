@@ -18,7 +18,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 from django.conf import settings
-from main.strings import Code, PROJECTS, url, MANAGEMENT
+from main.strings import Code, PROJECTS, classAttrsToDict, url, MANAGEMENT
 from auth2.models import PhoneNumber
 from .apps import APPNAME
 
@@ -121,15 +121,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def getLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getID())}"
-    
-    def add_phone(self,number,country):
+
+    def add_phone(self, number, country):
         number = str(number).strip()
-        if PhoneNumber.objects.filter(number=number,country=country,verified=True).exists():
+        if PhoneNumber.objects.filter(number=number, country=country, verified=True).exists():
             return False
         primary = False
         if PhoneNumber.objects.filter(user=self).count() == 0:
             primary = True
-        return PhoneNumber.objects.get_or_create(user=self,number=number,country=country, defaults=dict(
+        return PhoneNumber.objects.get_or_create(user=self, number=number, country=country, defaults=dict(
             user=self,
             number=number,
             country=country,
@@ -141,8 +141,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    creator = models.ForeignKey("Profile", on_delete=models.SET_NULL, related_name='topic_creator', null=True, blank=True)
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now, null=True, blank=True)
+    creator = models.ForeignKey("Profile", on_delete=models.SET_NULL,
+                                related_name='topic_creator', null=True, blank=True)
+    createdOn = models.DateTimeField(
+        auto_now=False, default=timezone.now, null=True, blank=True)
     tags = models.ManyToManyField(
         f'{PROJECTS}.Tag', default=[], through='TopicTag')
 
@@ -168,7 +170,6 @@ class Topic(models.Model):
     @property
     def getLink(self) -> str:
         return f"{url.getRoot(MANAGEMENT)}{url.management.label(self.label_type,self.get_id)}"
-
 
     def getProfiles(self):
         cacheKey = f"topic_profiles_{self.id}"
@@ -216,7 +217,8 @@ class Topic(models.Model):
         cacheKey = f"topic_totalxp_{self.id}"
         topictotalxp = cache.get(cacheKey, None)
         if topictotalxp is None:
-            topictotalxp = (ProfileTopic.objects.filter(topic=self).aggregate(models.Sum('points')))['points__sum']
+            topictotalxp = (ProfileTopic.objects.filter(
+                topic=self).aggregate(models.Sum('points')))['points__sum']
             cache.set(cacheKey, topictotalxp, settings.CACHE_SHORT)
         return topictotalxp
 
@@ -241,6 +243,7 @@ def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.getUserID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
+
 def defaultImagePath() -> str:
     return f"{APPNAME}/default.png"
 
@@ -261,7 +264,7 @@ class Profile(models.Model):
         default=False, help_text='Whether the successor is confirmed, if set.')
     is_moderator = models.BooleanField(default=False)
     is_mentor = models.BooleanField(default=False)
-    
+
     is_active = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     is_verified = models.BooleanField(
@@ -275,7 +278,8 @@ class Profile(models.Model):
         default=False, help_text='Illegal activities make this true.')
 
     topics = models.ManyToManyField(Topic, through='ProfileTopic', default=[])
-    tags = models.ManyToManyField(f'{PROJECTS}.Tag', through='ProfileTag', default=[])
+    tags = models.ManyToManyField(
+        f'{PROJECTS}.Tag', through='ProfileTag', default=[])
 
     xp = models.IntegerField(default=1, help_text='Experience count')
 
@@ -286,9 +290,12 @@ class Profile(models.Model):
 
     on_boarded = models.BooleanField(default=False)
 
-    admirers = models.ManyToManyField('Profile', through="ProfileAdmirer", default=[], related_name='admirer_profiles')
-    emoticon = models.CharField(max_length=30, null=True, default=None, blank=True)
-    nickname = models.CharField(max_length=30, null=True, default=None, blank=True)
+    admirers = models.ManyToManyField('Profile', through="ProfileAdmirer", default=[
+    ], related_name='admirer_profiles')
+    emoticon = models.CharField(
+        max_length=30, null=True, default=None, blank=True)
+    nickname = models.CharField(
+        max_length=30, null=True, default=None, blank=True)
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -305,7 +312,7 @@ class Profile(models.Model):
             knotbot = Profile.objects.get(user__email=BOTMAIL)
             cache.set('profile_knottersbot', knotbot, settings.CACHE_MAX)
         return knotbot
-    
+
     @property
     def CACHE_KEYS(self):
         class CKEYS():
@@ -320,12 +327,13 @@ class Profile(models.Model):
             blocked_profiles = f"blocked_userprofiles_{self.user.id}"
             tags = f"profile_tags_{self.id}"
             recommended_projects = f"profile_recommendedprojects_{self.id}"
-            recommended_topics  = f"profile_recommendedtopics_{self.id}"
+            recommended_topics = f"profile_recommendedtopics_{self.id}"
             gh_socialacc = f"socialaccount_gh_{self.id}"
-            gh_user_data =  f"gh_user_data_{self.id}"
+            gh_user_data = f"gh_user_data_{self.id}"
             gh_user_ghorgs = f"gh_user_ghorgs_{self.id}"
             total_admirations = f'{self.id}_profile_total_admiration'
             profile_socialsites = f"profile_socialsites_{self.id}"
+            socialaccount_gh = f"socialaccount_gh_{self.get_userid}"
         return CKEYS()
 
     @property
@@ -352,12 +360,12 @@ class Profile(models.Model):
 
     def phone_number(self):
         if self.user:
-            return PhoneNumber.objects.filter(user=self.user,verified=True,primary=True).first()
+            return PhoneNumber.objects.filter(user=self.user, verified=True, primary=True).first()
         return None
 
     def phone_numbers(self):
         if self.user:
-            return PhoneNumber.objects.filter(user=self.user,verified=True)
+            return PhoneNumber.objects.filter(user=self.user, verified=True)
         return []
 
     def total_admiration(self):
@@ -408,7 +416,7 @@ class Profile(models.Model):
             data = Management.objects.filter(people=self)
             cache.set(cacheKey, data, settings.CACHE_MINI)
         return data
-    
+
     def addToManagement(self, mgmID) -> bool:
         try:
             mgm = Management.objects.get(id=mgmID)
@@ -421,7 +429,7 @@ class Profile(models.Model):
 
     def removeFromManagement(self, mgmID) -> bool:
         try:
-            mgm = Management.objects.get(id=mgmID,people=self)
+            mgm = Management.objects.get(id=mgmID, people=self)
             mgm.people.remove(self)
             return True
         except ObjectDoesNotExist:
@@ -437,10 +445,12 @@ class Profile(models.Model):
             if force:
                 if self.is_moderator:
                     done = self.unMakeModerator()
-                    if not done: raise Exception()
+                    if not done:
+                        raise Exception()
                 if self.is_mentor:
                     done = self.unMakeMentor()
-                    if not done: raise Exception()
+                    if not done:
+                        raise Exception()
             elif self.is_moderator or self.is_mentor:
                 raise Exception()
             mgm = Management.objects.create(profile=self)
@@ -449,14 +459,14 @@ class Profile(models.Model):
             return True
         except:
             return False
-    
+
     def makeModerator(self):
         self.is_moderator = True
         self.save()
         return True
 
     def unMakeModerator(self):
-        if Moderation.objects.filter(moderator=self,resolved=False).exists():
+        if Moderation.objects.filter(moderator=self, resolved=False).exists():
             return False
         self.is_moderator = False
         self.save()
@@ -468,7 +478,7 @@ class Profile(models.Model):
         return
 
     def unMakeMentor(self):
-        if Project.objects.filter(mentor=self,trashed=False).exists():
+        if Project.objects.filter(mentor=self, trashed=False).exists():
             return False
         self.is_mentor = False
         self.save()
@@ -489,7 +499,7 @@ class Profile(models.Model):
         if self.get_dp.startswith('http:'):
             return self.get_dp
         return f"{settings.SITE}{self.get_dp}"
-        
+
     def getDP(self) -> str:
         return self.get_dp
 
@@ -518,7 +528,7 @@ class Profile(models.Model):
 
     def getSubtitle(self) -> str:
         return self.bio if self.bio else self.ghID() if self.ghID() else ''
-    
+
     def has_labels(self):
         return self.is_moderator or self.is_mentor or self.is_manager()
 
@@ -529,7 +539,8 @@ class Profile(models.Model):
         if self.is_mentor:
             labels.append(dict(name='MNT', theme='active', text='mentor'))
         if self.is_manager():
-            labels.append(dict(name='MGR', theme='tertiary positive-text', text='manager'))
+            labels.append(
+                dict(name='MGR', theme='tertiary positive-text', text='manager'))
         return labels
 
     def theme(self):
@@ -590,7 +601,7 @@ class Profile(models.Model):
         if self.is_zombie:
             return None
         try:
-            cacheKey = f"socialaccount_gh_{self.get_userid}"
+            cacheKey = self.CACHE_KEYS.socialaccount_gh
             data = cache.get(cacheKey)
             if not (data and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()):
                 data = SocialAccount.objects.get(
@@ -601,7 +612,7 @@ class Profile(models.Model):
             if not ghUser:
                 try:
                     ghUser = self.gh_api().get_user_by_id(int(data.uid))
-                    cache.set(cacheKey2,ghUser, settings.CACHE_SHORT)
+                    cache.set(cacheKey2, ghUser, settings.CACHE_SHORT)
                 except:
                     return data.extra_data['login']
             ghID = ghUser.login
@@ -619,14 +630,16 @@ class Profile(models.Model):
         cacheKey = self.CACHE_KEYS.has_ghID
         data = cache.get(cacheKey, None)
         if data is None:
-            data = not self.is_zombie and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()
+            data = not self.is_zombie and SocialAccount.objects.filter(
+                user=self.user, provider=GitHubProvider.id).exists()
             if data:
                 cache.set(cacheKey, data, settings.CACHE_INSTANT)
         return data
 
     def gh_user(self):
         try:
-            if not self.has_ghID(): return None
+            if not self.has_ghID():
+                return None
             cachekey = f"{self.CACHE_KEYS.gh_user}{self.ghID()}"
             ghuser = cache.get(cachekey, None)
             if not ghuser:
@@ -635,23 +648,22 @@ class Profile(models.Model):
             return ghuser
         except Exception as e:
             return None
-    
-    def update_githubID(self,ghID=None):
+
+    def update_githubID(self, ghID=None):
         if self.githubID == ghID:
             if ghID is not None:
                 return True
         self.githubID = ghID
         if not ghID:
-            cache.delete(self.CACHE_KEYS.gh_socialacc)
-            cache.delete(self.CACHE_KEYS.gh_user_data)
-            cache.delete(self.CACHE_KEYS.gh_user_ghorgs)
+            cache.delete_many(self.CACHE_KEYS.gh_socialacc, self.CACHE_KEYS.gh_user_data,
+                              self.CACHE_KEYS.gh_user_ghorgs, self.CACHE_KEYS.socialaccount_gh)
         self.save()
         return True
 
     def get_ghOrgs(self):
         try:
             cacheKey = self.CACHE_KEYS.gh_socialacc
-            data = cache.get(cacheKey,None)
+            data = cache.get(cacheKey, None)
             if not (data and SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).exists()):
                 data = SocialAccount.objects.get(
                     user=self.user, provider=GitHubProvider.id)
@@ -660,7 +672,7 @@ class Profile(models.Model):
             ghUser = cache.get(cacheKey2)
             if not ghUser:
                 ghUser = self.gh_api().get_user_by_id(int(data.uid))
-                cache.set(cacheKey2,ghUser, settings.CACHE_SHORT)
+                cache.set(cacheKey2, ghUser, settings.CACHE_SHORT)
             cacheKey3 = self.CACHE_KEYS.gh_user_ghorgs
             orgs = cache.get(cacheKey3, None)
             if not orgs:
@@ -672,7 +684,7 @@ class Profile(models.Model):
 
     def get_ghOrgsIDName(self):
         try:
-            return [dict(id=org.id,name=org.login) for org in self.get_ghOrgs()]
+            return [dict(id=org.id, name=org.login) for org in self.get_ghOrgs()]
         except:
             return None
 
@@ -693,7 +705,8 @@ class Profile(models.Model):
             cacheKey = self.CACHE_KEYS.gh_link
             data = cache.get(cacheKey, None)
             if data is None:
-                data = SocialAccount.objects.filter(user=self.user, provider=GitHubProvider.id).first().get_profile_url()
+                data = SocialAccount.objects.filter(
+                    user=self.user, provider=GitHubProvider.id).first().get_profile_url()
                 if data:
                     cache.set(cacheKey, data, settings.CACHE_MINI)
             return data
@@ -713,7 +726,7 @@ class Profile(models.Model):
         if self.get_link.startswith('http:'):
             return self.get_link
         return f"{settings.SITE}{self.get_link}"
-        
+
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
             ghID = self.ghID()
@@ -746,7 +759,7 @@ class Profile(models.Model):
     def getXP(self) -> str:
         return self.get_xp
 
-    def increaseXP(self, by: int = 0, notify = True, reason = '') -> int:
+    def increaseXP(self, by: int = 0, notify=True, reason='') -> int:
         if not self.is_active:
             return self.xp
         if self.xp == None:
@@ -754,11 +767,12 @@ class Profile(models.Model):
         self.xp = self.xp + by
         self.save()
         if notify:
-            user_device_notify(self.user, "Profile XP Increased!", f"You have gained +{by} XP!", self.get_abs_link)
+            user_device_notify(self.user, "Profile XP Increased!",
+                               f"You have gained +{by} XP!", self.get_abs_link)
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
-    def decreaseXP(self, by: int = 0,notify = True, reason='') -> int:
+    def decreaseXP(self, by: int = 0, notify=True, reason='') -> int:
         if not self.is_active:
             return self.xp
         if self.xp == None:
@@ -773,11 +787,12 @@ class Profile(models.Model):
         self.xp = int(diff)
         self.save()
         if notify:
-            user_device_notify(self.user, "Profile XP Decreased", f"You have lost -{by} XP.", self.get_abs_link)
+            user_device_notify(self.user, "Profile XP Decreased",
+                               f"You have lost -{by} XP.", self.get_abs_link)
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
-    def increaseTopicPoints(self, topic, by: int = 0, notify = True, reason='') -> int:
+    def increaseTopicPoints(self, topic, by: int = 0, notify=True, reason='') -> int:
         proftop, _ = ProfileTopic.objects.get_or_create(
             profile=self, topic=topic, defaults=dict(
                 profile=self,
@@ -788,7 +803,7 @@ class Profile(models.Model):
         )
         return proftop.increasePoints(by, notify, reason)
 
-    def decreaseTopicPoints(self, topic, by: int = 0, notify = True, reason='') -> int:
+    def decreaseTopicPoints(self, topic, by: int = 0, notify=True, reason='') -> int:
         proftop, _ = ProfileTopic.objects.get_or_create(
             profile=self, topic=topic, defaults=dict(
                 profile=self,
@@ -798,7 +813,7 @@ class Profile(models.Model):
             )
         )
         return proftop.decreasePoints(by, notify, reason)
-        
+
     def xpTarget(self):
         xp = self.xp
         strxp = str(xp)
@@ -817,14 +832,16 @@ class Profile(models.Model):
         cacheKey = self.CACHE_KEYS.topic_ids
         data = cache.get(cacheKey, None)
         if data is None:
-            topIDs = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points').values_list('topic__id', flat=True)
-            data = list(map(lambda t: t.hex,list(topIDs)))
+            topIDs = ProfileTopic.objects.filter(profile=self, trashed=False).order_by(
+                '-points').values_list('topic__id', flat=True)
+            data = list(map(lambda t: t.hex, list(topIDs)))
             if len(data):
                 cache.set(cacheKey, data, settings.CACHE_MINI)
         return data
 
     def getTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self, trashed=False).order_by('-points')
+        proftops = ProfileTopic.objects.filter(
+            profile=self, trashed=False).order_by('-points')
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
@@ -838,10 +855,12 @@ class Profile(models.Model):
 
     @property
     def getTrashedTopicIds(self):
-        topIDs = ProfileTopic.objects.filter(profile=self, trashed=True).order_by('-points').values_list('topic__id', flat=True)
+        topIDs = ProfileTopic.objects.filter(profile=self, trashed=True).order_by(
+            '-points').values_list('topic__id', flat=True)
+
         def hexize(topUUID):
             return topUUID.hex
-        return list(map(hexize,topIDs))
+        return list(map(hexize, topIDs))
 
     def getTrashedTopics(self):
         proftops = ProfileTopic.objects.filter(profile=self, trashed=True)
@@ -869,11 +888,13 @@ class Profile(models.Model):
         return self.totalTrashedTopics()
 
     def getAllTopicIds(self):
-        topIDs = ProfileTopic.objects.filter(profile=self).order_by('-points').values_list('topic__id', flat=True)
-        return list(map(lambda tid: tid.hex,topIDs))
+        topIDs = ProfileTopic.objects.filter(profile=self).order_by(
+            '-points').values_list('topic__id', flat=True)
+        return list(map(lambda tid: tid.hex, topIDs))
 
     def getAllTopics(self):
-        proftops = ProfileTopic.objects.filter(profile=self).order_by('-points')
+        proftops = ProfileTopic.objects.filter(
+            profile=self).order_by('-points')
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
@@ -932,7 +953,7 @@ class Profile(models.Model):
 
     def blockedIDs(self) -> list:
         cachekey = self.CACHE_KEYS.blocked_ids
-        ids = cache.get(cachekey,[])
+        ids = cache.get(cachekey, [])
         if not len(ids):
             for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
                 if block.blockeduser == self.user:
@@ -945,7 +966,7 @@ class Profile(models.Model):
 
     def blockedProfiles(self) -> list:
         cachekey = self.CACHE_KEYS.blocked_profiles
-        profiles = cache.get(cachekey,[])
+        profiles = cache.get(cachekey, [])
         if not len(profiles):
             for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
                 if block.blockeduser == self.user:
@@ -956,7 +977,7 @@ class Profile(models.Model):
                     cache.set(cachekey, profiles, settings.CACHE_INSTANT)
         return profiles
 
-    def filterBlockedProfiles(self,profiles) -> list:
+    def filterBlockedProfiles(self, profiles) -> list:
         filteredProfiles = profiles
         for profile in profiles:
             if self.isBlockedProfile(profile):
@@ -967,11 +988,11 @@ class Profile(models.Model):
         cacheKey = self.CACHE_KEYS.tags
         data = cache.get(cacheKey, None)
         if data is None:
-            data = self.topics.values_list('tags',flat=True).distinct()
+            data = self.topics.values_list('tags', flat=True).distinct()
             if len(data):
                 cache.set(cacheKey, data, settings.CACHE_MINI)
         return data
-    
+
     def recommended_projects(self, atleast=3, atmost=4):
         def approved_only(project):
             return project.is_approved
@@ -979,13 +1000,16 @@ class Profile(models.Model):
             cacheKey = self.CACHE_KEYS.recommended_projects
             projects = cache.get(cacheKey, None)
             if projects is None:
-                constquery = ~Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles())
+                constquery = ~Q(admirers=self, suspended=True,
+                                trashed=True, creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                projects = BaseProject.objects.filter(constquery,query).distinct()
-                projects = list(set(list(filter(approved_only,projects))))
+                projects = BaseProject.objects.filter(
+                    constquery, query).distinct()
+                projects = list(set(list(filter(approved_only, projects))))
                 if len(projects) < atleast:
-                    projects = BaseProject.objects.filter(constquery).distinct()
-                    projects = list(set(list(filter(approved_only,projects))))
+                    projects = BaseProject.objects.filter(
+                        constquery).distinct()
+                    projects = list(set(list(filter(approved_only, projects))))
                 if len(projects):
                     cache.set(cacheKey, projects, settings.CACHE_SHORT)
             return projects[:atmost]
@@ -1006,6 +1030,9 @@ class Profile(models.Model):
             errorLog(e)
             return []
 
+    def clearCache(self):
+        return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
+
 
 class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1022,10 +1049,13 @@ class ProfileSetting(models.Model):
     def savePreferencesLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.ACCOUNTPREFERENCES}"
 
+
 class ProfileTag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='tag_profile')
-    tag = models.ForeignKey(f'{PROJECTS}.Tag', on_delete=models.CASCADE, related_name='profile_tag')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='tag_profile')
+    tag = models.ForeignKey(
+        f'{PROJECTS}.Tag', on_delete=models.CASCADE, related_name='profile_tag')
 
 
 class ProfileTopic(models.Model):
@@ -1044,7 +1074,7 @@ class ProfileTopic(models.Model):
     def hidden(self) -> bool:
         return self.trashed
 
-    def increasePoints(self, by: int = 0, notify = True,reason='') -> int:
+    def increasePoints(self, by: int = 0, notify=True, reason='') -> int:
         points = 0
         if not self.points:
             points = by
@@ -1053,11 +1083,13 @@ class ProfileTopic(models.Model):
         self.points = points
         self.save()
         if notify:
-            user_device_notify(self.profile.user, "Topic XP Increased!", f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
-        ProfileTopicXPRecord.objects.create(profile_topic=self, xp=by, reason=reason)
+            user_device_notify(self.profile.user, "Topic XP Increased!",
+                               f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
+        ProfileTopicXPRecord.objects.create(
+            profile_topic=self, xp=by, reason=reason)
         return self.points
 
-    def decreasePoints(self, by: int = 0, notify = True,reason='') -> int:
+    def decreasePoints(self, by: int = 0, notify=True, reason='') -> int:
         if not self.points:
             points = 0
         elif self.points - by < 0:
@@ -1067,16 +1099,22 @@ class ProfileTopic(models.Model):
         self.points = points
         self.save()
         if notify:
-            user_device_notify(self.profile.user, "Topic XP decreased.", f"You have lost -{by} XP in {self.topic.get_name}. {self.points} is your current XP.", self.profile.get_abs_link)
-        ProfileTopicXPRecord.objects.create(profile_topic=self, xp=by, reason=reason)
+            user_device_notify(self.profile.user, "Topic XP decreased.",
+                               f"You have lost -{by} XP in {self.topic.get_name}. {self.points} is your current XP.", self.profile.get_abs_link)
+        ProfileTopicXPRecord.objects.create(
+            profile_topic=self, xp=by, reason=reason)
         return self.points
-    
+
     def get_points(self, raw=False):
-        if raw: return self.points or 0
-        if self.points or 0 < 10**3: return self.points or 0
-        if self.points < 10**6: return f"{self.points//(10**3)}k"
-        if self.points < 10**9: return f"{self.points//(10**6)}M"
-        return 
+        if raw:
+            return self.points or 0
+        if self.points or 0 < 10**3:
+            return self.points or 0
+        if self.points < 10**6:
+            return f"{self.points//(10**3)}k"
+        if self.points < 10**9:
+            return f"{self.points//(10**6)}M"
+        return
 
 
 class BlockedUser(models.Model):
@@ -1102,25 +1140,27 @@ class ReportedUser(models.Model):
     category = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_user_category')
 
+
 def displayMentorImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/displaymentors/{str(instance.get_id)}.{fileparts[len(fileparts)-1]}"
 
+
 class DisplayMentor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name='display_mentor_profile',null=True, blank=True)
+        Profile, on_delete=models.CASCADE, related_name='display_mentor_profile', null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
     about = models.CharField(max_length=500, null=True, blank=True)
     picture = models.ImageField(
         upload_to=displayMentorImagePath, default=defaultImagePath, null=True, blank=True)
-    website = models.URLField(max_length=500,null=True, blank=True)
+    website = models.URLField(max_length=500, null=True, blank=True)
     hidden = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def __str__(self):
         return self.name or self.get_name or str(self.id)
-    
+
     @property
     def get_id(self):
         return self.id.hex
@@ -1150,20 +1190,27 @@ class DisplayMentor(models.Model):
             return self.profile.getLink()
         return self.website
 
+
 class ProfileSuccessorInvitation(Invitation):
-    sender = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='successor_invitation_sender')
-    receiver = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='successor_invitation_receiver')
+    sender = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='successor_invitation_sender')
+    receiver = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='successor_invitation_receiver')
 
     class Meta:
         unique_together = ('sender', 'receiver')
 
+
 class GHMarketPurchase(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='purchaser_profile',null=True, blank=True)
+    profile = models.ForeignKey(Profile, on_delete=models.PROTECT,
+                                related_name='purchaser_profile', null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
-    gh_app_plan = models.ForeignKey(GhMarketPlan, on_delete=models.SET_NULL, null=True, blank=True)
+    gh_app_plan = models.ForeignKey(
+        GhMarketPlan, on_delete=models.SET_NULL, null=True, blank=True)
     effective_date = models.DateTimeField(auto_now=False, default=timezone.now)
-    next_billing_date = models.DateTimeField(auto_now=False, default=timezone.now)
+    next_billing_date = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     units_purchased = models.IntegerField(default=1)
 
     @property
@@ -1176,28 +1223,34 @@ class GHMarketPurchase(models.Model):
             return True
         return False
 
+
 def frameworkImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/frameworks/{str(instance.id)}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+
 
 class Framework(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
-    banner = models.ImageField(upload_to=frameworkImagePath, default=None, null=True, blank=True)
-    primary_color = models.CharField(max_length=10,null=True, blank=True)
-    secondary_color = models.CharField(max_length=10,null=True, blank=True)
+    banner = models.ImageField(
+        upload_to=frameworkImagePath, default=None, null=True, blank=True)
+    primary_color = models.CharField(max_length=10, null=True, blank=True)
+    secondary_color = models.CharField(max_length=10, null=True, blank=True)
     is_draft = models.BooleanField(default=True)
-    creator = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='framework_creator')
+    creator = models.ForeignKey(
+        Profile, on_delete=models.PROTECT, related_name='framework_creator')
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     trashed = models.BooleanField(default=False)
     suspended = models.BooleanField(default=False)
-    admirers = models.ManyToManyField(Profile, through="FrameworkAdmirer", related_name='framework_admirers', default=[])
-    reporters = models.ManyToManyField(Profile, through="FrameworkReport", related_name='framework_reporters', default=[])
+    admirers = models.ManyToManyField(
+        Profile, through="FrameworkAdmirer", related_name='framework_admirers', default=[])
+    reporters = models.ManyToManyField(
+        Profile, through="FrameworkReport", related_name='framework_reporters', default=[])
 
     def __str__(self):
         return self.name
-    
+
     @property
     def get_image(self):
         return str(self.image)
@@ -1209,57 +1262,76 @@ class Framework(models.Model):
     @property
     def frames(self):
         return Frame.objects.filter(framework=self)
-    
+
+
 class Frame(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='frame_framework')
+    framework = models.ForeignKey(
+        Framework, on_delete=models.CASCADE, related_name='frame_framework')
     title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to=frameworkImagePath, default=None, null=True, blank=True)
-    video = models.FileField(upload_to=frameworkImagePath, default=None,null=True, blank=True)
-    attachment = models.FileField(upload_to=frameworkImagePath, default=None,null=True, blank=True)
+    image = models.ImageField(
+        upload_to=frameworkImagePath, default=None, null=True, blank=True)
+    video = models.FileField(upload_to=frameworkImagePath,
+                             default=None, null=True, blank=True)
+    attachment = models.FileField(
+        upload_to=frameworkImagePath, default=None, null=True, blank=True)
     text = models.CharField(max_length=500)
-    snapshot = models.ForeignKey(Snapshot, related_name='frame_snapshot', on_delete=models.SET_NULL, null=True, blank=True)
-    
+    snapshot = models.ForeignKey(
+        Snapshot, related_name='frame_snapshot', on_delete=models.SET_NULL, null=True, blank=True)
+
     def __str__(self):
         return self.title
-    
+
     def save(self, *args, **kwargs):
         if not (self.image or self.video or self.snapshot):
-            raise ValidationError('At least one of image, video or snapshot must be provided')
+            raise ValidationError(
+                'At least one of image, video or snapshot must be provided')
         super(Frame, self).save(*args, **kwargs)
+
 
 class FrameworkAdmirer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='admirer_framework')
-    admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admirer_profile')
+    framework = models.ForeignKey(
+        Framework, on_delete=models.CASCADE, related_name='admirer_framework')
+    admirer = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='admirer_profile')
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
-    
+
+
 class FrameworkReport(models.Model):
     class Meta:
         unique_together = ('profile', 'framework', 'category')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='framework_reporter_profile')
-    framework = models.ForeignKey(Framework, on_delete=models.CASCADE, related_name='reported_framework')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='framework_reporter_profile')
+    framework = models.ForeignKey(
+        Framework, on_delete=models.CASCADE, related_name='reported_framework')
     category = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_framework_category')
+
 
 class ProfileAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'admirer')
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    admirer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='admired_profile')
+    admirer = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='admired_profile')
+
 
 class ProfileSocial(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     site = models.URLField(max_length=800)
 
+
 class CoreMember(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='core_member_profile')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='core_member_profile')
     hidden = models.BooleanField(default=False)
     about = models.CharField(max_length=500, null=True, blank=True)
 
@@ -1269,16 +1341,20 @@ class CoreMember(models.Model):
     def get_about(self):
         return self.about or self.profile.getBio()
 
+
 class ProfileXPRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_xp_record_profile')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='profile_xp_record_profile')
     xp = models.IntegerField(default=0, editable=False)
     reason = models.TextField(max_length=500, null=True, blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
+
 class ProfileTopicXPRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile_topic = models.ForeignKey(ProfileTopic, on_delete=models.CASCADE, related_name='profilet_xp_record_profilet')
+    profile_topic = models.ForeignKey(
+        ProfileTopic, on_delete=models.CASCADE, related_name='profilet_xp_record_profilet')
     xp = models.IntegerField(default=0, editable=False)
     reason = models.TextField(max_length=500, null=True, blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)

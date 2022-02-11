@@ -25,7 +25,7 @@ import requests
 from django.conf import settings
 from django.views.decorators.http import require_POST
 
-from .env import ISPRODUCTION, ISTESTING
+from .env import INTERNAL_SHARED_SECRET, ISPRODUCTION, ISTESTING
 
 
 def decDec(inner_dec):
@@ -209,22 +209,11 @@ def github_bot_only(function):
     """
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        if ISPRODUCTION:
+        if not ISPRODUCTION:
             try:
-                header_signature = request.META.get('HTTP_X_KNOT_SIGNATURE_256')
-                if header_signature is None:
-                    return HttpResponseForbidden('Permission denied 1')
-
-                sha_name, signature = header_signature.split('=')
-                if sha_name != Code.SHA256:
-                    return HttpResponseForbidden('Permission denied 2')
-
-                mac = hmac.new(force_bytes(settings.GH_HOOK_SECRET),
-                            msg=force_bytes(request.body), digestmod=sha256)
-                if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
-                    return HttpResponseForbidden('Permission denied 3')
-
-                request.POST = dict(**request.POST, **json.loads(unquote(request.body.decode(Code.UTF_8)).split('payload=')[1]))
+                if request.headers['Authorization'] != INTERNAL_SHARED_SECRET:
+                    return HttpResponseForbidden('Permission denied 0')
+                request.POST = json.loads(request.body.decode(Code.UTF_8))
                 return function(request, *args, **kwargs)
             except Exception as e:
                 errorLog(e)

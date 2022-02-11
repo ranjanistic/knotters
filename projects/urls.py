@@ -34,7 +34,7 @@ urlpatterns = [
     path(URL.Projects.UNLINK_FREE_REPO, unlinkFreeGithubRepo),
     path(URL.Projects.LIVEDATA, liveData),
     path(URL.Projects.GITHUB_EVENTS, githubEventsListener),
-    # path(URL.Projects.GITHUB_EVENTS_FREE, githubEventsListenerFree),
+    path(URL.Projects.GITHUB_BOT_EVENTS, githubBotEvents),
     path(URL.Projects.REPORT_CATEGORIES, reportCategories),
     path(URL.Projects.REPORT_PROJECT, reportProject),
     path(URL.Projects.REPORT_SNAPSHOT, reportSnapshot),

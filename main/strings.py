@@ -13,11 +13,14 @@ AUTH = 'auth'
 DOCS = 'docs'
 
 
-def classAttrsToDict(className, appendCondition) -> dict:
+def classAttrsToDict(className, appendCondition=None) -> dict:
     data = dict()
     for key in className.__dict__:
         if not (str(key).startswith('__') and str(key).endswith('__')):
-            if appendCondition(key, className.__dict__.get(key)):
+            if appendCondition:
+                if appendCondition(key, className.__dict__.get(key)):
+                    data[key] = className.__dict__.get(key)
+            else:
                 data[key] = className.__dict__.get(key)
     return data
 
@@ -950,7 +953,7 @@ class URL():
         def githubEvents(self, type, projID):
             return setPathParams(self.GITHUB_EVENTS, type, projID)
 
-        GITHUB_EVENTS_FREE = 'github-events-0/<str:type>/<str:projID>'
+        GITHUB_BOT_EVENTS = 'gh-bot-events/<str:botID>'
 
         NEWBIES = 'newbies/'
         BROWSE_SEARCH = 'browse/search/'

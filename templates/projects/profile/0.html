@@ -345,7 +345,6 @@
 
 {% block in_scripts %}
 <script>
-
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = false;
@@ -353,7 +352,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
 
 {% if not project.suspended %}
 {% if iscreator %}
-
     getElement('save-edit-projecttags').onclick= async ()=> {
         var obj = getFormDataById("edit-tag-inputs");
         var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
@@ -647,6 +645,36 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             }
         })
     }
+        {% if not project.linked_repo.has_installed_app %}
+            Swal.fire({
+                title: 'Setup Knottersbot in repository ',
+                html:`<h6>To track contribution record in {{project.nickname}} github repository, it is highly recommended that you install our Knotters Bot on GitHub.</h6>`,
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Setup Knotters Bot',
+                cancelButtonText: 'No, wait',
+                allowOutsideClick: false
+            }).then(async(result)=>{
+                if(result.isConfirmed){
+                    miniWindow("https://github.com/apps/knotters-bot/installations/new/permissions?target_id={{request.user.profile.gh_user.id}}")
+                }
+            })
+            
+        {% elif project.linked_repo.installed_app.suspended %}
+            Swal.fire({
+                title: 'Knottersbot suspended',
+                html:`<h6>To track contribution record in your {{project.nickname}} github repository, please unsuspend Knotters Bot on GitHub.</h6>`,
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Setup Knotters Bot',
+                cancelButtonText: 'No, wait',
+                allowOutsideClick: false
+            }).then(async(result)=>{
+                if(result.isConfirmed){
+                    miniWindow("https://github.com/apps/knotters-bot/installations/new/permissions?target_id={{request.user.profile.gh_user.id}}")
+                }
+            })
+        {% endif %}
     {% endif %}
     getElement('save-edit-snapshot').onclick=(e)=>{
         e.preventDefault();

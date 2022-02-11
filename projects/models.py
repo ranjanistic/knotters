@@ -8,11 +8,11 @@ from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
 from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
+import jsonfield
 from main.strings import CORE_PROJECT, Code, Message, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
-from management.models import HookRecord, ReportCategory, Invitation
+from management.models import GhMarketApp, GhMarketPlan, HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
-
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -866,6 +866,29 @@ class FreeRepository(models.Model):
             return data.html_url
         return None
 
+    def has_installed_app(self):
+        return AppRepository.objects.filter(free_repo=self).exists()
+
+    def installed_app(self):
+        return AppRepository.objects.filter(free_repo=self).first()
+
+class AppRepository(models.Model):
+    """
+    Ghmarket app linked with freerepository
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    free_repo = models.ForeignKey(FreeRepository, on_delete=models.CASCADE)
+    gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
+    suspended = models.BooleanField(default=False)
+    permissions = jsonfield.JSONField(default=dict)
+
+    def __str__(self):
+        return f"{self.gh_app} on {self.free_repo.reponame}"
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
 
 class ProjectTag(models.Model):
     class Meta:
@@ -1185,6 +1208,13 @@ class ProjectHookRecord(HookRecord):
     Github Webhook event record to avoid redelivery misuse.
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='hook_record_project')
+
+class BotHookRecord(HookRecord):
+    """
+    Github Webhook event record to avoid redelivery misuse.
+    """
+    ghmarketapp = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE, related_name='hook_record_ghmarketapp')
+    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, null=True,blank=True, related_name='bot_hook_record_baseproject')
 
 class CoreProjectHookRecord(HookRecord):
     """
