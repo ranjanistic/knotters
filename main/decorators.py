@@ -209,15 +209,12 @@ def github_bot_only(function):
     """
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        if ISPRODUCTION:
-            try:
-                if request.headers['Authorization'] != INTERNAL_SHARED_SECRET:
-                    return HttpResponseForbidden('Permission denied 0')
-                request.POST = json.loads(request.body.decode(Code.UTF_8))
-                return function(request, *args, **kwargs)
-            except Exception as e:
-                errorLog(e)
-                return HttpResponseBadRequest('Couldn\'t load request body properly.')
-        else:
+        try:
+            if request.headers['Authorization'] != INTERNAL_SHARED_SECRET:
+                return HttpResponseForbidden('Permission denied 0')
+            request.POST = json.loads(request.body.decode(Code.UTF_8))
             return function(request, *args, **kwargs)
+        except Exception as e:
+            errorLog(e)
+            return HttpResponseBadRequest('Couldn\'t load request body properly.')
     return wrap
