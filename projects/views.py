@@ -1115,11 +1115,12 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
                 apprepos = []
                 for frepo in frepos:
-                    apprepos.append(AppRepository(
-                        free_repo=frepo,
-                        gh_app=ghapp,
-                        permissions=permissions
-                    ))
+                    if not AppRepository.objects.filter(free_repo=frepo).exists():
+                        apprepos.append(AppRepository(
+                            free_repo=frepo,
+                            gh_app=ghapp,
+                            permissions=permissions
+                        ))
                 AppRepository.objects.bulk_create(apprepos)
             elif action == 'deleted':
                 AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).delete()
