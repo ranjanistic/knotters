@@ -1,3 +1,4 @@
+import re
 import uuid
 from django.core.cache import cache
 from django.db import models
@@ -80,6 +81,7 @@ class Competition(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, blank=False,
                              null=False, help_text='The competition name.')
+    nickname = models.CharField(max_length=50, blank=True,null=True, help_text='The competition nickname')
     tagline = models.CharField(max_length=2000, blank=False, null=False,
                                help_text='This will be shown in introduction and url previews.')
     shortdescription = models.CharField(
@@ -135,9 +137,9 @@ class Competition(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.createdOn = timezone.now()
         self.modifiedOn = timezone.now()
+        if not self.nickname:
+            self.nickname = re.sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:50].strip('-').lower()
         return super(Competition, self).save(*args, **kwargs)
 
     @property
@@ -154,6 +156,12 @@ class Competition(models.Model):
     def getBanner(self) -> str:
         return self.get_banner
 
+    def get_nickname(self):
+        if not self.nickname:
+            self.nickname = re.sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:50].strip('-').lower()
+            self.save()
+        return self.nickname
+        
     @property
     def get_banner_abs(self) -> str:
         return f"{SITE}{self.get_banner}"
@@ -167,6 +175,12 @@ class Competition(models.Model):
     @property
     def get_link(self) -> str:
         return self.getLink()
+
+    @property
+    def get_abs_link(self) -> str:
+        if self.get_link.startswith('http:'):
+            return self.get_link
+        return f"{settings.SITE}{self.get_link}"
 
     def participationLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.compete.participate(compID=self.getID())}"

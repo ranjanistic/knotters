@@ -978,13 +978,13 @@ class Profile(models.Model):
         try:
             cacheKey = self.CACHE_KEYS.recommended_projects
             projects = cache.get(cacheKey, None)
-            if projects is None:
-                constquery = Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles())
+            if projects is not None:
+                constquery = ~Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                projects = BaseProject.objects.filter(~constquery,query).distinct()
+                projects = BaseProject.objects.filter(constquery,query).distinct()
                 projects = list(set(list(filter(approved_only,projects))))
                 if len(projects) < atleast:
-                    projects = BaseProject.objects.filter(~constquery).distinct()
+                    projects = BaseProject.objects.filter(constquery).distinct()
                     projects = list(set(list(filter(approved_only,projects))))
                 if len(projects):
                     cache.set(cacheKey, projects, settings.CACHE_SHORT)

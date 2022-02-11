@@ -1,4 +1,5 @@
 from django.core.handlers.wsgi import WSGIRequest
+from main.bots import Discord
 from qrcode import make
 from uuid import UUID, uuid4
 import os
@@ -119,6 +120,10 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             data = getCompetitionSectionData(sec, competition, request.user)
             break
     return rendererstr(request, f'profile/{section}', data)
+
+def setupCompetitionDiscord(compete:Competition):
+    return Discord.createChannel(compete.get_nickname(), public=True, category="COMPETITIONS", message=f"Official discord channel for competition - {compete.title} by {compete.creator.get_name} {compete.get_abs_link}")
+
 
 def generateCertificate(certname:str, certID, username, compname, abouttext, associate=None, template='certificate'):
     imagex = 1632

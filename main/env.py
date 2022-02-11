@@ -36,6 +36,7 @@ MAILPASS = env('MAILPASS').strip()
 BOTMAIL = env('BOTMAIL').strip()
 ADMINPATH = env('ADMINPATH').strip()
 GITHUBBOTTOKEN = env('GITHUBBOTTOKEN').strip()
+DISCORDSERVERID = env('DISCORDSERVER', default=None).strip()
 DISCORDBOTTOKEN = env('DISCORDBOTTOKEN').strip()
 SITE = env('SITE').strip()
 SENDERTOKEN = env('SENDERTOKEN').strip()
@@ -54,7 +55,9 @@ VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY').strip()
 VAPID_ADMIN_MAIL = env('VAPID_ADMIN_MAIL').strip()
 LOCALE_ABS_PATH = env('LOCALE_ABS_PATH').strip()
 CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS').split(',')
+
 CDN_URL = env('CDN_URL', default='https://cdn.knotters.org').strip()
+INTERNAL_SHARED_SECRET = env('INTERNAL_SHARED_SECRET', default='secret').strip()
 
 PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
 PUBNAME = None if PUBNAME == 'none' else PUBNAME

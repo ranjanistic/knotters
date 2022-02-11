@@ -2,6 +2,7 @@ from json.decoder import JSONDecodeError
 import traceback
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
+from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render
 
 from allauth.account.models import EmailAddress
@@ -17,7 +18,8 @@ from django.utils.encoding import force_bytes
 from functools import wraps
 from ipaddress import ip_address, ip_network
 from .methods import addMethodToAsyncQueue, errorLog
-from .strings import Code, Event
+from .strings import Code, Event, AUTH2
+from auth2.mailers import send_account_verification_email
 import json
 import requests
 from django.conf import settings
@@ -88,11 +90,12 @@ def verified_email_required(
 ):
     def decorator(view_func):
         @login_required(redirect_field_name=redirect_field_name, login_url=login_url)
-        def _wrapped_view(request, *args, **kwargs):
+        def _wrapped_view(request:WSGIRequest, *args, **kwargs):
             if not EmailAddress.objects.filter(
                 user=request.user, verified=True
             ).exists() and not ISTESTING:
-                send_email_confirmation(request, request.user)
+                # addMethodToAsyncQueue(f"{AUTH2}.mailers.{send_account_verification_email}", request)
+                send_account_verification_email(request)
                 return render(request, "account/verified_email_required.html")
             return view_func(request, *args, **kwargs)
 

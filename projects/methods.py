@@ -10,7 +10,7 @@ from django_q.models import Success
 from management.models import HookRecord
 from people.models import Profile, Topic
 from github import NamedUser, Repository
-from main.bots import GithubKnotters
+from main.bots import GithubKnotters, Discord
 from main.strings import Code, Event, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
@@ -396,6 +396,15 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
             msg += f'hook err: {e},'
             pass
         
+        try:
+            done = setupVProjectDiscord(project)
+            if done:
+                msg += f'discord done {done}'
+            else:
+                raise Exception()
+        except Exception as e:
+            msg += f'discord err'
+
         cache.set(f'approved_project_setup_{project.id}', Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}",project)
         return True, msg
@@ -514,6 +523,15 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
             msg += f'hook err: {e},'
             pass
         
+        try:
+            done = setupCProjectDiscord(coreproject)
+            if done:
+                msg += f'discord done {done}'
+            else:
+                raise Exception()
+        except Exception as e:
+            msg += f'discord err'
+
         cache.set(f'approved_coreproject_setup_{coreproject.id}', Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
         addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendCoreProjectApprovedNotification.__name__}",coreproject)
         return True, msg
@@ -521,6 +539,11 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
         errorLog(e)
         return False, e
 
+def setupVProjectDiscord(project:Project):
+    return Discord.createChannel(project.reponame, public=True, category="PROJECTS", message=f"Official discord channel for {project.name} {project.get_abs_link}")
+
+def setupCProjectDiscord(coreproject:CoreProject):
+    return Discord.createChannel(coreproject.codename, public=False, category="PROJECTS", message=f"Official discord channel for {coreproject.name} {coreproject.get_abs_link}")
 
 def getGhOrgRepo(reponame: str) -> Repository:
     try:

@@ -1,7 +1,8 @@
 import requests
 from github import Github as GHub
-from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION
-from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS
+
+from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION, DISCORDBOTTOKEN, DISCORDSERVERID
+from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, DISCORD_KNOTTERS_API_URL, DISCORD_KNOTTERS_HEADERS
 
 try:
     if GITHUBBOTTOKEN:
@@ -17,6 +18,33 @@ except Exception as e:
 
 def GH_API(token=GITHUBBOTTOKEN):
     return GHub(token)
+
+class DiscordServer():
+    def __init__(self, token, serverID) -> None:
+        self.token = token
+        self.serverID = serverID
+        self.API_URL = DISCORD_KNOTTERS_API_URL
+        pass
+
+    def createChannel(self, name, type='GUILD_TEXT', public=False, category=None, message=""):
+        resp = requests.post(
+            self.API_URL + '/create-channel',
+            headers=DISCORD_KNOTTERS_HEADERS,
+            json={
+                "channel_name":name,
+                "channel_type":type,
+                "public": public,
+                "channel_category": category,
+                "message": message
+            }
+        )
+        if resp.status_code == 200:
+            return resp.json()['channel_id']
+        else:
+            return False
+
+
+Discord = DiscordServer(token=DISCORDBOTTOKEN, serverID=DISCORDSERVERID)
 
 class Sender():
     def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:

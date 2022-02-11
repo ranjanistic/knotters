@@ -1,4 +1,5 @@
 from main.mailers import sendAlertEmail, sendActionEmail
+from allauth.account.utils import send_email_confirmation
 from allauth.account.models import EmailAddress
 from main.env import PUBNAME
 from people.models import User, Profile
@@ -94,3 +95,7 @@ def successorDeclined(successor: User, predecessor: User) -> bool:
                           footer=f"You can request another successor using the same way you requested for {successor.getName()}.",
                           conclusion=f"This email was sent because you requested a successor for your {PUBNAME} account. If this wasn't you, then please report to us."
                           )
+
+def send_account_verification_email(request):
+    send_email_confirmation(request, request.user)
+    return True
