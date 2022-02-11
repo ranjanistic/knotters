@@ -978,7 +978,7 @@ class Profile(models.Model):
         try:
             cacheKey = self.CACHE_KEYS.recommended_projects
             projects = cache.get(cacheKey, None)
-            if projects is not None:
+            if projects is None:
                 constquery = ~Q(admirers=self,suspended=True,trashed=True,creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
                 projects = BaseProject.objects.filter(constquery,query).distinct()
