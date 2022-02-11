@@ -209,7 +209,7 @@ def github_bot_only(function):
     """
     @wraps(function)
     def wrap(request, *args, **kwargs):
-        if not ISPRODUCTION:
+        if ISPRODUCTION:
             try:
                 if request.headers['Authorization'] != INTERNAL_SHARED_SECRET:
                     return HttpResponseForbidden('Permission denied 0')
