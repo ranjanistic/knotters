@@ -64,4 +64,4 @@ jobs:
         python manage.py test --noinput --verbosity=1 --parallel
     - name: Clear environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
+        rm -f ${{ secrets.ENVPATH }}

@@ -64,4 +64,4 @@ jobs:
         python3 manage.py test --noinput --verbosity=1 --parallel --exclude-tag=model --exclude-tag=method
     - name: Clear environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
+        rm -f ${{ secrets.ENVPATH }}

@@ -30,4 +30,4 @@ jobs:
         sudo systemctl restart knotters.gunicorn
     - name: Clear environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
+        rm -f ${{ secrets.ENVPATH }}

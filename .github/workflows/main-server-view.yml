@@ -64,7 +64,7 @@ jobs:
         python3 manage.py test --noinput --verbosity=1 --parallel --exclude-tag=model --exclude-tag=method
     - name: Clear environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
+        rm -f ${{ secrets.ENVPATH }}
 
   build:
     needs: [testing]
@@ -77,12 +77,12 @@ jobs:
     steps:
     - name: Create backup
       run: |
-        sudo mongodump --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
-        sudo tar czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
-        sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
-        sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
-        sudo rm -f -r _backup_/${{ secrets.DBNAME }}
-        sudo rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
+        mongodump --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
+        tar czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
+        rm -f _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
+        gpg -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
+        rm -f -r _backup_/${{ secrets.DBNAME }}
+        rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
     - name: Merge changes
       run: |
         git pull --depth=100
@@ -92,15 +92,15 @@ jobs:
         pip install -r requirements.txt
     - name: Setup environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
-        sudo gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
+        rm -f ${{ secrets.ENVPATH }}
+        gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
     - name: Run migrations
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput
     - name: Clear environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
+        rm -f ${{ secrets.ENVPATH }}
 
   deploy:
     needs: [build]
@@ -113,10 +113,10 @@ jobs:
     steps:
     - name: Create backup
       run: |
-        sudo tar czf _backup_/media.tar.gz media
-        sudo rm -f _backup_/media.tar.gz.gpg
-        sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
-        sudo rm -f _backup_/media.tar.gz
+        tar czf _backup_/media.tar.gz media
+        rm -f _backup_/media.tar.gz.gpg
+        gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
+        rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
         git pull origin main --depth=100
@@ -127,4 +127,4 @@ jobs:
 #        sudo systemctl restart knotters.cluster1
     - name: Clear environment
       run: |
-        sudo rm -f ${{ secrets.ENVPATH }}
+        rm -f ${{ secrets.ENVPATH }}

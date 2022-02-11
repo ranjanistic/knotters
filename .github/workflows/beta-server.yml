@@ -42,7 +42,7 @@ jobs:
       run: |
         tar czf _backup_/media.tar.gz media
         rm -f _backup_/media.tar.gz.gpg
-        sudo gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
+        gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
         rm -f _backup_/media.tar.gz
     - name: Merge changes
       run: |
