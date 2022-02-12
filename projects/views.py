@@ -1131,7 +1131,32 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
             elif action == 'new_permissions_accepted':
                 AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(permissions=permissions)
             else:
-                raise Exception("Invalid action", action)
+                raise Exception("Invalid action", event, action)
+        elif event == "installation_repositories":
+            action = payload['action']
+            installation = payload['installation']
+            permissions = installation['permissions']
+            account = installation['account']
+            if action == 'added':
+                repositories = payload['repositories_added']
+                repo_ids = map(lambda r: r['id'] ,repositories)
+                frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                apprepos = []
+                for frepo in frepos:
+                    if not AppRepository.objects.filter(free_repo=frepo).exists():
+                        apprepos.append(AppRepository(
+                            free_repo=frepo,
+                            gh_app=ghapp,
+                            permissions=permissions
+                        ))
+                AppRepository.objects.bulk_create(apprepos)
+            elif action == 'removed':
+                repositories = payload['repositories_removed']
+                repo_ids = map(lambda r: r['id'] ,repositories)
+                frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).delete()
+            else:
+                raise Exception("Invalid action", event, action)
         else:
             return HttpResponseBadRequest(event)
         hookrecord.success = True
