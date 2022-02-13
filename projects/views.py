@@ -1132,6 +1132,8 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(permissions=permissions)
             else:
                 raise Exception("Invalid action", event, action)
+            hookrecord.success = True
+            hookrecord.save()
         elif event == "installation_repositories":
             action = payload['action']
             installation = payload['installation']
@@ -1157,14 +1159,18 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).delete()
             else:
                 raise Exception("Invalid action", event, action)
+            hookrecord.success = True
+            hookrecord.save()
         else:
-            return HttpResponseBadRequest(event)
-        hookrecord.success = True
-        hookrecord.save()
+            repository = payload.get("repository", None)
+            if not repository:
+                return HttpResponseBadRequest(event)
+            freeproject = (FreeRepository.objects.get(repo_id=repository["id"])).free_project
+            addMethodToAsyncQueue(f"{APPNAME}.methods.{handleGithubKnottersRepoHook.__name__}", hookrecord.id, event, payload, freeproject)
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
-        raise Http404()
+        raise Http404(e)
 
 
 @csrf_exempt
