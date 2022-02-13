@@ -121,10 +121,6 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             break
     return rendererstr(request, f'profile/{section}', data)
 
-def setupCompetitionDiscord(compete:Competition):
-    return Discord.createChannel(compete.get_nickname(), public=True, category="COMPETITIONS", message=f"Official discord channel for competition - {compete.title} by {compete.creator.get_name} {compete.get_abs_link}")
-
-
 def generateCertificate(certname:str, certID, username, compname, abouttext, associate=None, template='certificate'):
     imagex = 1632
     imagey = 1056
