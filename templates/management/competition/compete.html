@@ -79,7 +79,7 @@
             <button class="negative" id="comp-delete-permanent">Delete competition</button>
             {% endif %}
             
-            {% if compete.isHistory %}
+            {% if compete.isHistory %}<br/><br/>
                 <strong>All submissions marked? {{compete.allSubmissionsMarked|yesno}}</strong><br/>
                 {% if compete.allSubmissionsMarked %}
                     {% if compete.resultDeclared %}
