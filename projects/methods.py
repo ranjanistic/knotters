@@ -730,8 +730,9 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
             if len(changed) > 1:
                 project.creator.increaseXP(
                     by=(((len(commits)//len(committers))//2) or 1),notify = False, reason=f"Commits pushed to {project.name}")
-                project.moderator.increaseXP(
-                    by=(((len(commits)//len(committers))//3) or 1),notify = False, reason=f"Commits pushed to {project.name}")
+                if project.verified or project.core:
+                    project.moderator.increaseXP(
+                        by=(((len(commits)//len(committers))//3) or 1),notify = False, reason=f"Commits pushed to {project.name}")
         elif ghevent == Event.PR:
             pr = postData.get('pull_request', None)
             action = postData.get('action', None)
@@ -748,7 +749,8 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                     if pr_creator:
                         pr_creator.increaseXP(by=3,notify = False, reason=f"PR by {pr_creator_ghID} merged on {project.name}")
                     project.creator.increaseXP(by=1,notify = False , reason=f"PR by {pr_creator_ghID} merged on {project.name}")
-                    project.moderator.increaseXP(by=1,notify = False , reason=f"PR by {pr_creator_ghID} merged on {project.name}")
+                    if project.verified or project.core:
+                        project.moderator.increaseXP(by=1,notify = False , reason=f"PR by {pr_creator_ghID} merged on {project.name}")
                 else:
                     if pr_creator:
                         pr_creator.decreaseXP(by=2, notify = False, reason=f"PR by {pr_creator_ghID} closed unmerged on {project.name}")
@@ -796,10 +798,12 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
             action = postData.get('action', None)
             if action == 'created':
                 project.creator.increaseXP(by=1,notify = False, reason=f"Starred {project.name}")
-                project.moderator.increaseXP(by=1,notify = False, reason=f"Starred {project.name}")
+                if project.verified or project.core:
+                    project.moderator.increaseXP(by=1,notify = False, reason=f"Starred {project.name}")
             elif action == 'deleted':
                 project.creator.decreaseXP(by=1, notify = False, reason=f"Unstarred {project.name}")
-                project.moderator.decreaseXP(by=1, notify = False, reason=f"Unstarred {project.name}")
+                if project.verified or project.core:
+                    project.moderator.decreaseXP(by=1, notify = False, reason=f"Unstarred {project.name}")
             else:
                 return False, f"Unhandled '{ghevent}' action: {action}"
         else:
@@ -808,7 +812,7 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
         hookrecord.save()
         return True, f"hook record ID: {hookrecordID}"
     except ObjectDoesNotExist:
-        return True, f"hook record ID: {hookrecordID}"
+        return False, f"objnotexist hook record ID: {hookrecordID}"
     except:
         return False, traceback.format_exc()
 
