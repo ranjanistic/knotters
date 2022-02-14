@@ -402,6 +402,17 @@ class Manifest(TemplateView):
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
 
+    def render_to_response(self, context, **response_kwargs):
+        response_kwargs.setdefault('content_type', self.content_type)
+        stringrender = render_to_string(self.get_template_names(), request=self.request,context=context)
+        try:
+            if not settings.DEBUG:
+                stringrender = json.dumps(json.loads(stringrender),separators=(',',':'))
+        except:
+            pass
+        return HttpResponse(stringrender, **response_kwargs)
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
