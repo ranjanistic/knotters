@@ -486,14 +486,13 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         if request.user.profile in result.xpclaimers.all():
             raise ObjectDoesNotExist()
         profile = Profile.objects.get(user=request.user)
-        profile.increaseXP(by=result.points)
-        result.xpclaimers.add(profile)
         topicpoints = SubmissionTopicPoint.objects.filter(
             submission=result.submission).values('topic').annotate(points=Sum('points'))
         topicpointsIDs = []
         for topicpoint in topicpoints:
             topicpointsIDs.append(topicpoint['topic'])
         topics = Topic.objects.filter(id__in=topicpointsIDs)
+        profile.increaseXP(by=(result.points)//(len(topicpointsIDs)))
         for topic in topics:
             profiletopic, _ = ProfileTopic.objects.get_or_create(
                 profile=request.user.profile,
@@ -508,7 +507,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                 if topicpoint['topic'] == topic.id:
                     profiletopic.increasePoints(by=topicpoint['points'])
                     break
-
+        result.xpclaimers.add(profile)
         return redirect(result.submission.competition.getLink(alert=Message.XP_ADDED))
     except ObjectDoesNotExist as o:
         raise Http404(o)
