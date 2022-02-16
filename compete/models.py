@@ -7,6 +7,7 @@ from people.models import Profile
 from django.conf import settings
 from django.utils import timezone
 from people.models import Topic
+from projects.models import FreeProject
 from moderation.models import Moderation
 from management.models import Invitation
 from main.strings import url, MANAGEMENT
@@ -642,6 +643,7 @@ class Submission(models.Model):
     members = models.ManyToManyField(
         Profile, through='SubmissionParticipant', related_name='submission_participants')
     repo = models.URLField(max_length=1000, blank=True, null=True)
+    free_project = models.ForeignKey(FreeProject, on_delete=models.SET_NULL,null=True,blank=True)
     submitted = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
