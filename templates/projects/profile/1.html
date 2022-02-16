@@ -97,39 +97,29 @@
         <div class="w3-row pallete">
             <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
             <div class="" id="view-sociallinks">    
-                {% if project.socialsites.count or project.url %}
-                    {% if project.url %}
-                        <a target="_blank" rel="noreferrer" href="{{project.url}}"><strong class="text-medium">{{project.url|noprotocol|truncatechars:25}}</strong></a><br/>
-                    {% endif %}
-                    {% for site in project.socialsites %}
-                        <a class="" href="{{site.site}}" target="_blank" rel="noreferrer">
-                            <div class="pallete-slab w3-left align positive-text">
-                            <i class="w3-large">open_in_new</i>&nbsp;<strong>{{site.site|noprotocol|truncatechars:30}}</strong>
-                            </div>
-                        </a>
-                    {% endfor %}
-                {% else %}
+                {% for site in project.socialsites %}
+                    <a class="" href="{{site.site}}" target="_blank" rel="noreferrer">
+                        <div class="pallete-slab align w3-left positive-text">
+                        <i class="w3-large">open_in_new</i>&nbsp;<strong>{{site.site|noprotocol|truncatechars:30}}</strong>
+                        </div>
+                    </a>
+                {% empty %}
                     <br/>
                     <center class="dead-text">
                         <div class="w3-jumbo material-icons">link_off</div>
                         <h5>No links</h5>
                     </center>
-                {% endif %}
+                {% endfor %}
                 {% if iscreator or ismoderator %}
                     <div class="w3-row">
                     <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
                     </div>
                 {% endif %}
             </div>
-            <div class="w3-center" id="edit-sociallinks" hidden>
+            <div class="w3-center " id="edit-sociallinks" hidden>
                 <form method="POST" action="{{URLS.PROFILEEDIT|params:project.get_id|params:'sociallinks'}}">
                 {% csrf_token %}
                 <div id="edit-sociallinks-inputs">
-                {% if project.url %}
-                    <div>
-                        <input type="url" class="wide"  placeholder="Link to anything relevant" value="{{project.url}}" name="sociallink-extra" id="sociallink-extra" /><br/><br/>
-                    </div>
-                {% endif %}
                 {% for site in project.socialsites %}
                     <div>
                         <input type="url" class="wide"  placeholder="Link to anything relevant" value="{{site.site}}" name="sociallink{{forloop.counter}}" id="sociallink{{forloop.counter}}" /><br/><br/>
@@ -144,7 +134,6 @@
             </div>
         </div>
         <br/>
-        
         
         <div class="w3-row w3-padding pallete">
             <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
