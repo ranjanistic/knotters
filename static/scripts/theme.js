@@ -141,7 +141,7 @@ class Color {
     secondaryText = (th = this.theme || THEME.getTheme()) =>
         th == THEME.light ? "#ffffff" : "#ffffff";
     tertiary = (th = this.theme || THEME.getTheme()) =>
-        th == THEME.light ? "#efefef" : "#151313";
+        th == THEME.light ? "#efefef" : "#232323";
     tertiaryText = (th = this.theme || THEME.getTheme()) =>
         th == THEME.light ? "#141414" : "#ffffff";
     accent = (th = this.theme || THEME.getTheme()) =>
