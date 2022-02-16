@@ -14,17 +14,23 @@
         <i>task_alt</i>&nbsp;{% trans "Submitted" %}{% if submission.late %} <span class="negative-text">{% trans "late" %}</span>{% endif%}.
         {% endif %}
         </h4>
-        <div class="w3-row pallete positive">
+        <div class="w3-row pallete active">
             <h3>{% trans "Submission" %}</h3>
             {% if not submission.submitted and compete.isActive %}
+            {% if submission.free_project %}
+              <a href="{{submission.getRepo}}" target="_blank"><button class="big-button primary" data-img="{{submission.free_project.getDP}}">{{submission.free_project.name}}</button></a>
+              <button class="negative small" data-icon="close" id="remove-quick-project">Remove project from competition</button>
+            {% else %}
             <form class="w3-row" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
             <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}">
             <div><br/></div>
             <button type="submit" class="primary" data-icon="save">Save</button>
-            </form>
+            </form><br/>
+              Or <button <button class="big-button positive" id="submit-quick-project">Submit a Quick Project</button>
+            {% endif %}
             {% elif not submission.submittingLate and submission.submitted %}
-                <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">{% trans "Your submission" %}</button></a>
+                <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">{% trans "View your submission" %}</button></a>
                 <h4 class="text-positive">Submitted on {{submission.submitOn}}
                 </h4>
             {% else %}
@@ -33,9 +39,7 @@
         </div>
         {% if not submission.submitted and not compete.moderated %}
         <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
-        {% if submission.submittingLate %}
-            {% trans "Late Submit" %}
-        {% else %}
+        {% if not submission.submittingLate %}
             {% trans "Final Submit" %}
         {% endif %}
         </button>
