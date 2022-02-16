@@ -209,7 +209,7 @@
           {% if not isJudge and not isMod and not isManager and not request.user.profile.is_manager %}
           <button class="side-nav-tab-small" id="submission-small" data-id="submission" data-icon="send"></button>
           {% endif %}
-          {% if compete.resultDeclared %}
+          {% if compete.isHistory %}
           <button class="side-nav-tab-small" id="result-small" data-id="result" data-icon="leaderboard"></button>
           {% endif %}
         </div>
