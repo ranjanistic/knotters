@@ -12,7 +12,7 @@ from main.bots import GH_API
 from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
 from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
-from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot
+from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot, FreeProject
 from moderation.models import ReportedModeration, Moderation
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
@@ -1013,6 +1013,13 @@ class Profile(models.Model):
                 if len(projects):
                     cache.set(cacheKey, projects, settings.CACHE_SHORT)
             return projects[:atmost]
+        except Exception as e:
+            errorLog(e)
+            return []
+
+    def free_projects(self):
+        try:
+            return FreeProject.objects.filter(creator=self, trashed=False, suspended=False)
         except Exception as e:
             errorLog(e)
             return []
