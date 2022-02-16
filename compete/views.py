@@ -303,8 +303,10 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 @ratelimit(key='user', rate='5/s', block=True, method=(Code.POST))
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         now = timezone.now()
         subm = Submission.objects.get(id=subID, competition__id=compID, competition__startAt__lt=now,
@@ -314,17 +316,26 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
             raise ObjectDoesNotExist('not allowed to part save subm')
         fprojID = request.POST.get('submissionfreeproject', None)
         if fprojID:
-            subm.free_project = FreeProject.objects.get(id=fprojID, creator=request.user.profile, suspended=False, trashed=False)
-            subm.repo = ""
+            if fprojID == "remove":
+                subm.free_project = None
+            else:
+                subm.free_project = FreeProject.objects.get(id=fprojID, creator=request.user.profile, suspended=False, trashed=False)
+                subm.repo = ""
         else:
             subm.repo = str(request.POST.get('submissionurl', '')).strip()
         subm.modifiedOn = now
         subm.save()
+        if json_body:
+            return respondJson(Code.OK)
         return redirect(subm.competition.getLink(alert=Message.SAVED))
     except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO)
         raise Http404(o)
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO)
         raise Http404(e)
 
 
