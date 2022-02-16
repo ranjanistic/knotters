@@ -17,6 +17,7 @@ from main.decorators import decode_JSON, require_JSON_body, normal_profile_requi
 from main.methods import addMethodToAsyncQueue, errorLog, respondJson, respondRedirect
 from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
+from projects.models import FreeProject
 from .models import Competition, ParticipantCertificate, AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
 from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates, rendererstr, rendererstrResponse
 from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
@@ -311,7 +312,12 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                                       )
         if not subm.competition.isAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist('not allowed to part save subm')
-        subm.repo = str(request.POST.get('submissionurl', '')).strip()
+        fprojID = request.POST.get('submissionfreeproject', None)
+        if fprojID:
+            subm.free_project = FreeProject.objects.get(id=fprojID, creator=request.user.profile, suspended=False, trashed=False)
+            subm.repo = ""
+        else:
+            subm.repo = str(request.POST.get('submissionurl', '')).strip()
         subm.modifiedOn = now
         subm.save()
         return redirect(subm.competition.getLink(alert=Message.SAVED))
