@@ -162,6 +162,8 @@ const loadTabScript = (attr, tab) => {
                                     }
                                 });
                             };
+                          } catch{};
+                         try {
                             getElement("finalsubmit").onclick = async (_) => {
                                 await Swal.fire({
                                     title: "Final submission",
@@ -232,6 +234,32 @@ const loadTabScript = (attr, tab) => {
                                     }
                                 });
                             };
+                        } catch {}
+                        try {
+                          getElement("submit-quick-project").onclick=_=> {
+                           userFreeProjectsSelect(async(fprojID)=>{
+                             const data = await postRequest2({
+                                 path: setUrlParams(URLS.SAVE,compID,compdata.subID),
+                                 data: { submissionfreeproject:fprojID }
+                             });
+                             if(data && data.code == CODE.OK){
+                                return tab.click();
+                             }
+                             return error(data.error)
+                            });
+                          }
+                        } catch {}
+                        try {
+                          getElement("remove-quick-project").onclick=async()=> {
+                             const data = await postRequest2({
+                                 path: setUrlParams(URLS.SAVE,compID,compdata.subID),
+                                 data: { submissionfreeproject:"remove" }
+                             });
+                            if(data && data.code == CODE.OK){
+                                return tab.click();
+                             }
+                            return error(data.error)
+                          }
                         } catch {}
                     }
                 } else {
