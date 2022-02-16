@@ -39,7 +39,9 @@
         </div>
         {% if not submission.submitted and not compete.moderated %}
         <button class="big-button {% if submission.submittingLate %}negative{% else %}accent{% endif %}" data-icon="check_circle" id="finalsubmit">
-        {% if not submission.submittingLate %}
+        {% if submission.submittingLate %}
+            {% trans "Late Submit" %}
+        {% else %}
             {% trans "Final Submit" %}
         {% endif %}
         </button>
