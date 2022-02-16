@@ -754,6 +754,8 @@ class Submission(models.Model):
         """
         Repo or submission link.
         """
+        if self.free_project:
+            return self.free_project.get_link
         return self.repo if self.repo else ''
 
     def submittingLate(self) -> bool:
