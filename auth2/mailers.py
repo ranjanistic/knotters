@@ -57,12 +57,11 @@ def accountReactiveAlert(profile: Profile) -> bool:
 
 
 def accountDeleteAlert(user: User) -> bool:
-    if EmailAddress.objects.filter(user=user, verified=True).exists():
-        return sendAlertEmail(to=user.email, username=user.first_name, subject='Account Deleted',
-                          header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
-                          footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
-                          conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
-                          )
+    return sendAlertEmail(to=user.email, username=user.first_name, subject='Account Deleted',
+                        header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
+                        footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
+                        conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
+                        )
 
 
 def successorInvite(successor: User, predecessor: User) -> bool:
