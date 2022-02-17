@@ -57,20 +57,26 @@ try {
 let taskinit = false;
 const loadTabScript = (attr, tab) => {
     switch (attr) {
-        case "task": {
-            try{
-                [getElement('compete-task-summary'),getElement('compete-task-detail'),getElement('compete-task-sample')].forEach(e=>{
-                    let s = new SimpleMDE({
-                        element: e,
-                        toolbar: false,
-                        status: false
+        case "task":
+            {
+                try {
+                    [
+                        getElement("compete-task-summary"),
+                        getElement("compete-task-detail"),
+                        getElement("compete-task-sample"),
+                    ].forEach((e) => {
+                        let s = new SimpleMDE({
+                            element: e,
+                            toolbar: false,
+                            status: false,
+                        });
+                        s.togglePreview();
+                        s.codemirror.options.readOnly = true;
                     });
-                    s.togglePreview();
-                    s.codemirror.options.readOnly = true;
-                })
-                taskinit = true;
-            } catch {}
-        } break;
+                    taskinit = true;
+                } catch {}
+            }
+            break;
         case "submission":
             {
                 if (isActive) {
@@ -162,8 +168,8 @@ const loadTabScript = (attr, tab) => {
                                     }
                                 });
                             };
-                          } catch{};
-                         try {
+                        } catch {}
+                        try {
                             getElement("finalsubmit").onclick = async (_) => {
                                 await Swal.fire({
                                     title: "Final submission",
@@ -236,30 +242,69 @@ const loadTabScript = (attr, tab) => {
                             };
                         } catch {}
                         try {
-                          getElement("submit-quick-project").onclick=_=> {
-                           userFreeProjectsSelect(async(fprojID)=>{
-                             const data = await postRequest2({
-                                 path: setUrlParams(URLS.SAVE,compID,compdata.subID),
-                                 data: { submissionfreeproject:fprojID }
-                             });
-                             if(data && data.code == CODE.OK){
-                                return tab.click();
-                             }
-                             return error(data.error)
-                            });
-                          }
+                            getElement("submit-quick-project").onclick = (
+                                _
+                            ) => {
+                                userFreeProjectsSelect(async (fprojID) => {
+                                    if (fprojID) {
+                                        const data = await postRequest2({
+                                            path: setUrlParams(
+                                                URLS.SAVE,
+                                                compID,
+                                                compdata.subID
+                                            ),
+                                            data: {
+                                                submissionfreeproject: fprojID,
+                                            },
+                                        });
+                                        if (data && data.code == CODE.OK) {
+                                            return tab.click();
+                                        }
+                                        return error(data.error);
+                                    }
+                                });
+                            };
                         } catch {}
                         try {
-                          getElement("remove-quick-project").onclick=async()=> {
-                             const data = await postRequest2({
-                                 path: setUrlParams(URLS.SAVE,compID,compdata.subID),
-                                 data: { submissionfreeproject:"remove" }
-                             });
-                            if(data && data.code == CODE.OK){
-                                return tab.click();
-                             }
-                            return error(data.error)
-                          }
+                            getElement("remove-quick-project").onclick =
+                                async () => {
+                                    const data = await postRequest2({
+                                        path: setUrlParams(
+                                            URLS.SAVE,
+                                            compID,
+                                            compdata.subID
+                                        ),
+                                        data: {
+                                            submissionfreeproject: "remove",
+                                        },
+                                    });
+                                    if (data && data.code == CODE.OK) {
+                                        return tab.click();
+                                    }
+                                    return error(data.error);
+                                };
+                        } catch {}
+                        try {
+                            getElement("save-url-submission").onclick =
+                                async () => {
+                                    let submissionurl = getElement("submissionurl").value.trim()
+                                    if(!submissionurl) return error("No submission URL saved!");
+                                    const data = await postRequest2({
+                                        path: setUrlParams(
+                                            URLS.SAVE,
+                                            compID,
+                                            compdata.subID
+                                        ),
+                                        data: {
+                                            submissionurl,
+                                        },
+                                    });
+                                    if (data && data.code == CODE.OK) {
+                                        message("Saved!")
+                                        return tab.click();
+                                    }
+                                    return error(data.error);
+                                };
                         } catch {}
                     }
                 } else {
@@ -425,16 +470,20 @@ const loadTabScript = (attr, tab) => {
             });
         };
     } catch {}
-    if (!taskinit && attr=='task'){
-        [getElement('compete-task-summary'),getElement('compete-task-detail'),getElement('compete-task-sample')].forEach(e=>{
+    if (!taskinit && attr == "task") {
+        [
+            getElement("compete-task-summary"),
+            getElement("compete-task-detail"),
+            getElement("compete-task-sample"),
+        ].forEach((e) => {
             let s = new SimpleMDE({
                 element: e,
                 toolbar: false,
-                status: false
+                status: false,
             });
             s.togglePreview();
             s.codemirror.options.readOnly = true;
-        })
+        });
     }
 };
 
