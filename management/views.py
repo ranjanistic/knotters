@@ -670,85 +670,91 @@ def submitCompetition(request) -> HttpResponse:
 def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
     try:
         compete = Competition.objects.get(id=compID,creator=request.user.profile)
-        if not compete.canBeEdited():
-            raise ObjectDoesNotExist('cannot edit compete:', compete)
-        
-        title = str(request.POST.get("comptitle",'')).strip()
-        if title and title != compete.title:
-            compete.title = title
-        tagline = str(request.POST.get("comptagline",'')).strip()
-        if tagline and tagline != compete.tagline:
-            compete.tagline = tagline
-        shortdescription = str(request.POST.get("compshortdesc",'')).strip()
-        if shortdescription and shortdescription != compete.shortdescription:
-            compete.shortdescription = shortdescription
+        changed = False
+        if compete.canBeEdited():
+            title = str(request.POST.get("comptitle",'')).strip()
+            if title and title != compete.title:
+                compete.title = title
+            tagline = str(request.POST.get("comptagline",'')).strip()
+            if tagline and tagline != compete.tagline:
+                compete.tagline = tagline
+            shortdescription = str(request.POST.get("compshortdesc",'')).strip()
+            if shortdescription and shortdescription != compete.shortdescription:
+                compete.shortdescription = shortdescription
 
-        description = str(request.POST.get("compdesc",'')).strip()
-        if description and description != compete.description:
-            compete.description = description
+            description = str(request.POST.get("compdesc",'')).strip()
+            if description and description != compete.description:
+                compete.description = description
 
-        startAt = request.POST.get("compstartAt",None)
-        if startAt and startAt != compete.startAt:
-            compete.startAt = startAt
+            startAt = request.POST.get("compstartAt",None)
+            if startAt and startAt != compete.startAt:
+                compete.startAt = startAt
 
-        endAt = request.POST.get("compendAt",None)
-        if endAt and endAt != compete.endAt and endAt > compete.startAt:
-            compete.endAt = endAt
+            endAt = request.POST.get("compendAt",None)
+            if endAt and endAt != compete.endAt and endAt > compete.startAt:
+                compete.endAt = endAt
 
-        eachTopicMaxPoint = request.POST.get("compeachTopicMaxPoint",None)
-        if eachTopicMaxPoint and eachTopicMaxPoint != compete.eachTopicMaxPoint:
-            compete.eachTopicMaxPoint = eachTopicMaxPoint
-        if compete.reg_fee:
-            reg_fee = request.POST.get("compregfee",None)
-            if reg_fee and reg_fee != compete.reg_fee:
-                compete.reg_fee = reg_fee
-            feelink = request.POST.get("compfeelink",None)
-            if feelink and feelink != compete.feelink:
-                compete.feelink = feelink
-        taskSummary = request.POST.get("comptaskSummary",None)
-        if taskSummary and taskSummary != compete.taskSummary:
-            compete.taskSummary = taskSummary
-        taskDetail = request.POST.get("comptaskDetail",None)
-        if taskDetail and taskDetail != compete.taskDetail:
-            compete.taskDetail = taskDetail
-        taskSample = request.POST.get("comptaskSample",None)
-        if taskSample and taskSample != compete.taskSample:
-            compete.taskSample = taskSample
+            eachTopicMaxPoint = request.POST.get("compeachTopicMaxPoint",None)
+            if eachTopicMaxPoint and eachTopicMaxPoint != compete.eachTopicMaxPoint:
+                compete.eachTopicMaxPoint = eachTopicMaxPoint
+            if compete.reg_fee:
+                reg_fee = request.POST.get("compregfee",None)
+                if reg_fee and reg_fee != compete.reg_fee:
+                    compete.reg_fee = reg_fee
+                feelink = request.POST.get("compfeelink",None)
+                if feelink and feelink != compete.feelink:
+                    compete.feelink = feelink
+            taskSummary = request.POST.get("comptaskSummary",None)
+            if taskSummary and taskSummary != compete.taskSummary:
+                compete.taskSummary = taskSummary
+            taskDetail = request.POST.get("comptaskDetail",None)
+            if taskDetail and taskDetail != compete.taskDetail:
+                compete.taskDetail = taskDetail
+            taskSample = request.POST.get("comptaskSample",None)
+            if taskSample and taskSample != compete.taskSample:
+                compete.taskSample = taskSample
 
-        topicIDs = request.POST.get("comptopicIDs",None)
-        if topicIDs and len(topicIDs) > 0:
-            topics = Topic.objects.filter(id__in=topicIDs)
-            compete.topics.set(topics)
+            topicIDs = request.POST.get("comptopicIDs",None)
+            if topicIDs and len(topicIDs) > 0:
+                topics = Topic.objects.filter(id__in=topicIDs)
+                compete.topics.set(topics)
 
-        modID = request.POST.get("compmodID",None)
-        if modID:
-            newmod = Profile.objects.filter(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).first()
-            if newmod:
-                moderation = compete.moderation()
-                moderation.moderator = newmod
-                moderation.save()
+            try:
+                bannerdata = request.POST['compbanner']
+                bannerfile = base64ToImageFile(bannerdata)
+                if bannerfile:
+                    compete.banner = bannerfile
+            except Exception as e:
+                pass
 
-        judgeIDs = request.POST.get("compjudgeIDs",None)
-        if judgeIDs and len(judgeIDs) > 0:
-            newjudges = Profile.objects.filter(user__id__in=judgeIDs,is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
-            compete.judges.set(newjudges)
+            try:
+                associatedata = request.POST['compassociate']
+                associatefile = base64ToImageFile(associatedata)
+                if associatefile:
+                    compete.associate = associatefile
+            except Exception as e:
+                pass
+            changed = True
 
-        try:
-            bannerdata = request.POST['compbanner']
-            bannerfile = base64ToImageFile(bannerdata)
-            if bannerfile:
-                compete.banner = bannerfile
-        except Exception as e:
-            pass
+        if compete.canChangeModerator():
+            modID = request.POST.get("compmodID",None)
+            if modID:
+                newmod = Profile.objects.filter(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).first()
+                if newmod:
+                    moderation = compete.moderation()
+                    moderation.moderator = newmod
+                    moderation.save()
+                changed = True
 
-        try:
-            associatedata = request.POST['compassociate']
-            associatefile = base64ToImageFile(associatedata)
-            if associatefile:
-                compete.associate = associatefile
-        except Exception as e:
-            pass
-        
+        if compete.canChangeJudges():
+            judgeIDs = request.POST.get("compjudgeIDs",None)
+            if judgeIDs and len(judgeIDs) > 0:
+                newjudges = Profile.objects.filter(user__id__in=judgeIDs,is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
+                compete.judges.set(newjudges)
+                changed = True
+
+        if not changed:
+            raise ObjectDoesNotExist('cannot edit compete', compete)
         compete.save()
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, ValidationError):

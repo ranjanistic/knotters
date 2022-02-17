@@ -416,6 +416,12 @@ class Competition(models.Model):
     def canBeEdited(self):
         return self.isUpcoming() or self.totalSubmittedSubmissions() == 0
 
+    def canChangeModerator(self):
+        return not self.moderated()
+
+    def canChangeJudges(self):
+        return not self.allSubmissionsMarked()
+
     def canBeDeleted(self):
         return self.isUpcoming() or self.totalSubmissions() == 0
 
@@ -475,6 +481,13 @@ class Competition(models.Model):
             if self.allSubmissionsMarkedByJudge(judge):
                 count = count+1
         return count
+
+    def countJudgesWhoNotMarkedSubmissions(self) -> int:
+        """
+        Count judges of this competition who have submitted topic points of all valid submissions.
+        """
+        return self.totalJudges() - self.countJudgesWhoMarkedSubmissions()
+
     def judgesWhoMarkedSubmissions(self):
         """
         Judges of this competition who have submitted topic points of all valid submissions.

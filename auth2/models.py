@@ -88,7 +88,7 @@ class EmailNotification(models.Model):
     subscribers = models.ManyToManyField(f"{PEOPLE}.User", through="EmailNotificationSubscriber", default=[], related_name='email_notification_subscribers')
 
     def __str__(self) -> str:
-        return self.notification
+        return self.notification.name
 
 
 class DeviceNotification(models.Model):
@@ -97,7 +97,7 @@ class DeviceNotification(models.Model):
     subscribers = models.ManyToManyField(f"{PEOPLE}.User", through="DeviceNotificationSubscriber",default=[], related_name='device_notification_subscribers')
 
     def __str__(self) -> str:
-        return self.notification
+        return self.notification.name
     
 
 class EmailNotificationSubscriber(models.Model):
