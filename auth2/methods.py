@@ -75,5 +75,3 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
     except Exception as e:
         errorLog(e)
         return False
-
-from .receivers import *
