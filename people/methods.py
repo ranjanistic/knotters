@@ -245,7 +245,7 @@ def isPictureSocialImage(picture: str) -> str:
     if isPictureDeletable(picture): return False
 
     providerID = None
-    for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id, LinkedInOAuth2Provider.id]:
+    for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id, LinkedInOAuth2Provider.id, "licdn.com"]:
         if str(picture).__contains__(id):
             providerID = id
             break
