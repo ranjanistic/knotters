@@ -14,7 +14,7 @@
 <div class="w3-row w3-padding">
     
     <div class="w3-col w3-third w3-center w3-padding" id="view-compete-info">
-        {% if compete.canBeEdited %}
+        {% if compete.canBeEdited or compete.canChangeJudges or compete.canChangeModerator or not compete.resultDeclared %}
         <button class="primary small w3-right edit-action" data-edittarget="compete-info" data-icon="edit" id="edit-details-action">Edit details</button></a>
         {% endif %}
         <br/><br/>
@@ -124,28 +124,32 @@
     </div>
 
     <div class="w3-col w3-third w3-center w3-padding" hidden id="edit-compete-info">
-        {% if compete.canBeEdited %}
-        <input type="file" accept="image/png, image/jpg, image/jpeg" id="compbannerfile" hidden />
-        <input type="file" accept="image/png, image/jpg, image/jpeg" id="compassociatefile" hidden />
-        <input type="text" id="compbanner" name="compbanner" hidden />
-        {% if compete.associate %}
-        <input type="text" id="compassociate" name="compassociate" hidden />
-        {% endif %}
+        {% if compete.canBeEdited or compete.canChangeJudges or compete.canChangeModerator or not compete.resultDeclared %}
         <button id="save-edit-compete-info" data-icon="done">Save changes</button>
         <button id="discard-edit-compete-info" data-icon="close">Discard changes</button>
-        {% endif %}
         <br/><br/>
-        <img src="{{compete.getBanner}}" class="pallete preview-type-image" width="80%" id="competebanneroutput" />
-        <button class="active small" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select banner</label></button>
-        <h3><input id="comptitle" name="comptitle" value="{{compete.title}}" /></h3>
-        <h6><input id="comptagline" name="comptagline" value="{{compete.tagline}}" /></h6>
-        {% if compete.associate %}
-        <h6>In association with</h6>
-        <img src="{{compete.get_associate}}" class="pallete preview-type-image" width="60%" id="competeassociateoutput" />
-        <button class="active small" type="button" data-icon="upload"><label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label></button>
         {% endif %}
+        {% if compete.canBeEdited %}
+            <input type="file" accept="image/png, image/jpg, image/jpeg" id="compbannerfile" hidden />
+            <input type="file" accept="image/png, image/jpg, image/jpeg" id="compassociatefile" hidden />
+            <input type="text" id="compbanner" name="compbanner" hidden />
+            {% if compete.associate %}
+            <input type="text" id="compassociate" name="compassociate" hidden />
+            {% endif %}
+            <img src="{{compete.getBanner}}" class="pallete preview-type-image" width="80%" id="competebanneroutput" />
+            <button class="active small" type="button" data-icon="upload"><label for="compbannerfile" id="competebannerimagebutton">Select banner</label></button>
+            <h3><input id="comptitle" name="comptitle" value="{{compete.title}}" /></h3>
+            <h6><input id="comptagline" name="comptagline" value="{{compete.tagline}}" /></h6>
+            {% if compete.associate %}
+                <h6>In association with</h6>
+                <img src="{{compete.get_associate}}" class="pallete preview-type-image" width="60%" id="competeassociateoutput" />
+                <button class="active small" type="button" data-icon="upload"><label for="compassociatefile" id="competeassociateimagebutton">Select associate image</label></button>
+            {% endif %}
+        {% endif %}
+
         <div class="w3-row" align='left'>
             <br/>
+            {% if compete.canChangeModerator %}
             <h6>Moderator:</h6>
                 <span id="selectedmodview">
                     <button type='button' title="Moderator" class="primary negative-text selected-compete-mod" data-modID='{{compete.getModerator.get_userid}}' id="removemod{{compete.getModerator.get_userid}}" data-icon="close">
@@ -153,38 +157,43 @@
                     </button>
                 </span>
             <button title="Moderator to moderate submissions before judgement, after competition ends." type="button" class="primary active-text" data-icon="add" id="selectmodbutton" hidden>Select moderator</button>
+            {% endif %}
+            {% if compete.canChangeJudges %}
             <h6>Judges:</h6>
             <span id="selectedjudgesview">
                 {% for judge in compete.getJudges %}
-                    <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='{{judge.get_userid}}' id="removejudge{{judge.get_userid}}" data-icon="close">
-                        <img src="{{judge.get_dp}}" class="circle" /> {{judge.get_name}}
-                    </button>
+                    {% if judge in compete.judgesWhoNotMarkedSubmissions %}
+                        <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='{{judge.get_userid}}' id="removejudge{{judge.get_userid}}" data-icon="close">
+                            <img src="{{judge.get_dp}}" class="circle" /> {{judge.get_name}}
+                        </button>
+                    {% endif %}
                 {% endfor %}
             </span>
-            <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
-            <h6>Topics:</h6>
-            <span id="selectedtopicsview">
-                {% for topic in compete.getTopics %}
-                    <button type='button' class="primary negative-text selected-compete-topic" data-topicID="{{topic.get_id}}" id="removetopic{{topic.get_id}}" data-icon="close">{{topic.name}}</button>
-                {% endfor %}
-            </span>
-            <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
-            <br/><br/>
-            {% if compete.reg_fee %}
-                <input title="Fee for prize" placeholder="Min 0" type="number" min="0" max="{{compete.reg_fee}}" value="{{compete.reg_fee}}" name="compregfee" id="compregfee">
-                <input title="Fee payment link" placeholder="Payment link (if fee)" type="url" maxlength="1000" value="{{compete.fee_link}}" name="compfeelink" id="compfeelink">
             {% endif %}
-            Start at<br/>
-            <input placeholder="Start at" value="{{compete.startAt|date:'Y-m-d'}}T{{compete.startAt|time:'H:i:s'}}" type="datetime-local" name="compstartAt" id="compstartAt" title="Begin time"><br/>
-            End at<br/><input placeholder="End at" value="{{compete.endAt|date:'Y-m-d'}}T{{compete.endAt|time:'H:i:s'}}" type="datetime-local" name="compendAt" id="compendAt" title="Ending time" /><br/>
-            Max topic points <input title="Max points for each topic" class="wide" placeholder="Max 100" type="number" min="{{compete.eachTopicMaxPoint}}" value="{{compete.eachTopicMaxPoint}}" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/>
-            Short Description <textarea rows="5" cols="20" class="wide" placeholder="Short description of competition (max 400 characters)" type="text" name="compshortdesc" id="compshortdesc" maxlength="400">
-                {{compete.shortdescription}}
-            </textarea>
-            Description <textarea rows="4" cols="18" class="wide" placeholder="Competition description (max 1000 characters)" type="text" name="compdesc" id="compdesc" maxlength="1000">{{compete.description}}</textarea><br/><br/>
-            {% if compete.qualifier %}
-                <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
-                <input type='number' name='qualifier-competition-rank' id="qualifier-competition-rank" class="create-compete-input" title='Qualifing rank' value="{{compete.qualifier_rank}}" inputmode='numeric' placeholder='Qualifing rank' />
+
+            {% if not compete.resultDeclared %}
+                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
+            {% endif %}
+
+            {% if compete.canBeEdited %}
+                <h6>Topics:</h6>
+                <span id="selectedtopicsview">
+                    {% for topic in compete.getTopics %}
+                        <button type='button' class="primary negative-text selected-compete-topic" data-topicID="{{topic.get_id}}" id="removetopic{{topic.get_id}}" data-icon="close">{{topic.name}}</button>
+                    {% endfor %}
+                </span>
+                <button title="Add another topic" type="button" class="primary" data-icon="add" id="addtopicbutton">Add topic</button>
+                <br/><br/>
+                {% if compete.reg_fee %}
+                    <input title="Fee for prize" placeholder="Min 0" type="number" min="0" max="{{compete.reg_fee}}" value="{{compete.reg_fee}}" name="compregfee" id="compregfee">
+                    <input title="Fee payment link" placeholder="Payment link (if fee)" type="url" maxlength="1000" value="{{compete.fee_link}}" name="compfeelink" id="compfeelink">
+                {% endif %}
+                Start at<br/>
+                <input placeholder="Start at" value="{{compete.startAt|date:'Y-m-d'}}T{{compete.startAt|time:'H:i:s'}}" type="datetime-local" name="compstartAt" id="compstartAt" title="Begin time"><br/>
+                End at<br/><input placeholder="End at" value="{{compete.endAt|date:'Y-m-d'}}T{{compete.endAt|time:'H:i:s'}}" type="datetime-local" name="compendAt" id="compendAt" title="Ending time" /><br/>
+                Max topic points <input title="Max points for each topic" class="wide" placeholder="Max 100" type="number" min="{{compete.eachTopicMaxPoint}}" value="{{compete.eachTopicMaxPoint}}" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/>
+                Short Description <textarea rows="5" cols="20" class="wide" placeholder="Short description of competition (max 400 characters)" type="text" name="compshortdesc" id="compshortdesc" maxlength="400">{{compete.shortdescription}}</textarea>
+                Description <textarea rows="4" cols="18" class="wide" placeholder="Competition description (max 1000 characters)" type="text" name="compdesc" id="compdesc" maxlength="1000">{{compete.description}}</textarea><br/><br/>
             {% endif %}
         </div>
     </div>
@@ -338,6 +347,7 @@ getElement("comp-delete-permanent").onclick=async()=>{
         }
     })
 
+{% endif %}
     let excludemods = [
     {% for judge in compete.getJudges %}
         "{{judge.get_userid}}",
@@ -357,6 +367,8 @@ getElement("comp-delete-permanent").onclick=async()=>{
     let compmodID = "{{compete.getModerator.get_userid}}"
 
     const loadSelectedJMTs = () => {
+        
+        {% if compete.canChangeJudges %}
         getElements('selected-compete-judge').forEach((btn)=>{
             btn.onclick=(e)=>{
                 const id = btn.getAttribute('data-judgeID')
@@ -367,6 +379,8 @@ getElement("comp-delete-permanent").onclick=async()=>{
                 }
             }
         })
+        {% endif %}
+        {% if compete.canChangeModerator %}
         getElements('selected-compete-mod').forEach((btn)=>{
             btn.onclick=(e)=>{
                 compmodID = ""
@@ -376,6 +390,8 @@ getElement("comp-delete-permanent").onclick=async()=>{
                 show(getElement('selectmodbutton'))
             }
         })
+        {% endif %}
+        {% if compete.canBeEdited %}
         getElements('selected-compete-topic').forEach((btn)=>{
             btn.onclick=(e)=>{
                 const id = btn.getAttribute('data-topicID')
@@ -385,8 +401,10 @@ getElement("comp-delete-permanent").onclick=async()=>{
                 }
             }
         })
+        {% endif %}
     }
     loadSelectedJMTs();
+    {% if compete.canBeEdited %}
     getElement('addtopicbutton').onclick=_=>{
         Swal.fire({
             title: 'Search topics',
@@ -423,6 +441,8 @@ getElement("comp-delete-permanent").onclick=async()=>{
             loadSelectedJMTs()
         })
     }
+    {% endif %}
+    {% if compete.canChangeJudges %}
     getElement('addjudgebutton').onclick=_=>{
         Swal.fire({
             title: 'Search your judge',
@@ -468,6 +488,8 @@ getElement("comp-delete-permanent").onclick=async()=>{
             loadSelectedJMTs()
         })
     }
+    {% endif %}
+    {% if compete.canChangeModerator %}
     getElement('selectmodbutton').onclick=(ebtn)=>{
         Swal.fire({
             title: 'Search your moderator',
@@ -519,43 +541,58 @@ getElement("comp-delete-permanent").onclick=async()=>{
             loadSelectedJMTs()            
         })
     }
-
+    {% endif %}
+    {% if compete.canBeEdited%}
     getElement("edit-details-action").addEventListener("click",()=>{
         taskIDEs.forEach((e)=>{
             e.togglePreview();
             e.createToolbar();
         });
     })
+    {% endif %}
+    {% if compete.canBeEdited or compete.canChangeJudges or compete.canChangeModerator or not compete.resultDeclared %}
     getElement("discard-edit-compete-info").addEventListener("click",()=>{
+        {% if compete.canBeEdited %}
         taskIDEs.forEach((e)=>e.togglePreview());
+        {% endif %}
         refresh({})
     })
     getElement("save-edit-compete-info").addEventListener("click",async()=>{
+        {% if compete.canBeEdited %}
         taskIDEs.forEach((e)=>e.toTextArea());
+        {% endif %}
         const data = await postRequest2({
             path: setUrlParams(URLS.EDIT_COMP,compID),
             data: {
-                comptitle: getElement("comptitle").value, 
-                comptagline: getElement("comptagline").value, 
-                compshortdesc: getElement("compshortdesc").value,
-                compbanner: getElement("compbanner").value,
-                {% if compete.associate %}
-                compassociate: getElement("compassociate").value,
+                {% if compete.canBeEdited %}
+                    comptitle: getElement("comptitle").value, 
+                    comptagline: getElement("comptagline").value, 
+                    compshortdesc: getElement("compshortdesc").value,
+                    compbanner: getElement("compbanner").value,
+                    {% if compete.associate %}
+                    compassociate: getElement("compassociate").value,
+                    {% endif %}
+                    compdesc: getElement("compdesc").value, 
+                    compstartAt: getElement("compstartAt").value, 
+                    compendAt: getElement("compendAt").value, 
+                    compeachTopicMaxPoint: Number(getElement("compeachTopicMaxPoint").value),
+                    {% if compete.reg_fee %}
+                    compregfee: getElement("compregfee").value, 
+                    compfeelink: getElement("compfeelink").value, 
+                    {% endif %}
                 {% endif %}
-                compdesc: getElement("compdesc").value, 
-                compstartAt: getElement("compstartAt").value, 
-                compendAt: getElement("compendAt").value, 
-                compeachTopicMaxPoint: Number(getElement("compeachTopicMaxPoint").value),
-                {% if compete.reg_fee %}
-                compregfee: getElement("compregfee").value, 
-                compfeelink: getElement("compfeelink").value, 
-                {% endif %}
+                {% if compete.canChangeModerator %}
                 compmodID,
+                {% endif %}
                 comptopicIDs,
+                {% if compete.canChangeJudges %}
                 compjudgeIDs,
+                {% endif %}
+                {% if compete.canBeEdited %}
                 comptaskSummary: getElement("comptaskSummary").value, 
                 comptaskDetail: getElement("comptaskDetail").value, 
                 comptaskSample: getElement("comptaskSample").value, 
+                {% endif %}
             }
         })
         if(data&& data.code == CODE.OK){
@@ -564,7 +601,7 @@ getElement("comp-delete-permanent").onclick=async()=>{
         }
         else error(data.error)
     })
+    {% endif %}
 
-{% endif %}
 </script>
 {% endblock %}

@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load tz %}
+{% load static %}
 {% load cache %}
 {% load custom_tags %}
 
@@ -14,25 +15,26 @@
         <i>task_alt</i>&nbsp;{% trans "Submitted" %}{% if submission.late %} <span class="negative-text">{% trans "late" %}</span>{% endif%}.
         {% endif %}
         </h4>
-        <div class="w3-row pallete active">
-            <h3>{% trans "Submission" %}</h3>
+        <div class="w3-row pallete active w3-center">
             {% if not submission.submitted and compete.isActive %}
               {% if submission.free_project %}
                <a href="{{submission.getRepo}}" target="_blank"><button class="big-button primary" data-img="{{submission.free_project.getDP}}">{{submission.free_project.name}}</button></a>
-               <button class="negative small" data-icon="close" id="remove-quick-project">Remove project from competition</button>
+               <button class="negative-text primary" data-icon="close" id="remove-quick-project">Remove project as submission</button>
                <input type="url" hidden name="submissionurl" id="submissionurl" data-saved="{{submission.getRepo}}" value="{{submission.getRepo}}">
               {% else %}
-               <form class="w3-row" method="POST" action="{{submission.saveLink}}">
+                <button <button class="big-button primary" id="submit-quick-project" data-icon="widgets">Submit as a Quick Project</button>
+                <div class="text-big">OR</div>
+               <form class="w3-row no-auto" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
-                <input class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}">
+                <strong><input class="wide positive-text" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}"></strong>
                 <div><br/></div>
-                <button type="submit" class="primary" data-icon="save">Save</button>
-               </form><br/>
-                Or <button <button class="big-button positive" id="submit-quick-project">Submit a Quick Project</button>
+                <button type="submit" class="primary" id="save-url-submission" data-icon="save">Save</button>
+               </form>
               {% endif %}
             {% elif not submission.submittingLate and submission.submitted %}
+                <br/>
                 <a href="{{submission.getRepo}}" target="_blank"><button class="primary" data-icon="visibility">{% trans "View your submission" %}</button></a>
-                <h4 class="text-positive">Submitted on {{submission.submitOn}}
+                <h4 >Submitted on {{submission.submitOn}}
                 </h4>
             {% else %}
             <input disabled class="wide" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}">
@@ -46,7 +48,8 @@
             {% trans "Final Submit" %}
         {% endif %}
         </button>
-        <br/><strong>{% trans "Save your submission before final submit." %}</strong>
+
+        <br/><br/><strong>{% trans "Save your submission before final submit." %}</strong>
         {% endif %}
         {% if not submission.submitted and compete.moderated %}
             <br/>
@@ -56,19 +59,23 @@
     
     <div class="w3-col w3-half w3-padding-small">
         <h5 class="w3-left w3-padding-small">{% trans "Teammates" %}</h5>
+        <a class="w3-right" href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.png' %}" width="18" height="20" />&nbsp;Discord Channel</button></a>
         <div class="w3-row">
-            {% for member in submission.getMembers %}
-            <div class="w3-col w3-third w3-padding-small">
-                <div class="pallete accent w3-center">
-                    <a target="_blank" href="{{member.getLink}}">
-                    <img src="{{member.getDP}}" width="100" class="pallete" />
-                    <br/>
-                    <strong class="text-accent">{{member.getName}}</strong>
+            {% for profile in submission.getMembers %}
+            <div class="w3-col w3-padding-small l4 m4 s6">
+                <div class="w3-row pallete-slab tertiary no-pad">
+                    <a onclick="miniWindow('{{profile.getLink}}')">
+                    <img class="primary wide pallete-slab no-pad" src="{{profile.getDP}}" />
                     </a>
+                    <div class="w3-row w3-tag w3-round tertiary">
+                    <strong style="word-break:break-word">{{profile.getName|truncatechars:18}}</strong>{% if profile.is_verified %}<i class="w3-small">verified</i>{% endif %}
+                    </div>
+                    <div class="w3-row w3-padding-small">
                     {% if not submission.submittingLate and not submission.submitted %}
                     <br/>
-                    <button class="small negative remove-person" data-name="{{member.getName}}" data-userID="{{member.getUserID}}" data-icon="delete"></button>
+                    <button class="small negative remove-person" data-name="{{profile.getName}}" data-userID="{{profile.getUserID}}" data-icon="delete"></button>
                     {% endif %}
+                    </div>
                 </div>
             </div>
             {% endfor %}
