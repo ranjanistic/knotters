@@ -65,7 +65,7 @@
 					{% trans "Create an account" %}
 					</button>
 				</a>
-				
+				<br/><br/>
 			</div>
 			<div class="w3-col w3-half">
 				<form method="POST" action="{% url 'account_login' %}?{{redirect_field_name}}={{request.GET.next}}">

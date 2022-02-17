@@ -149,7 +149,7 @@ class Topic(models.Model):
         f'{PROJECTS}.Tag', default=[], through='TopicTag')
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
     @property
     def get_id(self) -> str:

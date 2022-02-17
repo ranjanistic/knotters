@@ -1315,7 +1315,7 @@ class FileExtension(models.Model):
     topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[], related_name='file_extension_topics')
 
     def __str__(self):
-        return self.extension
+        return str(self.extension)
         
     def getTags(self):
         tags = []
