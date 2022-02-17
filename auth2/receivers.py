@@ -1,10 +1,7 @@
-from django.core.cache import cache
 from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
-from allauth.account.signals import user_signed_up, user_logged_in, password_changed, password_reset, email_changed, email_confirmed, email_added, email_removed
+from allauth.account.signals import password_changed, password_reset, email_changed, email_added, email_removed
 from django.dispatch import receiver
-from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
-from allauth.socialaccount.models import SocialAccount
 from main.bots import Sender
 from main.methods import errorLog, addMethodToAsyncQueue
 from people.models import Profile, User, defaultImagePath, isPictureDeletable

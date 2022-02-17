@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     'allauth.socialaccount.providers.github',
     'allauth.socialaccount.providers.discord',
+    'allauth.socialaccount.providers.linkedin_oauth2',
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
@@ -231,6 +232,22 @@ SOCIALACCOUNT_PROVIDERS = {
             'user',
             'repo',
         ],
+    },
+    'linkedin_oauth2': {
+        "VERIFIED_EMAIL": True,
+        'SCOPE': [
+            'r_emailaddress',
+            'r_liteprofile',
+            # 'w_member_social',            
+        ],
+        'PROFILE_FIELDS': [
+            'id',
+            'first-name',
+            'last-name',
+            'email-address',
+            'picture-url',
+            'public-profile-url',
+        ]
     }
 }
 

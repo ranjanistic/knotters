@@ -1,8 +1,9 @@
+from django.core.cache import cache
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 from main.methods import addMethodToAsyncQueue
 from .mailers import managementInvitationSent, managementPersonRemoved, newContactRequestAlert
-from .models import ContactRequest, ManagementInvitation, ManagementPerson
+from .models import ContactRequest, ManagementInvitation, ManagementPerson, ThirdPartyAccount
 from .apps import APPNAME
 
 
@@ -28,4 +29,12 @@ def on_people_mgm_delete(sender, instance, **kwargs):
     Management person deleted
     """
     ManagementInvitation.objects.filter(receiver=instance.person,management=instance.management).delete()
+    
+
+@receiver(post_delete, sender=ThirdPartyAccount)
+def on_tpa_delete(sender, instance, **kwargs):
+    """
+    Management person deleted
+    """
+    cache.delete(ThirdPartyAccount.cachekey)
     

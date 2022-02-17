@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.conf import settings
 from people.models import Profile
+from management.models import ThirdPartyAccount
 from .methods import renderData
 from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
 from .strings import DIVISIONS, URL, Browse
@@ -34,11 +35,13 @@ GlobalContextData = dict(
 
 
 def Global(request):
-    # id = uuid4()
-    # cache.set(f"global_alerts_{id}",{'message':'haha this the alert', 'url':'/compete/shit', 'id':id}, settings.CACHE_MICRO)
-    # alerts = cache.get(f"global_alerts_{id}") or []
-
     data = dict(**GlobalContextData,alerts=[],knotbot=Profile.KNOTBOT(),BROWSE=Browse.getAllKeys(),SUBAPPS=dict(),SUBAPPSLIST=[])
+    SOCIALS = cache.get(ThirdPartyAccount.cachekey, None)
+    if not SOCIALS:
+        SOCIALS = ThirdPartyAccount.objects.all()
+        cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
+
+    data['SOCIALS'] = SOCIALS
 
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div

@@ -1,21 +1,19 @@
 from datetime import timedelta
-from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import models
 import uuid
-from allauth.socialaccount.models import SocialAccount
-from allauth.socialaccount.providers.github.provider import GitHubProvider
-from main.bots import Github
 from main.strings import Message, url, Code, PEOPLE
 from .apps import APPNAME
 
+
 class Report(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reporter = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='reporter_profile', null=True, blank=True)
+    reporter = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,
+                                 related_name='reporter_profile', null=True, blank=True)
     summary = models.CharField(max_length=1000)
     detail = models.CharField(max_length=100000)
-    response = models.CharField(max_length=1000000,null=True,blank=True)
+    response = models.CharField(max_length=1000000, null=True, blank=True)
     resolved = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -46,11 +44,13 @@ class Report(models.Model):
     def getLink(self):
         return f"{url.getRoot(APPNAME)}{url.management.reportfeedTypeID(self.reportfeed_type,self.get_id)}"
 
+
 class Feedback(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    feedbacker = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='feedbacker_profile', null=True, blank=True)
+    feedbacker = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,
+                                   related_name='feedbacker_profile', null=True, blank=True)
     detail = models.CharField(max_length=100000)
-    response = models.CharField(max_length=1000000,null=True,blank=True)
+    response = models.CharField(max_length=1000000, null=True, blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
@@ -80,6 +80,7 @@ class Feedback(models.Model):
     def getLink(self):
         return f"{url.getRoot(APPNAME)}{url.management.reportfeedTypeID(self.reportfeed_type,self.get_id)}"
 
+
 class ReportCategory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
@@ -87,17 +88,19 @@ class ReportCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class HookRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     hookID = models.CharField(max_length=60)
     success = models.BooleanField(default=False)
-    
+
     def __str__(self):
         return self.hookID
 
     @property
     def get_id(self):
         return self.id.hex
+
 
 class ActivityRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -114,10 +117,13 @@ class ActivityRecord(models.Model):
     def __str__(self):
         return self.get_id
 
+
 class Management(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.OneToOneField(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_profile')
-    people = models.ManyToManyField(f'{PEOPLE}.Profile', through="ManagementPerson", related_name='management_people', default=[])
+    profile = models.OneToOneField(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_profile')
+    people = models.ManyToManyField(
+        f'{PEOPLE}.Profile', through="ManagementPerson", related_name='management_people', default=[])
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     githubOrgID = models.CharField(max_length=100, null=True, blank=True)
@@ -131,7 +137,7 @@ class Management(models.Model):
 
     def getName(self):
         return self.profile.getName()
-    
+
     @property
     def get_name(self):
         return self.getName()
@@ -153,20 +159,20 @@ class Management(models.Model):
     def get_ghorg(self):
         try:
             if self.githubOrgID:
-                return list(filter(lambda ghorg:str(ghorg.id) == self.githubOrgID, self.profile.get_ghOrgs()))[0]
+                return list(filter(lambda ghorg: str(ghorg.id) == self.githubOrgID, self.profile.get_ghOrgs()))[0]
             return None
         except:
             return None
 
     def get_ghorgUrl(self):
         try:
-            return self.get_ghorg().url.replace('api.','')
+            return self.get_ghorg().url.replace('api.', '')
         except:
             return self.getLink(message=Message.GH_ORG_NOT_LINKED)
 
     def get_ghorgName(self):
         try:
-            return list(filter(lambda idn: str(idn['id'])==self.githubOrgID, self.profile.get_ghOrgsIDName()))[0]['name']
+            return list(filter(lambda idn: str(idn['id']) == self.githubOrgID, self.profile.get_ghOrgsIDName()))[0]['name']
         except Exception as e:
             return None
 
@@ -178,18 +184,16 @@ class Management(models.Model):
 
     def getPeople(self):
         return self.people.all()
-    
+
     def total_moderators(self):
         return self.people.filter(is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).count()
 
     def moderators(self):
         return self.people.filter(is_moderator=True, is_active=True, to_be_zombie=False, suspended=False)
 
-
     def total_moderators_abs(self):
         return self.people.filter(is_moderator=True, to_be_zombie=False).count()
 
-    
     def moderators_abs(self):
         return self.people.filter(is_moderator=True, to_be_zombie=False)
 
@@ -204,11 +208,14 @@ class Management(models.Model):
 
     def mentors_abs(self):
         return self.people.filter(is_mentor=True, to_be_zombie=False)
-        
+
+
 class ManagementPerson(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    person = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_person_profile')
-    management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='management_person_mgm')
+    person = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_person_profile')
+    management = models.ForeignKey(
+        Management, on_delete=models.CASCADE, related_name='management_person_mgm')
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
@@ -221,14 +228,15 @@ class ManagementPerson(models.Model):
 
     def __str__(self):
         return f"{self.person.getName()} at {self.management}"
-    
+
 
 class Invitation(models.Model):
     """
     Base class for all invitations
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    expiresOn = models.DateTimeField(auto_now=False, default=timezone.now()+timedelta(days=1))
+    expiresOn = models.DateTimeField(
+        auto_now=False, default=timezone.now()+timedelta(days=1))
     resolved = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -251,7 +259,7 @@ class Invitation(models.Model):
     @property
     def is_active(self):
         return self.expiresOn > timezone.now()
-    
+
     def resolve(self):
         self.resolved = True
         self.expiresOn = timezone.now()
@@ -263,22 +271,28 @@ class Invitation(models.Model):
         self.expiresOn = self.createdOn+timedelta(days=1)
         self.save()
         return True
-    
+
     @property
     def expired(self):
         return self.expiresOn <= timezone.now()
 
     def decline(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         self.save()
         return True
 
+
 class ManagementInvitation(Invitation):
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_receiver')
-    management = models.ForeignKey(Management, on_delete=models.CASCADE, related_name='invitation_management')
+    sender = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_sender')
+    receiver = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='people_invitation_receiver')
+    management = models.ForeignKey(
+        Management, on_delete=models.CASCADE, related_name='invitation_management')
 
     class Meta:
         unique_together = ('receiver', 'management')
@@ -295,18 +309,25 @@ class ManagementInvitation(Invitation):
         return f"{url.getRoot(APPNAME)}{url.management.peopleMGMInviteAct(self.get_id)}"
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
-        if self.sender.is_blocked(self.receiver.user): return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
+        if self.sender.is_blocked(self.receiver.user):
+            return False
         done = self.receiver.addToManagement(self.management.id)
-        if not done: return done
+        if not done:
+            return done
         self.resolve()
         return done
 
     def decline(self):
-        if self.expired: return False
-        if self.resolved: return False
-        if self.sender.is_blocked(self.receiver.user): return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
+        if self.sender.is_blocked(self.receiver.user):
+            return False
         self.delete()
         return True
 
@@ -320,6 +341,7 @@ class GhMarketApp(models.Model):
     def __str__(self) -> str:
         return f'{self.gh_id} {self.gh_name}'
 
+
 class GhMarketPlan(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gh_id = models.CharField(max_length=100, unique=True)
@@ -330,18 +352,22 @@ class GhMarketPlan(models.Model):
     def __str__(self) -> str:
         return f'{self.gh_app} {self.gh_id}'
 
+
 class APIKey(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    key = models.CharField(max_length=100, unique=True, help_text="Random string at least 32 chars")
-    name = models.CharField(max_length=100, null=True,blank=True)
+    key = models.CharField(max_length=100, unique=True,
+                           help_text="Random string at least 32 chars")
+    name = models.CharField(max_length=100, null=True, blank=True)
     is_internal = models.BooleanField(default=False)
-    creator = models.ForeignKey(f'{PEOPLE}.Profile', related_name='apikey_creator_profile', on_delete=models.CASCADE, null=True)
+    creator = models.ForeignKey(
+        f'{PEOPLE}.Profile', related_name='apikey_creator_profile', on_delete=models.CASCADE, null=True)
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
 
     def save(self, *args, **kwargs):
         if not str(self.key).startswith("knot_"):
             self.key = f"knot_{self.key}"
-        if(len(self.key.replace("knot_",''))<32): return False
+        if(len(self.key.replace("knot_", '')) < 32):
+            return False
         super(APIKey, self).save(*args, **kwargs)
 
     @property
@@ -350,6 +376,7 @@ class APIKey(models.Model):
 
     def __str__(self):
         return self.name or self.get_id
+
 
 class ContactCategory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -360,6 +387,7 @@ class ContactCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class ContactRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     resolved = models.BooleanField(default=False)
@@ -367,8 +395,10 @@ class ContactRequest(models.Model):
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     senderName = models.CharField(max_length=100)
     senderEmail = models.EmailField(max_length=100)
-    contactCategory = models.ForeignKey(ContactCategory, on_delete=models.CASCADE)
+    contactCategory = models.ForeignKey(
+        ContactCategory, on_delete=models.CASCADE)
     message = models.TextField(max_length=1000)
+
 
 class ThirdPartyLicense(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -378,3 +408,22 @@ class ThirdPartyLicense(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ThirdPartyAccount(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    key = models.CharField(max_length=60)
+    link = models.URLField(max_length=150)
+    about = models.TextField(max_length=250, null=True, blank=True)
+    width = models.IntegerField(default=22)
+    height = models.IntegerField(default=22)
+    has_dark = models.BooleanField(default=False)
+    cachekey = f"knotters_socialaccounts_list"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        cache.delete(self.cachekey)
+        super(ThirdPartyAccount, self).save(*args, **kwargs)

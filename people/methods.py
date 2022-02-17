@@ -1,16 +1,18 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialToken
 from django.core.cache import cache
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.providers.google.provider import GoogleProvider
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
+from allauth.socialaccount.providers.linkedin_oauth2.provider import LinkedInOAuth2Provider
 from django.conf import settings
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString, COMPETE
 from projects.models import BaseProject, CoreProject, FreeProject, FreeRepository, Project
 from moderation.models import Moderation
 from compete.models import Competition, CompetitionJudge, Result
+import requests
 from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
 from .apps import APPNAME
 
@@ -209,17 +211,32 @@ def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
     """
     Returns user profile image url by social account.
     """
-    if socialaccount.provider == GitHubProvider.id:
-        return socialaccount.extra_data['avatar_url']
-    if socialaccount.provider == GoogleProvider.id:
-        link = str(socialaccount.extra_data['picture'])
-        linkpart = link.split("=")[0]
-        sizesplit = link.split("=")[1].split("-")
-        sizesplit.remove(sizesplit[0])
-        return "=".join([linkpart, "-".join(["s512", "-".join(sizesplit)])])
-    if socialaccount.provider == DiscordProvider.id:
-        return f"https://cdn.discordapp.com/avatars/{socialaccount.uid}/{socialaccount.extra_data['avatar']}.png?size=1024"
-    return defaultImagePath()
+    try:
+        if socialaccount.provider == GitHubProvider.id:
+            avatar = socialaccount.get_avatar_url()
+        if socialaccount.provider == GoogleProvider.id:
+            link = socialaccount.get_avatar_url()
+            linkpart = link.split("=")[0]
+            sizesplit = link.split("=")[1].split("-")
+            sizesplit.remove(sizesplit[0])
+            avatar = "=".join([linkpart, "-".join(["s512", "-".join(sizesplit)])])
+        if socialaccount.provider == DiscordProvider.id:
+            avatar = f"{socialaccount.get_avatar_url()}?size=1024"
+        if socialaccount.provider == LinkedInOAuth2Provider.id:
+            avatar = socialaccount.get_avatar_url()
+            if not avatar:
+                access_token = SocialToken.objects.get(account=socialaccount, account__provider=LinkedInOAuth2Provider.id)
+                r = requests.get(f"https://api.linkedin.com/v2/me?projection=(profilePicture("
+                                        f"displayImage~:playableStreams))&oauth2_access_token={access_token}")
+                profile_pic_json = r.json().get('profilePicture')
+                elements = profile_pic_json['displayImage~']['elements']
+                avatar = elements[len(elements)-1]['identifiers'][0]['identifier']
+        if avatar:
+            return avatar
+        return defaultImagePath()
+    except:
+        return defaultImagePath()
+
 
 def isPictureSocialImage(picture: str) -> str:
     """
@@ -228,7 +245,7 @@ def isPictureSocialImage(picture: str) -> str:
     if isPictureDeletable(picture): return False
 
     providerID = None
-    for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id]:
+    for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id, LinkedInOAuth2Provider.id]:
         if str(picture).__contains__(id):
             providerID = id
             break

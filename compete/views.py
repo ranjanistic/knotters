@@ -279,6 +279,9 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         submission.members.remove(member)
         if submission.totalActiveMembers() == 0:
             submission.delete()
+        elif submission.free_project and submission.free_project.creator == member:
+            submission.free_project = None
+            submission.save()
         if conf:
             member.decreaseXP(by=5)
             addMethodToAsyncQueue(
@@ -286,14 +289,10 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         if json_body:
             return respondJson(Code.OK, message=(Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED))
         return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
-    except InactiveCompetitionError as c:
+    except (InactiveCompetitionError,ObjectDoesNotExist) as c:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(c)
-    except ObjectDoesNotExist as o:
-        if json_body:
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        raise Http404(o)
     except Exception as e:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -309,9 +308,11 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         now = timezone.now()
-        subm = Submission.objects.get(id=subID, competition__id=compID, competition__startAt__lt=now,
-                                      competition__endAt__gte=now, competition__resultDeclared=False, members=request.user.profile
-                                      )
+        subm = Submission.objects.get(id=subID, competition__id=compID,
+                                    submitted=False, competition__startAt__lt=now,
+                                    competition__endAt__gte=now, competition__resultDeclared=False, 
+                                    members=request.user.profile,  
+                                )
         if not subm.competition.isAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist('not allowed to part save subm')
         fprojID = request.POST.get('submissionfreeproject', None)
@@ -322,7 +323,8 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                 subm.free_project = FreeProject.objects.get(id=fprojID, creator=request.user.profile, suspended=False, trashed=False)
                 subm.repo = ""
         else:
-            subm.repo = str(request.POST.get('submissionurl', '')).strip()
+            if not subm.free_project:
+                subm.repo = str(request.POST.get('submissionurl', '')).strip()
         subm.modifiedOn = now
         subm.save()
         if json_body:

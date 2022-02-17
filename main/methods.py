@@ -183,9 +183,11 @@ def base64ToImageFile(base64Data: base64) -> File:
     try:
         format, imgstr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
-        if not ['jpg', 'png', 'jpeg'].__contains__(ext):
+        if ext not in ['jpg', 'png', 'jpeg']:
             return False
         return ContentFile(base64.b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
+    except ValueError as e:
+        return None
     except Exception as e:
         errorLog(e)
         return None
@@ -196,6 +198,8 @@ def base64ToFile(base64Data: base64) -> File:
         format, filestr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
         return ContentFile(base64.b64decode(filestr), name=f"{uuid4().hex}.{ext}")
+    except ValueError as e:
+        return None
     except Exception as e:
         errorLog(e)
         return None
@@ -358,7 +362,6 @@ def addActivity(view, user, request_get, request_post, status):
 
 
 def activity(request, response):
-    print(request.POST)
     addMethodToAsyncQueue(f"main.methods.{addActivity.__name__}", request.path,
                           request.user, request.GET.__dict__, request.POST, response.status_code)
 
