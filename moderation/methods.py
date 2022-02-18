@@ -201,6 +201,7 @@ def requestModerationForObject(
     reassignIfApproved: bool = False,
     useInternalMods = False,
     stale_days=3,
+    chosenModerator: Profile = None
 ) -> Moderation or bool:
     """
     Submit a subapplication entity model object for moderation.
@@ -228,8 +229,12 @@ def requestModerationForObject(
         onlyModProfiles = None
         
         useInternalMods = useInternalMods and object.creator.is_manager()
-
-        if useInternalMods:
+        if chosenModerator:
+            if chosenModerator.is_moderator and chosenModerator.is_normal:
+                onlyModProfiles = [chosenModerator]
+            else:
+                raise Exception("Chosen moderator", chosenModerator ,"is not available for ", coreproject)
+        elif useInternalMods:
             onlyModProfiles = object.creator.management().moderators()
             if not len(onlyModProfiles): return False
         else:
