@@ -1986,7 +1986,15 @@ def freeVerificationRequest(request: WSGIRequest):
             verifiedproject.topics.set(freeproject.topics.all())
             verifiedproject.tags.set(freeproject.tags.all())
             verifiedproject.save()
-            mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
+            winnerVerification = request.POST.get('winnerVerification', False)
+          
+            mod = None
+            if winnerVerification:
+                subm = freeproject.submission()
+                if subm and subm.is_winner():
+                    mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, stale_days=stale_days, chosenModerator=subm.competition.moderator)
+            if not mod:
+                mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
             if not mod:
                 verifiedproject.delete()
                 if useInternalMods:
