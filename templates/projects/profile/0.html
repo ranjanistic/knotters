@@ -75,7 +75,7 @@
           {% endif %}
           {% if project.is_submission %}
            <a target="_blank" class="w3-right" href="{{project.submission.competition.get_link}}">
-                <button class="active" data-icon="psychology">{{project.submission.totalActiveMembers}} member{{totalActiveMembers|pluralize}}</button>
+                <button class="active" data-icon="psychology">{{project.submission.totalActiveMembers}} member{{project.submission.totalActiveMembers|pluralize}}</button>
             </a>
           {% endif %}
         </div>
@@ -101,7 +101,7 @@
             <button class="small tertiary negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
         </div>
         <br />
-		{% endif %}
+        {% endif %}
 
         <div class="w3-row pallete">
             <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
