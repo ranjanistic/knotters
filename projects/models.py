@@ -872,6 +872,16 @@ class FreeRepository(models.Model):
     def installed_app(self):
         return AppRepository.objects.filter(free_repo=self).first()
 
+    def is_submission(self):
+        from compete.models import Submission
+        return Submission.objects.filter(free_project=self).exists()
+
+    def submission(self):
+        from compete.models import Submission
+        return Submission.objects.filter(free_project=self).first()
+
+
+
 class AppRepository(models.Model):
     """
     Ghmarket app linked with freerepository
