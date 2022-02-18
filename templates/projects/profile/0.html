@@ -470,12 +470,17 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
         Swal.fire({
             title: 'Request verification',
             html: `
-                <strong>By requesting verification, you are submitting your project for review by an appropriate moderator at {{APPNAME}}.
+                <strong>
+               {% if project.is_submission and project.submission.is_winner %}
+                Since your project is a winner submission of {{project.submission.competition}} competition, it will be reviewed by moderator of the competition.
+                If the moderator is not available, another moderator will be assigned. Assigned moderator will also be aware of your winner status.
+               {% else %}
+                By requesting verification, you are submitting your project for review by an appropriate moderator at {{APPNAME}}.
+               {% endif %}<br/>
                 If approved, your project will no longer exist as Quick project, and your linked repository will be removed from it,
                 and your project will become a verified project on Knotters with a separate repository from Knotters.
                 License will remain the same.</strong>
                 <br/><br/>
-                
                 Project detail for moderator to read<br/>
                 <textarea class="wide" placeholder="Reason for verification" id="request-verification-reason"></textarea>
                 <br/>
@@ -486,7 +491,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 Use internal moderator
                 <input type="checkbox" id="request-verification-internal" />
                 {% endif %}
-                
             `,
             showCancelButton: true,
             confirmButtonText: 'Send Request',
@@ -522,6 +526,9 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                         requestData: result.value.requestData,
                         stale_days:result.value.stale_days,
                         useInternalMods:result.value.internalMod||false,
+                       {% if project.is_submission and project.submission.is_winner %}
+                        winnerVerification: true,
+                       {% endif %}
                     }
                 })
                 if(data.code===CODE.OK){
