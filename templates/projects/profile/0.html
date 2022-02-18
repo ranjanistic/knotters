@@ -63,17 +63,24 @@
                 </form>
             </div>
             {% endif %}
-        </div>
-        
+        </div>       
         <br/>
-        {% if project.has_linked_repo %}
+
+       {% if project.has_linked_repo or project.is_submission %}
         <div class="w3-row w3-padding-small">
+          {% if project.has_linked_repo %}
             <a target="_blank" rel="noreferrer" href="{{project.linked_repo.repolink}}">
                 <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.linked_repo.reponame}}</button>
             </a>
+          {% endif %}
+          {% if project.is_submission %}
+           <a target="_blank" class="w3-right" href="{{project.submission.competition.get_link}}">
+                <button class="active" data-icon="psychology">{{project.submission.totalActiveMembers}} member{{totalActiveMembers|pluralize}}</button>
+            </a>
+          {% endif %}
         </div>
         <br/>
-        {% endif %}
+       {% endif %}
 
         <div class="w3-row w3-padding-small">
         <a id="show-admirations"><strong>{{ project.total_admiration }} admirer{{ project.total_admiration|pluralize }}</strong></a>
