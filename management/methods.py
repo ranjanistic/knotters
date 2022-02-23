@@ -1,7 +1,8 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
-from main.methods import errorLog, renderString, renderView
+from main.methods import errorLog, renderString, renderView, addMethodToAsyncQueue
 from compete.models import Competition, Perk
+from main.bots import Discord
 from people.models import Topic, Profile
 from .apps import APPNAME
 
@@ -77,11 +78,15 @@ def createCompetition(creator:Profile, title, tagline, shortdescription,
         if len(perkobjs) < 1:
             raise Exception("invalid perks")
         Perk.objects.bulk_create(perkobjs)
+        addMethodToAsyncQueue(f"{APPNAME}.methods.{setupCompetitionChannel.__name__}", compete)
         return compete
     except Exception as e:
         errorLog(e)
         if compete:
             compete.delete()
         return False
+
+def setupCompetitionChannel(compete:Competition):
+    return Discord.create_channel(compete.get_nickname(), public=True, category="COMPETITIONS", message=f"Official discord channel for {compete.title} {compete.get_abs_link}")
 
 from .receivers import *
