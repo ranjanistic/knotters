@@ -15,7 +15,7 @@
     --negative-text: #fcfcfc;
     --dead-text: #5e5e5e;
     --head-font: "Poppins", sans-serif;
-    --body-font: "Questrial", sans-serif;
+    --body-font: system,-apple-system,"Questrial", sans-serif;
     --delay: 0.3s;
     --button-radius: 22px;
 }
