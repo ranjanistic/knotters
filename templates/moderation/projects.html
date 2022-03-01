@@ -72,6 +72,9 @@
                 <h5>In future, do not be late in responding, as we also notify you before it's too late.</h5>
                 <a href="{{request.user.profile.getLink}}"><button class="primary" data-icon="sentiment_dissatisfied">Okay</button></a>
             {% else %}
+            {% if moderation.project.is_from_verification and moderation.project.from_verification.from_free and moderation.project.from_verification.freeproject.is_submission and  moderation.project.from_verification.freeproject.submission.is_winner %}
+            <h5>This request is coming from the winner of {{moderation.project.from_verification.freeproject.submission.competition}} competition, verified by {{APPNAME}}.</h5>
+            {% endif %}
             <h6>Approving this project will create a repository under {{APPNAME}} organization on GitHub, and will grant the requestor a moderate level
             of access to this project and related services, everywhere. {% trans "Therefore, decide thoughtfully before proceeding." %}</h6>
             <button class="big-button positive modaction" id="approve" data-icon="done">{% trans "Approve" %}</button>

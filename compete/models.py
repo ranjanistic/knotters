@@ -784,6 +784,8 @@ class Submission(models.Model):
         """
         return SubmissionTopicPoint.objects.filter(submission=self, judge=judge).count()
 
+    def is_winner(self):
+        return Result.objects.filter(submission=self, competition=self.competition, rank=1).exists()
 
 class SubmissionParticipant(models.Model):
     """

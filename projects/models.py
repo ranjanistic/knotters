@@ -721,6 +721,11 @@ class Project(BaseProject):
             self.save()
         return self.trashed
 
+    def is_from_verification(self):
+        return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).exists() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).exists()
+
+    def from_verification(self):
+        return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).first() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).first() or None
     
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
@@ -871,6 +876,16 @@ class FreeRepository(models.Model):
 
     def installed_app(self):
         return AppRepository.objects.filter(free_repo=self).first()
+
+    def is_submission(self):
+        from compete.models import Submission
+        return Submission.objects.filter(free_project=self).exists()
+
+    def submission(self):
+        from compete.models import Submission
+        return Submission.objects.filter(free_project=self).first()
+
+
 
 class AppRepository(models.Model):
     """
@@ -1496,7 +1511,8 @@ class FreeProjectVerificationRequest(Invitation):
     
     freeproject = models.OneToOneField(FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
     verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
-    
+    from_free = True
+    from_core = False
     class Meta:
         unique_together = ('freeproject', 'verifiedproject')
 
@@ -1520,7 +1536,8 @@ class CoreProjectVerificationRequest(Invitation):
     
     coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
     verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
-    
+    from_free = False
+    from_core = True
     class Meta:
         unique_together = ('coreproject', 'verifiedproject')
 
