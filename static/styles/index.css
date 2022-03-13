@@ -830,18 +830,17 @@ label > input[type="checkbox"] {
     display: none;
 }
 
-.domain-row {
+.who-all-row {
     display: flex;
     justify-content: space-between;
     width: 100%;
 }
   
-.domain-col {
+.who-all-col {
     flex-basis: 35%;
     overflow-wrap: break-word;
     box-sizing: border-box;
     color: var(--primary-text);
-    /* border: solid; */
     background-color: var(--tertiary);
     box-shadow:  2px 1px 12px 1px #0000001f;
 }
