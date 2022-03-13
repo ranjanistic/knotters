@@ -258,7 +258,7 @@
                                 <strong class='text-medium'>{% trans "Take a look at the projects we have right now" %}</strong>
                             </div>
                         </div>
-                        <div style="border:5px solid black;padding:28px;" class='w3-half'>
+                        <div style='border:5px solid black;padding:28px;' class='w3-half'>
                             <div class='w3-row'>
                                 <h2 class='w3-large w3-hide-small'>{% blocktrans %}Project I{% endblocktrans %}</h2>
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Project I{% endblocktrans %}</h2>
@@ -279,41 +279,25 @@
                     <div class='w3-center'>
                         <div class='w3-half w3-padding-large'>
                             </br>
-                            <div class='w3-row'>
-                                <div class='w3-half w3-padding-large'>
-                                    <div style="border-width: thick" class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
-                                        <h2 class='w3-hide-small'>Students</h2>
-                                        <h2 class='w3-hide-large w3-hide-medium'>Students</h2>
-                                        <br/>
-                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
-                                    </div>
+                            <div class='domain-row w3-row'>
+                                <div class='domain-col w3-col s6 w3-padding-large w3-round-xxlarge'>
+                                    <h3 class='w3-hide-small'>Students</h3>
+                                    <h3 class='w3-hide-large w3-hide-medium'>Students</h3>
                                 </div>
-                                <div class='w3-half w3-padding-large'>
-                                    <div class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
-                                        <h2 class='w3-hide-small'>Working Professionals</h2>
-                                        <h2 class='w3-hide-large w3-hide-medium'>Working Professionals</h2>
-                                        <br/>
-                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
-                                    </div>
+                                <div class='domain-col w3-col s6 w3-padding-large w3-round-xxlarge'>
+                                    <h3 class='w3-hide-small'>Working Professionals</h3>
+                                    <h3 class='w3-hide-large w3-hide-medium'>Working Professionals</h3>
                                 </div>
                             </div>
-                            </br>
-                            <div class='w3-row'>
-                                <div class='w3-half w3-padding-large'>
-                                    <div class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
-                                        <h2 class='w3-hide-small'>Teachers &#38; Professors</h2>
-                                        <h2 class='w3-hide-large w3-hide-medium'>Teachers &#38; Professors</h2>
-                                        <br/>
-                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
-                                    </div>
+                            </br></br></br>
+                            <div class='domain-row w3-row'>
+                                <div class='domain-col w3-col s6 w3-padding-large w3-round-xxlarge'>
+                                    <h3 class='w3-hide-small'>Teachers &#38; Professors</h3>
+                                    <h3 class='w3-hide-large w3-hide-medium'>Teachers &#38; Professors</h3>
                                 </div>
-                                <div class='w3-half w3-padding-large'>
-                                    <div class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
-                                        <h2 class='w3-hide-small'>Coding Communities</h2>
-                                        <h2 class='w3-hide-large w3-hide-medium'>Coding Communities</h2>
-                                        <br/>
-                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
-                                    </div>
+                                <div class='domain-col w3-col s6 w3-padding-large w3-round-xxlarge'>
+                                    <h3 class='w3-hide-small'>Coding Communities</h3>
+                                    <h3 class='w3-hide-large w3-hide-medium'>Coding Communities</h3>
                                 </div>
                             </div>
                         </div>
@@ -322,7 +306,7 @@
                                 <h2 class='w3-jumbo w3-hide-small'>Domains of<br/>Collaboration</h2>
                                 <h2 class='w3-hide-large w3-hide-medium'>Domains of<br/>Collaboration</h2>
                                 <br/>
-                                <strong class='text-medium'>{% blocktrans %}{{APPNAME}} gives your idea a certain amount of exposure,a head start, a profile, <br/>a face, a room on internet, a family to your project to-be.<br/>People from all domains are welcomed here.{% endblocktrans %}</strong>
+                                <strong class='text-medium'>{% blocktrans %}{{APPNAME}} gives your idea a certain amount of exposure, a head start, a profile, <br/>a face, a room on internet, a family to your project to-be.<br/>People from all domains are welcomed here.{% endblocktrans %}</strong>
                             </div>
                             <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
                             <br/><br/>
