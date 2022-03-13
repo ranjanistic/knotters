@@ -228,18 +228,18 @@
                 </div>
                 <div class="w3-row w3-padding-large" id='projects-admire-banner' style="height:70vh">
                     <br/>
-                    <div class='w3-row'>
-                        <div class='w3-col w3-half'>
-                        </div>
-                        <div class='w3-col w3-half w3-padding-large'>
+                    <div class='w3-row w3-center'>
+                        {% comment %} <div class='w3-col w3-half'>
+                        </div> {% endcomment %}
+                        <div class='w3-col w3-padding-large'>
                             <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
-                                <br/>
-                                <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}About Us{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}About Us{% endblocktrans %}</h2>
+                                {% comment %} <br/> {% endcomment %}
+                                <strong class='text-medium'>{% blocktrans %} If not, then don't worry, follow your instincts, move around and explore the different sections of Knotters.<br/> It's not that hard to understand the importance of open source community, with proper project recognition and <br/>exposure to new kinds of skillsets favouring your own personal growth, by doing a simple thing - get started.{% endblocktrans %}</strong>
                             </div>
-                            <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
-                            <br/><br/>
+                            {% comment %} <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a> {% endcomment %}
+                            {% comment %} <br/><br/> {% endcomment %}
                         </div>
                     </div>
                 </div>
