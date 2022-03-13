@@ -199,7 +199,7 @@
               <span class="w3-right no-pad w3-large pointer" id='close-mod-mentor-looking'><i class="w3-large">close</i></span>
             </div>
             {% endblock %}
-            <div class="w3-row">
+            <div class="w3-row w3-padding-large">
                 {% block subcontent %}
                 <div class="w3-row w3-padding-large" id='intro-banner' style="height:75vh;">
                     <br/>
@@ -264,13 +264,53 @@
                 </div>
                 <div class="w3-row w3-padding-large" id="existence-reason-banner" style="height:60vh;">
                     <br/>
-                    <div class='w3-row w3-center'>
-                        <div class='w3-col w3-padding-large'>
+                    <div class='w3-center'>
+                        <div class='w3-half w3-padding-large'>
+                            </br>
                             <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>Domains of Collaboration</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>Domains of Collaboration</h2>
+                                <div class='w3-half w3-padding-large'>
+                                    <div style="border-width: thick" class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
+                                        <h2 class='w3-hide-small'>Students</h2>
+                                        <h2 class='w3-hide-large w3-hide-medium'>Students</h2>
+                                        <br/>
+                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
+                                    </div>
+                                </div>
+                                <div class='w3-half w3-padding-large'>
+                                    <div class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
+                                        <h2 class='w3-hide-small'>Working Professionals</h2>
+                                        <h2 class='w3-hide-large w3-hide-medium'>Working Professionals</h2>
+                                        <br/>
+                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            </br>
+                            <div class='w3-row'>
+                                <div class='w3-half w3-padding-large'>
+                                    <div class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
+                                        <h2 class='w3-hide-small'>Teachers &#38; Professors</h2>
+                                        <h2 class='w3-hide-large w3-hide-medium'>Teachers &#38; Professors</h2>
+                                        <br/>
+                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
+                                    </div>
+                                </div>
+                                <div class='w3-half w3-padding-large'>
+                                    <div class='w3-border w3-round-xxlarge w3-padding-large w3-border-black'>
+                                        <h2 class='w3-hide-small'>Coding Communities</h2>
+                                        <h2 class='w3-hide-large w3-hide-medium'>Coding Communities</h2>
+                                        <br/>
+                                        <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}}{% endblocktrans %}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='w3-half w3-padding-large'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>Domains of<br/>Collaboration</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>Domains of<br/>Collaboration</h2>
                                 <br/>
-                                <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
+                                <strong class='text-medium'>{% blocktrans %}{{APPNAME}} gives your idea a certain amount of exposure,a head start, a profile, <br/>a face, a room on internet, a family to your project to-be.<br/>People from all domains are welcomed here.{% endblocktrans %}</strong>
                             </div>
                             <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
                             <br/><br/>
