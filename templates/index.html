@@ -250,15 +250,27 @@
                 <div class="w3-row w3-padding-large" id='compete-participate-banner' style="height:60vh;">
                     <br/>
                     <div class='w3-row w3-center'>
-                        <div class='w3-col w3-padding-large'>
+                        <div style="padding:10px;"class='w3-half'>
                             <div class='w3-row'>
                                 <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}What's Happening{% endblocktrans %}</h2>
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}What's Happening{% endblocktrans %}</h2>
                                 <br/>
+                                <strong class='text-medium'>{% trans "Take a look at the projects we have right now" %}</strong>
+                            </div>
+                        </div>
+                        <div style="border:5px solid black;padding:28px;" class='w3-half'>
+                            <div class='w3-row'>
+                                <h2 class='w3-large w3-hide-small'>{% blocktrans %}Project I{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Project I{% endblocktrans %}</h2>
+                                <br/>
                                 <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
                             </div>
-                            <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
-                            <br/><br/>
+                            <div class='w3-row'>
+                                <h2 class='w3-large w3-hide-small'>{% blocktrans %}Project II{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Project II{% endblocktrans %}</h2>
+                                <br/>
+                                <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
