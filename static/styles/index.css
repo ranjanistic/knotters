@@ -844,3 +844,16 @@ label > input[type="checkbox"] {
     background-color: var(--tertiary);
     box-shadow:  2px 1px 12px 1px #0000001f;
 }
+
+#XP-span{
+    color:var(--positive) ;
+}
+
+#XP-span:hover{
+    color:var(--active) ;
+}
+
+#What-Happening{
+    border: 5px solid var(--secondary);
+    padding: 28px;
+}

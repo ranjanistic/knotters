@@ -131,10 +131,10 @@
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
                     {% block nav_noauth %}
-                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="w3-black" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="w3-black" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="w3-black" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_contact_us %}<a href="{{URLS.CONTACT}}"><button aria-label="ContactUs" title="ContactUs" class="w3-black" data-icon="perm_phone_msg"><span class="w3-hide-small">{% trans "Contact Us" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="secondary" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="secondary" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="secondary" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_contact_us %}<a href="{{URLS.CONTACT}}"><button aria-label="ContactUs" title="ContactUs" class="secondary" data-icon="perm_phone_msg"><span class="w3-hide-small">{% trans "Contact Us" %}</span></button></a>{% endblock %}
                         {% if request.user.profile.is_manager %}
                         {% block nav_noauth_management %}<a href="{{URLS.MANAGEMENT}}"><button aria-label="Management" title="Management" class="primary" data-icon="business"><span class="w3-hide-small">{% trans "Management" %}</span></button></a>{% endblock %}
                         {% endif %}
@@ -258,7 +258,7 @@
                                 <strong class='text-medium'>{% trans "Take a look at the projects we have right now" %}</strong>
                             </div>
                         </div>
-                        <div style='border:5px solid black;padding:28px;' class='w3-half'>
+                        <div id='What-Happening' class='w3-half'>
                             <div class='w3-row'>
                                 <h2 class='w3-large w3-hide-small'>{% blocktrans %}Project I{% endblocktrans %}</h2>
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Project I{% endblocktrans %}</h2>
@@ -378,6 +378,31 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="w3-row w3-padding-large" style="height:80vh">
+                    <br/>
+                    <br/>
+                    <div class='w3-row w3-center'>
+                        <div class='w3-col w3-padding-large'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}<i class="material-icons" style="font-size:48px;">sentiment_very_satisfied</i>  XP points{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}  XP points{% endblocktrans %}</h2>
+                                <strong class='text-medium'>{% blocktrans %}Our platform is filled with numerous of topics to choose from, for your profile, for your projects, and for the competitions, through which you can uniquely select and level up your expertise in the domain of your choice. The topics have indiviual XP points for everyone on <span id="XP-span">Knotters</span>, which can be increased via various sources, the major source being participation in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.{% endblocktrans %}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="tertiary w3-round-xlarge">
+                        <div class="w3-container w3-round-xlarge active" style="width:50%"><b>React - 300 XP</b></div>
+                    </div>
+                      <br/>
+                    <div class="tertiary w3-round-xlarge">
+                        <div class="w3-container w3-round-xlarge accent" style="width:25%"><b>Node.js - 150 XP</b></div>
+                    </div>
+                      <br/>
+                    <div class="tertiary w3-round-xlarge">
+                        <div class="w3-container w3-round-xlarge secondary" style="width:75%"><b>Flutter - 450 XP</b></div>
                     </div>
                 </div>
                 <div class="w3-row w3-padding-large w3-center">
