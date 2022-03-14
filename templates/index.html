@@ -276,7 +276,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="w3-row w3-padding-large" id='Domains-of-Collab' style="height:50vh">
+                <div class="w3-row w3-padding-large" id='domains-of-collab' style="height:50vh">
                     <br/>
                     <div class='w3-row w3-center'>
                         <div class='w3-col w3-padding-large'>
@@ -312,71 +312,62 @@
                     </div>
                 </div>
                 <div class="w3-row w3-padding-large" id="who-all-invited" style="height:70vh;">
-                    <br/>
-                    <div class='w3-center'>
-                        <div class='w3-half w3-padding-large'>
-                            </br>
-                            <div class='who-all-row w3-row'>
-                                <div class='who-all-col w3-col s6 w3-padding-large w3-round-xxlarge'>
-                                    <h3 class='w3-hide-small'>Students</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>Students</h3>
-                                </div>
-                                <div class='who-all-col w3-col s6 w3-padding-large w3-round-xxlarge'>
-                                    <h3 class='w3-hide-small'>Working Professionals</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>Working Professionals</h3>
+                    <div class='w3-col w3-half w3-padding-large'>
+                        <div class='w3-row' align='center'>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='pallete-slab'>
+                                    <h3>Students</h3>
                                 </div>
                             </div>
-                            </br></br></br>
-                            <div class='who-all-row w3-row'>
-                                <div class='who-all-col w3-col s6 w3-padding-large w3-round-xxlarge'>
-                                    <h3 class='w3-hide-small'>Teachers &#38; Professors</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>Teachers &#38; Professors</h3>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='pallete-slab'>
+                                    <h3>Working Professionals</h3>
                                 </div>
-                                <div class='who-all-col w3-col s6 w3-padding-large w3-round-xxlarge'>
-                                    <h3 class='w3-hide-small'>Coding Communities</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>Coding Communities</h3>
+                            </div>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='pallete-slab'>
+                                    <h3>Teachers &#38; Professors</h3>
+                                </div>
+                            </div>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='pallete-slab'>
+                                    <h3>Coding Communities</h3>
                                 </div>
                             </div>
                         </div>
-                        <div class='w3-half w3-padding-large'>
-                            <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>Who all are<br/>invited?</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>Who all are<br/>invited?</h2>
-                                <br/>
-                                <strong class='text-medium'>{% blocktrans %}{{APPNAME}} gives your idea a certain amount of exposure, a head start, a profile, <br/>a face, a room on internet, a family to your project to-be.<br/>People from all domains are welcomed here.{% endblocktrans %}</strong>
-                            </div>
+                    </div>
+                    <div class='w3-col w3-half w3-padding-large'>
+                        <div class='w3-row' align='center'>
+                            <h2 class='w3-jumbo w3-hide-small'>Who all are<br/>invited?</h2>
+                            <h2 class='w3-hide-large w3-hide-medium'>Who all are<br/>invited?</h2>
+                            <br/>
+                            <strong class='text-medium'>{% blocktrans %}{{APPNAME}} gives your idea a certain amount of exposure, a head start, a profile, <br/>a face, a room on internet, a family to your project to-be.<br/>People from all domains are welcomed here.{% endblocktrans %}</strong>
+                            <br/>
                             <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
-                            <br/><br/>
                         </div>
                     </div>
                 </div>
                 <div class="w3-row w3-padding-large" id='make-your-profile' style="height:80vh">
                     <br/>
                     <br/>
-                    <div class='w3-row w3-center'>
-                        <div class='w3-col w3-padding-large'>
-                            <div class='w3-row w3-padding-large'>
-                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
-                            </div>
-                            <div class='who-all-row w3-row w3-padding-large w3-round-xlarge'>
-                                <div class='w3-col s6 w3-padding-large tertiary w3-border-right w3-border-left w3-round-xxlarge'>
-                                    <div class='w3-row w3-padding-large'>
-                                        <i class="material-icons" style="font-size:48px;">category</i>
-                                        <h3>Project Profile</h3>
-                                    </div>
-                                    <div class='w3-row w3-padding-large'>
-                                        <strong class='text-medium'>{% blocktrans %}There's always a need for any project to be in the public eye. Social networking sites could be helpful but they only provide exposure to the deliverability of your project, not to the project itself. An official profile of your project, in whichever domain it may be, gives it a recognizable face, a room on internet, and again, a family. {{APPNAME}} provides all of these to your project.{% endblocktrans %}</strong>
-                                    </div>
+                    <div class='w3-row w3-padding-large w3-center'>
+                        <div class='w3-row w3-padding-large'>
+                            <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
+                            <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
+                        </div>
+                        <div class='w3-row w3-padding-large'>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='w3-row pallete-slab w3-padding-large'>
+                                    <i class="material-icons" style="font-size:48px;">category</i>
+                                    <h3>Project Profile</h3>
+                                    <strong class='text-medium'>{% blocktrans %}There's always a need for any project to be in the public eye. Social networking sites could be helpful but they only provide exposure to the deliverability of your project, not to the project itself. An official profile of your project, in whichever domain it may be, gives it a recognizable face, a room on internet, and again, a family. {{APPNAME}} provides all of these to your project.{% endblocktrans %}</strong>
                                 </div>
-                                <div class='w3-col s6 w3-padding-large tertiary w3-border-right w3-border-left w3-round-xxlarge'>
-                                    <div class='w3-row w3-padding-large'>
-                                        <i class="material-icons" style="font-size:48px;">code</i>
-                                        <h3>Developer Profile</h3>
-                                    </div>
-                                    <div class='w3-row w3-padding-large'>
-                                        <strong class='text-medium'>{% blocktrans %}Just like the profile of your project is its own room on {{APPNAME}}, your own profile also represents your presence in our community. Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself. You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.{% endblocktrans %}</strong>
-                                    </div>
+                            </div>
+                            <div class='w3-col w3-half w3-padding-large'>
+                                <div class='w3-row pallete-slab w3-padding-large'>
+                                    <i class="material-icons" style="font-size:48px;">code</i>
+                                    <h3>Developer Profile</h3>
+                                    <strong class='text-medium'>{% blocktrans %}Just like the profile of your project is its own room on {{APPNAME}}, your own profile also represents your presence in our community. Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself. You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.{% endblocktrans %}</strong>
                                 </div>
                             </div>
                         </div>
