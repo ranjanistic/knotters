@@ -131,10 +131,10 @@
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
                     {% block nav_noauth %}
-                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="secondary" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="secondary" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="secondary" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
-                        {% block nav_noauth_contact_us %}<a href="{{URLS.CONTACT}}"><button aria-label="ContactUs" title="ContactUs" class="secondary" data-icon="perm_phone_msg"><span class="w3-hide-small">{% trans "Contact Us" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_contact_us %}<a href="{{URLS.CONTACT}}"><button aria-label="ContactUs" title="ContactUs" class="primary" data-icon="perm_phone_msg"><span class="w3-hide-small">{% trans "Contact Us" %}</span></button></a>{% endblock %}
                         {% if request.user.profile.is_manager %}
                         {% block nav_noauth_management %}<a href="{{URLS.MANAGEMENT}}"><button aria-label="Management" title="Management" class="primary" data-icon="business"><span class="w3-hide-small">{% trans "Management" %}</span></button></a>{% endblock %}
                         {% endif %}
@@ -313,23 +313,24 @@
                 </div>
                 <div class="w3-row w3-padding-large" id="who-all-invited" style="height:70vh;">
                     <div class='w3-col w3-half w3-padding-large'>
+                        <br/><br/><br/>
                         <div class='w3-row' align='center'>
-                            <div class='w3-col w3-half w3-padding-large'>
+                            <div class='w3-col l6 m12 s12 w3-padding-large'>
                                 <div class='pallete-slab'>
                                     <h3>Students</h3>
                                 </div>
                             </div>
-                            <div class='w3-col w3-half w3-padding-large'>
+                            <div class='w3-col l6 m12 s12 w3-padding-large'>
                                 <div class='pallete-slab'>
                                     <h3>Working Professionals</h3>
                                 </div>
                             </div>
-                            <div class='w3-col w3-half w3-padding-large'>
+                            <div class='w3-col l6 m12 s12 w3-padding-large'>
                                 <div class='pallete-slab'>
                                     <h3>Teachers &#38; Professors</h3>
                                 </div>
                             </div>
-                            <div class='w3-col w3-half w3-padding-large'>
+                            <div class='w3-col l6 m12 s12 w3-padding-large'>
                                 <div class='pallete-slab'>
                                     <h3>Coding Communities</h3>
                                 </div>
