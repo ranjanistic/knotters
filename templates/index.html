@@ -250,7 +250,7 @@
                 <div class="w3-row w3-padding-large" id='compete-participate-banner' style="height:60vh;">
                     <br/>
                     <div class='w3-row w3-center'>
-                        <div style="padding:10px;"class='w3-half'>
+                        <div class='w3-col w3-twothird'>
                             <div class='w3-row'>
                                 <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}What's Happening{% endblocktrans %}</h2>
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}What's Happening{% endblocktrans %}</h2>
@@ -260,18 +260,18 @@
                                 <i class="material-icons" style="font-size:100px;">desktop_mac</i>
                             </div>
                         </div>
-                        <div id='What-Happening' class='w3-half'>
-                            <div class='w3-row'>
-                                <h2 class='w3-large w3-hide-small'>{% blocktrans %}Project I{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Project I{% endblocktrans %}</h2>
+                        <div class='w3-col w3-third'>
+                            <div class="pallete no-pad w3-center ">
+                                <a onclick="miniWindow('{{project.getLink}}')">
+                                    <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" />
+                                </a>
+                                <div class="w3-row w3-padding">
+                                    <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                                    <span>{{ project.description|truncatechars:45 }}</span>
+                                    <br/><br/>
+                                    <button onclick="onboardAdmireProject('{{project.get_id}}')" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism">Admire</button>
+                                </div>
                                 <br/>
-                                <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
-                            </div>
-                            <div class='w3-row'>
-                                <h2 class='w3-large w3-hide-small'>{% blocktrans %}Project II{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Project II{% endblocktrans %}</h2>
-                                <br/>
-                                <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
                             </div>
                         </div>
                     </div>
@@ -285,39 +285,36 @@
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Domains of Collaboration{% endblocktrans %}</h2>
                             </div>
                             <br/><br/>
-                            <div class='w3-row accent w3-padding-large w3-round-xxlarge'>
-                                <div class='w3-col s3 w3-padding-large w3-hover-opacity'>
-                                    <i class="material-icons" style="font-size:48px;">api</i>
-                                    <h3 class='w3-hide-small'>{% blocktrans %}Software{% endblocktrans %}</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Software{% endblocktrans %}</h3>
+                            <div class='w3-row accent pallete-slab'>
+                                <div class='w3-col pallete s3 w3-padding-large w3-hover-opacity domain-colab-tab'>
+                                    <i class="w3-jumbo material-icons">code</i>
+                                    <h3>{% blocktrans %}Software{% endblocktrans %}</h3>
                                 </div>
-                                <div class='w3-col s3 w3-padding-large w3-hover-opacity'>
-                                    <i class="material-icons" style="font-size:48px;">memory</i>
-                                    <h3 class='w3-hide-small'>{% blocktrans %}Hardware{% endblocktrans %}</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Hardware{% endblocktrans %}</h3>
+                                <div class='w3-col pallete s3 w3-padding-large w3-hover-opacity domain-colab-tab'>
+                                    <i class="w3-jumbo material-icons">memory</i>
+                                    <h3>{% blocktrans %}Hardware{% endblocktrans %}</h3>
                                 </div>
-                                <div class='w3-col s3 w3-padding-large w3-hover-opacity'>
-                                    <i class="material-icons" style="font-size:48px;">brush</i>
-                                    <h3 class='w3-hide-small'>{% blocktrans %}Design{% endblocktrans %}</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Design{% endblocktrans %}</h3>
+                                <div class='w3-col pallete s3 w3-padding-large w3-hover-opacity domain-colab-tab'>
+                                    <i class="w3-jumbo material-icons" >brush</i>
+                                    <h3>{% blocktrans %}Design{% endblocktrans %}</h3>
                                 </div>
-                                <div class='w3-col s3 w3-padding-large w3-hover-opacity'>
-                                    <i class="material-icons" style="font-size:48px;">precision_manufacturing</i>
-                                    <h3 class='w3-hide-small'>{% blocktrans %}Product{% endblocktrans %}</h3>
-                                    <h3 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Product{% endblocktrans %}</h3>
+                                <div class='w3-col pallete s3 w3-padding-large w3-hover-opacity domain-colab-tab'>
+                                    <i class="w3-jumbo material-icons">precision_manufacturing</i>
+                                    <h3 >{% blocktrans %}Product{% endblocktrans %}</h3>
                                 </div>
                             </div>
+                            <div id="domain-colab-tab-view"></div>
                             <br/>
                         </div>
                     </div>
                 </div>
-                <div class="w3-row w3-padding-large" id="who-all-invited" style="height:70vh;">
+                <div class="w3-row w3-padding-large" id="who-all-invited" style="height:100%;">
                     <div class='w3-col w3-half w3-padding-large'>
                         <br/><br/><br/>
                         <div class='w3-row' align='center'>
                             <div class='w3-col l6 m12 s12 w3-padding-large'>
                                 <div class='pallete-slab'>
-                                    <h3>Students</h3>
+                                    <h3>Students &amp; Enthusiasts</h3>
                                 </div>
                             </div>
                             <div class='w3-col l6 m12 s12 w3-padding-large'>
@@ -348,28 +345,24 @@
                         </div>
                     </div>
                 </div>
-                <div class="w3-row w3-padding-large" id='make-your-profile' style="height:80vh">
-                    <br/>
-                    <br/>
-                    <div class='w3-row w3-padding-large w3-center'>
-                        <div class='w3-row w3-padding-large'>
-                            <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
-                            <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
-                        </div>
-                        <div class='w3-row w3-padding-large'>
-                            <div class='w3-col w3-half w3-padding-large'>
-                                <div class='w3-row pallete-slab w3-padding-large'>
-                                    <i class="material-icons" style="font-size:48px;">category</i>
-                                    <h3>Project Profile</h3>
-                                    <strong class='text-medium'>{% blocktrans %}There's always a need for any project to be in the public eye. Social networking sites could be helpful but they only provide exposure to the deliverability of your project, not to the project itself. An official profile of your project, in whichever domain it may be, gives it a recognizable face, a room on internet, and again, a family. {{APPNAME}} provides all of these to your project.{% endblocktrans %}</strong>
-                                </div>
+                <div class="w3-row" id="make-your-profile">
+                    <div class='w3-row w3-padding-large'>
+                        <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
+                        <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Create Your Profile{% endblocktrans %}</h2>
+                    </div>
+                    <div class='w3-row'>
+                        <div class='w3-col w3-half w3-padding'>
+                            <div class='w3-row pallete-slab'>
+                                <i class="material-icons" style="font-size:48px;">category</i>
+                                <h3>Project Profile</h3>
+                                <strong class='text-medium'>{% blocktrans %}There's always a need for any project to be in the public eye. Social networking sites could be helpful but they only provide exposure to the deliverability of your project, not to the project itself. An official profile of your project, in whichever domain it may be, gives it a recognizable face, a room on internet, and again, a family. {{APPNAME}} provides all of these to your project.{% endblocktrans %}</strong>
                             </div>
-                            <div class='w3-col w3-half w3-padding-large'>
-                                <div class='w3-row pallete-slab w3-padding-large'>
-                                    <i class="material-icons" style="font-size:48px;">code</i>
-                                    <h3>Developer Profile</h3>
-                                    <strong class='text-medium'>{% blocktrans %}Just like the profile of your project is its own room on {{APPNAME}}, your own profile also represents your presence in our community. Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself. You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.{% endblocktrans %}</strong>
-                                </div>
+                        </div>
+                        <div class='w3-col w3-half w3-padding'>
+                            <div class='w3-row pallete-slab '>
+                                <i class="material-icons" style="font-size:48px;">code</i>
+                                <h3>Developer Profile</h3>
+                                <strong class='text-medium'>{% blocktrans %}Just like the profile of your project is its own room on {{APPNAME}}, your own profile also represents your presence in our community. Your profile contains dynamic information about your expertise, acheivements, projects and the things you share yourself. You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.{% endblocktrans %}</strong>
                             </div>
                         </div>
                     </div>
@@ -387,17 +380,12 @@
                         </div>
                     </div>
                     <br/>
+                    {% for topic in topics%}
                     <div class="tertiary w3-round-xlarge">
-                        <div class="w3-container w3-round-xlarge active" style="width:50%"><b>React - 300 XP</b></div>
+                        <div class="w3-container w3-round-xlarge active" style="width:50%"><b>{{topic.name}} 300 XP</b></div>
                     </div>
-                      <br/>
-                    <div class="tertiary w3-round-xlarge">
-                        <div class="w3-container w3-round-xlarge accent" style="width:25%"><b>Node.js - 150 XP</b></div>
-                    </div>
-                      <br/>
-                    <div class="tertiary w3-round-xlarge">
-                        <div class="w3-container w3-round-xlarge positive" style="width:75%"><b>Flutter - 450 XP</b></div>
-                    </div>
+                    <br/>
+                    {%endfor%}
                 </div>
                 <div class="w3-row w3-padding-large w3-center">
                     {% if not request.user.is_authenticated %}
@@ -540,7 +528,9 @@
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
-        {% block scripts %}{% endblock %}
+        {% block scripts %}
+        <script async src="{% static 'scripts/home.js' %}"></script>
+        {% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
         {% spaceless %}
         {% block messages %}

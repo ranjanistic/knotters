@@ -24,7 +24,7 @@ from management.models import HookRecord, GhMarketPlan, GhMarketApp, ThirdPartyL
 from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
-from people.models import CoreMember, DisplayMentor, Profile, GHMarketPurchase
+from people.models import CoreMember, DisplayMentor, Profile, GHMarketPurchase, Topic
 from people.methods import rendererstr as peopleRendererstr
 from projects.methods import rendererstr as projectsRendererstr
 from compete.methods import rendererstr as competeRendererstr
@@ -65,7 +65,9 @@ def index(request: WSGIRequest) -> HttpResponse:
             return respondRedirect(path=URL.ON_BOARDING)
         competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
         return renderView(request, Template.HOME, dict(competition=competition))
-    return renderView(request, Template.INDEX)
+    topics = Topic.objects.filter()[:3]
+    project = BaseProject.objects.filter()[0]
+    return renderView(request, Template.INDEX,dict(topics=topics,project=project))
 
 
 @require_GET
