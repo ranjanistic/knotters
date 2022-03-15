@@ -857,3 +857,16 @@ label > input[type="checkbox"] {
     border: 5px solid var(--secondary);
     padding: 28px;
 }
+
+.vibrant{
+    background-color: var(--vibrant) !important;
+    color: var(--vibrant-text);
+}
+
+.vibrant-text {
+    color: var(--vibrant) !important;
+}
+
+.text-vibrant {
+    color: var(--vibrant-text) !important;
+}

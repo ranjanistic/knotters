@@ -18,6 +18,8 @@
     --body-font: -apple-system, BlinkMacSystemFont,"Product Sans Light", "Product Sans", "Product Sans Font", "Questrial", system-ui;
     --delay: 0.3s;
     --button-radius: 22px;
+    --vibrant: #673AB7;
+    --vibrant-text:#000000;
 }
 
 [data-theme="dark"] {
@@ -36,4 +38,6 @@
     --negative: #ce6862;
     --negative-text: #000000;
     --dead-text: #817f7f;
+    --vibrant: #7E57C2;
+    --vibrant-text:#000000;
 }
