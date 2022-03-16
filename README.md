@@ -34,11 +34,14 @@ py genenv.py
 
 The above cmd will generate env vars step by step.
 
+NOTE: Visit [djecrety.ir](http://djecrety.ir) to generate ```PROJECTKEY```.
+
 ### Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
+
 > If there's a ```Microsoft Visual c++ 14.0``` required error with installation of _rcssmin_ or related modules, then do following execution if you want to **avoid installing** ```Microsoft C++ Build Tools```
 >```bash
 > # Only if an error occurs
