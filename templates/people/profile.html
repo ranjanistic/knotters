@@ -168,19 +168,19 @@
         {% if is_manager %}
             {% if has_ghID and not gh_orgID and self %}
             <div class="w3-row w3-padding-small">
-              <button class="secondary" id="link-gh-org-mgm"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;Link GitHub organization</button></a>
+              <button class="secondary" id="link-gh-org-mgm"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20" />&nbsp;Link GitHub organization</button></a>
             </div>
             <br />
             {% elif gh_orgID %}
             <div class="w3-row w3-padding-small">
-              <a target="_blank" rel="noreferrer" href="{{person.profile.management.get_ghorgUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{gh_orgID}}</button></a>
+              <a target="_blank" rel="noreferrer" href="{{person.profile.management.get_ghorgUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20" />&nbsp;{{gh_orgID}}</button></a>
               {% if self %}<button class="small primary" data-icon="edit" id="link-gh-org-mgm"></button>{% endif %}
             </div>
             <br />
             {% endif %}
         {% elif has_ghID %}
           <div class="w3-row w3-padding-small">
-            <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20" />&nbsp;{{person.profile.ghID}}</button></a>
+            <a target="_blank" rel="noreferrer" href="{{person.profile.getGhUrl}}"><button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20" />&nbsp;{{person.profile.ghID}}</button></a>
           </div>
           <br />
         {% endif %}
