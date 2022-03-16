@@ -70,7 +70,7 @@
         <div class="w3-row w3-padding-small">
           {% if project.has_linked_repo %}
             <a target="_blank" rel="noreferrer" href="{{project.linked_repo.repolink}}">
-                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.linked_repo.reponame}}</button>
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20"/>&nbsp;{{project.linked_repo.reponame}}</button>
             </a>
           {% endif %}
           {% if project.is_submission %}
@@ -149,7 +149,7 @@
         {% if project.repolink %}
         <div class="w3-row w3-padding-small">
             <a target="_blank" rel="noreferrer" href="{{project.repoLink}}">
-                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;{{project.repolink}}</button>
+                <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20"/>&nbsp;{{project.repolink}}</button>
             </a>
         </div>
         <br/>
@@ -267,9 +267,9 @@
                 <center><h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5></center>
                 <div class="w3-row">
                 {% if project.has_linked_repo %}
-                    <button class="negative" id='unlink-github-repository'><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Unlink {{project.linked_repo.reponame}}</button>
+                    <button class="negative" id='unlink-github-repository'><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20"/>&nbsp;Unlink {{project.linked_repo.reponame}}</button>
                 {% else %}
-                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.png' %}" width="20"/>&nbsp;Link repository</button>
+                    <button class="secondary" id="link-github-repository"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20"/>&nbsp;Link repository</button>
                 {% endif %}
                 </div>
                 <div class="w3-row">
@@ -591,7 +591,7 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 })
                 return Swal.fire({
                     title: 'Link GitHub repository',
-                    imageUrl: "{% static 'graphics/thirdparty/github.png' %}",
+                    imageUrl: "{% static 'graphics/thirdparty/github.webp' %}",
                     imageWidth:50,
                     html: `<h6>Link GitHub repository to project '{{project.nickname}}'.<br/>Only public repositories can be linked.</h6>
                     <br/>
