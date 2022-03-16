@@ -419,10 +419,11 @@ class ThirdPartyAccount(models.Model):
     width = models.IntegerField(default=22)
     height = models.IntegerField(default=22)
     has_dark = models.BooleanField(default=False)
+    handle = models.CharField(max_length=100)
     cachekey = f"knotters_socialaccounts_list"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} {self.handle} at {self.link}"
 
     def save(self, *args, **kwargs):
         cache.delete(self.cachekey)
