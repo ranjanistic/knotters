@@ -182,6 +182,7 @@ def verifyCaptcha(request: WSGIRequest):
             return respondJson(Code.NO)
         if verify_captcha(capt_response):
             return respondJson(Code.OK)
+        print(Code.NO if ISPRODUCTION else Code.OK)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
     except Exception as e:
         errorLog(e)
@@ -427,7 +428,7 @@ class Manifest(TemplateView):
         sizes = []
 
         def appendWhen(path: str):
-            condition = path.endswith(('icon-circle.png','icon.png'))
+            condition = path.endswith(('icon-circle.webp','icon.webp','icon-square.webp'))
             if condition:
                 parts = path.split('/')
                 size = int(parts[len(parts)-2])

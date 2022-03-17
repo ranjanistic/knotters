@@ -49,7 +49,7 @@
                                                      {% endif %}
                                                  >
                                                      <button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
-								{% with logo="graphics/thirdparty/"|add:provider.id|add:".png" %}
+								{% with logo="graphics/thirdparty/"|add:provider.id|add:".webp" %}
 									<img src="{% static logo %}" width="{% if provider.id == 'discord' %}20{% else %}25{% endif %}" {% if provider.id == 'github' %}class="darkimg-static"{% endif %} />
 									&nbsp;{% trans "Continue via" %} {{provider.name}}
 								{% endwith %}

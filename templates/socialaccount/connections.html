@@ -62,7 +62,7 @@
                          {% endif %}
                         >
                         <button class="{% if provider.name == "GitHub" %}secondary{% elif provider.name == "Discord" %}tertiary{% else %}primary{% endif %} w3-padding">
-                            <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.png" width="25" />
+                            <img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}-dark{% endif %}.webp" width="25" />
                             &nbsp;Link {{provider.name}} account
                         </button>
                     </a>
