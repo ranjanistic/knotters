@@ -1,4 +1,5 @@
 import json
+from os import path as ospath
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from rjsmin import jsmin
@@ -174,7 +175,6 @@ def verifyCaptcha(request: WSGIRequest):
             return respondJson(Code.NO)
         if verify_captcha(capt_response):
             return respondJson(Code.OK)
-        print(Code.NO if ISPRODUCTION else Code.OK)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
     except Exception as e:
         errorLog(e)
@@ -420,23 +420,22 @@ class Manifest(TemplateView):
         sizes = []
 
         def appendWhen(path: str):
-            condition = path.endswith(('icon-circle.webp','icon.webp','icon-square.webp'))
+            condition = path.endswith(('icon-circle.webp','icon-square.webp','icon-circle.png','icon-square.png'))
             if condition:
                 parts = path.split('/')
                 size = int(parts[len(parts)-2])
                 sizes.append(size)
             return condition
-
-        assets = getDeepFilePaths('static/graphics/self', appendWhen=appendWhen)
-
-        assets = list(map(lambda p: str(p.replace("/static/",settings.STATIC_URL)), assets))
+        assets = getDeepFilePaths(ospath.join(settings.STATIC_ROOT, 'graphics/self'), appendWhen=appendWhen)
+        assets = list(map(lambda p: str(p.replace(settings.STATIC_ROOT,settings.STATIC_URL)), assets))
 
         icons = []
 
         for i in range(len(assets)):
             icons.append(dict(
                 src=assets[i],
-                size=f"{sizes[i]}x{sizes[i]}"
+                size=f"{sizes[i]}x{sizes[i]}",
+                type=assets[i].split('.')[-1],
             ))
 
         context = dict(**context, icons=icons)

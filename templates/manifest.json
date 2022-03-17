@@ -1,21 +1,44 @@
 {
+    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
     "id": "{{SITE}}",
     "short_name": "{{APPNAME}}",
-    "name": "{{APPNAME}}",
     "version": "{{VERSION}}",
-    "author": "{{APPNAME}}",
-    "manifest_version": "{{VERSION}}",
-    "description": "{{DESCRIPTION|safe}}",
     "start_url": "{{ROOT}}",
     "scope": "{{ROOT}}",
+    "manifest_version": "{{VERSION}}",
     "display": "standalone",
+    "name": "{{APPNAME}}",
+    "author": "{{APPNAME}}",
+    "description": "{{DESCRIPTION|safe}}",
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
+    "categories": ["social", "opensource"],
+    "dir": "auto",
+    "lang": "en-US",
+    "orientation": "any",
+    "share_target": {
+        "action": "{{URLS.Projects.CREATE_FREE}}",
+        "enctype": "APPLICATION/X-WWW-FORM-URLENCODED",
+        "params": {
+            "title": "{{APPNAME}}",
+            "url": "{{URLS.Projects.CREATE_FREE}}",
+            "text": "{{DESCRIPTION|safe}}"
+        },
+        "method": "GET"
+    },
+    "prefer_related_applications": true,
+    "related_applications": [
+        {
+            "platform": "play",
+            "id": "org.knotters.knative",
+            "min_version": "1.0"
+        }
+    ],
     "icons": [
         {% for icon in icons %}
         {
             "src": "{{ icon.src }}",
-            "type": "image/webp",
+            "type": "image/{{icon.type}}",
             "sizes": "{{ icon.size }}",
             "purpose": "any"
         }{% if forloop.counter < icons|length %},{% endif %}
@@ -31,7 +54,7 @@
                 {% for icon in icons %}
                 {
                     "src": "{{ icon.src }}",
-                    "type": "image/webp",
+                    "type": "image/{{icon.type}}",
                     "sizes": "{{ icon.size }}",
                     "purpose": "any"
                 }{% if forloop.counter < icons|length %},{% endif %}
@@ -48,7 +71,7 @@
             "icons": [
                 {
                     "src": "{{ request.user.profile.get_dp }}",
-                    "type": "image/webp",
+                    "type": "image/png",
                     "purpose": "any"
                 }
             ]

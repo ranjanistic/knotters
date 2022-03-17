@@ -125,7 +125,7 @@ def getDeepFilePaths(dir_name: str, appendWhen=None):
         path = str(asset).replace(str(settings.BASE_DIR), str())
         if path.startswith('\\'):
             path = str(path).strip("\\")
-        if path.startswith(dir_name):
+        if path.startswith(dir_name) and not path.startswith("/"):
             path = f"/{path}"
         if path not in assets:
             if appendWhen:
