@@ -204,12 +204,12 @@
                 <div class="w3-row w3-padding-large" id='intro-banner' style="height:75vh;">
                     <br/>
                     <div class='w3-row'>
-                        <div class='w3-col w3-half w3-padding-large'>
+                        <div class='w3-col w3-twothird w3-padding-large'>
                             <div class='w3-row'>
                                 <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}India's First  <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform{% endblocktrans %}</h1>
                                 <h1 class='w3-hide-large w3-hide-medium'>India's First <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform</h1>
                                 <br/>
-                                <strong class='text-medium'>{% trans "Ready to takeoff? Virtually ofcourse." %}</strong>
+                                {% comment %} <strong class='text-medium'>{% trans %}</strong> {% endcomment %}
                             </div>
                             <div class='w3-row'>
                                 {% if not request.user.is_authenticated %}
@@ -221,7 +221,7 @@
                             </div>
                             <br/>
                         </div>
-                        <div class='w3-col w3-half' align='right'>
+                        <div class='w3-col w3-third' align='right'>
                             <img src='{{ICON}}' width='50%' class='darkimg' />
                         </div>
                     </div>
