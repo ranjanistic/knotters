@@ -503,6 +503,18 @@ class BaseProject(models.Model):
 
     def total_public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True).count()
+    
+    def add_cocreator(self,co_creator):
+        if co_creator.is_normal:
+            self.co_creators.add(co_creator)
+        else :
+            return False
+    
+    def add_prime_collaborator(self,prime_collaborator):
+        if prime_collaborator.is_normal:
+            self.prime_collaborator.add(prime_collaborator)
+        else :
+            return False
 
 class BaseProjectPrimeCollaborator(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
