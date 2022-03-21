@@ -108,8 +108,9 @@ class LegalDocAdmin(admin.ModelAdmin):
     form = LegalDocForm
 
 admin.site.register(License)
-
 admin.site.register(ProjectSocial)
+admin.site.register(BaseProjectPrimeCollaborator)
+admin.site.register(BaseProjectCoCreator)
 admin.site.register(FreeRepository)
 admin.site.register(Snapshot)
 admin.site.register(ReportedProject)
