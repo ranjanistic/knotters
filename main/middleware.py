@@ -144,7 +144,7 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
                     deleteSession = False
                 elif request.path.strip('/').startswith(p.strip('/')):
                     deleteSession = False
-                elif testPathRegex(p, request.path):
+                elif testPathRegex(p, request.path) or request.path.startswith("/script"):
                     deleteSession = False
                 if not deleteSession:
                     break
