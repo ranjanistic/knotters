@@ -6,4 +6,6 @@ initializeTabsView({
     uniqueID: "competitionstab",
     tabsClass: "compete-nav-tab",
     onShowTab: loadTabScript,
+    activeTabClass: "active",
+    inactiveTabClass: "primary text-primary",
 });

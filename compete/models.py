@@ -159,7 +159,10 @@ class Competition(models.Model):
 
     def get_nickname(self):
         if not self.nickname:
-            self.nickname = re.sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:50].strip('-').lower()
+            nickname = re.sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:60].strip('-').lower()
+            if Competition.objects.filter(nickname=nickname).exists():
+                nickname = f"{nickname}-{self.id.hex}"
+            self.nickname = nickname
             self.save()
         return self.nickname
         
@@ -171,7 +174,7 @@ class Competition(models.Model):
         """
         Link to competition profile page
         """
-        return f"{url.getRoot(APPNAME)}{url.compete.compID(compID=self.getID())}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.compete.compID(compID=self.get_nickname())}{url.getMessageQuery(alert,error,success)}"
 
     @property
     def get_link(self) -> str:
@@ -238,6 +241,12 @@ class Competition(models.Model):
         List of topics of this competition
         """
         return self.topics.all()
+
+    def getPalleteTopics(self) -> list:
+        """
+        Topics to be displayed on palletes
+        """
+        return self.topics.filter()[:3]
 
     def getPerks(self) -> list:
         perks = Perk.objects.filter(competition=self).order_by('rank')

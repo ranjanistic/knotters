@@ -192,7 +192,7 @@
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:person.get_id }}">
                 {% csrf_token %}
                 <input type="hidden" value="{% if is_admirer %}false{% else %}true{% endif %}" name="admire" />
-                <button type="submit" class="w3-right {% if is_admirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                <button type="submit" class="w3-right {% if is_admirer %}positive{% else %}primary{% endif %}" id="toggle-admiration" data-icon="volunteer_activism"></button>
             </form>
         {% else %}
             <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
@@ -287,7 +287,29 @@
           <br/>
           <div id="tabview" style="min-height:60vh;max-height:95vh;overflow-y: scroll;"></div>
         </div>
-
+        <br/>
+        <div class="w3-row w3-animate-right" id="timeline">
+        <h5>{% if self %}Your{% else %}{{person.profile.getFName}}'s{% endif %} activity</h5>
+          <div class="w3-row">
+            <div class="w3-col m3 s3 l3 w3-padding-small w3-right">
+              <div class="pallete w3-center">
+                <div class="w3-row">
+                  <img src="{{person.profile.get_dp}}" class="w3-circle primary" width="80" />
+                  <img src="{{ICON}}" class="w3-circle primary darkimg" width="80" />
+                </div>
+                  <h4>Joined Community</h4>
+                  <p>{{person.date_joined}}</p>
+              </div>
+            </div>
+            <div class="w3-col m3 s3 l3 w3-padding-small w3-right">
+              <div class="pallete tertiary w3-center">
+                <i class="w3-jumbo">upcoming</i><br/>
+                  <h4>Coming soon</h4>
+                  <p>You'll see more updates soon</p>
+              </div>
+            </div>
+          </div>
+        </div>
         {% if self %}
         <br/>
         <div class="w3-row pallete w3-animate-right" id="setts">
@@ -315,119 +337,124 @@
 <script>
   {% comment %} 'person' is an instance of User (request.user) {% endcomment %}
   const userID = "{{ person.getID }}";
-  const selfProfile = authenticated?"{{request.user.getID}}" === "{{person.getID}}" && activeuser:false;
+  const selfProfile = ("{{self}}"=='True')?activeuser:false;
   const isModerator = "{{person.profile.is_moderator}}" == 'True';
   const isMentor = "{{person.profile.is_mentor}}" == 'True';
   const isManager = "{{is_manager}}" == 'True';
+  const isAdmirer = "{{is_admirer}}" == 'True';
   const tabindex = (Number("{{request.GET.tab}}"||-2)>-1)?Number("{{request.GET.tab}}"): false;
   {% if is_manager %}
     const mgmID = "{{person.profile.manager_id}}";
   {% endif %}
 
-  try{
-    getElement("reactivateaccount").onclick=async()=>{
-      loaders()
-      message("Reactivating your account...")
-      const data = await postRequest(URLS.Auth.ACCOUNTACTIVATION, {
-        activate: true
-      });
-      if(data.code===code.OK){
-        success(`{% trans "Your account has been reactivated" %}`)
-        return await logOut()
+  {% if person.profile.is_active and not person.profile.suspended %}
+    {% if self %}
+      getElement('sociallinks-add').onclick=_=>{
+          const parent=getElement('edit-sociallinks-inputs');
+          if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+          const linkNumber=parent.childElementCount+1;
+          const newChild=document.createElement('div');
+          newChild.innerHTML = `
+              <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+          `;
+          parent.insertBefore(newChild,parent.childNodes[0]);
       }
-      subLoader(false)
-      loader(false)
-      error(data.error)
-    }
-  }catch{}
+      try{
+        getElement("reactivateaccount").onclick=async()=>{
+          loaders()
+          message("Reactivating your account...")
+          const data = await postRequest(URLS.Auth.ACCOUNTACTIVATION, {
+            activate: true
+          });
+          if(data.code===code.OK){
+            success(`{% trans "Your account has been reactivated" %}`)
+            return await logOut()
+          }
+          subLoader(false)
+          loader(false)
+          error(data.error)
+        }
+      }catch{}
 
-{% if person.profile.is_active and not person.profile.suspended %}
-
-  if (!selfProfile && activeuser){
-    getElement('block-account').onclick=async()=>{
-      blockUserView({userID, username:'{{person.profile.getName}}', userDP: '{{person.profile.getDP}}'})
-    }
-    getElement('report-account').onclick=async()=>{
-      await violationReportDialog(URLS.REPORT_USER,{
-        userID: '{{person.get_id}}',
-      }, '{{person.profile.getName}}',URLS.REPORT_CATEGORIES)
-      
-    }
-  }
-
-  {% if self %}
-    getElement('sociallinks-add').onclick=_=>{
-        const parent=getElement('edit-sociallinks-inputs');
-        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-        const linkNumber=parent.childElementCount+1;
-        const newChild=document.createElement('div');
-        newChild.innerHTML = `
-            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-        `;
-        parent.insertBefore(newChild,parent.childNodes[0]);
-    }
-  {% endif %}
-
-  {% if self and is_manager and has_ghID %}
-  getElement("link-gh-org-mgm").onclick=_=>{
-    Swal.fire({
-      title:"Link GitHub organization",
-      html:`
-      Please make sure that you are allowed to represent your organization on Knotters by your administrators.</br></br>
-      <div class="w3-row">
-          <select id='selected-org-id' class="pallete-slab">
-        {% for org in request.user.profile.get_ghOrgsIDName %}
-            <option value="{{org.id}}">{{org.name}}</option>
-        {% endfor %}
-          </select>
-      </div>
-        `,
-      icon: '',
-      confirmButtonText: "Link with profile",
-      showCancelButton: true,
-      {% if gh_orgID %}
-      showDenyButton: true,
-      denyButtonText: "Unlink organization",
+      {% if is_manager and has_ghID %}
+        getElement("link-gh-org-mgm").onclick=_=>{
+          Swal.fire({
+            title:"Link GitHub organization",
+            html:`
+            Please make sure that you are allowed to represent your organization on Knotters by your administrators.</br></br>
+            <div class="w3-row">
+                <select id='selected-org-id' class="pallete-slab">
+              {% for org in request.user.profile.get_ghOrgsIDName %}
+                  <option value="{{org.id}}">{{org.name}}</option>
+              {% endfor %}
+                </select>
+            </div>
+              `,
+            icon: '',
+            confirmButtonText: "Link with profile",
+            showCancelButton: true,
+            {% if gh_orgID %}
+            showDenyButton: true,
+            denyButtonText: "Unlink organization",
+            {% endif %}
+            preConfirm: () => {
+              return getElement("selected-org-id").value;
+            },
+          }).then(async(result)=>{
+            if(result.isConfirmed){
+              const data = await postRequest2({
+                path: URLS.Auth.CHANGE_GHORG,
+                data: {
+                  newghorgID: result.value
+                }
+              })
+              if(data && data.code==CODE.OK){
+                success("GitHub organization linked")
+                return refresh({})
+              }
+              error(data.error)
+            } else if (result.isDenied){
+              const data = await postRequest2({
+                path: URLS.Auth.CHANGE_GHORG,
+                data: {
+                  newghorgID: false
+                }
+              })
+              if(data && data.code==CODE.OK){
+                message("GitHub organization unlinked")
+                return refresh({})
+              }
+              error(data.error) 
+            }
+          })
+        }
       {% endif %}
-      preConfirm: () => {
-        return getElement("selected-org-id").value;
-      },
-    }).then(async(result)=>{
-      if(result.isConfirmed){
-        const data = await postRequest2({
-          path: URLS.Auth.CHANGE_GHORG,
-          data: {
-            newghorgID: result.value
-          }
-        })
-        if(data && data.code==CODE.OK){
-          success("GitHub organization linked")
-          return refresh({})
+    {% else %}
+      {% if request.user.is_authenticated %}
+        getElement('block-account').onclick=async()=>{
+          blockUserView({userID, username:'{{person.profile.getName}}', userDP: '{{person.profile.getDP}}'})
         }
-        error(data.error)
-      } else if (result.isDenied){
-        const data = await postRequest2({
-          path: URLS.Auth.CHANGE_GHORG,
-          data: {
-            newghorgID: false
-          }
-        })
-        if(data && data.code==CODE.OK){
-          message("GitHub organization unlinked")
-          return refresh({})
+        getElement('report-account').onclick=async()=>{
+          await violationReportDialog(URLS.REPORT_USER,{
+            userID: '{{person.get_id}}',
+          }, '{{person.profile.getName}}',URLS.REPORT_CATEGORIES)
+          
         }
-        error(data.error)
-      }
-    })
-  }
-  {% endif %}
+        {% if request.GET.admire == '1' and not is_admirer %}
+          getElement("toggle-admiration").click()
+        {% endif %}
+        {% if request.GET.admire == '0' and is_admirer %}
+          getElement("toggle-admiration").click()
+        {% endif %}
+      {% endif %}
+    {% endif %}
     getElement('show-admirations').onclick=async(_)=>{
         Swal.fire({ 
             html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, userID)}), 
             title:"<h4 class='positive-text'>Admirers</h4>"
         })
     }
-{% endif %}
+  {% endif %}
 </script>
 {% endblock %} 
 

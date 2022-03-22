@@ -7,80 +7,86 @@
 {% if count %}
 <div class="w3-row active">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
-    {% comment %} <a class="w3-right w3-padding" href="{{URLS.PEOPLE}}"><button class="primary small" data-icon="open_in_new">More</button></a> {% endcomment %}
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending mentors" %}</h4>
+    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Trending mentors" %}</h5>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
-            {% for mentor in mentors %}
+            {% for profile in mentors %}
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
-                    <a href="{{mentor.getLink}}">
-                        <img class="primary pallete no-pad wide" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
+                    <a href="{{profile.getLink}}">
+                        <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     </a>
-                    <div class="w3-row w3-padding">
-                        <h5 style="margin-bottom:2px" class="{% if mentor.is_verified %}align{% endif %}">{{ mentor.getName }}{% if mentor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in mentor.get_labels %}
-                            <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
-                        {% endfor %}
-                        {% if not mentor.has_labels %}
-                            <strong class="w3-tiny w3-round w3-tag tertiary">{{mentor.getXP}}</strong>
-                        {% endif %}<br/>
-                        <span>{{ mentor.getBio|or:mentor.nickname|or:mentor.emoticon|or:mentor.githubID|or:''|truncatechars:45 }}</span><br/>
-                        {% if mentor.totalAllTopics %}
-                        <a href="{{URLS.PEOPLE}}?search=topic:{{mentor.getAllTopics.0}}"><button class="small {{mentor.theme}} {{mentor.text_theme}}">{{mentor.getAllTopics.0.name}}</button></a>
+                    <div class="w3-row w3-padding-small">
+                        <div class="w3-row">
+                        <h6 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h6>
+                        {% if profile.getXP %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
+                        {% else %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag {{profile.get_label.theme}}">{{profile.get_label.name}}</strong>
                         {% endif %}
-                        {% if request.user.profile != mentor %}
-                        {% if not request.user.is_authenticated %}
-                        <a href="{{URLS.Auth.LOGIN}}?next={{mentor.get_link}}">
-                        {% endif %}
-                        <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
-                        {% if not request.user.is_authenticated %}
+                        </div>
+                        <div class="w3-col m10 l10 s10">
+                        {% for topic in profile.getPalleteTopics %}
+                        <a class="w3-left" href="{{URLS.PEOPLE|getquery:"search=topic:"}}{{topic}}">
+                            <button class="w3-tiny {{profile.theme}} {{profile.text_theme}}">{{topic.name}}</button>
                         </a>
+                        {% endfor %}
+                        </div>
+                        <div class="w3-col m2 l2 s2">
+                        {% if request.user.profile != profile %}
+                            {% if not request.user.is_authenticated %}
+                            <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{profile.get_link|getquery:'admire=1'}}">
+                            {% endif %}
+                            <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
+                            {% if not request.user.is_authenticated %}
+                            </a>
+                            {% endif %}
                         {% endif %}
-                        {% endif %}
+                        </div>
                     </div>
-                    {% if not mentor.totalAllTopics %}
-                    <br/>
-                    {% endif %}
                 </div>
             </div>
 			{% endfor %} 
         </div>
     </div>
-    <div class="w3-hide-large  w3-row">
+    <div class="w3-hide-large w3-row">
         <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
-            {% for mentor in mentors %}
+            {% for profile in mentors %}
             <div class="w3-col w3-animate-zoom">
-                <div class="pallete pallete_i no-pad w3-center">
-                    <a href="{{mentor.getLink}}">
-                        <img class="primary pallete no-pad wide" src="{{ mentor.getDP }}" alt="{{ mentor.name }}" />
+                <div class="pallete pallete_i w3-center no-pad">
+                    <a href="{{profile.getLink}}">
+                        <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     </a>
-                    <div class="w3-row w3-padding">
-                        <h5 style="margin:2px" class="{% if mentor.is_verified %}align{% endif %}">{{ mentor.getName }}{% if mentor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in mentor.get_labels %}
-                            <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
-                        {% endfor %}
-                        {% if not mentor.has_labels %}
-                            <strong class="w3-tiny w3-round w3-tag tertiary">{{mentor.getXP}}</strong>
-                        {% endif %}<br/>
-                        <span>{{ mentor.getBio|or:mentor.nickname|or:mentor.emoticon|or:mentor.githubID|or:''|truncatechars:45 }}</span><br/>
-                        {% if mentor.totalAllTopics %}
-                        <a href="{{URLS.PEOPLE}}?search=topic:{{mentor.getAllTopics.0}}"><button class="small {{mentor.theme}}">{{mentor.getAllTopics.0.name}}</button></a>
+                    <div class="w3-row w3-padding-small">
+                        <div class="w3-row">
+                        <h6 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h6>
+                        {% if profile.getXP %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
+                        {% else %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag {{profile.get_label.theme}}">{{profile.get_label.name}}</strong>
                         {% endif %}
-                        {% if request.user.profile != mentor %}
-                        {% if not request.user.is_authenticated %}
-                        <a href="{{URLS.Auth.LOGIN}}?next={{mentor.get_link}}">
-                        {% endif %}
-                        <button data-userID="{{mentor.get_userid}}" data-admires="{% if request.user.profile in mentor.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in mentor.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
-                        {% if not request.user.is_authenticated %}
+                        </div>
+                        <div class="w3-col m10 l10 s10">
+                        {% for topic in profile.getPalleteTopics %}
+                        <a class="w3-left" href="{{URLS.PEOPLE|getquery:"search=topic:"}}{{topic}}">
+                            <button class="w3-tiny {{profile.theme}} {{profile.text_theme}}">{{topic.name}}</button>
                         </a>
+                        {% endfor %}
+                        </div>
+                        <div class="w3-col m2 l2 s2">
+                        {% if request.user.profile != profile %}
+                            {% if not request.user.is_authenticated %}
+                            <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{profile.get_link|getquery:'admire=1'}}">
+                            {% endif %}
+                            <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
+                            {% if not request.user.is_authenticated %}
+                            </a>
+                            {% endif %}
                         {% endif %}
-                        {% endif %}
+                        </div>
                     </div>
-                    {% if not mentor.totalAllTopics %}
-                    <br/>
-                    {% endif %}
+                    
                 </div>
             </div>
 			{% endfor %} 

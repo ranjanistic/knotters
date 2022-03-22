@@ -13,7 +13,7 @@ from rjsmin import jsmin
 from django.conf import settings
 from .strings import message, URL, Code
 from .env import ADMINPATH
-from .methods import allowBypassDeactivated, activity, htmlmin
+from .methods import allowBypassDeactivated, activity, htmlmin, testPathRegex
 from django.core.handlers.wsgi import WSGIRequest
 
 
@@ -55,6 +55,8 @@ class MinifyMiddleware(object):
 
     def __call__(self, request: WSGIRequest):
         response = self.get_response(request)
+        if settings.DEBUG:
+            return response
         try:
             if response.status_code == 200 and response['Content-Type'] == f'text/html; charset={Code.UTF_8}' and not request.headers.get('X-KNOT-REQ-SCRIPT', False):
                 try:
@@ -132,22 +134,22 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
         except_list = getattr(settings, 'BYPASS_2FA_PATHS', ())
         except_list += ('/auth/two-factor-authenticate',)
         if (request.path.strip('/') not in except_list) and (not match.url_name or not match.url_name.startswith(except_list)):
-            dele = True
+            deleteSession = True
             for p in except_list:
                 if request.path == p:
-                    dele = False
-                    break
+                    deleteSession = False
                 elif request.path.startswith(p):
-                    dele = False
-                    break
+                    deleteSession = False
                 elif request.path.strip('/').startswith(p):
-                    dele = False
-                    break
+                    deleteSession = False
                 elif request.path.strip('/').startswith(p.strip('/')):
-                    dele = False
+                    deleteSession = False
+                elif testPathRegex(p, request.path):
+                    deleteSession = False
+                if not deleteSession:
                     break
             try:
-                if dele:
+                if deleteSession:
                     del request.session['allauth_2fa_user_id']
             except KeyError:
                 pass

@@ -4,7 +4,7 @@ from django.test import TestCase, Client, tag
 import json
 from main.env import PUBNAME, BOTMAIL, SITE, VERSION
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
-from main.strings import Code, url, template, COMPETE, PEOPLE, PROJECTS, DIVISIONS
+from main.strings import Code, Template, setPathParams, url, template, COMPETE, PEOPLE, PROJECTS, DIVISIONS
 from projects.models import LegalDoc
 from moderation.models import LocalStorage
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
@@ -106,6 +106,20 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.MANIFEST_JSON)
         self.assertIsInstance(resp.context['icons'], list)
         self.assertTrue(len(resp.context['icons']) > 0)
+
+    @tag(Code.Test.STATIC)
+    def test_strings(self):
+        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.STRINGS)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
+        self.assertTemplateUsed(resp, template.STRINGS)
+
+    @tag(Code.Test.STATIC)
+    def test_constants(self):
+        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.CONSTANTS)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
+        self.assertTemplateUsed(resp, template.CONSTANTS)
 
     @tag(Code.Test.STATIC)
     def test_service_worker(self):

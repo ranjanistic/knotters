@@ -6,27 +6,40 @@
 
 <br/>
 <div class="w3-row w3-padding">
-{% for comp in upcoming %}
-<div class="w3-row pallete" style="background:url('{{comp.getBanner}}');">
-        <div class="w3-col w3-half pallete tertiary">
-        <div class="w3-col w3-half">
-        <h4 class="positive-text">{{comp.title}}</h4>
-        <h6 class="text-tertiary">{{comp.tagline}}</h6>
-        </div>
-        <div class="w3-col w3-half w3-padding">
-        <strong class="w3-right dead-text">{% trans "Begins at" %} {{comp.startAt}}</strong>
-        <strong class="w3-right dead-text">{% trans "Ends at" %} {{comp.endAt}}</strong>
+{% for competition in upcoming %}
+<div class="w3-col w3-half w3-padding w3-animate-zoom">
+    <a href="{{competition.getLink}}">
+    <div class="w3-row">
+        <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
+            <div class="w3-col w3-twothird pallete tertiary">
+                <div class="w3-row">
+                    <i class="w3-circle w3-right w3-medium accent" title="Upcoming">hourglass_top</i>
+                    <h4 class="">{{competition.title}}</h4>
+                    <h6 class="dead-text">{{competition.tagline}}</h6>
+                </div>
+                <div class="w3-row">
+                    <div class="w3-col w3-half">
+                    {% for topic in competition.getPalleteTopics %}
+                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
+                        <button class="w3-tiny positive">{{topic.name}}</button>
+                    </a>
+                    {% endfor %}
+                    </div>
+                    <div class="w3-col w3-half" align='right'>
+                        <br/>
+                        <strong>{{competition.startAt}} till {{competition.endAt}}</strong>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="w3-col w3-half w3-padding">
-        <a class="w3-right" href="{{comp.getLink}}"><button class="accent" data-icon="visibility">{% trans "View" %}</button></a>
-    </div>
-</div>
-<br/>
-
-{% empty %}
-<center><h3>{% trans "No upcoming competitions." %}</h3>
-<h5><a onclick="getElement('history').click()">See archived competitions</a></h5>
+    </a>
+</div>{% empty %}
+<center>
+<i class="w3-jumbo accent w3-circle">hourglass_top</i>
+<h3>
+{% trans "No upcoming competitions." %}</h3>
+<h5><a onclick="getElement('history').click()">See competitions history</a></h5>
 </center>
 {% endfor %}
 </div>

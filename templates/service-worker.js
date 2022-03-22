@@ -38,6 +38,7 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
     if (testPath.includes("*"))
         debug_log(testPath, ": includes * while being the testpath");
     {% endif %}
+    testPath = testPath.split("?")[0];
     if (asteriskPath === testPath) return true;
     return RegExp(
         asteriskPath

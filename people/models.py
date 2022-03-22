@@ -334,6 +334,7 @@ class Profile(models.Model):
             total_admirations = f'{self.id}_profile_total_admiration'
             profile_socialsites = f"profile_socialsites_{self.id}"
             socialaccount_gh = f"socialaccount_gh_{self.get_userid}"
+            pallete_topics = f"pallete_topics_{self.get_userid}"
         return CKEYS()
 
     @property
@@ -542,6 +543,11 @@ class Profile(models.Model):
             labels.append(
                 dict(name='MGR', theme='tertiary positive-text', text='manager'))
         return labels
+
+    def get_label(self):
+        labels = self.get_labels()
+        if len(labels):
+            return labels[0]
 
     def theme(self):
         if self.is_moderator:
@@ -898,6 +904,19 @@ class Profile(models.Model):
         topics = []
         for proftop in proftops:
             topics.append(proftop.topic)
+        return topics
+
+    def getPalleteTopics(self):
+        """
+        Top n topics to be displayed on user pallete
+        """
+        topics = cache.get(self.CACHE_KEYS.pallete_topics, [])
+        if not len(topics):
+            proftops = ProfileTopic.objects.filter(
+                profile=self).order_by('-points')[:2]
+            for proftop in proftops:
+                topics.append(proftop.topic)
+            cache.set(self.CACHE_KEYS.pallete_topics, topics, settings.CACHE_MINI)
         return topics
 
     def getAllTopicsData(self):

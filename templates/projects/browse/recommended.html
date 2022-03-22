@@ -7,7 +7,7 @@
 {% if count %}
 <div class="w3-row tertiary">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Recommended" %} {% if request.user.is_authenticated %}for you{% endif %}</h4>
+    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Recommended" %}{% if request.user.is_authenticated %} for you{% endif %}</h5>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser w3-animate-left">
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
@@ -15,26 +15,38 @@
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
                     <a href="{{project.getLink}}">
-                        <img class="primary pallete wide no-pad" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                        <img class="primary pallete wide no-pad" style="border-bottom:4px solid var(--{{project.theme}})"  src="{{ project.getDP }}" alt="{{ project.name }}" />
                     </a>
-                    <div class="w3-row w3-padding">
-                        <h5 style class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
-                        <span>{{ project.description|or:project.get_nickname|truncatechars:45 }}</span>
-                        <br/>
-                        {% if project.totalTopics %}
-                        <a href="{{URLS.PROJECTS}}?search=topic:{{project.getTopics.0}}"><button class="small {{project.theme}} {{project.text_theme}}">{{project.getTopics.0.name}}</button></a>
-                        {% endif %}
-                        {% if not request.user.is_authenticated %}
-                        <a href="{{URLS.Auth.LOGIN}}?next={{project.get_link}}">
-                        {% endif %}
-                        <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
-                        {% if not request.user.is_authenticated %}
+                    <div class="w3-row w3-padding-small">
+                        <div class="w3-row w3-padding-small">
+                            <h6 style="margin-bottom:2px" class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-medium">verified</i>{% elif project.is_core%}<i class="positive-text w3-medium">lock</i>{% endif %}</h6>
+                            <span>{{ project.description|or:project.get_nickname|truncatechars:45 }}</span>
+                        </div>
+                        <div class="w3-col m10 l10 s10 w3-left">
+                        {% for topic in project.getPalleteTopics %}
+                        <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=topic:"}}{{topic}}">
+                            <button class="w3-tiny {{project.theme}} {{project.text_theme}}">{{topic.name}}</button>
                         </a>
-                        {% endif %}
+                        {% empty %}
+                            {% for tag in project.getPalleteTags %}
+                                <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=tag:"}}{{tag}}">
+                                    <button class="w3-tiny primary">#{{tag.name}}</button>
+                                </a>
+                            {% empty %}
+                                <br/>
+                            {% endfor %}
+                        {% endfor %}
+                        </div>
+                        <div class="w3-col m2 l2 s2">
+                            {% if not request.user.is_authenticated %}
+                            <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{project.get_link|getquery:'admire=1'}}">
+                            {% endif %}
+                            <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
+                            {% if not request.user.is_authenticated %}
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% if not project.totalTopics %}
-                    <br/>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %} 
@@ -44,28 +56,41 @@
         <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
            {% for project in projects %}
             <div class="w3-col w3-animate-zoom">
-                <div class="pallete pallete_i no-pad w3-center">
+                <div class="pallete pallete_i w3-center no-pad">
                     <a href="{{project.getLink}}">
-                        <img class="primary pallete wide no-pad" src="{{ project.getDP }}" alt="{{ project.name }}" />
+                        <img class="primary pallete wide no-pad" style="border-bottom:4px solid var(--{{project.theme}})"  src="{{ project.getDP }}" alt="{{ project.name }}" />
                     </a>
-                    <div class="w3-row w3-padding">
-                        <h5 class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% elif project.is_core%}<i class="positive-text w3-large">lock</i>{% endif %}</h5>
-                        <span>{{ project.description|or:project.get_nickname|truncatechars:45 }}</span>
-                        <br/>
-                        {% if project.totalTopics %}
-                        <a href="{{URLS.PROJECTS}}?search=topic:{{project.getTopics.0}}"><button class="small {{project.theme}} {{project.text_theme}}">{{project.getTopics.0.name}}</button></a>
-                        {% endif %}
-                        {% if not request.user.is_authenticated %}
-                        <a href="{{URLS.Auth.LOGIN}}?next={{project.get_link}}">
-                        {% endif %}
-                        <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
-                        {% if not request.user.is_authenticated %}
+                    <div class="w3-row w3-padding-small">
+                        <div class="w3-row w3-padding-small">
+                            <h6 style="margin-bottom:2px" class="{% if project.is_not_free %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-medium">verified</i>{% elif project.is_core%}<i class="positive-text w3-medium">lock</i>{% endif %}</h6>
+                            <span>{{ project.description|or:project.get_nickname|truncatechars:45 }}</span>
+                        </div>
+                        <div class="w3-col m10 l10 s10 w3-left">
+                        {% for topic in project.getPalleteTopics %}
+                        <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=topic:"}}{{topic}}">
+                            <button class="w3-tiny {{project.theme}} {{project.text_theme}}">{{topic.name}}</button>
                         </a>
-                        {% endif %}
+                        {% empty %}
+                            {% for tag in project.getPalleteTags %}
+                                <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=tag:"}}{{tag}}">
+                                    <button class="w3-tiny primary">#{{tag.name}}</button>
+                                </a>
+                            {% empty %}
+                                <br/>
+                            {% endfor %}
+                        {% endfor %}
+                        </div>
+                        <div class="w3-col m2 l2 s2 w3-right">
+                            {% if not request.user.is_authenticated %}
+                            <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{project.get_link|getquery:'admire=1'}}">
+                            {% endif %}
+                            <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
+                            {% if not request.user.is_authenticated %}
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% if not project.totalTopics %}
-                    <br/>
-                    {% endif %}
+                    
                 </div>
             </div>
 	    {% endfor %} 

@@ -7,7 +7,7 @@
 {% if count %}
 <div class="w3-row secondary" style="background-image: url('{{ICON_SHADOW}}');">
     <div class="w3-row" style="padding:16px 4px">
-        <h3 class="w3-center"><span class="pallete-slab tertiary">{% trans "Backed by the greatest" %}</span></h3>
+        <h5 class="w3-center"><span class="pallete-slab tertiary">{% trans "Backed by the greatest" %}</span></h5>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
@@ -17,7 +17,7 @@
                 <div class="pallete w3-center no-pad">
                     <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />
                     <div class="w3-row w3-padding">
-                        <h3>{{ dmentor.get_name }}</h3>
+                        <h6>{{ dmentor.get_name }}</h6>
                         <span>{{ dmentor.get_about }}</span>
                     </div>
                     <br/>
@@ -35,7 +35,7 @@
                 <div class="pallete pallete_i w3-center" style="max-height:540px;height:auto;">
                     <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" />
                     <div class="w3-row w3-padding">
-                        <h5>{{ dmentor.get_name }}</h5>
+                        <h6>{{ dmentor.get_name }}</h6>
                         <span>{{ dmentor.get_about }}</span>
                     </div>
                     <br/>

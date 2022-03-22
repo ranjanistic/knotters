@@ -5,27 +5,42 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row active">
+<div class="w3-row accent">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
-    <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">{% trans "More" %}</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Recent winners" %}</h4>
+    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Recent winners" %}</h5>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
         <div class="swiper-wrapper swiper-wrap">
             {% for result in results %}
-                {% for member in result.submission.getMembers %}
+                {% for profile in result.submission.getMembers %}
                 <div class="swiper-slide w3-animate-zoom">
-                    <a href="{{member.getLink}}">
-                        <div class="pallete w3-center no-pad">
-                            <img class="primary" src="{{ member.getDP }}" alt="{{ member.getName }}" />
-                            <div class="w3-row w3-padding">
-                                <h5>{{ member.getName }}</h5>
-                                <strong>{{ result.rank|numsuffix }}</strong><br/>
-                                <span>{{result.competition.title}}</span>
+                    <div class="pallete w3-center no-pad">
+                        <a href="{{profile.getLink}}">
+                            <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                        </a>
+                        <div class="w3-row w3-padding-small">
+                            <div class="w3-row">
+                            <h6 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h6>
+                            <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag tertiary">{{result.rank|numsuffix}}</strong>
                             </div>
-                            <br/>
-                        </div>
-                    </a>
+                            <div class="w3-col m10 l10 s10">
+                            <a class="w3-left" href="{{result.competition.get_link}}">
+                                <button class="w3-tiny {{profile.theme}} {{profile.text_theme}}">{{result.competition.title}}</button>
+                            </a>
+                            </div>
+                            <div class="w3-col m2 l2 s2">
+                            {% if request.user.profile != profile %}
+                                {% if not request.user.is_authenticated %}
+                                <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{profile.get_link|getquery:'admire=1'}}">
+                                {% endif %}
+                                <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
+                                {% if not request.user.is_authenticated %}
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                            </div>
+                        </div>    
+                    </div>
                 </div>
                 {% endfor %}
 			{% endfor %} 
@@ -34,19 +49,35 @@
     <div class="w3-hide-large w3-row">
         <div class="swiper-wrap_i">
             {% for result in results %}
-                {% for member in result.submission.getMembers %}
+                {% for profile in result.submission.getMembers %}
                 <div class="w3-col w3-animate-zoom">
-                    <a href="{{member.getLink}}">
-                        <div class="pallete pallete_i w3-center">
-                            <img class="primary" src="{{ member.getDP }}" alt="{{ member.getName }}" />
-                            <div class="w3-row w3-padding">
-                                <h5>{{ member.getName }}</h5>
-                                <strong>{{ result.rank|numsuffix }}</strong><br/>
-                                <span>{{result.competition.title}}</span>
+                    <div class="pallete pallete_i w3-center no-pad">
+                        <a href="{{profile.getLink}}">
+                            <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                        </a>
+                        <div class="w3-row w3-padding-small">
+                            <div class="w3-row">
+                            <h6 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h6>
+                            <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag tertiary">{{result.rank|numsuffix}}</strong>
                             </div>
-                            <br/>
-                        </div>
-                    </a>
+                            <div class="w3-col m10 l10 s10">
+                            <a class="w3-left" href="{{result.competition.get_link}}">
+                                <button class="w3-tiny active">{{result.competition.title}}</button>
+                            </a>
+                            </div>
+                            <div class="w3-col m2 l2 s2">
+                            {% if request.user.profile != profile %}
+                                {% if not request.user.is_authenticated %}
+                                <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{profile.get_link|getquery:'admire=1'}}">
+                                {% endif %}
+                                <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
+                                {% if not request.user.is_authenticated %}
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                            </div>
+                        </div>    
+                    </div>
                 </div>
                 {% endfor %}
 			{% endfor %} 

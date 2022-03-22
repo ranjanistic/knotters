@@ -208,6 +208,9 @@ const loadGlobalEventListeners = () => {
             img.alt = APPNAME;
         }
         if (!img.alt) img.alt = img.src.split("/").pop();
+        if(img.complete&&!img.naturalWidth){
+            img.src=ICON_SHADOW
+        }
     });
 
     getElements("click-to-copy").forEach((elem) => {
@@ -238,7 +241,6 @@ const loadGlobalEventListeners = () => {
                 return;
             subLoader(true);
             _processReCaptcha((stopLoaders) => {
-                console.log(e.target.form.id);
                 e.target.form.submit();
                 return;
             });
@@ -309,11 +311,25 @@ const _processReCaptcha = (
                         }
                     })
                     .catch((e) => {
+                        if(_DEBUG){
+                            console.error(e);
+                            return onSuccess(() => {
+                                loader(false);
+                                subLoader(false);
+                            });
+                        }
                         onFailure(e);
                         subLoader(false);
                         loader(false);
                     });
             } catch (e) {
+                if(_DEBUG){
+                    console.error(e);
+                    return onSuccess(() => {
+                        loader(false);
+                        subLoader(false);
+                    });
+                }
                 onFailure(e);
                 subLoader(false);
                 loader(false);
@@ -679,6 +695,7 @@ const handleCropImageUpload = (
             showDenyButton: true,
             denyButtonText: STRING.cancel,
             confirmButtonText: STRING.confirm,
+            allowOutsideClick: false,
             didOpen: () => {
                 cropImage = new Cropper(getElement("tempprofileimageoutput"), {
                     ...(ratio !== true ? { aspectRatio: ratio } : {}),

@@ -87,7 +87,7 @@ class CompetitionAttributeTest(TestCase):
         self.assertEqual(self.comp.__str__(), self.comp.title)
         self.assertEqual(self.comp.getID(), self.comp.id.hex)
         self.assertTrue(self.comp.getBanner().endswith(str(self.comp.banner)))
-        self.assertTrue(self.comp.getLink().endswith(self.comp.getID()))
+        self.assertTrue(self.comp.getLink().endswith(self.comp.get_nickname()))
         self.assertTrue(self.comp.participationLink().endswith(
             url.compete.participate(compID=self.comp.getID())))
         self.assertTrue(self.comp.isActive())

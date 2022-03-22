@@ -563,7 +563,7 @@ def browseSearch(request: WSGIRequest):
         profiles = cache.get(cachekey,[])
         
         if not len(profiles):
-            specials = ('topic:','tag:','type:')
+            specials = ('topic:','tag:','type:', 'xp:')
             pquery = None
             is_moderator = is_mentor = is_verified = is_manager = None
             dbquery = Q()
@@ -573,7 +573,8 @@ def browseSearch(request: WSGIRequest):
                     return [
                         Q(topics__name__iexact=q), 
                         Q(tags__name__iexact=q), 
-                        Q()
+                        Q(),
+                        Q(xp__gte=q)
                     ]
                 commaparts = query.split(",")
                 for cpart in commaparts:
@@ -641,6 +642,7 @@ def browseSearch(request: WSGIRequest):
                 ), profiles)),
                 query=query
             ))
+        print('here')
         return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
     except Exception as e:
         errorLog(e)
