@@ -76,6 +76,11 @@ def index(request: WSGIRequest) -> HttpResponse:
         cache.set('homepage_projects',projects,settings.CACHE_LONG)
     return renderView(request, Template.INDEX,dict(topics=topics,project=project))
 
+@require_GET
+def home(request: WSGIRequest) -> HttpResponse:
+    if not request.user.is_authenticated:
+        return redirect(URL.ROOT)
+    return renderView(request, Template.INDEX)
 
 @require_GET
 def redirector(request: WSGIRequest) -> HttpResponse:
@@ -198,6 +203,20 @@ def snapshot(request: WSGIRequest, snapID):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
+def scripts(request, script):
+    if script == Template.STRINGS:
+        pass
+    elif script == Template.CONSTANTS:
+        pass
+    elif script == Template.QUERY_USE:
+        pass
+    else:
+        raise Http404("Script not found")
+    stringrender = render_to_string(script, request=request, context=renderData(fromApp=request.GET.get('fromApp','')))
+    if not settings.DEBUG:
+        stringrender = jsmin(stringrender)
+    return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
 
 def handler403(request, exception, template_name="403.html"):
     response = render(template_name)
@@ -390,7 +409,7 @@ class Sitemap(TemplateView):
         cacheKey = f"sitemap_content_links"
         LINKS = cache.get(cacheKey,[])
         if not len(LINKS):
-            FILTER = lambda u:"*" not in u and not u.startswith("http") and not u.endswith(('.png','.svg'))
+            FILTER = lambda u:"*" not in u and not u.startswith("http") and not u.endswith(('.png','.svg','.webp'))
             ROOTS=list(filter(FILTER,URL().getURLSForClient().values()))
             PROJECTS=list(filter(FILTER,URL.projects.getURLSForClient().values()))
             COMPETE=list(filter(FILTER,URL.compete.getURLSForClient().values()))
@@ -513,7 +532,6 @@ class ServiceWorker(TemplateView):
                 assets = oldassets
 
         context = dict(**context, **renderData(dict(
-            DEBUG=settings.DEBUG,
             OFFLINE=f"/{URL.OFFLINE}",
             assets=json.dumps(assets),
             noOfflineList=json.dumps([
@@ -583,27 +601,9 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
                 setPathParams(f"/{URL.BRANDING}"),
                 setPathParams(f"/{URL.BROWSER}"),
+                setPathParams(f"/{URL.SCRIPTS}", Template.CONSTANTS),
             ])
         )))
-        return context
-
-class Strings(TemplateView):
-    content_type = Code.APPLICATION_JS
-    # mime_type = Code.APPLICATION_JS
-    template_name = Template.STRINGS
-
-    def render_to_response(self, context, **response_kwargs):
-        response_kwargs.setdefault('content_type', self.content_type)
-        stringrender = render_to_string(self.get_template_names(), request=self.request,context=context)
-        try:
-            if not settings.DEBUG:
-                stringrender = jsmin(stringrender)
-        except:
-            pass
-        return HttpResponse(stringrender, **response_kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
         return context
 
 class Version(TemplateView):

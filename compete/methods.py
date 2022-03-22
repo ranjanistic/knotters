@@ -31,6 +31,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
     try:
         now = timezone.now()
         data = dict()
+        cacheKey = f"{APPNAME}_{section}"
         if section == Compete.ACTIVE:
             try:
                 actives = Competition.objects.filter(
@@ -46,11 +47,11 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
                 upcomings = list()
             data[Compete.UPCOMING] = upcomings
         elif section == Compete.HISTORY:
-            try:
+            history = cache.get(cacheKey, [])
+            if not len(history):
                 history = Competition.objects.filter(
                     endAt__lte=now, hidden=False,is_draft=False).order_by('-endAt')
-            except:
-                history = list()
+                cache.set(cacheKey, history, settings.CACHE_MINI)
             data[Compete.HISTORY] = history
         else:
             return False

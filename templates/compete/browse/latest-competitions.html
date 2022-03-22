@@ -7,23 +7,39 @@
 {% if count %}
 <div class="w3-row active">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
-    <a class="w3-right w3-padding" href="{{URLS.COMPETE}}"><button class="primary small" data-icon="open_in_new">{% trans "More" %}</button></a>
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Latest Competitions" %}</h4>
+    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% trans "Latest Competitions" %}</h5>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser-wide">
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for competition in competitions %}
                 <div class="swiper-slide w3-animate-zoom" style="width:10vw !important;">
-                    <a href="{{competition.getLink}}">                    
+                    <a href="{{competition.getLink}}">
                         <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
                             <div class="w3-col w3-half pallete tertiary">
-                                <div class="w3-col">
+                                <div class="w3-row">
+                                    <i class="w3-circle w3-right w3-medium
+                                    {% if competition.isActive %}
+                                        active" title="Active">stream
+                                    {% elif competition.isHistory %}
+                                        secondary-text" title="History">history
+                                    {% else %}
+                                        accent" title="Upcoming">hourglass_top
+                                    {% endif %}
+                                    </i>
                                     <h4 class="">{{competition.title}}</h4>
                                     <h6 class="dead-text">{{competition.tagline}}</h6>
                                 </div>
-                                <div class="w3-col w3-half w3-padding">
-                                    <strong class="w3-right dead-text">{% trans "Begin at" %} {{competition.startAt}}</strong>
-                                    <strong class="w3-right dead-text">{% trans "End at" %} {{competition.endAt}}</strong>
+                                <div class="w3-row">
+                                    <div class="w3-col w3-half">
+                                    {% for topic in competition.getPalleteTopics %}
+                                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
+                                        <button class="w3-tiny positive">{{topic.name}}</button>
+                                    </a>
+                                    {% endfor %}
+                                    </div>
+                                    <div class="w3-col w3-half">
+                                        <strong>{{competition.startAt}} till {{competition.endAt}}</strong>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -47,13 +63,31 @@
                     <div class="" style="width:80vw !important;">
                         <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');" id="view-{{competition.id}}">
                             <div class="w3-col w3-half pallete tertiary">
-                                <div class="w3-col ">
+                                <div class="w3-row">
+                                    <i class="w3-circle w3-right w3-medium
+                                    {% if competition.isActive %}
+                                        active" title="Active">stream
+                                    {% elif competition.isHistory %}
+                                        secondary-text" title="History">history
+                                    {% else %}
+                                        accent" title="Upcoming">hourglass_top
+                                    {% endif %}
+                                    </i>
                                     <h4 class="">{{competition.title}}</h4>
                                     <h6 class="dead-text">{{competition.tagline}}</h6>
                                 </div>
-                                <div class="w3-col w3-half w3-padding">
-                                    <strong class="w3-right dead-text">{% trans "Begin at" %} {{competition.startAt}}</strong>
-                                    <strong class="w3-right dead-text">{% trans "End at" %} {{competition.endAt}}</strong>
+                                <div class="w3-row">
+                                    <div class="w3-col w3-half">
+                                    {% for topic in competition.getPalleteTopics %}
+                                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
+                                        <button class="w3-tiny positive">{{topic.name}}</button>
+                                    </a>
+                                    {% endfor %}
+                                    </div>
+                                    <div class="w3-col w3-half" align='right'>
+                                        <br/>
+                                        <strong>{{competition.startAt}} till {{competition.endAt}}</strong>
+                                    </div>
                                 </div>
                             </div>
                         </div>

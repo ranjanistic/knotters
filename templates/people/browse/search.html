@@ -6,33 +6,35 @@
 
 {% if query %}
 <div class="w3-row tertiary">
-    <div class="w3-row w3-animate-right" style="padding:12px 4px">
-    <h4 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Results for '{{query}}'{% endblocktrans %}</h4>
+    <div class="w3-row w3-animate-right" style="padding:16px 4px">
+    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Result for '{{query}}'{% endblocktrans %}</h5>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-5 stagger-3">
+        <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for profile in profiles %}
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
                     <a href="{{profile.getLink}}">
-                        <img class="primary pallete no-pad wide" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                        <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     </a>
-                    <div class="w3-row w3-padding">
-                        <h5 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in profile.get_labels %}
-                            <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
-                        {% endfor %}
-                        {% if not profile.has_labels %}
-                            <strong class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
-                        {% endif %}<br/>
-                        <span>{{ profile.getBio|or:profile.nickname|or:profile.emoticon|or:profile.githubID|or:''|truncatechars:45 }}</span><br/>
-                        {% if profile.totalAllTopics %}
-                        <a href="{{URLS.PEOPLE}}?search=topic:{{profile.getAllTopics.0}}"><button class="small {{profile.theme}} {{profile.text_theme}}">{{profile.getAllTopics.0.name}}</button></a>
+                    <div class="w3-row w3-padding-small">
+                        <div class="w3-row">
+                        <h6 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h6>
+                        {% if profile.getXP %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
+                        {% else %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag {{profile.get_label.theme}}">{{profile.get_label.name}}</strong>
                         {% endif %}
+                        </div>
+                        <div class="w3-col m10 l10 s10">
+                        {% for topic in profile.getPalleteTopics %}
+                        <a class="w3-left" href="{{URLS.PEOPLE|getquery:"search=topic:"}}{{topic}}">
+                            <button class="w3-tiny {{profile.theme}} {{profile.text_theme}}">{{topic.name}}</button>
+                        </a>
+                        {% endfor %}
+                        </div>
                     </div>
-                    {% if not profile.totalAllTopics %}
-                    <br/>
-                    {% endif %}
+                    
                 </div>
             </div>
             {% empty %}
@@ -42,33 +44,35 @@
                 <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
             </center>
             </div>
-	    {% endfor %} 
+			{% endfor %} 
         </div>
     </div>
     <div class="w3-hide-large w3-row">
-        <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-5 stagger-3">
+        <div class="swiper-wrap_i" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
             {% for profile in profiles %}
             <div class="w3-col w3-animate-zoom">
-                <div class="pallete pallete_i no-pad w3-center">
+                <div class="pallete pallete_i w3-center no-pad">
                     <a href="{{profile.getLink}}">
-                        <img class="primary pallete no-pad wide" src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                        <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     </a>
-                    <div class="w3-row w3-padding">
-                        <h5 style="margin:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
-                        {% for label in profile.get_labels %}
-                            <a href="{{URLS.PEOPLE}}?search=type:{{label.text}}"><strong class="w3-tiny w3-round w3-tag {{label.theme}}" style="margin-bottom:5px">{{label.name}}</strong></a>
-                        {% endfor %}
-                        {% if not profile.has_labels %}
-                            <strong class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
-                        {% endif %}<br/>
-                        <span>{{ profile.getBio|or:profile.nickname|or:profile.emoticon|or:profile.githubID|or:''|truncatechars:45 }}</span><br/>
-                        {% if profile.totalAllTopics %}
-                        <a href="{{URLS.PEOPLE}}?search=topic:{{profile.getAllTopics.0}}"><button class="small {{profile.theme}}">{{profile.getAllTopics.0.name}}</button></a>
+                    <div class="w3-row w3-padding-small">
+                        <div class="w3-row">
+                        <h6 style="margin-bottom:2px" class="{% if profile.is_verified %}align{% endif %}">{{ profile.getName }}{% if profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h6>
+                        {% if profile.getXP %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag tertiary">{{profile.getXP}}</strong>
+                        {% else %}
+                        <strong style="margin-bottom:8px" class="w3-tiny w3-round w3-tag {{profile.get_label.theme}}">{{profile.get_label.name}}</strong>
                         {% endif %}
+                        </div>
+                        <div class="w3-col m10 l10 s10">
+                        {% for topic in profile.getPalleteTopics %}
+                        <a class="w3-left" href="{{URLS.PEOPLE|getquery:"search=topic:"}}{{topic}}">
+                            <button class="w3-tiny {{profile.theme}} {{profile.text_theme}}">{{topic.name}}</button>
+                        </a>
+                        {% endfor %}
+                        </div>
                     </div>
-                    {% if not profile.totalAllTopics %}
-                    <br/>
-                    {% endif %}
+                    
                 </div>
             </div>
             {% empty %}
@@ -78,7 +82,7 @@
                 <h3>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h3>
             </center>
             </div>
-	    {% endfor %} 
+			{% endfor %} 
         </div>
     </div>
     <br />

@@ -80,7 +80,7 @@
             <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
                 {% csrf_token %}
                 <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism"></button>
+                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration"></button>
             </form>
         {% else %}
             <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
@@ -405,7 +405,6 @@ const ismoderator = "{{ismoderator}}" === 'True';
 const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--positive').trim().replace('#','');
 
 {% if not project.suspended %}
-
     {% if iscreator %}
         {% if project.can_invite_owner %}
         getElement('transfer-project').onclick=(e)=>{
@@ -515,7 +514,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 });
             }
         {% endif %}
-
         {% if project.can_request_verification %}
         getElement('request-verification').onclick=async(e)=>{
             const ldata = await getRequest2({path:URLS.PUB_LICENSES});
@@ -589,6 +587,9 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 }
             })
         }
+        {% if request.GET.verification %}
+            getElement('request-verification').click()
+        {% endif %}
         {% elif project.under_verification_request %}
         getElement('cancel-verification-request').onclick=async(e)=>{
             Swal.fire({
@@ -625,11 +626,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
         }
         {% endif %}
     {% elif ismoderator %}
-        if(authenticated){
-            getElement('report-project').onclick=async()=>{
-                await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
-            }
-        }
         {% if not project.under_mod_invitation %}
         getElement('transfer-project-mod').onclick=(e)=>{
             Swal.fire({
@@ -715,13 +711,28 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             e.target.form.submit()
         }
     {% endif %}
-
+    if(authenticated){
+        {% if request.GET.admire == '1' and not isAdmirer %}
+            getElement("toggle-admiration").click()
+        {% endif %}
+        {% if request.GET.admire == '0' and isAdmirer %}
+            getElement("toggle-admiration").click()
+        {% endif %}
+        {% if not iscreator %}
+        getElement('report-project').onclick=async()=>{
+            await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
+        }
+        {% endif %}
+    }
     getElement('show-admirations').onclick=async(_)=>{
         Swal.fire({ 
             html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, projectID)}), 
             title:"<h4 class='positive-text'>Admirers</h4>"
         })
     }
+    {% if request.GET.admirers %}
+    getElement('show-admirations').click()
+    {% endif %}
 {% endif %}
 </script>
 {% endblock %}

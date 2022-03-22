@@ -509,17 +509,23 @@ const firstTimeMessage = (key, _message = "") => {
     }
 };
 
-const _reauthenticate = async (afterSuccess=_=>{}, afterFailure=_=>{}) => {
-    if(!authenticated) return afterFailure();
-    loader()
-    const vdata = await postRequest2({path:URLS.Auth.VERIFY_REAUTH_METHOD, retainCache:true})
-    loader(false)
-    if(!vdata||vdata.code!=CODE.OK){
-        return error(vdata.error)
+const _reauthenticate = async (
+    afterSuccess = (_) => {},
+    afterFailure = (_) => {}
+) => {
+    if (!authenticated) return afterFailure();
+    loader();
+    const vdata = await postRequest2({
+        path: URLS.Auth.VERIFY_REAUTH_METHOD,
+        retainCache: true,
+    });
+    loader(false);
+    if (!vdata || vdata.code != CODE.OK) {
+        return error(vdata.error);
     }
-    let authinput = '';
-    if(vdata.method=='password'){
-        authinput = `<input type="password" id="reauth-input" placeholder="${STRING.password}" />`
+    let authinput = "";
+    if (vdata.method == "password") {
+        authinput = `<input type="password" id="reauth-input" placeholder="${STRING.password}" />`;
     } else {
         return afterSuccess();
     }
@@ -541,29 +547,28 @@ const _reauthenticate = async (afterSuccess=_=>{}, afterFailure=_=>{}) => {
             const password = getElement("reauth-input").value;
             if (!password) {
                 error(STRING.password_required);
-                return false
+                return false;
             }
-            return password
-        }
-    }).then(async(res) => {
+            return password;
+        },
+    }).then(async (res) => {
         if (res.isConfirmed) {
             loader();
             const data = await postRequest2({
-                path:URLS.Auth.VERIFY_REAUTH, 
-                data:{
+                path: URLS.Auth.VERIFY_REAUTH,
+                data: {
                     password: res.value,
-                }
+                },
             });
             loader(false);
-            if (data&&data.code === code.OK){
+            if (data && data.code === code.OK) {
                 return afterSuccess();
-            } 
+            }
             error(data.error);
             afterFailure();
         }
-    })
-
-}
+    });
+};
 
 const clearToastQueue = () => {
     sessionStorage.removeItem(KEY.message_firing);
@@ -575,5 +580,4 @@ const clearToastQueue = () => {
     sessionStorage.removeItem(KEY.message_fired);
     sessionStorage.removeItem(KEY.error_fired);
     sessionStorage.removeItem(KEY.success_fired);
-    
-}
+};

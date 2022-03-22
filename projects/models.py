@@ -268,6 +268,10 @@ class BaseProject(models.Model):
     def getTopics(self) -> list:
         return self.topics.all()
 
+    def getPalleteTopics(self) -> list:
+        return self.topics.filter()[:2]
+
+
     def getTopicsData(self):
         return ProjectTopic.objects.filter(project=self)
 
@@ -277,6 +281,9 @@ class BaseProject(models.Model):
     @property
     def getTags(self):
         return self.tags.all()
+
+    def getPalleteTags(self) -> list:
+        return self.tags.filter()[:2]
 
     def totalTags(self):
         return self.tags.count()

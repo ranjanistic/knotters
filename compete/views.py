@@ -44,7 +44,20 @@ def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
 @require_GET
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        compete = Competition.objects.get(id=compID)
+        cacheKey = f"competition_{compID}"
+        try:
+            compID = UUID(compID)
+            query = Q(id=compID)
+            isuuid = True
+        except:
+            query = Q(nickname=compID)
+            isuuid = False
+        compete = cache.get(cacheKey, None)
+        if not compete:
+            compete = Competition.objects.get(query)
+            cache.set(cacheKey, compete, settings.CACHE_MICRO)
+        if isuuid:
+            return redirect(compete.getLink())
         isManager = request.user.is_authenticated and compete.creator == request.user.profile
         if compete.is_draft:
             if isManager:

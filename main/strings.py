@@ -429,13 +429,16 @@ class URL():
     SITEMAP = 'sitemap.xml'
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
-    STRINGS = 'strings.js'
+    SCRIPTS = 'scripts/<str:script>'
     SWITCH_LANG = 'i18n/'
     VERSION_TXT = 'version.txt'
     OFFLINE = 'off408'
     BRANDING = 'branding/'
     ROOT = '/'
+    HOME = 'home'
     WEBPUSH = 'webpush/'
+    AT_ME = "@me"
+    AT_EMOTICON = "@/<str:emoticon>"
     WEBPUSH_SUB = 'webpush/<str:sub>'
     ICON_PNG = f"{CDN_URL}/graphics/self/1024/icon.png"
     AUTH = f"{AUTH}/"
@@ -1161,6 +1164,8 @@ class Template():
     SITEMAP = "sitemap.xml"
     SW_JS = "service-worker.js"
     STRINGS = "strings.js"
+    CONSTANTS = "constants.js"
+    QUERY_USE = "queryuse.js"
     VERSION = "version.txt"
     MANIFEST_JSON = "manifest.json"
 

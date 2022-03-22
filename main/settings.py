@@ -289,7 +289,7 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 LOGIN_URL = f'{url.getRoot(AUTH2)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
-BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.STRINGS, url.VERSION_TXT,
+BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.SCRIPTS, url.VERSION_TXT,
                     url.SERVICE_WORKER, url.SWITCH_LANG, url.VERIFY_CAPTCHA, url.OFFLINE,
                     f"{url.getRoot(AUTH2)}{url.Auth.NOTIFY_SW}",
                 )

@@ -4,19 +4,19 @@ const loadBrowserSwiper = () => {
             container: "swiper-browser",
             breakpoints: {
                 1024: {
-                    slidesPerView: 4,
+                    slidesPerView: 5,
                     spaceBetween: 15,
                 },
                 768: {
-                    slidesPerView: 4,
+                    slidesPerView: 5,
                     spaceBetween: 10,
                 },
                 920: {
-                    slidesPerView: 4,
+                    slidesPerView: 5,
                     spaceBetween: 10,
                 },
                 640: {
-                    slidesPerView: 4,
+                    slidesPerView: 5,
                     spaceBetween: 10,
                 },
             },

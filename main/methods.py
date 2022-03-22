@@ -61,7 +61,7 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     if fromApp == MANAGEMENT:
         URLS = dict(**URLS, **URLS[MANAGEMENT.capitalize()])
 
-    return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp)
+    return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp, DEBUG=settings.DEBUG)
 
 
 def renderView(request: WSGIRequest, view: str, data: dict = dict(), fromApp: str = str()) -> HttpResponse:
