@@ -66,8 +66,14 @@ def index(request: WSGIRequest) -> HttpResponse:
             return respondRedirect(path=URL.ON_BOARDING)
         competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
         return renderView(request, Template.HOME, dict(competition=competition))
-    topics = Topic.objects.filter()[:3]
-    project = BaseProject.objects.filter()[0]
+    topics = cache.get('homepage_topics',[])
+    if not len(topics):
+        topics = Topic.objects.filter()[:3]
+        cache.set('homepage_topics',topics,settings.CACHE_LONG)
+    projects = cache.get('homepage_projects',[])
+    if not len(projects):
+        project = BaseProject.objects.filter().first()
+        cache.set('homepage_projects',projects,settings.CACHE_LONG)
     return renderView(request, Template.INDEX,dict(topics=topics,project=project))
 
 

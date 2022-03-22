@@ -215,8 +215,10 @@ class BaseProject(models.Model):
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     topics = models.ManyToManyField(
         f'{PEOPLE}.Topic', through='ProjectTopic', default=[])
+    co_creators = models.ManyToManyField(f"{PEOPLE}.Profile",through="BaseProjectCoCreator",default=[],related_name='base_project_co_creator')
     admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[], related_name='base_project_admirer')
-
+    prime_collaborators = models.ManyToManyField(f"{PEOPLE}.Profile",through='BaseProjectPrimeCollaborator',default=[],related_name='base_project_prime_collaborator')
+    
     def __str__(self):
         return self.name
 
@@ -501,6 +503,29 @@ class BaseProject(models.Model):
 
     def total_public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True).count()
+    
+    def add_cocreator(self,co_creator):
+        if co_creator.is_normal:
+            self.co_creators.add(co_creator)
+        else :
+            return False
+    
+    def add_prime_collaborator(self,prime_collaborator):
+        if prime_collaborator.is_normal:
+            self.prime_collaborator.add(prime_collaborator)
+        else :
+            return False
+
+class BaseProjectPrimeCollaborator(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    prime_collaborator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,related_name="base_project_prime_collaborator_prime_collaborator")
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_base_project")
+
+class BaseProjectCoCreator(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    co_creator = models.ForeignKey(f"{PEOPLE}.Profile",on_delete=models.CASCADE,related_name="base_project_co_creator_co_creator")
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_base_project")
+
 
 class Project(BaseProject):
     url = models.CharField(max_length=500, null=True, blank=True)
