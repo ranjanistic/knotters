@@ -524,8 +524,15 @@ const _reauthenticate = async (
         return error(vdata.error);
     }
     let authinput = "";
-    if (vdata.method == "password") {
-        authinput = `<input type="password" id="reauth-input" placeholder="${STRING.password}" />`;
+    if (vdata.methods.length) {
+        vdata.methods.forEach((method)=>{
+            if(method == 'password'){
+                authinput += `<input class="reauth-input" name="${method}" type="password" id="reauth-input-${method}" placeholder="${APPNAME} ${STRING.password}" />`;
+            }
+            if(method == 'totp'){
+                authinput += `<br/>Or<br/><input class="reauth-input" name="${method}" type="text" id="reauth-input-${method}" placeholder="${STRING.two_fa_token_or_backup}" />`;
+            }
+        })
     } else {
         return afterSuccess();
     }
@@ -533,8 +540,9 @@ const _reauthenticate = async (
         title: "Verify yourself",
         html: `
         <div class="w3-row w3-padding">
+        ${Icon('lock', 'w3-jumbo')}
         <h6>
-        ${STRING.password_to_continue}
+        ${STRING.reauth_to_continue}
         </h6>
         ${authinput}
         </div>
@@ -544,12 +552,13 @@ const _reauthenticate = async (
         showDenyButton: true,
         denyButtonText: STRING.cancel,
         preConfirm: () => {
-            const password = getElement("reauth-input").value;
-            if (!password) {
-                error(STRING.password_required);
-                return false;
+            if(!getElements("reauth-input").some((input)=>input.value)){
+                error(STRING.password_or_2fa_required);
+                return false
             }
-            return password;
+            let value = {}
+            getElements("reauth-input").forEach((input)=>(value[input.name]=input.value));
+            return value
         },
     }).then(async (res) => {
         if (res.isConfirmed) {
@@ -557,7 +566,7 @@ const _reauthenticate = async (
             const data = await postRequest2({
                 path: URLS.Auth.VERIFY_REAUTH,
                 data: {
-                    password: res.value,
+                    ...res.value,
                 },
             });
             loader(false);

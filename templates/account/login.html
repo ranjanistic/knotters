@@ -95,10 +95,7 @@
 </center>
 <br/>
 {% endblock %}
+
 {% block scripts %}
-<script>
- {% if request.GET.next != URLS.ROOT and request.GET.next %}
-  message("Please login to continue")
- {% endif %}
-</script>
+<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.LOGIN}}?next={{request.GET.next}}"></script>
 {% endblock %}

@@ -1,4 +1,10 @@
 {% extends 'management/index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
@@ -15,14 +21,6 @@
 </div>
 {% endblock %}
 
-{% block in_scripts %}
-<script>
-initializeTabsView({
-    onEachTab: async (tab) => {
-        return await getRequest(setUrlParams(URLS.REPORT_FEED_TYPE, tab.id));
-    },
-    uniqueID: "reportfeedtab",
-    onShowTab: (tab) => {}
-})
-</script>
+{% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.REPORTFEED_INDEX}}"></script>
 {% endblock %}

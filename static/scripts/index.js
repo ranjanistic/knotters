@@ -67,6 +67,7 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEditors();
     loadCarousels({});
     loadBrowserSwiper();
+    loadDynamicContent();
     afterset();
 };
 const appendHtmlContent = (element, content = "", afterset = () => {}) => {
@@ -75,6 +76,7 @@ const appendHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEditors();
     loadCarousels({});
     loadBrowserSwiper();
+    loadDynamicContent();
     afterset();
 };
 

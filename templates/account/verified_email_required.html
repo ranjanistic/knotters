@@ -35,11 +35,6 @@ verification.{% endblocktrans %} {% trans "Please click on the link inside that 
 </div>
 <br/>
 {% endblock %}
-
 {% block scripts %}
-<script>
-if('{{request.GET.done}}'=='1'){
-    message("No, you haven't verified your email yet.")
-}
-</script>
+<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.VERIFIED_EMAIL_REQ}}?done={{request.GET.done}}"></script>
 {% endblock %}

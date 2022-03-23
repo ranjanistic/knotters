@@ -5,6 +5,7 @@
 {% load tz %}
 {% load cache %}
 {% load socialaccount %}
+{% load custom_tags %}
 
 {% block title %}Linked Accounts{% endblock %}
 
@@ -27,8 +28,8 @@
         {% csrf_token %}
         
         <strong class="text-medium">Choose one to unlink</strong>
-
         {% for base_account in form.accounts %}
+            <span class="base-account-provider" data-provider="{{base_account.provider}}" hidden></span>
             {% with base_account.get_provider_account as account %}
             <div class="w3-row w3-padding">
                 <label for="id_account_{{ base_account.id }}">
@@ -81,26 +82,10 @@
 </div>
 <br/>
 {% endblock %}
-{% block in_scripts %}
-<script>
-const socialaccounts = [];
-{% for base_account in form.accounts %}
-socialaccounts.push("{{base_account.provider}}");
-{% endfor %}
 
-const allproviders = getElements("oauth-providers");
-
-allproviders.forEach((provider)=>{
-    visibleElement(provider.id,!socialaccounts.includes(provider.id));
-})
-
-if(socialaccounts.length===allproviders.length){
-    hide(getElement('account-linking'));
-}
-{% if form.non_field_errors %}
-    error("{{ form.non_field_errors }}");
-{% endif %}
-</script>
+{% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:"socialaccount"|params:SCRIPTS.CONNECTIONS}}"></script>
 {% endblock %}
+
 {% block footer %}{% endblock %}
 {% block show_lite_footer %}{% endblock %}

@@ -109,9 +109,6 @@ class UserAttributeTest(TestCase):
         self.assertFalse(isPictureDeletable(self.profile.picture))
 
     def test_profile_setting_defaults(self):
-        self.assertTrue(self.setting.newsletter)
-        self.assertTrue(self.setting.recommendations)
-        self.assertTrue(self.setting.competitions)
         self.assertTrue(self.setting.privatemail)
 
     def test_email_verification(self):
@@ -151,7 +148,7 @@ class ProfileAttributeTest(TestCase):
         self.profile.save()
         # self.assertTrue(self.profile.getLink().endswith(self.profile.githubID))
         self.profile.is_zombie = True
-        self.assertTrue(self.profile.getLink().endswith(self.profile.getID()))
+        self.assertTrue(self.profile.getLink().endswith(self.profile.get_nickname()))
         self.profile.is_zombie = False
         self.assertTrue(self.profile.getSuccessorInviteLink().endswith(
             self.profile.getUserID()))

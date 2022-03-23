@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadSnapshotScroller();
+    loadDynamicContent();
     loadCarousels({});
     loadBrowsers();
 });

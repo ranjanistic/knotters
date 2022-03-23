@@ -450,6 +450,19 @@ textarea:disabled {
     opacity: 0.4;
 }
 
+i.circle {
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 100px;
+    padding: 4px;
+    transition: var(--delay);
+    background-color: var(--primary);
+    color: var(--primary-text);
+    box-shadow: 1px 1px 22px 1px #3e3e4117;
+}
+i.circle:active {
+    opacity: 50%;
+}
 .edit-action {
     cursor: pointer;
     font-size: 18px;
@@ -461,6 +474,7 @@ textarea:disabled {
     color: var(--primary-text);
     box-shadow: 1px 1px 22px 1px #3e3e4149;
 }
+
 .edit-action:hover {
     box-shadow: 1px 1px 30px 1px #3e3e414b;
 }

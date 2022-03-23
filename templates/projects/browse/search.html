@@ -37,15 +37,6 @@
                             {% endfor %}
                         {% endfor %}
                         </div>
-                        <div class="w3-col m2 l2 s2">
-                            {% if not request.user.is_authenticated %}
-                            <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{project.get_link|getquery:'admire=1'}}">
-                            {% endif %}
-                            <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
-                            {% if not request.user.is_authenticated %}
-                            </a>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
             </div>
@@ -86,15 +77,6 @@
                                 <br/>
                             {% endfor %}
                         {% endfor %}
-                        </div>
-                        <div class="w3-col m2 l2 s2 w3-right">
-                            {% if not request.user.is_authenticated %}
-                            <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{project.get_link|getquery:'admire=1'}}">
-                            {% endif %}
-                            <button data-projectID="{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-project-action{% endif %} {% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
-                            {% if not request.user.is_authenticated %}
-                            </a>
-                            {% endif %}
                         </div>
                     </div>
                     

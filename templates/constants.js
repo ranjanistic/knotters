@@ -24,4 +24,5 @@ const SITE = "{{SITE}}",
     RECAPTCHA_KEY = "{{RECAPTCHA_KEY}}",
     VAPID_KEY = "{{VAPID_KEY}}",
     BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}}),
+    SCRIPTS = Object.freeze({{SCRIPTS|or:'{}'|safe}}),
     URLS = Object.freeze({{URLS|or:'{}'|safe}});

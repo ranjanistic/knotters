@@ -2,6 +2,8 @@ import json
 from os import path as ospath
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
+from management.methods import competitionManagementRenderData, labelRenderData
+from moderation.methods import moderationRenderData
 from rjsmin import jsmin
 from django.utils import timezone
 from django.core.handlers.wsgi import WSGIRequest
@@ -26,19 +28,18 @@ from moderation.models import LocalStorage
 from projects.models import BaseProject, LegalDoc, Snapshot
 from compete.models import Result, Competition
 from people.models import CoreMember, DisplayMentor, Profile, GHMarketPurchase
-from people.methods import rendererstr as peopleRendererstr
-from projects.methods import rendererstr as projectsRendererstr
-from compete.methods import rendererstr as competeRendererstr
+from people.methods import profileRenderData, rendererstr as peopleRendererstr
+from projects.methods import coreProfileData, freeProfileData, rendererstr as projectsRendererstr, verifiedProfileData
+from compete.methods import competitionProfileData, rendererstr as competeRendererstr
 from .bots import Github
 from .env import ADMINPATH, ISPRODUCTION, ISBETA
 from .methods import addMethodToAsyncQueue, htmlmin, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
 from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON
 from .mailers import featureRelease
-from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS, Event
+from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS,MANAGEMENT,MODERATION, Event
 
 
 @require_GET
-@cache_page(settings.CACHE_LONG)
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
 
@@ -86,10 +87,17 @@ def redirector(request: WSGIRequest) -> HttpResponse:
     except:
         return redirect(URL.INDEX)
 
-@normal_profile_required
 @require_GET
-def at_me(request:WSGIRequest) -> HttpResponse:
-    return redirect(request.user.profile.get_link)
+def at_nickname(request:WSGIRequest,nickname) -> HttpResponse:
+    try:
+        if nickname == "me":
+            if not request.user.is_authenticated:
+                return redirect(URL.Auth.LOGIN)
+            return redirect(request.user.profile.get_link)
+        profile = Profile.objects.get(nickname=nickname)
+        return redirect(profile.get_link)
+    except Exception as e:
+        raise Http404(e)
 
 @require_GET
 def at_emoji(request:WSGIRequest, emoticon) -> HttpResponse:
@@ -196,16 +204,48 @@ def snapshot(request: WSGIRequest, snapID):
         errorLog(e)
         raise Http404(e)
 
+@require_GET
 def scripts(request, script):
-    if script == Template.STRINGS:
-        pass
-    elif script == Template.CONSTANTS:
-        pass
-    elif script == Template.QUERY_USE:
-        pass
-    else:
+    if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
     stringrender = render_to_string(script, request=request, context=renderData(fromApp=request.GET.get('fromApp','')))
+    if not settings.DEBUG:
+        stringrender = jsmin(stringrender)
+    return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
+
+@require_GET
+def scripts_subapp(request, subapp:str, script:str):
+    if script not in Template.script.getScriptTemplates():
+        raise Http404("Script not found")
+    data = dict()
+    if subapp == PROJECTS:
+        projectID = request.GET.get('id', None)
+        if script == Template.Script.ZERO:
+            data = freeProfileData(request,projectID=projectID)
+        elif script == Template.Script.ONE:
+            data = verifiedProfileData(request,projectID=projectID)
+        elif script == Template.Script.TWO:
+            data = coreProfileData(request,projectID=projectID)
+    elif subapp == COMPETE:
+        compID = request.GET.get('id', None)
+        if script == Template.Script.PROFILE:
+            data = competitionProfileData(request,compID=compID)
+    elif subapp == MANAGEMENT:
+        labelID = request.GET.get("id", None)
+        if script == Template.Script.TOPIC:
+            data = labelRenderData(request, Code.TOPIC, labelID)
+        elif script == Template.Script.CATEGORY:
+            data = labelRenderData(request, Code.CATEGORY, labelID)
+        elif script == Template.Script.COMPETE:
+            data = competitionManagementRenderData(request,compID=labelID)
+    elif subapp == MODERATION:
+        modID = request.GET.get("id", None)
+        data = moderationRenderData(request,modID)
+    elif subapp == PEOPLE:
+        userID = request.GET.get('id', None)
+        if script == Template.Script.PROFILE:
+            data = profileRenderData(request,userID=userID)
+    stringrender = render_to_string(f"{subapp}/scripts/{script}", request=request, context=renderData(fromApp=request.GET.get('fromApp', subapp), data=data))
     if not settings.DEBUG:
         stringrender = jsmin(stringrender)
     return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
@@ -542,7 +582,7 @@ class ServiceWorker(TemplateView):
                 f"/{URL.ROBOTS_TXT}",
                 f"/{URL.SITEMAP}",
                 f"/{URL.VERSION_TXT}",
-                f"/{URL.REDIRECTOR}*",
+                f"/{URL.REDIRECTOR}",
                 f"/{URL.AUTH}",
                 f"/{URL.AUTH}*",
                 f"/{URL.MODERATION}*",
@@ -556,26 +596,22 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.Auth.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
-                setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECT_TRANS_INVITE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.VER_MOD_TRANS_INVITE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CORE_MOD_TRANS_INVITE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.VER_DEL_REQUEST}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CORE_DEL_REQUEST}"),
-                setPathParams(
-                    f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}*"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_CORE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSES}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}*"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.CREATE_FRAME}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.REPORT_CATEGORIES}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.REPORT_CATEGORIES}"),
             ]),
             recacheList=json.dumps([
-                f"/{URL.REDIRECTOR}*",
+                f"/{URL.REDIRECTOR}",
             ]),
             netFirstList=json.dumps([
                 f"/{URL.LANDING}",
@@ -590,10 +626,14 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.FRAMEWORK}"),
+                setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}"),
+                setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}"),
                 setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
                 setPathParams(f"/{URL.BRANDING}"),
                 setPathParams(f"/{URL.BROWSER}"),
-                setPathParams(f"/{URL.SCRIPTS}", Template.CONSTANTS),
+                setPathParams(f"/{URL.SCRIPTS}"),
+                setPathParams(f"/{URL.SCRIPTS_SUBAPP}"),
             ])
         )))
         return context

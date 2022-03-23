@@ -131,20 +131,16 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
 
     def process_request(self, request):
         match = resolve(request.path)
-        except_list = getattr(settings, 'BYPASS_2FA_PATHS', ())
-        except_list += ('/auth/two-factor-authenticate',)
+        except_list = settings.BYPASS_2FA_PATHS
+        except_list += (f'/{URL.AUTH}two-factor-authenticate',)
         if (request.path.strip('/') not in except_list) and (not match.url_name or not match.url_name.startswith(except_list)):
             deleteSession = True
             for p in except_list:
                 if request.path == p:
                     deleteSession = False
-                elif request.path.startswith(p):
+                elif testPathRegex(p, request.path) or testPathRegex(p, request.path.strip('/')):
                     deleteSession = False
-                elif request.path.strip('/').startswith(p):
-                    deleteSession = False
-                elif request.path.strip('/').startswith(p.strip('/')):
-                    deleteSession = False
-                elif testPathRegex(p, request.path) or request.path.startswith("/script"):
+                elif request.path.startswith(p) or request.path.strip('/').startswith(p) or request.path.strip('/').startswith(p.strip('/')):
                     deleteSession = False
                 if not deleteSession:
                     break

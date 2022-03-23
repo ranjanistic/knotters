@@ -87,11 +87,7 @@
 </center>
 <br/>
 {% endblock %}
-
 {% block scripts %}
-<script>
- {% if request.GET.next != URLS.ROOT and request.GET.next %}
-  message("Please signup to continue")
- {% endif %}
-</script>
+<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.SIGNUP}}?next={{request.GET.next}}"></script>
 {% endblock %}
+

@@ -109,17 +109,17 @@ class TestViews(TestCase):
 
     @tag(Code.Test.STATIC)
     def test_strings(self):
-        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.STRINGS)))
+        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.script.STRINGS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
-        self.assertTemplateUsed(resp, template.STRINGS)
+        self.assertTemplateUsed(resp, template.script.STRINGS)
 
     @tag(Code.Test.STATIC)
     def test_constants(self):
-        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.CONSTANTS)))
+        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.script.CONSTANTS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
-        self.assertTemplateUsed(resp, template.CONSTANTS)
+        self.assertTemplateUsed(resp, template.script.CONSTANTS)
 
     @tag(Code.Test.STATIC)
     def test_service_worker(self):
