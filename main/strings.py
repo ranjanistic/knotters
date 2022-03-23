@@ -411,7 +411,6 @@ class Browse():
     TRENDING_MENTORS = "trending-mentors"
     TRENDING_MODERATORS = "trending-moderators"
     DISPLAY_MENTORS = "display-mentors"
-    DISPLAY_MENTORS = "display-mentors"
     CORE_MEMBERS = "core-members"
     TOPIC_PROJECTS = "topic-wise-projects"
     TOPIC_PROFILES = "topic-wise-profiles"
