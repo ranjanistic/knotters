@@ -130,6 +130,7 @@ class ProfileAttributeTest(TestCase):
         self.emailaddress = EmailAddress.objects.create(
             user=self.user, email=self.user.email, verified=True)
     
+    @tag('testprofilemethods')
     def test_profile_methods(self):
         self.assertEqual(self.profile.getID(), self.profile.id.hex)
         self.assertEqual(self.profile.__str__(), self.profile.getEmail())
@@ -141,14 +142,10 @@ class ProfileAttributeTest(TestCase):
         self.assertFalse(self.profile.isRemoteDp())
         self.assertEqual(self.profile.getBio(), str())
         self.assertEqual(self.profile.getSubtitle(), str())
-        # self.assertEqual(self.profile.getGhUrl(), str())
         self.assertTrue(self.profile.getLink().endswith(
-            self.profile.getUserID()))
-        self.profile.githubID = getTestGHID()
-        self.profile.save()
-        # self.assertTrue(self.profile.getLink().endswith(self.profile.githubID))
+            self.profile.get_nickname()))
         self.profile.is_zombie = True
-        self.assertTrue(self.profile.getLink().endswith(self.profile.get_nickname()))
+        self.assertTrue(self.profile.getLink().endswith(self.profile.getID()))
         self.profile.is_zombie = False
         self.assertTrue(self.profile.getSuccessorInviteLink().endswith(
             self.profile.getUserID()))

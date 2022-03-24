@@ -183,9 +183,9 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
+        errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        errorLog(e)
         raise Http404(e)
 
 
