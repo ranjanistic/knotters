@@ -31,6 +31,7 @@ GlobalContextData = dict(
     CACHE_MAX=settings.CACHE_MAX,
     CACHE_ETERNAL=settings.CACHE_ETERNAL,
     VAPID_KEY=settings.VAPID_PUBLIC_KEY,
+    SCRIPTS=Template.Script.getAllKeys(),
 )
 
 
@@ -39,7 +40,6 @@ def Global(request):
         alerts=[],
         knotbot=Profile.KNOTBOT(),
         BROWSE=Browse.getAllKeys(),
-        SCRIPTS=Template.Script.getAllKeys(),
         SUBAPPS=dict(),
         SUBAPPSLIST=[]
     )
