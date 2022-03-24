@@ -14,8 +14,10 @@ document.addEventListener("DOMContentLoaded", () => {
     loadGlobalEventListeners();
     loadGlobalEditors();
     loadSnapshotScroller();
+    loadDynamicContent();
     loadCarousels({});
     loadBrowsers();
+    loadSnapshotActions()
 });
 
 window.addEventListener("load", () => {

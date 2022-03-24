@@ -156,7 +156,7 @@ class TestViews(TestCase):
             Code.UTF_8)), dict(code=Code.OK, successorID=str()))
 
     @tag("aga")
-    def _test_successorInvitation(self):
+    def test_successorInvitation(self):
         client2 = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -173,7 +173,6 @@ class TestViews(TestCase):
         resp = client2.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        print(resp.content)
         self.assertDictEqual(json.loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         profile = Profile.objects.get(

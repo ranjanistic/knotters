@@ -6,25 +6,37 @@
 {% load custom_tags %}
 
 <div class="w3-row w3-padding">
-<div class="w3-row pallete-slab">
+<div class="w3-row pallete-slab ">
    <div class="w3-col w3-half">
       <h4 class="dead-text">Email addresses</h4>
-         <button class="accent" onclick="miniWindow('{% url 'account_email' %}')" data-icon="open_in_new">{% trans "Email addresses" %}</button>
+         <button class="accent" class="mini-window-action" data-url="{% url 'account_email' %}" data-icon="open_in_new">{% trans "Email addresses" %}</button>
       <h4 class="dead-text">Personal nickname</h4>
-         Coming soon.
+         @{{request.user.profile.get_nickname}} (<a class="click-to-copy">{{SITE}}{{request.user.profile.get_short_link}}</a>)
       <h4 class="dead-text">Personal Emoticon</h4>
          Coming soon.
       <h4 class="dead-text">Password</h4>
-         <button class="accent" onclick="miniWindow('{% url 'account_change_password' %}')" data-icon="open_in_new">{% trans "Change Password" %}</button>
-         <button class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="open_in_new">{% trans "Forgot Password" %}</button>
+         <button class="accent" class="mini-window-action" data-url="{% url 'account_change_password' %}" data-icon="open_in_new">{% trans "Change Password" %}</button>
+         <button class="primary" class="mini-window-action" data-url="{% url 'account_reset_password' %}" data-icon="open_in_new">{% trans "Forgot Password" %}</button>
       <h4 class="dead-text">Linked accounts</h4>
-         <button class="positive" onclick="miniWindow('{% url 'socialaccount_connections' %}')" data-icon="open_in_new">{% trans "Linked Accounts" %}</button>
+         <button class="primary" class="mini-window-action" data-url="{% url 'socialaccount_connections' %}" data-icon="open_in_new">{% trans "Linked Accounts" %}</button>
    </div>
    <div class="w3-col w3-half">
       <h4 class="dead-text">Phone numbers</h4>
          Coming soon.
       <h4 class="dead-text">Birthday</h4>
          Coming soon.   
+      {% if request.user.profile.is_moderator %}
+      <h4 class="dead-text">Moderation</h4>
+         Coming soon.
+      {% endif %}
+      {% if request.user.profile.is_mentor %}
+      <h4 class="dead-text">Mentorship</h4>
+         Coming soon.
+      {% endif %}
+      {% if request.user.profile.is_manager %}
+      <h4 class="dead-text">Management</h4>
+         Coming soon.
+      {% endif %}
    </div>
 </div>
 </div>

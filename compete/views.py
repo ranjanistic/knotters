@@ -19,7 +19,7 @@ from main.strings import Action, Code, Message, Template, URL
 from people.models import ProfileTopic, Profile, Topic
 from projects.models import FreeProject
 from .models import Competition, ParticipantCertificate, AppreciationCertificate, Result, SubmissionParticipant, SubmissionTopicPoint, Submission
-from .methods import DeclareResults, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates, rendererstr, rendererstrResponse
+from .methods import DeclareResults, competitionProfileData, getCompetitionSectionHTML, getIndexSectionHTML, renderer, AllotCompetitionCertificates, rendererstr, rendererstrResponse
 from .mailers import participantInviteAlert, submissionConfirmedAlert, participantWelcomeAlert, participationWithdrawnAlert, submissionsJudgedAlert
 from .apps import APPNAME
 
@@ -44,37 +44,25 @@ def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
 @require_GET
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        cacheKey = f"competition_{compID}"
         try:
             compID = UUID(compID)
-            query = Q(id=compID)
             isuuid = True
         except:
-            query = Q(nickname=compID)
             isuuid = False
-        compete = cache.get(cacheKey, None)
-        if not compete:
-            compete = Competition.objects.get(query)
-            cache.set(cacheKey, compete, settings.CACHE_MICRO)
+
+        if isuuid:
+            data = competitionProfileData(request, compID=compID)
+        else:
+            data = competitionProfileData(request, nickname=compID)
+        if not data:
+            raise ObjectDoesNotExist(compID)
+        compete = data['compete']
         if isuuid:
             return redirect(compete.getLink())
-        isManager = request.user.is_authenticated and compete.creator == request.user.profile
         if compete.is_draft:
-            if isManager:
+            if data["isManager"]:
                 return redirect(compete.getManagementLink())
             raise ObjectDoesNotExist('isdraft: ', compete)
-            
-        if request.user.is_authenticated:
-            data = dict(
-                compete=compete,
-                isJudge=compete.isJudge(request.user.profile),
-                isMod=compete.isModerator(request.user.profile),
-                isManager=isManager
-            )
-        else:
-            data = dict(
-                compete=compete
-            )
         return renderer(request, Template.Compete.PROFILE, data)
     except ObjectDoesNotExist as o:
         raise Http404(o)

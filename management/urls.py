@@ -14,7 +14,7 @@ urlpatterns = [
     path(URL.Management.DRAFT_DEL_COMP, draftDeleteCompete),
     path(URL.Management.COMPETITION, competition),
     path(URL.Management.TOPICSEARCH, searchTopic),
-    path(URL.Management.JUDGESEARCH, searchJudge),
+    path(URL.Management.MNTSEARCH, searchMentor),
     path(URL.Management.MODSEARCH, searchModerator),
 
     path(URL.Management.CREATE_REPORT, createReport),

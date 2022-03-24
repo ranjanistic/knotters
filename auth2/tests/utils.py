@@ -9,7 +9,7 @@ def root(path='/', appendslash=False):
 
 
 def getTestEmail():
-    return f"{uuid4().hex}@knotters.org"
+    return f"test_{uuid4().hex}@knotters.org"
 
 
 def getTestEmails(count=1):

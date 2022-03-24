@@ -2,7 +2,9 @@
 
 const logOut = async (
     afterLogout = (_) => {
-        window.location.replace(URLS.ROOT);
+        relocate({
+            path: URLS.ROOT,
+        });
     }
 ) => {
     const done = await postRequest(URLS.Auth.LOGOUT);
@@ -67,6 +69,7 @@ const setHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEditors();
     loadCarousels({});
     loadBrowserSwiper();
+    loadDynamicContent();
     afterset();
 };
 const appendHtmlContent = (element, content = "", afterset = () => {}) => {
@@ -75,6 +78,7 @@ const appendHtmlContent = (element, content = "", afterset = () => {}) => {
     loadGlobalEditors();
     loadCarousels({});
     loadBrowserSwiper();
+    loadDynamicContent();
     afterset();
 };
 
@@ -103,7 +107,7 @@ const loadGlobalEventListeners = () => {
                     localStorage.setItem(`first-intro-${view.id}`, 1);
                     message(STRING.re_introduction, (t) => {
                         t.onclick = (_) =>
-                            (window.location.href = URLS.LANDING);
+                            (refer({path:URLS.LANDING}));
                     });
                     hide(view);
                 });
@@ -138,8 +142,7 @@ const loadGlobalEventListeners = () => {
     });
     getElements("href").forEach((href) => {
         href.addEventListener("click", (e) => {
-            subLoader(true);
-            window.location.href = href.getAttribute("data-href");
+            refer({path:href.getAttribute("data-href")})
         });
     });
     getElementsByTag("button").forEach((button) => {
@@ -208,8 +211,8 @@ const loadGlobalEventListeners = () => {
             img.alt = APPNAME;
         }
         if (!img.alt) img.alt = img.src.split("/").pop();
-        if(img.complete&&!img.naturalWidth){
-            img.src=ICON_SHADOW
+        if (img.complete && !img.naturalWidth) {
+            img.src = ICON_SHADOW;
         }
     });
 
@@ -263,9 +266,87 @@ const loadGlobalEventListeners = () => {
                     share.getAttribute("data-text"),
                 share.getAttribute("data-text") ||
                     share.getAttribute("data-title"),
-                share.getAttribute("data-url") || window.location.href
+                share.getAttribute("data-url") ||
+                    share.getAttribute("data-href") ||
+                    share.getAttribute("data-link") ||
+                    window.location.href
             );
         });
+    });
+    getElements("contact-request-action").forEach((action) => {
+        action.onclick = async () => {
+            await contactRequestDialog();
+        };
+    });
+    getElements("webapp-install-action").forEach((action) => {
+        action.onclick = () => {
+            installWebAppInstructions();
+        };
+    });
+    getElements("beta-alert-view").forEach((action) => {
+        action.addEventListener("click", () => {
+            betaAlert();
+        });
+    });
+    getElements("window-close-action").forEach((action) => {
+        action.addEventListener("click", () => {
+            window.close();
+        });
+    });
+    getElements("troubleshoot-action").forEach((action) => {
+        action.onclick = () => {
+            troubleShootingInfo();
+        };
+    });
+    getElements("report-feedback-action").forEach((action) => {
+        action.onclick = () => {
+            reportFeedbackView();
+        };
+    });
+    getElements("selectLanguage").forEach((action) => {
+        action.onchange = (e) => {
+            e.target.form.submit();
+        };
+    });
+    getElements("future-message-action").forEach((action) => {
+        action.addEventListener("click", (e) => {
+            futuremessage(action.getAttribute("data-message"));
+        });
+    });
+    getElements("message-action").forEach((action) => {
+        action.addEventListener("click", (e) => {
+            message(action.getAttribute("data-message"));
+        });
+    });
+    getElements("highlight-action").forEach((action) => {
+        action.onclick = (e) => {
+            highlightElementByID(action.getAttribute("data-elementID"))
+        }
+    });
+    getElements("full-loader-action").forEach((action) => {
+        action.addEventListener("click", (e) => {
+            loaders(true)
+        });
+    });
+    getElements("reload-page-action").forEach((action) => {
+        action.onclick = (e) => {
+            refresh({})
+        };
+    });
+    getElements("mini-window-action").forEach((action) => {
+        action.onclick = (e) => {
+            miniWindow(
+                action.getAttribute("data-url") ||
+                    action.getAttribute("data-link") ||
+                    action.getAttribute("data-href"),
+                action.getAttribute("data-windowname")
+            );
+        };
+    });
+    getElements("print-page-action").forEach((action) => {
+        action.onclick = (e) => {
+            window.print();
+        };
     });
 };
 
@@ -311,7 +392,7 @@ const _processReCaptcha = (
                         }
                     })
                     .catch((e) => {
-                        if(_DEBUG){
+                        if (_DEBUG) {
                             console.error(e);
                             return onSuccess(() => {
                                 loader(false);
@@ -323,7 +404,7 @@ const _processReCaptcha = (
                         loader(false);
                     });
             } catch (e) {
-                if(_DEBUG){
+                if (_DEBUG) {
                     console.error(e);
                     return onSuccess(() => {
                         loader(false);
@@ -724,7 +805,6 @@ const handleCropImageUpload = (
             },
         }).then((res) => {
             if (res.isConfirmed) {
-                console.log(res);
                 onCropped(res.value);
             }
         });
@@ -1204,8 +1284,9 @@ const highlightElementByID = (elemID) => {
 };
 
 const isValidEmail = (email) => {
-    return String(email).toLowerCase().match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
-}
-
+    return String(email)
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+};

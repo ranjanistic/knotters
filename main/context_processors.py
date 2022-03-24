@@ -4,7 +4,7 @@ from people.models import Profile
 from management.models import ThirdPartyAccount
 from .methods import renderData
 from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
-from .strings import DIVISIONS, URL, Browse
+from .strings import DIVISIONS, URL, Browse, Template
 
 GlobalContextData = dict(
     APPNAME=PUBNAME,
@@ -31,11 +31,18 @@ GlobalContextData = dict(
     CACHE_MAX=settings.CACHE_MAX,
     CACHE_ETERNAL=settings.CACHE_ETERNAL,
     VAPID_KEY=settings.VAPID_PUBLIC_KEY,
+    SCRIPTS=Template.Script.getAllKeys(),
 )
 
 
 def Global(request):
-    data = dict(**GlobalContextData,alerts=[],knotbot=Profile.KNOTBOT(),BROWSE=Browse.getAllKeys(),SUBAPPS=dict(),SUBAPPSLIST=[])
+    data = dict(**GlobalContextData,
+        alerts=[],
+        knotbot=Profile.KNOTBOT(),
+        BROWSE=Browse.getAllKeys(),
+        SUBAPPS=dict(),
+        SUBAPPSLIST=[]
+    )
     SOCIALS = cache.get(ThirdPartyAccount.cachekey, None)
     if not SOCIALS:
         SOCIALS = ThirdPartyAccount.objects.all()

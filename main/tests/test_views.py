@@ -4,7 +4,7 @@ from django.test import TestCase, Client, tag
 import json
 from main.env import PUBNAME, BOTMAIL, SITE, VERSION
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
-from main.strings import Code, Template, setPathParams, url, template, COMPETE, PEOPLE, PROJECTS, DIVISIONS
+from main.strings import Code, setPathParams, url, template, DIVISIONS
 from projects.models import LegalDoc
 from moderation.models import LocalStorage
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
@@ -12,7 +12,7 @@ from .utils import root, docroot, authroot, getRandomStr, getLegalName, getLegal
 from compete.methods import *
 
 
-@tag(Code.Test.VIEW,Code.Test.REST)
+@tag(Code.Test.VIEW, Code.Test.REST)
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
@@ -95,7 +95,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.TEXT_PLAIN)
         self.assertTemplateUsed(resp, template.ROBOTS_TXT)
-        self.assertIsInstance(resp.context['suspended'],QuerySet)
+        self.assertIsInstance(resp.context['suspended'], QuerySet)
         self.assertFalse(resp.context['ISBETA'])
 
     @tag(Code.Test.STATIC)
@@ -109,17 +109,19 @@ class TestViews(TestCase):
 
     @tag(Code.Test.STATIC)
     def test_strings(self):
-        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.STRINGS)))
+        resp = self.client.get(follow=True, path=root(
+            setPathParams(url.SCRIPTS, template.script.STRINGS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
-        self.assertTemplateUsed(resp, template.STRINGS)
+        self.assertTemplateUsed(resp, template.script.STRINGS)
 
     @tag(Code.Test.STATIC)
     def test_constants(self):
-        resp = self.client.get(follow=True, path=root(setPathParams(url.SCRIPTS,template.CONSTANTS)))
+        resp = self.client.get(follow=True, path=root(
+            setPathParams(url.SCRIPTS, template.script.CONSTANTS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
-        self.assertTemplateUsed(resp, template.CONSTANTS)
+        self.assertTemplateUsed(resp, template.script.CONSTANTS)
 
     @tag(Code.Test.STATIC)
     def test_service_worker(self):
@@ -139,7 +141,7 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponseBadRequest.status_code)
 
 
-@tag(Code.Test.VIEW,Code.Test.REST)
+@tag(Code.Test.VIEW, Code.Test.REST)
 class TestViewsAuth(TestCase):
     @classmethod
     def setUpTestData(self) -> None:

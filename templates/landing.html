@@ -67,7 +67,7 @@
             </p>
             <p class="text-medium">
                 Are you interested in our story? Regardless, we'll continue to tell.
-                Not that we don't care about <a onclick="reportFeedbackView(1)">your opinion</a> (which we do), but most of the content on this page is static.
+                Not that we don't care about <a class="report-feedback-action">your opinion</a> (which we do), but most of the content on this page is static.
             </p>
             </span>
         </div>
@@ -81,7 +81,7 @@
         <span class="w3-large">
         <p class="text-medium">
             To indicate that something important has come up, however, everything is important in this page,
-            it's just that center heading looks cool. <a onclick="reportFeedbackView(1)">Does it?</a>
+            it's just that center heading looks cool. <a class="report-feedback-action">Does it?</a>
             <br/>
             This <img src={{ICON}} class="darkimg" width="24"/> icon is our logo, which you must've realized by now.
             The name <em>{{APPNAME}}</em> is what we call this platform, and so should you.
@@ -178,7 +178,7 @@
                     This is the fastest way to start a new project here. Any kind of project can be created under this category.
                 </span>
                 <br/>
-                <a onclick="newTab('{{URLS.Projects.CREATE_FREE}}')"><button class='big-button positive' data-icon="add">New quick project</button></a>
+                <a href="{{URLS.Projects.CREATE_FREE}}" target="_blank"><button class='big-button positive' data-icon="add">New quick project</button></a>
                 <br/><br/>
                 <h1 id="verified-projects"><span class="accent" >Verified Project <i>verified</i></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#verified-projects"><i>link</i></a></h1>
                 <span class="text-medium">
@@ -188,7 +188,7 @@
                     Currently recommended for coding based projects only.
                 </span>
                 <br/>
-                <a onclick="newTab('{{URLS.Projects.CREATE_MOD}}')"><button class='big-button accent' data-icon="add">New verified project</button></a>
+                <a href="{{URLS.Projects.CREATE_MOD}}" target="_blank"><button class='big-button accent' data-icon="add">New verified project</button></a>
                 <br/><br/>
                 <h1 id="core-projects"><span class="accent">Core Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#core-projects"><i>link</i></a></h1>
                 <span class="text-medium">
@@ -199,7 +199,7 @@
                     Organizations may also provide incentives to the people who contribute to it.
                 </span>
                 <br/>
-                <a onclick="newTab('{{URLS.Projects.CREATE_CORE}}')"><button class='big-button primary' data-icon="add">New core project</button></a>
+                <a href="{{URLS.Projects.CREATE_CORE}}" target="_blank"><button class='big-button primary' data-icon="add">New core project</button></a>
                 <br/><br/>
                 <h4>
                     And it doesn't end here
@@ -209,18 +209,18 @@
                     and it reflects in each of their profiles accordingly, alongside their respective topics (We'll discuss 'topics' soon).<br/>
                     In short - Everything counts!
                 </span><br/>
-                <a onclick="newTab('{{URLS.Projects.CREATE}}')"><button class='big-button primary' data-icon="open_in_new">Try creating a project</button></a>
+                <a href="{{URLS.Projects.CREATE}}" target="_blank"><button class='big-button primary' data-icon="open_in_new">Try creating a project</button></a>
             </div>
             
         </div>
     </div>
     <br/>
-    <div class="w3-row w3-padding-large"  id="competitons">
+    <div class="w3-row w3-padding-large"  id="competitions">
         <div class="w3-row">
-            <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#competitons"><i>link</i></a></h1>
+            <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#competitions"><i>link</i></a></h1>
             <span class="w3-large">
                 <p class="text-big">
-                    We conduct and host competitions in which anyone can participate. Robot🤖 participants are still not allowed. Sorry <a onclick="miniWindow('{{URLS.ROBOTS_TXT}}')">robots</a>!<br/>
+                    We conduct and host competitions in which anyone can participate. Robot🤖 participants are still not allowed. Sorry <a class="mini-window-action" data-url="{{URLS.ROBOTS_TXT}}">robots</a>!<br/>
                     Most of our competitions are based & targeted on real world problems, and not money oriented. However, perks & prizes are involved.
                 </p>
             </span>
@@ -230,7 +230,7 @@
                 <h1><span class="active">Flex-able certificate</span></h1>
                 <span class="text-medium">
                     You'll earn a flex-able certificate upon successfull participation in any active competition at Knotters.
-                    Just make your submissions follow our <a onclick="newTab('{{URLS.Docs.TYPE|params:'competitionguidelines'}}')">competition guidelines</a>.
+                    Just make your submissions follow our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>.
                     The certificates you earn here are immortal, and can be shared anywhere.<br/>
                     We also provide appreciation certificates to judges and moderators as well.
                 </span>
@@ -261,13 +261,13 @@
                     Again - Everything counts!
                 </span>
                 <br/>
-                <a onclick="newTab('{{URLS.COMPETE}}')"><button class='big-button active' data-icon="open_in_new">Try participating</button></a>
+                <a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="open_in_new">Try participating</button></a>
             </div>
         </div>
     </div>
     <br/>
     <div class="w3-row w3-padding-large" id="moderators">
-        <h1>{% trans "The Moderators" %} <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><strong class="w3-small w3-round w3-tag accent">MOD</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#moderators"><i>link</i></a></h1>
+        <h1>{% trans "The Moderators" %} <a href="{{URLS.PEOPLE|getquery:"search=type:moderator"}}" target="_blank"><strong class="w3-small w3-round w3-tag accent">MOD</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#moderators"><i>link</i></a></h1>
         <span class="text-medium">
             To review and take action on verified projects submissions, a category of users at Knotters are called the moderators.
             The decision taken by a moderator for a project decides its future. If approved, the project enters our world.
@@ -276,10 +276,10 @@
             according to their area of expertise, which is interpreted from their overall contribution record on Knotters.
             The moderator helps a project reach new heights if approved.
         </span><br/>
-        <a href="{{URLS.PEOPLE}}?search=type:moderator" target="_blank"><button class='big-button accent' data-icon="search">Search moderators</button></a>
+        <a href="{{URLS.PEOPLE|getquery:"search=type:moderator"}}" target="_blank"><button class='big-button accent' data-icon="search">Search moderators</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="mentors">
-        <h1>{% trans "The Mentors" %} <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><strong class="w3-small w3-round w3-tag active">MNT</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#mentors"><i>link</i></a></h1>
+        <h1>{% trans "The Mentors" %} <a href="{{URLS.PEOPLE|getquery:"search=type:mentor"}}" target="_blank"><strong class="w3-small w3-round w3-tag active">MNT</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#mentors"><i>link</i></a></h1>
         <span class="text-medium">
             Mentors are the people who, during peacetime, guide projects through their knowledge and expertise in the domain of concerned project.
             By 'during peacetime', we meant when they are not involved in any competitions. So yeah you can infer that they have a role in competitions too.
@@ -287,16 +287,16 @@
             Mentors too have XPs, topics and growth on this platform, just like the moderators have, just like everyone has.
             Currently we have limited mentorship to verified projects only.
         </span><br/>
-        <a href="{{URLS.PEOPLE}}?search=type:mentor" target="_blank"><button class='big-button active' data-icon="search">Search mentors</button></a>
+        <a href="{{URLS.PEOPLE|getquery:"search=type:mentor"}}" target="_blank"><button class='big-button active' data-icon="search">Search mentors</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="managers">
-        <h1>{% trans "The Managers" %} <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#managers"><i>link</i></a></h1>
+        <h1>{% trans "The Managers" %} <a href="{{URLS.PEOPLE|getquery:"search=type:manager"}}" target="_blank"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#managers"><i>link</i></a></h1>
         <span class="text-medium">
             Or, organizations. Or, groups. Or, clubs. Or, companies. Or, whatever you call an organized group of people. 
             These are the type of accounts which have access to management tools of {{APPNAME}}, for example, creating competitions,
             creating <a href="#core-projects">Core projects</a>, linking people to their profile for collective growth, promoting people as moderators or mentors, and so on.
         </span><br/>
-        <a href="{{URLS.PEOPLE}}?search=type:manager" target="_blank"><button class='big-button primary' data-icon="search">Search managements</button></a>
+        <a href="{{URLS.PEOPLE|getquery:"search=type:manager"}}" target="_blank"><button class='big-button primary' data-icon="search">Search managements</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="licenses">
         <h1>{% trans "The Licenses" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#licenses"><i>link</i></a></h1>
@@ -306,7 +306,7 @@
             (which are enough in numbers). For verified projects, you can add your own license if the default ones doesn't suit you.
             If you don't understand licenses and their importance, you can go with the default selected license for your projects.
         </span><br/>
-        <a onclick="newTab('{{URLS.Projects.ALLLICENSES}}')"><button class='big-button primary' data-icon="open_in_new">View licenses</button></a>
+        <a href="{{URLS.Projects.ALLLICENSES}}" target="_blank"><button class='big-button primary' data-icon="open_in_new">View licenses</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="snapshots">
         <h1>{% trans "Snapshots" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#snapshots"><i>link</i></a></h1>
@@ -324,7 +324,7 @@
              If you admire a person, you'll see their latest projects and posted snapshots on your homepage. If you admire a snapshot, the creator of snapshot will be glad.
              Admiring also affects the recommendations of projects and profiles you get.
         </span><br/>
-        <a href="{{URLS.People.PROFILE|params:"knottersbot"}}" target="_blank"><button class='big-button primary' data-icon="volunteer_activism">Admire Knotters</button></a>
+        <a href="{{URLS.People.PROFILE|params:"knottersbot"|getquery:"admire=1"}}" target="_blank"><button class='big-button primary' data-icon="volunteer_activism">Admire Knotters</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="profile">
         <h1>{% trans "Your profile" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#profile"><i>link</i></a></h1>
@@ -334,9 +334,9 @@
             You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.
         </span><br/>
         {% if request.user.is_authenticated %}
-        <a onclick="newTab('{{request.user.profile.getLink}}')"><button class='big-button primary' style="border:4px solid var(--accent)"><img src="{{request.user.profile.getDP}}" class="circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
+        <a href="{{request.user.profile.getLink}}" target="_blank"><button class='big-button primary' style="border:4px solid var(--accent)"><img src="{{request.user.profile.getDP}}" class="circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
         {% else %}
-        <a onclick="newTab('{{URLS.Auth.LOGIN}}')"><button class='big-button primary' style="border:4px solid var(--positive)" data-icon="login">Login for profile</button></a>
+        <a href="{{URLS.Auth.LOGIN}}" target="_blank"><button class='big-button primary' style="border:4px solid var(--positive)" data-icon="login">Login for profile</button></a>
         {% endif %}
     </div>
     <div class="w3-row w3-padding-large" id="topics">
@@ -347,8 +347,8 @@
             The topics have indiviual XP points for everyone on Knotters, which can be increased via various sources, the major source being participation 
             in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
         </span><br/>
-        <a href="{{URLS.PEOPLE}}?search=topic:UI/UX" target="_blank"><button class='big-button accent' data-icon="search">UI/UX People</button></a>
-        <a href="{{URLS.PROJECTS}}?search=topic:Translation" target="_blank"><button class='big-button positive' data-icon="search">Translation Projects</button></a>
+        <a href="{{URLS.PEOPLE|getquery:"search=topic:UI/UX"}}" target="_blank"><button class='big-button accent' data-icon="search">UI/UX People</button></a>
+        <a href="{{URLS.PROJECTS|getquery:"search=topic:Translation"}}" target="_blank"><button class='big-button positive' data-icon="search">Translation Projects</button></a>
     </div>
     
     <div class="w3-row w3-padding-large" id="everything-counts">
@@ -386,7 +386,7 @@
             that wall, but there's space for the top contributors of every era too. Aim for that wall, and you could achieve 
             most out of this community along the way.
         </span><br/>
-        <a onclick="newTab('{{URLS.FAME_WALL}}')"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
+        <a href="{{URLS.FAME_WALL}}" target="_blank"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="activites">
         <h1>Top activities & highlights<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#activites"><i>link</i></a></h1>
@@ -406,9 +406,9 @@
         <span class="text-medium">
             <li>Use Alt + R to restart introductions anywhere, or just visit this landing page.</li>
             <li>Use Alt + F10 to switch theme, or click <i class="themeswitch pointer">brightness_medium</i> on navbar.</li>
-            <li>While using any search box, you can also search by label:name, like <a onclick="miniWindow('{{URLS.PEOPLE}}?search=topic:creativity')" target="_blank">topic:creativity</a> or 
-                <a onclick="miniWindow('{{URLS.PROJECTS}}?search=tag:nodejs')" target="_blank">tag:nodejs</a>.</li>
-            <li>You can install this website on your device as application (through supported browsers only). <a onclick="installWebAppInstructions()">Click here</a> to check if you can.</li>
+            <li>While using any search box, you can also search by label:name, like <a class="mini-window-action" data-url="{{URLS.PEOPLE|getquery:"search=topic:creativity"}}" target="_blank">topic:creativity</a> or 
+                <a class="mini-window-action" data-url="{{URLS.PROJECTS|getquery:"search=tag:nodejs"}}" target="_blank">tag:nodejs</a>.</li>
+            <li>You can install this website on your device as application (through supported browsers only). <a class="webapp-install-action">Click here</a> to check if you can.</li>
             <li>Many of the things on this platform can work offline too. Also (and therefore), you'll receive in-app updates from us time to time.</li>
         </span>
     </div>
@@ -426,14 +426,8 @@
     </div>
     <div class="w3-row w3-padding-large" align='center'>
         <a href="{{URLS.ROOT}}"><button class="display-button positive" data-icon='flight_takeoff'>I'm ready</button></a>
-        <button class="display-button accent" data-icon="share" onclick="shareLinkAction('The Landing Page', 'The Landing Page of {{APPNAME}}', '{{URLS.LANDING}}')">Share this</button>
+        <button class="display-button accent navigator-share-action" data-icon="share" data-url="{{URLS.LANDING}}" data-title="The Landing Page" data-text="The Landing Page of {{APPNAME}}">Share this</button>
     </div>
     <br/>
 </div>
-{% endblock %}
-
-{% block in_scripts %}
-<script>
-    restartIntros()
-</script>
 {% endblock %}

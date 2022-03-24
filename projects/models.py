@@ -84,7 +84,7 @@ class Category(models.Model):
 
     @property
     def topicIDs(self):
-        topics = self.getProjects.values_list("topics", flat=True).distinct()
+        topics = self.getProjects().values_list("topics", flat=True).distinct()
         return list(filter(lambda x: x != None,topics))
 
     @property
@@ -109,7 +109,6 @@ class Category(models.Model):
     def totalProjects(self):
         return BaseProject.objects.filter(category=self).count()
 
-    @property
     def getProjects(self):
         return BaseProject.objects.filter(category=self)
 

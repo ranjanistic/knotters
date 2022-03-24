@@ -80,7 +80,7 @@
 					</div>
 					<br/>
 					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' id="sign-in-action" data-icon="login">{% trans "Sign In" %}</button>
-					<button type="button" class="primary" onclick="miniWindow('{% url 'account_reset_password' %}')" data-icon="help">{% trans "Forgot?" %}</button>
+					<button type="button" class="primary" class="mini-window-action" data-url="{% url 'account_reset_password' %}" data-icon="help">{% trans "Forgot?" %}</button>
 					<input type="hidden" name="{{redirect_field_name}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>
@@ -91,14 +91,11 @@
 
 <br/>
 <center class="w3-padding">
-<strong>{% trans "By continuing via an identity on our platform" %}, {% trans "you agree to our" %} <a onclick="newTab('{{URLS.Docs.TYPE|params:'termsofservice'}}')" target="_blank">{% trans "terms of service" %}</a> {% trans "and" %} <a onclick="newTab('{{URLS.Docs.TYPE|params:'privacypolicy'}}')" target="_blank">{% trans "privacy policy" %}</a>.</strong>
+<strong>{% trans "By continuing via an identity on our platform" %}, {% trans "you agree to our" %} <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" target="_blank">{% trans "terms of service" %}</a> {% trans "and" %} <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" target="_blank">{% trans "privacy policy" %}</a>.</strong>
 </center>
 <br/>
 {% endblock %}
+
 {% block scripts %}
-<script>
- {% if request.GET.next != URLS.ROOT and request.GET.next %}
-  message("Please login to continue")
- {% endif %}
-</script>
+<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.LOGIN}}?next={{request.GET.next}}"></script>
 {% endblock %}

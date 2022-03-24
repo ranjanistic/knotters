@@ -1,4 +1,10 @@
-const loadTabScript = (tab) => {};
+const loadTabScript = (tab) => {
+    getElements("switch-compete-home-tab").forEach((action) => {
+        action.onclick = () => {
+            getElement(action.getAttribute("data-target")).click();
+        };
+    });
+};
 
 initializeTabsView({
     onEachTab: async (tab) =>

@@ -1,0 +1,1 @@
+success("This certificate is valid.");

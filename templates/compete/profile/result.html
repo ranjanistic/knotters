@@ -25,7 +25,7 @@
                 <button type="submit" class="positive" data-icon="grade" title="{% trans "Earned points will be incremented as XP to your profile." %}">{% trans "Claim XP" %}</button>
             </form>
             {% else %}
-            <button class="accent" onclick="message('You have claimed {{selfresult.points}} XP of your result!')" title="You have already claimed {{selfresult.points}} XP of your result" data-icon="add">{{selfresult.points}} {% trans "XP earned" %}</button>
+            <button class="accent message-action" data-message="You have claimed {{selfresult.points}} XP of your result!" title="You have already claimed {{selfresult.points}} XP of your result" data-icon="add">{{selfresult.points}} {% trans "XP earned" %}</button>
             {% endif %}
         {% endif %}
         </div>
@@ -65,7 +65,7 @@
     <div class="w3-col m9">
     <div class="w3-col m9 w3-padding-small">
     {% for member in selfresult.submission.getMembers %}
-    <a onclick="miniWindow('{{member.getLink}}')">
+    <a class="mini-window-action" data-url="{{member.getLink}}">
     <button class="small primary">
         <img src="{{member.getDP}}" class="w3-circle primary" width="18" />
         <span class="w3-hide-small">{{ member.getFName }}</span>
@@ -110,7 +110,7 @@
     <div class="w3-col m9 w3-padding-small">
     
     {% for member in result.submission.getMembers %}
-    <a onclick="miniWindow('{{member.getLink}}')">
+    <a class="mini-window-action" data-url="{{member.getLink}}">
     <button class="small {% if result.rank == 1 %}accent{% elif result.rank == 2 %}active{% elif result.rank == 3 %}positive{% else %}primary{% endif %}">
         <img src="{{member.getDP}}" class="w3-circle primary" width="18" />
         <span class="w3-hide-small">{{ member.getFName }}</span>
@@ -121,7 +121,7 @@
     <div class="w3-col m3">
     <a 
     {% if request.user.is_authenticated %}
-    onclick="miniWindow('{{ result.submission.repo }}')"
+    class="mini-window-action" data-url="{{ result.submission.repo }}"
     {% else %}
     href="{% url 'account_login' %}?next={{compete.getLink}}"
     {% endif %}

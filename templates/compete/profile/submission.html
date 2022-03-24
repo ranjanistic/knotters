@@ -64,7 +64,7 @@
             {% for profile in submission.getMembers %}
             <div class="w3-col w3-padding-small l4 m4 s6">
                 <div class="w3-row pallete-slab tertiary no-pad">
-                    <a onclick="miniWindow('{{profile.getLink}}')">
+                    <a class="mini-window-action" data-url="{{profile.getLink}}">
                     <img class="primary wide pallete-slab no-pad" src="{{profile.getDP}}" />
                     </a>
                     <div class="w3-row w3-tag w3-round tertiary">

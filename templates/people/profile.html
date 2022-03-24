@@ -43,7 +43,7 @@
     <a href="{{ URLS.AUTH }}"><button class="primary" id="new-settings-action"><i class="">settings</i><span class="w3-hide-small">{% trans "Settings" %}</span></button></a>
     <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">{% trans "Logout" %}</span></button></a>
   {% elif not self and request.user.is_authenticated %}
-    <a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.profile.getName}}" class="accent"><img src="{{request.user.profile.getDP}}" id="navbarprofilepic" /></button></a>
+    <a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.profile.getName}}" class="{{request.user.profile.theme}}"><img src="{{request.user.profile.getDP}}" id="navbarprofilepic" /></button></a>
   {% else %}
       {% block nav_auth_login %}
       <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent" data-icon="login"><span class="w3-hide-small">{% trans "Login" %}</span></button></a>
@@ -94,10 +94,10 @@
             <span>{{ person.profile.getBio }}</span>
           </div>
           <div class="w3-row w3-padding-small">
-          <i class="w3-left pointer navigator-share-action" 
+          <i class="w3-left pointer navigator-share-action circle"
             data-title="{{ person.getName }}"
             data-text="{{ person.profile.getBio|or:'Checkout this profile!' }}"
-            data-url="{{ person.profile.getLink }}"
+            data-url="{{ person.profile.get_short_link }}"
             >share</i>
           {% if self %}
             <i class="edit-action w3-right" data-edittarget="pallete">edit</i>
@@ -105,7 +105,7 @@
             <strong class="w3-right w3-tiny"><br/>{{person.profile.getXP}}</strong>
           {% endif %}
           {% if person.profile.totalAllTopics %}
-            <a href="{{URLS.PEOPLE}}?search=topic:{{person.profile.getAllTopics.0}}"><button class="small {{person.profile.theme}} {{person.profile.text_theme}}">{{person.profile.getAllTopics.0.name}}</button></a>
+            <a href="{{URLS.PEOPLE}}?search=topic:{{person.profile.getAllTopics.0}}"><button class="w3-tiny {{person.profile.theme}} {{person.profile.text_theme}}">{{person.profile.getAllTopics.0.name}}</button></a>
           {% endif %}
           </div>
         </div>
@@ -140,7 +140,7 @@
           {% empty %}
               <h6 class="dead-text">{% trans "No profile tags" %}</h6>
           {% endfor %}
-          {% if self %}<i class="edit-action w3-tiny w3-right" data-edittarget="profiletags">edit</i>{% endif %}
+          {% if self %}<i class="edit-action small w3-right" data-edittarget="profiletags">edit</i>{% endif %}
           </div>
           {% if self %}
           <div id="edit-profiletags">
@@ -263,7 +263,6 @@
 		{% endif %}
       </div>
       <div class="w3-col w3-container m8 l9 ">
-        <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
           <div class="w3-row w3-center w3-animate-top">
             {% if not is_manager %}
             <button title="Profile overview" id="overview" class="nav-tab" data-icon="insights"><span class="w3-hide-small">{% trans "Overview" %}</span></button>
@@ -285,31 +284,35 @@
             {% endif %}
           </div>
           <br/>
+        <div class="pallete w3-animate-bottom" style="min-height: 75vh;">
           <div id="tabview" style="min-height:60vh;max-height:95vh;overflow-y: scroll;"></div>
         </div>
+
         <br/>
-        <div class="w3-row w3-animate-right" id="timeline">
-        <h5>{% if self %}Your{% else %}{{person.profile.getFName}}'s{% endif %} activity</h5>
-          <div class="w3-row">
-            <div class="w3-col m4 s6 l3 w3-padding-small w3-right">
-              <div class="pallete w3-center">
-                <div class="w3-row">
-                  <img src="{{person.profile.get_dp}}" class="w3-circle primary" width="80" />
-                  <img src="{{ICON}}" class="w3-circle primary darkimg" width="80" />
+        <div class="w3-row w3-animate-right w3-padding" id="timeline">
+          <h5>{% if self %}Your{% else %}{{person.profile.getFName}}'s{% endif %} activity</h5>
+          <div class="w3-row dynamic-content-view" data-contentpath="{{URLS.TIMELINE_CONTENT|params:person.get_id}}">
+            <div class="w3-col m5 s6 l3 w3-padding-small w3-right">
+                <div class="pallete w3-center">
+                    <div class="w3-row w3-padding align" xyz="fade back down duration-10 big-100%">
+                        <img src="{{person.profile.get_dp}}" class="w3-card w3-circle xyz-in" width="50" style="border:2px solid var(--{{person.profile.theme}})" alt="{{APPNAME}}"/>
+                        <i class="dead-text w3-small xyz-in">link</i>
+                        <img src="{{ICON}}" class="w3-card w3-circle xyz-in darkimg" width="50" style="border:2px solid var(--{{person.profile.theme}})" alt="{{request.user.getName}}"/>
+                    </div>  
+                    <h6>Joined Community</h6>
+                    {{person.date_joined}}
                 </div>
-                  <h4>Joined Community</h4>
-                  <p>{{person.date_joined}}</p>
-              </div>
             </div>
-            <div class="w3-col m4 s6 l3 w3-padding-small w3-right">
-              <div class="pallete tertiary w3-center">
-                <i class="w3-jumbo">upcoming</i><br/>
-                  <h4>Coming soon</h4>
-                  <p>You'll see more updates soon</p>
-              </div>
+            <div class="w3-col m5 s6 l3 w3-padding-small w3-right">
+                <div class="pallete tertiary w3-center">
+                  <i class="w3-jumbo">upcoming</i><br/>
+                    <h6>Coming soon</h6>
+                    You'll see more updates soon
+                </div>
             </div>
           </div>
         </div>
+
         {% if self %}
         <br/>
         <div class="w3-row pallete w3-animate-right" id="setts">
@@ -320,7 +323,7 @@
               <div class="material-icons w3-jumbo w3-spin">settings</div>
               <h4>Settings have been moved from here.</h4>
               <a href="{{URLS.AUTH}}"><button class="big-button positive" data-icon="open_in_new">Show new settings</button></a>
-              <button class="big-button primary" onclick="highlightElementByID('new-settings-action')" data-icon="search">Find new settings button</button>
+              <button class="big-button primary highlight-action" data-elementID="new-settings-action" data-icon="search">Find new settings button</button>
           </div>
           <br/>
         </div>
@@ -333,131 +336,7 @@
 </div>
 {% endblock %}
 
-{% block in_scripts %}
-<script>
-  {% comment %} 'person' is an instance of User (request.user) {% endcomment %}
-  const userID = "{{ person.getID }}";
-  const selfProfile = ("{{self}}"=='True')?activeuser:false;
-  const isModerator = "{{person.profile.is_moderator}}" == 'True';
-  const isMentor = "{{person.profile.is_mentor}}" == 'True';
-  const isManager = "{{is_manager}}" == 'True';
-  const isAdmirer = "{{is_admirer}}" == 'True';
-  const tabindex = (Number("{{request.GET.tab}}"||-2)>-1)?Number("{{request.GET.tab}}"): false;
-  {% if is_manager %}
-    const mgmID = "{{person.profile.manager_id}}";
-  {% endif %}
-
-  {% if person.profile.is_active and not person.profile.suspended %}
-    {% if self %}
-      getElement('sociallinks-add').onclick=_=>{
-          const parent=getElement('edit-sociallinks-inputs');
-          if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-          const linkNumber=parent.childElementCount+1;
-          const newChild=document.createElement('div');
-          newChild.innerHTML = `
-              <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-          `;
-          parent.insertBefore(newChild,parent.childNodes[0]);
-      }
-      try{
-        getElement("reactivateaccount").onclick=async()=>{
-          loaders()
-          message("Reactivating your account...")
-          const data = await postRequest(URLS.Auth.ACCOUNTACTIVATION, {
-            activate: true
-          });
-          if(data.code===code.OK){
-            success(`{% trans "Your account has been reactivated" %}`)
-            return await logOut()
-          }
-          subLoader(false)
-          loader(false)
-          error(data.error)
-        }
-      }catch{}
-
-      {% if is_manager and has_ghID %}
-        getElement("link-gh-org-mgm").onclick=_=>{
-          Swal.fire({
-            title:"Link GitHub organization",
-            html:`
-            Please make sure that you are allowed to represent your organization on Knotters by your administrators.</br></br>
-            <div class="w3-row">
-                <select id='selected-org-id' class="pallete-slab">
-              {% for org in request.user.profile.get_ghOrgsIDName %}
-                  <option value="{{org.id}}">{{org.name}}</option>
-              {% endfor %}
-                </select>
-            </div>
-              `,
-            icon: '',
-            confirmButtonText: "Link with profile",
-            showCancelButton: true,
-            {% if gh_orgID %}
-            showDenyButton: true,
-            denyButtonText: "Unlink organization",
-            {% endif %}
-            preConfirm: () => {
-              return getElement("selected-org-id").value;
-            },
-          }).then(async(result)=>{
-            if(result.isConfirmed){
-              const data = await postRequest2({
-                path: URLS.Auth.CHANGE_GHORG,
-                data: {
-                  newghorgID: result.value
-                }
-              })
-              if(data && data.code==CODE.OK){
-                success("GitHub organization linked")
-                return refresh({})
-              }
-              error(data.error)
-            } else if (result.isDenied){
-              const data = await postRequest2({
-                path: URLS.Auth.CHANGE_GHORG,
-                data: {
-                  newghorgID: false
-                }
-              })
-              if(data && data.code==CODE.OK){
-                message("GitHub organization unlinked")
-                return refresh({})
-              }
-              error(data.error) 
-            }
-          })
-        }
-      {% endif %}
-    {% else %}
-      {% if request.user.is_authenticated %}
-        getElement('block-account').onclick=async()=>{
-          blockUserView({userID, username:'{{person.profile.getName}}', userDP: '{{person.profile.getDP}}'})
-        }
-        getElement('report-account').onclick=async()=>{
-          await violationReportDialog(URLS.REPORT_USER,{
-            userID: '{{person.get_id}}',
-          }, '{{person.profile.getName}}',URLS.REPORT_CATEGORIES)
-          
-        }
-        {% if request.GET.admire == '1' and not is_admirer %}
-          getElement("toggle-admiration").click()
-        {% endif %}
-        {% if request.GET.admire == '0' and is_admirer %}
-          getElement("toggle-admiration").click()
-        {% endif %}
-      {% endif %}
-    {% endif %}
-    getElement('show-admirations').onclick=async(_)=>{
-        Swal.fire({ 
-            html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, userID)}), 
-            title:"<h4 class='positive-text'>Admirers</h4>"
-        })
-    }
-  {% endif %}
-</script>
-{% endblock %} 
-
 {% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}"></script>
 <script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %}

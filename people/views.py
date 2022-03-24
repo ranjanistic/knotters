@@ -1,3 +1,4 @@
+import traceback
 from uuid import UUID
 import re
 from django.core.cache import cache
@@ -21,7 +22,7 @@ from main.strings import Action, Code, Event, Message, Template, setURLAlerts
 from management.models import Management, ReportCategory
 from .apps import APPNAME
 from .models import ProfileSetting, ProfileSocial, ProfileTag, ProfileTopic, Topic, User, Profile
-from .methods import renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, rendererstr
+from .methods import profileRenderData, renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, rendererstr
 
 
 @require_GET
@@ -32,35 +33,23 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
     try:
-        self = False
-        if request.user.is_authenticated and (request.user.getID() == userID or request.user.profile.ghID() == userID):
-            person = request.user
-            self = True
+        try:
+            userID = UUID(userID)
+            isuuid = True
+        except:
+            isuuid = False
+
+        if isuuid:
+            data = profileRenderData(request, userID=userID)
         else:
-            try:
-                person = User.objects.get(
-                    id=userID, profile__to_be_zombie=False, profile__suspended=False, profile__is_active=True)
-                if person.profile.has_ghID():
-                    return redirect(person.profile.getLink())
-            except:
-                try:
-                    profile = Profile.objects.get(
-                        githubID=userID, to_be_zombie=False, suspended=False, is_active=True)
-                    person = profile.user
-                except:
-                    raise ObjectDoesNotExist()
-            if request.user.is_authenticated:
-                if person.profile.isBlocked(request.user):
-                    raise ObjectDoesNotExist()
-        gh_orgID = None
-        has_ghID = person.profile.has_ghID()
-        if has_ghID:
-            gh_orgID = person.profile.gh_orgID()
-        is_manager = person.profile.is_manager()
-        is_admirer = False
-        if request.user.is_authenticated:
-            is_admirer = person.profile.admirers.filter(user=request.user).exists()
-        return renderer(request, Template.People.PROFILE, dict(person=person, self=self,has_ghID=has_ghID,gh_orgID=gh_orgID,is_manager=is_manager,is_admirer=is_admirer))
+            data = profileRenderData(request, nickname=userID)
+        if not data:
+            raise ObjectDoesNotExist(userID)
+
+        if isuuid:
+            return redirect(data["person"].profile.getLink())
+
+        return renderer(request, Template.People.PROFILE, data)
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -87,6 +76,24 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         raise Http404(e)
 
 
+@require_GET
+def timeline_content(request: WSGIRequest, userID: UUID) -> HttpResponse:
+    try:
+        if request.user.is_authenticated and request.user.id == userID:
+            profile = request.user.profile
+        else:
+            profile = Profile.objects.get(user__id=userID)
+        if request.user.is_authenticated:
+            if profile.isBlocked(request.user):
+                raise ObjectDoesNotExist(profile)
+        return rendererstr(request, Template.People.TIMELINE_CONTENT, dict(profile=profile))
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+
 @normal_profile_required
 @require_GET
 def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
@@ -104,7 +111,7 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
 @require_POST
 @decode_JSON
 def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
-    json_body = request.POST.get(Code.JSON_BODY,False)
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         profile = Profile.objects.get(user=request.user)
         nextlink = request.POST.get('next', None)
@@ -176,9 +183,9 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
+        errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        errorLog(e)
         raise Http404(e)
 
 
@@ -207,7 +214,8 @@ def accountprefs(request: WSGIRequest) -> HttpResponse:
 def topicsSearch(request: WSGIRequest) -> JsonResponse:
     query = request.POST.get('query', None)
     excludeProfileTopics = request.POST.get('excludeProfileTopics', True)
-    excludeProfileAllTopics = request.POST.get('excludeProfileAllTopics', False)
+    excludeProfileAllTopics = request.POST.get(
+        'excludeProfileAllTopics', False)
     if not query:
         return respondJson(Code.NO)
     excluding = []
@@ -218,8 +226,9 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
             excluding = excluding + request.user.profile.getAllTopicIds()
         elif excludeProfileTopics:
             excluding = excluding + request.user.profile.getTopicIds()
-        cacheKey = f"{cacheKey}_{request.user.id}" + "".join(map(lambda i: str(i), excluding))
-    
+        cacheKey = f"{cacheKey}_{request.user.id}" + \
+            "".join(map(lambda i: str(i), excluding))
+
     topicslist = cache.get(cacheKey, [])
 
     if not len(topicslist):
@@ -229,13 +238,13 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
             | Q(name__iexact=query)
             | Q(name__icontains=query)
         )[0:5]
-        
+
         for topic in topics:
             topicslist.append(dict(
                 id=topic.get_id,
                 name=topic.name
             ))
-        
+
         cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
 
     return respondJson(Code.OK, dict(
@@ -275,7 +284,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             currentcount = proftops.filter(trashed=False).count()
             if currentcount + len(addtopicIDs) > 5:
                 if json_body:
-                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                    return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(request.user.profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
 
             newcount = currentcount + len(addtopicIDs)
@@ -286,20 +295,24 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 updated = True
 
         if visibleTopicIDs and len(visibleTopicIDs) > 0:
-            if len(visibleTopicIDs)>5: return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+            if len(visibleTopicIDs) > 5:
+                return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
             for topic in Topic.objects.filter(id__in=visibleTopicIDs):
                 request.user.profile.topics.add(topic)
-            ProfileTopic.objects.filter(profile=request.user.profile).exclude(topic__id__in=visibleTopicIDs).update(trashed=True)
-            ProfileTopic.objects.filter(profile=request.user.profile,topic__id__in=visibleTopicIDs).update(trashed=False)
+            ProfileTopic.objects.filter(profile=request.user.profile).exclude(
+                topic__id__in=visibleTopicIDs).update(trashed=True)
+            ProfileTopic.objects.filter(
+                profile=request.user.profile, topic__id__in=visibleTopicIDs).update(trashed=False)
             updated = True
 
         if addtopics and len(addtopics) > 0:
-            count = ProfileTopic.objects.filter(profile=request.user.profile,trashed=False).count()
+            count = ProfileTopic.objects.filter(
+                profile=request.user.profile, trashed=False).count()
             if not json_body:
                 addtopics = addtopics.strip(',').split(',')
             if count + len(addtopics) > 5:
                 if json_body:
-                    return respondJson(Code.NO,error=Message.MAX_TOPICS_ACHEIVED)
+                    return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(request.user.profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
 
             profiletopics = []
@@ -309,12 +322,14 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 top = re.sub('[^a-zA-Z \\\s-]', '', top)
                 if len(top) > 35:
                     continue
-                topic, _ = Topic.objects.get_or_create(name__iexact=top,defaults=dict(name=str(top).capitalize(),creator=request.user.profile))
-                profiletopics.append(ProfileTopic(topic=topic,profile=request.user.profile))
+                topic, _ = Topic.objects.get_or_create(name__iexact=top, defaults=dict(
+                    name=str(top).capitalize(), creator=request.user.profile))
+                profiletopics.append(ProfileTopic(
+                    topic=topic, profile=request.user.profile))
             if len(profiletopics) > 0:
                 ProfileTopic.objects.bulk_create(profiletopics)
                 updated = True
-                
+
         if updated:
             cache.delete(request.user.profile.CACHE_KEYS.topic_ids)
 
@@ -323,12 +338,12 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         return redirect(request.user.profile.getLink())
     except ObjectDoesNotExist as o:
         if json_body:
-            return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         if json_body:
-            return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
 
@@ -339,12 +354,13 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
         query = request.POST.get('query', None)
         if not query or not query.strip():
             return respondJson(Code.NO)
-        
+
         excludeIDs = []
         for tag in request.user.profile.tags.all():
             excludeIDs.append(tag.id)
 
-        cacheKey = f"tagssearch_{query}{request.user.id}" + "".join(map(lambda i: str(i), excludeIDs))
+        cacheKey = f"tagssearch_{query}{request.user.id}" + \
+            "".join(map(lambda i: str(i), excludeIDs))
         tagslist = cache.get(cacheKey, [])
 
         if not len(tagslist):
@@ -383,7 +399,7 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
         addtags = request.POST.get('addtags', None)
         removetagIDs = request.POST.get('removetagIDs', None)
         profile = request.user.profile
-        
+
         next = request.POST.get('next', profile.getLink())
 
         if not (addtagIDs or removetagIDs or addtags):
@@ -445,6 +461,7 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
         if next:
             return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
         raise Http404(e)
+
 
 @normal_profile_required
 def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
@@ -547,6 +564,7 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
         errorLog(f"GH-EVENT: {e}")
         raise Http404()
 
+
 @ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
 def browseSearch(request: WSGIRequest):
@@ -559,11 +577,11 @@ def browseSearch(request: WSGIRequest):
         if request.user.is_authenticated:
             excludeIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
-    
-        profiles = cache.get(cachekey,[])
-        
+
+        profiles = cache.get(cachekey, [])
+
         if not len(profiles):
-            specials = ('topic:','tag:','type:', 'xp:')
+            specials = ('topic:', 'tag:', 'type:', 'xp:')
             pquery = None
             is_moderator = is_mentor = is_verified = is_manager = None
             dbquery = Q()
@@ -571,16 +589,16 @@ def browseSearch(request: WSGIRequest):
             if query.startswith(specials):
                 def specquerieslist(q):
                     return [
-                        Q(topics__name__iexact=q), 
-                        Q(tags__name__iexact=q), 
+                        Q(topics__name__iexact=q),
+                        Q(tags__name__iexact=q),
                         Q(),
                         Q(xp__gte=q)
                     ]
                 commaparts = query.split(",")
                 for cpart in commaparts:
-                    if cpart.strip().lower().startswith(specials):    
+                    if cpart.strip().lower().startswith(specials):
                         special, specialq = cpart.split(':')
-                        if special.strip().lower()=='type':
+                        if special.strip().lower() == 'type':
                             is_moderator = specialq.strip().lower() == 'moderator' or is_moderator
                             is_mentor = specialq.strip().lower() == 'mentor' or is_mentor
                             is_verified = specialq.strip().lower() == 'verified' or is_verified
@@ -595,7 +613,8 @@ def browseSearch(request: WSGIRequest):
                                 invalidQuery = True
                                 break
                         else:
-                            dbquery = Q(dbquery, specquerieslist(specialq.strip())[list(specials).index(f"{special.strip()}:")])
+                            dbquery = Q(dbquery, specquerieslist(specialq.strip())[
+                                        list(specials).index(f"{special.strip()}:")])
                     else:
                         pquery = cpart.strip()
                         break
@@ -621,10 +640,11 @@ def browseSearch(request: WSGIRequest):
                     | Q(tags__name__istartswith=pquery)
                 ))
             if not invalidQuery:
-                profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(to_be_zombie=True).exclude(is_active=False).filter(dbquery).distinct()[0:limit]
+                profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(
+                    to_be_zombie=True).exclude(is_active=False).filter(dbquery).distinct()[0:limit]
 
                 if is_manager:
-                    profiles=list(filter(lambda p: p.is_manager(), profiles))
+                    profiles = list(filter(lambda p: p.is_manager(), profiles))
                 if len(profiles):
                     cache.set(cachekey, profiles, settings.CACHE_SHORT)
 
@@ -642,7 +662,7 @@ def browseSearch(request: WSGIRequest):
                 ), profiles)),
                 query=query
             ))
-        print('here')
+
         return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
     except Exception as e:
         errorLog(e)
@@ -650,21 +670,24 @@ def browseSearch(request: WSGIRequest):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
+
 @normal_profile_required
 @require_GET
-def create_framework(request:WSGIRequest):
+def create_framework(request: WSGIRequest):
     return renderer(request, Template.People.FRAMEWORK_CREATE)
 
-@normal_profile_required
-@require_JSON_body
-def publish_framework(request:WSGIRequest):
-    
-    raise Http404()
 
 @normal_profile_required
 @require_JSON_body
-def view_framework(request:WSGIRequest, frameworkID: UUID):
-    
+def publish_framework(request: WSGIRequest):
+
+    raise Http404()
+
+
+@normal_profile_required
+@require_JSON_body
+def view_framework(request: WSGIRequest, frameworkID: UUID):
+
     raise Http404()
 
 
@@ -696,13 +719,15 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID):
             return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
         raise Http404(e)
 
+
 @decode_JSON
 def profileAdmirations(request, userID):
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         profile = Profile.objects.get(
             user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
-        admirers = profile.admirers.filter(suspended=False, is_active=True, to_be_zombie=False)
+        admirers = profile.admirers.filter(
+            suspended=False, is_active=True, to_be_zombie=False)
         if request.user.is_authenticated:
             admirers = request.user.profile.filterBlockedProfiles(admirers)
         if json_body:

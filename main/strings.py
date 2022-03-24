@@ -344,6 +344,7 @@ class Profile():
     COMPETITIONS = "competitions"
     MENTORSHIP = "mentorship"
     PEOPLE = "people"
+    TIMELINE_CONTENT = "timeline-content"
 
     class Setting():
         ACCOUNT = "account"
@@ -378,6 +379,7 @@ class Auth2():
     SECURITY = "security"
     PREFERENCE = "preference"
     NOTIFICATION = "notification"
+    MANAGEMENT = "management"
 
     def __init__(self) -> None:
         self.AUTH2_SECTIONS = [
@@ -385,7 +387,8 @@ class Auth2():
             self.DEVICE,
             self.SECURITY,
             self.PREFERENCE,
-            self.NOTIFICATION
+            self.NOTIFICATION,
+            self.MANAGEMENT
         ]
 
 
@@ -429,6 +432,7 @@ class URL():
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
     SCRIPTS = 'scripts/<str:script>'
+    SCRIPTS_SUBAPP = f'scripts/<str:subapp>/scripts/<str:script>'
     SWITCH_LANG = 'i18n/'
     VERSION_TXT = 'version.txt'
     OFFLINE = 'off408'
@@ -436,7 +440,12 @@ class URL():
     ROOT = '/'
     HOME = 'home'
     WEBPUSH = 'webpush/'
-    AT_ME = "@me"
+    AT_NICKNAME = "@<str:nickname>"
+    
+    def at_nickname(self, nickname):
+        return setPathParams(self.AT_NICKNAME, nickname)
+
+    AT_NICKNAME = "@<str:nickname>"
     AT_EMOTICON = "@/<str:emoticon>"
     WEBPUSH_SUB = 'webpush/<str:sub>'
     ICON_PNG = f"{CDN_URL}/graphics/self/1024/icon.png"
@@ -788,6 +797,11 @@ class URL():
         def profileTab(self, userID, section):
             return setPathParams(self.PROFILETAB, userID, section)
 
+        TIMELINE_CONTENT = 'timelinecontent/<str:userID>'
+
+        def timeline_content(self, userID):
+            return setPathParams(self.TIMELINE_CONTENT, userID)
+
         SETTINGTAB = 'settingtab/<str:section>'
 
         def settingTab(self, section):
@@ -1056,7 +1070,7 @@ class URL():
         def competition(self, compID):
             return setPathParams(self.COMPETITION, compID)
         TOPICSEARCH = 'topicsearch'
-        JUDGESEARCH = 'judgesearch'
+        MNTSEARCH = 'mentorsearch'
 
         MODSEARCH = 'moderatorsearch'
         ELGIBLE_MODSEARCH = 'moderatorsearch/eligible'
@@ -1162,11 +1176,56 @@ class Template():
     ROBOTS_TXT = "robots.txt"
     SITEMAP = "sitemap.xml"
     SW_JS = "service-worker.js"
-    STRINGS = "strings.js"
-    CONSTANTS = "constants.js"
-    QUERY_USE = "queryuse.js"
     VERSION = "version.txt"
     MANIFEST_JSON = "manifest.json"
+
+    class Script():
+        STRINGS = "strings.js"
+        CONSTANTS = "constants.js"
+        QUERY_USE = "queryuse.js"
+        ON_BOARDING = "on-boarding.js"
+        CONNECTIONS = "connections.js"
+        INDEX = "index.js"
+        ZERO = "0.js"
+        ONE = "1.js"
+        TWO = "2.js"
+        LICENSE_INDEX = "license-index.js"
+        CREATE_0 = "create-0.js"
+        CREATE_1 = "create-1.js"
+        CREATE_2 = "create-2.js"
+        LOGIN = "login.js"
+        SIGNUP = "signup.js"
+        VERIFIED_EMAIL_REQ = "verified-email-required.js"
+        CERTIFICATE_APP = "certificate-app.js"
+        CERTIFICATE = "certificate.js"
+        PROFILE = "profile.js"
+        OSL = "osl.js"
+        CATEGORY = "category.js"
+        COMPETE_CREATE = "compete-create.js"
+        COMPETE = "compete.js"
+        LABELS = "labels.js"
+        MENTORS = "mentors.js"
+        MODERATORS = "moderators.js"
+        REPORTFEED_INDEX = "reportfeed-index.js"
+        TOPIC = "topic.js"
+        CORE_PROJECT = "core-project.js"
+        PROJECTS = "projects.js"
+
+        def getScriptTemplates(self) -> list:
+            TEMPLATES = []
+            def cond(key, value:str):
+                if key.isupper() and value.endswith('.js'):
+                    TEMPLATES.append(value)
+
+            classAttrsToDict(Template.Script, cond)
+            return TEMPLATES
+
+        def getAllKeys():
+            def cond(key, value):
+                return str(key).isupper()
+            return classAttrsToDict(Template.Script, cond)
+
+    script = Script()
 
     INDEX = 'index'
 
@@ -1578,6 +1637,12 @@ class Template():
         @property
         def profile_framework(self):
             return f'{self.DIRNAME}/{self.PROFILE_FRAMEWORK}.html'
+            
+        TIMELINE_CONTENT = f"profile/{Profile.TIMELINE_CONTENT}"
+
+        @property
+        def profile_timeline(self):
+            return f'{self.DIRNAME}/{self.TIMELINE_CONTENT}.html'
 
         SETTING_ACCOUNT = f"setting/{Profile.Setting.ACCOUNT}"
 

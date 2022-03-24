@@ -24,7 +24,7 @@ from management.models import GhMarketApp, ReportCategory
 from people.models import Profile, Topic
 from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
 from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
-from .methods import addTagToDatabase, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData
+from .methods import addTagToDatabase, coreProfileData, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, freeProfileData, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData, verifiedProfileData
 from .apps import APPNAME
 
 
@@ -440,21 +440,17 @@ def profileBase(request: WSGIRequest, nickname: str) -> HttpResponse:
             if not project:
                 project = CoreProject.objects.get(codename=nickname,trashed=False)
         return redirect(project.get_link)
-    except:
-        raise Http404()
+    except Exception as e:
+        raise Http404(e)
 
 @require_GET
 def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
     try:
         try:
-            coreproject = CoreProject.objects.get(codename=codename, trashed=False, status=Code.APPROVED)
-            iscreator = False if not request.user.is_authenticated else coreproject.creator == request.user.profile
-            ismoderator = False if not request.user.is_authenticated else coreproject.moderator == request.user.profile
-            if coreproject.suspended and not (iscreator or ismoderator):
-                raise ObjectDoesNotExist('suspended', coreproject)
-            isAdmirer = request.user.is_authenticated and coreproject.isAdmirer(
-                request.user.profile)
-            return renderer(request, Template.Projects.PROFILE_CORE, dict(project=coreproject, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
+            data = coreProfileData(request, codename=codename)
+            if not data:
+                raise ObjectDoesNotExist(codename)
+            return renderer(request, Template.Projects.PROFILE_CORE, data)
         except:
             if request.user.is_authenticated:
                 coreproject = CoreProject.objects.get(codename=codename, trashed=False, status__in=[Code.MODERATION,Code.REJECTED])
@@ -472,14 +468,10 @@ def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
 @require_GET
 def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
     try:
-        project = FreeProject.objects.get(
-            nickname=nickname, trashed=False, suspended=False)
-        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        if project.suspended and not iscreator:
+        data = freeProfileData(request, nickname=nickname)
+        if not data:
             raise ObjectDoesNotExist(nickname)
-        isAdmirer = request.user.is_authenticated and project.isAdmirer(
-            request.user.profile)
-        return renderer(request, Template.Projects.PROFILE_FREE, dict(project=project, iscreator=iscreator, isAdmirer=isAdmirer))
+        return renderer(request, Template.Projects.PROFILE_FREE, data)
     except (ObjectDoesNotExist,ValidationError) as e:
         raise Http404(e)
     except Exception as e:
@@ -491,15 +483,10 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
 def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         try:
-            project = Project.objects.get(
-                reponame=reponame, trashed=False, status=Code.APPROVED)
-            iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-            ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
-            if project.suspended and not (iscreator or ismoderator):
-                raise ObjectDoesNotExist()
-            isAdmirer = request.user.is_authenticated and project.isAdmirer(
-                request.user.profile)
-            return renderer(request, Template.Projects.PROFILE_MOD, dict(project=project, iscreator=iscreator, ismoderator=ismoderator, isAdmirer=isAdmirer))
+            data = verifiedProfileData(request,reponame=reponame)
+            if not data:
+                raise ObjectDoesNotExist(reponame)
+            return renderer(request, Template.Projects.PROFILE_MOD, data)
         except Exception as e:
             if request.user.is_authenticated:
                 project = Project.objects.get(reponame=reponame, trashed=False, status__in=[Code.MODERATION,Code.REJECTED])

@@ -80,7 +80,7 @@
                     {% endfor %}
                     <input type="hidden" id="license" name="license" value="{{licenses.0.getID}}" />
                     <br/><br/>
-                    <strong><a target="_blank" onclick="newTab('{{URLS.ALLLICENSES}}')">Learn more</a> about these licenses.</strong>
+                    <strong><a target="_blank" href="{{URLS.ALLLICENSES}}">Learn more</a> about these licenses.</strong>
                 </div>
             </div>
             <div class="w3-row">
@@ -88,10 +88,10 @@
                 <label id="confirm-check-box">
                 <input name="acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
                 I've read the {{APPNAME}} 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a>, 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'moderationguidelines'}}">project guidelines</a>, 
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'communityguidelines'}}">community guidelines</a>, 
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'privacypolicy'}}">privacy policy</a> & 
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'termsofservice'}}">terms of service</a>.
                 </label>
             </div>
             <div class="w3-row">
@@ -104,59 +104,7 @@
     <br/>
 </div>
 {% endblock %}
-{% block in_scripts %}
-<script>
-    getElement('addSocialLinkButton').onclick=_=>{
-        const parent=getElement('social-links');
-        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-        const linkNumber=parent.childElementCount+1;
-        const newChild=document.createElement('div');
-        newChild.innerHTML = `
-            <input class="create-project-input wide" type="url" placeholder="Link to any relevant site" name="sociallink${linkNumber}" id=${linkNumber} /><br/><br/>
-        `;
-        parent.insertBefore(newChild,parent.childNodes[0]);
-    }
 
-    initializeTabsView({
-        uniqueID: "license",
-        activeTabClass: "positive text-positive",
-        inactiveTabClass: "primary dead-text",
-        tabsClass: "license-choice",
-        onEachTab: (tab) => {
-            getElement("license").value = tab.id;
-        },
-        selected:0
-    });
-    getElements('create-project-input').forEach(element => {
-        if(!Array.from(element.classList).includes('no-retain')){
-            element.value = sessionStorage.getItem(`create-freeproject-input-${element.id}`)
-            element.addEventListener("input", (e)=>{
-                sessionStorage.setItem(`create-freeproject-input-${element.id}`,element.value)
-            })
-        }
-    });
-    getElement("uploadprojectimage").onchange = (e) => {
-        handleCropImageUpload(e, "projectimagedata", "projectimageoutput", (_) => {
-            getElement("uploadprojectimagelabel").innerHTML = "Selected";
-        });
-    };
-    getElement('projectnickname').oninput=async(e)=>{
-      e.target.value = String(e.target.value).toLowerCase().trim().replaceAll(" ", "-").replaceAll("--","-").replace(/[^a-zA-Z0-9\-]/g, "-");
-    }
-
-    getElement('projectnickname').onchange=async(e)=>{
-        let nickname = String(e.target.value).trim()
-        if(!nickname) return
-        const data = await postRequest(setUrlParams(URLS.CREATEVALIDATEFIELD,'nickname'),{nickname})
-        if(!data) return
-        if(data.code!==code.OK) return error(data.error)
-        return success(`'${String(e.target.value).trim()}' is available!`)
-    }
-    {% comment %} window.addEventListener('beforeunload',(event)=>{
-        event.preventDefault();
-        return event.returnValue = "Changes are not saved!";
-    }) {% endcomment %}
-</script>
-{% endblock %}
 {% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CREATE_0}}"></script>
 {% endblock %}

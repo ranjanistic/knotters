@@ -146,8 +146,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.people.profileEdit(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-        resp = self.client.post(follow=True, path=root(
-            url.people.profileEdit('pallete')))
+        resp = self.client.post(follow=True, path=root(url.people.profileEdit('pallete')))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         resp = self.client.post(follow=True, path=root(url.people.profileEdit('pallete')), data={
             'profilepic': getTestDP()

@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 <br/>
-                <strong><a target="_blank" onclick="newTab('{{URLS.ALLLICENSES}}')">Learn more</a> about these licenses.</strong>
+                <strong><a target="_blank" href="{{URLS.ALLLICENSES}}">Learn more</a> about these licenses.</strong>
                 <br/>
                 <strong>Days before expiration
                 <input
@@ -179,9 +179,10 @@
                 <label id="confirm-check-box">
                     <input name="acceptterms" id="acceptterms" type="checkbox" required aria-required="true" />
                     I've read the {{appname}} 
-                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">moderation guidelines</a>, 
-                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
-                        <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
+                        <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'moderationguidelines'}}">project guidelines</a>, 
+                        <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'communityguidelines'}}">community guidelines</a>, 
+                        <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'privacypolicy'}}">privacy policy</a> & 
+                        <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'termsofservice'}}">terms of service</a>.
                 </label>
             </div>
             <br/>
@@ -233,19 +234,7 @@
 {% endif %}
 {% endblock %}
 
-{% block in_scripts %}
-<script>
-let currentStep = isNaN("{{request.GET.step}}")?0:Number("{{request.GET.step}}");
-{% if not user.profile.has_ghID %}
-    connectWithGithub(URLS.CREATE_MOD,_=>{window.location.replace(URLS.CREATE)})
-{% else %}
-{% comment %} window.addEventListener('beforeunload',(event)=>{
-    event.preventDefault();
-    return event.returnValue = "Changes are not saved!";
-}) {% endcomment %}
-{% endif %}
-</script>
-{% endblock %}
 {% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CREATE_1}}?step={{request.GET.step}}"></script>
 <script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endblock %}
