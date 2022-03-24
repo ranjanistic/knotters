@@ -391,7 +391,7 @@ class Profile(models.Model):
                 nickname = self.githubID
             else:
                 nickname = self.user.email.split('@')[0]
-            if Profile.objects.filter(nickname=nickname).exists():
+            if Profile.objects.filter(nickname=nickname).exclude(id=self.id).exists():
                 nickname = nickname + str(self.get_userid)
             self.nickname = nickname
             self.save()
