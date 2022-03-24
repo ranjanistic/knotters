@@ -33,7 +33,6 @@ const loadBrowseSnaps = async () => {
 const loadSnapshotActions = () => {
     getElements("snapshot-admire-action").forEach((admire) => {
         admire.onclick = (_) => {
-            console.log("yes", admire.getAttribute("data-snaplink"));
             if (AUTHENTICATED) {
                 admireSnap(admire.getAttribute("data-snapid"));
             } else {
@@ -56,7 +55,6 @@ const loadSnapshotActions = () => {
         const projectID = action.getAttribute("data-snap-projectID");
         const snapLink = action.getAttribute("data-snaplink");
         const selfSnap = action.getAttribute("data-selfsnap") == "1";
-        console.log(selfSnap);
         action.onclick = (_) => {
             showSnapshotMoreBtn(snapID, projectID, snapLink, selfSnap);
         };
@@ -124,7 +122,6 @@ const showSnapshotMoreBtn = (snapID, projectID, snapLink, selfSnap = false) => {
     getElement("snap-modal").onclick = (e) => closeSnapshotMoreBtn(e, snapID);
     getElements("delete-snapshot-action").forEach((act) => {
         if (selfSnap) {
-            console.log("delete", snapID);
             show(act);
             act.onclick = () => deleteSnap(snapID, projectID);
         } else {
@@ -133,7 +130,6 @@ const showSnapshotMoreBtn = (snapID, projectID, snapLink, selfSnap = false) => {
     });
     getElements("report-snapshot-action").forEach((act) => {
         if (!selfSnap) {
-            console.log("report", snapID);
             show(act);
             act.onclick = () => reportSnap(snapID);
         } else {
