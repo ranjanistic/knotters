@@ -525,7 +525,6 @@ button.small > i {
     font-size: 15px;
     padding: 12px 22px;
     border-radius: 55px;
-    margin-top: 30px;
 }
 
 .display-button:hover,
@@ -577,6 +576,7 @@ button.small > i {
 .w3-modal {
     padding-top: 0 !important;
     animation-name: fadeIn;
+    z-index: 800;
     animation-duration: 0.4s;
 }
 @keyframes fadeIn {
@@ -589,8 +589,9 @@ button.small > i {
 }
 .snapshot-modal-content {
     width: 100%;
-    background: var(--tertiary);
+    /* background: var(--tertiary); */
     bottom: -100%;
+    z-index: 950;
     position: fixed;
     border-radius: 10px 10px 0 0;
     transition: all 0.3s ease-out;
@@ -601,8 +602,9 @@ button.small > i {
 
 .snapshot-modal-content-large {
     width: max-content;
-    background: var(--tertiary);
+    /* background: var(--tertiary); */
     right: -100%;
+    z-index: 950;
     position: fixed;
     border-radius: 10px 0 0 10px;
     transition: all 0.3s ease-out;
@@ -842,4 +844,8 @@ label > input[type="checkbox"] {
 
 .first-time-view{
     display: none;
+}
+.nav-tabs-span{
+    padding:8px 8px 10px 0px;
+    text-align:right;
 }

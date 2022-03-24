@@ -392,16 +392,9 @@ loadsnaps.onclick = (_) => {
             setHtmlContent(newdiv, `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`);
             return hide(loadsnaps);
         }
-        setHtmlContent(newdiv, data.html);
+        setHtmlContent(newdiv, data.html, loadSnapshotActions);
         show(loadsnaps);
         excludeProjectSnapIDs = excludeProjectSnapIDs.concat(data.snapIDs);
-        getElements("delete-snapshot").forEach((btn) => {
-            btn.onclick = async (e) => {
-                await deleteSnap(btn.dataset.snapid, projectID, () => {
-                    btn.parentElement.remove();
-                });
-            };
-        });
     });
 };
 

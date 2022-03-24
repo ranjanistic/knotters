@@ -31,3 +31,4 @@ if ("{{request.GET.search}}") {
     showElement("browse-search-actions");
     getElement("browse-search-exec").click();
 }
+

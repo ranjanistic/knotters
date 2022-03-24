@@ -127,10 +127,10 @@
                 <label id="confirm-check-box">
                 <input name="coreproject_acceptterms" id="acceptterms" type="checkbox" autofocus required aria-required="true" />
                 I've read the {{APPNAME}} 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a>, 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a>, 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy policy</a> & 
-                    <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'termsofservice'}}')">terms of service</a>.
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'moderationguidelines'}}">project guidelines</a>, 
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'communityguidelines'}}">community guidelines</a>, 
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'privacypolicy'}}">privacy policy</a> & 
+                    <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'termsofservice'}}">terms of service</a>.
                 </label>
             </div>
             <div class="w3-row">

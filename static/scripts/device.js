@@ -124,9 +124,13 @@ const refer = ({
     fullLoad = false,
     subload = true,
 }) => {
-    if (subload) subLoader(subload);
-    if (fullLoad) loader(fullLoad);
-    window.location.href = setUrlQueries(path, query);
+    if (path.startsWith("http") && !path.startsWith(SITE)) {
+        newTab(setUrlQueries(path, query));
+    } else {
+        if (subload) subLoader(subload);
+        if (fullLoad) loader(fullLoad);
+        window.location.href = setUrlQueries(path, query);
+    }
 };
 
 const relocate = ({
@@ -135,7 +139,11 @@ const relocate = ({
     fullLoad = false,
     subload = true,
 }) => {
-    if (subload) subLoader(subload);
-    if (fullLoad) loader(fullLoad);
-    window.location.replace(setUrlQueries(path, query));
+    if (path.startsWith("http") && !path.startsWith(SITE)) {
+        newTab(setUrlQueries(path, query));
+    } else {
+        if (subload) subLoader(subload);
+        if (fullLoad) loader(fullLoad);
+        window.location.replace(setUrlQueries(path, query));
+    }
 };

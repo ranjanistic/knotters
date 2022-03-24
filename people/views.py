@@ -39,7 +39,6 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
         except:
             isuuid = False
 
-        print(userID)
         if isuuid:
             data = profileRenderData(request, userID=userID)
         else:
@@ -49,7 +48,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
 
         if isuuid:
             return redirect(data["person"].profile.getLink())
-        print(data)
+
         return renderer(request, Template.People.PROFILE, data)
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -663,7 +662,7 @@ def browseSearch(request: WSGIRequest):
                 ), profiles)),
                 query=query
             ))
-        print('here')
+
         return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
     except Exception as e:
         errorLog(e)

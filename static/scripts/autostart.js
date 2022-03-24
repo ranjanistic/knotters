@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDynamicContent();
     loadCarousels({});
     loadBrowsers();
+    loadSnapshotActions()
 });
 
 window.addEventListener("load", () => {

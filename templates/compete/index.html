@@ -45,8 +45,9 @@
     Time to time mass challenges, targeted primarily on real world problems.<br/>And for you to level up with enthusiasm.
   </strong>
   </div>
+  <br/><br/>
   <div class='w3-row w3-padding'>
-    <a href='{{URLS.LANDING}}'>
+    <a href='{{URLS.LANDING}}#competitions'>
       <button class='positive big-button' data-icon='flight_land'>
         {% trans "Learn More" %}
       </button>
@@ -76,6 +77,7 @@
     </div>
     <div class="w3-row browser-view" data-type="{{BROWSE.RECENT_WINNERS}}" id='{{BROWSE.RECENT_WINNERS}}-view'>
     </div>
+    <br/><br/>
   	<div class="w3-row w3-center" id="tabsrow">
       <button id="active" class="compete-nav-tab big-button href" data-href="#tabsrow" data-icon="stream">
         <span class="w3-hide-small">{% trans "Active" %}</span>
@@ -92,6 +94,6 @@
 {% endblock %} 
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:"index.js"}}?search={{request.GET.search}}"></script>
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
 <script src="{% static 'scripts/compete/index.js' %}" ></script>
 {% endblock %}

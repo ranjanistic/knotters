@@ -9,7 +9,7 @@
 {% for report in userreports %}
 <div class="w3-row pallete-slab">
     <b>{{report.category}}</b><br/>
-    <a onclick="miniWindow('{{report.user.profile.get_link}}')">{{report.user.profile.get_name}} ({{report.user.profile.getEmail}})</a>
+    <a class="mini-window-action" data-url="{{report.user.profile.get_link}}">{{report.user.profile.get_name}} ({{report.user.profile.getEmail}})</a>
 </div>
 {% endfor %}
 </div>

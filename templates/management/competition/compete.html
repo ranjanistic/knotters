@@ -33,10 +33,10 @@
         <div class="w3-row" align='left'>
             <br/>
             <h6>Manager: <a href="{{compete.creator.getLink}}" target="_blank">{{compete.creator.getName}}</a></h6>
-            <h6>Moderator </h6><a onclick="miniWindow('{{compete.getModerator.getLink}}')"><button class="accent" data-img="{{compete.getModerator.get_dp}}">{{compete.getModerator.getName}}</button></a>
+            <h6>Moderator </h6><a class="mini-window-action" data-url="{{compete.getModerator.getLink}}"><button class="accent" data-img="{{compete.getModerator.get_dp}}">{{compete.getModerator.getName}}</button></a>
             <h6>Judges </h6>
             {%for judge in compete.getJudges %}
-            <a onclick="miniWindow('{{judge.getLink}}')"><button class="active" data-img="{{judge.get_dp}}">{{judge.getName}}</button></a> 
+            <a class="mini-window-action" data-url="{{judge.getLink}}"><button class="active" data-img="{{judge.get_dp}}">{{judge.getName}}</button></a> 
             {% endfor %}
             <h6>Topics:</h6> 
             {% for topic in compete.getTopics %}
@@ -94,7 +94,7 @@
                             {% if not generating %}
                             <form method="POST" class="w3-right" action="{{compete.generateCertificatesLink}}">
                                 {% csrf_token %}
-                                <button onclick="loader()" class="accent" data-icon="badge">Generate certificates</button>
+                                <button class="accent full-loader-action" data-icon="badge">Generate certificates</button>
                             </form>
                             {% else %}
                             Certificates generation in progress, refresh page to check status.
@@ -106,7 +106,7 @@
                             {% if not declaring %}
                             <form method="POST" class="w3-right" action="{{compete.declareResultsLink}}">
                                 {% csrf_token %}
-                                <button onclick="loader()" class="accent" data-icon="celebration">Declare results now</button>
+                                <button class="accent full-loader-action" data-icon="celebration">Declare results now</button>
                             </form>
                             {% else  %}
                             Results declaration in progress, refresh page to check status.

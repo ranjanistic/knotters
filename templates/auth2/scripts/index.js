@@ -31,6 +31,10 @@ initializeTabsView({
             case "notification":
                 {
                     let allcheck = false;
+                    getElement("test-notification-action").onclick=async(_)=>{
+                        await getRequest(URLS.NOTIF_ENABLED);
+                        message('A notification has been sent to you to check if enabled.')
+                    }
                     getElements("notification-toggle-email").forEach((tog) => {
                         tog.onclick = async (_) => {
                             const notifID = tog.getAttribute(

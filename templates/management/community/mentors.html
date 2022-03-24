@@ -19,7 +19,7 @@
         {% for mnt in mentors %}
         <div class="w3-row pallete-slab" id="pallete-demote-{{mnt.getUserID}}">
             <div class="w3-col s2 m1">
-                <a onclick="miniWindow('{{mnt.getLink}}')" ><img src="{{mnt.getDP}}" class="w3-circle primary" width="50" /></a>
+                <a class="mini-window-action" data-url="{{mnt.getLink}}" ><img src="{{mnt.getDP}}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
@@ -46,7 +46,7 @@
     {% for mnt in profiles %}
         <div class="w3-row pallete-slab" id="pallete-promote-{{mnt.getUserID}}">
             <div class="w3-col s2 m1">
-                <a onclick="miniWindow('{{mnt.getLink}}')" ><img src="{{mnt.getDP}}" class="w3-circle primary" width="50" /></a>
+                <a class="mini-window-action" data-url="{{mnt.getLink}}" ><img src="{{mnt.getDP}}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">

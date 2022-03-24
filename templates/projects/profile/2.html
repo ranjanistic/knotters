@@ -37,7 +37,7 @@
                     {% if iscreator or ismoderator %}
                     <i class="material-icons edit-action w3-right" data-edittarget="pallete">edit</i>
                     {% endif %}
-                    <i class="w3-left pointer navigator-share-action" 
+                    <i class="w3-left pointer navigator-share-action circle" 
                         data-title="{{project.name}}"
                         data-text="{{project.description|or:'Checkout this project!'}}"
                         data-url="{{project.getLink}}"
@@ -151,7 +151,7 @@
                 <div class="pallete">
                     <center><h5 class="align"><i>notes</i>&nbsp;Overview</h5></center><br/>
                     <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab positive-text text-big">{{project.category.name|capfirst}}</strong></a>
-                    <br/>
+                    <br/><br/>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
@@ -161,6 +161,7 @@
                         </a>
                     {% empty %}
                         {% if iscreator or ismoderator %}
+                            <br/>
                             <button class="accent edit-action big-button" data-edittarget="projecttopics" data-icon="add">Add topics</button>
                         {% else %}
                             <br/>
@@ -284,7 +285,7 @@
                     <div class="w3-row">
                     {% if project.under_invitation %}
                         <h6>Transfer invited</h6>
-                        <a onclick="miniWindow('{{project.current_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
+                        <a class="mini-window-action" data-url="{{project.current_invitation.receiver.get_link}}"><button class="primary"><img class="circle" src="{{project.current_invitation.receiver.get_dp}}" width="25" />{{project.current_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_invitation.expiresOn}}</b>
                         {% if iscreator %}<button class="negative small" id='delete-project-invitation' data-icon="delete">Delete</button>{% endif %}
                     {% endif %}
@@ -294,7 +295,7 @@
                     {% endif %}
                     {% if project.under_mod_invitation %}
                         <h6>Moderation transfer invited</h6>
-                        <a onclick="miniWindow('{{project.current_mod_invitation.receiver.get_link}}')"><button class="primary"><img class="circle" src="{{project.current_mod_invitation.receiver.get_dp}}" width="25" />{{project.current_mod_invitation.receiver.get_name}}</button></a>
+                        <a class="mini-window-action" data-url="{{project.current_mod_invitation.receiver.get_link}}"><button class="primary"><img class="circle" src="{{project.current_mod_invitation.receiver.get_dp}}" width="25" />{{project.current_mod_invitation.receiver.get_name}}</button></a>
                         <b>till {{project.current_mod_invitation.expiresOn}}</b>
                         {% if ismoderator %}<button class="negative small" id='delete-project-mod-invitation' data-icon="delete">Delete</button>{% endif %}
                     {% endif %}
@@ -337,8 +338,8 @@
                     <strong>{% trans "Created on" %} <span>{{project.createdOn}}</span></strong><br/><br/>
                     <strong>{% trans "Created by" %}</strong><a href="{{project.creator.getLink}}"><button class="primary"><img class="circle" src="{{project.creator.getDP}}"  width="20"/>&nbsp;{{project.creator.getName}}{% if project.creator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
                     <strong>Moderated by</strong><a href="{{project.moderator.getLink}}"><button class="accent"><img class="circle" src="{{project.moderator.getDP}}" width="25"/>&nbsp;{{project.moderator.getName}}{% if project.moderator.is_verified %}<i class="text-accent w3-large">verified</i>{% endif %}</button></a><br/><br/>
-                    <strong>{% trans "License" %}: <a onclick="miniWindow('{{project.license.getLink}}')" target="_blank"> {{project.license.name}}</a></strong><br/><br/>
-                    <strong>{% trans "Current Budget" %}: &#x20B9; <a onclick="message('The budget of this core project')">{{project.budget}}</a></strong><br/>
+                    <strong>{% trans "License" %}: <a class="mini-window-action" data-url="{{project.license.getLink}}" target="_blank"> {{project.license.name}}</a></strong><br/><br/>
+                    <strong>{% trans "Current Budget" %}: &#x20B9; <a class="message-action" data-message="The budget of this core project">{{project.budget}}</a></strong><br/>
                    </div>
                   {% if iscreator %}
                   <div class="w3-row" id="edit-description">

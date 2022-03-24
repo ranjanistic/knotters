@@ -15,7 +15,7 @@
 
 {% block content %}
 <div class="w3-row w3-padding">
-<h6>By: {{report.author}}{% if not report.is_anonymous %}<a onclick="miniWindow('{{report.reporter.getLink}}')"><button class="small primary">View</button></a>{% endif %}</h6>
+<h6>By: {{report.author}}{% if not report.is_anonymous %}<a class="mini-window-action" data-url="{{report.reporter.getLink}}"><button class="small primary">View</button></a>{% endif %}</h6>
 <h6>Created On: {{report.createdOn}}</h6>
 <h6>Last update: {{report.updatedOn}}</h6>
 <h6>Resolved ? {{report.resoved|yesno}}</h6>

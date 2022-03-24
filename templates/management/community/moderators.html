@@ -19,7 +19,7 @@
         {% for mod in moderators %}
         <div class="w3-row pallete-slab" id="pallete-demote-{{mod.getUserID}}">
             <div class="w3-col s2 m1">
-                <a onclick="miniWindow('{{mod.getLink}}')" ><img src="{{mod.getDP}}" class="w3-circle primary" width="50" /></a>
+                <a class="mini-window-action" data-url="{{mod.getLink}}" ><img src="{{mod.getDP}}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">
@@ -46,7 +46,7 @@
     {% for mod in profiles %}
         <div class="w3-row pallete-slab" id="pallete-promote-{{mod.getUserID}}">
             <div class="w3-col s2 m1">
-                <a onclick="miniWindow('{{mod.getLink}}')" ><img src="{{mod.getDP}}" class="w3-circle primary" width="50" /></a>
+                <a class="mini-window-action" data-url="{{mod.getLink}}" ><img src="{{mod.getDP}}" class="w3-circle primary" width="50" /></a>
             </div>
             <div class="w3-col s10 m8 w3-padding-small">
                 <div class="w3-row">

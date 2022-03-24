@@ -287,8 +287,14 @@ const loadTabScript = (attr, tab) => {
                         try {
                             getElement("save-url-submission").onclick =
                                 async () => {
-                                    let submissionurl = getElement("submissionurl").value.trim()
-                                    if(!submissionurl) return error("No submission URL saved!");
+                                    let submissionurl =
+                                        getElement(
+                                            "submissionurl"
+                                        ).value.trim();
+                                    if (!submissionurl)
+                                        return error(
+                                            "No submission URL saved!"
+                                        );
                                     const data = await postRequest2({
                                         path: setUrlParams(
                                             URLS.SAVE,
@@ -300,7 +306,7 @@ const loadTabScript = (attr, tab) => {
                                         },
                                     });
                                     if (data && data.code == CODE.OK) {
-                                        message("Saved!")
+                                        message("Saved!");
                                         return tab.click();
                                     }
                                     return error(data.error);
@@ -471,19 +477,21 @@ const loadTabScript = (attr, tab) => {
         };
     } catch {}
     if (!taskinit && attr == "task") {
-        [
-            getElement("compete-task-summary"),
-            getElement("compete-task-detail"),
-            getElement("compete-task-sample"),
-        ].forEach((e) => {
-            let s = new SimpleMDE({
-                element: e,
-                toolbar: false,
-                status: false,
+        try {
+            [
+                getElement("compete-task-summary"),
+                getElement("compete-task-detail"),
+                getElement("compete-task-sample"),
+            ].forEach((e) => {
+                let s = new SimpleMDE({
+                    element: e,
+                    toolbar: false,
+                    status: false,
+                });
+                s.togglePreview();
+                s.codemirror.options.readOnly = true;
             });
-            s.togglePreview();
-            s.codemirror.options.readOnly = true;
-        });
+        } catch {}
     }
 };
 

@@ -49,7 +49,7 @@
         <br/><br/>
         <div class="text-big"><strong class="">In a few moments, you'll be ready to begin your journey at {{APPNAME}}.</strong></div>
         <div class="w3-row w3-center w3-padding xyz-in" xyz="fade back down duration-10 left-100%">
-            <button onclick="moveBoarding(1)" class="big-button positive" data-icon="arrow_forward">Get Started</button>
+            <button data-current="1" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward">Get Started</button>
         </div>
     </div>
     <div class="w3-row on-boarding-view" id="2" hidden>
@@ -99,8 +99,8 @@
             </div>
         </div>
         <div class="w3-row w3-center " xyz="fade back down duration-10">
-            <button onclick="moveBoarding(2, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
-            <button onclick="moveBoarding(2)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Okay, next</button>
+            <button data-current="2" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="2" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Okay, next</button>
         </div>
         <br/><br/>
     </div>
@@ -143,8 +143,8 @@
                     <br/>
                     <div class="w3-row w3-center">
                         You can change these details anytime.<br/><br/>
-                        <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
-                        <button class="accent small" onclick="futuremessage('Changes saved')" type="submit" data-icon="done">Save changes</button>
+                        <button class="negative small reload-page-action" type="button" data-icon="close">Discard changes</button>
+                        <button class="accent small future-message-action" data-message="Changes saved!" type="submit" data-icon="done">Save changes</button>
                     </div>
                 </form>
             </div>
@@ -153,8 +153,8 @@
             </div>
         </div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(3, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
-            <button onclick="moveBoarding(3)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+            <button data-current="3" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="3" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
         </div>
         <br/><br/>
     </div>
@@ -219,16 +219,16 @@
         </div>
         <br/>
         <div class="w3-row w3-center">
-            <button class="negative small" type="button" onclick="window.location.reload();" data-icon="close">Discard changes</button>
-            <button class="accent small" onclick="saveVisibleTopics()" type="submit" data-icon="done">Save changes</button>
+            <button class="negative small reload-page-action" type="button" data-icon="close">Discard changes</button>
+            <button class="accent small" id="save-visible-topics-action" type="submit" data-icon="done">Save changes</button>
         </div>
         <br/>
         <center><strong>
         The +N on topics represents your XP in them, increasing overtime depending upon your activity on {{APPNAME}}.
         </strong></center>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(4, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
-            <button onclick="moveBoarding(4)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+            <button data-current="4" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="4" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
         </div>
         <br/><br/>
     </div>
@@ -241,14 +241,14 @@
             {% for project in request.user.profile.recommended_projects %}
             <div class="w3-col w3-quarter w3-padding xyz-in">
                 <div class="pallete no-pad w3-center ">
-                    <a onclick="miniWindow('{{project.getLink}}')">
+                    <a class="mini-window-action" data-url="{{project.getLink}}">
                         <img class="primary" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" />
                     </a>
                     <div class="w3-row w3-padding">
                         <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
                         <span>{{ project.description|truncatechars:45 }}</span>
                         <br/><br/>
-                        <button onclick="onboardAdmireProject('{{project.get_id}}')" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism">Admire</button>
+                        <button data-projectID="{{project.get_id}}" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %} onboard-project-admire-action" data-icon="volunteer_activism">Admire</button>
                     </div>
                     <br/>
                 </div>
@@ -259,8 +259,8 @@
         <br/>
         <strong>Snapshots are the moments during the lifetime of a project.</strong>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(5, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
-            <button onclick="moveBoarding(5)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
+            <button data-current="5" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="5" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Done, next</button>
         </div>
         <br/><br/>
     </div>
@@ -348,8 +348,8 @@
             </div>
         </div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(6, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
-            <button onclick="moveBoarding(6)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
+            <button data-current="6" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="6" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
         </div>
     </div>
     <div class="w3-row on-boarding-view" id="7" hidden>
@@ -417,7 +417,7 @@
                 </a>
             </div>
             <div class="w3-col w3-quarter w3-padding xyz-in">
-                <a onclick="troubleShootingInfo()">
+                <a class="troubleshoot-action">
                 <div class="pallete-slab positive-text">
                     <h3>Troubleshooting <i class="w3-right">arrow_forward</i></h3>
                     <strong>A small guide to resolve any problems, at your end.</strong>
@@ -425,7 +425,7 @@
                 </a>
             </div>
             <div class="w3-col w3-quarter w3-padding xyz-in">
-                <a onclick="miniWindow('https://api.knotters.org/', 'API')">
+                <a class="mini-window-action" data-url="https://api.knotters.org/" data-windowname="Knotters API">
                 <div class="pallete-slab positive-text">
                     <h3>Knotters API <i class="w3-right">arrow_forward</i></h3> 
                     <strong>The under-construction API  of {{APPNAME}}. Opening this in browser won't be of any use currently.</strong>
@@ -433,7 +433,7 @@
                 </a>
             </div>
             <div class="w3-col w3-quarter w3-padding xyz-in">
-                <a onclick="miniWindow('https://events.knotters.org/', 'API')">
+                <a class="mini-window-action" data-url="https://events.knotters.org/" data-windowname="Knotters Events">
                 <div class="pallete-slab positive-text">
                     <h3>Knotters Events <i class="w3-right">arrow_forward</i></h3> 
                     <strong>The periodic events 🎊 at Knotters conducting collection of competitions for you.</strong>
@@ -449,7 +449,7 @@
                 </a>
             </div>
             <div class="w3-col w3-quarter w3-padding xyz-in">
-                <a onclick="miniWindow('https://bot.knotters.org/discord', 'API')">
+                <a class="mini-window-action" data-url="https://bot.knotters.org/discord" data-windowname="Knotters Bot">
                 <div class="pallete-slab positive-text">
                     <h3>Knotters Discord Bot <i class="w3-right">arrow_forward</i></h3> 
                     <strong>Our discord bot for automatic relevant channels creation on Knotters discord server, for the community ♥️.</strong>
@@ -476,8 +476,8 @@
         </div>
         <br/>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(7, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
-            <button onclick="moveBoarding(7)" class="big-button positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
+            <button data-current="7" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="7" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
         </div>
     </div>
     <div class="w3-row on-boarding-view" id="8">
@@ -500,7 +500,7 @@
         <br/><br/>
         <div class="text-big w3-center"><strong>Now you are ready to<br/>start your journey at {{APPNAME}}.</strong></div>
         <div class="w3-row w3-center" xyz="fade back down duration-10">
-            <button onclick="moveBoarding(8, -1)" class="big-button primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
+            <button data-current="8" class="big-button moveboarding-action-back primary xyz-in" data-icon="arrow_back" xyz="left-100%">Previous</button>
             <button id="on-boarding-finish" class="big-button positive xyz-in" data-icon="done" xyz="right-100%">Let's go!</button>
         </div>
         <br/><br/>
@@ -515,7 +515,7 @@
 
 {% block in_scripts %}
     <script src="{% static 'interactjs/interactjs.min.js' %}"></script>
-    <script src="{{URLS.SCRIPTS|params:'on-boarding.js'}}?next={{request.GET.next}}"></script>
+    <script src="{{URLS.SCRIPTS|params:SCRIPTS.ON_BOARDING}}?next={{request.GET.next}}"></script>
 {% endblock %}
 
 {% block footer %}{% endblock %}

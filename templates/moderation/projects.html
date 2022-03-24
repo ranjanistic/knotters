@@ -24,7 +24,7 @@
         <h5 class="dead-text">{% trans "Status" %}: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">{% trans "Type" %}: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
         <h5 class="dead-text">{% trans "Category" %}: <span class="text-primary">{{moderation.project.category.name}}</span></h5>
-        <h5 class="dead-text">{% trans "License" %}: <a onclick="miniWindow('{{moderation.project.license.getLink}}')" target="_blank">{{moderation.project.license.name}}</a></h5>
+        <h5 class="dead-text">{% trans "License" %}: <a class="mini-window-action" data-url="{{moderation.project.license.getLink}}" target="_blank">{{moderation.project.license.name}}</a></h5>
         <h2>{{moderation.project.name}}</h2>
         {% if moderation.project.isLive %}
         <a target="_blank" href="{{moderation.project.getRepoLink}}"><h4 class="positive-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4></a>
@@ -32,7 +32,7 @@
         <h4 class="dead-text">github.com/Knotters/<span class="text-primary">{{moderation.project.reponame}}</span></h4>
         {% endif %}
         {% if moderation.referURL %}
-        <a onclick="miniWindow('{{moderation.referURL}}')" title="Be careful with the URLs provided by requestors."><strong>{{moderation.referURL}}</strong></a><br/>
+        <a class="mini-window-action" data-url="{{moderation.referURL}}" title="Be careful with the URLs provided by requestors."><strong>{{moderation.referURL}}</strong></a><br/>
         {% endif %}
         Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
         <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
@@ -126,9 +126,9 @@
         </div>
         <br/>
         <div class="w3-row w3-padding">
-        <h5>Do respect and follow <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a> in any kind of interaction.</h5>
-        <h5>You can go through the <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a> for any doubt or help regarding this.</h5>
-        <h5>For <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'privacypolicy'}}')">privacy reasons</a>, {% trans "we keep the identity of requestor and moderator anonymous to each other." %}</h5>
+        <h5>Do respect and follow <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'communityguidelines'}}">community guidelines</a> in any kind of interaction.</h5>
+        <h5>You can go through the <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'moderationguidelines'}}">project guidelines</a> for any doubt or help regarding this.</h5>
+        <h5>For <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'privacypolicy'}}">privacy reasons</a>, {% trans "we keep the identity of requestor and moderator anonymous to each other." %}</h5>
         </div>
     </div>
 </div>

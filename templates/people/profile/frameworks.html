@@ -14,7 +14,7 @@
         <h3>{% trans "No frameworks, yet." %}</h3>
         <h6>The emptiness not {{person.profile.getFName}}'s fault, as frameworks are still under development.</h6>
         {% if self %}
-        <button class="accent big-button" onclick="message('Feature under development.')" data-icon="add" id="create-new-frameword">New Framework</button>
+        <button class="accent big-button message-action" data-message="Feature under development." data-icon="add" id="create-new-frameword">New Framework</button>
         {% endif %}
     </center>
 {% endfor %}
