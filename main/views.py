@@ -2,6 +2,7 @@ import json
 from os import path as ospath
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
+from django.views.decorators.cache import cache_control
 from management.methods import competitionManagementRenderData, labelRenderData
 from moderation.methods import moderationRenderData
 from rjsmin import jsmin
@@ -205,6 +206,7 @@ def snapshot(request: WSGIRequest, snapID):
         raise Http404(e)
 
 @require_GET
+@cache_control(no_cache=True, public=True, max_age=settings.CACHE_MINI)
 def scripts(request, script):
     if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
@@ -214,6 +216,7 @@ def scripts(request, script):
     return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
 
 @require_GET
+@cache_control(no_cache=True, public=True, max_age=settings.CACHE_MINI)
 def scripts_subapp(request, subapp:str, script:str):
     if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
