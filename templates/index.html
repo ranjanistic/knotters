@@ -206,7 +206,7 @@
                             <div class='w3-row'>
                                 <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}India's First  <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform{% endblocktrans %}</h1>
                                 <h1 class='w3-hide-large w3-hide-medium'>India's First <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform</h1>
-                            </div>
+                            </div><br/>
                             <div class='w3-row'>
                                 {% if not request.user.is_authenticated %}
                                  <a href='{% url 'account_signup' %}?next={{request.path}}'><button class='big-button positive' data-icon='person_add'>{% trans "Become a member" %}</button></a>
@@ -234,7 +234,7 @@
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
                                 <br/>
                                 <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
-                            </div>
+                            </div><br/>
                             <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
                             <br/><br/>
                         </div>
@@ -251,7 +251,7 @@
                                 <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Participate{% endblocktrans %}</h2>
                                 <br/>
                                 <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
-                            </div>
+                            </div><br/>
                             <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
                             <br/><br/>
                         </div>
@@ -266,16 +266,16 @@
                                 <h2 class='w3-hide-large w3-hide-medium'>Why {{APPNAME}}?</h2>
                                 <br/>
                                 <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
-                            </div>
+                            </div><br/>
                             <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
                             <br/><br/>
                         </div>
                     </div>
-                </div>
+                </div><br/>
                 <div class="w3-row w3-padding-large w3-center">
                     {% if not request.user.is_authenticated %}
                         <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
-                        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
+                        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a><br/>
                         <button class="big-button primary contact-request-action" data-icon="support">Contact us</button></a>
                     {% endif %}
                 </div>
