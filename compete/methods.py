@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from main.bots import Discord
 from qrcode import make
@@ -60,6 +61,46 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
         return False
 
 
+def competitionProfileData(request,compID=None, nickname=None):
+    """
+    Returns competition profile data.
+    """
+    try:
+        cacheKey = f"{APPNAME}_competition_profile"
+        if compID:
+            cacheKey = f"{cacheKey}_{compID}"
+            compete = cache.get(cacheKey, None)
+            if not compete:
+                compete = Competition.objects.get(id=compID)
+                cache.set(cacheKey, compete, settings.CACHE_MICRO)
+        else:
+            cacheKey = f"{cacheKey}_{nickname}"
+            compete = cache.get(cacheKey, None)
+            if not compete:
+                compete = Competition.objects.get(nickname=nickname)
+                cache.set(cacheKey, compete, settings.CACHE_MICRO)
+
+        isManager = request.user.is_authenticated and compete.creator == request.user.profile
+        if compete.is_draft and not isManager:
+            raise ObjectDoesNotExist('isdraft: ', compete)
+            
+        if request.user.is_authenticated:
+            data = dict(
+                compete=compete,
+                isJudge=compete.isJudge(request.user.profile),
+                isMod=compete.isModerator(request.user.profile),
+                isManager=isManager
+            )
+        else:
+            data = dict(
+                compete=compete
+            )
+        return data
+    except ObjectDoesNotExist:
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
 def getCompetitionSectionData(section: str, competition: Competition, user: User) -> dict:
     """
     Returns section (tab) data for the given competition.

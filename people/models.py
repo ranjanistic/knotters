@@ -1,6 +1,9 @@
 import uuid
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django_otp.models import Device
+from allauth_2fa.utils import user_has_valid_totp_device
+from django_otp import devices_for_user
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -122,6 +125,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     def getLink(self) -> str:
         return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getID())}"
 
+    def has_totp_device_enabled(self) -> bool:
+        return user_has_valid_totp_device(user=self)
+
+    def verify_totp(self, token) -> bool:
+        for device in devices_for_user(self, True):
+            if device.verify_token(token):
+                break
+        else:
+            return False
+        return True
+
     def add_phone(self, number, country):
         number = str(number).strip()
         if PhoneNumber.objects.filter(number=number, country=country, verified=True).exists():
@@ -180,10 +194,10 @@ class Topic(models.Model):
         return topicprofiles
 
     def totalProfiles(self):
-        return self.getProfiles.count()
+        return self.getProfiles().count()
 
     def getProfilesLimited(self):
-        return self.getProfiles[0:50]
+        return self.getProfiles()[0:50]
 
     def getTags(self):
         cacheKey = f"topic_tags_{self.id}"
@@ -211,7 +225,7 @@ class Topic(models.Model):
         return topicprojects
 
     def totalProjects(self):
-        return self.getProjects.count()
+        return self.getProjects().count()
 
     def totalXP(self):
         cacheKey = f"topic_totalxp_{self.id}"
@@ -368,6 +382,20 @@ class Profile(models.Model):
         if self.user:
             return PhoneNumber.objects.filter(user=self.user, verified=True)
         return []
+    
+    def get_nickname(self):
+        if not self.nickname:
+            if not self.is_normal:
+                return None
+            if self.githubID:
+                nickname = self.githubID
+            else:
+                nickname = self.user.email.split('@')[0]
+            if Profile.objects.filter(nickname=nickname).exclude(id=self.id).exists():
+                nickname = nickname + str(self.get_userid)
+            self.nickname = nickname
+            self.save()
+        return self.nickname
 
     def total_admiration(self):
         cacheKey = self.CACHE_KEYS.total_admirations
@@ -735,11 +763,15 @@ class Profile(models.Model):
 
     def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
         if not self.is_zombie:
-            ghID = self.ghID()
-            if ghID:
-                return f"{url.getRoot(APPNAME)}{url.people.profile(userID=ghID)}{url.getMessageQuery(alert,error,success)}"
+            nickname = self.get_nickname()
+            if nickname:
+                return f"{url.getRoot(APPNAME)}{url.people.profile(userID=nickname)}{url.getMessageQuery(alert,error,success)}"
             return f"{url.getRoot(APPNAME)}{url.people.profile(userID=self.getUserID())}{url.getMessageQuery(alert,error,success)}"
         return f'{url.getRoot(APPNAME)}{url.people.zombie(profileID=self.getID())}{url.getMessageQuery(alert,error,success)}'
+
+    @property
+    def get_short_link(self):
+        return f"{url.getRoot()}{url.at_nickname(nickname=self.get_nickname())}"
 
     @property
     def is_normal(self) -> bool:
@@ -1064,9 +1096,9 @@ class ProfileSetting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profile = models.OneToOneField(
         Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False, blank=False)
-    newsletter = models.BooleanField(default=True)
-    recommendations = models.BooleanField(default=True)
-    competitions = models.BooleanField(default=True)
+    # newsletter = models.BooleanField(default=True)
+    # recommendations = models.BooleanField(default=True)
+    # competitions = models.BooleanField(default=True)
     privatemail = models.BooleanField(default=True)
 
     def __str__(self) -> str:

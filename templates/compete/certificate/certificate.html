@@ -81,8 +81,6 @@
 <br/><br/>
 </div>
 {% endblock %}
-{% block in_scripts %}
-<script>
-success("This certificate is valid.");
-</script>
+{% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CERTIFICATE}}"></script>
 {% endblock %}

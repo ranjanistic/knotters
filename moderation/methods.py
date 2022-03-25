@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.core.cache import cache
 from people.models import Profile
@@ -233,7 +234,7 @@ def requestModerationForObject(
             if chosenModerator.is_moderator and chosenModerator.is_normal:
                 onlyModProfiles = [chosenModerator]
             else:
-                raise Exception("Chosen moderator", chosenModerator ,"is not available for ", coreproject)
+                raise Exception("Chosen moderator", chosenModerator ,"is not available for ", object)
         elif useInternalMods:
             onlyModProfiles = object.creator.management().moderators()
             if not len(onlyModProfiles): return False
@@ -385,5 +386,36 @@ def assignModeratorToCoreProject(coreproject:CoreProject,moderator:Profile, requ
         errorLog(e)
         return False
 
+
+def moderationRenderData(request, modID):
+    try:
+        moderation = Moderation.objects.get(id=modID)
+        isModerator = moderation.moderator == request.user.profile
+        isRequestor = moderation.isRequestor(request.user.profile)
+        if not isRequestor and not isModerator:
+            return False
+        data = dict(moderation=moderation, ismoderator=isModerator)
+        if moderation.type == COMPETE:
+            if isRequestor:
+                data = dict(
+                    **data, allSubmissionsMarkedByJudge=moderation.competition.allSubmissionsMarkedByJudge(request.user.profile))
+        if moderation.type == PROJECTS and (moderation.resolved or moderation.is_stale):
+            forwarded = None
+            forwardeds = Moderation.objects.filter(type=PROJECTS, project=moderation.project, resolved=False).order_by('-requestOn','-respondOn')
+            if len(forwardeds) and forwardeds[0].moderator != moderation.moderator:
+                forwarded = forwardeds[0]
+            data = dict(**data, forwarded=forwarded)
+        elif moderation.type == CORE_PROJECT and (moderation.resolved or moderation.is_stale):
+            forwarded = None
+            forwardeds = Moderation.objects.filter(type=CORE_PROJECT, coreproject=moderation.coreproject, resolved=False).order_by('-requestOn','-respondOn')
+            if len(forwardeds) and forwardeds[0].moderator != moderation.moderator:
+                forwarded = forwardeds[0]
+            data = dict(**data, forwarded=forwarded)
+        return data
+    except ObjectDoesNotExist:
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
 
 from .receivers import *

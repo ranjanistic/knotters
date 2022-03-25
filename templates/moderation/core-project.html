@@ -24,7 +24,7 @@
         <h5 class="dead-text">{% trans "Status" %}: <span class="text-primary">{{moderation.status|capfirst}}</span></h5>
         <h5 class="dead-text">{% trans "Type" %}: <span class="text-primary">{{moderation.type|capfirst}}</span></h5>
         <h5 class="dead-text">{% trans "Category" %}: <span class="text-primary">{{moderation.coreproject.category.name}}</span></h5>
-        <h5 class="dead-text">{% trans "License" %}: <a onclick="miniWindow('{{moderation.coreproject.license.getLink}}')" target="_blank">{{moderation.coreproject.license.name}}</a></h5>
+        <h5 class="dead-text">{% trans "License" %}: <a class="mini-window-action" data-url="{{moderation.coreproject.license.getLink}}" target="_blank">{{moderation.coreproject.license.name}}</a></h5>
         {% if ismoderator %}
         <h5 class="dead-text">{% trans "Requested by" %}</h5><a href="{{moderation.requestor.get_link}}" target="_blank"><button class="primary"><img class="circle" src="{{moderation.requestor.get_dp}}"  width="20"/>&nbsp;{{moderation.requestor.getName}}{% if moderation.requestor.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
         {% else %}
@@ -38,7 +38,7 @@
         <h4 class="dead-text">github.com/Knotters/<span class="text-primary">{{moderation.coreproject.codename}}</span><i>lock</i></h4>
         {% endif %}
         {% if moderation.referURL %}
-        <a onclick="miniWindow('{{moderation.referURL}}')" title="Be careful with the URLs provided by requestors."><strong>{{moderation.referURL}}</strong></a><br/>
+        <a class="mini-window-action" data-url="{{moderation.referURL}}" title="Be careful with the URLs provided by requestors."><strong>{{moderation.referURL}}</strong></a><br/>
         {% endif %}
         Requested on <strong>{{moderation.requestOn}}</strong><br/><br/>
         <form method="POST" action="{{URLS.MESSAGE|params:moderation.getID}}">
@@ -134,58 +134,14 @@
         </div>
         
         <div class="w3-row w3-padding">
-        <h5>Do respect and follow <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'communityguidelines'}}')">community guidelines</a> in any kind of interaction.</h5>
-        <h5>You can go through the <a onclick="miniWindow('{{URLS.Docs.TYPE|params:'moderationguidelines'}}')">project guidelines</a> for any doubt or help regarding this.</h5>
+        <h5>Do respect and follow <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'communityguidelines'}}">community guidelines</a> in any kind of interaction.</h5>
+        <h5>You can go through the <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'moderationguidelines'}}">project guidelines</a> for any doubt or help regarding this.</h5>
         </div>
     </div>
 </div>
 <br/>
 {% endblock%}
 
-{% block in_scripts %}
-<script>
-const modID = "{{moderation.getID}}";
-{% if ismoderator %}
-getElements("modaction").forEach((action)=>{
-    const approve = action.id === 'approve';
-    const modaction = async() => {
-        loader(true);
-        message('{% trans "Resolving moderation" %}, {% trans "please wait" %}.')
-        const data = await postRequest(setUrlParams(URLS.ACTION, modID), {approve})
-        if (!data) return loader(false);
-        if(data.code === code.OK){
-            success('Resolved.')
-            window.location.reload()
-        } else {
-            loader(false);
-            error(data.error)
-        }
-    }
-    action.addEventListener('click',()=>{
-        Swal.fire({
-            title: `{% trans "Final confirmation" %}`,
-            html:`<h4>Are you sure that to <span class="${approve?'positive':'negative'}-text">${action.id}</span> this core project {{moderation.coreproject.name}} (@{{moderation.coreproject.codename}}) 
-            will be your final decision?
-                <br/><br/>
-            <h5>{% trans "This action is irreversible." %}</h5>`,
-            showConfirmButton: approve,
-            showDenyButton: !approve,
-            showCancelButton: true,
-            denyButtonText: "Reject this project",
-            confirmButtonText: "Approve this project",
-            cancelButtonText: "No, wait!",
-        }).then(async(result)=>{
-            if(result.isConfirmed||result.isDenied){
-                await modaction()
-            }
-        })
-    })
-})
-{% endif %}
-    getElement('report-moderation').onclick=async()=>{
-        await violationReportDialog(URLS.REPORT_MODERATION,{
-            moderationID: '{{moderation.get_id}}',
-        },'',URLS.REPORT_CATEGORIES)
-    }
-</script>
+{% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CORE_PROJECT}}?id={{moderation.id}}"></script>
 {% endblock %}

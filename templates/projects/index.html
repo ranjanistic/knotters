@@ -50,6 +50,7 @@
     Contribute to existing ideas, or submit your own to make it real together with everyone.
   </strong>
   </div>
+  <br/><br/>
   <div class='w3-row w3-padding'>
     <a href='{{URLS.LANDING}}'>
       <button class='primary big-button' data-icon='flight_land'>
@@ -86,7 +87,17 @@
   </div>
    <div class="w3-row browser-view" data-type="{{BROWSE.TOPIC_PROJECTS}}" id='{{BROWSE.TOPIC_PROJECTS}}-view'>
   </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_PROJECTS}}" id='{{BROWSE.TRENDING_PROJECTS}}-view'>
+  </div>
   <div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROJECTS}}" id='{{BROWSE.NEW_PROJECTS}}-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.NEWLY_MODERATED}}" id='{{BROWSE.NEWLY_MODERATED}}-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_QUICK}}" id='{{BROWSE.TRENDING_QUICK}}-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_VERIFIED}}" id='{{BROWSE.TRENDING_VERIFIED}}-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_CORE}}" id='{{BROWSE.TRENDING_CORE}}-view'>
   </div>
   <br/>
   <div class="w3-row snapshot-viewer-parent" id="snap-view-1">
@@ -104,32 +115,6 @@
 </div>
 {% endblock %}
 
-{% block in_scripts %}
-<script>
-  
-    getElement("browse-search-clear").onclick=()=>{
-      getElement("browse-search-view").innerHTML='';
-      hideElement("browse-search-actions");
-    }
-    getElement("browse-search-input").oninput=(e)=>{
-      visibleElement("browse-search-actions", String(e.target.value).trim())
-    }
-    getElement("browse-search-exec").onclick=async()=>{
-      let query = String(getElement("browse-search-input").value).trim();
-      if(!query) return message('{% trans "Type something to search projects" %}')
-      const data = await getRequest2({path:URLS.BROWSE_SEARCH,data:{query}})
-      if(!data) return
-      setHtmlContent(getElement("browse-search-view"),data, loadBrowserSwiper)
-    }
-    getElement("search-projects-form").onsubmit=(e)=>{
-      getElement("browse-search-exec").click()
-    }
-    if("{{request.GET.search}}"){
-      window.location.href="#mainframe";
-      getElement("browse-search-input").value="{{request.GET.search}}";
-      showElement("browse-search-actions");
-      getElement("browse-search-exec").click()
-    }
-  
-</script>
+{% block scripts %}
+<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
 {% endblock %}

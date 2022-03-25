@@ -1,8 +1,9 @@
 {% extends 'management/index.html' %}
+{% load static %}
 {% load i18n %}
 {% load l10n %}
+{% load tz %}
 {% load cache %}
-{% load static %}
 {% load custom_tags %}
 
 {% block title %}Manage Competitions{% endblock %}
@@ -39,6 +40,3 @@
 <br/>
 {% endblock %}
 
-{% block in_scripts %}
-<script src="{% static 'simplemde/simplemde.min.js' %}"></script>
-{% endblock %}

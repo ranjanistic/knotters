@@ -76,17 +76,13 @@ MIDDLEWARE = [
     'django_otp.middleware.OTPMiddleware',
     'main.middleware.TwoFactorMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
-    # 'csp.middleware.CSPMiddleware',
+    'csp.middleware.CSPMiddleware',
     # "main.middleware.ActivityMiddleware",
     # "main.middleware.AuthAccessMiddleware",
     "main.middleware.MinifyMiddleware",
     "main.middleware.MessageFilterMiddleware",
     "main.middleware.ProfileActivationMiddleware",
 ]
-
-# CORS_ALLOWED_ORIGINS = env.CORS_ALLOWED_ORIGINS
-# CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
-# CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 ROOT_URLCONF = "main.urls"
 
@@ -552,3 +548,24 @@ MFA_REDIRECT_AFTER_REGISTRATION = url.getRoot(AUTH2)
 MFA_SUCCESS_REGISTRATION_MSG = 'Your keys have successfully been created!'
 
 INTERNAL_SHARED_SECRET = env.INTERNAL_SHARED_SECRET
+
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "maxcdn.bootstrapcdn.com", "*.knotters.org")
+
+CSP_FONT_SRC = ("'self'", "data:", "maxcdn.bootstrapcdn.com", "*.knotters.org")
+
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org")
+
+CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com" ,
+    "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
+    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
+    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
+)
+
+CSP_IMG_SRC = ("'self'","data:", "*.digitaloceanspaces.com", 
+    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
+    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
+)
+
+CSP_FRAME_SRC = ("'self'","www.google.com", "*.knotters.org")
+
+CSP_INCLUDE_NONCE_IN =["script-src"]

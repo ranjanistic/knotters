@@ -1,9 +1,16 @@
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
+from django.core.cache import cache
+from django.db.models import Q
 from django.http.response import HttpResponse
 from main.methods import errorLog, renderString, renderView, addMethodToAsyncQueue
 from compete.models import Competition, Perk
 from main.bots import Discord
+from main.strings import Code, Message
+from management.models import Management
 from people.models import Topic, Profile
+from projects.models import Category
 from .apps import APPNAME
 
 
@@ -88,5 +95,49 @@ def createCompetition(creator:Profile, title, tagline, shortdescription,
 
 def setupCompetitionChannel(compete:Competition):
     return Discord.create_channel(compete.get_nickname(), public=True, category="COMPETITIONS", message=f"Official discord channel for {compete.title} {compete.get_abs_link}")
+
+def labelRenderData(request,type,labelID):
+    """
+    Individual label render data
+    """
+    try:
+        mgm = request.user.profile.management()
+        cacheKey = f"{APPNAME}_labelrenderdata_{type}_{labelID}_{mgm.id}"
+        if type == Code.TOPIC:
+            topic = cache.get(cacheKey, None)
+            if not topic:
+                topic = Topic.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
+                if not topic: return False
+                cache.set(cacheKey, topic, settings.CACHE_MICRO)
+            return dict(topic=topic)
+        if type == Code.CATEGORY:
+            category = cache.get(cacheKey, None)
+            if not category:
+                category = Category.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
+                if not category: return False
+                cache.set(cacheKey, category, settings.CACHE_MICRO)
+            return dict(category=category)
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
+
+
+def competitionManagementRenderData(request,compID):
+    try:
+        compete = Competition.objects.get(id=compID, creator=request.user.profile)
+        resstatus = cache.get(f"results_declaration_task_{compete.get_id}")
+        certstatus = cache.get(f"certificates_allotment_task_{compete.get_id}")
+        return dict(
+            compete=compete,
+            iscreator=(compete.creator == request.user.profile),
+            declaring=(resstatus == Message.RESULT_DECLARING),
+            generating=(certstatus == Message.CERTS_GENERATING)
+        )
+    except ObjectDoesNotExist:
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
 
 from .receivers import *

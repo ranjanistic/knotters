@@ -128,8 +128,11 @@ const STRING = {
     contact_message_required: `{% trans "Please describe your message to contact us." %}`,
     contact_request_received: `{% trans "We have received your request, and we'll reach out to you on your email shortly!😊" %}`,
     password_to_continue: `{% trans "Please provide your account password to continue" %}`,
+    reauth_to_continue: `{% trans "Please re-authenticate to continue" %}`,
     password_required: `{% trans "Your account password is required" %}`,
+    password_or_2fa_required: `{% trans "Please provide password or 2FA" %}`,
     password: `{% trans "Password" %}`,
+    two_fa_token_or_backup: `{% trans "2FA or backup token" %}`,
     continue: `{% trans "Continue" %}`,
 };
 

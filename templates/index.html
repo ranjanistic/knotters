@@ -106,9 +106,9 @@
             </div>
          </div>
         </noscript>
-        <div class="w3-row w3-center secondary pointer beta-alert-view" onclick="betaAlert()" hidden>This is Knotters Beta. {% trans "Click here to learn more." %}</div>
         {% block nav %}
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
+            <div class="w3-row w3-center tertiary pointer beta-alert-view" hidden>This is Knotters Beta, not Knotters. {% trans "Click here to learn more." %}</div>
             {% block nav_title %}
             <a
                 style="padding:8px"
@@ -116,17 +116,17 @@
                 class="w3-left w3-animate-left previous-navigation-button">
                 <span hidden>{{APPNAME}}</span>
                 {% block nav_icon_hide %}
-                    <img alt="{{APPNAME}}" src="{{ICON}}" onclick="{% block nav_onclick %}window.close(){% endblock %}" class="darkimg" width="40" height="40" />
+                    <img alt="{{APPNAME}}" src="{{ICON}}" class="darkimg" width="40" height="40" class="window-close-action" />
                 {% endblock %}
 
                 <button
                     {% block nav_back_show %}hidden{% endblock %}
-                    class="{% block nav_back_theme %}primary{% endblock %} previous-navigation-button" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}" onclick="{% block nav_back_onclick %}window.close(){% endblock %}"></button>
+                    class="{% block nav_back_theme %}primary{% endblock %} previous-navigation-button window-close-action" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}"></button>
             </a>
             <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
             {% endblock %}
             {% block nav_right %}
-            <span class="w3-right w3-animate-right" style="padding:8px 8px 10px 0px; text-align:right">
+            <span class="w3-right w3-animate-right nav-tabs-span">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
                 {% block nav_links %}
@@ -208,7 +208,7 @@
                             <div class='w3-row'>
                                 <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}India's First  <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform{% endblocktrans %}</h1>
                                 <h1 class='w3-hide-large w3-hide-medium'>India's First <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform</h1>
-                            </div>
+                            </div><br/>
                             <div class='w3-row'>
                                 {% if not request.user.is_authenticated %}
                                  <a href='{% url 'account_signup' %}?next={{request.path}}'><button class='big-button positive' data-icon='person_add'>{% trans "Become a member" %}</button></a>
@@ -232,13 +232,13 @@
                         </div> {% endcomment %}
                         <div class='w3-col w3-padding-large'>
                             <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}About Us{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}About Us{% endblocktrans %}</h2>
-                                {% comment %} <br/> {% endcomment %}
-                                <strong class='text-medium'>{% blocktrans %} If not, then don't worry, follow your instincts, move around and explore the different sections of Knotters.<br/> It's not that hard to understand the importance of open source community, with proper project recognition and <br/>exposure to new kinds of skillsets favouring your own personal growth, by doing a simple thing - get started.{% endblocktrans %}</strong>
-                            </div>
-                            {% comment %} <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a> {% endcomment %}
-                            {% comment %} <br/><br/> {% endcomment %}
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
+                                <br/>
+                                <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
+                            </div><br/>
+                            <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
+                            <br/><br/>
                         </div>
                     </div>
                 </div>
@@ -269,7 +269,10 @@
                                     <button onclick="onboardAdmireProject('{{project.get_id}}')" id="on-board-project-admire-{{project.get_id}}" data-admires="{% if request.user.profile in project.admirers.all %}1{% else %}0{% endif %}" class="{% if request.user.profile in project.admirers.all %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism">Admire</button>
                                 </div>
                                 <br/>
-                            </div>
+                                <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
+                            </div><br/>
+                            <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
+                            <br/><br/>
                         </div>
                     </div>
                 </div>
@@ -278,9 +281,12 @@
                     <div class='w3-row w3-center'>
                         <div class='w3-col w3-padding-large'>
                             <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Domains of Collaboration{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Domains of Collaboration{% endblocktrans %}</h2>
-                            </div>
+                                <h2 class='w3-jumbo w3-hide-small'>Why {{APPNAME}}?</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>Why {{APPNAME}}?</h2>
+                                <br/>
+                                <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
+                            </div><br/>
+                            <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
                             <br/><br/>
                             <div class='w3-row accent pallete-slab'>
                                 <div class='w3-col pallete s3 w3-padding-large w3-hover-opacity domain-colab-tab'>
@@ -376,19 +382,12 @@
                             </div>
                         </div>
                     </div>
-                    <br/>
-                    {% for topic in topics%}
-                    <div class="vibrant w3-round-xlarge">
-                        <div class="w3-container w3-round-xlarge active" style="width:50%"><b>{{topic.name}} 300 XP</b></div>
-                    </div>
-                    <br/>
-                    {%endfor%}
-                </div>
+                </div><br/>
                 <div class="w3-row w3-padding-large w3-center">
                     {% if not request.user.is_authenticated %}
                         <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
-                        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
-                        <button class="big-button primary" data-icon="support" onclick="contactRequestDialog()">Contact us</button></a>
+                        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a><br/>
+                        <button class="big-button primary contact-request-action" data-icon="support">Contact us</button></a>
                     {% endif %}
                 </div>
                 <br/>
@@ -402,7 +401,7 @@
             {% if LANGUAGES|length %}
             <form action="{% url "set_language" %}" method="POST">
                 {% csrf_token %}
-                <select name="language" class="selectLanguage" id="language_lite_footer" onchange="this.form.submit()">
+                <select name="language" class="selectLanguage" id="language_lite_footer">
                 {% for language in LANGUAGES %}
                     <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                 {% endfor %}
@@ -411,7 +410,7 @@
             {% endif %}
             </div>
             <div class="w3-col w3-half primary-text w3-padding">
-                <a href="/" onclick="window.close()"><img class="w3-right" src="{{ICON_SHADOW}}" width="100" /></a>
+                <a href="/" class="window-close-action"><img class="w3-right" src="{{ICON_SHADOW}}" width="100" /></a>
             </div>
             <div class="w3-row w3-center">
             <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="dead-text">{% trans "Copyright" %} {% now "Y" %} Knotters</a>
@@ -424,7 +423,7 @@
                 {% if LANGUAGES|length %}
                 <form action="{% url "set_language" %}" method="POST">
                     {% csrf_token %}
-                    <select name="language" class="selectLanguage" id="language" onchange="this.form.submit()">
+                    <select name="language" class="selectLanguage" id="language">
                     {% for language in LANGUAGES %}
                         <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                     {% endfor %}
@@ -433,15 +432,15 @@
                 {% endif %}
                 
                 <a href="/press" class="text-secondary w3-animate-left" hidden>{% trans "For the press" %}</a><br/>
-                <span class="text-secondary w3-animate-left pointer" onclick="troubleShootingInfo()">{% trans "Troubleshooting" %}</span><br/>
-                <span class="text-secondary w3-animate-left pointer" onclick="reportFeedbackView()">{% trans "Report" %} &amp; {% trans "Feedback" %}</span><br/>
+                <a href="#0" class="text-secondary w3-animate-left pointer troubleshoot-action">{% trans "Troubleshooting" %}</a><br/>
+                <a href="#0" class="text-secondary w3-animate-left pointer report-feedback-action">{% trans "Report" %} &amp; {% trans "Feedback" %}</a><br/>
                 <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">{% trans "Privacy Policy" %}</a><br/>
-                <a href="#0" class="text-secondary w3-animate-left" onclick="contactRequestDialog()">{% trans "Contact us" %}</a><br/>
+                <a href="#0" class="text-secondary w3-animate-left contact-request-action">{% trans "Contact us" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="{{URLS.BRANDING}}" class="text-secondary w3-animate-left">{% trans "Brand Resources" %}</a><br/>
-                <a href="#0" onclick="installWebAppInstructions()" class="text-secondary w3-animate-left">{% trans "Web App Installation" %}</a><br/>
+                <a href="#0" class="text-secondary w3-animate-left webapp-install-action">{% trans "Web App Installation" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
                 <a href="https://events.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Events" %}</a><br/>
                 <a href="https://beta.knotters.org/" target="_blank" rel="nofollow" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
@@ -483,6 +482,59 @@
             </div>
         </footer>
         {% endblock %}
+        <div id="snap-modal" class="w3-modal align" style="display: none">
+            <div class="snapshot-modal-content w3-hide-medium w3-hide-large" id="snap-mob">
+                <div class="w3-row w3-padding">
+                    {% if request.user.is_authenticated %}
+                        <div class="w3-col s6 w3-center">
+                            <button class="big-button primary delete-snapshot-action negative-text">
+                                <i class=" material-icons">delete</i>
+                                Delete
+                            </button>
+                        </div>
+                        <div class="w3-col s6 w3-center">
+                            <button class="big-button primary report-snapshot-action negative-text">
+                                <i class="negative-text material-icons">report</i>
+                                Report
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="w3-col s12 w3-center">
+                            <button class="big-button primary login-snapshot-action">
+                                <i class="material-icons">person_add</i>
+                                Signup for more
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+                <br/>
+            </div>
+            <div class="snapshot-modal-content-large w3-hide-small w3-padding" id="snap-laptop">
+                <div class="w3-row w3-center">
+                    {% if request.user.is_authenticated %}
+                        <div class="w3-col l12 m12 w3-center">
+                            <button class="big-button primary delete-snapshot-action negative-text">
+                                <i class="negative-text material-icons">delete</i>
+                                Delete
+                            </button>
+                        </div><br/>
+                        <div class="w3-col l12 m12 w3-center">
+                            <button class="big-button primary report-snapshot-action negative-text">
+                                <i class="negative-text material-icons">report</i>
+                                Report
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="w3-col l12 m12 w3-center" >
+                            <button class="big-button primary login-snapshot-action">
+                                <i class="material-icons">person_add</i>
+                                Signup for more
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {% block loadview %}
         <div class="view-loader" id="viewloader">
             <div class="loader"></div>
@@ -499,7 +551,7 @@
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
         <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
-        <script src="{{URLS.SCRIPTS|params:'strings.js'}}"></script>
+        <script src="{{URLS.SCRIPTS|params:SCRIPTS.STRINGS}}"></script>
         <script src="{% static 'scripts/globalvars.js' %}"></script>
         <script src="{% static 'scripts/index.js' %}"></script>
         <script src="{% static 'scripts/request.js' %}"></script>
@@ -510,25 +562,21 @@
         <script src="{% static 'scripts/device.js' %}"></script>
         <script src="{% static 'scripts/browser.js' %}"></script>
         <script src="{% static 'scripts/snapshot.js' %}"></script>
+        <script src="{% static 'scripts/dynamiccontent.js' %}"></script>
         <script src="{% static 'scripts/sw.js' %}"></script>
-        <script src="{{URLS.SCRIPTS|params:'constants.js'}}?fromApp={{SUBAPPNAME}}"></script>
+        <script src="{{URLS.SCRIPTS|params:SCRIPTS.CONSTANTS}}?fromApp={{SUBAPPNAME}}"></script>
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
-<<<<<<< HEAD
-        {% block scripts %}
-        <script async src="{% static 'scripts/home.js' %}"></script>
-        {% endblock %}
-=======
-        <script src="{{URLS.SCRIPTS|params:'queryuse.js'}}?{% for k, v in request.GET.items %}{{k}}={{v}}&{% endfor %}" type="text/javascript"></script>
+        <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?{% for k, v in request.GET.items %}{{k}}={{v}}&{% endfor %}" type="text/javascript"></script>
+
         {% block scripts %}{% endblock %}
->>>>>>> main
         <script async src="{% static 'html2canvas.min.js' %}"></script>
         {% spaceless %}
         {% block messages %}
         {% if messages %}
         {% for message in messages %}
-        <script src="{{URLS.SCRIPTS|params:'queryuse.js'}}?msg={{message}}" type="text/javascript"></script>
+        <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?msg={{message}}" type="text/javascript"></script>
         {% endfor %}
         {% endif %}
         {% endblock %}
@@ -536,11 +584,11 @@
         {% if form.errors %}
             {% for field in form %}
                 {% for error in field.errors %}
-                <script src="{{URLS.SCRIPTS|params:'queryuse.js'}}?formerr={{error|escape}}" type="text/javascript"></script>
+                <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?formerr={{error|escape}}" type="text/javascript"></script>
                 {% endfor %}
             {% endfor %}
             {% for error in form.non_field_errors %}
-            <script src="{{URLS.SCRIPTS|params:'queryuse.js'}}?formerr={{error|escape}}" type="text/javascript"></script>
+            <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?formerr={{error|escape}}" type="text/javascript"></script>
             {% endfor %}
         {% endif %}
         {% endblock %}

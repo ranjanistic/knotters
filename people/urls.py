@@ -7,6 +7,7 @@ urlpatterns = [
     path(URL.People.PROFILE, profile),
     path(URL.People.PROFILEEDIT, editProfile),
     path(URL.People.PROFILETAB, profileTab),
+    path(URL.People.TIMELINE_CONTENT, timeline_content),
     path(URL.People.SETTINGTAB, settingTab),
     path(URL.People.ACCOUNTPREFERENCES, accountprefs),
     path(URL.People.TOPICSEARCH, topicsSearch),

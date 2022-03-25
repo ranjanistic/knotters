@@ -15,7 +15,7 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
     {% for profile in people %}
     <div class="w3-col w3-padding-small l2 m4 s6">
         <div class="w3-row pallete-slab {% if profile.is_moderator or profile.is_mentor %}{{profile.theme}}{% else %}tertiary{% endif %} no-pad">
-            <a onclick="miniWindow('{{profile.getLink}}')">
+            <a class="mini-window-action" data-url="{{profile.getLink}}">
             <img class="primary wide pallete-slab no-pad" src="{{profile.getDP}}" />
             </a>
             <div class="w3-row w3-tag w3-round primary">
@@ -60,7 +60,7 @@ Show only <input type="checkbox" checked name="alsdfjk" /> Moderators
     {% for inv in request.user.profile.management.current_invitations %}
         <div class="w3-col w3-padding-small l2 m4 s6">
             <div class="w3-row pallete-slab tertiary no-pad">
-                <a onclick="miniWindow('{{inv.receiver.getLink}}')">
+                <a class="mini-window-action" data-url="{{inv.receiver.getLink}}">
                 <img class="primary wide" src="{{inv.receiver.getDP}}" />
                 </a>
                 <div class="w3-row w3-padding-small dead-text">

@@ -1,8 +1,7 @@
-from main.mailers import sendAlertEmail, sendActionEmail
-from allauth.account.models import EmailAddress
+from main.mailers import sendActionEmail
 from main.strings import URL
 from main.env import PUBNAME
-from .models import User, Profile
+from .models import User
 
 
 def welcomeAlert(user: User) -> bool:

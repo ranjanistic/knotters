@@ -23,7 +23,7 @@ from people.models import ReportedUser, Topic, Profile
 from moderation.models import Moderation
 from projects.methods import addTagToDatabase, addCategoryToDatabase
 from people.methods import addTopicToDatabase
-from .methods import renderer, createCompetition, rendererstr
+from .methods import competitionManagementRenderData, labelRenderData, renderer, createCompetition, rendererstr
 from .models import ContactCategory, ContactRequest, Management, ManagementInvitation, Report, Feedback
 from .apps import APPNAME
 
@@ -278,16 +278,14 @@ def labelType(request: WSGIRequest, type: str):
 @require_GET
 def label(request: WSGIRequest, type: str, labelID: UUID):
     try:
-        mgm = Management.objects.get(profile=request.user.profile)
-        if type == Code.TOPIC:    
-            topic = Topic.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
-            if not topic: raise Exception('Invalid topic')
-            return renderer(request, Template.Management.COMMUNITY_TOPIC, dict(topic=topic))
+        data = labelRenderData(request,type,labelID)
+        if not data:
+            raise ObjectDoesNotExist(type, labelID)
+        if type == Code.TOPIC:
+            return renderer(request, Template.Management.COMMUNITY_TOPIC, data)
         if type == Code.CATEGORY:
-            category = Category.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
-            if not category: raise Exception('Invalid category')
-            return renderer(request, Template.Management.COMMUNITY_CATEGORY, dict(category=category))
-        raise Exception('Invalid label')
+            return renderer(request, Template.Management.COMMUNITY_CATEGORY, data)
+        raise ObjectDoesNotExist('Invalid label')
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
@@ -405,15 +403,12 @@ def competitions(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def competition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        compete = Competition.objects.get(id=compID, creator=request.user.profile)
-        resstatus = cache.get(f"results_declaration_task_{compete.get_id}")
-        certstatus = cache.get(f"certificates_allotment_task_{compete.get_id}")
-        return renderer(request, Template.Management.COMP_COMPETE, dict(
-            compete=compete,
-            iscreator=(compete.creator == request.user.profile),
-            declaring=(resstatus == Message.RESULT_DECLARING),
-            generating=(certstatus == Message.CERTS_GENERATING)
-        ))
+        data = competitionManagementRenderData(request, compID)
+        if not data:
+            raise ObjectDoesNotExist(compID)
+        return renderer(request, Template.Management.COMP_COMPETE, data)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
@@ -438,7 +433,7 @@ def searchTopic(request: WSGIRequest) -> JsonResponse:
 
 @manager_only
 @require_JSON_body
-def searchJudge(request: WSGIRequest) -> JsonResponse:
+def searchMentor(request: WSGIRequest) -> JsonResponse:
     try:
         query = request.POST.get('query', None)
         if not query or not str(query).strip():
@@ -456,7 +451,7 @@ def searchJudge(request: WSGIRequest) -> JsonResponse:
         ).first()
         if profile.isBlocked(request.user):
             raise Exception()
-        return respondJson(Code.OK, dict(judge=dict(
+        return respondJson(Code.OK, dict(mnt=dict(
             id=profile.user.id,
             userID=profile.getUserID(),
             name=profile.getName(),

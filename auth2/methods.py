@@ -8,7 +8,6 @@ from compete.models import Competition
 from main.methods import renderString, renderView
 from .models import DeviceNotification, EmailNotification, Notification
 from .apps import APPNAME
-from .receivers import *
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     return renderView(request, file, data, fromApp=APPNAME)
@@ -75,3 +74,5 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
     except Exception as e:
         errorLog(e)
         return False
+
+from .receivers import *

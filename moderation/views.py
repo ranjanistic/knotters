@@ -12,49 +12,29 @@ from people.models import ProfileTopic
 from projects.methods import setupApprovedProject, setupApprovedCoreProject
 from projects.mailers import projectRejectedNotification
 from compete.mailers import submissionsModeratedAlert
-from main.methods import errorLog, respondJson, respondRedirect, addMethodToAsyncQueue, user_device_notify
+from main.methods import errorLog, respondJson, addMethodToAsyncQueue, user_device_notify
 from main.strings import CORE_PROJECT, Code, Message, PROJECTS, PEOPLE, COMPETE, URL, Template
 from main.decorators import decode_JSON, require_JSON_body, moderator_only, normal_profile_required
 from projects.models import CoreProjectVerificationRequest, FreeProjectVerificationRequest
 from .apps import APPNAME
 from .mailers import moderationAssignedAlert
 from .models import Moderation
-from .methods import getModeratorToAssignModeration, renderer, requestModerationForCoreProject, requestModerationForObject
+from .methods import getModeratorToAssignModeration, moderationRenderData, renderer, requestModerationForCoreProject, requestModerationForObject
 
 
 @normal_profile_required
 @require_GET
 def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
-        moderation = Moderation.objects.get(id=id)
-        isModerator = moderation.moderator == request.user.profile
-        isRequestor = moderation.isRequestor(request.user.profile)
-        if not isRequestor and not isModerator:
-            raise Exception(id)
-        data = dict(moderation=moderation, ismoderator=isModerator)
-        if moderation.type == COMPETE:
-            if isRequestor:
-                data = dict(
-                    **data, allSubmissionsMarkedByJudge=moderation.competition.allSubmissionsMarkedByJudge(request.user.profile))
-        if moderation.type == PROJECTS and (moderation.resolved or moderation.is_stale):
-            forwarded = None
-            forwardeds = Moderation.objects.filter(type=PROJECTS, project=moderation.project, resolved=False).order_by('-requestOn','-respondOn')
-            if len(forwardeds) and forwardeds[0].moderator != moderation.moderator:
-                forwarded = forwardeds[0]
-            data = dict(**data, forwarded=forwarded)
-        elif moderation.type == CORE_PROJECT and (moderation.resolved or moderation.is_stale):
-            forwarded = None
-            forwardeds = Moderation.objects.filter(type=CORE_PROJECT, coreproject=moderation.coreproject, resolved=False).order_by('-requestOn','-respondOn')
-            if len(forwardeds) and forwardeds[0].moderator != moderation.moderator:
-                forwarded = forwardeds[0]
-            data = dict(**data, forwarded=forwarded)
-        return renderer(request, moderation.type, data)
-    except ObjectDoesNotExist as o:
+        data = moderationRenderData(request, id)
+        if not data:
+            raise ObjectDoesNotExist(id)
+        return renderer(request, data["moderation"].type, data)
+    except (ObjectDoesNotExist,KeyError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
-    
 
 
 @normal_profile_required

@@ -49,10 +49,12 @@ def auth_index_tab(request: WSGIRequest, section: str):
 @require_JSON
 def verify_authorization_method(request: WSGIRequest):
     try:
-        method = False
+        methods = []
         if request.user.has_usable_password():
-            method = 'password'
-        return respondJson(Code.OK, dict(method=method))
+            methods.append('password')
+        if request.user.has_totp_device_enabled():
+            methods.append('totp')
+        return respondJson(Code.OK, dict(methods=methods))
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
@@ -62,9 +64,14 @@ def verify_authorization_method(request: WSGIRequest):
 def verify_authorization(request: WSGIRequest):
     try:
         password = request.POST.get('password', None)
+        totp = request.POST.get('totp', None)
         verified = False
-        if password:
+        if password and totp:
+            verified = request.user.check_password(password) and request.user.verify_totp(totp)
+        elif password:
             verified = request.user.check_password(password)
+        elif totp:
+            verified = request.user.verify_totp(totp)
         if verified:
             return respondJson(Code.OK)
         return respondJson(Code.NO, error=Message.INVALID_CREDENTIALS)

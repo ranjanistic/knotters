@@ -18,7 +18,7 @@
                      <a title="Search Competitions" href="{{URLS.COMPETE}}?search=topic:{{topicdata.topic}}"><button class="active w3-right" data-icon="search"></button></a>
                      <a title="Search Community" href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><button class="accent w3-right" data-icon="search"></button></a>
                      {% else %}
-                    <button class="{{ profile.theme }} w3-right" onclick="message('{{topicdata.points|or:'0'}}XP in {{topicdata.topic}}!')"><span class="topic-points">+{{topicdata.points|or:'0' }}</span> XP</button>
+                    <button class="{{ profile.theme }} w3-right message-action" data-message="{{topicdata.points|or:'0'}}XP in {{topicdata.topic}}"><span class="topic-points">+{{topicdata.points|or:'0' }}</span> XP</button>
                     {% endif %}
                 </div>
             {% empty %}
@@ -27,7 +27,7 @@
                     <i class="w3-jumbo">scatter_plot</i>
                     <h3>{% trans "No topics yet." %}</h3>
                 {% if self %}
-                    <h6 class="dead-text">We are eager to know which topics you relate to.</h6>
+                    <h6 class="dead-text">We are eager to know which topics you relate to.</h6><br/>
                     <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">{% trans "Add topics" %}</button>
                 {% else %}
                     <h6>Maybe {{profile.getFName }} is new here. Maybe.</h6>
@@ -53,8 +53,8 @@
                     <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
                     <input id="addtopics" name="addtopics" hidden type="text" />
                     <br/>
-                    <button id="save-edit-profiletopics">{% trans "Save" %}</button>
-                    <button id="discard-edit-profiletopics">{% trans "Cancel" %}</button>
+                    <button id="save-edit-profiletopics" data-icon="done">{% trans "Save" %}</button>
+                    <button id="discard-edit-profiletopics" data-icon="close">{% trans "Cancel" %}</button>
                 </form>
             </div>
             {% endif %}

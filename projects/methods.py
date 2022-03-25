@@ -31,6 +31,115 @@ def renderer_stronly(request: WSGIRequest, file: str, data: dict = dict()) -> st
     return renderString(request, file, data, fromApp=APPNAME)
 
 
+def freeProfileData(request, nickname = None, projectID = None):
+    """
+    Returns profile data for free project.
+    """
+    try:
+        cacheKey = f"{APPNAME}_free_project"
+        if nickname:
+            cacheKey = f"{cacheKey}_{nickname}"
+            project = cache.get(cacheKey, None)
+            if not project:
+                project = FreeProject.objects.get(nickname=nickname, trashed=False, suspended=False)
+                cache.set(cacheKey, project, settings.CACHE_INSTANT)
+        else:
+            cacheKey = f"{cacheKey}_{projectID}"
+            project = cache.get(cacheKey, None)
+            if not project:
+                project = FreeProject.objects.get(id=projectID, trashed=False, suspended=False)
+                cache.set(cacheKey, project, settings.CACHE_INSTANT)
+
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        if project.suspended and not iscreator:
+            raise ObjectDoesNotExist('suspended',projectID)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(
+            request.user.profile)
+        return dict(
+            project=project,
+            iscreator=iscreator,
+            isAdmirer=isAdmirer
+        )
+    except ObjectDoesNotExist:
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def verifiedProfileData(request, reponame = None, projectID = None):
+    """
+    Returns profile data for verified project.
+    """
+    try:
+        cacheKey = f"{APPNAME}_verified_project"
+        if reponame:
+            cacheKey = f"{cacheKey}_{reponame}"
+            project = cache.get(cacheKey, None)
+            if not project:
+                project = Project.objects.get(reponame=reponame, trashed=False, status=Code.APPROVED)
+                cache.set(cacheKey, project, settings.CACHE_INSTANT)
+        else:
+            cacheKey = f"{cacheKey}_{projectID}"
+            project = cache.get(cacheKey, None)
+            if not project:
+                project = Project.objects.get(id=projectID, trashed=False, status=Code.APPROVED)
+                cache.set(cacheKey, project, settings.CACHE_INSTANT)
+
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
+        if project.suspended and not (iscreator or ismoderator):
+            raise ObjectDoesNotExist('suspended', project)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        return dict(
+            project=project,
+            iscreator=iscreator,
+            ismoderator=ismoderator,
+            isAdmirer=isAdmirer
+        )
+    except ObjectDoesNotExist:
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
+
+def coreProfileData(request, codename = None, projectID = None):
+    """
+    Returns profile data for core project.
+    """
+    try:
+        cacheKey = f"{APPNAME}_core_project"
+        if codename:
+            cacheKey = f"{cacheKey}_{codename}"
+            project = cache.get(cacheKey, None)
+            if not project:
+                project = CoreProject.objects.get(codename=codename, trashed=False, status=Code.APPROVED)
+                cache.set(cacheKey, project, settings.CACHE_INSTANT)
+        else:
+            cacheKey = f"{cacheKey}_{projectID}"
+            project = cache.get(cacheKey, None)
+            if not project:
+                project = CoreProject.objects.get(id=projectID, trashed=False, status=Code.APPROVED)
+                cache.set(cacheKey, project, settings.CACHE_INSTANT)
+
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
+        if project.suspended and not (iscreator or ismoderator):
+            raise ObjectDoesNotExist('suspended', project)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+
+        return dict(
+            project=project,
+            iscreator=iscreator,
+            ismoderator=ismoderator,
+            isAdmirer=isAdmirer
+        )
+    except ObjectDoesNotExist:
+        return False
+    except Exception as e:
+        errorLog(e)
+        return False
+
+
 def createFreeProject(name: str, category: str, nickname: str, description: str, creator: Profile, licenseID: UUID,sociallinks=[]) -> Project or bool:
     """
     Creates project on knotters under moderation status.

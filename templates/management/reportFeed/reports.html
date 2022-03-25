@@ -1,9 +1,15 @@
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
 {% load custom_tags %}
+
 <div class="w3-row w3-padding">
 {% for report in userreports %}
 <div class="w3-row pallete-slab">
     <b>{{report.category}}</b><br/>
-    <a onclick="miniWindow('{{report.user.profile.get_link}}')">{{report.user.profile.get_name}} ({{report.user.profile.getEmail}})</a>
+    <a class="mini-window-action" data-url="{{report.user.profile.get_link}}">{{report.user.profile.get_name}} ({{report.user.profile.getEmail}})</a>
 </div>
 {% endfor %}
 </div>
