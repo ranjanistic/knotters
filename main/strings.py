@@ -1042,6 +1042,10 @@ class URL():
         FREE_VERIFICATION_REQUEST = 'request/verification/0'
         CORE_VERIFICATION_REQUEST = 'request/verification/2'
 
+        INVITE_PROJECT_COCREATOR = 'invite/cocreatorship/<str:projectID>'
+        VIEW_COCREATOR_INVITE = 'invitation/cocreatorship/<str:inviteID>'
+        COCREATOR_INVITE_ACT = 'invitation/action/cocreatorship/<str:inviteID>'
+
         def getURLSForClient(self):
             URLS = dict()
 

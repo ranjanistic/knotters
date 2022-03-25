@@ -65,4 +65,8 @@ urlpatterns = [
 
     path(URL.Projects.FREE_VERIFICATION_REQUEST, freeVerificationRequest),
     path(URL.Projects.CORE_VERIFICATION_REQUEST, coreVerificationRequest),
+
+    path(URL.Projects.INVITE_PROJECT_COCREATOR, handleCocreatorInvitation),
+    path(URL.Projects.VIEW_COCREATOR_INVITE, projectCocreatorInvite),
+    path(URL.Projects.COCREATOR_INVITE_ACT, projectCocreatorInviteAction),
 ]

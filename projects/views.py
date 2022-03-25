@@ -15,7 +15,7 @@ from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.conf import settings
 from main.env import PUBNAME
-from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
+from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body,require_JSON,github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
@@ -2002,3 +2002,19 @@ def freeVerificationRequest(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+@require_JSON
+def handleCocreatorInvitation(request,projectID):
+    return
+    
+@normal_profile_required
+@require_GET
+def projectCocreatorInvite(request,inviteID):
+    return 
+
+@normal_profile_required
+@require_JSON
+def projectCocreatorInviteAction(request,inviteID):
+    return 

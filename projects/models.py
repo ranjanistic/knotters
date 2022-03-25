@@ -513,14 +513,40 @@ class BaseProject(models.Model):
     def add_cocreator(self,co_creator):
         if co_creator.is_normal:
             self.co_creators.add(co_creator)
+            return True
+            #give github repo access code
         else :
             return False
+    def total_cocreators(self):
+        return self.co_creators.count()
     
-    def add_prime_collaborator(self,prime_collaborator):
-        if prime_collaborator.is_normal:
-            self.prime_collaborator.add(prime_collaborator)
-        else :
-            return False
+    def under_cocreator_invitation(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).exists()
+
+    def total_cocreator_invitations(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).count()
+    
+    def under_cocreator_invitation_profile(self,profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile).exists()
+
+    def can_invite_cocreator(self):
+        return self.is_approved and not self.under_invitation() and \
+            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<5
+
+    def can_invite_profile(self, profile):
+        return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not under_cocreator_invitation_profile(profile)
+
+    def current_cocreator_invitations(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False)
+
+    def cancel_cocreator_invitation(self,profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False,receiver=profile).delete()
+    
+    def cancel_all_cocreator_invitations(self,profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False).delete()
+
+        
+
 
 class BaseProjectPrimeCollaborator(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -532,8 +558,37 @@ class BaseProjectCoCreator(models.Model):
     co_creator = models.ForeignKey(f"{PEOPLE}.Profile",on_delete=models.CASCADE,related_name="base_project_co_creator_co_creator")
     base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_base_project")
 
+class BaseProjectCoCreatorInvitation(Invitation):
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_invitation_base_project")
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_co_creator_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_co_creator_invitation_receiver')
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        done = self.base_project.add_cocreator(self.receiver)
+        if not done:
+            return False
+        self.resolve()
+        return done
+
+    def decline(self):
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
+        self.delete()
+        return True
+
+class BaseProjectPrimeCollaboratorInvitation(Invitation):
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_invitation_base_project")
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_receiver')
 
 class Project(BaseProject):
+    """
+    This is verified project
+    """
     url = models.CharField(max_length=500, null=True, blank=True)
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
@@ -754,10 +809,13 @@ class Project(BaseProject):
 
     def is_from_verification(self):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).exists() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).exists()
-
+    
     def from_verification(self):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).first() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).first() or None
     
+    def can_invite_cocreator_profile(self,profile):
+        return self.moderator!=profile and self.mentor!=profile
+
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}_{uuid.uuid4().hex}.{fileparts[len(fileparts)-1]}"
@@ -864,6 +922,9 @@ class FreeProject(BaseProject):
             return True
         except:
             return False
+
+    def can_invite_cocreator_profile(self,profile):
+        return True
 
 
 class FreeRepository(models.Model):
@@ -1218,6 +1279,9 @@ class CoreProject(BaseProject):
             return True
         except:
             return False
+    
+    def can_invite_cocreator_profile(self,profile):
+        return self.moderator!=profile and self.mentor!=profile
 
 
 class LegalDoc(models.Model):
