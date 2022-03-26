@@ -249,6 +249,8 @@ class Message():
     PROJECT_TRANSFER_ACCEPTED = _("You\'re now the owner of this project.")
     PROJECT_TRANSFER_DECLINED = _(
         "You\'ve declined the ownership of this project.")
+    COCREATOR_INVITE_ACCEPTED = _("You\'ve accepted the invite")
+    COCREATOR_INVITE_DECLINED = _("You\'ve declined the invite")
     PROJECT_MOD_TRANSFER_ACCEPTED = _("You\'re now the moderator of this project.")
     PROJECT_MOD_TRANSFER_DECLINED = _(
         "You\'ve declined the moderatorship of this project.")
@@ -296,6 +298,7 @@ class Action():
     VIEW = "view"
     UPDATE = "update"
     REMOVE = "remove"
+    REMOVE_ALL = "remove_all"
 
 
 action = Action()
@@ -1045,6 +1048,9 @@ class URL():
         INVITE_PROJECT_COCREATOR = 'invite/cocreatorship/<str:projectID>'
         VIEW_COCREATOR_INVITE = 'invitation/cocreatorship/<str:inviteID>'
         COCREATOR_INVITE_ACT = 'invitation/action/cocreatorship/<str:inviteID>'
+
+        def baseCocreatorInvite(self, inviteID):
+            return setPathParams(self.VIEW_COCREATOR_INVITE, inviteID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1828,6 +1834,12 @@ class Template():
         @property
         def snapshots(self):
             return f'{self.DIRNAME}/{self.SNAPSHOTS}.html'
+        
+        COCREATOR_INVITATION = 'cocreatorinvite'
+
+        @property
+        def cocreator_invitation(self):
+            return f'{self.DIRNAME}/{self.COCREATOR_INVITATION}.html'
 
     projects = Projects()
 

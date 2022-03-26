@@ -1,6 +1,6 @@
 from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
-from .models import CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, Project, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation, VerProjectDeletionRequest
+from .models import BaseProjectCoCreatorInvitation, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, Project, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation, VerProjectDeletionRequest
 
 
 def freeProjectCreated(project: FreeProject):
@@ -506,6 +506,86 @@ def coreProjectDeletionDeclinedRequest(invite:CoreProjectDeletionRequest):
             'url': invite.coreproject.get_link
         }],
         footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+def baseProjectCoCreatorInvitation(invite:BaseProjectCoCreatorInvitation):
+    """
+    To send co-creator invitation
+    """
+    if invite.resolved: return False
+    if invite.expired: return False
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Project Co-Creator Invite",
+        header=f"You've been invited to accept co-creatorship of the project {invite.base_project.name} by its creator, {invite.sender.getName()} ({invite.sender.getEmail()}).",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd want to be a co-creator of the project.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make your decision there."
+    )
+    return sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Project Co-Creator Invited",
+        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept co-creatorship of your project {invite.base_project.name}.",
+        actions=[{
+            'text': 'View project',
+            'url': invite.base_project.get_link
+        }],
+        footer=f"If they decline, then they will not be added as a co-creator.",
+        conclusion=f"If this action is unfamiliar, then you should delete the co-creator invite by visiting your project's profile."
+    )
+
+def baseProjectCoCreatorAcceptedInvitation(invite:BaseProjectCoCreatorInvitation):
+    """
+    Accepted co-creatorship
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Project Co-creator Invite Success",
+        header=f"This is to inform you that {invite.receiver.getName()} ({invite.receiver.getEmail()}) has been successfully added as a co-creator in your project, {invite.base_project.name}.",
+        actions=[{
+            'text': 'View project',
+            'url': invite.base_project.get_link
+        }],
+        footer=f"Now they can also edit and make changes to your project as a co-creator.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+    sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Project Co-Creatorship Accepted",
+        header=f"This is to inform you that you've accepted the co-creatorship of {invite.base_project.name}.",
+        actions=[{
+            'text': 'View Project',
+            'url': invite.base_project.get_link
+        }],
+        footer=f"Now you have the control and will be shown as co-creator of the project at {PUBNAME}.",
+        conclusion=f"This email was sent because you've accepted the project's co-creatorship."
+    )
+
+def baseProjectCoCreatorDeclinedInvitation(invite:BaseProjectCoCreatorInvitation):
+    """
+    Declined Co-Creatorship  
+    """
+    if not invite.resolved: return False
+    sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Project Co-Creatorship Invite Declined",
+        header=f"This is to inform you that your invitation to {invite.receiver.getName()} ({invite.receiver.getEmail()}) for the co-creatorship of the project, {invite.base_project.name}, has been declined.",
+        actions=[{
+            'text': 'View Project',
+            'url': invite.base_project.get_link
+        }],
+        footer=f"This is because the invited person has rejected the invitation. You can re-invite them or anyone again.",
         conclusion=f"If this action is unfamiliar, then you may contact us."
     )
 

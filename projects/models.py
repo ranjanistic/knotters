@@ -533,8 +533,8 @@ class BaseProject(models.Model):
         return self.is_approved and not self.under_invitation() and \
             not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<5
 
-    def can_invite_profile(self, profile):
-        return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not under_cocreator_invitation_profile(profile)
+    def can_invite_cocreator_profile(self, profile):
+        return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
 
     def current_cocreator_invitations(self):
         return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False)
@@ -542,7 +542,7 @@ class BaseProject(models.Model):
     def cancel_cocreator_invitation(self,profile):
         return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False,receiver=profile).delete()
     
-    def cancel_all_cocreator_invitations(self,profile):
+    def cancel_all_cocreator_invitations(self):
         return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False).delete()
 
         
@@ -579,7 +579,15 @@ class BaseProjectCoCreatorInvitation(Invitation):
             return False
         self.delete()
         return True
+    
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+    
+    @property
+    def get_link(self):
+        return self.getLink()
 
+        
 class BaseProjectPrimeCollaboratorInvitation(Invitation):
     base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_invitation_base_project")
     sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_sender')
