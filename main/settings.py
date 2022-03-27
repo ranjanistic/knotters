@@ -553,7 +553,7 @@ CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "maxcdn.bootstrapcdn.com", "*.knot
 
 CSP_FONT_SRC = ("'self'", "data:", "maxcdn.bootstrapcdn.com", "*.knotters.org")
 
-CSP_SCRIPT_SRC = ("'self'", "'strict-dynamic'", "'unsafe-eval'", "*.knotters.org")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org")
 
 CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com" ,
     "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
