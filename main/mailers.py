@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives, send_mass_mail
 from people.models import Profile
 from django.conf import settings
+from management.models import ThirdPartyAccount
 from .methods import errorLog, addMethodToAsyncQueue
 from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE, SERVER_EMAIL
 from .strings import URL
@@ -129,6 +130,11 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
         data['conclusion'] = conclusion
         body = f"{body}\n{footer}\n{conclusion}"
 
+    SOCIALS = cache.get(ThirdPartyAccount.cachekey, None)
+    if not SOCIALS:
+        SOCIALS = ThirdPartyAccount.objects.all()
+        cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
+    data["SOCIALS"] = SOCIALS
     try:
         html = render_to_string(
             f"account/email/{'action' if action else 'alert'}.html", data)
