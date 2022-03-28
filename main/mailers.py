@@ -1,6 +1,7 @@
 from django.core.mail.message import EmailMessage, sanitize_address
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives, send_mass_mail
+from django.core.cache import cache
 from people.models import Profile
 from django.conf import settings
 from management.models import ThirdPartyAccount
