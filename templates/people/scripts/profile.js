@@ -12,6 +12,7 @@ const isModerator = "{{person.profile.is_moderator}}" == "True";
 const isMentor = "{{person.profile.is_mentor}}" == "True";
 const isManager = "{{is_manager}}" == "True";
 const isAdmirer = "{{is_admirer}}" == "True";
+const theme = "{{person.profile.theme}}";
 const tabindex =
     Number("{{request.GET.tab}}" || -2) > -1
         ? Number("{{request.GET.tab}}")

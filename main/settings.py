@@ -1,10 +1,8 @@
 # import mimetypes
-
-import os
+from os import path as os_path, environ as os_environ
 from pathlib import Path
 from .strings import DOCS, url, DIVISIONS, PEOPLE, AUTH2, MANAGEMENT, DB
 from . import env
-from .env import env as env_
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env.PROJECTKEY
@@ -89,7 +87,7 @@ ROOT_URLCONF = "main.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [os_path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -169,7 +167,7 @@ else:
                 "NAME": ":memory:",
             }
         }
-    else:    
+    else:
         DATABASES = {
             DB.DEFAULT: {
                 "ENGINE": "djongo",
@@ -234,7 +232,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': [
             'r_emailaddress',
             'r_liteprofile',
-            # 'w_member_social',            
+            # 'w_member_social',
         ],
         'PROFILE_FIELDS': [
             'id',
@@ -253,17 +251,16 @@ WSGI_APPLICATION = "main.wsgi.application"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10*1024*1024
 
 STATIC_URL = env.STATIC_URL
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os_path.join(BASE_DIR, 'media')
 MEDIA_URL = env.MEDIA_URL
 
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [os_path.join(BASE_DIR, "static")]
 
 if not env.STATIC_ROOT in STATICFILES_DIRS:
     STATIC_ROOT = env.STATIC_ROOT
 elif DEBUG:
     STATIC_ROOT = env.STATIC_ROOT
-
 
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -274,10 +271,12 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 60*2
+ACCOUNT_MAX_EMAIL_ADDRESSES = 10
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_EMAIL_VERIFICATION = "optional"
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 50
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 10
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 120
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 # LOGIN_URL = 'two_factor:login'
@@ -288,7 +287,7 @@ LOGIN_REDIRECT_URL = url.getRoot()
 BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.SCRIPTS, url.VERSION_TXT,
                     url.SERVICE_WORKER, url.SWITCH_LANG, url.VERIFY_CAPTCHA, url.OFFLINE,
                     f"{url.getRoot(AUTH2)}{url.Auth.NOTIFY_SW}",
-                )
+                    )
 
 BYPASS_DEACTIVE_PATHS = BYPASS_2FA_PATHS + (
     url.REDIRECTOR,
@@ -319,8 +318,8 @@ EMAIL_SUBJECT_PREFIX = env.PUBNAME
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 if not DEBUG:
-    os.environ["HTTPS"] = "on"
-    os.environ["wsgi.url_scheme"] = "https"
+    os_environ["HTTPS"] = "on"
+    os_environ["wsgi.url_scheme"] = "https"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -502,7 +501,7 @@ if not DEBUG:
             "file": {
                 "level": "INFO",
                 "class": "logging.handlers.RotatingFileHandler",
-                "filename": env_.get_value("LOGFILE", default='_logs_/server.log'),
+                "filename": env.env.get_value("LOGFILE", default='_logs_/server.log'),
                 "formatter": "app",
                 'maxBytes': 1024*1024*5,
                 'backupCount': 5
@@ -549,23 +548,24 @@ MFA_SUCCESS_REGISTRATION_MSG = 'Your keys have successfully been created!'
 
 INTERNAL_SHARED_SECRET = env.INTERNAL_SHARED_SECRET
 
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "maxcdn.bootstrapcdn.com", "*.knotters.org")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'",
+                 "maxcdn.bootstrapcdn.com", "*.knotters.org")
 
 CSP_FONT_SRC = ("'self'", "data:", "maxcdn.bootstrapcdn.com", "*.knotters.org")
 
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org")
 
-CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com" ,
-    "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
-    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
-    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
-)
+CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com",
+                   "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
+                   "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
+                   "*.licdn.com", "*.discordapp.com", "*.knotters.org"
+                   )
 
-CSP_IMG_SRC = ("'self'","data:", "*.digitaloceanspaces.com", 
-    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
-    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
-)
+CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com",
+               "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
+               "*.licdn.com", "*.discordapp.com", "*.knotters.org"
+               )
 
-CSP_FRAME_SRC = ("'self'","www.google.com", "*.knotters.org")
+CSP_FRAME_SRC = ("'self'", "www.google.com", "*.knotters.org")
 
-CSP_INCLUDE_NONCE_IN =["script-src"]
+CSP_INCLUDE_NONCE_IN = ["script-src"]

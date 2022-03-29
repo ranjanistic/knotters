@@ -6,11 +6,11 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block themecolor %}tertiary{% endblock %}
+{% block themecolor %}{{project.theme}}{% endblock %}
 
-{% block nav_style %}tertiary{% endblock %}
-{% block nav_text_style %}text-tertiary{% endblock %}
-{% block nav_back_theme %}positive{% endblock %}
+{% block nav_style %}{{project.theme}}{% endblock %}
+{% block nav_text_style %}text-{{project.theme}}{% endblock %}
+{% block nav_back_theme %}{{project.text_theme}}{% endblock %}
 
 {% block content %}
 <div class="w3-row tertiary">
@@ -90,7 +90,7 @@
 
         {% if not iscreator and user.is_authenticated %}
         <div class="w3-row">
-            <button class="small tertiary negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
+            <button class="small {{project.theme}} negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
         </div>
         <br />
 	{% endif %}
@@ -150,7 +150,7 @@
             <div class="w3-row w3-center">
                 <div class="pallete">
                     <center><h5 class="align"><i>notes</i>&nbsp;Overview</h5></center><br/>
-                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab positive-text text-big">{{project.category.name|capfirst}}</strong></a>
+                    <a href="{{URLS.PROJECTS}}?search=category:{{project.category.name}}" ><strong class="pallete-slab vibrant text-big">{{project.category.name|capfirst}}</strong></a>
                     <br/><br/>
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}

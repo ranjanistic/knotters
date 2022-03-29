@@ -1,4 +1,4 @@
-import os
+from os import remove as os_remove, path as os_path
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
 from django.conf import settings
@@ -8,9 +8,9 @@ from .models import ParticipantCertificate,AppreciationCertificate
 def on_cert_delete(sender, instance, **kwargs):
     try:
         if instance.certificate:
-            os.remove(os.path.join(settings.MEDIA_ROOT, instance.certificate))
+            os_remove(os_path.join(settings.MEDIA_ROOT, instance.certificate))
         if instance.certficateImage:
-            os.remove(os.path.join(settings.MEDIA_ROOT, instance.certficateImage))
+            os_remove(os_path.join(settings.MEDIA_ROOT, instance.certficateImage))
     except:
         pass
 
@@ -18,8 +18,8 @@ def on_cert_delete(sender, instance, **kwargs):
 def on_appcert_delete(sender, instance, **kwargs):
     try:
         if instance.certificate:
-            os.remove(os.path.join(settings.MEDIA_ROOT, instance.certificate))
+            os_remove(os_path.join(settings.MEDIA_ROOT, instance.certificate))
         if instance.certficateImage:
-            os.remove(os.path.join(settings.MEDIA_ROOT, instance.certficateImage))
+            os_remove(os_path.join(settings.MEDIA_ROOT, instance.certficateImage))
     except:
         pass

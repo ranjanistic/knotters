@@ -1,8 +1,8 @@
-import json
+from json import loads as json_loads
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import HttpResponseNotFound
 from django.test import TestCase, Client, tag
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse
 from main.strings import Code, url, template, Message, Action
 from allauth.account.models import EmailAddress
 from main.tests.utils import authroot, getRandomStr
@@ -59,7 +59,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.auth.ACCOUNTACTIVATION), data={'deactivate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, is_active=False), Profile)
@@ -67,7 +67,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.auth.ACCOUNTACTIVATION), data={'activate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, is_active=True), Profile)
@@ -77,7 +77,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.auth.ACCOUNTACTIVATION), data={'activate': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         Profile.objects.filter(user=user).update(
             is_active=True, suspended=False)
@@ -87,13 +87,13 @@ class TestViews(TestCase):
         resp = self.client.post(
             follow=True, path=root(url.auth.INVITESUCCESSOR))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
         resp = self.client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                                 'useDefault': True, 'set': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
@@ -101,7 +101,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.auth.INVITESUCCESSOR), data={'unset': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=False, successor=None), Profile)
@@ -114,7 +114,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                                 'set': True, 'userID': E2})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.SUCCESSOR_GH_UNLINKED))
 
         Profile.objects.filter(user=user).update(githubID=getTestGHID())
@@ -122,7 +122,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                                 'set': True, 'userID': E2})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=False, successor=user), Profile)
@@ -130,7 +130,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.auth.INVITESUCCESSOR), data={'unset': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=False, successor=None), Profile)
@@ -138,7 +138,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                                 'set': True, 'userID': BOTMAIL})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertIsInstance(Profile.objects.get(
             user__email=self.email, successor_confirmed=True, successor=User.objects.get(email=BOTMAIL)), Profile)
@@ -147,12 +147,12 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                                 'set': True, 'useDefault': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         resp = self.client.post(
             follow=True, path=root(url.auth.GETSUCCESSOR))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, successorID=str()))
 
     @tag("aga")
@@ -173,7 +173,7 @@ class TestViews(TestCase):
         resp = client2.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         profile = Profile.objects.get(
             user__email=E2, successor_confirmed=False, successor=self.user)
@@ -188,7 +188,8 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['predecessor'], User)
         self.assertEqual(resp.context['predecessor'], profile.user)
 
-    def _test_successorInviteAction(self):
+    @tag("sucact")
+    def test_successorInviteAction(self):
         client = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -205,7 +206,7 @@ class TestViews(TestCase):
         resp = client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         profile = Profile.objects.get(
             user__email=E2, successor_confirmed=False, successor=self.user)
@@ -222,11 +223,11 @@ class TestViews(TestCase):
 
         resp = self.client.post(follow=True, path=root(
             url.auth.successorInviteAction(Action.DECLINE)))
-        self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
         resp = self.client.post(follow=True, path=root(url.auth.successorInviteAction(Action.DECLINE)), data={
             'predID': self.botuser.getID()
         })
-        self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
         resp = self.client.post(follow=True, path=root(url.auth.successorInviteAction(Action.DECLINE)), data={
             'predID': profile.getUserID()
@@ -270,7 +271,8 @@ class TestViews(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
 
-    def _test_accountDelete(self):
+    @tag("accdel")
+    def test_accountDelete(self):
         clientx = Client()
         E2 = getTestEmail()
         P2 = getTestPassword()
@@ -286,13 +288,13 @@ class TestViews(TestCase):
         ))
         resp = clientx.post(follow=True, path=root(url.auth.ACCOUNTDELETE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
         resp = clientx.post(follow=True, path=root(
             url.auth.ACCOUNTDELETE), data={'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.SUCCESSOR_UNSET))
 
         resp = clientx.post(follow=True, path=root(url.auth.INVITESUCCESSOR),
@@ -302,7 +304,7 @@ class TestViews(TestCase):
         resp = clientx.post(follow=True, path=root(
             url.auth.ACCOUNTDELETE), data={'confirmed': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)

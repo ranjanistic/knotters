@@ -1,3 +1,4 @@
+from requests import get as getRequest
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
@@ -10,10 +11,9 @@ from allauth.socialaccount.providers.linkedin_oauth2.provider import LinkedInOAu
 from django.conf import settings
 from main.methods import errorLog, renderString, renderView
 from main.strings import Code, profile as profileString, COMPETE
-from projects.models import BaseProject, CoreProject, FreeProject, FreeRepository, Project
+from projects.models import BaseProject, Project
 from moderation.models import Moderation
 from compete.models import Competition, CompetitionJudge, Result
-import requests
 from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
 from .apps import APPNAME
 
@@ -297,8 +297,8 @@ def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
             if not avatar:
                 access_token = SocialToken.objects.get(
                     account=socialaccount, account__provider=LinkedInOAuth2Provider.id)
-                r = requests.get(f"https://api.linkedin.com/v2/me?projection=(profilePicture("
-                                 f"displayImage~:playableStreams))&oauth2_access_token={access_token}")
+                r = getRequest(f"https://api.linkedin.com/v2/me?projection=(profilePicture("
+                               f"displayImage~:playableStreams))&oauth2_access_token={access_token}")
                 profile_pic_json = r.json().get('profilePicture')
                 elements = profile_pic_json['displayImage~']['elements']
                 avatar = elements[len(elements) -

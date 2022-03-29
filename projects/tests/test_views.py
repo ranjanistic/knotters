@@ -1,4 +1,4 @@
-import json
+from json import loads as json_loads
 from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.test import TestCase, Client, tag
 from django.db.models import QuerySet
@@ -115,28 +115,28 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.projects.createValidField(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
         reponame = getRandomStr()
         resp = self.client.post(follow=True, path=root(url.projects.createValidField('reponame')), data={
             'reponame': reponame
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.Custom.already_exists(reponame)))
 
         resp = self.client.post(follow=True, path=root(url.projects.createValidField('reponame')), data={
             'reponame': getProjRepo()
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
 
     def test_licenses(self):
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True, path=root(url.projects.LICENSES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertEqual(json.loads(
+        self.assertEqual(json_loads(
             resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
     def test_addLicense(self):
@@ -147,7 +147,7 @@ class TestViews(TestCase):
         resp = self.client.post(
             follow=True, path=root(url.projects.ADDLICENSE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_LIC_DATA))
 
         licname = getLicName()
@@ -158,7 +158,7 @@ class TestViews(TestCase):
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         license = License.objects.get(name=licname, creator=self.profile)
-        self.assertDictEqual(json.loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK,
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK,
                              license=dict(id=license.getID(), name=license.name, description=license.description)))
 
     def test_submitProject(self):
@@ -308,13 +308,13 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.projects.topicsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
         resp = self.client.post(follow=True, path=root(url.projects.topicsSearch(project.getID())), data={
                                 'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertEqual(json.loads(
+        self.assertEqual(json_loads(
             resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
     def test_topicsUpdate(self):
@@ -349,13 +349,13 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.projects.tagsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(
+        self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
         resp = self.client.post(follow=True, path=root(url.projects.tagsSearch(project.getID())), data={
                                 'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertEqual(json.loads(
+        self.assertEqual(json_loads(
             resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
     @tag('tagsup')
@@ -383,6 +383,6 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.projects.liveData(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        data = json.loads(resp.content.decode(Code.UTF_8))
+        data = json_loads(resp.content.decode(Code.UTF_8))
         self.assertIsInstance(data['languages'], list)
         self.assertIsInstance(data['contributorsHTML'], str)

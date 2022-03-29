@@ -1,17 +1,16 @@
-import re
+from re import sub as re_sub
 from deprecated import deprecated
+from django.utils.translation import gettext_lazy as _
+from auth2.apps import APPNAME as AUTH2
 from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
 from .env import CDN_URL
-from auth2.apps import APPNAME as AUTH2
-from django.utils.translation import gettext_lazy as _
 
 AUTH = 'auth'
 DOCS = 'docs'
-
 
 def classAttrsToDict(className, appendCondition=None) -> dict:
     data = dict()
@@ -39,9 +38,9 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRema
         replacingChars = ['*']
     i = 0
     while i < len(replacingChars):
-        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
+        path = re_sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
-    return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+    return path if not extendRemaining else re_sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
 
 
 def setURLAlerts(url, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
@@ -442,6 +441,7 @@ class URL():
     BRANDING = 'branding/'
     ROOT = '/'
     HOME = 'home'
+    HOME_DOMAINS = 'home/<str:domain>'
     WEBPUSH = 'webpush/'
     AT_NICKNAME = "@<str:nickname>"
     
@@ -480,6 +480,7 @@ class URL():
         return setPathParams(self.BROWSER, type)
 
     VERIFY_CAPTCHA = 'captcha/verify'
+    DONATE = 'donate/'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
@@ -1308,6 +1309,12 @@ class Template():
     @property
     def view_snapshot(self):
         return f'{self.VIEW_SNAPSHOT}.html'
+
+    DONATION = "donation"
+    @property
+    def donation(self):
+        return f'{self.DONATION}.html'
+
 
     class Auth():
         DIRNAME = 'account'

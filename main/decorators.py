@@ -1,30 +1,25 @@
+from json import loads as json_loads
 from json.decoder import JSONDecodeError
-import traceback
+from functools import wraps
+from ipaddress import ip_address, ip_network
+from hmac import new as hmac_new, compare_digest as hmac_compare_digest
+from hashlib import sha256
+from urllib.parse import unquote
+from requests import get as getRequest
+from deprecated.classic import deprecated
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render
-
 from allauth.account.models import EmailAddress
-from allauth.account.utils import send_email_confirmation
-
-from urllib.parse import unquote
-import hmac
-from hashlib import sha256
 from django.views.decorators.csrf import csrf_exempt
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, HttpResponseServerError
-from django.utils.encoding import force_bytes
-
-from functools import wraps
-from ipaddress import ip_address, ip_network
-from .methods import addMethodToAsyncQueue, errorLog
-from .strings import Code, Event, AUTH2
-from auth2.mailers import send_account_verification_email
-import json
-import requests
-from django.conf import settings
 from django.views.decorators.http import require_POST
-
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
+from django.utils.encoding import force_bytes
+from django.conf import settings
+from auth2.mailers import send_account_verification_email
+from .methods import errorLog
+from .strings import Code, Event
 from .env import INTERNAL_SHARED_SECRET, ISPRODUCTION, ISTESTING
 
 
@@ -44,12 +39,12 @@ def decDec(inner_dec):
 
 
 @decDec(require_POST)
-def require_JSON_body(function):
+def require_JSON(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            loadedbody = json.loads(request.body.decode(Code.UTF_8))
-            request.POST = dict(**loadedbody,**request.POST,JSON_BODY=True)
+            loadedbody = json_loads(request.body.decode(Code.UTF_8))
+            request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
             return function(request, *args, **kwargs)
         except JSONDecodeError:
             if request.method == Code.POST:
@@ -58,16 +53,17 @@ def require_JSON_body(function):
     return wrap
 
 
-def require_JSON(function):
-    return require_JSON_body(function)
+@deprecated("Use @require_JSON instead")
+def require_JSON_body(function):
+    return require_JSON(function)
 
 
 def decode_JSON(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            loadedbody = json.loads(request.body.decode(Code.UTF_8))
-            request.POST = dict(**loadedbody,**request.POST,JSON_BODY=True)
+            loadedbody = json_loads(request.body.decode(Code.UTF_8))
+            request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
             return function(request, *args, **kwargs)
         except JSONDecodeError:
             pass
@@ -85,12 +81,13 @@ def dev_only(function):
 
     return wrap
 
+
 def verified_email_required(
     function=None, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME
 ):
     def decorator(view_func):
         @login_required(redirect_field_name=redirect_field_name, login_url=login_url)
-        def _wrapped_view(request:WSGIRequest, *args, **kwargs):
+        def _wrapped_view(request: WSGIRequest, *args, **kwargs):
             if not EmailAddress.objects.filter(
                 user=request.user, verified=True
             ).exists() and not ISTESTING:
@@ -131,6 +128,7 @@ def moderator_only(function):
             return HttpResponseForbidden('Unauthorized moderator access')
     return wrap
 
+
 @decDec(normal_profile_required)
 def mentor_only(function):
     @wraps(function)
@@ -142,6 +140,7 @@ def mentor_only(function):
                 raise Http404('Unauthorized mentor access')
             return HttpResponseForbidden('Unauthorized mentor access')
     return wrap
+
 
 @decDec(normal_profile_required)
 def manager_only(function):
@@ -161,7 +160,7 @@ def github_only(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         if ISPRODUCTION:
-            whitelist = requests.get(
+            whitelist = getRequest(
                 f'{settings.GITHUB_API_URL}/meta').json()['hooks']
             real_ip = u'{}'.format(request.META.get('HTTP_X_REAL_IP'))
             if not real_ip or real_ip == 'None':
@@ -181,9 +180,9 @@ def github_only(function):
             if sha_name != Code.SHA256:
                 return HttpResponseForbidden('Permission denied 3')
 
-            mac = hmac.new(force_bytes(settings.GH_HOOK_SECRET),
+            mac = hmac_new(force_bytes(settings.GH_HOOK_SECRET),
                            msg=force_bytes(request.body), digestmod=sha256)
-            if not hmac.compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
+            if not hmac_compare_digest(force_bytes(mac.hexdigest()), force_bytes(signature)):
                 return HttpResponseForbidden('Permission denied 4')
 
             try:
@@ -191,7 +190,7 @@ def github_only(function):
                 if ghevent == Event.PING:
                     return HttpResponse(Code.PONG)
                 hookID = request.META.get('HTTP_X_GITHUB_DELIVERY', None)
-                request.POST = dict(**request.POST, ghevent=ghevent, hookID=hookID, **json.loads(
+                request.POST = dict(**request.POST, ghevent=ghevent, hookID=hookID, **json_loads(
                     unquote(request.body.decode(Code.UTF_8)).split('payload=')[1]))
                 return function(request, *args, **kwargs)
             except Exception as e:
@@ -212,7 +211,7 @@ def github_bot_only(function):
         try:
             if request.headers['Authorization'] != INTERNAL_SHARED_SECRET:
                 return HttpResponseForbidden('Permission denied 0')
-            request.POST = json.loads(request.body.decode(Code.UTF_8))
+            request.POST = json_loads(request.body.decode(Code.UTF_8))
             return function(request, *args, **kwargs)
         except Exception as e:
             errorLog(e)

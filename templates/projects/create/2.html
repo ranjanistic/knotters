@@ -7,11 +7,11 @@
 {% load custom_tags %}
 
 
-{% block themecolor %}tertiary{% endblock %}
+{% block themecolor %}vibrant{% endblock %}
 
-{% block nav_style %}tertiary{% endblock %}
-{% block nav_text_style %}text-tertiary{% endblock %}
-{% block nav_back_theme %}positive{% endblock %}
+{% block nav_style %}vibrant{% endblock %}
+{% block nav_text_style %}text-vibrant{% endblock %}
+{% block nav_back_theme %}primary{% endblock %}
 
 {% block nav_text %}{% trans "Request core project" %}{% endblock %}
 {% block nav_href %}{{URLS.CREATE}}{% endblock %}
@@ -21,7 +21,7 @@
 
 {% block content %}
 {% if request.user.profile.is_manager %}
-<div class="w3-row positive">
+<div class="w3-row tertiary">
     <br/>
     <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
     <form action="{{URLS.SUBMIT_CORE}}" method="POST">
@@ -30,7 +30,7 @@
         <div class="w3-row">
             <div class="pallete w3-center" id="edit-pallete">
                 <img src="/media/projects/default.png" id="projectimageoutput" />
-                <button class="positive small" type="button" id="upload-button" data-icon="upload">
+                <button class="vibrant small" type="button" id="upload-button" data-icon="upload">
                 <label id="uploadprojectimagelabel" for="uploadprojectimage">Select Image</label>
                 </button>
                 <br/>
@@ -51,7 +51,7 @@
                     <h6>Codename</h6>
                     <input placeholder="project-codename" maxlength="15" required class="create-project-input" name="coreproject_codename" id="projectcodename" />
                     <h6>Category</h6>
-                    <select class="wide text-medium tertiary pallete-slab positive-text" name="coreproject_projectcategory" required>
+                    <select class="wide text-medium vibrant pallete-slab" name="coreproject_projectcategory" required>
                         {% for cat in categories %}
                         <option value="{{cat.get_id}}">{{cat.name}}</option>
                         {% endfor %}
@@ -66,13 +66,13 @@
                     <center><h5>Moderation</h5></center>
                     <h6>Customize Moderation</h6>
                     <input type="radio" name="moderator_type_radio" class="create-project-input" checked value="0" required id="random_moderator" />
-                    <label for="random_moderator"><span class="positive-text">&nbsp;Random moderator</span></label>
+                    <label for="random_moderator"><span class="vibrant-text">&nbsp;Random moderator</span></label>
                     <br/>
                     <input type="radio" name="moderator_type_radio" class="create-project-input" value="1" required id="internal_moderator" />
-                    <label for="internal_moderator"><span class="positive-text">&nbsp;Random Internal moderator</span></label><a href="{{URLS.Management.MODERATORS}}" target="_blank"><i>open_in_new</i></a>
+                    <label for="internal_moderator"><span class="vibrant-text">&nbsp;Random Internal moderator</span></label><a href="{{URLS.Management.MODERATORS}}" target="_blank"><i>open_in_new</i></a>
                     <br/>
                     <input type="radio" name="moderator_type_radio" class="create-project-input" value="2" required id="chosen_moderator" />
-                    <label for="chosen_moderator"><span class="positive-text">&nbsp;Chosen moderator</span></label>
+                    <label for="chosen_moderator"><span class="vibrant-text">&nbsp;Chosen moderator</span></label>
                     <br/><br/>
                     <span id="choose_moderator_views" hidden>
                         <input type="text" placeholder="Type to search a moderator" class="wide" id="choose_moderator_search_input"/>
@@ -102,7 +102,7 @@
                 <div class="pallete">
                     <center><h5>Metadata</h5></center><br/>
                     <strong>Requested on <span>{% now "DATETIME_FORMAT" %}</span></strong><br/><br/>
-                    <strong>Requested by</strong><a href="{{request.user.profile.getLink}}"><button class="primary" type="button"><img class="w3-circle primary" src="{{request.user.profile.getDP}}"  width="20"/>&nbsp;{{request.user.profile.getName}}</button></a><br/><br/>
+                    <strong>Requested by</strong><a href="{{request.user.profile.getLink}}"><button class="{{request.user.profile.theme}}" type="button"><img class="w3-circle primary" src="{{request.user.profile.getDP}}"  width="20"/>&nbsp;{{request.user.profile.getName}}</button></a><br/><br/>
                     <strong>The source code of this project will be visible to people at {{APPNAME}} organization on GitHub only, hidden from rest of the world.</strong>
                 </div>
             </div>
@@ -133,8 +133,9 @@
                     <a class="mini-window-action" data-url="{{URLS.Docs.TYPE|params:'termsofservice'}}">terms of service</a>.
                 </label>
             </div>
+            <br/>
             <div class="w3-row">
-                <button type="submit" class="w3-right big-button primary" data-icon="done" id="submit-core-project-request">Submit Request</button>
+                <button type="submit" class="w3-right big-button vibrant" data-icon="done" id="submit-core-project-request">Submit Request</button>
             </div>
         </div>
     </div>

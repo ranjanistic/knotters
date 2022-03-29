@@ -43,7 +43,7 @@
                 </div>
             </div>
             {% if iscreator %}
-            <div class="pallete w3-center" id="edit-pallete">
+            <div class="pallete w3-center" id="edit-pallete" hidden>
                 <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
                 <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
                 <button class="positive small" type="button" id="upload-button">
@@ -81,7 +81,37 @@
         </div>
         <br/>
        {% endif %}
-
+        <div class="w3-row w3-padding-small">
+            <div id="view-projecttags">
+                {% for tag in project.tags.all %}
+                <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive small">#{{tag}}</button></a>
+                {% empty %}
+                    <h6 class="dead-text">{% trans "No tags assigned" %}</h6>
+                {% endfor %}
+                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+            </div>
+            {% if iscreator %}
+            <div id="edit-projecttags">
+                <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
+                <form class="no-auto" id="edit-tag-inputs">
+                    {% csrf_token %}
+                    <input class="wide primary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                    <div class="w3-row w3-padding" id="tags-viewer">
+                        {% for tag in project.tags.all %}
+                        <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                        {% endfor %}
+                        <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                    </div>
+                    <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                    <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                    <input id="addtags" name="addtags" hidden type="text" />
+                    <button class="small" id="save-edit-projecttags" data-icon="done">{% trans "Save" %}</button>
+                    <button class="small" id="discard-edit-projecttags" data-icon="close">{% trans "Cancel" %}</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        <br/>
         <div class="w3-row w3-padding-small">
         <a id="show-admirations"><strong>{{ project.total_admiration }} admirer{{ project.total_admiration|pluralize }}</strong></a>
         {% if request.user.is_authenticated %}
@@ -165,7 +195,7 @@
                     <div class="w3-row" id="view-projecttopics">
                     {% for topicdata in project.getTopicsData %}
                         <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
-                            <button class="positive big-button topic-name">
+                            <button class="primary big-button topic-name">
                             {{topicdata.topic}}
                             </button>
                         </a>
@@ -206,37 +236,7 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="w3-row w3-padding" id="tags">
-                <div id="view-projecttags">
-                {% for tag in project.tags.all %}
-                <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive">#{{tag}}</button></a>
-                {% empty %}
-                    <h5 class="dead-text">{% trans "No tags assigned" %}</h5>
-                {% endfor %}
-                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
-                </div>
-                {% if iscreator %}
-                <div id="edit-projecttags">
-                    <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
-                    <form class="no-auto" id="edit-tag-inputs">
-                        {% csrf_token %}
-                        <input class="wide" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
-                        <div class="w3-row w3-padding" id="tags-viewer">
-                            {% for tag in project.tags.all %}
-                            <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
-                            {% endfor %}
-                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
-                        </div>
-                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
-                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
-                        <input id="addtags" name="addtags" hidden type="text" />
-                        <br/>
-                        <button id="save-edit-projecttags" data-icon="done">{% trans "Save" %}</button>
-                        <button id="discard-edit-projecttags" data-icon="close">{% trans "Cancel" %}</button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
+            <br/>
             <div class="w3-row w3-padding pallete">
                 <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
                 <div class="w3-row">

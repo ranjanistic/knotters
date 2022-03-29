@@ -1,6 +1,6 @@
-import requests
-from github import Github as GHub
 
+from requests import post as postRequest, delete as deleteRequest, get as getRequest
+from github import Github as GHub
 from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION, DISCORDBOTTOKEN, DISCORDSERVERID
 from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, DISCORD_KNOTTERS_API_URL, DISCORD_KNOTTERS_HEADERS
 
@@ -16,8 +16,10 @@ except Exception as e:
     Github = None
     GithubKnotters = None
 
+
 def GH_API(token=GITHUBBOTTOKEN):
     return GHub(token)
+
 
 class DiscordServer():
     def __init__(self, token, serverID) -> None:
@@ -27,12 +29,12 @@ class DiscordServer():
         pass
 
     def createChannel(self, name, type='GUILD_TEXT', public=False, category=None, message=""):
-        resp = requests.post(
+        resp = postRequest(
             self.API_URL + '/create-channel',
             headers=DISCORD_KNOTTERS_HEADERS,
             json={
-                "channel_name":name,
-                "channel_type":type,
+                "channel_name": name,
+                "channel_type": type,
                 "public": public,
                 "channel_category": category,
                 "message": message
@@ -46,6 +48,7 @@ class DiscordServer():
 
 Discord = DiscordServer(token=DISCORDBOTTOKEN, serverID=DISCORDSERVERID)
 
+
 class Sender():
     def addUserToMailingServer(email: str, first_name: str, last_name: str) -> bool:
         """
@@ -58,10 +61,11 @@ class Sender():
             "lastname": last_name,
             "groups": ["dL8pBD"],
         }
-        if not ISPRODUCTION: return True
+        if not ISPRODUCTION:
+            return True
         try:
-            response = requests.request(
-                'POST', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
+            response = postRequest(
+                SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
             return response['success']
         except:
             return False
@@ -72,22 +76,23 @@ class Sender():
 
         :fullData: If True, returns only the id of user from mailing server. Default: False
         """
-        if not ISPRODUCTION: return True
+        if not ISPRODUCTION:
+            return True
         try:
             if not email:
                 return None
-            response = requests.request(
-                'GET', f"{SENDER_API_URL_SUBS}/by_email/{email}", headers=SENDER_API_HEADERS).json()
+            response = getRequest(
+                f"{SENDER_API_URL_SUBS}/by_email/{email}", headers=SENDER_API_HEADERS).json()
             return response['data'] if fullData else response['data']['id']
         except:
             return None
-
 
     def removeUserFromMailingServer(email: str) -> bool:
         """
         Removes user from mailing server.
         """
-        if not ISPRODUCTION: return True
+        if not ISPRODUCTION:
+            return True
         try:
             subscriber = Sender.getUserFromMailingServer(email, True)
             if not subscriber:
@@ -96,18 +101,18 @@ class Sender():
             payload = {
                 "subscribers": [subscriber['id']]
             }
-            response = requests.request(
-                'DELETE', SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
+            response = deleteRequest(
+                SENDER_API_URL_SUBS, headers=SENDER_API_HEADERS, json=payload).json()
             return response['success']
         except:
             return None
-
 
     def addUserToMailingGroup(email: str, groupID: str) -> bool:
         """
         Adds user to a mailing group (assuming the user to be an existing server subscriber).
         """
-        if not ISPRODUCTION: return True
+        if not ISPRODUCTION:
+            return True
         try:
             subID = Sender.getUserFromMailingServer(email)
             if not subID:
@@ -115,19 +120,18 @@ class Sender():
             payload = {
                 "subscribers": [subID],
             }
-            response = requests.request(
-                'POST', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
-
+            response = postRequest(
+                f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
             return response['success']
         except:
             return None
-
 
     def removeUserFromMailingGroup(groupID: str, email: str) -> bool:
         """
         Removes user from a mailing group.
         """
-        if not ISPRODUCTION: return True
+        if not ISPRODUCTION:
+            return True
         try:
             subID = Sender.getUserFromMailingServer(email=email)
             if not subID:
@@ -135,8 +139,8 @@ class Sender():
             payload = {
                 "subscribers": [subID]
             }
-            response = requests.request(
-                'DELETE', f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
+            response = deleteRequest(
+                f"{SENDER_API_URL_SUBS}/groups/{groupID}", headers=SENDER_API_HEADERS, json=payload).json()
             return response['success']
         except:
             return None
