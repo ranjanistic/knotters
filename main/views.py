@@ -80,7 +80,7 @@ def index(request: WSGIRequest) -> HttpResponse:
         cache.set('homepage_topics', topics, settings.CACHE_LONG)
     projects = cache.get('homepage_projects', [])
     if not len(projects):
-        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("-createdOn").first()
+        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("createdOn").first()
         cache.set('homepage_projects', projects, settings.CACHE_LONG)
     return renderView(request, Template.INDEX, dict(topics=topics, project=project,competition=competition))
 
@@ -101,7 +101,7 @@ def home(request: WSGIRequest) -> HttpResponse:
         cache.set('homepage_topics', topics, settings.CACHE_LONG)
     projects = cache.get('homepage_projects', [])
     if not len(projects):
-        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("-createdOn").first()
+        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("createdOn").first()
         cache.set('homepage_projects', projects, settings.CACHE_LONG)
     return renderView(request, Template.INDEX, dict(topics=topics, project=project,competition=competition))
 
