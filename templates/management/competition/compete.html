@@ -221,6 +221,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'simplemde/simplemde.min.js' %}"></script>
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.COMPETE}}?id={{compete.get_id}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'simplemde/simplemde.min.js' %}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.COMPETE}}?id={{compete.get_id}}"></script>
 {% endblock %}

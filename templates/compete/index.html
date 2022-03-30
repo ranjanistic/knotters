@@ -95,6 +95,6 @@
 {% endblock %} 
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
-<script src="{% static 'scripts/compete/index.js' %}" ></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/compete/index.js' %}" ></script>
 {% endblock %}

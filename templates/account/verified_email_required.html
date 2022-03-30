@@ -36,5 +36,5 @@ verification.{% endblocktrans %} {% trans "Please click on the link inside that 
 <br/>
 {% endblock %}
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.VERIFIED_EMAIL_REQ}}?done={{request.GET.done}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.VERIFIED_EMAIL_REQ}}?done={{request.GET.done}}"></script>
 {% endblock %}

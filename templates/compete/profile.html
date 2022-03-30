@@ -87,7 +87,7 @@
           <div class="w3-col w3-half w3-center dead-text w3-padding" hidden>
             <h4>{% trans "To be eligible for cash prizes here" %},</h4>
             <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
-              {% comment %} <script>
+              {% comment %} <script nonce="{{request.csp_nonce}}">
                 (function(){
                   var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
                   if(x){ var s=d.createElement('script'); s.defer=!0;s.id='razorpay-embed-btn-js';
@@ -257,7 +257,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{compete.get_id}}&tab={{request.GET.tab}}"></script>
-<script src="{% static 'scripts/compete/profile.js' %}" type="text/javascript"></script>
-<script src="{% static 'simplemde/simplemde.min.js' %}" type="text/javascript"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'simplemde/simplemde.min.js' %}" type="text/javascript"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{compete.get_id}}&tab={{request.GET.tab}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/compete/profile.js' %}" type="text/javascript"></script>
 {% endblock %} 

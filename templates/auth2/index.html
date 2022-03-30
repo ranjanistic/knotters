@@ -53,7 +53,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?tab={{request.GET.tab}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?tab={{request.GET.tab}}"></script>
 {% endblock %}
 
 {% block ext_scripts %}

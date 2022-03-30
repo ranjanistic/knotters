@@ -84,7 +84,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:"socialaccount"|params:SCRIPTS.CONNECTIONS}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:"socialaccount"|params:SCRIPTS.CONNECTIONS}}"></script>
 {% endblock %}
 
 {% block footer %}{% endblock %}

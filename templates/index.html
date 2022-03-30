@@ -679,38 +679,38 @@
             <img src="{{ICON}}"  id="preivew-image-src"/>
         </div>
         {% endblock %}
-        <script defer src="{% static 'alertify/alertify.min.js' %}"></script>
-        <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
-        <script src="{% static 'cropper/cropper.min.js' %}"></script>
-        <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
-        <script src="{{URLS.SCRIPTS|params:SCRIPTS.STRINGS}}"></script>
-        <script src="{% static 'scripts/globalvars.js' %}"></script>
-        <script src="{% static 'scripts/index.js' %}"></script>
-        <script src="{% static 'scripts/request.js' %}"></script>
-        <script src="{% static 'scripts/notification.js' %}"></script>
-        <script src="{% static 'scripts/theme.js' %}"></script>
-        <script src="{% static 'scripts/alerts.js' %}"></script>
-        <script src="{% static 'scripts/reporter.js' %}"></script>
-        <script src="{% static 'scripts/device.js' %}"></script>
-        <script src="{% static 'scripts/browser.js' %}"></script>
-        <script src="{% static 'scripts/snapshot.js' %}"></script>
-        <script src="{% static 'scripts/dynamiccontent.js' %}"></script>
-        <script src="{% static 'scripts/sw.js' %}"></script>
-        <script src="{{URLS.SCRIPTS|params:SCRIPTS.CONSTANTS}}?fromApp={{SUBAPPNAME}}"></script>
+        <script nonce="{{request.csp_nonce}}" defer src="{% static 'alertify/alertify.min.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'sweetalert2/swa2.min.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'cropper/cropper.min.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.STRINGS}}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/globalvars.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/index.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/request.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/notification.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/theme.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/alerts.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/reporter.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/device.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/browser.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/snapshot.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/dynamiccontent.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/sw.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.CONSTANTS}}?fromApp={{SUBAPPNAME}}"></script>
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
-        <script src="{% static 'scripts/autostart.js' %}"></script>
-        <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?{% for k, v in request.GET.items %}{{k}}={{v}}&{% endfor %}" type="text/javascript"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/autostart.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?{% for k, v in request.GET.items %}{{k}}={{v}}&{% endfor %}" type="text/javascript"></script>
 
         {% block scripts %}
-        <script async src="{% static 'scripts/home.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" async src="{% static 'scripts/home.js' %}"></script>
         {% endblock %}
-        {% comment %} <script async src="{% static 'html2canvas.min.js' %}"></script> {% endcomment %}
+        {% comment %} <script nonce="{{request.csp_nonce}}" async src="{% static 'html2canvas.min.js' %}"></script> {% endcomment %}
         {% spaceless %}
         {% block messages %}
         {% if messages %}
         {% for message in messages %}
-        <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?msg={{message}}" type="text/javascript"></script>
+        <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?msg={{message}}" type="text/javascript"></script>
         {% endfor %}
         {% endif %}
         {% endblock %}
@@ -718,11 +718,11 @@
         {% if form.errors %}
             {% for field in form %}
                 {% for error in field.errors %}
-                <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?formerr={{error|escape}}" type="text/javascript"></script>
+                <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?formerr={{error|escape}}" type="text/javascript"></script>
                 {% endfor %}
             {% endfor %}
             {% for error in form.non_field_errors %}
-            <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?formerr={{error|escape}}" type="text/javascript"></script>
+            <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?formerr={{error|escape}}" type="text/javascript"></script>
             {% endfor %}
         {% endif %}
         {% endblock %}

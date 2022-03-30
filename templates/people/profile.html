@@ -337,7 +337,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'chartjs/chart.min.js' %}"></script>
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}"></script>
-<script src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'chartjs/chart.min.js' %}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %}

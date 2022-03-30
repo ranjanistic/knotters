@@ -143,5 +143,5 @@
 {% endblock%}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CORE_PROJECT}}?id={{moderation.id}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CORE_PROJECT}}?id={{moderation.id}}"></script>
 {% endblock %}

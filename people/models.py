@@ -1043,22 +1043,18 @@ class Profile(models.Model):
         return data
 
     def recommended_projects(self, atleast=3, atmost=4):
-        def approved_only(project):
-            return project.is_approved
         try:
+            def approved_only(project):
+                return project.is_approved
             cacheKey = self.CACHE_KEYS.recommended_projects
             projects = cache.get(cacheKey, None)
             if projects is None:
                 constquery = ~Q(admirers=self, suspended=True,
                                 trashed=True, creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                projects = BaseProject.objects.filter(
-                    constquery, query).distinct()
-                projects = list(set(list(filter(approved_only, projects))))
+                projects = list(set(list(filter(approved_only, BaseProject.objects.filter(Q(constquery, query)).distinct()[:atmost]))))
                 if len(projects) < atleast:
-                    projects = BaseProject.objects.filter(
-                        constquery).distinct()
-                    projects = list(set(list(filter(approved_only, projects))))
+                    projects = list(set(list(filter(approved_only, BaseProject.objects.filter(constquery).distinct()[:atmost]))))
                 if len(projects):
                     cache.set(cacheKey, projects, settings.CACHE_SHORT)
             return projects[:atmost]

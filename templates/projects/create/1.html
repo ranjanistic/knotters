@@ -235,6 +235,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CREATE_1}}?step={{request.GET.step}}"></script>
-<script src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CREATE_1}}?step={{request.GET.step}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/project/create.js' %}" type="text/javascript" ></script>
 {% endblock %}

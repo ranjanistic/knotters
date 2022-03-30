@@ -116,5 +116,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:"index.js"}}?search={{request.GET.search}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:"index.js"}}?search={{request.GET.search}}"></script>
 {% endblock %}

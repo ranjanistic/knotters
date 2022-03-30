@@ -32,5 +32,5 @@
 {% endblock %}
 
 {% block ext_scripts %}
-<script defer src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true' nonce="{{request.csp_nonce}}" type="text/javascript"></script>
+<script nonce="{{request.csp_nonce}}" defer src='https://www.google.com/recaptcha/api.js?render={{RECAPTCHA_KEY}}&trustedtypes=true' type="text/javascript"></script>
 {% endblock %}
