@@ -4,8 +4,8 @@ from rjsmin import jsmin
 from htmlmin.minify import html_minify
 from django.template.loader import render_to_string
 from django.conf import settings
-from os import remove, symlink, mkdir, walk
-from os.path import join
+from json import dumps as jsondumps, loads as jsonloads
+from os import remove, symlink, mkdir, walk, path as ospath
 from pathlib import Path
 from shutil import rmtree
 from main.env import SITE, VERSION
@@ -49,7 +49,7 @@ class Command(BaseCommand):
             print("VERSION:", VERSION)
             print("STATIC_ROOT_VERSION:", __STATIC_ROOT_VERSION)
             print("STATIC_ROOT:", settings.STATIC_ROOT)
-            raise Exception("Mismatch STATIC_ROOT & VERSION")
+            raise Exception("Mismatch STATIC_ROOT VERSION & main VERSION")
         else:
             print("\nCLEARING OBSOLETE STATICS (VERSION < 2)\n")
             if not (Path(settings.STATIC_ROOT).exists() and Path(settings.STATIC_ROOT).is_dir()):
@@ -90,7 +90,7 @@ class Command(BaseCommand):
             print("\nLINKING EMAIL ASSETS WITH LATEST STATIC VERSION\n")
             __STATIC_EMAIL_LNROOT = settings.STATIC_ROOT.replace(
                 __STATIC_ROOT_VERSION, 'email')
-            __STATIC_EMAIL_LN_TARGET = join(
+            __STATIC_EMAIL_LN_TARGET = ospath.join(
                 settings.STATIC_ROOT, 'graphics/email/')
             print("EMAIL STATIC LNROOT: ", __STATIC_EMAIL_LNROOT)
 
@@ -150,7 +150,7 @@ class Command(BaseCommand):
             print("\nLINKING CDN ASSETS WITH LATEST STATIC VERSION\n")
             __STATIC_CDN_LNROOT = settings.STATIC_ROOT.replace(
                 __STATIC_ROOT_VERSION, 'cdn')
-            __STATIC_CDN_LN_TARGET = join(settings.STATIC_ROOT)
+            __STATIC_CDN_LN_TARGET = ospath.join(settings.STATIC_ROOT)
             print("CDN STATIC LNROOT: ", __STATIC_CDN_LNROOT)
 
             if not (Path(__STATIC_CDN_LN_TARGET).exists() and Path(__STATIC_CDN_LN_TARGET).is_dir()):
@@ -214,7 +214,7 @@ class Command(BaseCommand):
             dict(**GlobalContextData, csrf_token=" ")))
         notfoundstr = html_minify(notfoundstr.replace(
             settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/'))
-        notfoundpath = join(err_dir, '40x.html')
+        notfoundpath = ospath.join(err_dir, '40x.html')
         print("404 PATH: ", notfoundpath)
         with open(notfoundpath, 'w+') as file:
             file.write(notfoundstr)
@@ -223,7 +223,7 @@ class Command(BaseCommand):
             dict(**GlobalContextData, csrf_token=" ")))
         servererrorstr = html_minify(servererrorstr.replace(
             settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/'))
-        servererrpath = join(err_dir, '50x.html')
+        servererrpath = ospath.join(err_dir, '50x.html')
         print("500 PATH: ", servererrpath)
         with open(servererrpath, 'w+') as file:
             file.write(servererrorstr.replace('\n', '').strip())
@@ -252,8 +252,8 @@ def compress(path):
     if Path(path).exists() and Path(path).is_dir():
         for root, dirs, files in walk(path):
             for file in files:
-                if file.endswith('.css') and not file.endswith('.min.css'):
-                    filepath = join(root, file)
+                if file.endswith('.css'):
+                    filepath = ospath.join(root, file)
                     print("COMPRESSING: ", filepath)
                     try:
                         with open(filepath, "r") as f:
@@ -266,8 +266,8 @@ def compress(path):
                         print(e)
                         print("PROCEEDING WITH COMPRESSION")
                         pass
-                elif file.endswith('.js') and not file.endswith('.min.js'):
-                    filepath = join(root, file)
+                elif file.endswith('.js'):
+                    filepath = ospath.join(root, file)
                     print("COMPRESSING: ", filepath)
                     try:
                         with open(filepath, "r") as f:
@@ -280,8 +280,22 @@ def compress(path):
                         print(e)
                         print("PROCEEDING WITH COMPRESSION")
                         pass
+                elif file.endswith('.json'):
+                    filepath = ospath.join(root, file)
+                    print("COMPRESSING: ", filepath)
+                    try:
+                        with open(filepath, "r") as f:
+                            fdata = f.read()    
+                        compressedfdata = jsondumps(jsonloads(fdata), separators=(',', ':'))
+                        with open(filepath, "w") as f:
+                            f.write(compressedfdata)
+                    except Exception as e:
+                        print("COMPRESS JSON ERR: ", filepath)
+                        print(e)
+                        print("PROCEEDING WITH COMPRESSION")
+                        pass
                 else:
-                    print("SKIPPING: ", join(root, file))
+                    print("SKIPPING: ", ospath.join(root, file))
                     pass
     else:
         print("NOT A DIR: ", path)

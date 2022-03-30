@@ -366,10 +366,15 @@ def removeUnverified():
 
 
 def htmlmin(htmlstr: str, *args, **kwargs):
+    """
+    Minifies string based html code.
+    """
     try:
         mincode = html_minify(htmlstr, *args, **kwargs)
         if len(re_findall(r'<(html|\/html|)>', htmlstr)) != 0:
+            # If includes html tags, means it is a standalone page.
             return mincode
+        # Otherwise it is a component html code.
         return re_sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
     except:
         return htmlstr.strip()

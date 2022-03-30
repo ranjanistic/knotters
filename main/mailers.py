@@ -7,7 +7,7 @@ from django.core.mail.backends.smtp import EmailBackend as EB
 from django.conf import settings
 from people.models import Profile
 from management.models import ThirdPartyAccount
-from .methods import errorLog, addMethodToAsyncQueue
+from .methods import errorLog, addMethodToAsyncQueue, htmlmin
 from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE, SERVER_EMAIL
 from .strings import URL
 
@@ -54,13 +54,17 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
             return False
     else:
         if ISDEVELOPMENT:
-            print(to)
-            print(subject)
-            print(body)
+            print("\n==============EMAIL==============")
+            print("TO:", to)
+            print("SUBJECT:", subject)
+            print("BODY:", body)
+            print("==============END EMAIL==============")
         return True
 
-
 def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
+    """
+    To send email to a list of recipients as CC.
+    """
     if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=to)
@@ -144,8 +148,8 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
         cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
     data["SOCIALS"] = SOCIALS
     try:
-        html = render_to_string(
-            f"account/email/{'action' if action else 'alert'}.html", data)
+        html = htmlmin(render_to_string(
+            f"account/email/{'action' if action else 'alert'}.html", data))
         return html, body
     except Exception as e:
         errorLog(e)
