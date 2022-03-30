@@ -284,7 +284,7 @@
                                     <span>{{ project.description|truncatechars:60 }}</span>
                                     <br/><br/>
                                     {% for topic in project.getPalleteTopics %}
-                                    <button class="{{project.theme}} small w3-left">{{topic}}</button>
+                                    <a href="{{URLS.PROJECTS|getquery:'search=topic:'}}{{topic.name}}"><button class="{{project.theme}} small w3-left">{{topic}}</button></a>
                                     {% endfor %}
                                     <a href="{{project.get_link}}" target="_blank"><button class="primary small w3-right" data-icon="open_in_new">View profile</button></a>
                                 </div>
