@@ -66,8 +66,37 @@
             </div>
             {% endif %}
         </div>
-        
         <br/>
+        <div class="w3-row w3-padding-small" id="tags">
+            <div id="view-projecttags">
+            {% for tag in project.tags.all %}
+            <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive small">#{{tag}}</button></a>
+            {% empty %}
+                <h5 class="dead-text">{% trans "No tags assigned" %}</h5>
+            {% endfor %}
+            {% if iscreator or ismoderator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+            </div>
+            {% if iscreator or ismoderator %}
+            <div id="edit-projecttags">
+                <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
+                <form class="no-auto" id="edit-tag-inputs">
+                    {% csrf_token %}
+                    <input class="wide primary" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                    <div class="w3-row w3-padding" id="tags-viewer">
+                        {% for tag in project.tags.all %}
+                        <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                        {% endfor %}
+                        <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                    </div>
+                    <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                    <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                    <input id="addtags" name="addtags" hidden type="text" />
+                    <button id="save-edit-projecttags" data-icon="done">{% trans "Save" %}</button>
+                    <button id="discard-edit-projecttags" data-icon="close">{% trans "Cancel" %}</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
         <div class="w3-row w3-padding-small">
             <a {% if project.gh_repo %}target="_blank" rel="noreferrer"{% endif %} href="{{project.gh_repo_link}}">
                 <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20"/>&nbsp;{{project.codename}}</button>
@@ -93,7 +122,7 @@
             <button class="small {{project.theme}} negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
         </div>
         <br />
-	{% endif %}
+	    {% endif %}
 
         <div class="w3-row pallete">
             <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
@@ -197,37 +226,7 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="w3-row w3-padding" id="tags">
-                <div id="view-projecttags">
-                {% for tag in project.tags.all %}
-                <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive">#{{tag}}</button></a>
-                {% empty %}
-                    <h5 class="dead-text">{% trans "No tags assigned" %}</h5>
-                {% endfor %}
-                {% if iscreator or ismoderator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
-                </div>
-                {% if iscreator or ismoderator %}
-                <div id="edit-projecttags">
-                    <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
-                    <form class="no-auto" id="edit-tag-inputs">
-                        {% csrf_token %}
-                        <input class="wide" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
-                        <div class="w3-row w3-padding" id="tags-viewer">
-                            {% for tag in project.tags.all %}
-                            <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
-                            {% endfor %}
-                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
-                        </div>
-                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
-                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
-                        <input id="addtags" name="addtags" hidden type="text" />
-                        <br/>
-                        <button id="save-edit-projecttags" data-icon="done">{% trans "Save" %}</button>
-                        <button id="discard-edit-projecttags" data-icon="close">{% trans "Cancel" %}</button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
+            <br/>
             <div class="w3-row w3-padding pallete">
                 <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
                 <div class="w3-row">
