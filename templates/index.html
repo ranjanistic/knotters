@@ -459,6 +459,51 @@
                     </div>
                     <br/><br/>
                 </div>
+                <div class="w3-row w3-padding-large">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                        <div class='w3-col w3-twothird'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}The Moderators{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}The Moderators{% endblocktrans %}</h2>
+                                <br/><br/>
+                                <strong class='text-large'>
+                                Moderators maintain and oversee verified & core project's development.
+                                <br/>They get these projects as an assignment according to the relevant domains of expertise to review and approve/decline it, by their creators.
+                                Moderators also help organizations to review submissions in their competitions. All of this contribute towards their own growth on Knotters in the form of XPs.
+                                </strong>
+                                <br/><br/><br/>
+                                <a href="{{URLS.PEOPLE|getquery:'search=type:moderator'}}"><button class='big-button accent' data-icon='search'>{% trans "Search moderators" %}</button></a>
+                            </div>
+                        </div>
+                        <div class='w3-col w3-third w3-padding-large'>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="w3-row w3-padding-large" align="right">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                        <div class='w3-col w3-third w3-padding-large'>
+                            
+                        </div>
+                        <div class='w3-col w3-twothird'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}The Mentors{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}The Mentors{% endblocktrans %}</h2>
+                                <br/><br/>
+                                <strong class='text-large'>
+                                Mentors guide the developers of verified & core project's in development.
+                                <br/>They get these projects as a request according to the relevant domains of expertise by their creators.
+                                Mentors also help organizations to judge submissions in their competitions. All of this contribute towards their own growth on Knotters in the form of XPs.
+                                </strong>
+                                <br/><br/><br/>
+                                <a href="{{URLS.PEOPLE|getquery:'search=type:mentor'}}"><button class='big-button active' data-icon='search'>{% trans "Search mentors" %}</button></a>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                </div>
                 <div class="w3-row browser-view" data-type="{{BROWSE.CORE_MEMBERS}}">
                 </div>
                 <div class="w3-row w3-padding-large w3-center">
