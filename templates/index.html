@@ -176,6 +176,7 @@
         </nav>
         {% endblock %}
         {% block globalalerts %}
+        {% if alerts.0 %}
         <div class="w3-row">
         {% for alert in alerts %}
         <div class="w3-row positive w3-center w3-padding" id="view-{{alert.id}}">
@@ -184,6 +185,7 @@
         </div>
         {% endfor %}
         </div>
+        {% endif %}
         {% if competition %}
         <div class="w3-col w3-padding w3-animate-zoom" id="view-{{competition.id}}">
             <a href="{{competition.getLink}}">
@@ -246,7 +248,7 @@
                             <br/>
                         </div>
                         <div class='w3-col w3-third' align='right'>
-                            <img src='{{ICON}}' width='50%' class='darkimg' />
+                            <img src='{{ICON}}' width='50%' height="50%" class='darkimg' />
                         </div>
                     </div>
                 </div>
@@ -276,11 +278,11 @@
                         <div class='w3-col w3-third w3-padding-large'>
                             <br/>
                             <div class="pallete no-pad w3-center ">
-                                <a class="mini-window-action" data-url="{{project.getLink}}">
-                                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" style="border-bottom: 8px solid var(--{{project.theme}})" />
+                                <a href="{{project.get_link}}" target="_blank">
+                                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-bottom: 8px solid var(--{{project.theme}})" />
                                 </a>
                                 <div class="w3-row w3-padding">
-                                    <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                                    <h4 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
                                     <span>{{ project.description|truncatechars:60 }}</span>
                                     <br/><br/>
                                     {% for topic in project.getPalleteTopics %}
@@ -587,7 +589,9 @@
                 </a>
             </div>
             <div class="w3-row w3-center">
-                <a href="https://www.digitalocean.com/?refcode=ebf3fb45c9e2&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge" target="_blank" /></a>
+                <a href="https://www.digitalocean.com/?refcode=ebf3fb45c9e2&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge" target="_blank">
+                    <img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge" target="_blank" loading="lazy" width="160" height="60" />
+                </a>
                 <center>
                 <br/>
                 {% block footer_social %}
@@ -599,6 +603,7 @@
                             {% if social.has_dark %}
                                 class="darkimg"
                             {% endif %}
+                            loading="lazy"
                             />
                         </button>
                     </a>
@@ -677,7 +682,6 @@
         <script defer src="{% static 'alertify/alertify.min.js' %}"></script>
         <script src="{% static 'sweetalert2/swa2.min.js' %}"></script>
         <script src="{% static 'cropper/cropper.min.js' %}"></script>
-        <script src="{% static 'chartjs/chart.min.js' %}"></script>
         <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script src="{{URLS.SCRIPTS|params:SCRIPTS.STRINGS}}"></script>
         <script src="{% static 'scripts/globalvars.js' %}"></script>
@@ -701,7 +705,7 @@
         {% block scripts %}
         <script async src="{% static 'scripts/home.js' %}"></script>
         {% endblock %}
-        <script async src="{% static 'html2canvas.min.js' %}"></script>
+        {% comment %} <script async src="{% static 'html2canvas.min.js' %}"></script> {% endcomment %}
         {% spaceless %}
         {% block messages %}
         {% if messages %}

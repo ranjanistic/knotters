@@ -395,10 +395,3 @@
 {% endif %}
 </div>
 {% endblock %}
-
-{% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.TWO}}?id={{project.id}}&admire={{request.GET.admire}}&admirers={{request.GET.admirers}}"></script>
-{% if not project.suspended %}
-<script src="{% static 'scripts/project/profile.js' %}" ></script>
-{% endif %}
-{% endblock %}
