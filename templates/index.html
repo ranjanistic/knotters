@@ -110,6 +110,7 @@
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             <div class="w3-row w3-center tertiary pointer beta-alert-view" hidden>This is Knotters Beta, not Knotters. {% trans "Click here to learn more." %}</div>
             {% block nav_title %}
+            <div class="w3-col s2 m3">
             <a
                 style="padding:8px"
                 href="{% block nav_href %}{% if request.GET.previous %}{{request.GET.previous}}{% else %}{{ROOT}}{% endif %}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
@@ -124,8 +125,10 @@
                     class="{% block nav_back_theme %}primary{% endblock %} previous-navigation-button window-close-action" data-icon="{% block nav_back_icon %}arrow_back{% endblock %}"></button>
             </a>
             <span class="w3-left w3-hide-small"><h3 class="{% block nav_text_style %}text-primary{% endblock %}">{% block nav_text %}{{APPNAME}}{% endblock %}</h3></span>
+            </div>
             {% endblock %}
             {% block nav_right %}
+            <div class="w3-col s10 m9">
             <span class="w3-right w3-animate-right nav-tabs-span">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
@@ -134,11 +137,17 @@
                         {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small">{% trans "Competitions" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small">{% trans "Projects" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small">{% trans "Community" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_contact_us %}
+                        {% if request.path == URLS.HOME or request.path == URLS.ROOT and not request.user.is_authenticated %}
+                        <button aria-label="Contact Us" title="Contact" class="primary contact-request-action" data-icon="perm_phone_msg"><span class="w3-hide-small">{% trans "Contact Us" %}</span></button>
+                        {% endif %}
+                        {% endblock %}
                         {% if request.user.profile.is_manager %}
-                        {% block nav_noauth_management %}<a href="{{URLS.MANAGEMENT}}"><button aria-label="Management" title="Management" class="primary" data-icon="business"><span class="w3-hide-small">{% trans "Management" %}</span></button></a>{% endblock %}
+                        {% block nav_noauth_management %}<a href="{{URLS.MANAGEMENT}}"><button aria-label="Management" title="Management" class="vibrant" data-icon="business"><span class="w3-hide-small">{% trans "Management" %}</span></button></a>{% endblock %}
                         {% endif %}
                         {% block nav_noauth_extra_links %}{% endblock %}
                     {% endblock %}
+
                     {% block nav_extra_links %}{% endblock %}
                     {% block nav_auth %}
                         {% if request.user.is_authenticated %}
@@ -152,10 +161,17 @@
                             <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="positive"><i class="material-icons">person_add</i><span class="w3-hide-small">{% trans "Join" %}</span></button></a>
                             {% endblock %}
                         {% endif %}
+                        {% block nav_noauth_donate %}
+                        {% if request.path == URLS.HOME or request.path == URLS.ROOT and not request.user.is_authenticated %}
+                        <a href="{{URLS.DONATE}}" hidden><button aria-label="Donate" title="Donate" class="vibrant" data-icon="volunteer_activism"><span class="w3-hide-small">{% trans "Donate" %}</span></button></a>
+                        {% endif %}
+                        {% endblock %}
+                        <button hidden aria-label="Menu" title="Menu" class="primary" data-icon="more_horiz"></button>
                         {% block nav_auth_extra_links %}{% endblock %}
                     {% endblock %}
                 {% endblock %}
             </span>
+            </div>
             {% endblock %}
         </nav>
         {% endblock %}
@@ -169,22 +185,34 @@
         {% endfor %}
         </div>
         {% if competition %}
-        <div class="w3-row pallete comp-banner" style="background:url('{{competition.getBanner}}')" id="view-{{competition.id}}">
-         
-         <div class="w3-col w3-half pallete tertiary">
-          <div class="w3-col w3-half">
-           <h4 class="positive-text">{{competition.title}}</h4>
-           <h6 class="text-tertiary">{{competition.tagline}}</h6>
-          </div>
-          <div class="w3-col w3-half w3-padding">
-           <strong class="w3-right dead-text">{% trans "Begins at" %} {{competition.startAt}}</strong>
-           <strong class="w3-right dead-text">{% trans "Ends at" %} {{competition.endAt}}</strong>
-          </div>
-         </div>
-         <div class="w3-col w3-half w3-padding">
-          <a class="w3-right" href="{{competition.getLink}}" target="_blank"><button class="accent small" data-icon="open_in_new">{% trans "View" %}</button></a>
-          <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
-         </div>
+        <div class="w3-col w3-padding w3-animate-zoom" id="view-{{competition.id}}">
+            <a href="{{competition.getLink}}">
+            <div class="w3-row">
+                <div class="w3-row pallete" style="background:url('{{competition.getBanner}}');">
+                    <div class="w3-col w3-twothird pallete tertiary">
+                        <div class="w3-row">
+                            <i class="w3-circle w3-right w3-medium accent" title="Upcoming">hourglass_top</i>
+                            <h4 class="">{{competition.title}}</h4>
+                            <h6 class="dead-text">{{competition.tagline}}</h6>
+                        </div>
+                        <div class="w3-row">
+                            <div class="w3-col w3-half">
+                            {% for topic in competition.getTopics %}
+                            <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
+                                <button class="small positive">{{topic.name}}</button>
+                            </a>
+                            {% endfor %}
+                            </div>
+                            <div class="w3-col w3-half" align='right'>
+                                <br/>
+                                <strong>From {{competition.startAt}} till {{competition.endAt}}</strong>
+                            </div>
+                        </div>
+                    </div>
+                <button class="small primary w3-right close-global-alert" data-icon="close" id="{{competition.id}}"></button>
+                </div>
+            </div>
+            </a>
         </div>
         <br/>
         {% endif %}
@@ -199,17 +227,18 @@
             {% endblock %}
             <div class="w3-row">
                 {% block subcontent %}
-                <div class="w3-row w3-padding-large" id='intro-banner' style="height:75vh;">
+                <div class="w3-row w3-padding-large" id='intro-banner'>
                     <br/>
                     <div class='w3-row'>
                         <div class='w3-col w3-twothird w3-padding-large'>
                             <div class='w3-row'>
-                                <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}India's First  <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform{% endblocktrans %}</h1>
+                                <h1 class='w3-jumbo w3-hide-small'>{% blocktrans %}India's First  <span class='vibran'>Open Source</span> <span class='active'>Collaborative</span> <span class="accent">Community</span> Platform{% endblocktrans %}</h1>
                                 <h1 class='w3-hide-large w3-hide-medium'>India's First <span class='accent'>Open Source</span> <span class='active'>Collaborative</span> Community Platform</h1>
-                            </div><br/>
+                            </div>
+                            <br/><br/>
                             <div class='w3-row'>
                                 {% if not request.user.is_authenticated %}
-                                 <a href='{% url 'account_signup' %}?next={{request.path}}'><button class='big-button positive' data-icon='person_add'>{% trans "Become a member" %}</button></a>
+                                 <a href="{% url 'account_signup' %}?next={{request.path}}"><button class='big-button positive' data-icon='person_add'>{% trans "Join" %} {{APPNAME}}</button></a>
                                 {% else %}
                                  <a href='{{URLS.ROOT}}'><button class='big-button accent' data-icon='arrow_back'>{% trans "Browse everything" %}</button></a>
                                 {% endif %}
@@ -221,64 +250,273 @@
                         </div>
                     </div>
                 </div>
-                <div class="w3-row browser-view" data-type="{{BROWSE.DISPLAY_MENTORS}}">
+                <br/>
+                <div class="w3-row w3-padding-large tertiary">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                        <div class='w3-col w3-twothird'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo dead-text w3-hide-small'>{% blocktrans %}Collaboration happens here.{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large dead-text w3-hide-medium'>{% blocktrans %}Collaboration happens here.{% endblocktrans %}</h2>
+                                <br/><br/>
+                                <strong class='text-large'>
+                                Proper contribution recognition and exposure to new kinds of skillsets favouring your own personal growth.
+                                <br/><br/>
+                                <span class="w3-hide-small">
+                                On the right is one of such projects that we made it happen via our community.
+                                </span>
+                                <span class="w3-hide-large w3-hide-medium">
+                                Following is one of such projects that we made it happen via our community.
+                                </span>
+                                </strong>
+                                <br/><br/><br/>
+                                <a href="{{URLS.PROJECTS}}"><button class='big-button primary' data-icon='open_in_new'>{% trans "More about projects" %}</button></a>
+                            </div>
+                        </div>
+                        <div class='w3-col w3-third w3-padding-large'>
+                            <br/>
+                            <div class="pallete no-pad w3-center ">
+                                <a class="mini-window-action" data-url="{{project.getLink}}">
+                                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" style="border-bottom: 8px solid var(--{{project.theme}})" />
+                                </a>
+                                <div class="w3-row w3-padding">
+                                    <h5 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+                                    <span>{{ project.description|truncatechars:60 }}</span>
+                                    <br/><br/>
+                                    {% for topic in project.getPalleteTopics %}
+                                    <button class="{{project.theme}} small w3-left">{{topic}}</button>
+                                    {% endfor %}
+                                    <a href="{{project.get_link}}" target="_blank"><button class="primary small w3-right" data-icon="open_in_new">View profile</button></a>
+                                </div>
+                            </div><br/>
+                        </div>
+                    </div>
                 </div>
-                <div class="w3-row w3-padding-large" id='projects-admire-banner' style="height:70vh">
+                <div class="w3-row w3-padding-large accent">
                     <br/>
                     <div class='w3-row'>
-                        <div class='w3-col w3-half'>
-                        </div>
-                        <div class='w3-col w3-half w3-padding-large'>
-                            <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Admire projects{% endblocktrans %}</h2>
-                                <br/>
-                                <strong class='text-medium'>{% trans "Snapshots are waiting for you to admire some projects for them." %}</strong>
-                            </div><br/>
-                            <a href='{{URLS.PROJECTS}}'><button class='big-button positive' data-icon='open_in_new'>{% trans "Projects" %}</button></a>
-                            <br/><br/>
-                        </div>
-                    </div>
-                </div>
-                <div class="w3-row browser-view" data-type="{{BROWSE.CORE_MEMBERS}}">
-                </div>
-                <div class="w3-row w3-padding-large" id='compete-participate-banner' style="height:60vh;">
-                    <br/>
-                    <div class='w3-row w3-center'>
                         <div class='w3-col w3-padding-large'>
-                            <div class='w3-row'>
-                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Participate{% endblocktrans %}</h2>
-                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Participate{% endblocktrans %}</h2>
-                                <br/>
-                                <strong class='text-medium'>{% trans "We conduct and host competitions for you to level up. You participate in them to contribute." %}</strong>
-                            </div><br/>
-                            <a href='{{URLS.COMPETE}}'><button class='big-button active' data-icon='open_in_new'>{% trans "Competitions" %}</button></a>
-                            <br/><br/>
-                        </div>
-                    </div>
-                </div>
-                <div class="w3-row w3-padding-large" id="existence-reason-banner" style="height:60vh;">
-                    <br/>
-                    <div class='w3-row w3-center'>
-                        <div class='w3-col w3-padding-large'>
-                            <div class='w3-row'>
+                            <div class='w3-row w3-center'>
                                 <h2 class='w3-jumbo w3-hide-small'>Why {{APPNAME}}?</h2>
                                 <h2 class='w3-hide-large w3-hide-medium'>Why {{APPNAME}}?</h2>
                                 <br/>
-                                <strong class='text-medium'>{% blocktrans %}Starting a project with {{APPNAME}} gives your idea a certain amount of exposure,<br/>a head start, a profile, a face, a room on internet, a family to your project to-be.<br/>We call that family {{APPNAME}} Community.{% endblocktrans %}</strong>
-                            </div><br/>
-                            <a href='{{URLS.LANDING}}'><button class='big-button accent' data-icon='open_in_new'>{% trans "Read philosophy" %}</button></a>
+                                <strong class='text-large'>
+                                    The following domains roughly categorize the kind of work through which people collaborate and grow on {{APPNAME}}.
+                                </strong>
+                            </div>
                             <br/><br/>
+                            <div class='w3-row w3-center'>
+                                <div class='w3-col l3 m6 s12 w3-padding pointer'>
+                                    <div class="pallete domain-colab-tab" id="development">
+                                        <i class="w3-jumbo material-icons">code</i>
+                                        <h3>{% blocktrans %}Development{% endblocktrans %}</h3>
+                                    </div>
+                                </div>
+                                <div class='w3-col l3 m6 s12 w3-padding pointer'>
+                                    <div class="pallete domain-colab-tab" id="mentorship">
+                                    <i class="w3-jumbo material-icons">memory</i>
+                                    <h3>{% blocktrans %}Mentorship{% endblocktrans %}</h3>
+                                    </div>
+                                </div>
+                                <div class='w3-col l3 m6 s12 w3-padding pointer'>
+                                    <div class="pallete domain-colab-tab" id="competition">
+                                    <i class="w3-jumbo material-icons" >brush</i>
+                                    <h3>{% blocktrans %}Competition{% endblocktrans %}</h3>
+                                    </div>
+                                </div>
+                                <div class='w3-col l3 m6 s12 w3-padding pointer'>
+                                    <div class="pallete domain-colab-tab" id="moderation">
+                                    <i class="w3-jumbo material-icons">precision_manufacturing</i>
+                                    <h3 >{% blocktrans %}Moderation{% endblocktrans %}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+                            <div class="w3-row pallete" id="domain-colab-tab-view">
+
+                            </div>
+                            <br/>
                         </div>
                     </div>
-                </div><br/>
-                <div class="w3-row w3-padding-large w3-center">
-                    {% if not request.user.is_authenticated %}
-                        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
-                        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a><br/>
-                        <button class="big-button primary contact-request-action" data-icon="support">Contact us</button></a>
-                    {% endif %}
                 </div>
+                <div class="w3-row w3-padding-large tertiary">
+                    <br/>
+                    <div class='w3-row' align='center'>
+                        <h2 class='w3-jumbo w3-hide-small'>Are you eligible?</h2>
+                        <h2 class='w3-hide-large w3-hide-medium'>Are you eligible?</h2>
+                        <br/><br/>
+                        <strong class="text-big w3-padding">
+                            If you can categorize yourself under any of the following, officially or unofficially,
+                            <br/>then we'll be honoured to have you on-board.
+                        </strong>
+                    </div>
+                    <br/><br/>
+                    <div class='w3-row' align='center'>
+                        <div class='w3-col l3 m6 s12 w3-padding-large'>
+                            <div class='pallete positive text-positive'>
+                                <h2>Students &amp; Hobbyists</h2>
+                            </div>
+                        </div>
+                        <div class='w3-col l3 m6 s12 w3-padding-large'>
+                            <div class='pallete accent'>
+                                <h2>Professionals &amp; Newbies</h2>
+                            </div>
+                        </div>
+                        <div class='w3-col l3 m6 s12 w3-padding-large'>
+                            <div class='pallete active'>
+                                <h2>Professors &amp; Scholars</h2>
+                            </div>
+                        </div>
+                        <div class='w3-col l3 m6 s12 w3-padding-large'>
+                            <div class='pallete vibrant'>
+                                <h2>Companies &amp; Communities</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <br/><br/>
+                </div>
+                <div class="w3-row w3-padding" id="make-your-profile">
+                    <br/>
+                    <div class='w3-row w3-padding-large dead-text'>
+                        <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Profiles{% endblocktrans %}</h2>
+                        <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Profiles{% endblocktrans %}</h2>
+                        <br/>
+                        <strong class="text-big">
+                            You can have your profile, projects can have their profiles, competitions can have their profiles.
+                            <br/><br/>
+                            Your profile contains practical information about you, collected by us through <br/>the work you do here and your simultaneous acheivements.
+                            <br/>Similarly for projects & competitions.
+                        </strong>
+                    </div>
+                    <br/>
+                    <div class='w3-row w3-center'>
+                        <div class='w3-col w3-third w3-padding'>
+                            <div class='w3-row pallete-slab positive text-positive'>
+                                <i class="material-icons w3-jumbo" >widgets</i>
+                                <h3>Project Profile</h3>
+                                <div class="pallete">
+                                <strong class='text-medium'>{% blocktrans %}
+                                    An official profile of your project, in whichever domain it may be, gives it a recognizable face,
+                                    an official profile, a room on internet, a family on Knotters, and much more.
+                                {% endblocktrans %}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='w3-col w3-third w3-padding'>
+                            <div class='w3-row pallete-slab accent'>
+                                <i class="material-icons w3-jumbo">groups</i>
+                                <h3>Personal Profile</h3>
+                                <div class="pallete">
+                                    <strong class='text-medium'>
+                                    {% blocktrans %}
+                                    Your profile is your presence in our community with dynamic info about your expertise, acheivements,
+                                    projects and the things you may share yourself on Knotters.
+                                    {% endblocktrans %}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='w3-col w3-third w3-padding'>
+                            <div class='w3-row pallete-slab active'>
+                                <i class="material-icons w3-jumbo">psychology</i>
+                                <h3>Competition Profile</h3>
+                                <div class="pallete">
+                                <strong class='text-medium'>{% blocktrans %}
+                                    The competitions here are organized by clubs, societies, and other groups of developers, and through this, 
+                                    competitions get their own face and acheivements through participants.
+                                    {% endblocktrans %}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div><br/><br/>
+                </div>
+                <div class="w3-row w3-padding-large tertiary dead-text">
+                    <br/>
+                    <div class='w3-row w3-center'>
+                        <div class='w3-col w3-padding-large'>
+                            <div class='w3-row'>
+                                <i class="w3-jumbo">scatter_plot</i>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Everything Counts{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Everything Counts{% endblocktrans %}</h2>
+                                <br/><br/>
+                                <strong class='text-large'>{% blocktrans %}
+                                    {{APPNAME}} is filled with numerous of topics, for your profile, for your projects, and for the competitions,
+                                    through which we help you maintain track record in different skillsets by allotting XPs to you.
+                                    The topics have indiviual XP points for everyone on which can be increased mainly via contributing in projects 
+                                    and participating in competitions.<br/>
+                                    You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
+                                {% endblocktrans %}</strong>
+                            </div>
+                            <br/><br/>
+                            <div class='w3-row'>
+                            {% for topic in topics %}
+                            {% random_int as t %}
+                            <button class="big-button positive message-action" data-message="+{{t}} in {{topic}}. These are dummy values for representational purpose.">+{{t}} {{topic}}</button>
+                            {% endfor %}
+                            </div>
+                            <br/>
+                            <strong class='text-medium'>The +N on each topic here represents the your XP in it, for instance.</strong>
+                        </div>
+                    </div>
+                    <br/><br/>
+                </div>
+                <div class="w3-row w3-padding-large">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                        <div class='w3-col w3-twothird'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}The Moderators{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}The Moderators{% endblocktrans %}</h2>
+                                <br/><br/>
+                                <strong class='text-large'>
+                                Moderators maintain and oversee verified & core project's development.
+                                <br/>They get these projects as an assignment according to the relevant domains of expertise to review and approve/decline it, by their creators.
+                                Moderators also help organizations to review submissions in their competitions. All of this contribute towards their own growth on Knotters in the form of XPs.
+                                </strong>
+                                <br/><br/><br/>
+                                <a href="{{URLS.PEOPLE|getquery:'search=type:moderator'}}"><button class='big-button accent' data-icon='search'>{% trans "Search moderators" %}</button></a>
+                            </div>
+                        </div>
+                        <div class='w3-col w3-third w3-padding-large'>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="w3-row w3-padding-large" align="right">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                        <div class='w3-col w3-third w3-padding-large'>
+                            
+                        </div>
+                        <div class='w3-col w3-twothird'>
+                            <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}The Mentors{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}The Mentors{% endblocktrans %}</h2>
+                                <br/><br/>
+                                <strong class='text-large'>
+                                Mentors guide the developers of verified & core project's in development.
+                                <br/>They get these projects as a request according to the relevant domains of expertise by their creators.
+                                Mentors also help organizations to judge submissions in their competitions. All of this contribute towards their own growth on Knotters in the form of XPs.
+                                </strong>
+                                <br/><br/><br/>
+                                <a href="{{URLS.PEOPLE|getquery:'search=type:mentor'}}"><button class='big-button active' data-icon='search'>{% trans "Search mentors" %}</button></a>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                </div>
+                <div class="w3-row browser-view" data-type="{{BROWSE.CORE_MEMBERS}}">
+                </div>
+                <div class="w3-row w3-padding-large w3-center">
+                        <br/>
+                    {% if not request.user.is_authenticated %}
+                        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="w3-margin  big-button positive" data-icon="person_add">Join {{APPNAME}}</button></a>
+                    {% else %}
+                    <a href='{{URLS.ROOT}}'><button class='big-button accent' data-icon='arrow_back'>{% trans "Browse everything" %}</button></a>
+                    {% endif %}
+                        <button class="w3-margin big-button primary contact-request-action" data-icon="support">Contact us</button>
+                </div>
+                {% comment %} <div class="w3-row browser-view" data-type="{{BROWSE.DISPLAY_MENTORS}}" >
+                </div> {% endcomment %}
                 <br/>
                 {% endblock %}
             </div>
@@ -327,8 +565,9 @@
                 <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
                 <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">{% trans "Privacy Policy" %}</a><br/>
                 <a href="#0" class="text-secondary w3-animate-left contact-request-action">{% trans "Contact us" %}</a><br/>
-                <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
+                <a href="{{URLS.HOME}}" class="text-secondary w3-animate-left">{% trans "About" %} {{APPNAME}}</a><br/>
                 <a href="{{URLS.BRANDING}}" class="text-secondary w3-animate-left">{% trans "Brand Resources" %}</a><br/>
+                <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="#0" class="text-secondary w3-animate-left webapp-install-action">{% trans "Web App Installation" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
                 <a href="https://events.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Events" %}</a><br/>
@@ -458,7 +697,10 @@
         {% block ext_scripts %}{% endblock %}
         <script src="{% static 'scripts/autostart.js' %}"></script>
         <script src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?{% for k, v in request.GET.items %}{{k}}={{v}}&{% endfor %}" type="text/javascript"></script>
-        {% block scripts %}{% endblock %}
+
+        {% block scripts %}
+        <script async src="{% static 'scripts/home.js' %}"></script>
+        {% endblock %}
         <script async src="{% static 'html2canvas.min.js' %}"></script>
         {% spaceless %}
         {% block messages %}

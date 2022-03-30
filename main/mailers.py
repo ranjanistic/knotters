@@ -1,25 +1,29 @@
-from django.core.mail.message import EmailMessage, sanitize_address
+from smtplib import SMTPException
+from django.core.mail.message import sanitize_address
 from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives, send_mass_mail
+from django.core.mail import EmailMultiAlternatives
 from django.core.cache import cache
-from people.models import Profile
+from django.core.mail.backends.smtp import EmailBackend as EB
 from django.conf import settings
+from people.models import Profile
 from management.models import ThirdPartyAccount
-from .methods import errorLog, addMethodToAsyncQueue
+from .methods import errorLog, addMethodToAsyncQueue, htmlmin
 from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE, SERVER_EMAIL
 from .strings import URL
-from django.core.mail.backends.smtp import EmailBackend as EB
-import smtplib
 
 
 class EmailBackend(EB):
 
-    def queue_send_mail(connection,from_email, recipients, message, fail_silently):
+    def queue_send_mail(connection, from_email, recipients, message, fail_silently):
         try:
-            connection.sendmail(from_email, recipients, message.as_bytes(linesep='\r\n'))
-        except smtplib.SMTPException:
+            connection.sendmail(from_email, recipients,
+                                message.as_bytes(linesep='\r\n'))
+        except SMTPException as s:
             if not fail_silently:
-                raise
+                errorLog(s)
+            return False
+        except Exception as e:
+            errorLog(e)
             return False
         return True
 
@@ -29,11 +33,12 @@ class EmailBackend(EB):
             return False
         encoding = email_message.encoding or settings.DEFAULT_CHARSET
         from_email = sanitize_address(email_message.from_email, encoding)
-        recipients = [sanitize_address(addr, encoding) for addr in email_message.recipients()]
+        recipients = [sanitize_address(addr, encoding)
+                      for addr in email_message.recipients()]
         message = email_message.message()
-        addMethodToAsyncQueue(f"main.mailers.{EmailBackend.__name__}.{EmailBackend.queue_send_mail.__name__}",self.connection,from_email, recipients, message.as_bytes(linesep='\r\n'),self.fail_silently)
+        addMethodToAsyncQueue(f"main.mailers.{EmailBackend.__name__}.{EmailBackend.queue_send_mail.__name__}",
+                              self.connection, from_email, recipients, message.as_bytes(linesep='\r\n'), self.fail_silently)
         return True
-        
 
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
@@ -49,13 +54,17 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
             return False
     else:
         if ISDEVELOPMENT:
-            print(to)
-            print(subject)
-            print(body)
+            print("\n==============EMAIL==============")
+            print("TO:", to)
+            print("SUBJECT:", subject)
+            print("BODY:", body)
+            print("==============END EMAIL==============")
         return True
 
-
 def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
+    """
+    To send email to a list of recipients as CC.
+    """
     if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=to)
@@ -73,12 +82,14 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
             print(body)
         return True
 
-def sendBulkEmails(emails:list,subject,html,body):
+
+def sendBulkEmails(emails: list, subject, html, body):
     for email in emails:
-        sendEmail(email,subject,html,body)
+        sendEmail(email, subject, html, body)
     return True
 
-def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list = [],greeting: str = '', conclusion: str = '', action=False) -> str and str:
+
+def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list = [], greeting: str = '', conclusion: str = '', action=False) -> str and str:
     """
     Creates html and body content using parameters via the application's standard email template.
 
@@ -137,8 +148,8 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
         cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
     data["SOCIALS"] = SOCIALS
     try:
-        html = render_to_string(
-            f"account/email/{'action' if action else 'alert'}.html", data)
+        html = htmlmin(render_to_string(
+            f"account/email/{'action' if action else 'alert'}.html", data))
         return html, body
     except Exception as e:
         errorLog(e)
@@ -177,10 +188,13 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
     return sendCCEmail(to=to, subject=subject, html=html, body=body)
 
 
-def featureRelease(name,content):
-    emails = Profile.objects.filter(is_active=True,suspended=False,to_be_zombie=False).values_list("user__email",flat=True)
-    html, body = getEmailHtmlBody(header=f'A new feature release - {name} - of {PUBNAME} is here! This release has the following details.', footer=content, conclusion="You aren't required to take any action. You were notified because you are a member. You can stop receiving such emails in future.")
-    return sendBulkEmails(emails,'Feature Release!',html, body)
+def featureRelease(name, content):
+    emails = Profile.objects.filter(
+        is_active=True, suspended=False, to_be_zombie=False).values_list("user__email", flat=True)
+    html, body = getEmailHtmlBody(header=f'A new feature release - {name} - of {PUBNAME} is here! This release has the following details.', footer=content,
+                                  conclusion="You aren't required to take any action. You were notified because you are a member. You can stop receiving such emails in future.")
+    return sendBulkEmails(emails, 'Feature Release!', html, body)
+
 
 def downtimeAlert():
     """
@@ -189,18 +203,21 @@ def downtimeAlert():
 
     tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")).strip()
     print(tillTime)
-    emails = Profile.objects.filter(is_zombie=False).values_list('user__email',flat=True)
-    if(input(f"{emails.count()} people will be alerted, ok? (y/n) ")!='y'):
+    emails = Profile.objects.filter(
+        is_zombie=False).values_list('user__email', flat=True)
+    if(input(f"{emails.count()} people will be alerted, ok? (y/n) ") != 'y'):
         return print("aborted.")
     print('Alert task started.')
-    
+
     html, body = getEmailHtmlBody(
-        greeting='', 
-        header=f"This is to inform you that our online platform will experience a downtime till {tillTime}, due to unavoidable reasons.", 
-        footer="Any inconvenience is deeply regretted. Thank you for your understanding.", 
+        greeting='',
+        header=f"This is to inform you that our online platform will experience a downtime till {tillTime}, due to unavoidable reasons.",
+        footer="Any inconvenience is deeply regretted. Thank you for your understanding.",
         conclusion="You received this alert because you are a member of our community. If this is an error, then please report to us."
     )
-    addMethodToAsyncQueue(f'main.mailers.{sendBulkEmails.__name__}', emails,"Scheduled Downtime Alert",html,body)
+    addMethodToAsyncQueue(
+        f'main.mailers.{sendBulkEmails.__name__}', emails, "Scheduled Downtime Alert", html, body)
+
 
 def sendErrorLog(error):
     return sendEmail(to=SERVER_EMAIL, subject=f"KnottersERROR LOG", html=error, body=error)

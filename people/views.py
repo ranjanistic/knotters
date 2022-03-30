@@ -1,26 +1,22 @@
-import traceback
 from uuid import UUID
-import re
-from django.core.cache import cache
-from projects.methods import addTagToDatabase
-from projects.models import Tag
+from re import sub as re_sub
 from ratelimit.decorators import ratelimit
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.shortcuts import redirect, render
-from allauth.account.decorators import login_required
 from django.conf import settings
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import decode_JSON, github_only, require_JSON_body, normal_profile_required
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, errorLog, respondJson, renderData
-from main.env import BOTMAIL
-from main.strings import Action, Code, Event, Message, Template, setURLAlerts
-from management.models import Management, ReportCategory
-from .apps import APPNAME
+from main.methods import base64ToImageFile, errorLog, respondJson
+from main.strings import Code, Event, Message, Template, setURLAlerts
+from projects.methods import addTagToDatabase
+from projects.models import Tag
+from management.models import ReportCategory
 from .models import ProfileSetting, ProfileSocial, ProfileTag, ProfileTopic, Topic, User, Profile
 from .methods import profileRenderData, renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, rendererstr
 
@@ -319,7 +315,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             for top in addtopics:
                 if len(top) > 35:
                     continue
-                top = re.sub('[^a-zA-Z \\\s-]', '', top)
+                top = re_sub('[^a-zA-Z \\\s-]', '', top)
                 if len(top) > 35:
                     continue
                 topic, _ = Topic.objects.get_or_create(name__iexact=top, defaults=dict(

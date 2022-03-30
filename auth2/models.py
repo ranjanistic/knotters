@@ -1,13 +1,12 @@
-import uuid
+from uuid import uuid4
 from django.core.cache import cache
 from django.db import models
 from main.strings import PEOPLE
 from django.conf import settings
 from django.utils import timezone
-from webpush.models import Group
 
 class Country(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=20)
     iso3 = models.CharField(max_length=5)
@@ -32,7 +31,7 @@ class Country(models.Model):
         return states_count
 
 class State(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='state_country')
     name = models.CharField(max_length=200)
     # created_at = models.DateTimeField(auto_now=False,default=timezone.now)
@@ -41,7 +40,7 @@ class State(models.Model):
         return self.name
 
 class PhoneNumber(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(
         f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='phone_user')
     number = models.CharField(max_length=100)
@@ -54,7 +53,7 @@ class PhoneNumber(models.Model):
         return self.user.get_name
 
 class Address(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.OneToOneField(
         f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='address_user')
     locality = models.CharField(max_length=200, null=True, blank=True)
@@ -72,7 +71,7 @@ class Address(models.Model):
 
 
 class Notification(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=80)
     description = models.CharField(max_length=200, null=True,blank=True)
     disabled = models.BooleanField(default=False)
@@ -83,7 +82,7 @@ class Notification(models.Model):
 
 
 class EmailNotification(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     notification = models.OneToOneField(Notification, on_delete=models.CASCADE, related_name='email_notification_notif',default=None)
     subscribers = models.ManyToManyField(f"{PEOPLE}.User", through="EmailNotificationSubscriber", default=[], related_name='email_notification_subscribers')
 
@@ -92,7 +91,7 @@ class EmailNotification(models.Model):
 
 
 class DeviceNotification(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     notification = models.OneToOneField(Notification, on_delete=models.CASCADE, related_name='device_notification_notif', default=None)
     subscribers = models.ManyToManyField(f"{PEOPLE}.User", through="DeviceNotificationSubscriber",default=[], related_name='device_notification_subscribers')
 
@@ -101,13 +100,13 @@ class DeviceNotification(models.Model):
     
 
 class EmailNotificationSubscriber(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='enotification_sub_user')
     email_notification = models.ForeignKey(EmailNotification, on_delete=models.CASCADE, related_name='enotification_sub_notification')
     created_at = models.DateTimeField(auto_now=False,default=timezone.now)
 
 class DeviceNotificationSubscriber(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='dnotification_sub_user')
     device_notification = models.ForeignKey(DeviceNotification, on_delete=models.CASCADE, related_name='dnotification_sub_notification')
     created_at = models.DateTimeField(auto_now=False,default=timezone.now)

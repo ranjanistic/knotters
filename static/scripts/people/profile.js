@@ -13,11 +13,7 @@ const loadTabScript = (tab) => {
                             : getElements("topic-points").map((top) =>
                                   Number(top.innerHTML)
                               ),
-                        isMentor
-                            ? COLOR.active()
-                            : isModerator
-                            ? COLOR.accent()
-                            : COLOR.positive()
+                        isMentor ? COLOR.active() : isModerator ? COLOR.accent() : COLOR.positive()
                     );
                 });
                 if (selfProfile) {
@@ -355,7 +351,7 @@ initializeTabsView({
     },
     uniqueID: "profiletab",
     onShowTab: loadTabScript,
-    activeTabClass: isMentor ? "active" : isModerator ? "accent" : "positive",
+    activeTabClass: theme || (isMentor ? "active" : isModerator ? "accent" : isManager? "vibrant": "positive"),
     tabindex,
     inactiveTabClass:
         "primary " +

@@ -1,7 +1,6 @@
-import uuid
+from uuid import uuid4, UUID
 from deprecated import deprecated
 from django.db import models
-from django.db.models.lookups import In
 from django.utils import timezone
 from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL
@@ -11,11 +10,11 @@ from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
 import jsonfield
 from main.strings import CORE_PROJECT, Code, Message, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
-from management.models import GhMarketApp, GhMarketPlan, HookRecord, ReportCategory, Invitation
+from management.models import GhMarketApp, HookRecord, ReportCategory, Invitation
 from .apps import APPNAME
 
 class Tag(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True,blank=True, related_name="tag_creator")
@@ -57,7 +56,7 @@ class Tag(models.Model):
 
 
 class Category(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True,blank=True, related_name="category_creator")
@@ -124,13 +123,13 @@ class CategoryTag(models.Model):
     class Meta:
         unique_together = ('category', 'tag')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
 class License(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=50)
     keyword = models.CharField(max_length=80, null=True, blank=True,
                                help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
@@ -188,13 +187,13 @@ class License(models.Model):
 
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getID())}_{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 def defaultImagePath():
     return f"{APPNAME}/default.png"
 
 class BaseProject(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=50, null=False, blank=False)
     image = models.ImageField(upload_to=projectImagePath, max_length=500, default=defaultImagePath, null=True, blank=True)
     description = models.CharField(max_length=5000, null=False, blank=False)
@@ -214,8 +213,10 @@ class BaseProject(models.Model):
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     topics = models.ManyToManyField(
         f'{PEOPLE}.Topic', through='ProjectTopic', default=[])
+    co_creators = models.ManyToManyField(f"{PEOPLE}.Profile",through="BaseProjectCoCreator",default=[],related_name='base_project_co_creator')
     admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[], related_name='base_project_admirer')
-
+    prime_collaborators = models.ManyToManyField(f"{PEOPLE}.Profile",through='BaseProjectPrimeCollaborator',default=[],related_name='base_project_prime_collaborator')
+    
     def __str__(self):
         return self.name
 
@@ -289,14 +290,14 @@ class BaseProject(models.Model):
         if self.is_verified:
             return 'accent'
         if self.is_core:
-            return 'tertiary'
+            return 'vibrant'
         return "positive"
 
     def text_theme(self):
         if self.is_verified:
             return 'text-accent'
         if self.is_core:
-            return "positive-text"
+            return "vibrant-text"
         return "text-positive"
 
 
@@ -313,7 +314,7 @@ class BaseProject(models.Model):
     def addSocial(self, site:str):
         return ProjectSocial.objects.create(project=self,site=site)
 
-    def removeSocial(self, id:uuid.UUID):
+    def removeSocial(self, id:UUID):
         return ProjectSocial.objects.filter(id=id,project=self).delete()
     
     @property
@@ -507,8 +508,94 @@ class BaseProject(models.Model):
 
     def total_public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True).count()
+    
+    def add_cocreator(self,co_creator):
+        if co_creator.is_normal:
+            self.co_creators.add(co_creator)
+            return True
+            #give github repo access code
+        else :
+            return False
+    def total_cocreators(self):
+        return self.co_creators.count()
+    
+    def under_cocreator_invitation(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).exists()
+
+    def total_cocreator_invitations(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).count()
+    
+    def under_cocreator_invitation_profile(self,profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile).exists()
+
+    def can_invite_cocreator(self):
+        return self.is_approved and not self.under_invitation() and \
+            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<5
+
+    def can_invite_cocreator_profile(self, profile):
+        return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
+
+    def current_cocreator_invitations(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False)
+
+    def cancel_cocreator_invitation(self,profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False,receiver=profile).delete()
+    
+    def cancel_all_cocreator_invitations(self):
+        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False).delete()
+
+        
+
+
+class BaseProjectPrimeCollaborator(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    prime_collaborator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,related_name="base_project_prime_collaborator_prime_collaborator")
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_base_project")
+
+class BaseProjectCoCreator(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    co_creator = models.ForeignKey(f"{PEOPLE}.Profile",on_delete=models.CASCADE,related_name="base_project_co_creator_co_creator")
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_base_project")
+
+class BaseProjectCoCreatorInvitation(Invitation):
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_invitation_base_project")
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_co_creator_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_co_creator_invitation_receiver')
+
+    def accept(self):
+        if self.expired: return False
+        if self.resolved: return False
+        done = self.base_project.add_cocreator(self.receiver)
+        if not done:
+            return False
+        self.resolve()
+        return done
+
+    def decline(self):
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
+        self.delete()
+        return True
+    
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+    
+    @property
+    def get_link(self):
+        return self.getLink()
+
+        
+class BaseProjectPrimeCollaboratorInvitation(Invitation):
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_invitation_base_project")
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_receiver')
 
 class Project(BaseProject):
+    """
+    This is verified project
+    """
     url = models.CharField(max_length=500, null=True, blank=True)
     reponame = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
@@ -729,16 +816,19 @@ class Project(BaseProject):
 
     def is_from_verification(self):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).exists() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).exists()
-
+    
     def from_verification(self):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).first() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).first() or None
     
+    def can_invite_cocreator_profile(self,profile):
+        return self.moderator!=profile and self.mentor!=profile
+
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}_{uuid.uuid4().hex}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}_{uuid4().hex}.{fileparts[len(fileparts)-1]}"
 
 class Asset(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     baseproject = models.ForeignKey(BaseProject,on_delete=models.CASCADE)
     name = models.CharField(max_length=250, null=False, blank=False)
     file = models.FileField(upload_to=assetFilePath,max_length=500)
@@ -835,17 +925,22 @@ class FreeProject(BaseProject):
             Snapshot.objects.filter(base_project=self.base()).update(base_project=fpvr.verifiedproject.base())
             ProjectSocial.objects.filter(project=self.base()).update(project=fpvr.verifiedproject.base())
             fpvr.verifiedproject.admirers.set(self.admirers.all())
+            fpvr.verifiedproject.co_creators.set(self.co_creators.all())
+            fpvr.verifiedproject.prime_collaborators.set(self.prime_collaborators.all())
             self.delete()
             return True
         except:
             return False
+
+    def can_invite_cocreator_profile(self,profile):
+        return True
 
 
 class FreeRepository(models.Model):
     """
     One to one linked repository record
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
     repo_id = models.IntegerField()
 
@@ -897,7 +992,7 @@ class AppRepository(models.Model):
     """
     Ghmarket app linked with freerepository
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     free_repo = models.ForeignKey(FreeRepository, on_delete=models.CASCADE)
     gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
     suspended = models.BooleanField(default=False)
@@ -915,7 +1010,7 @@ class ProjectTag(models.Model):
     class Meta:
         unique_together = ('project', 'tag')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, null=True, blank=True)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE,
@@ -926,14 +1021,14 @@ class ProjectTopic(models.Model):
     class Meta:
         unique_together = ('project', 'topic')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, null=True, blank=True)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
                               null=True, blank=True, related_name='project_topic')
 
 class ProjectSocial(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
     site = models.URLField(max_length=800)
 
@@ -1193,13 +1288,16 @@ class CoreProject(BaseProject):
             return True
         except:
             return False
+    
+    def can_invite_cocreator_profile(self,profile):
+        return self.moderator!=profile and self.mentor!=profile
 
 
 class LegalDoc(models.Model):
     class Meta:
         unique_together = ('name', 'pseudonym')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000)
     pseudonym = models.CharField(max_length=1000, unique=True)
     about = models.CharField(max_length=100, null=True, blank=True)
@@ -1245,10 +1343,10 @@ class CoreProjectHookRecord(HookRecord):
 
 def snapMediaPath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/snapshots/{str(instance.get_id)}-{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/snapshots/{str(instance.get_id)}-{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 class Snapshot(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='base_project_snapshot')
     text = models.CharField(max_length=6000,null=True,blank=True)
     image = models.ImageField(upload_to=snapMediaPath, max_length=500, null=True, blank=True)
@@ -1298,7 +1396,7 @@ class ReportedProject(models.Model):
     class Meta:
         unique_together = ('profile', 'baseproject', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_reporter_profile')
     baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
     category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')
@@ -1307,7 +1405,7 @@ class ReportedSnapshot(models.Model):
     class Meta:
         unique_together = ('profile', 'snapshot', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_reporter_profile')
     snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='reported_snapshot')
     category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_snapshot_category')
@@ -1316,7 +1414,7 @@ class ProjectAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'base_project')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_admirer_profile')
     base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
 
@@ -1324,13 +1422,13 @@ class SnapshotAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'snapshot')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
     snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='admired_snapshot')
 
 
 class FileExtension(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     extension = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=500, null=True, blank=True)
     topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[], related_name='file_extension_topics')
@@ -1353,7 +1451,7 @@ class FileExtension(models.Model):
         return topics
 
 class TopicFileExtension(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
     file_extension = models.ForeignKey(FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
 

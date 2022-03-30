@@ -3,7 +3,6 @@ from django.http.response import Http404, HttpResponse, JsonResponse
 from uuid import UUID
 from django.core.handlers.wsgi import WSGIRequest
 from compete.models import Submission
-from django.db.models import Q
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -13,7 +12,7 @@ from projects.methods import setupApprovedProject, setupApprovedCoreProject
 from projects.mailers import projectRejectedNotification
 from compete.mailers import submissionsModeratedAlert
 from main.methods import errorLog, respondJson, addMethodToAsyncQueue, user_device_notify
-from main.strings import CORE_PROJECT, Code, Message, PROJECTS, PEOPLE, COMPETE, URL, Template
+from main.strings import CORE_PROJECT, Code, Message, PROJECTS, PEOPLE, COMPETE
 from main.decorators import decode_JSON, require_JSON_body, moderator_only, normal_profile_required
 from projects.models import CoreProjectVerificationRequest, FreeProjectVerificationRequest
 from .apps import APPNAME

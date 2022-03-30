@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+
+{% block og_title %}429 {% trans "Rate Limited" %}{% endblock %}
+{% block og_description %}{% trans "We received way too many requests from you." %}{% endblock %}
+{% block og_site_name %}429{% endblock %}
+
+{% block tw_title %}429 {% trans "Rate Limited" %}{% endblock %}
+{% block tw_description %}{% trans "We received way too many requests from you." %}{% endblock %}
+{% block tw_site_name %}429{% endblock %}
+
+{% block title %}429 {% trans "Rate Limited" %}{% endblock %}
+
+{% block nav_text %}
+429
+{% endblock %}
+
+{% block content %}
+  <div class="w3-row w3-padding w3-center tertiary">
+  <br/>
+	<div class="w3-padding"><i class="material-icons w3-jumbo">pause</i></div>
+	<h1>429</h1>
+	<div class="w3-col w3-quarter w3-padding"></div>
+	<div class="w3-col w3-half">
+  <h1>{% trans "Rate Limited" %}</h1><br/>
+  <h4>{% trans "We received way too many requests from you. Please wait before proceeding further." %}</h4><br/>
+  <a href="/"><button class="positive" type="button" data-icon="home">{% trans "Return home" %}</button></a>
+  </div>
+  <div class="w3-row w3-padding"></div>
+  <br/><br/>
+  </div>
+{% endblock %}

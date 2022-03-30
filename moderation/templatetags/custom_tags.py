@@ -1,4 +1,5 @@
 from django import template
+from random import randint
 from urllib.parse import unquote
 from main.methods import getNumberSuffix
 from main.strings import setPathParams
@@ -38,3 +39,7 @@ def getquery(url,querydata:str):
 @register.filter(name='urldecode')
 def urldecode(value):
     return unquote(value)
+
+@register.simple_tag
+def random_int(a=1, b=100):
+    return randint(a, b)

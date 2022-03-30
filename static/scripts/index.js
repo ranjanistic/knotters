@@ -89,6 +89,8 @@ const setUrlParams = (path, ...params) => {
     return path;
 };
 
+const setPathParams = setUrlParams;
+
 const setUrlQueries = (path, query = {}) => {
     path = String(path);
     Object.keys(query).forEach((key) => {
@@ -106,8 +108,7 @@ const loadGlobalEventListeners = () => {
                 getElement(`close-${view.id}`).addEventListener("click", () => {
                     localStorage.setItem(`first-intro-${view.id}`, 1);
                     message(STRING.re_introduction, (t) => {
-                        t.onclick = (_) =>
-                            (refer({path:URLS.LANDING}));
+                        t.onclick = (_) => refer({ path: URLS.LANDING });
                     });
                     hide(view);
                 });
@@ -142,7 +143,7 @@ const loadGlobalEventListeners = () => {
     });
     getElements("href").forEach((href) => {
         href.addEventListener("click", (e) => {
-            refer({path:href.getAttribute("data-href")})
+            refer({ path: href.getAttribute("data-href") });
         });
     });
     getElementsByTag("button").forEach((button) => {
@@ -320,17 +321,17 @@ const loadGlobalEventListeners = () => {
     });
     getElements("highlight-action").forEach((action) => {
         action.onclick = (e) => {
-            highlightElementByID(action.getAttribute("data-elementID"))
-        }
+            highlightElementByID(action.getAttribute("data-elementID"));
+        };
     });
     getElements("full-loader-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            loaders(true)
+            loaders(true);
         });
     });
     getElements("reload-page-action").forEach((action) => {
         action.onclick = (e) => {
-            refresh({})
+            refresh({});
         };
     });
     getElements("mini-window-action").forEach((action) => {
@@ -471,6 +472,8 @@ const initializeTabsView = ({
     selected = 0,
     setDefaultViews = true,
     tabindex = false,
+    autoShift = false,
+    autoShiftDuration = 3000,
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
@@ -544,20 +547,36 @@ const initializeTabsView = ({
                 : "";
         };
     });
+    let clickIndex = 0;
     if (tabs.length) {
         if (tabindex === false) {
             try {
-                tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+                clickIndex = Number(sessionStorage.getItem(uniqueID)) || 0;
             } catch (e) {
-                tabs[selected].click();
+                clickIndex = selected;
             }
         } else {
             if (tabindex < tabs.length) {
-                tabs[tabindex].click();
+                clickIndex = tabindex;
             } else {
-                tabs[tabs.length - 1].click();
+                clickIndex = tabs.length - 1;
             }
         }
+    }
+    tabs[clickIndex].click();
+
+    if (autoShift && autoShiftDuration) {
+        let t = clickIndex;
+        let intv = setInterval(() => {
+            tabs[t].click();
+            t += 1;
+            if (t >= tabs.length) t = 0;
+        }, autoShiftDuration);
+        tabs.forEach((tab) => {
+            tab.onmouseover = () => {
+                clearInterval(intv);
+            };
+        });
     }
     return tabs;
 };

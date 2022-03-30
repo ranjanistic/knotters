@@ -319,7 +319,7 @@ if (selfProject || ismoderator) {
             let buttons = [];
             data.tags.forEach((tag) => {
                 buttons.push(
-                    `<button type="button" class="${
+                    `<button type="button" class="small ${
                         getElement("addtagIDs").value.includes(tag.id)
                             ? "positive"
                             : "primary"
@@ -334,7 +334,7 @@ if (selfProject || ismoderator) {
                 loadExistingTags();
             } else {
                 buttons.push(
-                    `<button type="button" class="${
+                    `<button type="button" class="small ${
                         getElement("addtags").value.includes(e.target.value)
                             ? "positive"
                             : "primary"

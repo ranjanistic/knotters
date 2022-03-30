@@ -1,12 +1,13 @@
-import os
-import logging
-import requests
-import base64
+from os import path as ospath, walk as oswalk
+from logging import log, ERROR as LOG_CODE_ERROR
+from re import sub as re_sub, compile as re_compile, findall as re_findall
+from traceback import print_exc
+from requests import post as postRequest
+from base64 import b64decode
 from uuid import uuid4
 from htmlmin.minify import html_minify
-import traceback
-import re
-import json
+from json import dumps as json_dumps
+from webpush import send_user_notification, send_group_notification
 from django.core.handlers.wsgi import WSGIRequest
 from django.utils import timezone
 from datetime import timedelta
@@ -15,13 +16,12 @@ from django.core.files.base import ContentFile, File
 from django.db.models.fields.files import ImageFieldFile
 from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template.loader import render_to_string
-from webpush import send_user_notification, send_group_notification
 from django.shortcuts import redirect, render
 from django.conf import settings
 from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING
-from .strings import URL, Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, AUTH2, AUTH
+from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, AUTH2, AUTH
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -119,7 +119,7 @@ def getDeepFilePaths(dir_name: str, appendWhen=None):
 
     :appendWhen: a function, with argument as traversed path in loop, should return bool whether given arg path is to be included or not.
     """
-    allassets = mapDeepPaths(os.path.join(settings.BASE_DIR, f'{dir_name}/'))
+    allassets = mapDeepPaths(ospath.join(settings.BASE_DIR, f'{dir_name}/'))
     assets = list()
     for asset in allassets:
         path = str(asset).replace(str(settings.BASE_DIR), str())
@@ -136,31 +136,15 @@ def getDeepFilePaths(dir_name: str, appendWhen=None):
     return assets
 
 
-def mapDeepPaths(dir_name, traversed=list(), results=list()):
+def mapDeepPaths(dir_name):
     """
     Returns list of mapping of paths inside the given directory.
     """
     paths = []
-    if True:
-        for root, dirs, files in os.walk(dir_name):
-            for file in files:
-                paths.append(os.path.join(root, file))
-        return paths
-    else:
-        dirs = os.listdir(dir_name)
-        if dirs:
-            for f in dirs:
-                new_dir = dir_name + f + '/'
-                if os.path.isdir(new_dir) and new_dir not in traversed:
-                    traversed.append(new_dir)
-                    mapDeepPaths(new_dir, traversed, results)
-                else:
-                    results.append([new_dir[:-1], os.stat(new_dir[:-1])])
-
-        paths = list()
-        for file_name, _ in results:
-            paths.append(str(file_name).strip('.'))
-        return paths
+    for root, _, files in oswalk(dir_name):
+        for file in files:
+            paths.append(ospath.join(root, file))
+    return paths
 
 
 def maxLengthInList(list: list = list()) -> int:
@@ -179,13 +163,13 @@ def minLengthInList(list: list = list()) -> int:
     return min
 
 
-def base64ToImageFile(base64Data: base64) -> File:
+def base64ToImageFile(base64Data) -> File:
     try:
         format, imgstr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
         if ext not in ['jpg', 'png', 'jpeg']:
             return False
-        return ContentFile(base64.b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
+        return ContentFile(b64decode(imgstr), name=f"{uuid4().hex}.{ext}")
     except ValueError as e:
         return None
     except Exception as e:
@@ -193,11 +177,11 @@ def base64ToImageFile(base64Data: base64) -> File:
         return None
 
 
-def base64ToFile(base64Data: base64) -> File:
+def base64ToFile(base64Data) -> File:
     try:
         format, filestr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
-        return ContentFile(base64.b64decode(filestr), name=f"{uuid4().hex}.{ext}")
+        return ContentFile(b64decode(filestr), name=f"{uuid4().hex}.{ext}")
     except ValueError as e:
         return None
     except Exception as e:
@@ -214,9 +198,9 @@ class JsonEncoder(DjangoJSONEncoder):
 
 def errorLog(*args, raiseErr=True):
     if not ISTESTING:
-        logging.log(logging.ERROR, args)
+        log(LOG_CODE_ERROR, args)
         if ISDEVELOPMENT:
-            return traceback.print_exc()
+            return print_exc()
 
 
 def getNumberSuffix(value: int) -> str:
@@ -238,7 +222,7 @@ def getNumberSuffix(value: int) -> str:
 
 def verify_captcha(recaptcha_response: str) -> bool:
     try:
-        resp = requests.post(settings.GOOGLE_RECAPTCHA_VERIFY_SITE, dict(
+        resp = postRequest(settings.GOOGLE_RECAPTCHA_VERIFY_SITE, dict(
             secret=settings.GOOGLE_RECAPTCHA_SECRET_KEY,
             response=recaptcha_response
         ))
@@ -271,7 +255,7 @@ def addMethodToAsyncQueue(methodpath, *params):
 
 def testPathRegex(pathreg, path):
     localParamRegex = "[a-zA-Z0-9\. \\-\_\%]"
-    regpath = re.sub(Code.URLPARAM, f"+{localParamRegex}+", pathreg)
+    regpath = re_sub(Code.URLPARAM, f"+{localParamRegex}+", pathreg)
     if regpath == path:
         return True
     parts = regpath.split("+")
@@ -280,7 +264,7 @@ def testPathRegex(pathreg, path):
     def eachpart(part: str):
         return localParamRegex if part == localParamRegex else f"({part})"
     finalreg = "+".join(map(eachpart, parts))
-    match = re.compile(finalreg).match(path)
+    match = re_compile(finalreg).match(path)
     if match:
         return len(match.groups()) > 0
     return False
@@ -317,11 +301,11 @@ def sendGroupNotification(groups, payload, ttl=1000):
         return False
 
 
-def user_device_notify(user_s, 
-    title, body=None, url=None, icon=None,
-    badge=None, actions=[],
-    dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
-):
+def user_device_notify(user_s,
+                       title, body=None, url=None, icon=None,
+                       badge=None, actions=[],
+                       dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
+                       ):
     if not user_s:
         return False
     users = user_s
@@ -332,15 +316,15 @@ def user_device_notify(user_s,
         body=body,
         url=url,
         icon=icon,
-        badge=badge, actions=actions,dir=dir,image=image,lang=lang,renotify=renotify,requireInteraction=requireInteraction,
+        badge=badge, actions=actions, dir=dir, image=image, lang=lang, renotify=renotify, requireInteraction=requireInteraction,
         silent=silent, tag=tag, timestamp=timestamp, vibrate=vibrate
     ))
 
 
 def group_device_notify(group_s, title, body=None, url=None, icon=None,
-    badge=None, actions=[],
-    dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
-):
+                        badge=None, actions=[],
+                        dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
+                        ):
     if not group_s or not len(group_s):
         return False
     groups = group_s
@@ -351,14 +335,14 @@ def group_device_notify(group_s, title, body=None, url=None, icon=None,
         body=body,
         url=url,
         icon=icon,
-        badge=badge, actions=actions,dir=dir,image=image,lang=lang,renotify=renotify,requireInteraction=requireInteraction,
+        badge=badge, actions=actions, dir=dir, image=image, lang=lang, renotify=renotify, requireInteraction=requireInteraction,
         silent=silent, tag=tag, timestamp=timestamp, vibrate=vibrate
     ))
 
 
 def addActivity(view, user, request_get, request_post, status):
-    ActivityRecord.objects.create(view_name=view, user=user, request_get=json.dumps(
-        request_get), request_post=json.dumps(request_post), response_status=status)
+    ActivityRecord.objects.create(view_name=view, user=user, request_get=json_dumps(
+        request_get), request_post=json_dumps(request_post), response_status=status)
 
 
 def activity(request, response):
@@ -380,11 +364,17 @@ def removeUnverified():
         return delusers, profs
     return False
 
-def htmlmin(htmlstr:str, *args, **kwargs):
+
+def htmlmin(htmlstr: str, *args, **kwargs):
+    """
+    Minifies string based html code.
+    """
     try:
         mincode = html_minify(htmlstr, *args, **kwargs)
-        if len(re.findall(r'<(html|\/html|)>',htmlstr)) != 0:
+        if len(re_findall(r'<(html|\/html|)>', htmlstr)) != 0:
+            # If includes html tags, means it is a standalone page.
             return mincode
-        return re.sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
+        # Otherwise it is a component html code.
+        return re_sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
     except:
         return htmlstr.strip()

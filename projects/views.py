@@ -1,5 +1,5 @@
 from datetime import timedelta
-import re
+from re import sub as re_sub
 from uuid import UUID
 from django.core.cache import cache
 from django.utils import timezone
@@ -8,22 +8,21 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
-from moderation.views import action
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.conf import settings
 from main.env import PUBNAME
-from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body, github_only, normal_profile_required, decode_JSON
+from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body,require_JSON,github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
-from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
+from main.strings import CORE_PROJECT, Action, Code, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
 from management.models import GhMarketApp, ReportCategory
 from people.models import Profile, Topic
-from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest
-from .mailers import coreProjectDeletionAcceptedRequest, coreProjectDeletionDeclinedRequest, coreProjectDeletionRequest, coreProjectModTransferAcceptedInvitation, coreProjectModTransferDeclinedInvitation, coreProjectModTransferInvitation, coreProjectSubmissionNotification, projectModTransferAcceptedInvitation, projectModTransferDeclinedInvitation, projectModTransferInvitation, projectTransferAcceptedInvitation, projectTransferDeclinedInvitation, projectTransferInvitation, sendProjectSubmissionNotification, verProjectDeletionAcceptedRequest, verProjectDeletionDeclinedRequest, verProjectDeletionRequest
+from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest,BaseProjectCoCreatorInvitation
+from .mailers import *
 from .methods import addTagToDatabase, coreProfileData, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, freeProfileData, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData, verifiedProfileData
 from .apps import APPNAME
 
@@ -723,7 +722,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             for top in addtopics:
                 if len(top) > 35:
                     continue
-                top = re.sub('[^a-zA-Z \\\s-]', '', top)
+                top = re_sub('[^a-zA-Z \\\s-]', '', top)
                 if len(top) > 35:
                     continue
                 topic, created = Topic.objects.get_or_create(name__iexact=top, defaults=dict(
@@ -2002,3 +2001,102 @@ def freeVerificationRequest(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+@require_JSON
+def handleCocreatorInvitation(request,projectID):
+    """
+        To manage co-creator invitation 
+    """
+    try:
+        action = request.POST['action']
+        if action == Action.CREATE:
+            email = request.POST['email'].lower()
+            if (request.user.email == email) or (email in request.user.emails()):
+                raise ObjectDoesNotExist(email)
+            baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
+            if not baseproject.can_invite_cocreator():
+                raise ObjectDoesNotExist("cannot invite cocreator: ", baseproject)
+            receiver = Profile.objects.get(
+                user__email=email,suspended=False, is_active=True, to_be_zombie=False)
+            if not baseproject.can_invite_cocreator_profile(receiver):
+                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+
+            inv, created = BaseProjectCoCreatorInvitation.objects.get_or_create(
+                baseproject=baseproject, 
+                sender=request.user.profile,
+                resolved=False,
+                receiver=receiver,
+                defaults=dict(
+                    receiver=receiver,
+                    resolved=False
+                )
+            )
+            if not created:
+                inv.expiresOn = timezone.now() + timedelta(days=1)
+                inv.save()
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{baseProjectCoCreatorInvitation.__name__}", inv)
+        elif action == Action.REMOVE:
+            receiver_id = request.POST['receiver_id']
+            baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
+            receiver = Profile.objects.get(user__id=receiver_id)
+            baseproject.cancel_cocreator_invitation(receiver)
+        elif action == Action.REMOVE_ALL:
+            baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
+            baseproject.cancel_all_cocreator_invitations()
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, KeyError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+    
+@normal_profile_required
+@require_GET
+def projectCocreatorInvite(request,inviteID):
+    """
+    To render view/page for receiver of cocreator invitation 
+    """
+    try:
+        invitation = BaseProjectCoCreatorInvitation.objects.get(id=inviteID, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        return renderer(request, Template.Projects.COCREATOR_INVITATION,
+                 dict(invitation=invitation))
+    except (ObjectDoesNotExist,ValidationError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+    return
+
+@normal_profile_required
+@require_JSON
+def projectCocreatorInviteAction(request,inviteID):
+    """
+        To handle invitation action(accept/decline) by receiver of cocreator invitation
+    """
+    try:
+        action = request.POST['action']
+        invitation = BaseProjectCoCreatorInvitation.objects.get(id=inviteID, base_project__suspended=False,
+                                                           base_project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        done = False
+        accept = False
+        if action == Action.ACCEPT:
+            accept = True
+            done = invitation.accept()
+        elif action == Action.DECLINE:
+            done = invitation.decline()
+        if not done:
+            return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+        if accept:
+            message = Message.COCREATOR_INVITE_ACCEPTED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{baseProjectCoCreatorAcceptedInvitation.__name__}",invitation)
+        else:
+            message = Message.COCREATOR_INVITE_DECLINED
+            addMethodToAsyncQueue(f"{APPNAME}.mailers.{baseProjectCoCreatorDeclinedInvitation.__name__}",invitation)
+        return redirect(invitation.base_project.getLink(alert=message))
+    except (ObjectDoesNotExist,ValidationError,KeyError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)

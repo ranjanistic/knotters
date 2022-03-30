@@ -1,12 +1,11 @@
-import traceback
+from traceback import format_exc
 from uuid import UUID
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models.query_utils import Q, InvalidQuery
+from django.db.models.query_utils import Q
 from django.core.cache import cache
 from django.http.response import HttpResponse
 from allauth.account.models import EmailAddress
-from django_q.models import Success
 from management.models import HookRecord
 from people.models import Profile, Topic
 from github import NamedUser, Repository
@@ -14,7 +13,7 @@ from main.bots import GithubKnotters, Discord
 from main.strings import Code, Event, url, Message
 from main.methods import addMethodToAsyncQueue, errorLog, renderString, renderView
 from django.conf import settings
-from main.env import ISPRODUCTION, SITE
+from main.env import SITE
 from .models import Category, CoreProject, CoreProjectVerificationRequest, FileExtension, FreeProject, FreeProjectVerificationRequest, License, Project, ProjectHookRecord, ProjectSocial, Tag
 from .apps import APPNAME
 from .mailers import sendProjectApprovedNotification, sendCoreProjectApprovedNotification
@@ -923,6 +922,6 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
     except ObjectDoesNotExist:
         return False, f"objnotexist hook record ID: {hookrecordID}"
     except:
-        return False, traceback.format_exc()
+        return False, format_exc()
 
 from .receivers import *
