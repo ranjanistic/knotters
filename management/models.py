@@ -1,5 +1,6 @@
 from datetime import timedelta
 from uuid import uuid4
+from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import models
@@ -429,6 +430,13 @@ class ThirdPartyAccount(models.Model):
     def save(self, *args, **kwargs):
         cache.delete(self.cachekey)
         super(ThirdPartyAccount, self).save(*args, **kwargs)
+
+    def get_all():
+        SOCIALS = cache.get(ThirdPartyAccount.cachekey, None)
+        if not SOCIALS:
+            SOCIALS = ThirdPartyAccount.objects.all()
+            cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
+        return SOCIALS
 
 class Donor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)

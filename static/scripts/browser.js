@@ -53,16 +53,17 @@ const loadBrowsers = () => {
     Promise.all(
         getElements("browser-view").map(async (view) => {
             browseList = browseList.filter(
-                (t) => t != view.getAttribute("data-type")
+                (t) => t != view.getAttribute("data-type") && t != BROWSE.PROJECT_SNAPSHOTS
             );
             browseIndex++;
             let method = async () => {
+                let browsekey = view.getAttribute("data-type") || browseList[browseIndex];
+                if(!browsekey) return;
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest2({
                     path: setUrlParams(
                         URLS.BROWSER,
-                        view.getAttribute("data-type") ||
-                            browseList[browseIndex]
+                        browsekey
                     ),
                     silent: true,
                 });

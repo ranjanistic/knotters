@@ -311,12 +311,12 @@ const loadGlobalEventListeners = () => {
     });
     getElements("future-message-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            futuremessage(action.getAttribute("data-message"));
+            futuremessage(action.getAttribute("data-message")||action.getAttribute("data-text")||action.title);
         });
     });
     getElements("message-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            message(action.getAttribute("data-message"));
+            message(action.getAttribute("data-message")||action.getAttribute("data-text")||action.title);
         });
     });
     getElements("highlight-action").forEach((action) => {
@@ -589,7 +589,6 @@ const initializeMultiSelector = ({
     onDeselect = async (candidate) => true,
     uniqueID = String(Math.random()),
 }) => {
-    // console.log("Input Edit Text ==> ",document.getElementsByClassName(candidateClass).value)
     const candidates = getElements(candidateClass);
     let selectedlist = [],
         deselectedList = candidates;
@@ -627,6 +626,10 @@ const initializeMultiSelector = ({
     return candidates;
 };
 
+/**
+ * POST request method. Use [postRequest2](request.js) for better request controls.
+ * @returns {Promise<any>} response data
+ */
 const postRequest = async (
     path,
     data = {},
@@ -640,9 +643,9 @@ const postRequest = async (
         const response = await window.fetch(path, {
             method: "POST",
             headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrfmiddlewaretoken,
+                Accept: CODE.APPLICATION_JSON,
+                "Content-Type": CODE.APPLICATION_JSON,
+                "X-CSRFToken": _CSRF_TOKEN,
                 "X-KNOT-REQ-SCRIPT": true,
                 ...headers,
             },
@@ -667,6 +670,10 @@ const postRequest = async (
     }
 };
 
+/**
+ * GET request method. Use [getRequest2](request.js) for better request controls.
+ * @returns {Promise<any>} response data
+ */
 const getRequest = async (
     url,
     query = {},
@@ -679,7 +686,7 @@ const getRequest = async (
         const response = await window.fetch(setUrlQueries(url, query), {
             method: "GET",
             headers: {
-                "X-CSRFToken": csrfmiddlewaretoken,
+                "X-CSRFToken": _CSRF_TOKEN,
                 "X-KNOT-REQ-SCRIPT": true,
                 ...headers,
             },
@@ -1045,9 +1052,7 @@ const handleMultiFileUpload = (limit = 3, onSubmit = (files) => {}) => {
     }
 
     const delFunc = (e) => {
-        // let key = document.body.parentNode.dataset.key;
-        // console.log("Files click",document.body.parentNode.className);
-        // console.log("Files key",document.body.parentNode.dataset.key);
+        
         multiFiles.splice(e.value, 1);
         renderFileList();
     };
@@ -1308,4 +1313,17 @@ const isValidEmail = (email) => {
         .match(
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         );
+};
+
+const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = (error) => {
+            reject(error);
+        };
+    });
 };

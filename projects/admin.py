@@ -122,6 +122,7 @@ admin.site.register(ProjectModerationTransferInvitation)
 admin.site.register(VerProjectDeletionRequest)
 admin.site.register(CoreProjectDeletionRequest)
 admin.site.register(AppRepository)
+admin.site.register(Asset)
 
 @admin.register(TopicFileExtension)
 class TopicFileExtensionAdmin(admin.ModelAdmin):

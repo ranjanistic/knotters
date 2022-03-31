@@ -6,8 +6,8 @@ from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL
 from django.core.cache import cache
 from django.conf import settings
-from main.methods import addMethodToAsyncQueue, maxLengthInList, errorLog
-import jsonfield
+from main.methods import addMethodToAsyncQueue, human_readable_size, maxLengthInList, errorLog
+from jsonfield import JSONField
 from main.strings import CORE_PROJECT, Code, Message, url, PEOPLE, project, MANAGEMENT, DOCS
 from moderation.models import Moderation
 from management.models import GhMarketApp, HookRecord, ReportCategory, Invitation
@@ -297,9 +297,12 @@ class BaseProject(models.Model):
         if self.is_verified:
             return 'text-accent'
         if self.is_core:
-            return "vibrant-text"
+            return "text-vibrant"
         return "text-positive"
 
+    @property
+    def is_normal(self):
+        return not (self.suspended or self.trashed or not self.is_approved)
 
     @property
     def socialsites(self):
@@ -497,17 +500,34 @@ class BaseProject(models.Model):
             pass
         return True
     
+    def max_allowed_assets(self):
+        if self.is_free:
+            return 5
+        else: return 10
+
     def assets(self):
         return Asset.objects.filter(baseproject=self)
 
     def total_assets(self):
         return Asset.objects.filter(baseproject=self).count()
 
+    def can_add_assets(self):
+        return self.is_normal and self.total_assets() <= self.max_allowed_assets()
+
+    def remaining_assets_limit(self):
+        return self.max_allowed_assets() - self.total_assets()
+
     def public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True)
 
     def total_public_assets(self):
         return Asset.objects.filter(baseproject=self,public=True).count()
+
+    def private_assets(self):
+        return Asset.objects.filter(baseproject=self,public=False)
+
+    def total_private_assets(self):
+        return Asset.objects.filter(baseproject=self,public=False).count()
     
     def add_cocreator(self,co_creator):
         if co_creator.is_normal:
@@ -825,21 +845,60 @@ class Project(BaseProject):
 
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
-    return f"{APPNAME}/assets/{str(instance.project.get_id)}-{str(instance.get_id)}_{uuid4().hex}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/assets/{str(instance.baseproject.get_id)}-{str(instance.get_id)}_{uuid4().hex}.{fileparts[-1]}"
 
 class Asset(models.Model):
+    """
+    A project's asset (file) model.
+    """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     baseproject = models.ForeignKey(BaseProject,on_delete=models.CASCADE)
     name = models.CharField(max_length=250, null=False, blank=False)
     file = models.FileField(upload_to=assetFilePath,max_length=500)
     public = models.BooleanField(default=False)
+    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+    modified_on = models.DateTimeField(auto_now=False)
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="asset_creator")
 
     @property
     def get_id(self):
         return self.id.hex
+    
+    def save(self, *args, **kwargs):
+        self.modified_on = timezone.now()
+        super(Asset, self).save(*args, **kwargs)
+
+    def move_to_project(self, baseproject:BaseProject) -> bool:
+        """
+        Moves the asset to a new project, if possible
+        """
+        if not baseproject.can_add_assets():
+            return False
+        self.baseproject = baseproject
+        self.save()
+        return True
+
+    @property
+    def get_link(self):
+        return f"{settings.MEDIA_URL}{self.file.name}"
+
+    @property
+    def type(self):
+        return self.file.name.split('.')[-1]
+
+    @property
+    def size(self):
+        return self.file.size
+
+    @property
+    def display_size(self):
+        return human_readable_size(self.file.size)
 
 
 class FreeProject(BaseProject):
+    """
+    A quick project model
+    """
     nickname = models.CharField(max_length=500, unique=True, null=False, blank=False)
     verified = False
     core = False
@@ -938,7 +997,7 @@ class FreeProject(BaseProject):
 
 class FreeRepository(models.Model):
     """
-    One to one linked repository record
+    One to one linked repository record for Quick (Free) projects
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
@@ -990,13 +1049,13 @@ class FreeRepository(models.Model):
 
 class AppRepository(models.Model):
     """
-    Ghmarket app linked with freerepository
+    Ghmarket app linked with FreeRepository
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     free_repo = models.ForeignKey(FreeRepository, on_delete=models.CASCADE)
     gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
     suspended = models.BooleanField(default=False)
-    permissions = jsonfield.JSONField(default=dict)
+    permissions = JSONField(default=dict)
 
     def __str__(self):
         return f"{self.gh_app} on {self.free_repo.reponame}"
@@ -1034,6 +1093,9 @@ class ProjectSocial(models.Model):
 
 
 class CoreProject(BaseProject):
+    """
+    A core project's model
+    """
     codename = models.CharField(max_length=500, unique=True, null=False, blank=False)
     repo_id = models.IntegerField(default=0, null=True, blank=True)
     budget = models.FloatField(default=0)

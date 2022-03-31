@@ -40,6 +40,14 @@ def getquery(url,querydata:str):
 def urldecode(value):
     return unquote(value)
 
+@register.filter(name='onezero')
+def onezero(one):
+    return 1 if one else 0
+
+@register.filter(name='publicprivateicon')
+def publicprivateicon(public):
+    return "lock_open" if public else "lock"
+
 @register.simple_tag
 def random_int(a=1, b=100):
     return randint(a, b)

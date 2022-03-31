@@ -1,5 +1,6 @@
 from os import path as ospath, walk as oswalk
 from logging import log, ERROR as LOG_CODE_ERROR
+from mimetypes import guess_extension, guess_type
 from re import sub as re_sub, compile as re_compile, findall as re_findall
 from traceback import print_exc
 from requests import post as postRequest
@@ -177,10 +178,17 @@ def base64ToImageFile(base64Data) -> File:
         return None
 
 
-def base64ToFile(base64Data) -> File:
+def base64ToFile(base64Data, filename=None) -> File:
     try:
         format, filestr = base64Data.split(';base64,')
-        ext = format.split('/')[-1]
+        if filename:
+            ext = filename.split('.')[-1]
+        else:
+            ext = guess_extension(guess_type(base64Data)[0])
+            if not ext:
+                ext = format.split('/')[-1]
+                if ext.startswith('x-zip'):
+                    ext = "zip"
         return ContentFile(b64decode(filestr), name=f"{uuid4().hex}.{ext}")
     except ValueError as e:
         return None
@@ -378,3 +386,10 @@ def htmlmin(htmlstr: str, *args, **kwargs):
         return re_sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
     except:
         return htmlstr.strip()
+
+def human_readable_size(num, suffix="B"):
+    for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1024.0
+    return f"{num:.1f}Yi{suffix}"

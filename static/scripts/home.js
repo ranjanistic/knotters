@@ -8,6 +8,7 @@ if(getElements("domain-colab-tab").length){
             return await getRequest2({
                 path: setPathParams(URLS.HOME_DOMAINS, tab.id),
                 silent: true,
+                allowCache: true
             });
         },
         autoShift: true,

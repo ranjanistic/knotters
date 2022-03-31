@@ -68,11 +68,13 @@ class Code():
     GET = "GET"
     POST = "POST"
     UNKNOWN_EVENT = "UNKNOWN_EVENT"
+
     APPROVED = "approved"
     REJECTED = "rejected"
     MODERATION = "moderation"
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
+
     SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
@@ -80,7 +82,11 @@ class Code():
     LAST_MODERATOR = "last_moderator"
     ZOMBIE = 'Zombie'
     ZOMBIEMAIL = 'zombie@knotters.org'
+
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
+
+    LEFT = "left"
+    RIGHT = "right"
 
     ACTIVE = "active"
     HISTORY = "history"
@@ -111,6 +117,12 @@ class Code():
     FRAMEWORKS = 'frameworks'
     PEOPLE = "people"
 
+        
+    def getAllKeys():
+        def cond(key, value):
+            return str(key).isupper()
+        return classAttrsToDict(Code, cond)
+
     class Test():
         MODEL = 'model'
         VIEW = 'view'
@@ -118,6 +130,8 @@ class Code():
         STATIC = 'static'
         MAIL = 'mail'
         REST = 'rest'
+
+    
 
 
 code = Code()
@@ -298,7 +312,11 @@ class Action():
     UPDATE = "update"
     REMOVE = "remove"
     REMOVE_ALL = "remove_all"
-
+    
+    def getAllKeys():
+        def cond(key, value):
+            return str(key).isupper()
+        return classAttrsToDict(Action, cond)
 
 action = Action()
 
@@ -936,10 +954,10 @@ class URL():
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
 
-        MANAGE_ASSETS = 'assets/<str:projectID>/<str:action>'
+        MANAGE_ASSETS = 'assets/<str:projectID>/'
 
-        def manageAssets(self, projectID, action):
-            return setPathParams(self.MANAGE_ASSETS, projectID, action)
+        def manageAssets(self, projectID):
+            return setPathParams(self.MANAGE_ASSETS, projectID)
 
         TOPICSEARCH = "topics/search/<str:projID>/"
 
@@ -1593,6 +1611,12 @@ class Template():
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
 
+        BROWSE_TRENDING = 'browse/trending'
+
+        @property
+        def trending(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
+
         BROWSE_TRENDING_MENTORS = 'browse/trending-mentors'
 
         @property
@@ -1612,6 +1636,14 @@ class Template():
             return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
 
         BROWSE_CORE_MEMBERS = 'browse/core-members'
+
+        BROWSE_TOPIC_PROFILES = 'browse/topic-profiles'
+
+        @property
+        def topic_profiles(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TOPIC_PROFILES}.html'
+
+        BROWSE_HIGHEST_MONTH_XP_PROFILES = 'browse/highest-month-xp-profiles'
 
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
@@ -1818,11 +1850,17 @@ class Template():
         def browse_trending(self):
             return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
 
+        BROWSE_TRENDING_CORE = 'browse/trending-core'
+        BROWSE_TRENDING_VERIFIED = 'browse/trending-verified'
+        BROWSE_TRENDING_QUICK = 'browse/trending-quick'
+
         BROWSE_TOPIC_PROJECTS = 'browse/topic-projects'
 
         @property
         def browse_topic_projects(self):
             return f'{self.DIRNAME}/{self.BROWSE_TOPIC_PROJECTS}.html'
+
+        BROWSE_NEWLY_MODERATED = 'browse/newly-moderated'
 
         BROWSE_SEARCH = 'browse/search'
 

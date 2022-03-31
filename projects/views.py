@@ -576,41 +576,54 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 
 
 @normal_profile_required
-@require_JSON_body
-def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
+@require_JSON
+def manageAssets(request: WSGIRequest, projectID: UUID) -> JsonResponse:
     try:
+        action = request.POST["action"]
         project = BaseProject.objects.get(
-            id=projID, trashed=False, suspended=False)
+            id=projectID, trashed=False, suspended=False)
         sproject = project.getProject(True)
         if not sproject:
-            raise ObjectDoesNotExist(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projectID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != sproject.moderator:
                 raise ObjectDoesNotExist()
-        if action == Action.ADD:
+        if action == Action.CREATE:
+            if not project.can_add_assets():
+                raise ObjectDoesNotExist()
             name = str(request.POST['filename']).strip()
-            file = base64ToFile(request.POST['filedata'])
+            file = base64ToFile(request.POST['filedata'], request.POST.get("actualFilename"))
             public = request.POST.get('public', False)
             asset = Asset.objects.create(
-                baseproject=project, name=name, file=file, public=public)
+                baseproject=project, name=name, file=file, public=public, creator=request.user.profile)
             return respondJson(Code.OK, dict(asset=dict(
                 id=asset.id,
                 name=asset.name
             )))
         elif action == Action.UPDATE:
             assetID = request.POST['assetID']
-            name = str(request.POST['filename']).strip()
-            public = request.POST['public']
-            Asset.objects.filter(id=assetID, baseproject=project).update(
-                name=name, public=public)
-            return respondJson(Code.OK)
+            name = str(request.POST.get('filename', "")).strip()
+            public = request.POST.get('public', None)
+            if name:
+                done = Asset.objects.filter(id=assetID, baseproject=project).update(
+                    name=name)
+                if not done:
+                    raise ObjectDoesNotExist()
+            elif public in [True, False]:
+                done = Asset.objects.filter(id=assetID, baseproject=project, creator=request.user.profile).update(
+                    public=public)
+                if not done:
+                    raise ObjectDoesNotExist()
+            else:
+                return respondJson(Code.NO)
         elif action == Action.REMOVE:
             assetID = request.POST['assetID']
             Asset.objects.filter(id=assetID, baseproject=project).delete()
-            return respondJson(Code.OK)
         else:
             return respondJson(Code.NO)
-    except ObjectDoesNotExist as o:
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, KeyError) as o:
+        errorLog(o)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

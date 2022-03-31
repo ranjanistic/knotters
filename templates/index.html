@@ -357,21 +357,25 @@
                         <div class='w3-col l3 m6 s12 w3-padding-large'>
                             <div class='pallete positive text-positive'>
                                 <h2>Students &amp; Hobbyists</h2>
+                                <span class="text-medium">School, college students, freelance, enthusiasts.</span>
                             </div>
                         </div>
                         <div class='w3-col l3 m6 s12 w3-padding-large'>
                             <div class='pallete accent'>
                                 <h2>Professionals &amp; Newbies</h2>
+                                <span class="text-medium">Managers, leaders, working professionals, business heads.</span>
                             </div>
                         </div>
                         <div class='w3-col l3 m6 s12 w3-padding-large'>
                             <div class='pallete active'>
                                 <h2>Professors &amp; Scholars</h2>
+                                <span class="text-medium">Teachers, tutors, instructors, experts, trainers.</span>
                             </div>
                         </div>
                         <div class='w3-col l3 m6 s12 w3-padding-large'>
                             <div class='pallete vibrant'>
-                                <h2>Companies &amp; Communities</h2>
+                                <h2>Companies &amp; Clubs</h2>
+                                <span class="text-medium">Coding clubs, schools, colleges, organizaitons.</span>
                             </div>
                         </div>
                     </div>
@@ -684,6 +688,7 @@
         <script nonce="{{request.csp_nonce}}" src="{% static 'cropper/cropper.min.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.STRINGS}}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.CONSTANTS}}?fromApp={{SUBAPPNAME}}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/globalvars.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/index.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/request.js' %}"></script>
@@ -696,7 +701,6 @@
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/snapshot.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/dynamiccontent.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/sw.js' %}"></script>
-        <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.CONSTANTS}}?fromApp={{SUBAPPNAME}}"></script>
         {% block in_scripts %}{% endblock %}
         {% block ext_scripts %}{% endblock %}
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/autostart.js' %}"></script>
