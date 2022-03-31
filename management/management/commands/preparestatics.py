@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from main.strings import Template
 from rcssmin import cssmin
 from rjsmin import jsmin
 from htmlmin.minify import html_minify
@@ -54,7 +55,7 @@ class Command(BaseCommand):
             print("\nCLEARING OBSOLETE STATICS (VERSION < 2)\n")
             if not (Path(settings.STATIC_ROOT).exists() and Path(settings.STATIC_ROOT).is_dir()):
                 raise Exception(
-                    f"PANIC: STATIC_ROOT doesn't exist! : {settings.STATIC_ROOT}")
+                    f"PANIC: STATIC_ROOT doesn't exist! : {settings.STATIC_ROOT}\nForgot to run collectstatic perhaps?")
             __MORE_OLD = True
             __OLD_STATIC_ROOT_VERSION = self.decrease_version(
                 __STATIC_ROOT_VERSION, by=2)
@@ -211,7 +212,7 @@ class Command(BaseCommand):
             mkdir(err_dir)
         print("ERR DIR: ", err_dir)
         notfoundstr = render_to_string('404.html', renderData(
-            dict(**GlobalContextData, csrf_token=" ")))
+            dict(**GlobalContextData, csrf_token=" ", SCRIPTS=Template.Script.getAllKeys())))
         notfoundstr = html_minify(notfoundstr.replace(
             settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/'))
         notfoundpath = ospath.join(err_dir, '40x.html')
@@ -220,7 +221,7 @@ class Command(BaseCommand):
             file.write(notfoundstr)
         print("404 PATH DONE: ", notfoundpath)
         servererrorstr = render_to_string('50x.html', renderData(
-            dict(**GlobalContextData, csrf_token=" ")))
+            dict(**GlobalContextData, csrf_token=" ", SCRIPTS=Template.Script.getAllKeys())))
         servererrorstr = html_minify(servererrorstr.replace(
             settings.STATIC_URL, 'https://cdn.knotters.org/').replace('href=\"/', f'href=\"{SITE}/'))
         servererrpath = ospath.join(err_dir, '50x.html')
