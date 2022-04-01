@@ -511,10 +511,11 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
         project = bproject.getProject(True)
         if not project:
             raise ObjectDoesNotExist(f'{projectID} project not found')
-        if request.user.profile != project.creator:
-            if request.user.profile != project.moderator:
-                raise ObjectDoesNotExist()
+        
         if section == 'pallete':
+            if request.user.profile != project.creator:
+                if request.user.profile != project.moderator:
+                    raise ObjectDoesNotExist()
             changed = False
             try:
                 base64Data = str(request.POST['projectimage'])
@@ -541,6 +542,10 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                 errorLog(e)
                 return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
         elif section == "sociallinks":
+            if request.user.profile != project.creator:
+                if request.user.profile != project.moderator:
+                    if not project.co_creators.filter(user=request.user).exists():
+                        raise ObjectDoesNotExist()
             sociallinks = []
             for key in request.POST.keys():
                 if str(key).startswith('sociallink'):
@@ -587,7 +592,8 @@ def manageAssets(request: WSGIRequest, projectID: UUID) -> JsonResponse:
             raise ObjectDoesNotExist(f'{projectID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != sproject.moderator:
-                raise ObjectDoesNotExist()
+                if not project.co_creators.filter(user=request.user).exists():
+                    raise ObjectDoesNotExist()
         if action == Action.CREATE:
             if not project.can_add_assets():
                 raise ObjectDoesNotExist()
@@ -824,7 +830,8 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
-                raise ObjectDoesNotExist()
+                if not project.co_creators.filter(user=request.user).exists():
+                    raise ObjectDoesNotExist()
         next = request.POST.get('next', project.getLink())
 
         if not (addtagIDs or removetagIDs or addtags):
@@ -1405,7 +1412,8 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
         if action == Action.CREATE:
             if request.user.profile != baseproject.creator:
                 if request.user.profile != baseproject.getProject().moderator:
-                    raise ObjectDoesNotExist()
+                    if not baseproject.co_creators.filter(user=request.user).exists():
+                        raise ObjectDoesNotExist()
             text = request.POST.get('snaptext', None)
             image = request.POST.get('snapimage', None)
             video = request.POST.get('snapvideo', None)
