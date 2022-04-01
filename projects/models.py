@@ -532,8 +532,27 @@ class BaseProject(models.Model):
     def add_cocreator(self,co_creator):
         if co_creator.is_normal:
             self.co_creators.add(co_creator)
+            try:
+                if self.is_not_free and self.is_approved:
+                    getproject = self.getProject()
+                    try:
+                        nghid = co_creator.ghID
+                        if nghid:
+                            getproject.gh_repo().add_to_collaborators(nghid,permission='push')
+                    except:
+                        pass
+                    try:
+                        nghuser = co_creator.gh_user
+                        if nghuser:
+                            getproject.gh_team().add_membership(
+                                member=nghuser,
+                                role="member"
+                            )
+                    except:
+                        pass
+            except:
+                pass
             return True
-            #give github repo access code
         else :
             return False
     def total_cocreators(self):
@@ -550,7 +569,7 @@ class BaseProject(models.Model):
 
     def can_invite_cocreator(self):
         return self.is_approved and not self.under_invitation() and \
-            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<=1
+            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<=10
 
     def has_cocreators(self):
         return self.co_creators.filter().exists()
