@@ -346,6 +346,60 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             })
         {% endif %}
     {% endif %}
+    {% if project.can_invite_cocreator %}
+        getElement('add-cocreator-button').onclick=(e)=>{
+            Swal.fire({
+                title: 'Invite co-creator to project',
+                html: `<h6>Invite a co-creator by their email to add them as a co-creator</h6>
+                <br/>
+                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="add-cocreator-new-email" />
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Send Invite',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: async () => {
+                    let email = getElement("add-cocreator-new-email").value.trim()
+                    if(email) return email
+                    error('New email address required')
+                    return false
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    message("Sending invitation...");
+                    const data = await postRequest2({
+                        path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
+                        data: {
+                            action: 'create',
+                            email: result.value,
+                        }
+                    })
+                    if(data.code===code.OK){
+                        futuremessage("Invitation sent.")
+                        return window.location.reload()
+                    }
+                    error(data.error)
+                }
+            })
+        }  
+    {% endif %}
+    getElements('cancel-cocreator-invite').forEach((cocreator)=>{
+        cocreator.onclick=(e)=>{
+            message("Deleting invitation...");
+            const data = await postRequest2({
+                path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
+                data: {
+                    action: 'remove',
+                    receiver_id: cocreator.getAttribute('data-userid'),
+                }
+            })
+            if(data.code===code.OK){
+                futuremessage("Invitation deleted")
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    })
     getElement('save-edit-snapshot').onclick=(e)=>{
         e.preventDefault();
         e.target.form.submit()

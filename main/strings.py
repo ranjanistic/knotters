@@ -1051,6 +1051,9 @@ class URL():
 
         def baseCocreatorInvite(self, inviteID):
             return setPathParams(self.VIEW_COCREATOR_INVITE, inviteID)
+        
+        def baseCocreatorInviteAct(self, inviteID):
+            return setPathParams(self.COCREATOR_INVITE_ACT,inviteID)
 
         def getURLSForClient(self):
             URLS = dict()

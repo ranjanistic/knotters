@@ -2025,7 +2025,7 @@ def handleCocreatorInvitation(request,projectID):
                 return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
 
             inv, created = BaseProjectCoCreatorInvitation.objects.get_or_create(
-                baseproject=baseproject, 
+                base_project=baseproject, 
                 sender=request.user.profile,
                 resolved=False,
                 receiver=receiver,

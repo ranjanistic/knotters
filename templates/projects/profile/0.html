@@ -238,6 +238,40 @@
                 {% endif %}
             </div>
             <div class="w3-row w3-padding pallete">
+                <center><h5 class="align"><i>cloud_done</i>&nbsp;Cocreators</h5></center>
+                <div class="w3-row">
+                    {% for cocreator in project.co_creators.all%}
+                    {{cocreator}}
+                    {% empty %}
+                        {% if iscreator %}
+                        <center>
+                        <div class="w3-jumbo material-icons">add_circle</div>
+                        <h5>Add Co-creators</h5>
+                        <strong class="dead-text"></strong>
+                        <strong class="dead-text">Coming soon</strong>
+                        </center>
+                        {% else %}
+                        <br/>
+                        <center class="dead-text">
+                        <div class="w3-jumbo material-icons">cloud_off</div>
+                        <h5>No assets</h5>
+                        </center>
+                        {% endif %}
+                    {% endfor %}
+                    {% if iscreator%}
+                    {% for invitee in project.current_cocreator_invitations %}
+                    {{invitee}}
+                    <button class="positive cancel-cocreator-invite" data-userid="{{invitee.get_userid}}">Cancel Invitation</button>
+                    {% endfor %}
+                    {% if project.can_invite_cocreator %}
+                    <button class="positive" id="add-cocreator-button">Add Co-creators</button>
+                    {% endif %}
+                    {% endif %}
+                    
+                </div>
+            </div>
+            <br/>
+            <div class="w3-row w3-padding pallete">
                 <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
                 <div class="w3-row">
                     {% for asset in project.assets %}
