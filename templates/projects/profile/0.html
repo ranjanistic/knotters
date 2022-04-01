@@ -88,9 +88,9 @@
                 {% empty %}
                     <h6 class="dead-text">{% trans "No tags assigned" %}</h6>
                 {% endfor %}
-                {% if iscreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+                {% if iscreator or iscocreator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
             </div>
-            {% if iscreator %}
+            {% if iscreator or iscocreator %}
             <div id="edit-projecttags">
                 <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
                 <form class="no-auto" id="edit-tag-inputs">
@@ -126,7 +126,7 @@
         </div>
         <br/>
 
-        {% if not iscreator and user.is_authenticated %}
+        {% if not iscreator and request.user.is_authenticated %}
         <div class="w3-row">
             <button class="small tertiary negative-text" data-icon="report" id='report-project'>{% trans "Report" %}</button>
         </div>
@@ -151,7 +151,7 @@
                         <h5>No links</h5>
                     </center>
                 {% endif %}
-                {% if iscreator %}
+                {% if iscreator or iscocreator %}
                     <div class="w3-row">
                     <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
                     </div>
@@ -238,6 +238,83 @@
             </div>
             <br/>
             <div class="w3-row w3-padding pallete">
+                <center><h5 class="align"><i>cloud_done</i>&nbsp;CoCreators</h5></center>
+                <div class="w3-row">
+                    {% for cocreator in project.co_creators.all%}
+                    <div class="w3-row pallete-slab" id="cocreator-view-{{cocreator.get_userid}}">
+                        <div class="w3-col s2 m1">
+                            <a href="{{cocreator.get_link}}">
+                            <img class="w3-circle primary" src="{{cocreator.get_dp}}" width="40" alt="{{cocreator.get_name}}">
+                            </a>
+                        </div>
+                        <div class="w3-col s10 m9" style="padding-left:12px">
+                            <div class="w3-row"><strong>{{cocreator.get_name}}</strong>
+                            </div>
+                            <div class="w3-row"><strong class="align w3-left dead-text">{{cocreator.get_nickname}}</strong>
+                            </div>
+                        </div>
+                        <div class="w3-row" align='right'>
+                            {% if iscreator or request.user.profile==cocreator %}
+                            <i class="circle delete-cocreator-action negative-text" data-userid="{{cocreator.get_userid}}">delete_forever</i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                        {% if iscreator %}
+                            {% if not project.under_cocreator_invitation %}
+                                <center>
+                                <div class="w3-jumbo pointer material-icons add-cocreators-action">add_circle</div>
+                                <h5>Add Co-Creators</h5>
+                                <strong class="dead-text">Co-Creators can also manage the project like you do.</strong>
+                                </center>
+                            {% endif %}
+                        {% else %}
+                            <br/>
+                            <center class="dead-text">
+                            <div class="w3-jumbo material-icons">cloud_off</div>
+                            <h5>No Co-Creators</h5>
+                            </center>
+                        {% endif %}
+                    {% endfor %}
+                    {% if iscreator %}
+                        {% for invitation in project.current_cocreator_invitations %}
+                        <div class="w3-row pallete-slab" id="cocreator-view-{{invitation.receiver.get_userid}}">
+                            <div class="w3-col s2 m1">
+                                <a href="{{invitation.receiver.get_link}}">
+                                <img class="w3-circle primary" src="{{invitation.receiver.get_dp}}" width="40" alt="{{invitation.receiver.get_name}}">
+                                </a>
+                            </div>
+                            <div class="w3-col s10 m9" style="padding-left:12px">
+                                <div class="w3-row"><strong>{{invitation.receiver.get_name}}</strong>
+                                </div>
+                                <div class="w3-row"><strong class="align w3-left dead-text">{{invitation.receiver.get_email}}</strong>
+                                </div>
+                                <div class="w3-row"><span class="align w3-left dead-text">Invited</span>
+                                </div>
+                            </div>
+                            <div class="w3-row" align='right'>
+                                <i class="circle click-to-copy positive-text" data-copy="{{SITE}}{{invitation.get_link}}">link</i>
+                                <i class="circle cancel-cocreator-invite negative-text" data-userid="{{invitation.receiver.get_userid}}">close</i>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if project.can_invite_cocreator %}
+                            {% if project.has_cocreators or project.under_cocreator_invitation %}
+                                <div class="w3-row w3-center">
+                                <button class="small add-cocreators-action {{project.theme}}" data-icon="add">Add Co-Creators</button>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="w3-center dead-text">Maximum Co-Creators limit reached</div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+
+
+            <br/>
+            <div class="w3-row w3-padding pallete">
                 <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
                 <div class="w3-row">
                     {% for asset in project.assets %}
@@ -263,7 +340,7 @@
                                 <i class="circle delete-assets-action negative-text" data-assetid="{{asset.get_id}}">delete_forever</i>
                                 {% else %}
                                     {% if request.user.is_authenticated %}
-                                        {% if asset.public %}
+                                        {% if asset.public or iscocreator%}
                                         <a href="{{asset.get_link}}" download><i class="circle">download</i></a>
                                         {% else %}
                                         <i class="circle active-text message-action" title="Private asset">lock</i>
@@ -275,7 +352,7 @@
                             </div>
                         </div>
                     {% empty %}
-                        {% if iscreator %}
+                        {% if iscreator or iscocreator %}
                         <center>
                         <div class="w3-jumbo pointer material-icons add-assets-action">add_circle</div>
                         <h5>Add assets</h5>
@@ -289,7 +366,7 @@
                         </center>
                         {% endif %}
                     {% endfor %}
-                    {% if iscreator %}
+                    {% if iscreator or iscocreator %}
                         {% if project.can_add_assets %}
                             {% if project.assets.0 %}
                                 <div class="w3-row w3-center">
@@ -353,7 +430,7 @@
             {% endif %}
             <div class="w3-row pallete no-pad" id="snaps">
                 <center><h5 class="w3-padding align"><i>camera</i>&nbsp;Snapshots</h5>
-                {% if iscreator %}
+                {% if iscreator or iscocreator %}
                 <div class="w3-row" id="view-snapshot">
                     <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
                 </div>

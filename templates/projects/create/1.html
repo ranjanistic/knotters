@@ -165,7 +165,6 @@
                     placeholder="1-15",
                     value="3"
                     required
-                    onblur="this.value=((15-Number(this.value))>=0?Number(this.value)>0?Number(this.value):1:15)||3"
                     min="1"
                     max="15"
                 /></strong><br/>
@@ -194,7 +193,6 @@
                         type="button"
                         class="primary big-button"
                         id="prevBtn"
-                        onclick="nextPrev(-1)"
                     >
                         <i class="big-icon">navigate_before</i> Previous
                     </button>
@@ -202,7 +200,6 @@
                         type="button"
                         class="big-button positive"
                         id="nextBtn"
-                        onclick="nextPrev(1)"
                     >
                         Next <i class="big-icon">navigate_next</i>
                     </button>

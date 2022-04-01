@@ -8,6 +8,8 @@
 const projectID = "{{ project.getID }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = "{{ismoderator}}"==='True';
+const iscreator = selfProject;
+const iscocreator = "{{iscocreator}}"==='True';
 const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--accent').trim().replace('#','');
 
 {% if not project.suspended %}
@@ -19,31 +21,7 @@ if(!selfProject){
     }
 }
 
-{% if iscreator or ismoderator %}
-   
-        getElement('save-edit-projecttags').onclick= async ()=> {
-            var obj = getFormDataById("edit-tag-inputs");
-            var resp=await postRequest2({path:setUrlParams(URLS.TAGSUPDATE, projectID), data:{
-                addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-            }, retainCache: true});
-            console.log(resp)
-            if (resp.code===code.OK){
-                subLoader()
-                return window.location.reload()
-            }
-            error(resp.error)
-        }
-        getElement('sociallinks-add').onclick=_=>{
-            const parent=getElement('edit-sociallinks-inputs');
-            if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-            const linkNumber=parent.childElementCount+1;
-            const newChild=document.createElement('div');
-            newChild.innerHTML = `
-                <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-            `;
-            parent.insertBefore(newChild,parent.childNodes[0]);
-        }
-    
+{% if iscreator or ismoderator %}          
     {% if iscreator and project.can_invite_owner %}
     
     getElement('transfer-project').onclick=(e)=>{

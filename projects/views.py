@@ -2037,7 +2037,7 @@ def handleCocreatorInvitation(request,projectID):
                 return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
 
             inv, created = BaseProjectCoCreatorInvitation.objects.get_or_create(
-                baseproject=baseproject, 
+                base_project=baseproject, 
                 sender=request.user.profile,
                 resolved=False,
                 receiver=receiver,
@@ -2059,7 +2059,8 @@ def handleCocreatorInvitation(request,projectID):
             baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
             baseproject.cancel_all_cocreator_invitations()
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist, KeyError):
+    except (ObjectDoesNotExist, KeyError) as o:
+        errorLog(o)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -2113,3 +2114,28 @@ def projectCocreatorInviteAction(request,inviteID):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
+@normal_profile_required
+@require_JSON
+def projectCocreatorManage(request,projectID):
+    """
+    To manage existing co-creators
+    """
+    try:
+        action = request.POST['action']
+        cocreator_id = request.POST['cocreator_id']
+        if action == Action.REMOVE:
+            project = BaseProject.objects.get(
+            Q(id=projectID,suspended=False,trashed=False),
+            Q(creator=request.user.profile) 
+            | Q(co_creators=request.user.profile))
+            profile =project.co_creators.filter(user__id=cocreator_id).first()
+            project.co_creators.remove(profile)
+            return respondJson(Code.OK)
+        return respondJson(Code.NO)
+    except (ObjectDoesNotExist,KeyError):
+        return respondJson(Code.NO,error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO)
+    

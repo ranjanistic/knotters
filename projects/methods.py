@@ -1,3 +1,4 @@
+from inspect import iscoroutine
 from traceback import format_exc
 from uuid import UUID
 from django.core.exceptions import ObjectDoesNotExist
@@ -54,10 +55,12 @@ def freeProfileData(request, nickname = None, projectID = None):
             raise ObjectDoesNotExist('suspended',projectID)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
             request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(user=request.user).exists()
         return dict(
             project=project,
             iscreator=iscreator,
-            isAdmirer=isAdmirer
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator 
         )
     except ObjectDoesNotExist:
         return False
@@ -89,11 +92,13 @@ def verifiedProfileData(request, reponame = None, projectID = None):
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(user=request.user).exists()
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
-            isAdmirer=isAdmirer
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator
         )
     except ObjectDoesNotExist:
         return False
@@ -125,12 +130,14 @@ def coreProfileData(request, codename = None, projectID = None):
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(user=request.user).exists()
 
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
-            isAdmirer=isAdmirer
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator
         )
     except ObjectDoesNotExist:
         return False

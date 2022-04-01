@@ -1067,9 +1067,13 @@ class URL():
         INVITE_PROJECT_COCREATOR = 'invite/cocreatorship/<str:projectID>'
         VIEW_COCREATOR_INVITE = 'invitation/cocreatorship/<str:inviteID>'
         COCREATOR_INVITE_ACT = 'invitation/action/cocreatorship/<str:inviteID>'
+        MANAGE_PROJECT_COCREATOR = 'cocreator/manage/<str:projectID>'
 
         def baseCocreatorInvite(self, inviteID):
             return setPathParams(self.VIEW_COCREATOR_INVITE, inviteID)
+        
+        def baseCocreatorInviteAct(self, inviteID):
+            return setPathParams(self.COCREATOR_INVITE_ACT,inviteID)
 
         def getURLSForClient(self):
             URLS = dict()

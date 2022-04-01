@@ -532,8 +532,27 @@ class BaseProject(models.Model):
     def add_cocreator(self,co_creator):
         if co_creator.is_normal:
             self.co_creators.add(co_creator)
+            try:
+                if self.is_not_free and self.is_approved:
+                    getproject = self.getProject()
+                    try:
+                        nghid = co_creator.ghID
+                        if nghid:
+                            getproject.gh_repo().add_to_collaborators(nghid,permission='push')
+                    except:
+                        pass
+                    try:
+                        nghuser = co_creator.gh_user
+                        if nghuser:
+                            getproject.gh_team().add_membership(
+                                member=nghuser,
+                                role="member"
+                            )
+                    except:
+                        pass
+            except:
+                pass
             return True
-            #give github repo access code
         else :
             return False
     def total_cocreators(self):
@@ -550,19 +569,22 @@ class BaseProject(models.Model):
 
     def can_invite_cocreator(self):
         return self.is_approved and not self.under_invitation() and \
-            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<5
+            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<=10
+
+    def has_cocreators(self):
+        return self.co_creators.filter().exists()
 
     def can_invite_cocreator_profile(self, profile):
         return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
 
     def current_cocreator_invitations(self):
-        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False)
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False)
 
     def cancel_cocreator_invitation(self,profile):
-        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False,receiver=profile).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False,receiver=profile).delete()
     
     def cancel_all_cocreator_invitations(self):
-        return BaseProjectCoCreatorInvitation.objects.filter(baseproject=self,resolved=False).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False).delete()
 
         
 
@@ -605,8 +627,13 @@ class BaseProjectCoCreatorInvitation(Invitation):
     @property
     def get_link(self):
         return self.getLink()
+    
+    @property
+    #@property --> Gets initialised when class object is created.
+    def get_act_link(self):
+        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInviteAct(self.get_id)}"
 
-        
+       
 class BaseProjectPrimeCollaboratorInvitation(Invitation):
     base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_invitation_base_project")
     sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_sender')

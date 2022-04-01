@@ -8,22 +8,12 @@
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = false;
+const iscreator = selfProject;
+const iscocreator = "{{iscocreator}}"==='True';
 const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--positive');
 
 {% if not project.suspended %}
 {% if iscreator %}
-    getElement('save-edit-projecttags').onclick= async ()=> {
-        var obj = getFormDataById("edit-tag-inputs");
-        var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
-            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-        });
-        if (resp.code===code.OK){
-            subLoader()
-            return window.location.reload()
-        }
-        error(resp.error)
-    }
-
     {% if project.can_delete %}
     getElement('delete-project').onclick=_=>{
         Swal.fire({
@@ -106,18 +96,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             error(data.error)
         }
     {% endif %}
-
-    getElement('sociallinks-add').onclick=_=>{
-        const parent=getElement('edit-sociallinks-inputs');
-        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-        const linkNumber=parent.childElementCount+1;
-        const newChild=document.createElement('div');
-        newChild.innerHTML = `
-            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-        `;
-        parent.insertBefore(newChild,parent.childNodes[0]);
-    }
-
     {% if project.can_request_verification %}
     getElement('request-verification').onclick=async(e)=>{
         Swal.fire({
@@ -346,10 +324,8 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             })
         {% endif %}
     {% endif %}
-    getElement('save-edit-snapshot').onclick=(e)=>{
-        e.preventDefault();
-        e.target.form.submit()
-    }
+    {% if project.can_invite_cocreator %}  
+    {% endif %}   
 {% else %}
     if(authenticated){
         getElement('report-project').onclick=async()=>{
@@ -357,6 +333,10 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
         }
     }
 {% endif %}
+
+{% if iscreator or iscocreator %}
+{% endif %}
+
 if(authenticated){
     {% if request.GET.admire == '1' and not isAdmirer %}
         getElement("toggle-admiration").click()
