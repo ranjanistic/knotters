@@ -552,6 +552,9 @@ class BaseProject(models.Model):
         return self.is_approved and not self.under_invitation() and \
             not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<=1
 
+    def has_cocreators(self):
+        return self.co_creators.filter().exists()
+
     def can_invite_cocreator_profile(self, profile):
         return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
 

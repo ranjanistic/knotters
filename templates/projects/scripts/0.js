@@ -347,44 +347,47 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
         {% endif %}
     {% endif %}
     {% if project.can_invite_cocreator %}
-        getElement('add-cocreator-button').onclick=(e)=>{
-            Swal.fire({
-                title: 'Invite co-creator to project',
-                html: `<h6>Invite a co-creator by their email to add them as a co-creator</h6>
-                <br/>
-                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="add-cocreator-new-email" />
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Send Invite',
-                cancelButtonText: 'Cancel',
-                showLoaderOnConfirm: true,
-                preConfirm: async () => {
-                    let email = getElement("add-cocreator-new-email").value.trim()
-                    if(email) return email
-                    error('New email address required')
-                    return false
-                }
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    message("Sending invitation...");
-                    const data = await postRequest2({
-                        path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
-                        data: {
-                            action: 'create',
-                            email: result.value,
-                        }
-                    })
-                    if(data.code===code.OK){
-                        futuremessage("Invitation sent.")
-                        return window.location.reload()
+        getElements('add-cocreators-action').forEach((addcocreator)=>{
+
+            addcocreator.onclick=async(e)=>{
+                Swal.fire({
+                    title: 'Invite co-creator to project',
+                    html: `<h6>Invite a co-creator by their email to add them as a co-creator</h6>
+                    <br/>
+                    <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="add-cocreator-new-email" />
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Send Invite',
+                    cancelButtonText: 'Cancel',
+                    showLoaderOnConfirm: true,
+                    preConfirm: async () => {
+                        let email = getElement("add-cocreator-new-email").value.trim()
+                        if(email) return email
+                        error('New email address required')
+                        return false
                     }
-                    error(data.error)
-                }
-            })
-        }  
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        message("Sending invitation...");
+                        const data = await postRequest2({
+                            path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
+                            data: {
+                                action: 'create',
+                                email: result.value,
+                            }
+                        })
+                        if(data.code===code.OK){
+                            futuremessage("Invitation sent.")
+                            return window.location.reload()
+                        }
+                        error(data.error)
+                    }
+                })
+            }
+        })  
     {% endif %}
     getElements('cancel-cocreator-invite').forEach((cocreator)=>{
-        cocreator.onclick=(e)=>{
+        cocreator.onclick=async(e)=>{
             message("Deleting invitation...");
             const data = await postRequest2({
                 path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
@@ -395,6 +398,10 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             })
             if(data.code===code.OK){
                 futuremessage("Invitation deleted")
+                if(getElements('cancel-cocreator-invite').length>1){
+                    getElement(`cocreator-view-${cocreator.getAttribute('data-userid')}`).remove()
+                    return true
+                }
                 return window.location.reload()
             }
             error(data.error)
@@ -403,7 +410,7 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
     getElement('save-edit-snapshot').onclick=(e)=>{
         e.preventDefault();
         e.target.form.submit()
-    }
+    }    
 {% else %}
     if(authenticated){
         getElement('report-project').onclick=async()=>{
@@ -411,6 +418,31 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
         }
     }
 {% endif %}
+
+{% if iscreator or iscocreator %}
+    getElements('delete-cocreator-action').forEach((delcocreator)=>{
+        delcocreator.onclick=async(e)=>{
+            message("Removing Co-Creator...");
+            const data = await postRequest2({
+                path: setUrlParams(URLS.MANAGE_PROJECT_COCREATOR,projectID),
+                data: {
+                    action: 'remove',
+                    cocreator_id: delcocreator.getAttribute('data-userid'),
+                }
+            })
+            if(data.code===code.OK){
+                futuremessage("Co-Creator removed")
+                if(getElements('delete-cocreator-action').length>1){
+                    getElement(`cocreator-view-${delcocreator.getAttribute('data-userid')}`).remove()
+                    return true
+                }
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    })
+{% endif %}
+
 if(authenticated){
     {% if request.GET.admire == '1' and not isAdmirer %}
         getElement("toggle-admiration").click()
