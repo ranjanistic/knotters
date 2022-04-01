@@ -75,9 +75,9 @@
             {% empty %}
                 <h6 class="dead-text">No tags assigned</h6>
             {% endfor %}
-            {% if iscreator or ismoderator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+            {% if iscreator or ismoderator or iscocreator%}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
             </div>
-            {% if iscreator or ismoderator %}
+            {% if iscreator or ismoderator or iscocreator %}
             <div id="edit-projecttags">
                 <strong class="dead-text">Total 5 tags allowed</strong>
                 <form class="no-auto" id="edit-tag-inputs">
@@ -117,7 +117,7 @@
         {% endif %}
         </div>
         <br/>
-        {% if not iscreator and user.is_authenticated %}
+        {% if not iscreator and request.user.is_authenticated %}
         <div class="w3-row">
             <button class="small tertiary negative-text" data-icon="report" id='report-project'>Report</button>
         </div>
@@ -140,7 +140,7 @@
                         <h5>No links</h5>
                     </center>
                 {% endfor %}
-                {% if iscreator or ismoderator %}
+                {% if iscreator or ismoderator or iscocreator%}
                     <div class="w3-row">
                     <i class="material-icons edit-action w3-right" data-edittarget="sociallinks">edit</i>
                     </div>
@@ -182,12 +182,14 @@
                         </div>
                         <div class="w3-row" align='right'>
                             <a href="{{asset.creator.get_link}}"><img style="margin-bottom:10px" title="{{asset.creator.get_name}}" src="{{asset.creator.get_dp}}" class="w3-circle primary pallete" width="25" /></a>
-                            {% if iscreator or ismoderator %}
+                            {% if iscreator or ismoderator or iscocreator %}
                             <a href="{{asset.get_link}}" download><i class="circle">download</i></a>
                             <i class="circle {% if asset.creator == request.user.profile %}visibility-assets-action{% else %}message-action{% endif %} {% if asset.public %}positive-text{% else %}active-text{% endif %}" data-assetid="{{asset.get_id}}" data-public="{{asset.public|onezero}}"
                                 title="{% if asset.public %}{{APPNAME}} community can access{% else %}Co-creators & moderator can access{% endif %}"
                                 >{{asset.public|publicprivateicon}}</i>
-                            <i class="circle delete-assets-action negative-text" data-assetid="{{asset.get_id}}">delete_forever</i>
+                                {% if not iscocreator or asset.creator == request.user.profile %}
+                                    <i class="circle delete-assets-action negative-text" data-assetid="{{asset.get_id}}">delete_forever</i>
+                                {% endif %}
                             {% else %}
                                 {% if request.user.is_authenticated %}
                                     {% if asset.public %}
@@ -202,7 +204,7 @@
                         </div>
                     </div>
                 {% empty %}
-                    {% if iscreator or ismoderator %}
+                    {% if iscreator or ismoderator or iscocreator %}
                     <center>
                     <div class="w3-jumbo pointer material-icons add-assets-action">add_circle</div>
                     <h5>Add assets</h5>
@@ -216,7 +218,7 @@
                     </center>
                     {% endif %}
                 {% endfor %}
-                {% if iscreator or ismoderator %}
+                {% if iscreator or ismoderator or iscocreator%}
                     {% if project.can_add_assets %}
                         {% if project.assets.0 %}
                             <div class="w3-row w3-center">
@@ -324,7 +326,7 @@
                             </div>
                         </div>
                         <div class="w3-row" align='right'>
-                            {% if iscreator or iscocreator %}
+                            {% if iscreator or request.user.profile==cocreator %}
                             <i class="circle delete-cocreator-action negative-text" data-userid="{{cocreator.get_userid}}">delete_forever</i>
                             {% endif %}
                         </div>
@@ -445,7 +447,7 @@
             {% endif %}
             <div class="w3-row pallete no-pad" id="snaps">
                 <center><h5 class="w3-padding align"><i>camera</i>&nbsp;Snapshots</h5>
-                {% if iscreator or ismoderator %}
+                {% if iscreator or ismoderator or iscocreator %}
                 <div class="w3-row" id="view-snapshot">
                     <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
                 </div>
