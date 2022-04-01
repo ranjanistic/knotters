@@ -1,8 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from people.models import User
-from webpush.models import Group
-from main.strings import Code, Template, Auth2
+from main.strings import Code, Auth2
 from projects.models import CoreProject, Project, FreeProject, FreeRepository
 from compete.models import Competition
 from main.methods import renderString, renderView

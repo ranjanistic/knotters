@@ -5,7 +5,6 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import redirect
 from django.http.response import Http404, HttpResponse, JsonResponse
 from allauth.account.decorators import login_required
-from django.conf import settings
 from main.env import BOTMAIL
 from main.strings import Action, Message, Template, Code
 from main.decorators import manager_only, normal_profile_required, require_JSON
@@ -249,12 +248,12 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
 
     try:
         if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(action, predID)
 
         predecessor = User.objects.get(id=predID)
 
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(predecessor.profile, request.user, predecessor.profile.successor)
 
         if accept:
             successor = request.user

@@ -53,9 +53,10 @@
       </button>
     </a>
     <button class='big-button accent' id='close-compete-intro-banner' data-icon='flight_takeoff'>
-        {% trans "I'm ready" %}
+        {% trans "Got it!" %}
     </button>
   </div>
+  <br/>
 </div>
 <div class="w3-row tertiary" style="min-height:50vh">
     <div class="w3-row tertiary w3-padding" id="mainframe">
@@ -94,6 +95,6 @@
 {% endblock %} 
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
-<script src="{% static 'scripts/compete/index.js' %}" ></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/compete/index.js' %}" ></script>
 {% endblock %}

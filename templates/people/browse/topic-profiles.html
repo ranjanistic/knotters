@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 {% if count %}
-<div class="w3-row tertiary">
+<div class="w3-row positive">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
     <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;Trending in {{topic}}</h5>
     </div>
@@ -15,7 +15,7 @@
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
                     <a href="{{profile.getLink}}">
-                        <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                        <img loading="lazy" class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     </a>
                     <div class="w3-row w3-padding-small">
                         <div class="w3-row">
@@ -57,7 +57,7 @@
             <div class="w3-col w3-animate-zoom">
                 <div class="pallete pallete_i w3-center no-pad">
                     <a href="{{profile.getLink}}">
-                        <img class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
+                        <img loading="lazy" class="primary pallete no-pad wide" style="border-bottom:4px solid var(--{{profile.theme}})"  src="{{ profile.getDP }}" alt="{{ profile.name }}" />
                     </a>
                     <div class="w3-row w3-padding-small">
                         <div class="w3-row">

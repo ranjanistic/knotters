@@ -28,4 +28,6 @@ const SITE = "{{SITE}}",
     VAPID_KEY = "{{VAPID_KEY}}",
     BROWSE = Object.freeze({{BROWSE|or:'{}'|safe}}),
     SCRIPTS = Object.freeze({{SCRIPTS|or:'{}'|safe}}),
+    ACTIONS = Object.freeze({{ACTIONS|or:'{}'|safe}}),
     URLS = Object.freeze({{URLS|or:'{}'|safe}});
+    CODE = Object.freeze({{CODE|or:'{}'|safe}});

@@ -23,5 +23,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.LABELS}}?tab={{request.GET.tab}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.LABELS}}?tab={{request.GET.tab}}"></script>
 {% endblock %}

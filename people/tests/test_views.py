@@ -1,9 +1,8 @@
-import json
-from django.core.exceptions import ObjectDoesNotExist
+from json import loads as json_loads
 from django.http.response import HttpResponseNotFound
 from django.test import TestCase, Client, tag
-from django.http import HttpResponse, HttpResponseForbidden
-from main.strings import Code, url, template, Message, Action
+from django.http import HttpResponse
+from main.strings import Code, url, template
 from allauth.account.models import EmailAddress
 from main.tests.utils import authroot, getRandomStr
 from main.env import BOTMAIL
@@ -146,7 +145,8 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(
             url.people.profileEdit(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-        resp = self.client.post(follow=True, path=root(url.people.profileEdit('pallete')))
+        resp = self.client.post(follow=True, path=root(
+            url.people.profileEdit('pallete')))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         resp = self.client.post(follow=True, path=root(url.people.profileEdit('pallete')), data={
             'profilepic': getTestDP()
@@ -163,7 +163,7 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(url.people.TOPICSEARCH), data={
                                 'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json.loads(resp.content.decode(
+        self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, topics=[]))
 
     def test_topicsUpdate(self):
@@ -189,4 +189,3 @@ class TestViews(TestCase):
         self.assertEqual(self.profile.totalAllTopics(), 4)
         self.assertEqual(self.profile.totalTopics(), 2)
         self.assertEqual(self.profile.totalTrashedTopics(), 2)
-

@@ -1,9 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from main.bots import Discord
 from qrcode import make
 from uuid import UUID, uuid4
-import os
+from os import path as os_path
 from django.core.cache import cache
 from PIL import Image, ImageFont, ImageDraw
 from django.utils import timezone
@@ -169,10 +168,10 @@ def generateCertificate(certname:str, certID, username, compname, abouttext, ass
     font_dir = 'templates/poppins-500.ttf'
     body_font_dir = 'templates/questrial-400.ttf'
     cert_dir = f'templates/{template}.jpg'
-    name_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 72)
-    comp_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 56)
-    about_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, font_dir), 28)
-    id_font = ImageFont.truetype(os.path.join(settings.BASE_DIR, body_font_dir), 18)
+    name_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, font_dir), 72)
+    comp_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, font_dir), 56)
+    about_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, font_dir), 28)
+    id_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, body_font_dir), 18)
     namexy = (imagex-name_font.getsize(username)[0]-77, 220)
     compxy = (imagex-comp_font.getsize(compname)[0]-77, 411)
     aboutxy = (imagex-about_font.getsize(abouttext)[0]-77, 515)
@@ -183,7 +182,7 @@ def generateCertificate(certname:str, certID, username, compname, abouttext, ass
     qrimage = make(f"{SITE}{url.getRoot(APPNAME)}{url.compete.CERT_VERIFY}?id={certID}")
     qrimage = qrimage.resize((222,222),Image.ANTIALIAS)
     if not ISTESTING:
-        certimage = Image.open(os.path.join(settings.BASE_DIR, cert_dir))
+        certimage = Image.open(os_path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
         image_editable.text(xy=namexy, text=username, fill=(0, 0, 0), font=name_font, align='right')
         image_editable.text(xy=compxy, text=compname, fill=(0, 0, 0), font=comp_font, align='right')
@@ -192,11 +191,11 @@ def generateCertificate(certname:str, certID, username, compname, abouttext, ass
         certimage.paste(qrimage, qrxy)
         if associate:
             assxy = (776,904)
-            assimage = Image.open(os.path.join(settings.MEDIA_ROOT, str(associate)))
+            assimage = Image.open(os_path.join(settings.MEDIA_ROOT, str(associate)))
             assimage = assimage.resize((474,144),Image.ANTIALIAS)
             certimage.paste(assimage, assxy)
-        certimage.save(os.path.join(settings.MEDIA_ROOT, certpath), save_all=True)
-        certimage.save(os.path.join(settings.MEDIA_ROOT, certpathimg))
+        certimage.save(os_path.join(settings.MEDIA_ROOT, certpath), save_all=True)
+        certimage.save(os_path.join(settings.MEDIA_ROOT, certpathimg))
     return certpath
 
 def prepareNameForCertificate(name, fname, lname):

@@ -1,7 +1,5 @@
-import uuid
-
+from uuid import uuid4
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django_otp.models import Device
 from allauth_2fa.utils import user_has_valid_totp_device
 from django_otp import devices_for_user
 from allauth.account.models import EmailAddress
@@ -14,7 +12,7 @@ from django.core.cache import cache
 from main.bots import GH_API
 from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
-from management.models import Management, ReportCategory, GhMarketApp, GhMarketPlan, Invitation
+from management.models import Management, ReportCategory, GhMarketPlan, Invitation
 from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot, FreeProject
 from moderation.models import ReportedModeration, Moderation
 from django.contrib.auth.models import PermissionsMixin
@@ -63,7 +61,7 @@ class UserAccountManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     email = models.EmailField(verbose_name="email", max_length=60, unique=True)
     username = None
     first_name = models.CharField(max_length=100)
@@ -153,7 +151,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Topic(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=100)
     creator = models.ForeignKey("Profile", on_delete=models.SET_NULL,
                                 related_name='topic_creator', null=True, blank=True)
@@ -248,14 +246,14 @@ class TopicTag(models.Model):
     class Meta:
         unique_together = ('topic', 'tag')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     tag = models.ForeignKey(f'{PROJECTS}.Tag', on_delete=models.CASCADE)
 
 
 def profileImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/avatars/{str(instance.getUserID())}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/avatars/{str(instance.getUserID())}_{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 
 def defaultImagePath() -> str:
@@ -263,7 +261,7 @@ def defaultImagePath() -> str:
 
 
 class Profile(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.OneToOneField(
         User, null=True, on_delete=models.SET_NULL, related_name='profile', blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -382,7 +380,7 @@ class Profile(models.Model):
         if self.user:
             return PhoneNumber.objects.filter(user=self.user, verified=True)
         return []
-    
+
     def get_nickname(self):
         if not self.nickname:
             if not self.is_normal:
@@ -391,7 +389,7 @@ class Profile(models.Model):
                 nickname = self.githubID
             else:
                 nickname = self.user.email.split('@')[0]
-            if Profile.objects.filter(nickname=nickname).exclude(id=self.id).exists():
+            if Profile.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
                 nickname = nickname + str(self.get_userid)
             self.nickname = nickname
             self.save()
@@ -568,8 +566,7 @@ class Profile(models.Model):
         if self.is_mentor:
             labels.append(dict(name='MNT', theme='active', text='mentor'))
         if self.is_manager():
-            labels.append(
-                dict(name='MGR', theme='tertiary positive-text', text='manager'))
+            labels.append(dict(name='MGR', theme='vibrant', text='manager'))
         return labels
 
     def get_label(self):
@@ -583,7 +580,7 @@ class Profile(models.Model):
         if self.is_mentor:
             return 'active'
         if self.is_manager():
-            return 'tertiary'
+            return 'vibrant'
         return "positive"
 
     def text_theme(self):
@@ -592,7 +589,7 @@ class Profile(models.Model):
         if self.is_mentor:
             return 'text-active'
         if self.is_manager():
-            return 'positive-text'
+            return 'text-vibrant'
         return "text-positive"
 
     def socialsites(self):
@@ -948,7 +945,8 @@ class Profile(models.Model):
                 profile=self).order_by('-points')[:2]
             for proftop in proftops:
                 topics.append(proftop.topic)
-            cache.set(self.CACHE_KEYS.pallete_topics, topics, settings.CACHE_MINI)
+            cache.set(self.CACHE_KEYS.pallete_topics,
+                      topics, settings.CACHE_MINI)
         return topics
 
     def getAllTopicsData(self):
@@ -1045,22 +1043,18 @@ class Profile(models.Model):
         return data
 
     def recommended_projects(self, atleast=3, atmost=4):
-        def approved_only(project):
-            return project.is_approved
         try:
+            def approved_only(project):
+                return project.is_approved
             cacheKey = self.CACHE_KEYS.recommended_projects
             projects = cache.get(cacheKey, None)
             if projects is None:
                 constquery = ~Q(admirers=self, suspended=True,
                                 trashed=True, creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                projects = BaseProject.objects.filter(
-                    constquery, query).distinct()
-                projects = list(set(list(filter(approved_only, projects))))
+                projects = list(set(list(filter(approved_only, BaseProject.objects.filter(Q(constquery, query)).distinct()[:atmost]))))
                 if len(projects) < atleast:
-                    projects = BaseProject.objects.filter(
-                        constquery).distinct()
-                    projects = list(set(list(filter(approved_only, projects))))
+                    projects = list(set(list(filter(approved_only, BaseProject.objects.filter(constquery).distinct()[:atmost]))))
                 if len(projects):
                     cache.set(cacheKey, projects, settings.CACHE_SHORT)
             return projects[:atmost]
@@ -1093,7 +1087,7 @@ class Profile(models.Model):
 
 
 class ProfileSetting(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.OneToOneField(
         Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False, blank=False)
     # newsletter = models.BooleanField(default=True)
@@ -1109,7 +1103,7 @@ class ProfileSetting(models.Model):
 
 
 class ProfileTag(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='tag_profile')
     tag = models.ForeignKey(
@@ -1117,7 +1111,7 @@ class ProfileTag(models.Model):
 
 
 class ProfileTopic(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='topic_profile')
     topic = models.ForeignKey(
@@ -1176,7 +1170,7 @@ class ProfileTopic(models.Model):
 
 
 class BlockedUser(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='blocker_profile')
     blockeduser = models.ForeignKey(
@@ -1190,7 +1184,7 @@ class ReportedUser(models.Model):
     class Meta:
         unique_together = ('profile', 'user', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='user_reporter_profile')
     user = models.ForeignKey(
@@ -1205,7 +1199,7 @@ def displayMentorImagePath(instance, filename) -> str:
 
 
 class DisplayMentor(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='display_mentor_profile', null=True, blank=True)
     name = models.CharField(max_length=100, null=True, blank=True)
@@ -1260,7 +1254,7 @@ class ProfileSuccessorInvitation(Invitation):
 
 
 class GHMarketPurchase(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(Profile, on_delete=models.PROTECT,
                                 related_name='purchaser_profile', null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
@@ -1284,11 +1278,11 @@ class GHMarketPurchase(models.Model):
 
 def frameworkImagePath(instance, filename) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/frameworks/{str(instance.id)}_{str(uuid.uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/frameworks/{str(instance.id)}_{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
 
 class Framework(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
     banner = models.ImageField(
@@ -1323,7 +1317,7 @@ class Framework(models.Model):
 
 
 class Frame(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     framework = models.ForeignKey(
         Framework, on_delete=models.CASCADE, related_name='frame_framework')
     title = models.CharField(max_length=100)
@@ -1348,7 +1342,7 @@ class Frame(models.Model):
 
 
 class FrameworkAdmirer(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     framework = models.ForeignKey(
         Framework, on_delete=models.CASCADE, related_name='admirer_framework')
     admirer = models.ForeignKey(
@@ -1360,7 +1354,7 @@ class FrameworkReport(models.Model):
     class Meta:
         unique_together = ('profile', 'framework', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='framework_reporter_profile')
     framework = models.ForeignKey(
@@ -1373,7 +1367,7 @@ class ProfileAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'admirer')
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     admirer = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
     profile = models.ForeignKey(
@@ -1381,13 +1375,13 @@ class ProfileAdmirer(models.Model):
 
 
 class ProfileSocial(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     site = models.URLField(max_length=800)
 
 
 class CoreMember(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='core_member_profile')
     hidden = models.BooleanField(default=False)
@@ -1401,7 +1395,7 @@ class CoreMember(models.Model):
 
 
 class ProfileXPRecord(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='profile_xp_record_profile')
     xp = models.IntegerField(default=0, editable=False)
@@ -1410,7 +1404,7 @@ class ProfileXPRecord(models.Model):
 
 
 class ProfileTopicXPRecord(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile_topic = models.ForeignKey(
         ProfileTopic, on_delete=models.CASCADE, related_name='profilet_xp_record_profilet')
     xp = models.IntegerField(default=0, editable=False)

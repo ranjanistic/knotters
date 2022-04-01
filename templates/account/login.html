@@ -80,7 +80,7 @@
 					</div>
 					<br/>
 					<button class="positive recaptcha-protected-form-action" type="submit" class="g-recaptcha" data-sitekey="{{RECAPTCHA_KEY}}" data-action='submit' id="sign-in-action" data-icon="login">{% trans "Sign In" %}</button>
-					<button type="button" class="primary" class="mini-window-action" data-url="{% url 'account_reset_password' %}" data-icon="help">{% trans "Forgot?" %}</button>
+					<button type="button" class="primary mini-window-action" data-url="{% url 'account_reset_password' %}" data-icon="help">{% trans "Forgot?" %}</button>
 					<input type="hidden" name="{{redirect_field_name}}" value="{{URLS.REDIRECTOR}}?n={{request.GET.next}}" />
 				</form>
 				<br/>
@@ -97,5 +97,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.LOGIN}}?next={{request.GET.next}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.LOGIN}}?next={{request.GET.next}}"></script>
 {% endblock %}

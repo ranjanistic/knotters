@@ -1,5 +1,6 @@
-import json
+from json import dumps as jsondumps, loads as jsonloads
 from os import path as ospath
+from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_control
@@ -26,7 +27,7 @@ from django.views.decorators.cache import cache_page
 from django.shortcuts import redirect, render
 from management.models import HookRecord, GhMarketPlan, GhMarketApp, ThirdPartyLicense
 from moderation.models import LocalStorage
-from projects.models import BaseProject, LegalDoc, Snapshot
+from projects.models import BaseProject, CoreProject, FreeProject, LegalDoc, Project, Snapshot
 from compete.models import Result, Competition
 from people.models import CoreMember, DisplayMentor, Profile, GHMarketPurchase, Topic
 from people.methods import profileRenderData, rendererstr as peopleRendererstr
@@ -34,15 +35,16 @@ from projects.methods import coreProfileData, freeProfileData, rendererstr as pr
 from compete.methods import competitionProfileData, rendererstr as competeRendererstr
 from .bots import Github
 from .env import ADMINPATH, ISPRODUCTION, ISBETA
-from .methods import addMethodToAsyncQueue, htmlmin, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
-from .decorators import dev_only, github_only, normal_profile_required, require_JSON_body, decode_JSON
+from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
+from .decorators import dev_only, github_only, normal_profile_required, require_JSON, decode_JSON
 from .mailers import featureRelease
-from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS,MANAGEMENT,MODERATION, Event
+from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS, MANAGEMENT, MODERATION, Event
 
 
 @require_GET
 def offline(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.OFFLINE)
+
 
 @require_GET
 def branding(request: WSGIRequest) -> HttpResponse:
@@ -63,26 +65,51 @@ def template(request: WSGIRequest, template: str) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
+    competition = cache.get('latest_competition', [])
+    if not competition:
+        competition = Competition.objects.filter(
+            endAt__gt=timezone.now(), is_draft=False, resultDeclared=False
+        ).order_by("-startAt").first()
+        cache.set('latest_competition', competition, settings.CACHE_MICRO)
     if request.user.is_authenticated:
         if not request.user.profile.on_boarded:
             return respondRedirect(path=URL.ON_BOARDING)
-        competition = Competition.objects.filter(endAt__gt=timezone.now(),is_draft=False,resultDeclared=False).order_by("-startAt").first()
         return renderView(request, Template.HOME, dict(competition=competition))
-    topics = cache.get('homepage_topics',[])
+    topics = cache.get('homepage_topics', [])
     if not len(topics):
         topics = Topic.objects.filter()[:3]
-        cache.set('homepage_topics',topics,settings.CACHE_LONG)
-    projects = cache.get('homepage_projects',[])
-    if not len(projects):
-        project = BaseProject.objects.filter().first()
-        cache.set('homepage_projects',projects,settings.CACHE_LONG)
-    return renderView(request, Template.INDEX,dict(topics=topics,project=project))
+        cache.set('homepage_topics', topics, settings.CACHE_LONG)
+    project = cache.get('homepage_projects', None)
+    if not project:
+        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("createdOn").first()
+        cache.set('homepage_projects', project, settings.CACHE_LONG)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project,competition=competition))
+
 
 @require_GET
 def home(request: WSGIRequest) -> HttpResponse:
     if not request.user.is_authenticated:
         return redirect(URL.ROOT)
-    return renderView(request, Template.INDEX)
+    competition = cache.get('latest_competition', [])
+    if not competition:
+        competition = Competition.objects.filter(
+            endAt__gt=timezone.now(), is_draft=False, resultDeclared=False
+        ).order_by("-startAt").first()
+        cache.set('latest_competition', competition, settings.CACHE_MICRO)
+    topics = cache.get('homepage_topics', [])
+    if not len(topics):
+        topics = Topic.objects.filter()[:3]
+        cache.set('homepage_topics', topics, settings.CACHE_LONG)
+    project = cache.get('homepage_project', None)
+    if not project:
+        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("createdOn").first()
+        cache.set('homepage_project', project, settings.CACHE_LONG)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project,competition=competition))
+
+@require_GET
+def homeDomains(request: WSGIRequest, domain:str) -> HttpResponse:
+    return renderView(request, domain, fromApp="home")
+
 
 @require_GET
 def redirector(request: WSGIRequest) -> HttpResponse:
@@ -96,8 +123,9 @@ def redirector(request: WSGIRequest) -> HttpResponse:
     except:
         return redirect(URL.INDEX)
 
+
 @require_GET
-def at_nickname(request:WSGIRequest,nickname) -> HttpResponse:
+def at_nickname(request: WSGIRequest, nickname) -> HttpResponse:
     try:
         if nickname == "me":
             if not request.user.is_authenticated:
@@ -108,27 +136,30 @@ def at_nickname(request:WSGIRequest,nickname) -> HttpResponse:
     except Exception as e:
         raise Http404(e)
 
+
 @require_GET
-def at_emoji(request:WSGIRequest, emoticon) -> HttpResponse:
+def at_emoji(request: WSGIRequest, emoticon) -> HttpResponse:
     try:
         profile = Profile.objects.get(emoticon=emoticon)
         return redirect(profile.get_link)
     except:
         raise Http404()
 
+
 @normal_profile_required
 @require_GET
-def on_boarding(request:WSGIRequest) -> HttpResponse:
+def on_boarding(request: WSGIRequest) -> HttpResponse:
     try:
         return renderView(request, Template.ON_BOARDING)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
 
+
 @normal_profile_required
 @require_POST
 @decode_JSON
-def on_boarding_update(request:WSGIRequest) -> HttpResponse:
+def on_boarding_update(request: WSGIRequest) -> HttpResponse:
     try:
         on_boarded = request.POST.get('onboarded', False)
         if on_boarded and not (request.user.profile.on_boarded and request.user.profile.xp > 9):
@@ -138,12 +169,14 @@ def on_boarding_update(request:WSGIRequest) -> HttpResponse:
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO,error=Message.ERROR_OCCURRED)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
 
 @require_GET
 def docIndex(request: WSGIRequest) -> HttpResponse:
     docs = LegalDoc.objects.all()
     return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
+
 
 @require_GET
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
@@ -189,7 +222,7 @@ def fameWall(request: WSGIRequest):
     return renderView(request, Template.FAME_WALL)
 
 
-@require_JSON_body
+@require_JSON
 def verifyCaptcha(request: WSGIRequest):
     try:
         capt_response = request.POST.get('g-recaptcha-response', False)
@@ -202,6 +235,7 @@ def verifyCaptcha(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
 
+
 @require_GET
 def snapshot(request: WSGIRequest, snapID):
     try:
@@ -213,34 +247,45 @@ def snapshot(request: WSGIRequest, snapID):
         errorLog(e)
         raise Http404(e)
 
+
+@decode_JSON
+def donation(request: WSGIRequest):
+    if request.method == "POST":
+        return respondJson(Code.OK)
+    else:
+        return renderView(request, Template.DONATION)
+
+
 @require_GET
 @cache_control(no_cache=True, public=True, max_age=settings.CACHE_MINI)
 def scripts(request, script):
     if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
-    stringrender = render_to_string(script, request=request, context=renderData(fromApp=request.GET.get('fromApp','')))
+    stringrender = render_to_string(script, request=request, context=renderData(
+        fromApp=request.GET.get('fromApp', '')))
     if not settings.DEBUG:
         stringrender = jsmin(stringrender)
     return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
 
+
 @require_GET
 @cache_control(no_cache=True, public=True, max_age=settings.CACHE_MINI)
-def scripts_subapp(request, subapp:str, script:str):
+def scripts_subapp(request, subapp: str, script: str):
     if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
     data = dict()
     if subapp == PROJECTS:
         projectID = request.GET.get('id', None)
         if script == Template.Script.ZERO:
-            data = freeProfileData(request,projectID=projectID)
+            data = freeProfileData(request, projectID=projectID)
         elif script == Template.Script.ONE:
-            data = verifiedProfileData(request,projectID=projectID)
+            data = verifiedProfileData(request, projectID=projectID)
         elif script == Template.Script.TWO:
-            data = coreProfileData(request,projectID=projectID)
+            data = coreProfileData(request, projectID=projectID)
     elif subapp == COMPETE:
         compID = request.GET.get('id', None)
         if script == Template.Script.PROFILE:
-            data = competitionProfileData(request,compID=compID)
+            data = competitionProfileData(request, compID=compID)
     elif subapp == MANAGEMENT:
         labelID = request.GET.get("id", None)
         if script == Template.Script.TOPIC:
@@ -248,23 +293,26 @@ def scripts_subapp(request, subapp:str, script:str):
         elif script == Template.Script.CATEGORY:
             data = labelRenderData(request, Code.CATEGORY, labelID)
         elif script == Template.Script.COMPETE:
-            data = competitionManagementRenderData(request,compID=labelID)
+            data = competitionManagementRenderData(request, compID=labelID)
     elif subapp == MODERATION:
         modID = request.GET.get("id", None)
-        data = moderationRenderData(request,modID)
+        data = moderationRenderData(request, modID)
     elif subapp == PEOPLE:
         userID = request.GET.get('id', None)
         if script == Template.Script.PROFILE:
-            data = profileRenderData(request,userID=userID)
-    stringrender = render_to_string(f"{subapp}/scripts/{script}", request=request, context=renderData(fromApp=request.GET.get('fromApp', subapp), data=data))
+            data = profileRenderData(request, userID=userID)
+    stringrender = render_to_string(f"{subapp}/scripts/{script}", request=request,
+                                    context=renderData(fromApp=request.GET.get('fromApp', subapp), data=data))
     if not settings.DEBUG:
         stringrender = jsmin(stringrender)
     return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
+
 
 def handler403(request, exception, template_name="403.html"):
     response = render(template_name)
     response.status_code = 403
     return response
+
 
 @csrf_exempt
 @github_only
@@ -290,28 +338,32 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
                 if not release['draft'] and release['name'] and release['body']:
                     addMethodToAsyncQueue(
                         f'main.mailers.{featureRelease.__name__}', release['name'], release['body'])
-                        
+
         elif ghevent == Event.MARKETPLACE_PURCHASE:
             action = request.POST.get('action', None)
-            if not action: raise Exception(ghevent)
+            if not action:
+                raise Exception(ghevent)
             effective_date = parse_datetime(request.POST['effective_date'])
             if not is_aware(effective_date):
                 try:
                     effective_date = make_aware(effective_date)
-                except: pass
+                except:
+                    pass
             sender = request.POST['sender']
             m_purchase = request.POST['marketplace_purchase']
             next_billing_date = parse_datetime(m_purchase['next_billing_date'])
             if not is_aware(next_billing_date):
                 try:
                     next_billing_date = make_aware(next_billing_date)
-                except: pass
+                except:
+                    pass
             account = m_purchase['account']
             if account['type'] == "Organization":
                 used_email = account['organization_billing_email']
             else:
                 user_gh_id = account["id"]
-                ghsocial = SocialAccount.objects.get(provider=GitHubProvider.id, uid=user_gh_id)
+                ghsocial = SocialAccount.objects.get(
+                    provider=GitHubProvider.id, uid=user_gh_id)
                 if not ghsocial:
                     ghUser = Github.get_user_by_id(int(user_gh_id))
                     used_email = ghUser.email
@@ -320,9 +372,10 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
 
             billcycle = m_purchase['billing_cycle']
             unit_count = m_purchase['unit_count']
-            
+
             p_id = m_purchase['plan']['id']
-            gh_plan = GhMarketPlan.objects.get(gh_app__gh_id=targetID,gh_id=p_id)
+            gh_plan = GhMarketPlan.objects.get(
+                gh_app__gh_id=targetID, gh_id=p_id)
             emailaddr = EmailAddress.objects.filter(email=used_email).first()
 
             if action == "purchased":
@@ -343,13 +396,14 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
 
             elif action == "changed":
                 pre_m_purchase = request.POST['previous_marketplace_purchase']
-                
+
                 pre_account = pre_m_purchase['account']
                 if pre_account['type'] == "Organization":
                     pre_used_email = pre_account['organization_billing_email']
                 else:
                     pre_user_gh_id = pre_account["id"]
-                    pre_ghsocial = SocialAccount.objects.get(provider=GitHubProvider.id, uid=pre_user_gh_id)
+                    pre_ghsocial = SocialAccount.objects.get(
+                        provider=GitHubProvider.id, uid=pre_user_gh_id)
                     if not ghsocial:
                         pre_ghUser = Github.get_user_by_id(int(pre_user_gh_id))
                         pre_used_email = pre_ghUser.email
@@ -357,8 +411,10 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
                         pre_used_email = pre_ghsocial.extra_data['email']
 
                 pre_p_id = pre_m_purchase['plan']['id']
-                pre_gh_plan = GhMarketPlan.objects.get(gh_app__gh_id=targetID,gh_id=pre_p_id)
-                pre_emailaddr = EmailAddress.objects.filter(email=pre_used_email).first()
+                pre_gh_plan = GhMarketPlan.objects.get(
+                    gh_app__gh_id=targetID, gh_id=pre_p_id)
+                pre_emailaddr = EmailAddress.objects.filter(
+                    email=pre_used_email).first()
                 if pre_emailaddr:
                     pre_GHMarketPurchase = GHMarketPurchase.objects.filter(
                         profile=pre_emailaddr.user.profile,
@@ -398,8 +454,8 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
             elif action == "cancelled":
                 if emailaddr:
                     gHMarketPurchase = GHMarketPurchase.objects.filter(
-                            profile=emailaddr.user.profile,
-                            gh_app_plan=gh_plan
+                        profile=emailaddr.user.profile,
+                        gh_app_plan=gh_plan
                     ).first()
                 else:
                     gHMarketPurchase = GHMarketPurchase.objects.filter(
@@ -408,7 +464,7 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
                     ).first()
                 if gHMarketPurchase:
                     gHMarketPurchase.delete()
-                
+
             elif action == "pending_change":
                 pass
             elif action == "pending_change_cancelled":
@@ -433,14 +489,15 @@ class Robots(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cacheKey = f"{Template.ROBOTS_TXT}_suspended_list"
-        suspended = cache.get(cacheKey,[])
+        suspended = cache.get(cacheKey, [])
         if not len(suspended):
             suspended = Profile.objects.filter(
                 Q(suspended=True) | Q(is_zombie=True))
-            cache.set(cacheKey,suspended,settings.CACHE_SHORT)
+            cache.set(cacheKey, suspended, settings.CACHE_SHORT)
         context = dict(**context, media=settings.MEDIA_URL,
                        suspended=suspended, ISBETA=ISBETA)
         return context
+
 
 @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class Sitemap(TemplateView):
@@ -450,21 +507,26 @@ class Sitemap(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cacheKey = f"sitemap_content_links"
-        LINKS = cache.get(cacheKey,[])
+        LINKS = cache.get(cacheKey, [])
         if not len(LINKS):
-            FILTER = lambda u:"*" not in u and not u.startswith("http") and not u.endswith(('.png','.svg','.webp'))
-            ROOTS=list(filter(FILTER,URL().getURLSForClient().values()))
-            PROJECTS=list(filter(FILTER,URL.projects.getURLSForClient().values()))
-            COMPETE=list(filter(FILTER,URL.compete.getURLSForClient().values()))
-            COMMUNITY=list(filter(FILTER,URL.people.getURLSForClient().values()))
-            AUTH=list(filter(FILTER,URL.auth.getURLSForClient().values()))
-            MGM=list(filter(FILTER,URL.management.getURLSForClient().values()))
-            LINKS = [ROOTS,PROJECTS,COMPETE,COMMUNITY,AUTH,MGM]
-            cache.set(cacheKey,LINKS,settings.CACHE_LONGER)
-        context = dict(**context, 
-            media=settings.MEDIA_URL,
-            LINKS=LINKS
-        )
+            def FILTER(u): return "*" not in u and not u.startswith(
+                "http") and not u.endswith(('.png', '.svg', '.webp'))
+            ROOTS = list(filter(FILTER, URL().getURLSForClient().values()))
+            PROJECTS = list(
+                filter(FILTER, URL.projects.getURLSForClient().values()))
+            COMPETE = list(
+                filter(FILTER, URL.compete.getURLSForClient().values()))
+            COMMUNITY = list(
+                filter(FILTER, URL.people.getURLSForClient().values()))
+            AUTH = list(filter(FILTER, URL.auth.getURLSForClient().values()))
+            MGM = list(
+                filter(FILTER, URL.management.getURLSForClient().values()))
+            LINKS = [ROOTS, PROJECTS, COMPETE, COMMUNITY, AUTH, MGM]
+            cache.set(cacheKey, LINKS, settings.CACHE_LONGER)
+        context = dict(**context,
+                       media=settings.MEDIA_URL,
+                       LINKS=LINKS
+                       )
         return context
 
 
@@ -475,14 +537,15 @@ class Manifest(TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
         response_kwargs.setdefault('content_type', self.content_type)
-        stringrender = render_to_string(self.get_template_names(), request=self.request,context=context)
+        stringrender = render_to_string(
+            self.get_template_names(), request=self.request, context=context)
         try:
             if not settings.DEBUG:
-                stringrender = json.dumps(json.loads(stringrender),separators=(',',':'))
+                stringrender = jsondumps(
+                    jsonloads(stringrender), separators=(',', ':'))
         except:
             pass
         return HttpResponse(stringrender, **response_kwargs)
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -490,14 +553,17 @@ class Manifest(TemplateView):
         sizes = []
 
         def appendWhen(path: str):
-            condition = path.endswith(('icon-circle.webp','icon-square.webp','icon-circle.png','icon-square.png'))
+            condition = path.endswith(
+                ('icon-circle.webp', 'icon-square.webp', 'icon-circle.png', 'icon-square.png'))
             if condition:
                 parts = path.split('/')
                 size = int(parts[len(parts)-2])
                 sizes.append(size)
             return condition
-        assets = getDeepFilePaths(ospath.join(settings.STATIC_ROOT, 'graphics/self'), appendWhen=appendWhen)
-        assets = list(map(lambda p: str(p.replace(settings.STATIC_ROOT,settings.STATIC_URL)), assets))
+        assets = getDeepFilePaths(ospath.join(
+            settings.STATIC_ROOT, 'graphics/self'), appendWhen=appendWhen)
+        assets = list(map(lambda p: str(
+            p.replace(settings.STATIC_ROOT, settings.STATIC_URL)), assets))
 
         icons = []
 
@@ -511,20 +577,21 @@ class Manifest(TemplateView):
         context = dict(**context, icons=icons)
         return context
 
+
 class ServiceWorker(TemplateView):
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
 
     def render_to_response(self, context, **response_kwargs):
         response_kwargs.setdefault('content_type', self.content_type)
-        stringrender = render_to_string(self.get_template_names(), request=self.request,context=context)
+        stringrender = render_to_string(
+            self.get_template_names(), request=self.request, context=context)
         try:
             if not settings.DEBUG:
                 stringrender = jsmin(stringrender)
         except:
             pass
         return HttpResponse(stringrender, **response_kwargs)
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -537,7 +604,7 @@ class ServiceWorker(TemplateView):
             "static", appendWhen=appendWhen)
 
         def attachStaticURL(path: str):
-            return str(path.replace("/static/",settings.STATIC_URL))
+            return str(path.replace("/static/", settings.STATIC_URL))
 
         assets = list(map(attachStaticURL, assets))
         assets.append(f"/{URL.OFFLINE}")
@@ -548,10 +615,10 @@ class ServiceWorker(TemplateView):
         created = False
         if not swassets:
             swassets, created = LocalStorage.objects.get_or_create(key=Code.SWASSETS, defaults=dict(
-                value=json.dumps(assets)
+                value=jsondumps(assets)
             ))
         if not created:
-            oldassets = json.loads(swassets.value)
+            oldassets = jsonloads(swassets.value)
             different = False
             if len(oldassets) != len(assets):
                 different = True
@@ -568,7 +635,7 @@ class ServiceWorker(TemplateView):
 
             assets = assets if different else oldassets
             if different:
-                swassets.value = json.dumps(assets)
+                swassets.value = jsondumps(assets)
                 swassets.save()
                 cache.set(cacheKey, swassets)
             else:
@@ -576,8 +643,8 @@ class ServiceWorker(TemplateView):
 
         context = dict(**context, **renderData(dict(
             OFFLINE=f"/{URL.OFFLINE}",
-            assets=json.dumps(assets),
-            noOfflineList=json.dumps([
+            assets=jsondumps(assets),
+            noOfflineList=jsondumps([
                 setPathParams(f"/{URL.ON_BOARDING}"),
                 setPathParams(
                     f"/{URL.COMPETE}{URL.Compete.COMPETETABSECTION}"),
@@ -586,7 +653,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LIVEDATA}"),
             ]),
-            ignorelist=json.dumps([
+            ignorelist=jsondumps([
                 f"/{ADMINPATH}*",
                 f"/{ADMINPATH}",
                 f"/{URL.WEBPUSH}*",
@@ -607,11 +674,16 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.Auth.SUCCESSORINVITE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROJECT_TRANS_INVITE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.VER_MOD_TRANS_INVITE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CORE_MOD_TRANS_INVITE}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.VER_DEL_REQUEST}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.CORE_DEL_REQUEST}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.PROJECT_TRANS_INVITE}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.VER_MOD_TRANS_INVITE}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.CORE_MOD_TRANS_INVITE}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.VER_DEL_REQUEST}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.CORE_DEL_REQUEST}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_FREE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE_CORE}"),
@@ -621,10 +693,10 @@ class ServiceWorker(TemplateView):
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.REPORT_CATEGORIES}"),
             ]),
-            recacheList=json.dumps([
+            recacheList=jsondumps([
                 f"/{URL.REDIRECTOR}",
             ]),
-            netFirstList=json.dumps([
+            netFirstList=jsondumps([
                 f"/{URL.LANDING}",
                 f"/{URL.FAME_WALL}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
@@ -633,7 +705,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.CREATE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.ADMIRATIONS}"),
-                setPathParams(f"/{URL.PROJECTS}{URL.Projects.SNAP_ADMIRATIONS}"),
+                setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.SNAP_ADMIRATIONS}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.PROFILETAB}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.FRAMEWORK}"),
@@ -649,6 +722,7 @@ class ServiceWorker(TemplateView):
         )))
         return context
 
+
 class Version(TemplateView):
     content_type = Code.TEXT_PLAIN
     template_name = Template.VERSION
@@ -656,6 +730,7 @@ class Version(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
+
 
 @decode_JSON
 def browser(request: WSGIRequest, type: str):
@@ -670,28 +745,31 @@ def browser(request: WSGIRequest, type: str):
         if type == Browse.PROJECT_SNAPSHOTS:
             if request.user.is_authenticated:
                 excludeIDs = request.POST.get('excludeIDs', [])
-                limit = int(request.POST.get('limit', request.GET.get('limit', 5)))
+                limit = int(request.POST.get(
+                    'limit', request.GET.get('limit', 5)))
                 cachekey = f"{cachekey}{limit}"
                 if len(excludeIDs):
                     cachekey = cachekey + "".join(excludeIDs)
-                snaps = cache.get(cachekey,[])
+                snaps = cache.get(cachekey, [])
                 snapIDs = [snap.id for snap in snaps]
-                
+
                 if not len(snaps):
-                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile)|Q(base_project__creator=request.user.profile)|Q(creator__admirers=request.user.profile)),base_project__suspended=False,base_project__trashed=False,suspended=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
+                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile) | Q(base_project__creator=request.user.profile) | Q(creator__admirers=request.user.profile)),
+                                                    base_project__suspended=False, base_project__trashed=False, suspended=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
                     cache.set(cachekey, snaps, settings.CACHE_INSTANT)
-                
+
                 data = dict(
-                    html=renderString(request, Template.SNAPSHOTS, dict(snaps=snaps)),
+                    html=renderString(
+                        request, Template.SNAPSHOTS, dict(snaps=snaps)),
                     snapIDs=snapIDs,
                     recommended=False
                 )
                 return respondJson(Code.OK, data)
             else:
-                return respondJson(Code.OK,dict(snapIDs=[]))
+                return respondJson(Code.OK, dict(snapIDs=[]))
         elif type == Browse.NEW_PROFILES:
-            profiles = cache.get(cachekey,[])
+            profiles = cache.get(cachekey, [])
             if not len(profiles):
                 if request.user.is_authenticated:
                     excludeUserIDs.append(request.user.profile.getUserID())
@@ -704,12 +782,13 @@ def browser(request: WSGIRequest, type: str):
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
 
         elif type == Browse.NEW_PROJECTS:
-            projects = cache.get(cachekey,[])
+            projects = cache.get(cachekey, [])
             if not len(projects):
                 projects = BaseProject.objects.filter(createdOn__gte=(
                     timezone.now()+timedelta(days=-30)), suspended=False, trashed=False).exclude(creator__user__id__in=excludeUserIDs).order_by('-createdOn')[:limit]
 
-                projects = list(set(list(filter(lambda p: p.is_approved, projects))))
+                projects = list(
+                    set(list(filter(lambda p: p.is_approved, projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
@@ -723,7 +802,7 @@ def browser(request: WSGIRequest, type: str):
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
 
         elif type == Browse.RECOMMENDED_PROJECTS:
-            projects = cache.get(cachekey,[])
+            projects = cache.get(cachekey, [])
             count = len(projects)
             if not count:
                 query = Q()
@@ -731,71 +810,102 @@ def browser(request: WSGIRequest, type: str):
                 if request.user.is_authenticated:
                     query = Q(topics__in=request.user.profile.getTopics())
                     authquery = ~Q(creator=request.user.profile)
-                
-                projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery, query).exclude(creator__user__id__in=excludeUserIDs)[:limit]
-                projects = list(set(list(filter(lambda p: p.is_approved,projects))))
+
+                projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = list(
+                    set(list(filter(lambda p: p.is_approved, projects))))
                 count = len(projects)
                 if count < 1:
-                    projects = BaseProject.objects.filter(Q(trashed=False,suspended=False),authquery).exclude(creator__user__id__in=excludeUserIDs)[:limit]
-                    projects = list(set(list(filter(lambda p: p.is_approved,projects))))
+                    projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
+                        creator__user__id__in=excludeUserIDs)[:limit]
+                    projects = list(
+                        set(list(filter(lambda p: p.is_approved, projects))))
                     count = len(projects)
 
                 if count:
                     cache.set(cachekey, projects, settings.CACHE_MINI)
-            
+
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=count))
         elif type == Browse.TRENDING_TOPICS:
             # TODO
             pass
         elif type == Browse.TRENDING_PROJECTS:
-            projects = cache.get(cachekey,[])
+            projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = BaseProject.objects.filter(Q(trashed=False,suspended=False)).exclude(creator__user__id__in=excludeUserIDs)[:limit]
-                projects = list(set(list(filter(lambda p: p.is_approved,projects))))
+                projects = BaseProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                    creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                projects = list(
+                    set(list(filter(lambda p: p.is_approved, projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
-            # TODO
-            pass
+            profiles = cache.get(cachekey, [])
+            if not len(profiles):
+                profiles = Profile.objects.filter(
+                    Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
+                        user__id__in=excludeUserIDs
+                    ).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                cache.set(cachekey, profiles, settings.CACHE_MINI)
+            return peopleRendererstr(request, Template.People.BROWSE_TRENDING, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.NEWLY_MODERATED:
-            # TODO
-            pass
+            projects = cache.get(cachekey, [])
+            if not len(projects):
+                vids = Project.objects.filter(status=Code.APPROVED, trashed=False, suspended=False,approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
+                            creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
+                cids = CoreProject.objects.filter(status=Code.APPROVED, trashed=False, suspended=False,approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
+                            creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
+                projects = BaseProject.objects.filter(id__in=list(cids)+list(vids))
+                cache.set(cachekey, projects, settings.CACHE_MINI)
+            return projectsRendererstr(request, Template.Projects.BROWSE_NEWLY_MODERATED, dict(projects=projects, count=len(projects)))
         elif type == Browse.HIGHEST_MONTH_XP_PROFILES:
-            # TODO
-            pass
+            profiles = cache.get(cachekey, [])
+            if not len(profiles):
+                profiles = Profile.objects.filter(
+                    Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
+                        user__id__in=excludeUserIDs
+                    ).order_by('-xp')[:limit]
+                cache.set(cachekey, profiles, settings.CACHE_MINI)
+            return peopleRendererstr(request, Template.People.BROWSE_HIGHEST_MONTH_XP_PROFILES, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.LATEST_COMPETITIONS:
-            competitions = cache.get(cachekey,[])
+            competitions = cache.get(cachekey, [])
             if not len(competitions):
-                competitions=Competition.objects.filter(hidden=False,is_draft=False).order_by("-startAt")[:limit]
-                cache.set(cachekey,competitions,settings.CACHE_MINI)
+                competitions = Competition.objects.filter(
+                    hidden=False, is_draft=False).order_by("-startAt")[:limit]
+                cache.set(cachekey, competitions, settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         elif type == Browse.TRENDING_MENTORS:
-            mentors = cache.get(cachekey,[])
+            mentors = cache.get(cachekey, [])
             if not len(mentors):
-                mentors = Profile.objects.filter(is_mentor=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
+                mentors = Profile.objects.filter(
+                    is_mentor=True, suspended=False, is_active=True, to_be_zombie=False).order_by("-xp")[:limit]
                 if request.user.is_authenticated:
-                    mentors = request.user.profile.filterBlockedProfiles(mentors)
+                    mentors = request.user.profile.filterBlockedProfiles(
+                        mentors)
                 cache.set(cachekey, mentors, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MENTORS, dict(mentors=mentors, count=len(mentors)))
         elif type == Browse.TRENDING_MODERATORS:
-            moderators = cache.get(cachekey,[])
+            moderators = cache.get(cachekey, [])
             if not len(moderators):
-                moderators = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False).order_by("-xp")[:limit]
+                moderators = Profile.objects.filter(
+                    is_moderator=True, suspended=False, is_active=True, to_be_zombie=False).order_by("-xp")[:limit]
                 if request.user.is_authenticated:
-                    moderators = request.user.profile.filterBlockedProfiles(moderators)
+                    moderators = request.user.profile.filterBlockedProfiles(
+                        moderators)
                 cache.set(cachekey, moderators, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING_MODS, dict(moderators=moderators, count=len(moderators)))
         elif type == Browse.DISPLAY_MENTORS:
-            dmentors = cache.get(cachekey,[])
+            dmentors = cache.get(cachekey, [])
             count = len(dmentors)
             if not count:
-                dmentors = DisplayMentor.objects.filter(hidden=False).order_by("-createdOn")
+                dmentors = DisplayMentor.objects.filter(
+                    hidden=False).order_by("-createdOn")
                 count = len(dmentors)
                 if count:
                     cache.set(cachekey, dmentors, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_DISPLAY_MENTORS, dict(dmentors=dmentors, count=count))
         elif type == Browse.CORE_MEMBERS:
-            coremems = cache.get(cachekey,[])
+            coremems = cache.get(cachekey, [])
             count = len(coremems)
             if not count:
                 coremems = CoreMember.objects.filter(hidden=False)
@@ -805,29 +915,65 @@ def browser(request: WSGIRequest, type: str):
             return peopleRendererstr(request, Template.People.BROWSE_CORE_MEMBERS, dict(coremems=coremems, count=count))
         elif type == Browse.TOPIC_PROJECTS:
             if request.user.is_authenticated:
-                projects = cache.get(cachekey,[])
+                projects = cache.get(cachekey, [])
                 tcacheKey = f"{cachekey}_topic"
-                topic = cache.get(tcacheKey,None)
+                topic = cache.get(tcacheKey, None)
                 if not topic or not len(projects):
                     if request.user.profile.totalAllTopics():
                         topic = request.user.profile.getAllTopics()[0]
                     else:
                         topic = request.user.profile.recommended_topics()[0]
-                    projects = BaseProject.objects.filter(trashed=False,suspended=False, topics=topic).exclude(creator__user__id__in=excludeUserIDs)[:limit]
-                    projects = list(set(list(filter(lambda p: p.is_approved,projects))))
+                    projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
+                        creator__user__id__in=excludeUserIDs)[:limit]
+                    projects = list(
+                        set(list(filter(lambda p: p.is_approved, projects))))
                     cache.set(cachekey, projects, settings.CACHE_MINI)
                     cache.set(tcacheKey, topic, settings.CACHE_MINI)
                 return projectsRendererstr(request, Template.Projects.BROWSE_TOPIC_PROJECTS, dict(projects=projects, count=len(projects), topic=topic))
-            else: pass
-        elif type == Browse.TOPIC_PROFILES: pass
-        elif type == Browse.TRENDING_CORE: pass
-        elif type == Browse.TRENDING_VERIFIED: pass
-        elif type == Browse.TRENDING_QUICK: pass
+            else:
+                pass
+        elif type == Browse.TOPIC_PROFILES:
+            if request.user.is_authenticated:
+                profiles = cache.get(cachekey, [])
+                tcacheKey = f"{cachekey}_topic"
+                topic = cache.get(tcacheKey, None)
+                if not topic or not len(profiles):
+                    if request.user.profile.totalAllTopics():
+                        topic = request.user.profile.getAllTopics()[0]
+                    else:
+                        topic = request.user.profile.recommended_topics()[0]
+                    profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(user__id__in=excludeUserIDs)[:limit]
+                    cache.set(cachekey, profiles, settings.CACHE_MINI)
+                    cache.set(tcacheKey, topic, settings.CACHE_MINI)
+                return peopleRendererstr(request, Template.People.BROWSE_TOPIC_PROFILES, dict(profiles=profiles, count=len(profiles), topic=topic))
+            else:
+                pass
+        elif type == Browse.TRENDING_CORE:
+            projects = cache.get(cachekey, [])
+            if not len(projects):
+                projects = CoreProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                    creator__user__id__in=excludeUserIDs, status=Code.APPROVED).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                cache.set(cachekey, projects, settings.CACHE_MINI)
+            return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_CORE, dict(projects=projects, count=len(projects)))
+        elif type == Browse.TRENDING_VERIFIED:
+            projects = cache.get(cachekey, [])
+            if not len(projects):
+                projects = Project.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                    creator__user__id__in=excludeUserIDs, status=Code.APPROVED).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                cache.set(cachekey, projects, settings.CACHE_MINI)
+            return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_VERIFIED, dict(projects=projects, count=len(projects)))
+        elif type == Browse.TRENDING_QUICK:
+            projects = cache.get(cachekey, [])
+            if not len(projects):
+                projects = FreeProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                    creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                cache.set(cachekey, projects, settings.CACHE_MINI)
+            return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_QUICK, dict(projects=projects, count=len(projects)))
         else:
             return HttpResponseBadRequest(type)
         return HttpResponse()
     except Exception as e:
+        errorLog(e)
         if request.POST.get(Code.JSON_BODY, False):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        errorLog(e)
         raise Http404(e)

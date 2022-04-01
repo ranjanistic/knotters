@@ -52,18 +52,25 @@ const loadBrowsers = () => {
     let browseIndex = -1;
     Promise.all(
         getElements("browser-view").map(async (view) => {
-            browseList = browseList.filter((t) => t!=view.getAttribute('data-type'))
+            browseList = browseList.filter(
+                (t) => t != view.getAttribute("data-type") && t != BROWSE.PROJECT_SNAPSHOTS
+            );
             browseIndex++;
             let method = async () => {
+                let browsekey = view.getAttribute("data-type") || browseList[browseIndex];
+                if(!browsekey) return;
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest2({
-                    path: setUrlParams(URLS.BROWSER, view.getAttribute('data-type')||browseList[browseIndex]),
-                    silent: true
+                    path: setUrlParams(
+                        URLS.BROWSER,
+                        browsekey
+                    ),
+                    silent: true,
                 });
-                if(browseIndex >= browseList.length){
+                if (browseIndex >= browseList.length) {
                     browseList = randomizeArray(Object.values(browseList));
                     browseIndex = 0;
-                };
+                }
                 if (!data) {
                     setHtmlContent(
                         view,
@@ -73,18 +80,21 @@ const loadBrowsers = () => {
                         method();
                     return;
                 }
-                let nildata = data===true||data.code;
-                if(nildata){
+                let nildata = data === true || data.code;
+                if (nildata) {
                     browseIndex--;
                 }
-                setHtmlContent(view, nildata?'':data, loadBrowserSwiper);
+                setHtmlContent(view, nildata ? "" : data, loadBrowserSwiper);
                 loadBrowserSwiper();
-                getElements("browse-admire-project-action").forEach((act)=>{
-                    act.onclick=async(_)=>{
+                getElements("browse-admire-project-action").forEach((act) => {
+                    act.onclick = async (_) => {
                         const pid = act.getAttribute("data-projectID");
-                        const admire = act.getAttribute("data-admires") == '0';
+                        const admire = act.getAttribute("data-admires") == "0";
                         const data = await postRequest2({
-                            path: setUrlParams(URLS.Projects.TOGGLE_ADMIRATION,pid),
+                            path: setUrlParams(
+                                URLS.Projects.TOGGLE_ADMIRATION,
+                                pid
+                            ),
                             data: {
                                 admire,
                             },
@@ -93,24 +103,20 @@ const loadBrowsers = () => {
                         if (data.code !== code.OK) {
                             return error(data.error);
                         }
-                        act.setAttribute(
-                                "data-admires",
-                                admire ? 1 : 0
-                        );
-                        act.classList[admire ? "add" : "remove"](
-                            "positive"
-                        );
-                        act.classList[admire ? "remove" : "add"](
-                            "primary"
-                        );
-                    }
+                        act.setAttribute("data-admires", admire ? 1 : 0);
+                        act.classList[admire ? "add" : "remove"]("positive");
+                        act.classList[admire ? "remove" : "add"]("primary");
+                    };
                 });
-                getElements("browse-admire-profile-action").forEach((act)=>{
-                    act.onclick=async(_)=>{
+                getElements("browse-admire-profile-action").forEach((act) => {
+                    act.onclick = async (_) => {
                         const uid = act.getAttribute("data-userID");
-                        const admire = act.getAttribute("data-admires") == '0';
+                        const admire = act.getAttribute("data-admires") == "0";
                         const data = await postRequest2({
-                            path: setUrlParams(URLS.People.TOGGLE_ADMIRATION,uid),
+                            path: setUrlParams(
+                                URLS.People.TOGGLE_ADMIRATION,
+                                uid
+                            ),
                             data: {
                                 admire,
                             },
@@ -119,17 +125,10 @@ const loadBrowsers = () => {
                         if (data.code !== code.OK) {
                             return error(data.error);
                         }
-                        act.setAttribute(
-                                "data-admires",
-                                admire ? 1 : 0
-                        );
-                        act.classList[admire ? "add" : "remove"](
-                            "positive"
-                        );
-                        act.classList[admire ? "remove" : "add"](
-                            "primary"
-                        );
-                    }
+                        act.setAttribute("data-admires", admire ? 1 : 0);
+                        act.classList[admire ? "add" : "remove"]("positive");
+                        act.classList[admire ? "remove" : "add"]("primary");
+                    };
                 });
             };
             return await method();

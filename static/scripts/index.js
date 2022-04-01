@@ -89,6 +89,8 @@ const setUrlParams = (path, ...params) => {
     return path;
 };
 
+const setPathParams = setUrlParams;
+
 const setUrlQueries = (path, query = {}) => {
     path = String(path);
     Object.keys(query).forEach((key) => {
@@ -106,8 +108,7 @@ const loadGlobalEventListeners = () => {
                 getElement(`close-${view.id}`).addEventListener("click", () => {
                     localStorage.setItem(`first-intro-${view.id}`, 1);
                     message(STRING.re_introduction, (t) => {
-                        t.onclick = (_) =>
-                            (refer({path:URLS.LANDING}));
+                        t.onclick = (_) => refer({ path: URLS.LANDING });
                     });
                     hide(view);
                 });
@@ -142,7 +143,7 @@ const loadGlobalEventListeners = () => {
     });
     getElements("href").forEach((href) => {
         href.addEventListener("click", (e) => {
-            refer({path:href.getAttribute("data-href")})
+            refer({ path: href.getAttribute("data-href") });
         });
     });
     getElementsByTag("button").forEach((button) => {
@@ -310,27 +311,27 @@ const loadGlobalEventListeners = () => {
     });
     getElements("future-message-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            futuremessage(action.getAttribute("data-message"));
+            futuremessage(action.getAttribute("data-message")||action.getAttribute("data-text")||action.title);
         });
     });
     getElements("message-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            message(action.getAttribute("data-message"));
+            message(action.getAttribute("data-message")||action.getAttribute("data-text")||action.title);
         });
     });
     getElements("highlight-action").forEach((action) => {
         action.onclick = (e) => {
-            highlightElementByID(action.getAttribute("data-elementID"))
-        }
+            highlightElementByID(action.getAttribute("data-elementID"));
+        };
     });
     getElements("full-loader-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            loaders(true)
+            loaders(true);
         });
     });
     getElements("reload-page-action").forEach((action) => {
         action.onclick = (e) => {
-            refresh({})
+            refresh({});
         };
     });
     getElements("mini-window-action").forEach((action) => {
@@ -471,6 +472,8 @@ const initializeTabsView = ({
     selected = 0,
     setDefaultViews = true,
     tabindex = false,
+    autoShift = false,
+    autoShiftDuration = 3000,
 }) => {
     const tabs = getElements(tabsClass);
     let tabview = null;
@@ -544,20 +547,36 @@ const initializeTabsView = ({
                 : "";
         };
     });
+    let clickIndex = 0;
     if (tabs.length) {
         if (tabindex === false) {
             try {
-                tabs[Number(sessionStorage.getItem(uniqueID)) || 0].click();
+                clickIndex = Number(sessionStorage.getItem(uniqueID)) || 0;
             } catch (e) {
-                tabs[selected].click();
+                clickIndex = selected;
             }
         } else {
             if (tabindex < tabs.length) {
-                tabs[tabindex].click();
+                clickIndex = tabindex;
             } else {
-                tabs[tabs.length - 1].click();
+                clickIndex = tabs.length - 1;
             }
         }
+    }
+    tabs[clickIndex].click();
+
+    if (autoShift && autoShiftDuration) {
+        let t = clickIndex;
+        let intv = setInterval(() => {
+            tabs[t].click();
+            t += 1;
+            if (t >= tabs.length) t = 0;
+        }, autoShiftDuration);
+        tabs.forEach((tab) => {
+            tab.onmouseover = () => {
+                clearInterval(intv);
+            };
+        });
     }
     return tabs;
 };
@@ -570,7 +589,6 @@ const initializeMultiSelector = ({
     onDeselect = async (candidate) => true,
     uniqueID = String(Math.random()),
 }) => {
-    // console.log("Input Edit Text ==> ",document.getElementsByClassName(candidateClass).value)
     const candidates = getElements(candidateClass);
     let selectedlist = [],
         deselectedList = candidates;
@@ -608,6 +626,10 @@ const initializeMultiSelector = ({
     return candidates;
 };
 
+/**
+ * POST request method. Use [postRequest2](request.js) for better request controls.
+ * @returns {Promise<any>} response data
+ */
 const postRequest = async (
     path,
     data = {},
@@ -621,9 +643,9 @@ const postRequest = async (
         const response = await window.fetch(path, {
             method: "POST",
             headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrfmiddlewaretoken,
+                Accept: CODE.APPLICATION_JSON,
+                "Content-Type": CODE.APPLICATION_JSON,
+                "X-CSRFToken": _CSRF_TOKEN,
                 "X-KNOT-REQ-SCRIPT": true,
                 ...headers,
             },
@@ -648,6 +670,10 @@ const postRequest = async (
     }
 };
 
+/**
+ * GET request method. Use [getRequest2](request.js) for better request controls.
+ * @returns {Promise<any>} response data
+ */
 const getRequest = async (
     url,
     query = {},
@@ -660,7 +686,7 @@ const getRequest = async (
         const response = await window.fetch(setUrlQueries(url, query), {
             method: "GET",
             headers: {
-                "X-CSRFToken": csrfmiddlewaretoken,
+                "X-CSRFToken": _CSRF_TOKEN,
                 "X-KNOT-REQ-SCRIPT": true,
                 ...headers,
             },
@@ -1026,9 +1052,7 @@ const handleMultiFileUpload = (limit = 3, onSubmit = (files) => {}) => {
     }
 
     const delFunc = (e) => {
-        // let key = document.body.parentNode.dataset.key;
-        // console.log("Files click",document.body.parentNode.className);
-        // console.log("Files key",document.body.parentNode.dataset.key);
+        
         multiFiles.splice(e.value, 1);
         renderFileList();
     };
@@ -1289,4 +1313,17 @@ const isValidEmail = (email) => {
         .match(
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         );
+};
+
+const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = (error) => {
+            reject(error);
+        };
+    });
 };

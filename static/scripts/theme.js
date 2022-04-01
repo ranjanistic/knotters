@@ -160,6 +160,10 @@ class Color {
         th == THEME.light ? "#cc352a" : "#ce6862";
     negativeText = (th = this.theme || THEME.getTheme()) =>
         th == THEME.light ? "#ffffff" : "#000000";
+    vibrant = (th = this.theme || THEME.getTheme()) =>
+        th == THEME.light ? "#673ab7" : "#a788dd";
+    vibrantText = (th = this.theme || THEME.getTheme()) =>
+        th == THEME.light ? "#dfdfdf" : "#000000";
     deadText = (th = this.theme || THEME.getTheme()) => "#868686c7";
 
     getColorByTheme = (color, theme) => {
@@ -234,6 +238,16 @@ class Color {
                 return this.negativeText(theme);
             case this.negativeText(THEME.dark):
                 return this.negativeText(theme);
+            case this.vibrant(THEME.light):
+                return this.vibrant(theme);
+            case this.vibrant.name:
+                return this.vibrant(theme);
+            case this.vibrant(THEME.dark):
+                return this.vibrant(theme);
+            case this.vibrantText(THEME.light):
+                return this.vibrantText(theme);
+            case this.vibrantText(THEME.dark):
+                return this.vibrantText(theme);
             case this.deadText(THEME.light):
                 return this.deadText(theme);
             case this.deadText(THEME.dark):

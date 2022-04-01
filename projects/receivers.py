@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_delete, post_save
 from main.methods import addMethodToAsyncQueue
-from .mailers import coreProjectModTransferInvitation, freeProjectDeleted, freeProjectCreated, projectModTransferInvitation, projectTransferInvitation
+from .mailers import freeProjectDeleted, freeProjectCreated
 from .models import BaseProject, Project, Asset, FreeProject, Snapshot, defaultImagePath,CoreProject
 from .apps import APPNAME
 

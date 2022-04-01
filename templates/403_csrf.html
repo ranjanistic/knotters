@@ -620,31 +620,31 @@
             <img src="{% static "graphics/self/icon.svg" %}">  id="preivew-image-src"/>
         </div>
         
-        <script defer src="{% static "alertify/alertify.min.js" %}"></script>
-        <script src="{% static "sweetalert2/swa2.min.js" %}"></script>
-        <script src="{% static "cropper/cropper.min.js" %}"></script>
-        <script src="{% static "chartjs/chart.min.js" %}"></script>
-        <script src="{% static "swiper/swiper-bundle.min.js" %}"></script>
-        <script src="/scripts/strings.js" %}"></script>
-        <script src="{% static "scripts/globalvars.js" %}"></script>
-        <script src="{% static "scripts/index.js" %}"></script>
-        <script src="{% static "scripts/request.js" %}"></script>
-        <script src="{% static "scripts/notification.js" %}"></script>
-        <script src="{% static "scripts/theme.js" %}"></script>
-        <script src="{% static "scripts/alerts.js" %}"></script>
-        <script src="{% static "scripts/reporter.js" %}"></script>
-        <script src="{% static "scripts/device.js" %}"></script>
-        <script src="{% static "scripts/browser.js" %}"></script>
-        <script src="{% static "scripts/snapshot.js" %}"></script>
-        <script src="{% static "scripts/dynamiccontent.js" %}"></script>
-        <script src="{% static "scripts/sw.js" %}"></script>
-        <script src="/scripts/constants.js?fromApp="></script>
+        <script nonce="{{request.csp_nonce}}" defer src="{% static "alertify/alertify.min.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "sweetalert2/swa2.min.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "cropper/cropper.min.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "chartjs/chart.min.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "swiper/swiper-bundle.min.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="/scripts/strings.js"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/globalvars.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/index.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/request.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/notification.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/theme.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/alerts.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/reporter.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/device.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/browser.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/snapshot.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/dynamiccontent.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/sw.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="/scripts/constants.js?fromApp="></script>
         
         
-        <script src="{% static "scripts/autostart.js" %}"></script>
-        <script src="/scripts/queryuse.js?" type="text/javascript"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static "scripts/autostart.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="/scripts/queryuse.js?" type="text/javascript"></script>
         
-        <script async src="{% static "html2canvas.min.js" %}"></script>
+        <script nonce="{{request.csp_nonce}}" async src="{% static "html2canvas.min.js" %}"></script>
         
     </body>
 </html>

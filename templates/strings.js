@@ -27,6 +27,7 @@ const STRING = {
     required: `{% trans "required" %}`,
     crop_image: `{% trans "Crop Image" %}`,
     img_too_large_10M: `{% trans "Image too large. Preferred size < 10 MB" %}`,
+    file_too_large_10M: `{% trans "File too large. Preferred size < 10 MB" %}`,
     cancel: `{% trans "Cancel" %}`,
     confirm: `{% trans "Confirm" %}`,
     loading_image: `{% trans "Loading image..." %}`,
@@ -134,6 +135,9 @@ const STRING = {
     password: `{% trans "Password" %}`,
     two_fa_token_or_backup: `{% trans "2FA or backup token" %}`,
     continue: `{% trans "Continue" %}`,
+    asset_file_required: `{% trans "Asset file required" %}`,
+    asset_name_required: `{% trans "Asset name required" %}`,
+
 };
 
 Object.freeze(STRING);

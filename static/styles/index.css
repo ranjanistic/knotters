@@ -100,99 +100,8 @@ h6 {
     font-weight: bold;
 }
 
-.primary {
-    background-color: var(--primary) !important;
-    color: var(--primary-text);
-}
-
-.primary-text {
-    color: var(--primary) !important;
-}
-.text-primary {
-    color: var(--primary-text) !important;
-}
-
-.secondary {
-    background-color: var(--secondary) !important;
-    color: var(--secondary-text);
-}
-.secondary-text {
-    color: var(--secondary) !important;
-}
-.text-secondary {
-    color: var(--secondary-text) !important;
-}
-
-.tertiary {
-    background-color: var(--tertiary) !important;
-    color: var(--tertiary-text);
-}
-.tertiary-text {
-    color: var(--tertiary) !important;
-}
-.text-tertiary {
-    color: var(--tertiary-text) !important;
-}
-
-.accent {
-    background-color: var(--accent) !important;
-    color: var(--accent-text) !important;
-}
-.accent-text {
-    color: var(--accent) !important;
-}
-.text-accent {
-    color: var(--accent-text) !important;
-}
-
-.negative {
-    background-color: var(--negative) !important;
-    color: var(--negative-text);
-}
-.negative-text {
-    color: var(--negative) !important;
-}
-.text-negative {
-    color: var(--negative-text) !important;
-}
-
-.positive {
-    background-color: var(--positive) !important;
-    color: var(--positive-text);
-}
-
 .positive h3 {
     color: var(--positive-text) !important;
-}
-.positive-text {
-    color: var(--positive) !important;
-}
-.text-positive {
-    color: var(--positive-text) !important;
-}
-
-.active {
-    background-color: var(--active) !important;
-    color: var(--active-text) !important;
-}
-
-.active-text {
-    color: var(--active) !important;
-}
-.text-active {
-    color: var(--active-text) !important;
-}
-
-.sub-accent {
-    background-color: var(--active) !important;
-    color: var(--active-text);
-}
-.sub-accent-text {
-    color: var(--active) !important;
-}
-
-.dead-text {
-    color: var(--dead-text) !important;
 }
 
 .text-medium {
@@ -842,10 +751,10 @@ label > input[type="checkbox"] {
     touch-action: none;
 }
 
-.first-time-view{
+.first-time-view {
     display: none;
 }
-.nav-tabs-span{
-    padding:8px 8px 10px 0px;
-    text-align:right;
+.nav-tabs-span {
+    padding: 8px 8px 10px 0px;
+    text-align: right;
 }

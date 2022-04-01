@@ -1,4 +1,4 @@
-from management.models import ContactRequest, Management, ManagementInvitation, ManagementPerson
+from management.models import ContactRequest, Management, ManagementInvitation
 from people.models import Profile
 from main.env import BOTMAIL, PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail, sendEmail

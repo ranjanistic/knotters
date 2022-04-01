@@ -11,7 +11,6 @@ const loadDynamicContent = async () => {
         //     try{
         //         data = JSON.parse(data);
         //     }catch{}
-
         //     const done = await requestor({
         //         path: url,
         //     });
@@ -24,7 +23,6 @@ const loadDynamicContent = async () => {
         //             setHtmlContent(element, errorHTML);
         //         }
         //     } else {
-
         //     }
         // };
         // callingMethod()

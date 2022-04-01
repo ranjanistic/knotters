@@ -1,26 +1,20 @@
-import environ
+from environ import Env
 from pathlib import Path
-import os
+from os import path as os_path
 
 try:
     from .__version__ import VERSION
 except:
     VERSION = 'vXXX'
 
-try:
-    from .__refresh__ import REFRESH_STATE
-except:
-    REFRESH_STATE = None
-
 class Environment():
     DEVELOPMENT = 'development'
     TESTING = 'testing'
     PRODUCTION = 'production'
 
+env = Env()
 
-env = environ.Env()
-
-environ.Env.read_env(env_file=os.path.join(
+Env.read_env(env_file=os_path.join(
     Path(__file__).resolve().parent.parent, env('ENVPATH')))
 
 PROJECTKEY = env('PROJECTKEY')
@@ -58,7 +52,8 @@ CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS').split(',')
 GSUITE_CREDENTIALS_PATH = env('GSUITE_CREDENTIALS_PATH', default=None)
 
 CDN_URL = env('CDN_URL', default='https://cdn.knotters.org').strip()
-INTERNAL_SHARED_SECRET = env('INTERNAL_SHARED_SECRET', default='secret').strip()
+INTERNAL_SHARED_SECRET = env(
+    'INTERNAL_SHARED_SECRET', default='secret').strip()
 
 PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
 PUBNAME = None if PUBNAME == 'none' else PUBNAME
@@ -108,6 +103,7 @@ ISTESTING = ENV == Environment.TESTING
 
 ISBETA = HOSTS and HOSTS[0].startswith('beta.')
 
+STATIC_URL = f"{STATIC_URL}{VERSION}/"
+
 if ISPRODUCTION:
-    STATIC_ROOT =  f"{STATIC_ROOT}{VERSION}/"
-    STATIC_URL =  f"{STATIC_URL}{VERSION}/"
+    STATIC_ROOT = f"{STATIC_ROOT}{VERSION}/"

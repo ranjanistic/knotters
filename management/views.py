@@ -8,7 +8,7 @@ from ratelimit.decorators import ratelimit
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils import timezone
 from django.core.cache import cache
 from main.decorators import manager_only, normal_profile_required, require_JSON, require_JSON_body

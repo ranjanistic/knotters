@@ -319,7 +319,7 @@ if (selfProject || ismoderator) {
             let buttons = [];
             data.tags.forEach((tag) => {
                 buttons.push(
-                    `<button type="button" class="${
+                    `<button type="button" class="small ${
                         getElement("addtagIDs").value.includes(tag.id)
                             ? "positive"
                             : "primary"
@@ -334,7 +334,7 @@ if (selfProject || ismoderator) {
                 loadExistingTags();
             } else {
                 buttons.push(
-                    `<button type="button" class="${
+                    `<button type="button" class="small ${
                         getElement("addtags").value.includes(e.target.value)
                             ? "positive"
                             : "primary"
@@ -364,32 +364,162 @@ if (selfProject || ismoderator) {
             true
         );
     };
+    getElements("delete-assets-action").forEach(async (action) => {
+        action.onclick = async () => {
+            const assetID = action.getAttribute("data-assetid");
+            const data = await postRequest2({
+                path: setUrlParams(URLS.MANAGE_ASSETS, projectID),
+                data: {
+                    action: ACTIONS.REMOVE,
+                    assetID
+                },
+                retainCache: true,
+            });
+            if (!data) return;
+            if (data.code === code.OK) {
+                message("Asset deleted.");
+                if (getElements("delete-assets-action").length > 1) {
+                    getElement(`asset-view-${assetID}`).remove();
+                } else {
+                    refresh({});
+                }
+                return;
+            }
+            error(data.error);
+        };
+    });
+    getElements("visibility-assets-action").forEach(async (action) => {
+        action.onclick = async () => {
+            const makepublic = action.getAttribute("data-public") != "1";
+            const data = await postRequest2({
+                path: setUrlParams(URLS.MANAGE_ASSETS, projectID),
+                data: {
+                    action: ACTIONS.UPDATE,
+                    assetID: action.getAttribute("data-assetid"),
+                    public: makepublic,
+                },
+                retainCache: true,
+            });
+            if (!data) return;
+            if (data.code === code.OK) {
+                message(`Asset is ${makepublic ? "public" : "private"} now.`);
+                action.setAttribute("data-public", makepublic ? "1" : "0");
+                action.classList.remove(
+                    makepublic ? "active-text" : "positive-text"
+                );
+                action.classList.add(
+                    makepublic ? "positive-text" : "active-text"
+                );
+                action.innerHTML = makepublic ? "lock_open" : "lock";
+                action.title = makepublic ? `${APPNAME} community can access`:"Only you can access";
+                return true;
+            }
+            error(data.error);
+        };
+    });
+    getElements("add-assets-action").forEach(async (action) => {
+        action.onclick = (_) => {
+            let filedata = {
+                action: ACTIONS.CREATE,
+                filedata: null,
+                filename: null,
+                actualFilename: null,
+                public: false,
+            };
+            Swal.fire({
+                title: "Add project asset",
+                html: `
+                    <input type="text" placeholder="Asset name" maxlength="100" id="asset-name" />
+                    <br/>
+                    <br/>
+                    <input type="file" id="asset-file" class="wide" />
+                    <br/>
+                    <input type="checkbox" id="asset-public" placeholder="Public" />
+                    <label for="asset-public">Public</label><br/>
+                    <strong class="negative-text" id="asset-error"></strong>
+                `,
+                showConfirmButton: true,
+                showCancelButton: true,
+                confirmButtonText: STRING.confirm,
+                allowOutsideClick: false,
+                didOpen: async () => {
+                    getElement("asset-file").onchange = async (e) => {
+                        const file = e.target.files[0];
+                        if (file.size / 1024 / 1024 > 10) {
+                            error(STRING.file_too_large_10M);
+                            return;
+                        }
+                        filedata.filedata = await convertFileToBase64(file);
+                        filedata.actualFilename = file.name;
+                    };
+                },
+                preConfirm: () => {
+                    let filename = getElement("asset-name").value.trim();
+                    if (!filename) {
+                        getElement("asset-error").innerHTML =
+                            STRING.asset_name_required;
+                        return false;
+                    }
+                    filedata.filename = filename;
+                    if (!filedata.filedata) {
+                        getElement("asset-error").innerHTML =
+                            STRING.asset_file_required;
+                        return false;
+                    }
+                    filedata.public = getElement("asset-public").checked;
+                },
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    if (!filedata.filedata || !filedata.filename) return;
+                    const data = await postRequest2({
+                        path: setUrlParams(URLS.MANAGE_ASSETS, projectID),
+                        data: filedata,
+                        retainCache: true,
+                    });
+                    if (!data) return;
+                    if (data.code === code.OK) {
+                        futureMessage("Asset added successfully");
+                        return refresh({});
+                    }
+                    error(data.error);
+                }
+            });
+        };
+    });
 }
 
 let snapstart = 0,
     snapend = snapstart + 2;
-let excludeProjectSnapIDs = []
+let excludeProjectSnapIDs = [];
 const snapsview = getElement(`snapshots-view`);
 
 const loadsnaps = getElement("load-more-snaps");
 
 loadsnaps.onclick = (_) => {
     postRequest2({
-        path:setUrlQueries(setUrlParams(URLS.SNAPSHOTS, projectID, 5),{n:excludeProjectSnapIDs[excludeProjectSnapIDs.length-1]||0}),
-        data:{
-            excludeIDs: excludeProjectSnapIDs
+        path: setUrlQueries(setUrlParams(URLS.SNAPSHOTS, projectID, 5), {
+            n: excludeProjectSnapIDs[excludeProjectSnapIDs.length - 1] || 0,
+        }),
+        data: {
+            excludeIDs: excludeProjectSnapIDs,
         },
-        allowCache:true,
-        retainCache:true,
+        allowCache: true,
+        retainCache: true,
     }).then((data) => {
-        if (!data || data.code!==CODE.OK) {
-            return error(data?data.error:'')
+        if (!data || data.code !== CODE.OK) {
+            return error(data ? data.error : "");
         }
         let newdiv = document.createElement("div");
-        newdiv.classList.add("w3-row")
+        newdiv.classList.add("w3-row");
         snapsview.appendChild(newdiv);
-        if (!data.snapIDs.length||data.snapIDs.some((id)=>excludeProjectSnapIDs.includes(id))) {
-            setHtmlContent(newdiv, `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`);
+        if (
+            !data.snapIDs.length ||
+            data.snapIDs.some((id) => excludeProjectSnapIDs.includes(id))
+        ) {
+            setHtmlContent(
+                newdiv,
+                `<div class="dead-text" align="center"><br/>${STRING.no_more_snaps}</div>`
+            );
             return hide(loadsnaps);
         }
         setHtmlContent(newdiv, data.html, loadSnapshotActions);
@@ -413,29 +543,36 @@ const loadLiveData = async () => {
     if (contribview || languageview || commitsview) {
         const data = await getRequest(setUrlParams(URLS.LIVEDATA, projectID));
         if (!data || data.code !== code.OK) {
-            if(languageview){
-                setHtmlContent(languageview, loadErrorHTML(`livelangdataretry`));
+            if (languageview) {
+                setHtmlContent(
+                    languageview,
+                    loadErrorHTML(`livelangdataretry`)
+                );
                 getElement(`livelangdataretry`).onclick = (_) => loadLiveData();
-
             }
-            if (commitsview){
-                setHtmlContent(commitsview, loadErrorHTML(`livecommitdataretry`));
-                getElement(`livecommitdataretry`).onclick = (_) => loadLiveData();
+            if (commitsview) {
+                setHtmlContent(
+                    commitsview,
+                    loadErrorHTML(`livecommitdataretry`)
+                );
+                getElement(`livecommitdataretry`).onclick = (_) =>
+                    loadLiveData();
             }
-            if (contribview){
+            if (contribview) {
                 setHtmlContent(contribview, loadErrorHTML(`livecontdataretry`));
                 getElement(`livecontdataretry`).onclick = (_) => loadLiveData();
             }
             return;
         }
-        if (contribview){
-            if(data.contributorsHTML) setHtmlContent(contribview, data.contributorsHTML);
+        if (contribview) {
+            if (data.contributorsHTML)
+                setHtmlContent(contribview, data.contributorsHTML);
             else setHtmlContent(contribview, contribDefhtml);
-        } 
-        if (commitsview){
+        }
+        if (commitsview) {
             if (data.commitsHTML) setHtmlContent(commitsview, data.commitsHTML);
             else setHtmlContent(commitsview, commitsDefhtml);
-        } 
+        }
         if (languageview) {
             if (Object.keys(data.languages).length) {
                 setHtmlContent(

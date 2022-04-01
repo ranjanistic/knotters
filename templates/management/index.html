@@ -6,12 +6,12 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block themecolor %}primary{% endblock %}
+{% block themecolor %}vibrant{% endblock %}
 
 {% block title %}Management{% endblock %}
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
-{% block nav_back_theme %}positive{% endblock %}
+{% block nav_back_theme %}primary{% endblock %}
 
 {% block nav_noauth_management %}{% endblock %}
 
@@ -42,7 +42,7 @@
     </div>
     <div class="w3-col w3-third w3-padding">
         <a href="{{URLS.REPORT_FEED}}">
-            <div class="w3-row pallete negative text-negative">
+            <div class="w3-row pallete negative-text">
                 <i class="w3-right">arrow_forward</i>
                 <h4>Reports</h4>
                 <stong>Reports, guideline violations against your people</stong>

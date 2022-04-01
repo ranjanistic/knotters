@@ -84,6 +84,8 @@
   </div>
   <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_PROFILES}}" id='{{BROWSE.TRENDING_PROFILES}}-view'>
   </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TOPIC_PROFILES}}" id='{{BROWSE.TOPIC_PROFILES}}-view'>
+  </div>
   <div class="w3-row browser-view" data-type="{{BROWSE.NEW_PROFILES}}" id='{{BROWSE.NEW_PROFILES}}-view'>
   </div>
   <div class="w3-row w3-padding-large first-time-view" id='community-framework-banner' style="height:40vh;">
@@ -116,5 +118,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:"index.js"}}?search={{request.GET.search}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:"index.js"}}?search={{request.GET.search}}"></script>
 {% endblock %}

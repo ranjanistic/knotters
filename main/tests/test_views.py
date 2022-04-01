@@ -1,7 +1,7 @@
 from django.db.models.query import QuerySet
 from django.http.response import HttpResponseBadRequest
 from django.test import TestCase, Client, tag
-import json
+from json import loads as json_loads
 from main.env import PUBNAME, BOTMAIL, SITE, VERSION
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from main.strings import Code, setPathParams, url, template, DIVISIONS
@@ -131,8 +131,8 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.SW_JS)
         self.assertEqual(resp.context['OFFLINE'], f"/{url.OFFLINE}")
         store = LocalStorage.objects.get(key=Code.SWASSETS)
-        self.assertEqual(json.loads(
-            resp.context['assets']), json.loads(store.value))
+        self.assertEqual(json_loads(
+            resp.context['assets']), json_loads(store.value))
 
     @tag('browse')
     def test_browser(self):

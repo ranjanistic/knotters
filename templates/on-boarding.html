@@ -522,8 +522,8 @@
 {% endblock %}
 
 {% block in_scripts %}
-    <script src="{% static 'interactjs/interactjs.min.js' %}"></script>
-    <script src="{{URLS.SCRIPTS|params:SCRIPTS.ON_BOARDING}}?next={{request.GET.next}}"></script>
+    <script nonce="{{request.csp_nonce}}" src="{% static 'interactjs/interactjs.min.js' %}"></script>
+    <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.ON_BOARDING}}?next={{request.GET.next}}"></script>
 {% endblock %}
 
 {% block footer %}{% endblock %}

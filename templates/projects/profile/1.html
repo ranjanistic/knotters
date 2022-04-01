@@ -45,7 +45,7 @@
                 </div>
             </div>
             {% if iscreator or ismoderator %}
-            <div class="pallete w3-center" id="edit-pallete">
+            <div class="pallete w3-center" id="edit-pallete" hidden>
                 <img src="{{ project.getDP }}" alt="{{ project.name }}" id="projectimageoutput" style="opacity:0.5" />
                 <input type="file" id="uploadprojectimage" hidden accept="image/png, image/jpg, image/jpeg" />
                 <button class="accent small" type="button" id="upload-button">
@@ -68,6 +68,36 @@
             {% endif %}
         </div>
         <br/>
+        <div class="w3-row w3-padding-small" id="tags">
+            <div id="view-projecttags">
+            {% for tag in project.tags.all %}
+            <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
+            {% empty %}
+                <h6 class="dead-text">No tags assigned</h6>
+            {% endfor %}
+            {% if iscreator or ismoderator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
+            </div>
+            {% if iscreator or ismoderator %}
+            <div id="edit-projecttags">
+                <strong class="dead-text">Total 5 tags allowed</strong>
+                <form class="no-auto" id="edit-tag-inputs">
+                    {% csrf_token %}
+                    <input class="wide primary" placeholder="Search tags" id="tag-search-input" />
+                    <div class="w3-row w3-padding" id="tags-viewer">
+                        {% for tag in project.tags.all %}
+                        <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                        {% endfor %}
+                        <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                    </div>
+                    <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                    <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                    <input id="addtags" name="addtags" hidden type="text" />
+                    <button id="save-edit-projecttags" data-icon="done">Save</button>
+                    <button id="discard-edit-projecttags" data-icon="close">Cancel</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
         <div class="w3-row w3-padding-small">
             <a target="_blank" rel="noreferrer" href="{{project.getRepoLink}}">
                 <button class="secondary"><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="20"/>&nbsp;{{project.reponame}}</button>
@@ -139,14 +169,45 @@
             <center><h5 class="align"><i>cloud_done</i>&nbsp;Assets</h5></center>
             <div class="w3-row">
                 {% for asset in project.assets %}
-
+                    <div class="w3-row pallete-slab" id="asset-view-{{asset.get_id}}">
+                        <div class="w3-row" align='left'>
+                            <div class="w3-col l2 m2 s2 dead-text">
+                                <i class="w3-xxlarge">token</i>
+                                <span class="w3-small">{{asset.display_size}}</span>
+                            </div>
+                            <div class="w3-col l10 m10 s10 w3-padding-small">
+                                <strong class="text-medium">{{asset.name}}</strong><span class="text-small dead-text">.{{asset.type}}</span>
+                                <br/>
+                                <span>{{asset.created_on}}</span>
+                            </div>
+                        </div>
+                        <div class="w3-row" align='right'>
+                            <a href="{{asset.creator.get_link}}"><img style="margin-bottom:10px" title="{{asset.creator.get_name}}" src="{{asset.creator.get_dp}}" class="w3-circle primary pallete" width="25" /></a>
+                            {% if iscreator or ismoderator %}
+                            <a href="{{asset.get_link}}" download><i class="circle">download</i></a>
+                            <i class="circle {% if asset.creator == request.user.profile %}visibility-assets-action{% else %}message-action{% endif %} {% if asset.public %}positive-text{% else %}active-text{% endif %}" data-assetid="{{asset.get_id}}" data-public="{{asset.public|onezero}}"
+                                title="{% if asset.public %}{{APPNAME}} community can access{% else %}Co-creators & moderator can access{% endif %}"
+                                >{{asset.public|publicprivateicon}}</i>
+                            <i class="circle delete-assets-action negative-text" data-assetid="{{asset.get_id}}">delete_forever</i>
+                            {% else %}
+                                {% if request.user.is_authenticated %}
+                                    {% if asset.public %}
+                                    <a href="{{asset.get_link}}" download><i class="circle">download</i></a>
+                                    {% else %}
+                                    <i class="circle active-text message-action" title="Private asset">lock</i>
+                                    {% endif %}
+                                {% else %}
+                                <a href="{{URLS.Auth.LOGIN}}?next={{project.get_link}}"><i class="circle">download</i></a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
                 {% empty %}
                     {% if iscreator or ismoderator %}
-                    <center >
-                    <div class="w3-jumbo material-icons">add_circle</div>
+                    <center>
+                    <div class="w3-jumbo pointer material-icons add-assets-action">add_circle</div>
                     <h5>Add assets</h5>
-                    <strong class="dead-text">csv, xlsx, pdf... anything related to the project.</strong>
-                    <strong class="dead-text">Coming soon</strong>
+                    <strong class="dead-text">csv, xlsx, pdf, anything related to the project.</strong>
                     </center>
                     {% else %}
                     <br/>
@@ -156,6 +217,17 @@
                     </center>
                     {% endif %}
                 {% endfor %}
+                {% if iscreator or ismoderator %}
+                    {% if project.can_add_assets %}
+                        {% if project.assets.0 %}
+                            <div class="w3-row w3-center">
+                            <button class="small add-assets-action {{project.theme}}" data-icon="add">Add asset</button>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="w3-center dead-text">Maximum assets limit reached</div>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
@@ -210,37 +282,6 @@
                     </div>
                     {% endif %}
                 </div>
-            </div>
-            <div class="w3-row w3-padding" id="tags">
-                <div id="view-projecttags">
-                {% for tag in project.tags.all %}
-                <a href="{{URLS.PROJECTS}}?search=tag:{{tag}}"><button class="positive">#{{tag}}</button></a>
-                {% empty %}
-                    <h5 class="dead-text">No tags assigned</h5>
-                {% endfor %}
-                {% if iscreator or ismoderator %}<i class="edit-action w3-right" data-edittarget="projecttags">edit</i>{% endif %}
-                </div>
-                {% if iscreator or ismoderator %}
-                <div id="edit-projecttags">
-                    <strong class="dead-text">Total 5 tags allowed</strong>
-                    <form class="no-auto" id="edit-tag-inputs">
-                        {% csrf_token %}
-                        <input class="wide" placeholder="Search tags" id="tag-search-input" />
-                        <div class="w3-row w3-padding" id="tags-viewer">
-                            {% for tag in project.tags.all %}
-                            <button type="button" class="primary negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
-                            {% endfor %}
-                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
-                        </div>
-                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
-                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
-                        <input id="addtags" name="addtags" hidden type="text" />
-                        <br/>
-                        <button id="save-edit-projecttags" data-icon="done">Save</button>
-                        <button id="discard-edit-projecttags" data-icon="close">Cancel</button>
-                    </form>
-                </div>
-                {% endif %}
             </div>
             <br/>
             <div class="w3-row w3-padding pallete">
@@ -367,12 +408,4 @@
     <br/>
 {% endif %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ONE}}?id={{project.id}}&admire={{request.GET.admire}}&admirers={{request.GET.admirers}}"></script>
-{% if not project.suspended %}
-<script src="{% static 'scripts/project/profile.js' %}" ></script>
-{% endif %}
-
 {% endblock %}

@@ -48,11 +48,11 @@
     <br/><br/>
         {% if not request.user.is_authenticated %}
             <strong class="text-big">It is highly recommended that you create an account or login first, then proceed.</strong><br/>
-            <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
-            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
+            <br/><a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="big-button positive" data-icon="person_add">Create an Account</button></a>
+            <br/><a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="big-button accent" data-icon="login">Login as existing</button></a>
         {% elif not request.user.profile.on_boarded %}
             <strong class="text-big">It is highly recommended that you go through on-boarding first.</strong><br/>
-            <a href="{{URLS.ON_BOARDING}}?next={{request.path}}"><button class="big-button positive" data-icon="play_arrow">Continue to on-boarding</button></a>
+            <br/><a href="{{URLS.ON_BOARDING}}?next={{request.path}}"><button class="big-button positive" data-icon="play_arrow">Continue to on-boarding</button></a>
         {% endif %}
         <br/><br/>
     </div>
@@ -141,7 +141,7 @@
     <br/>
     <div class="w3-row w3-padding-large" id='projects'>
         <div class="w3-row">
-            <h1 class="w3-jumbo"><span class="active">The Projects</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#projects"><i>link</i></a></h1>
+            <h1 class="w3-jumbo"><span class="positive">The Projects</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#projects"><i>link</i></a></h1>
             <span class="w3-large">
                 <p class="text-big">
                     As we said, it's all about patience, therefore the first thing that we'd like to have you introduced,
@@ -172,13 +172,13 @@
             <h3>Your project could be one of the <span class="accent">following</span>.
             </h3>
             <div class="w3-row">
-                <h1 id="quick-projects"><span class="accent" >Quick Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#quick-projects"><i>link</i></a></h1>
+                <h1 id="quick-projects"><span class="positive" >Quick Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#quick-projects"><i>link</i></a></h1>
                 <span class="text-medium">
                     As the name goes, a quick project can be created quickly, without waiting for anyone's approval.
                     This is the fastest way to start a new project here. Any kind of project can be created under this category.
                 </span>
                 <br/>
-                <a href="{{URLS.Projects.CREATE_FREE}}" target="_blank"><button class='big-button positive' data-icon="add">New quick project</button></a>
+                <br/><a href="{{URLS.Projects.CREATE_FREE}}" target="_blank"><button class='big-button positive' data-icon="add">New quick project</button></a>
                 <br/><br/>
                 <h1 id="verified-projects"><span class="accent" >Verified Project <i>verified</i></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#verified-projects"><i>link</i></a></h1>
                 <span class="text-medium">
@@ -188,9 +188,9 @@
                     Currently recommended for coding based projects only.
                 </span>
                 <br/>
-                <a href="{{URLS.Projects.CREATE_MOD}}" target="_blank"><button class='big-button accent' data-icon="add">New verified project</button></a>
+                <br/><a href="{{URLS.Projects.CREATE_MOD}}" target="_blank"><button class='big-button accent' data-icon="add">New verified project</button></a>
                 <br/><br/>
-                <h1 id="core-projects"><span class="accent">Core Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#core-projects"><i>link</i></a></h1>
+                <h1 id="core-projects"><span class="vibrant">Core Project</span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#core-projects"><i>link</i></a></h1>
                 <span class="text-medium">
                     A special category for projects, which are currently available to management accounts only.
                     Under this category, managers/organizations can request a closed source project at {{APPNAME}}, and it will be
@@ -199,7 +199,7 @@
                     Organizations may also provide incentives to the people who contribute to it.
                 </span>
                 <br/>
-                <a href="{{URLS.Projects.CREATE_CORE}}" target="_blank"><button class='big-button primary' data-icon="add">New core project</button></a>
+                <br/><a href="{{URLS.Projects.CREATE_CORE}}" target="_blank"><button class='big-button vibrant' data-icon="add">New core project</button></a>
                 <br/><br/>
                 <h4>
                     And it doesn't end here
@@ -209,7 +209,7 @@
                     and it reflects in each of their profiles accordingly, alongside their respective topics (We'll discuss 'topics' soon).<br/>
                     In short - Everything counts!
                 </span><br/>
-                <a href="{{URLS.Projects.CREATE}}" target="_blank"><button class='big-button primary' data-icon="open_in_new">Try creating a project</button></a>
+                <br/><a href="{{URLS.Projects.CREATE}}" target="_blank"><button class='big-button primary' data-icon="open_in_new">Try creating a project</button></a>
             </div>
             
         </div>
@@ -217,7 +217,7 @@
     <br/>
     <div class="w3-row w3-padding-large"  id="competitions">
         <div class="w3-row">
-            <h1 class="w3-jumbo"><span class="accent">The <span style="word-break:break-word">Competitions</span></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#competitions"><i>link</i></a></h1>
+            <h1 class="w3-jumbo"><span class="active">The <span style="word-break:break-word">Competitions</span></span><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#competitions"><i>link</i></a></h1>
             <span class="w3-large">
                 <p class="text-big">
                     We conduct and host competitions in which anyone can participate. Robot🤖 participants are still not allowed. Sorry <a class="mini-window-action" data-url="{{URLS.ROBOTS_TXT}}">robots</a>!<br/>
@@ -261,7 +261,7 @@
                     Again - Everything counts!
                 </span>
                 <br/>
-                <a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="open_in_new">Try participating</button></a>
+                <br/><a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="open_in_new">Try participating</button></a>
             </div>
         </div>
     </div>
@@ -276,7 +276,7 @@
             according to their area of expertise, which is interpreted from their overall contribution record on Knotters.
             The moderator helps a project reach new heights if approved.
         </span><br/>
-        <a href="{{URLS.PEOPLE|getquery:"search=type:moderator"}}" target="_blank"><button class='big-button accent' data-icon="search">Search moderators</button></a>
+        <br/><a href="{{URLS.PEOPLE|getquery:"search=type:moderator"}}" target="_blank"><button class='big-button accent' data-icon="search">Search moderators</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="mentors">
         <h1>{% trans "The Mentors" %} <a href="{{URLS.PEOPLE|getquery:"search=type:mentor"}}" target="_blank"><strong class="w3-small w3-round w3-tag active">MNT</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#mentors"><i>link</i></a></h1>
@@ -287,7 +287,7 @@
             Mentors too have XPs, topics and growth on this platform, just like the moderators have, just like everyone has.
             Currently we have limited mentorship to verified projects only.
         </span><br/>
-        <a href="{{URLS.PEOPLE|getquery:"search=type:mentor"}}" target="_blank"><button class='big-button active' data-icon="search">Search mentors</button></a>
+        <br/><a href="{{URLS.PEOPLE|getquery:"search=type:mentor"}}" target="_blank"><button class='big-button active' data-icon="search">Search mentors</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="managers">
         <h1>{% trans "The Managers" %} <a href="{{URLS.PEOPLE|getquery:"search=type:manager"}}" target="_blank"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong></a><a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#managers"><i>link</i></a></h1>
@@ -296,7 +296,7 @@
             These are the type of accounts which have access to management tools of {{APPNAME}}, for example, creating competitions,
             creating <a href="#core-projects">Core projects</a>, linking people to their profile for collective growth, promoting people as moderators or mentors, and so on.
         </span><br/>
-        <a href="{{URLS.PEOPLE|getquery:"search=type:manager"}}" target="_blank"><button class='big-button primary' data-icon="search">Search managements</button></a>
+        <br/><a href="{{URLS.PEOPLE|getquery:"search=type:manager"}}" target="_blank"><button class='big-button primary' data-icon="search">Search managements</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="licenses">
         <h1>{% trans "The Licenses" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#licenses"><i>link</i></a></h1>
@@ -315,7 +315,7 @@
              to the project, things which are not being conveyed via any source code or markdown files of the project. This feature is available to all kinds of projects,
              and if you admire a project, you'll see its latest snapshots on your homepage. Moderators can also post snapshots along with the creators of projects.
         </span><br/>
-        <a href="{{URLS.Projects.PROFILE_BASE|params:"skivvy"}}#snaps" target="_blank"><button class='big-button primary' data-icon="camera">View Skivvy's Snapshots</button></a>
+        <br/><a href="{{URLS.Projects.PROFILE_BASE|params:"skivvy"}}#snaps" target="_blank"><button class='big-button primary' data-icon="camera">View Skivvy's Snapshots</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="admiration">
         <h1>{% trans "Admiration" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#admiration"><i>link</i></a></h1>
@@ -324,7 +324,7 @@
              If you admire a person, you'll see their latest projects and posted snapshots on your homepage. If you admire a snapshot, the creator of snapshot will be glad.
              Admiring also affects the recommendations of projects and profiles you get.
         </span><br/>
-        <a href="{{URLS.People.PROFILE|params:"knottersbot"|getquery:"admire=1"}}" target="_blank"><button class='big-button primary' data-icon="volunteer_activism">Admire Knotters</button></a>
+        <br/><a href="{{URLS.People.PROFILE|params:"knottersbot"|getquery:"admire=1"}}" target="_blank"><button class='big-button primary' data-icon="volunteer_activism">Admire Knotters</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="profile">
         <h1>{% trans "Your profile" %}<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#profile"><i>link</i></a></h1>
@@ -334,9 +334,9 @@
             You can showcase your own profile on any social site by sharing its URL, to flex your presence at Knotters.
         </span><br/>
         {% if request.user.is_authenticated %}
-        <a href="{{request.user.profile.getLink}}" target="_blank"><button class='big-button primary' style="border:4px solid var(--accent)"><img src="{{request.user.profile.getDP}}" class="circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
+        <br/><a href="{{request.user.profile.getLink}}" target="_blank"><button class='big-button primary' style="border:4px solid var(--accent)"><img src="{{request.user.profile.getDP}}" class="circle" width='30' /> {{request.user.profile.getFName}}'s profile</button></a>
         {% else %}
-        <a href="{{URLS.Auth.LOGIN}}" target="_blank"><button class='big-button primary' style="border:4px solid var(--positive)" data-icon="login">Login for profile</button></a>
+        <br/><a href="{{URLS.Auth.LOGIN}}" target="_blank"><button class='big-button primary' style="border:4px solid var(--positive)" data-icon="login">Login for profile</button></a>
         {% endif %}
     </div>
     <div class="w3-row w3-padding-large" id="topics">
@@ -347,8 +347,8 @@
             The topics have indiviual XP points for everyone on Knotters, which can be increased via various sources, the major source being participation 
             in competitions. You can participate in a competition by looking at the topics it associates with, to precisely increase your XP for those topics.
         </span><br/>
-        <a href="{{URLS.PEOPLE|getquery:"search=topic:UI/UX"}}" target="_blank"><button class='big-button accent' data-icon="search">UI/UX People</button></a>
-        <a href="{{URLS.PROJECTS|getquery:"search=topic:Translation"}}" target="_blank"><button class='big-button positive' data-icon="search">Translation Projects</button></a>
+        <br/><a href="{{URLS.PEOPLE|getquery:"search=topic:UI/UX"}}" target="_blank"><button class='big-button accent' data-icon="search">UI/UX People</button></a>
+        <br/><a href="{{URLS.PROJECTS|getquery:"search=topic:Translation"}}" target="_blank"><button class='big-button positive' data-icon="search">Translation Projects</button></a>
     </div>
     
     <div class="w3-row w3-padding-large" id="everything-counts">
@@ -361,7 +361,7 @@
             and for most of the part, you don't need to care about the ways. Focus on the work you do here, or just play around the
             different segments of this platform, and we'll take care of your growth reflection.
         </span><br/>
-        <a href="{{gh_market_app.gh_url}}" target="_blank"><button class='big-button secondary'><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="30" />&nbsp;&nbsp;Our GitHub bot</button></a>
+        <br/><a href="{{gh_market_app.gh_url}}" target="_blank"><button class='big-button secondary'><img src="{% static 'graphics/thirdparty/github-dark.webp' %}" width="30" />&nbsp;&nbsp;Our GitHub bot</button></a>
         <strong>for contribution tracking.</strong>
     </div>
     <div class="w3-row w3-padding-large" id="level-up">
@@ -386,7 +386,7 @@
             that wall, but there's space for the top contributors of every era too. Aim for that wall, and you could achieve 
             most out of this community along the way.
         </span><br/>
-        <a href="{{URLS.FAME_WALL}}" target="_blank"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
+        <br/><a href="{{URLS.FAME_WALL}}" target="_blank"><button class='big-button positive' data-icon="open_in_new">Wall of Fame</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="activites">
         <h1>Top activities & highlights<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#activites"><i>link</i></a></h1>
@@ -397,9 +397,9 @@
             and increase the possibilities for you to find the next suitable project that you'd like to start contributing in.
         </span>
         <br/>
-        <a href="{{URLS.PROJECTS}}" target="_blank"><button class='big-button positive' data-icon="widgets">Project activities</button></a>
-        <a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="psychology">Competition activities</button></a>
-        <a href="{{URLS.PEOPLE}}" target="_blank"><button class='big-button accent' data-icon="groups">Community activities</button></a>
+        <br/><a href="{{URLS.PROJECTS}}" target="_blank"><button class='big-button positive' data-icon="widgets">Project activities</button></a>
+        <br/><a href="{{URLS.COMPETE}}" target="_blank"><button class='big-button active' data-icon="psychology">Competition activities</button></a>
+        <br/><a href="{{URLS.PEOPLE}}" target="_blank"><button class='big-button accent' data-icon="groups">Community activities</button></a>
     </div>
     <div class="w3-row w3-padding-large" id="tips-n-tricks">
         <h1>Tips & Tricks<a class="click-to-copy dead-text" data-copy="{{request.build_absolute_uri}}#tips-n-tricks"><i>link</i></a></h1>
@@ -425,7 +425,7 @@
         </span>
     </div>
     <div class="w3-row w3-padding-large" align='center'>
-        <a href="{{URLS.ROOT}}"><button class="display-button positive" data-icon='flight_takeoff'>I'm ready</button></a>
+        <br/><a href="{{URLS.ROOT}}"><button class="display-button positive" data-icon='flight_takeoff'>I'm ready</button></a>
         <button class="display-button accent navigator-share-action" data-icon="share" data-url="{{URLS.LANDING}}" data-title="The Landing Page" data-text="The Landing Page of {{APPNAME}}">Share this</button>
     </div>
     <br/>

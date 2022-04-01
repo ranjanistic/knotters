@@ -9,51 +9,13 @@
 {% load custom_tags %}
 
 {% block subcontent %}
-<div class="w3-row browser-view">
+{% for key in BROWSE %}
+<div class="w3-row browser-view" id="browse-view-{{forloop.counter}}">
 </div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-1">
+<div class="w3-row snapshot-viewer-parent" id="snap-view-{{ forloop.counter }}">
 </div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-2">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-2">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-3">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-4">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-5">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-6">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-6">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-6">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-6">
-</div>
-<div class="w3-row browser-view">
-</div>
-<div class="w3-row snapshot-viewer-parent" id="snap-view-6">
-</div>
-<div class="w3-row w3-padding w3-center dead-text first-time-view" id="that-is-all">
+{% endfor %}
+<div class="w3-row w3-padding w3-center dead-text" id="that-is-all">
     <div class="material-icons w3-jumbo">done</div>
     <h3 class="dead-text">{% trans "That's all here for now." %}</h3>
         {% if request.user.is_authenticated %}

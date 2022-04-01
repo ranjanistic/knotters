@@ -1,5 +1,5 @@
 from datetime import timedelta
-import re
+from re import sub as re_sub
 from uuid import UUID
 from django.core.cache import cache
 from django.utils import timezone
@@ -8,7 +8,6 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
-from moderation.views import action
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
@@ -17,7 +16,7 @@ from django.conf import settings
 from main.env import PUBNAME
 from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body,require_JSON,github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
-from main.strings import CORE_PROJECT, Action, Code, Event, Message, URL, Template, setURLAlerts
+from main.strings import CORE_PROJECT, Action, Code, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
 from management.models import GhMarketApp, ReportCategory
@@ -577,41 +576,54 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
 
 
 @normal_profile_required
-@require_JSON_body
-def manageAssets(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
+@require_JSON
+def manageAssets(request: WSGIRequest, projectID: UUID) -> JsonResponse:
     try:
+        action = request.POST["action"]
         project = BaseProject.objects.get(
-            id=projID, trashed=False, suspended=False)
+            id=projectID, trashed=False, suspended=False)
         sproject = project.getProject(True)
         if not sproject:
-            raise ObjectDoesNotExist(f'{projID} project not found')
+            raise ObjectDoesNotExist(f'{projectID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != sproject.moderator:
                 raise ObjectDoesNotExist()
-        if action == Action.ADD:
+        if action == Action.CREATE:
+            if not project.can_add_assets():
+                raise ObjectDoesNotExist()
             name = str(request.POST['filename']).strip()
-            file = base64ToFile(request.POST['filedata'])
+            file = base64ToFile(request.POST['filedata'], request.POST.get("actualFilename"))
             public = request.POST.get('public', False)
             asset = Asset.objects.create(
-                baseproject=project, name=name, file=file, public=public)
+                baseproject=project, name=name, file=file, public=public, creator=request.user.profile)
             return respondJson(Code.OK, dict(asset=dict(
                 id=asset.id,
                 name=asset.name
             )))
         elif action == Action.UPDATE:
             assetID = request.POST['assetID']
-            name = str(request.POST['filename']).strip()
-            public = request.POST['public']
-            Asset.objects.filter(id=assetID, baseproject=project).update(
-                name=name, public=public)
-            return respondJson(Code.OK)
+            name = str(request.POST.get('filename', "")).strip()
+            public = request.POST.get('public', None)
+            if name:
+                done = Asset.objects.filter(id=assetID, baseproject=project).update(
+                    name=name)
+                if not done:
+                    raise ObjectDoesNotExist()
+            elif public in [True, False]:
+                done = Asset.objects.filter(id=assetID, baseproject=project, creator=request.user.profile).update(
+                    public=public)
+                if not done:
+                    raise ObjectDoesNotExist()
+            else:
+                return respondJson(Code.NO)
         elif action == Action.REMOVE:
             assetID = request.POST['assetID']
             Asset.objects.filter(id=assetID, baseproject=project).delete()
-            return respondJson(Code.OK)
         else:
             return respondJson(Code.NO)
-    except ObjectDoesNotExist as o:
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, KeyError) as o:
+        errorLog(o)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -723,7 +735,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             for top in addtopics:
                 if len(top) > 35:
                     continue
-                top = re.sub('[^a-zA-Z \\\s-]', '', top)
+                top = re_sub('[^a-zA-Z \\\s-]', '', top)
                 if len(top) > 35:
                     continue
                 topic, created = Topic.objects.get_or_create(name__iexact=top, defaults=dict(

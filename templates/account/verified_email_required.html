@@ -29,12 +29,12 @@ verification.{% endblocktrans %} {% trans "Please click on the link inside that 
 <h4>If your email address is not correct, then</h4>
 <br/>
 <a href="{{URLS.REDIRECTOR}}?n={{request.path}}"><button class="primary" data-icon="send">{% trans "Re-send verification" %}</button></a>
-<button class="mini-window-action" data-url="{% url 'account_email' %}" class="accent" data-icon="edit">{% trans "Change email address" %}</button>
+<button class="mini-window-action accent" data-url="{% url 'account_email' %}" data-icon="edit">{% trans "Change email address" %}</button>
 <a href="{{URLS.REDIRECTOR}}?n={{request.path}}?done=1"><button class="positive" data-icon="done">{% trans "I've verified it!" %}</button></a>
 <a href="{{URLS.Auth.LOGOUT}}"><button class="negative" data-icon="logout">{% trans "Logout" %}</button></a>
 </div>
 <br/>
 {% endblock %}
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.VERIFIED_EMAIL_REQ}}?done={{request.GET.done}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.VERIFIED_EMAIL_REQ}}?done={{request.GET.done}}"></script>
 {% endblock %}

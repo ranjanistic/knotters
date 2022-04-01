@@ -1,14 +1,16 @@
 from datetime import timedelta
+from uuid import uuid4
+from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from django.db import models
-import uuid
+from auth2.models import Address, PhoneNumber
 from main.strings import Message, url, Code, PEOPLE
 from .apps import APPNAME
 
 
 class Report(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     reporter = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,
                                  related_name='reporter_profile', null=True, blank=True)
     summary = models.CharField(max_length=1000)
@@ -46,7 +48,7 @@ class Report(models.Model):
 
 
 class Feedback(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     feedbacker = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,
                                    related_name='feedbacker_profile', null=True, blank=True)
     detail = models.CharField(max_length=100000)
@@ -82,7 +84,7 @@ class Feedback(models.Model):
 
 
 class ReportCategory(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000)
 
     def __str__(self):
@@ -90,7 +92,7 @@ class ReportCategory(models.Model):
 
 
 class HookRecord(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     hookID = models.CharField(max_length=60)
     success = models.BooleanField(default=False)
 
@@ -103,7 +105,7 @@ class HookRecord(models.Model):
 
 
 class ActivityRecord(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(f'{PEOPLE}.User', on_delete=models.CASCADE)
     view_name = models.CharField(max_length=500)
     request_get = models.CharField(max_length=60000)
@@ -119,7 +121,7 @@ class ActivityRecord(models.Model):
 
 
 class Management(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     profile = models.OneToOneField(
         f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_profile')
     people = models.ManyToManyField(
@@ -211,7 +213,7 @@ class Management(models.Model):
 
 
 class ManagementPerson(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     person = models.ForeignKey(
         f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='management_person_profile')
     management = models.ForeignKey(
@@ -234,7 +236,7 @@ class Invitation(models.Model):
     """
     Base class for all invitations
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     expiresOn = models.DateTimeField(
         auto_now=False, default=timezone.now()+timedelta(days=1))
     resolved = models.BooleanField(default=False)
@@ -333,7 +335,7 @@ class ManagementInvitation(Invitation):
 
 
 class GhMarketApp(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     gh_id = models.CharField(max_length=100, unique=True)
     gh_name = models.CharField(max_length=100, unique=True)
     gh_url = models.URLField(max_length=200, unique=True)
@@ -343,7 +345,7 @@ class GhMarketApp(models.Model):
 
 
 class GhMarketPlan(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     gh_id = models.CharField(max_length=100, unique=True)
     is_free = models.BooleanField(default=True)
     gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
@@ -354,7 +356,7 @@ class GhMarketPlan(models.Model):
 
 
 class APIKey(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     key = models.CharField(max_length=100, unique=True,
                            help_text="Random string at least 32 chars")
     name = models.CharField(max_length=100, null=True, blank=True)
@@ -379,7 +381,7 @@ class APIKey(models.Model):
 
 
 class ContactCategory(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     disabled = models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -389,7 +391,7 @@ class ContactCategory(models.Model):
 
 
 class ContactRequest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     resolved = models.BooleanField(default=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     updatedOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -401,7 +403,7 @@ class ContactRequest(models.Model):
 
 
 class ThirdPartyLicense(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=100)
     link = models.URLField(max_length=150)
     license = models.TextField(max_length=300000)
@@ -411,7 +413,7 @@ class ThirdPartyLicense(models.Model):
 
 
 class ThirdPartyAccount(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=100)
     key = models.CharField(max_length=60)
     link = models.URLField(max_length=150)
@@ -428,3 +430,23 @@ class ThirdPartyAccount(models.Model):
     def save(self, *args, **kwargs):
         cache.delete(self.cachekey)
         super(ThirdPartyAccount, self).save(*args, **kwargs)
+
+    def get_all():
+        SOCIALS = cache.get(ThirdPartyAccount.cachekey, None)
+        if not SOCIALS:
+            SOCIALS = ThirdPartyAccount.objects.all()
+            cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
+        return SOCIALS
+
+class Donor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    profile = models.OneToOneField(f'{PEOPLE}.Profile', on_delete=models.SET_NULL, null=True, related_name='donor_profile')
+    donation_amount = models.IntegerField(default=0)
+    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(max_length=100, null=True, blank=True)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, related_name='donor_address')
+    phone = models.ForeignKey(PhoneNumber, on_delete=models.SET_NULL, null=True, related_name='donor_address')
+
+    def __str__(self):
+        return f"{self.profile} is a donor!"

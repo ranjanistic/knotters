@@ -1,5 +1,5 @@
-import re
-import uuid
+from re import sub as re_sub
+from uuid import uuid4
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Sum
@@ -21,21 +21,21 @@ def competeBannerPath(instance, filename):
     ext = fileparts[len(fileparts)-1]
     if not (ext in ['jpg', 'png', 'jpeg']):
         ext = 'png'
-    return f"{APPNAME}/banners/{instance.get_id}_{uuid.uuid4().hex}.{ext}"
+    return f"{APPNAME}/banners/{instance.get_id}_{uuid4().hex}.{ext}"
 
 def competeAssociatePath(instance, filename):
     fileparts = filename.split('.')
     ext = fileparts[len(fileparts)-1]
     if not (ext in ['jpg', 'png', 'jpeg']):
         ext = 'png'
-    return f"{APPNAME}/associates/{instance.get_id}_{uuid.uuid4().hex}.{ext}"
+    return f"{APPNAME}/associates/{instance.get_id}_{uuid4().hex}.{ext}"
 
 
 def defaultBannerPath():
     return f"{APPNAME}/default.png"
 
 class Event(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=100)
     pseudonym = models.CharField(max_length=50)
     description = models.TextField(max_length=500)
@@ -68,7 +68,7 @@ class Event(models.Model):
        super(Event, self).save(*args, **kwargs) # Call the real save() method
 
 class EventCompetition(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="event_competition_eve")
     competition = models.ForeignKey('Competition', on_delete=models.CASCADE, related_name="event_competition_comp")
 
@@ -79,7 +79,7 @@ class Competition(models.Model):
     """
     A competition.
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=1000, blank=False,
                              null=False, help_text='The competition name.')
     nickname = models.CharField(max_length=50, blank=True,null=True, help_text='The competition nickname')
@@ -140,7 +140,7 @@ class Competition(models.Model):
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
         if not self.nickname:
-            self.nickname = re.sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:50].strip('-').lower()
+            self.nickname = re_sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:50].strip('-').lower()
         return super(Competition, self).save(*args, **kwargs)
 
     @property
@@ -159,7 +159,7 @@ class Competition(models.Model):
 
     def get_nickname(self):
         if not self.nickname:
-            nickname = re.sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:60].strip('-').lower()
+            nickname = re_sub(r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:60].strip('-').lower()
             if Competition.objects.filter(nickname=nickname).exists():
                 nickname = f"{nickname}-{self.id.hex}"
             self.nickname = nickname
@@ -614,7 +614,7 @@ class Perk(models.Model):
     class Meta:
         unique_together = ("competition", "rank")
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     competition = competition = models.ForeignKey(Competition, related_name='perk_competition', on_delete=models.CASCADE)
     rank = models.IntegerField(default=1)
     name = models.CharField(max_length=1000)
@@ -623,7 +623,7 @@ class CompetitionJudge(models.Model):
     """
     Judge of a competition
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     competition = models.ForeignKey(
         Competition, related_name='judging_competition', on_delete=models.PROTECT)
     judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
@@ -646,7 +646,7 @@ class CompetitionTopic(models.Model):
     """
     class Meta:
         unique_together = ("competition", "topic")
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     competition = models.ForeignKey(
         Competition, on_delete=models.CASCADE, related_name='competition_topic')
     topic = models.ForeignKey(
@@ -660,7 +660,7 @@ class Submission(models.Model):
     """
     Submission of a competition, including participant(s).
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     members = models.ManyToManyField(
         Profile, through='SubmissionParticipant', related_name='submission_participants')
@@ -803,7 +803,7 @@ class SubmissionParticipant(models.Model):
     class Meta:
         unique_together = ("profile", "submission")
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     submission = models.ForeignKey(
         Submission, on_delete=models.CASCADE, related_name='participant_submission')
     profile = models.ForeignKey(
@@ -825,7 +825,7 @@ class SubmissionTopicPoint(models.Model):
     class Meta:
         unique_together = (("submission", "judge", "topic"))
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     submission = models.ForeignKey(Submission, on_delete=models.PROTECT)
     topic = models.ForeignKey(Topic, on_delete=models.PROTECT)
     judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
@@ -843,7 +843,7 @@ class Result(models.Model):
         unique_together = (("competition", "rank"),
                            ("competition", "submission"))
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
     submission = models.OneToOneField(Submission, on_delete=models.PROTECT)
     points = models.IntegerField(default=0)
@@ -904,7 +904,7 @@ class ResultXPClaimer(models.Model):
     class Meta:
         unique_together = ("result", "profile")
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     result = models.ForeignKey(
         Result, on_delete=models.PROTECT, related_name='xpclaimer_result')
     profile = models.ForeignKey(
@@ -915,7 +915,7 @@ class ParticipantCertificate(models.Model):
     class Meta:
         unique_together = ("result", "profile")
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     result = models.ForeignKey(
         Result, on_delete=models.PROTECT, related_name='participant_certificate_result')
     profile = models.ForeignKey(
@@ -949,7 +949,7 @@ class AppreciationCertificate(models.Model):
     class Meta:
         unique_together = ("competition", "appreciatee")
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     competition = models.ForeignKey(Competition, on_delete=models.PROTECT, related_name='appreciation_certificate_competition')
     appreciatee = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='appreciation_certificate_profile')
     certificate = models.CharField(default='', null=True, blank=True,max_length=1000)

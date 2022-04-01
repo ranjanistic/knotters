@@ -19,12 +19,6 @@ const KEY = {
 };
 const Key = KEY;
 
-const CODE = {
-    OK: "OK",
-    NO: "NO",
-    LEFT: "left",
-    RIGHT: "right",
-};
 const code = CODE;
 
 let __appInstallPromptEvent = null;

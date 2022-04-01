@@ -61,6 +61,7 @@ jobs:
         echo "VAPID_ADMIN_MAIL=${{ secrets.VAPID_ADMIN_MAIL }}" >> ${{ secrets.ENVPATH }}
         echo "LOCALE_ABS_PATH=${{ secrets.LOCALE_ABS_PATH }}" >> ${{ secrets.ENVPATH }}
         echo "CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" >> ${{ secrets.ENVPATH }}
+        cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
     - name: Run migrations
       run: |
         python3 manage.py makemigrations --noinput

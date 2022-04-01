@@ -3,13 +3,12 @@ from django.http.response import HttpResponseForbidden
 from django.urls import resolve
 from ipaddress import ip_address
 from django.utils.deprecation import MiddlewareMixin
-import time
+from time import time
 from allauth_2fa.middleware import AllauthTwoFactorMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.sessions.backends.base import UpdateError
 from django.utils.cache import patch_vary_headers
 from django.utils.http import http_date
-from rjsmin import jsmin
 from django.conf import settings
 from .strings import message, URL, Code
 from .env import ADMINPATH
@@ -67,6 +66,7 @@ class MinifyMiddleware(object):
             return response
         except:
             return response
+
 
 class ActivityMiddleware(object):
 
@@ -181,7 +181,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
             if not empty:
 
                 max_age = request.session.get_expiry_age()
-                expires_time = time.time() + max_age
+                expires_time = time() + max_age
                 expires = http_date(expires_time)
 
                 if response.status_code != 500:

@@ -88,6 +88,6 @@
 <br/>
 {% endblock %}
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.SIGNUP}}?next={{request.GET.next}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:"account"|params:SCRIPTS.SIGNUP}}?next={{request.GET.next}}"></script>
 {% endblock %}
 

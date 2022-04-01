@@ -71,5 +71,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.MODERATORS}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.MODERATORS}}"></script>
 {% endblock %}

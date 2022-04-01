@@ -23,7 +23,7 @@
 {% block title %}{{project.name}}{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" />
+{% comment %} <link rel="stylesheet" href="{% static 'styles/project/profile.css' %}" /> {% endcomment %}
 {% endblock %}
 
 {% block nav_back_show %}{% endblock %}
@@ -31,4 +31,18 @@
 
 {% block nav_href %}{{ROOT}}{% endblock %}
 {% block nav_text %}{{project.nickname}}{% endblock %}
+
+{% block scripts %}
+<script nonce="{{request.csp_nonce}}" src="{% static 'chartjs/chart.min.js' %}"></script>
+{% if project.core %}
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.TWO}}?id={{project.id}}&admire={{request.GET.admire}}&admirers={{request.GET.admirers}}"></script>
+{% elif project.verified %}
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ONE}}?id={{project.id}}&admire={{request.GET.admire}}&admirers={{request.GET.admirers}}"></script>
+{% else %}
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ZERO}}?id={{project.id}}&admire={{request.GET.admire}}&admirers={{request.GET.admirers}}"></script>
+{% endif %}
+{% if not project.suspended %}
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/project/profile.js' %}" ></script>
+{% endif %}
+{% endblock %}
 

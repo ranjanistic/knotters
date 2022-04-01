@@ -1,17 +1,16 @@
-import re
+from re import sub as re_sub
 from deprecated import deprecated
+from django.utils.translation import gettext_lazy as _
+from auth2.apps import APPNAME as AUTH2
 from projects.apps import APPNAME as PROJECTS
 from people.apps import APPNAME as PEOPLE
 from compete.apps import APPNAME as COMPETE
 from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
 from .env import CDN_URL
-from auth2.apps import APPNAME as AUTH2
-from django.utils.translation import gettext_lazy as _
 
 AUTH = 'auth'
 DOCS = 'docs'
-
 
 def classAttrsToDict(className, appendCondition=None) -> dict:
     data = dict()
@@ -39,9 +38,9 @@ def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRema
         replacingChars = ['*']
     i = 0
     while i < len(replacingChars):
-        path = re.sub(lookfor, str(replacingChars[i]), path, 1)
+        path = re_sub(lookfor, str(replacingChars[i]), path, 1)
         i += 1
-    return path if not extendRemaining else re.sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+    return path if not extendRemaining else re_sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
 
 
 def setURLAlerts(url, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
@@ -69,11 +68,13 @@ class Code():
     GET = "GET"
     POST = "POST"
     UNKNOWN_EVENT = "UNKNOWN_EVENT"
+
     APPROVED = "approved"
     REJECTED = "rejected"
     MODERATION = "moderation"
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
+
     SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
@@ -81,7 +82,11 @@ class Code():
     LAST_MODERATOR = "last_moderator"
     ZOMBIE = 'Zombie'
     ZOMBIEMAIL = 'zombie@knotters.org'
+
     URLPARAM = r'(<str:|<int:)+[a-zA-Z0-9]+(>)'
+
+    LEFT = "left"
+    RIGHT = "right"
 
     ACTIVE = "active"
     HISTORY = "history"
@@ -112,6 +117,12 @@ class Code():
     FRAMEWORKS = 'frameworks'
     PEOPLE = "people"
 
+        
+    def getAllKeys():
+        def cond(key, value):
+            return str(key).isupper()
+        return classAttrsToDict(Code, cond)
+
     class Test():
         MODEL = 'model'
         VIEW = 'view'
@@ -119,6 +130,8 @@ class Code():
         STATIC = 'static'
         MAIL = 'mail'
         REST = 'rest'
+
+    
 
 
 code = Code()
@@ -299,7 +312,11 @@ class Action():
     UPDATE = "update"
     REMOVE = "remove"
     REMOVE_ALL = "remove_all"
-
+    
+    def getAllKeys():
+        def cond(key, value):
+            return str(key).isupper()
+        return classAttrsToDict(Action, cond)
 
 action = Action()
 
@@ -442,6 +459,7 @@ class URL():
     BRANDING = 'branding/'
     ROOT = '/'
     HOME = 'home'
+    HOME_DOMAINS = 'home/<str:domain>'
     WEBPUSH = 'webpush/'
     AT_NICKNAME = "@<str:nickname>"
     
@@ -480,6 +498,7 @@ class URL():
         return setPathParams(self.BROWSER, type)
 
     VERIFY_CAPTCHA = 'captcha/verify'
+    DONATE = 'donate/'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
@@ -935,10 +954,10 @@ class URL():
         def profileEdit(self, projectID, section):
             return setPathParams(self.PROFILEEDIT, projectID, section)
 
-        MANAGE_ASSETS = 'assets/<str:projectID>/<str:action>'
+        MANAGE_ASSETS = 'assets/<str:projectID>/'
 
-        def manageAssets(self, projectID, action):
-            return setPathParams(self.MANAGE_ASSETS, projectID, action)
+        def manageAssets(self, projectID):
+            return setPathParams(self.MANAGE_ASSETS, projectID)
 
         TOPICSEARCH = "topics/search/<str:projID>/"
 
@@ -1312,6 +1331,12 @@ class Template():
     def view_snapshot(self):
         return f'{self.VIEW_SNAPSHOT}.html'
 
+    DONATION = "donation"
+    @property
+    def donation(self):
+        return f'{self.DONATION}.html'
+
+
     class Auth():
         DIRNAME = 'account'
         DIRNAME2 = 'auth2'
@@ -1589,6 +1614,12 @@ class Template():
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
 
+        BROWSE_TRENDING = 'browse/trending'
+
+        @property
+        def trending(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
+
         BROWSE_TRENDING_MENTORS = 'browse/trending-mentors'
 
         @property
@@ -1608,6 +1639,14 @@ class Template():
             return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
 
         BROWSE_CORE_MEMBERS = 'browse/core-members'
+
+        BROWSE_TOPIC_PROFILES = 'browse/topic-profiles'
+
+        @property
+        def topic_profiles(self):
+            return f'{self.DIRNAME}/{self.BROWSE_TOPIC_PROFILES}.html'
+
+        BROWSE_HIGHEST_MONTH_XP_PROFILES = 'browse/highest-month-xp-profiles'
 
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
@@ -1814,11 +1853,17 @@ class Template():
         def browse_trending(self):
             return f'{self.DIRNAME}/{self.BROWSE_TRENDING}.html'
 
+        BROWSE_TRENDING_CORE = 'browse/trending-core'
+        BROWSE_TRENDING_VERIFIED = 'browse/trending-verified'
+        BROWSE_TRENDING_QUICK = 'browse/trending-quick'
+
         BROWSE_TOPIC_PROJECTS = 'browse/topic-projects'
 
         @property
         def browse_topic_projects(self):
             return f'{self.DIRNAME}/{self.BROWSE_TOPIC_PROJECTS}.html'
+
+        BROWSE_NEWLY_MODERATED = 'browse/newly-moderated'
 
         BROWSE_SEARCH = 'browse/search'
 

@@ -40,9 +40,9 @@
         <br/>
         <div class="w3-row">
             {% if snapshot.image %}
-            <img src="{{snapshot.get_image}}" width="100%" class="snapshot-image preview-type-image" />
+            <img src="{{snapshot.get_image}}" width="100%" class="snapshot-image preview-type-image" loading="lazy" />
             {% elif snapshot.video %}
-            <video src="{{snapshot.get_image}}" width="100%" class="preview-type-video"></video>
+            <video src="{{snapshot.get_image}}" width="100%" class="preview-type-video" loading="lazy"></video>
             {% endif %}
         </div>
         <br/>

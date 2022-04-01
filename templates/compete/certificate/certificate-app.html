@@ -87,5 +87,5 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CERTIFICATE_APP}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.CERTIFICATE_APP}}"></script>
 {% endblock %}
