@@ -1,4 +1,4 @@
-if (selfProject || ismoderator) {
+if (iscreator || ismoderator) {
     getElement("uploadprojectimage").onchange = (e) => {
         handleCropImageUpload(
             e,
@@ -10,7 +10,6 @@ if (selfProject || ismoderator) {
             }
         );
     };
-
     const loadExistingTopics = () => {
         initializeMultiSelector({
             candidateClass: "topic-existing",
@@ -40,8 +39,8 @@ if (selfProject || ismoderator) {
 
                 if (
                     getElements("topic-existing").length -
-                        remtoplen +
-                        addtoplen ===
+                    remtoplen +
+                    addtoplen ===
                     5
                 ) {
                     error(STRING.upto_5_topics_allowed);
@@ -78,8 +77,8 @@ if (selfProject || ismoderator) {
                 let remtoplen = remtopids.length;
                 if (
                     getElements("topic-existing").length -
-                        remtoplen +
-                        addtoplen ===
+                    remtoplen +
+                    addtoplen ===
                     5
                 ) {
                     error(STRING.upto_5_topics_allowed);
@@ -142,12 +141,10 @@ if (selfProject || ismoderator) {
             let buttons = [];
             data.topics.forEach((topic) => {
                 buttons.push(
-                    `<button type="button" class="${
-                        getElement("addtopicIDs").value.includes(topic.id)
-                            ? "positive"
-                            : "primary"
-                    } topic-new" id="${topic.id}">${Icon("add")}${
-                        topic.name
+                    `<button type="button" class="${getElement("addtopicIDs").value.includes(topic.id)
+                        ? "positive"
+                        : "primary"
+                    } topic-new" id="${topic.id}">${Icon("add")}${topic.name
                     }</button>`
                 );
             });
@@ -157,10 +154,9 @@ if (selfProject || ismoderator) {
                 loadExistingTopics();
             } else {
                 buttons.push(
-                    `<button type="button" class="${
-                        getElement("addtopics").value.includes(e.target.value)
-                            ? "positive"
-                            : "primary"
+                    `<button type="button" class="${getElement("addtopics").value.includes(e.target.value)
+                        ? "positive"
+                        : "primary"
                     } topic-new topic-name" id="${e.target.value}">${Icon(
                         "add"
                     )}${e.target.value}</button>`
@@ -190,7 +186,8 @@ if (selfProject || ismoderator) {
         }
         error(resp.error);
     };
-
+}
+if (iscreator || ismoderator || iscocreator) {
     const loadExistingTags = () => {
         initializeMultiSelector({
             candidateClass: "tag-existing",
@@ -219,8 +216,8 @@ if (selfProject || ismoderator) {
                 let remtaglen = remtagids.length;
                 if (
                     getElements("tag-existing").length -
-                        remtaglen +
-                        addtaglen ===
+                    remtaglen +
+                    addtaglen ===
                     5
                 ) {
                     error(STRING.upto_5_tags_allowed);
@@ -256,8 +253,8 @@ if (selfProject || ismoderator) {
 
                 if (
                     getElements("tag-existing").length -
-                        remtaglen +
-                        addtaglen ===
+                    remtaglen +
+                    addtaglen ===
                     5
                 ) {
                     error(STRING.upto_5_tags_allowed);
@@ -319,12 +316,10 @@ if (selfProject || ismoderator) {
             let buttons = [];
             data.tags.forEach((tag) => {
                 buttons.push(
-                    `<button type="button" class="small ${
-                        getElement("addtagIDs").value.includes(tag.id)
-                            ? "positive"
-                            : "primary"
-                    } tag-new" id="${tag.id}">${Icon("add")}${
-                        tag.name
+                    `<button type="button" class="small ${getElement("addtagIDs").value.includes(tag.id)
+                        ? "positive"
+                        : "primary"
+                    } tag-new" id="${tag.id}">${Icon("add")}${tag.name
                     }</button>`
                 );
             });
@@ -334,12 +329,10 @@ if (selfProject || ismoderator) {
                 loadExistingTags();
             } else {
                 buttons.push(
-                    `<button type="button" class="small ${
-                        getElement("addtags").value.includes(e.target.value)
-                            ? "positive"
-                            : "primary"
-                    } tag-new tag-name" id="${e.target.value}">${Icon("add")}${
-                        e.target.value
+                    `<button type="button" class="small ${getElement("addtags").value.includes(e.target.value)
+                        ? "positive"
+                        : "primary"
+                    } tag-new tag-name" id="${e.target.value}">${Icon("add")}${e.target.value
                     }</button>`
                 );
                 getElement("tags-viewer-new").innerHTML = buttons.join("");
@@ -411,7 +404,7 @@ if (selfProject || ismoderator) {
                     makepublic ? "positive-text" : "active-text"
                 );
                 action.innerHTML = makepublic ? "lock_open" : "lock";
-                action.title = makepublic ? `${APPNAME} community can access`:"Only you can access";
+                action.title = makepublic ? `${APPNAME} community can access` : "Only you can access";
                 return true;
             }
             error(data.error);
@@ -486,8 +479,113 @@ if (selfProject || ismoderator) {
             });
         };
     });
-}
+    getElement('save-edit-projecttags').onclick= async ()=> {
+        var obj = getFormDataById("edit-tag-inputs");
+        var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
+            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
+        });
+        if (resp.code===code.OK){
+            subLoader()
+            return window.location.reload()
+        }
+        error(resp.error)
+    }
+    getElement('sociallinks-add').onclick=_=>{
+        const parent=getElement('edit-sociallinks-inputs');
+        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
+        const linkNumber=parent.childElementCount+1;
+        const newChild=document.createElement('div');
+        newChild.innerHTML = `
+            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
+        `;
+        parent.insertBefore(newChild,parent.childNodes[0]);
+    }
 
+}
+if (iscreator) {
+    getElements('add-cocreators-action').forEach((addcocreator) => {
+
+        addcocreator.onclick = async (e) => {
+            Swal.fire({
+                title: 'Invite co-creator to project',
+                html: `<h6>Invite a co-creator by their email to add them as a co-creator</h6>
+                <br/>
+                <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="add-cocreator-new-email" />
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Send Invite',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: async () => {
+                    let email = getElement("add-cocreator-new-email").value.trim()
+                    if (email) return email
+                    error('New email address required')
+                    return false
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    message("Sending invitation...");
+                    const data = await postRequest2({
+                        path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR, projectID),
+                        data: {
+                            action: 'create',
+                            email: result.value,
+                        }
+                    })
+                    if (data.code === code.OK) {
+                        futuremessage("Invitation sent.")
+                        return window.location.reload()
+                    }
+                    error(data.error)
+                }
+            })
+        }
+    })
+    getElements('cancel-cocreator-invite').forEach((cocreator) => {
+        cocreator.onclick = async (e) => {
+            message("Deleting invitation...");
+            const data = await postRequest2({
+                path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR, projectID),
+                data: {
+                    action: 'remove',
+                    receiver_id: cocreator.getAttribute('data-userid'),
+                }
+            })
+            if (data.code === code.OK) {
+                futuremessage("Invitation deleted")
+                if (getElements('cancel-cocreator-invite').length > 1) {
+                    getElement(`cocreator-view-${cocreator.getAttribute('data-userid')}`).remove()
+                    return true
+                }
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    })
+}
+if (iscreator || iscocreator) {
+    getElements('delete-cocreator-action').forEach((delcocreator) => {
+        delcocreator.onclick = async (e) => {
+            message("Removing Co-Creator...");
+            const data = await postRequest2({
+                path: setUrlParams(URLS.MANAGE_PROJECT_COCREATOR, projectID),
+                data: {
+                    action: 'remove',
+                    cocreator_id: delcocreator.getAttribute('data-userid'),
+                }
+            })
+            if (data.code === code.OK) {
+                futuremessage("Co-Creator removed")
+                if (getElements('delete-cocreator-action').length > 1) {
+                    getElement(`cocreator-view-${delcocreator.getAttribute('data-userid')}`).remove()
+                    return true
+                }
+                return window.location.reload()
+            }
+            error(data.error)
+        }
+    })
+}
 let snapstart = 0,
     snapend = snapstart + 2;
 let excludeProjectSnapIDs = [];

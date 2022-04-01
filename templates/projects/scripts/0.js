@@ -8,22 +8,12 @@
 const projectID = "{{ project.get_id }}";
 const selfProject = "{{iscreator}}"==='True';
 const ismoderator = false;
+const iscreator = selfProject;
+const iscocreator = "{{iscocreator}}"==='True';
 const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--positive');
 
 {% if not project.suspended %}
 {% if iscreator %}
-    getElement('save-edit-projecttags').onclick= async ()=> {
-        var obj = getFormDataById("edit-tag-inputs");
-        var resp=await postRequest(setUrlParams(URLS.TAGSUPDATE, projectID), {
-            addtagIDs:obj.addtagIDs.split(',').filter((str)=>str),addtags:obj.addtags.split(',').filter((str)=>str),removetagIDs:obj.removetagIDs.split(',').filter((str)=>str)
-        });
-        if (resp.code===code.OK){
-            subLoader()
-            return window.location.reload()
-        }
-        error(resp.error)
-    }
-
     {% if project.can_delete %}
     getElement('delete-project').onclick=_=>{
         Swal.fire({
@@ -106,18 +96,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             error(data.error)
         }
     {% endif %}
-
-    getElement('sociallinks-add').onclick=_=>{
-        const parent=getElement('edit-sociallinks-inputs');
-        if(parent.childElementCount===5) return message('Maximun URLs limit reached')
-        const linkNumber=parent.childElementCount+1;
-        const newChild=document.createElement('div');
-        newChild.innerHTML = `
-            <input class="wide" type="url" inputmode="url" placeholder="Link to anything relevant" name="sociallink${linkNumber}" id=sociallink${linkNumber} /><br/><br/>
-        `;
-        parent.insertBefore(newChild,parent.childNodes[0]);
-    }
-
     {% if project.can_request_verification %}
     getElement('request-verification').onclick=async(e)=>{
         Swal.fire({
@@ -346,71 +324,8 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             })
         {% endif %}
     {% endif %}
-    {% if project.can_invite_cocreator %}
-        getElements('add-cocreators-action').forEach((addcocreator)=>{
-
-            addcocreator.onclick=async(e)=>{
-                Swal.fire({
-                    title: 'Invite co-creator to project',
-                    html: `<h6>Invite a co-creator by their email to add them as a co-creator</h6>
-                    <br/>
-                    <input class="wide" type="email" autocomplete="email" placeholder="New email address" id="add-cocreator-new-email" />
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'Send Invite',
-                    cancelButtonText: 'Cancel',
-                    showLoaderOnConfirm: true,
-                    preConfirm: async () => {
-                        let email = getElement("add-cocreator-new-email").value.trim()
-                        if(email) return email
-                        error('New email address required')
-                        return false
-                    }
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        message("Sending invitation...");
-                        const data = await postRequest2({
-                            path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
-                            data: {
-                                action: 'create',
-                                email: result.value,
-                            }
-                        })
-                        if(data.code===code.OK){
-                            futuremessage("Invitation sent.")
-                            return window.location.reload()
-                        }
-                        error(data.error)
-                    }
-                })
-            }
-        })  
-    {% endif %}
-    getElements('cancel-cocreator-invite').forEach((cocreator)=>{
-        cocreator.onclick=async(e)=>{
-            message("Deleting invitation...");
-            const data = await postRequest2({
-                path: setUrlParams(URLS.INVITE_PROJECT_COCREATOR,projectID),
-                data: {
-                    action: 'remove',
-                    receiver_id: cocreator.getAttribute('data-userid'),
-                }
-            })
-            if(data.code===code.OK){
-                futuremessage("Invitation deleted")
-                if(getElements('cancel-cocreator-invite').length>1){
-                    getElement(`cocreator-view-${cocreator.getAttribute('data-userid')}`).remove()
-                    return true
-                }
-                return window.location.reload()
-            }
-            error(data.error)
-        }
-    })
-    getElement('save-edit-snapshot').onclick=(e)=>{
-        e.preventDefault();
-        e.target.form.submit()
-    }    
+    {% if project.can_invite_cocreator %}  
+    {% endif %}   
 {% else %}
     if(authenticated){
         getElement('report-project').onclick=async()=>{
@@ -420,27 +335,6 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
 {% endif %}
 
 {% if iscreator or iscocreator %}
-    getElements('delete-cocreator-action').forEach((delcocreator)=>{
-        delcocreator.onclick=async(e)=>{
-            message("Removing Co-Creator...");
-            const data = await postRequest2({
-                path: setUrlParams(URLS.MANAGE_PROJECT_COCREATOR,projectID),
-                data: {
-                    action: 'remove',
-                    cocreator_id: delcocreator.getAttribute('data-userid'),
-                }
-            })
-            if(data.code===code.OK){
-                futuremessage("Co-Creator removed")
-                if(getElements('delete-cocreator-action').length>1){
-                    getElement(`cocreator-view-${delcocreator.getAttribute('data-userid')}`).remove()
-                    return true
-                }
-                return window.location.reload()
-            }
-            error(data.error)
-        }
-    })
 {% endif %}
 
 if(authenticated){

@@ -92,11 +92,13 @@ def verifiedProfileData(request, reponame = None, projectID = None):
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(user=request.user).exists()
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
-            isAdmirer=isAdmirer
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator
         )
     except ObjectDoesNotExist:
         return False
@@ -128,12 +130,14 @@ def coreProfileData(request, codename = None, projectID = None):
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(user=request.user).exists()
 
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
-            isAdmirer=isAdmirer
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator
         )
     except ObjectDoesNotExist:
         return False
