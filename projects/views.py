@@ -475,6 +475,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
+        print(e)
         raise Http404(e)
 
 
