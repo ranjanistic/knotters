@@ -45,7 +45,9 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
         `^${asteriskPath}`
             .replaceAll("*", `+${_PARAMREGEX}+`)
             .split("+")
-            .map((part) => (part === _PARAMREGEX ? _PARAMREGEX : part ? `(${part})`: ""))
+            .map((part) =>
+                part === _PARAMREGEX ? _PARAMREGEX : part ? `(${part})` : ""
+            )
             .join("+") + "$"
     ).test(testPath);
 };
@@ -86,7 +88,9 @@ self.addEventListener(EVENTS.ACTIVATE, (event) =>
             .then(
                 async (keys) =>
                     await Promise.all(
-                        keys.map(async (key) => await caches.delete(key))
+                        keys
+                            .filter((key) => key != _STAT_CACHE_NAME)
+                            .map(async (key) => await caches.delete(key))
                     )
                         .then(
                             async (_) =>
@@ -95,10 +99,27 @@ self.addEventListener(EVENTS.ACTIVATE, (event) =>
                                     .then(
                                         async (cache) =>
                                             await Promise.all(
-                                                _ASSETS_.map(
-                                                    async (asset) =>
-                                                        await cache.add(asset)
-                                                )
+                                                _ASSETS_.map(async (asset) => {
+                                                    const matched =
+                                                        await cache.match(
+                                                            asset
+                                                        );
+                                                    if (
+                                                        !(
+                                                            matched &&
+                                                            matched.status ===
+                                                                200
+                                                        )
+                                                    ) {
+                                                        try {
+                                                            await cache.add(
+                                                                asset
+                                                            );
+                                                        } catch (e) {
+                                                            {% if DEBUG %}debug_log(`static: ${asset} not added: ${e}`);{% endif %}
+                                                        }
+                                                    }
+                                                })
                                             )
                                     )
                                     .catch((e) => {

@@ -238,19 +238,27 @@
             </div>
             <br/>
             <div class="w3-row w3-padding pallete">
-                <center><h5 class="align"><i>cloud_done</i>&nbsp;CoCreators</h5></center>
+                <center><h5 class="align"><i>groups</i>&nbsp;CoCreators</h5></center>
                 <div class="w3-row">
                     {% for cocreator in project.co_creators.all%}
-                    <div class="w3-row pallete-slab" id="cocreator-view-{{cocreator.get_userid}}">
-                        <div class="w3-col s2 m1">
-                            <a href="{{cocreator.get_link}}">
-                            <img class="w3-circle primary" src="{{cocreator.get_dp}}" width="40" alt="{{cocreator.get_name}}">
-                            </a>
-                        </div>
-                        <div class="w3-col s10 m9" style="padding-left:12px">
-                            <div class="w3-row"><strong>{{cocreator.get_name}}</strong>
+                    <div class="pallete-slab" id="cocreator-view-{{cocreator.get_userid}}">
+                        <div class="w3-row">
+                            <div class="w3-col l1 s2 m2">
+                                <a href="{{cocreator.get_link}}">
+                                <img class="w3-circle primary" src="{{cocreator.get_dp}}" width="40" alt="{{cocreator.get_name}}">
+                                </a>
                             </div>
-                            <div class="w3-row"><strong class="align w3-left dead-text">{{cocreator.get_nickname}}</strong>
+                            <div class="w3-col l8 s7 m7 w3-padding-small">
+                                <div class="w3-row"><strong>{{cocreator.get_name}}</strong>
+                                </div>
+                                <div class="w3-row">
+                                    <strong class="align w3-left dead-text">{{cocreator.get_nickname}}{% if cocreator.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</strong>
+                                </div>
+                            </div>
+                            <div class="w3-col l3 s3 m3" align='right'>
+                                {% if cocreator.get_xp %}
+                                <h4 class="{{cocreator.theme}}-text w3-right">+{{cocreator.get_xp}}</h4>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="w3-row" align='right'>
@@ -271,7 +279,7 @@
                         {% else %}
                             <br/>
                             <center class="dead-text">
-                            <div class="w3-jumbo material-icons">cloud_off</div>
+                            <div class="w3-jumbo material-icons">groups</div>
                             <h5>No Co-Creators</h5>
                             </center>
                         {% endif %}

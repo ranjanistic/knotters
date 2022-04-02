@@ -11,22 +11,33 @@
     <div class="w3-center"><i class="w3-jumbo">widgets</i></div>
     <h4 class="w3-center"><a href="{{invitation.sender.get_link}}" target="_blank"><button class="primary"><img src="{{invitation.sender.get_dp}}" class="circle" width="25">&nbsp;{{invitation.sender.getName}}</button></a>
     wants to delete the following project. If you accept to delete, then the following project will be deleted permanently, and it will be irreversible.</h4>
-    <br/>
     <div class="w3-row">
-        <div class="w3-col w3-third"><br/></div>
-        <a href="{{invitation.project.get_link}}" target="_blank">
-        <div class="w3-col w3-third pallete">
-            <div class="w3-col w3-quarter pallate">
-                <img class="pallete " src="{{invitation.project.get_dp}}" width="100" />
-            </div>
-            <div class="w3-col w3-threequarter primary pallete w3-left w3-padding">
-                <h3 class="text-primary">{{invitation.project.name}}</h3>
-                <strong class="text-medium align w3-left">{{invitation.project.codename}}{% if invitation.project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</strong>
+        <div class="w3-col l4 m3 s1 w3-padding"></div>
+        <div class='w3-col l4 m6 s10 w3-padding-large'>
+            <br/>
+            <div class="w3-col pallete no-pad">
+                <div class="w3-col l6 m12 s12">
+                    <a href="{{invitation.project.get_link}}" target="_blank">
+                        <img class="primary pallete w3-hide-small w3-hide-medium" src="{{ invitation.project.getDP }}" alt="{{ invitation.project.name }}" width="100%" height="100%" style="border-right: 8px solid var(--{{invitation.project.theme}})" />
+                        <img class="primary pallete w3-hide-large" src="{{ invitation.project.getDP }}" alt="{{ invitation.project.name }}" width="100%" height="100%" style="border-bottom: 8px solid var(--{{invitation.project.theme}})" />
+                    </a>
+                </div>
+                <div class="w3-col l6 m12 s12 w3-padding" align='left'>
+                    <div class="w3-row">
+                    <h4 class="{% if invitation.project.is_verified %}align{% endif %} w3-left">{{ invitation.project.name|truncatechars:18 }}{% if invitation.project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
+                    </div>
+                    <strong class="w3-row">{{ invitation.project.category }}</strong>
+                    <div class="w3-row">{{ invitation.project.description|truncatechars:60 }}</div>
+                    <br/><br/>
+                    {% for topic in invitation.project.getPalleteTopics %}
+                    <a href="{{URLS.PROJECTS|getquery:'search=topic:'}}{{topic.name}}" target="_blank"><button class="{{invitation.project.theme}} small w3-left">{{topic}}</button></a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        </a>
-        <div class="w3-col w3-third pallete no-pad"></div>
+        <div class="w3-col l4 m3 s1 w3-padding"></div>
     </div>
+    <br/><br/>
 </div>
 {% endblock %}
 

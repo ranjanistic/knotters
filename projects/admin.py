@@ -123,6 +123,7 @@ admin.site.register(VerProjectDeletionRequest)
 admin.site.register(CoreProjectDeletionRequest)
 admin.site.register(AppRepository)
 admin.site.register(Asset)
+admin.site.register(BaseProjectCoCreatorInvitation)
 
 @admin.register(TopicFileExtension)
 class TopicFileExtensionAdmin(admin.ModelAdmin):

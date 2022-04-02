@@ -5,25 +5,37 @@
 {% load cache %}
 {% load custom_tags %}
 {% block invite_body %}
-<div class="w3-row ">
-    <div class="w3-center"><i class="w3-jumbo">widgets</i></div>
-    <h4 class="w3-center"><a href="{{invitation.sender.get_link}}" target="_blank"><button class="primary"><img src="{{invitation.sender.get_dp}}" class="circle" width="25">&nbsp;{{invitation.sender.getName}}</button></a>
-    wants to make you a co-creator of the project: {{invitation.base_project.name}}</h4>
+<div class="w3-row tertiary">
     <br/>
+    <div class="w3-center"><i class="w3-jumbo">groups</i></div>
+    <h4 class="w3-center"><a href="{{invitation.sender.get_link}}" target="_blank"><button class="primary"><img src="{{invitation.sender.get_dp}}" class="circle" width="25">&nbsp;{{invitation.sender.getName}}</button></a>
+    wants you to be a co-creator of the following project.</h4>
     <div class="w3-row">
-        <div class="w3-col w3-third"><br/></div>
-        <a href="{{invitation.base_project.get_link}}" target="_blank">
-        <div class="w3-col w3-third pallete">
-            <div class="w3-col w3-quarter pallate">
-                <img class="pallete " src="{{invitation.base_project.get_dp}}" width="100" />
-            </div>
-            <div class="w3-col w3-threequarter primary pallete w3-left w3-padding">
-                <h3 class="text-primary">{{invitation.base_project.name}}</h3>
-                <strong class="text-medium align w3-left">{{invitation.base_project.nickname}}<i class="positive-text w3-large">lock</i></strong>
+        <div class="w3-col l4 m3 s1 w3-padding"></div>
+        <div class='w3-col l4 m6 s10 w3-padding-large'>
+            <br/>
+            <div class="w3-col pallete no-pad">
+                <div class="w3-col l6 m12 s12">
+                    <a href="{{invitation.base_project.get_link}}" target="_blank">
+                        <img class="primary pallete w3-hide-small w3-hide-medium" src="{{ invitation.base_project.getDP }}" alt="{{ invitation.base_project.name }}" width="100%" height="100%" style="border-right: 8px solid var(--{{invitation.base_project.theme}})" />
+                        <img class="primary pallete w3-hide-large" src="{{ invitation.base_project.getDP }}" alt="{{ invitation.base_project.name }}" width="100%" height="100%" style="border-bottom: 8px solid var(--{{invitation.base_project.theme}})" />
+                    </a>
+                </div>
+                <div class="w3-col l6 m12 s12 w3-padding" align='left'>
+                    <div class="w3-row">
+                    <h4 class="{% if invitation.base_project.is_verified %}align{% endif %} w3-left">{{ invitation.base_project.name|truncatechars:18 }}{% if invitation.base_project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
+                    </div>
+                    <strong class="w3-row">{{ invitation.base_project.category }}</strong>
+                    <div class="w3-row">{{ invitation.base_project.description|truncatechars:60 }}</div>
+                    <br/><br/>
+                    {% for topic in invitation.base_project.getPalleteTopics %}
+                    <a href="{{URLS.PROJECTS|getquery:'search=topic:'}}{{topic.name}}" target="_blank"><button class="{{invitation.base_project.theme}} small w3-left">{{topic}}</button></a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        </a>
-        <div class="w3-col w3-third pallete no-pad"></div>
+        <div class="w3-col l4 m3 s1 w3-padding"></div>
     </div>
+    <br/><br/>
 </div>
 {% endblock %}

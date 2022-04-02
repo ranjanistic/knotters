@@ -677,6 +677,8 @@ class ServiceWorker(TemplateView):
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.PROJECT_TRANS_INVITE}"),
                 setPathParams(
+                    f"/{URL.PROJECTS}{URL.Projects.VIEW_COCREATOR_INVITE}"),
+                setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.VER_MOD_TRANS_INVITE}"),
                 setPathParams(
                     f"/{URL.PROJECTS}{URL.Projects.CORE_MOD_TRANS_INVITE}"),

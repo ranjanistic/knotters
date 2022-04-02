@@ -651,7 +651,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
-                raise ObjectDoesNotExist()
+                raise ObjectDoesNotExist(request.user)
         excluding = []
         if project:
             for topic in project.getTopics():
@@ -698,7 +698,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
             raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
-                raise ObjectDoesNotExist()
+                raise ObjectDoesNotExist(request.user)
         if not (addtopicIDs or removetopicIDs or addtopics):
             if json_body:
                 return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
@@ -782,7 +782,8 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             raise ObjectDoesNotExist(f'{projID} project not found')
         if request.user.profile != project.creator:
             if request.user.profile != project.moderator:
-                raise ObjectDoesNotExist()
+                if not project.co_creators.filter(user=request.user).exists():
+                    raise ObjectDoesNotExist(request.user)
         excludeIDs = []
         if project:
             for tag in project.tags.all():
