@@ -15,14 +15,14 @@ from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.conf import settings
 from main.env import PUBNAME
-from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body,require_JSON,github_only, normal_profile_required, decode_JSON
+from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body, require_JSON, github_only, normal_profile_required, decode_JSON
 from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
 from main.strings import CORE_PROJECT, Action, Code, Message, URL, Template, setURLAlerts
 from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
 from management.models import GhMarketApp, ReportCategory
 from people.models import Profile, Topic
-from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest,BaseProjectCoCreatorInvitation
+from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest, BaseProjectCoCreatorInvitation
 from .mailers import *
 from .methods import addTagToDatabase, coreProfileData, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, freeProfileData, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData, verifiedProfileData
 from .apps import APPNAME
@@ -46,28 +46,33 @@ def allLicences(request: WSGIRequest) -> HttpResponse:
         errorLog(e)
         raise Http404(e)
 
+
 @decode_JSON
-def public_licenses(request:WSGIRequest) -> HttpResponse:
+def public_licenses(request: WSGIRequest) -> HttpResponse:
     try:
         content = request.POST.get('content', False)
-        licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('-default')
+        licenses = License.objects.filter(
+            creator=Profile.KNOTBOT(), public=True).order_by('-default')
         publices = []
         for l in licenses:
             if content:
-                publices.append(dict(id=l.id, name=l.name, keyword=l.keyword, description=l.description, content=l.content))
+                publices.append(dict(id=l.id, name=l.name, keyword=l.keyword,
+                                description=l.description, content=l.content))
             else:
-                publices.append(dict(id=l.id, name=l.name, keyword=l.keyword, description=l.description,))
+                publices.append(dict(id=l.id, name=l.name,
+                                keyword=l.keyword, description=l.description,))
         return respondJson(Code.OK, dict(licenses=publices))
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
 
 @require_GET
 def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     try:
         license = License.objects.get(id=id)
         return renderer(request, Template.Projects.LICENSE_LIC, dict(license=license))
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -83,7 +88,8 @@ def create(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def createFree(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('-default')
+    licenses = License.objects.filter(
+        creator=Profile.KNOTBOT(), public=True).order_by('-default')
     return renderer(request, Template.Projects.CREATE_FREE, dict(categories=categories, licenses=licenses))
 
 
@@ -91,15 +97,19 @@ def createFree(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def createMod(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    licenses = License.objects.filter(creator=Profile.KNOTBOT(),public=True).order_by('-default')
+    licenses = License.objects.filter(
+        creator=Profile.KNOTBOT(), public=True).order_by('-default')
     return renderer(request, Template.Projects.CREATE_MOD, dict(categories=categories, licenses=licenses))
+
 
 @normal_profile_required
 @require_GET
 def createCore(request: WSGIRequest) -> HttpResponse:
     categories = Category.objects.all().order_by('name')
-    licenses = License.objects.filter(creator=request.user.profile,public=False).order_by('name')
-    return renderer(request, Template.Projects.CREATE_CORE, dict(categories=categories,licenses=licenses))
+    licenses = License.objects.filter(
+        creator=request.user.profile, public=False).order_by('name')
+    return renderer(request, Template.Projects.CREATE_CORE, dict(categories=categories, licenses=licenses))
+
 
 @normal_profile_required
 @require_JSON_body
@@ -121,7 +131,8 @@ def validateField(request: WSGIRequest, field: str) -> JsonResponse:
 @normal_profile_required
 @require_JSON_body
 def licences(request: WSGIRequest) -> JsonResponse:
-    licenses = License.objects.filter(public=True, creator=Profile.KNOTBOT()).exclude(id__in=request.POST.get('givenlicenses', [])).values()
+    licenses = License.objects.filter(public=True, creator=Profile.KNOTBOT()).exclude(
+        id__in=request.POST.get('givenlicenses', [])).values()
     return respondJson(Code.OK, dict(licenses=list(licenses)))
 
 
@@ -234,8 +245,9 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
         userRequest = request.POST["description"]
         referURL = request.POST.get("referurl", "")
         stale_days = int(request.POST.get("stale_days", 3))
-        stale_days = stale_days if stale_days in range(1,16) else 3
-        useInternalMods = request.user.profile.is_manager and request.POST.get("useInternalMods", False)
+        stale_days = stale_days if stale_days in range(1, 16) else 3
+        useInternalMods = request.user.profile.is_manager and request.POST.get(
+            "useInternalMods", False)
 
         if not uniqueRepoName(reponame):
             if json_body:
@@ -285,6 +297,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
         return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
 
+
 @manager_only
 @require_POST
 @ratelimit(key='user', rate='3/m', block=True, method=(Code.POST))
@@ -297,7 +310,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
             if json_body:
                 return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
             return respondRedirect(APPNAME, URL.projects.createCore(), error=Message.TERMS_UNACCEPTED)
-        
+
         name = str(request.POST["coreproject_projectname"]).strip()
         about = str(request.POST["coreproject_projectabout"]).strip()
         category_id = request.POST["coreproject_projectcategory"]
@@ -305,18 +318,20 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
         userRequest = request.POST["coreproject_projectdescription"]
 
         chosenModID = request.POST.get("coreproject_moderator_id", False)
-        useInternalMods = request.POST.get("coreproject_internal_moderator", False)
+        useInternalMods = request.POST.get(
+            "coreproject_internal_moderator", False)
 
         referURL = request.POST.get("coreproject_referurl", "")
         budget = float(request.POST.get("coreproject_projectbudget", 0))
         stale_days = request.POST.get("coreproject_stale_days", 3)
 
         lic_id = request.POST.get("coreproject_license_id", None)
-        
+
         if stale_days == '':
             stale_days = 3
         else:
-            stale_days = int(stale_days) if int(stale_days) in range(1,16) else 3
+            stale_days = int(stale_days) if int(
+                stale_days) in range(1, 16) else 3
         useInternalMods = useInternalMods and request.user.profile.is_manager
 
         if not uniqueRepoName(codename):
@@ -326,20 +341,24 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
 
         chosenModerator = None
         if chosenModID:
-            chosenModerator = Profile.objects.filter(user__id=chosenModID, is_moderator=True,is_active=True,suspended=False,to_be_zombie=False).first()
+            chosenModerator = Profile.objects.filter(
+                user__id=chosenModID, is_moderator=True, is_active=True, suspended=False, to_be_zombie=False).first()
         if chosenModerator:
             useInternalMods = False
         license = None
         if lic_id:
-            license = License.objects.get(id=lic_id,creator=request.user.profile,public=False)
+            license = License.objects.get(
+                id=lic_id, creator=request.user.profile, public=False)
         else:
             lic_name = str(request.POST["coreproject_license_name"]).strip()
             lic_about = str(request.POST["coreproject_license_about"]).strip()
             lic_cont = str(request.POST["coreproject_license_content"]).strip()
-            license = License.objects.create(name=lic_name, description=lic_about, content=lic_cont, creator=request.user.profile,public=False)
+            license = License.objects.create(
+                name=lic_name, description=lic_about, content=lic_cont, creator=request.user.profile, public=False)
 
         category = Category.objects.get(id=category_id)
-        projectobj = createCoreProject(name=name,category=category, codename=codename, description=about,creator=request.user.profile, license=license,budget=budget)
+        projectobj = createCoreProject(name=name, category=category, codename=codename,
+                                       description=about, creator=request.user.profile, license=license, budget=budget)
         if not projectobj:
             raise Exception('createCoreProject: False')
         try:
@@ -351,7 +370,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
         except:
             pass
         mod = requestModerationForCoreProject(
-            projectobj, userRequest, referURL, useInternalMods=useInternalMods, stale_days=stale_days,chosenModerator=chosenModerator)
+            projectobj, userRequest, referURL, useInternalMods=useInternalMods, stale_days=stale_days, chosenModerator=chosenModerator)
         if not mod:
             projectobj.delete()
             if useInternalMods:
@@ -368,7 +387,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
-    except (KeyError,ObjectDoesNotExist) as e:
+    except (KeyError, ObjectDoesNotExist) as e:
         if projectobj:
             projectobj.delete()
         if json_body:
@@ -400,9 +419,11 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
                     return respondJson(Code.NO, error=Message.INVALID_REQUEST)
                 if subproject.request_deletion():
                     if subproject.verified:
-                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", subproject.current_del_request())
+                        addMethodToAsyncQueue(
+                            f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", subproject.current_del_request())
                     else:
-                        addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", subproject.current_del_request())
+                        addMethodToAsyncQueue(
+                            f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", subproject.current_del_request())
                     return respondJson(Code.OK)
                 return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
             elif action == Action.REMOVE:
@@ -419,8 +440,8 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
             if json_body:
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
             return redirect(project.getLink(alert=Message.ERROR_OCCURRED))
-                 
-    except (KeyError,ObjectDoesNotExist,ValidationError) as o:
+
+    except (KeyError, ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
@@ -434,14 +455,18 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
 @require_GET
 def profileBase(request: WSGIRequest, nickname: str) -> HttpResponse:
     try:
-        project = FreeProject.objects.filter(nickname=nickname,trashed=False).first()
+        project = FreeProject.objects.filter(
+            nickname=nickname, trashed=False).first()
         if not project:
-            project = Project.objects.filter(reponame=nickname,trashed=False).first()
+            project = Project.objects.filter(
+                reponame=nickname, trashed=False).first()
             if not project:
-                project = CoreProject.objects.get(codename=nickname,trashed=False)
+                project = CoreProject.objects.get(
+                    codename=nickname, trashed=False)
         return redirect(project.get_link)
     except Exception as e:
         raise Http404(e)
+
 
 @require_GET
 def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
@@ -453,17 +478,19 @@ def profileCore(request: WSGIRequest, codename: str) -> HttpResponse:
             return renderer(request, Template.Projects.PROFILE_CORE, data)
         except:
             if request.user.is_authenticated:
-                coreproject = CoreProject.objects.get(codename=codename, trashed=False, status__in=[Code.MODERATION,Code.REJECTED])
+                coreproject = CoreProject.objects.get(
+                    codename=codename, trashed=False, status__in=[Code.MODERATION, Code.REJECTED])
                 mod = Moderation.objects.filter(coreproject=coreproject, type=CORE_PROJECT, status__in=[
-                    Code.REJECTED, Code.MODERATION]).order_by('-respondOn','-requestOn').first()
+                    Code.REJECTED, Code.MODERATION]).order_by('-respondOn', '-requestOn').first()
                 if coreproject.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
             raise ObjectDoesNotExist(codename)
-    except (ObjectDoesNotExist,ValidationError) as e:
+    except (ObjectDoesNotExist, ValidationError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @require_GET
 def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
@@ -472,7 +499,7 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
         if not data:
             raise ObjectDoesNotExist(nickname)
         return renderer(request, Template.Projects.PROFILE_FREE, data)
-    except (ObjectDoesNotExist,ValidationError) as e:
+    except (ObjectDoesNotExist, ValidationError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
@@ -483,19 +510,20 @@ def profileFree(request: WSGIRequest, nickname: str) -> HttpResponse:
 def profileMod(request: WSGIRequest, reponame: str) -> HttpResponse:
     try:
         try:
-            data = verifiedProfileData(request,reponame=reponame)
+            data = verifiedProfileData(request, reponame=reponame)
             if not data:
                 raise ObjectDoesNotExist(reponame)
             return renderer(request, Template.Projects.PROFILE_MOD, data)
         except Exception as e:
             if request.user.is_authenticated:
-                project = Project.objects.get(reponame=reponame, trashed=False, status__in=[Code.MODERATION,Code.REJECTED])
+                project = Project.objects.get(reponame=reponame, trashed=False, status__in=[
+                                              Code.MODERATION, Code.REJECTED])
                 mod = Moderation.objects.filter(project=project, type=APPNAME, status__in=[
                     Code.REJECTED, Code.MODERATION]).order_by('-requestOn').first()
                 if project.creator == request.user.profile or mod.moderator == request.user.profile:
                     return redirect(mod.getLink())
             raise ObjectDoesNotExist(reponame)
-    except (ObjectDoesNotExist,ValidationError) as e:
+    except (ObjectDoesNotExist, ValidationError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
@@ -512,7 +540,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
         # project = bproject.getProject(True)
         if not project:
             raise ObjectDoesNotExist(f'{projectID} project not found')
-        
+
         if section == 'pallete':
             if request.user.profile != project.creator:
                 if request.user.profile != project.get_moderator():
@@ -575,7 +603,7 @@ def editProfile(request: WSGIRequest, projectID: UUID, section: str) -> HttpResp
                 project.save()
             return redirect(project.getLink(), permanent=True)
         return redirect(project.getLink(error=Message.ERROR_OCCURRED), permanent=True)
-    except (ObjectDoesNotExist,KeyError) as o:
+    except (ObjectDoesNotExist, KeyError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -600,7 +628,8 @@ def manageAssets(request: WSGIRequest, projectID: UUID) -> JsonResponse:
             if not project.can_add_assets():
                 raise ObjectDoesNotExist()
             name = str(request.POST['filename']).strip()
-            file = base64ToFile(request.POST['filedata'], request.POST.get("actualFilename"))
+            file = base64ToFile(
+                request.POST['filedata'], request.POST.get("actualFilename"))
             public = request.POST.get('public', False)
             asset = Asset.objects.create(
                 baseproject=project, name=name, file=file, public=public, creator=request.user.profile)
@@ -675,7 +704,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.OK, dict(
             topics=topicslist
         ))
-    except (ObjectDoesNotExist,ValidationError):
+    except (ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -759,7 +788,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
@@ -807,7 +836,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         return respondJson(Code.OK, dict(
             tags=tagslist
         ))
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -883,7 +912,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(next)
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if next:
@@ -908,7 +937,8 @@ def userGithubRepos(request):
         else:
             repos = request.user.profile.gh_user().get_repos('public')
         for repo in repos:
-            taken = FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()
+            taken = FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(
+                reponame=repo.name, status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name, status=Code.APPROVED).exists()
             data.append({'name': repo.name, 'id': repo.id, 'taken': taken})
         return respondJson(Code.OK, dict(repos=data))
     except Exception as e:
@@ -928,8 +958,9 @@ def linkFreeGithubRepo(request):
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         ghuser = request.user.profile.gh_user()
         repo = request.user.profile.gh_api().get_repo(repoID)
-        if not repo.private and repo.owner in [ghuser, request.user.profile.gh_org()] and not (FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name,status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name,status=Code.APPROVED).exists()):
-            FreeRepository.objects.create(free_project=project, repo_id=repo.id)
+        if not repo.private and repo.owner in [ghuser, request.user.profile.gh_org()] and not (FreeRepository.objects.filter(repo_id=repo.id).exists() or Project.objects.filter(reponame=repo.name, status=Code.APPROVED).exists() or CoreProject.objects.filter(codename=repo.name, status=Code.APPROVED).exists()):
+            FreeRepository.objects.create(
+                free_project=project, repo_id=repo.id)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
     except ObjectDoesNotExist as o:
@@ -976,7 +1007,7 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
         if json_body:
             return respondJson(Code.OK)
         return redirect(project.getProject().getLink())
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
@@ -987,6 +1018,7 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID):
         if project:
             return redirect(project.getProject().getLink(error=Message.ERROR_OCCURRED))
         raise Http404()
+
 
 @decode_JSON
 def projectAdmirations(request, projID):
@@ -1020,6 +1052,7 @@ def projectAdmirations(request, projID):
         errorLog(e)
         raise Http404(e)
 
+
 @decode_JSON
 def snapAdmirations(request, snapID):
     json_body = request.POST.get(Code.JSON_BODY, False)
@@ -1051,6 +1084,7 @@ def snapAdmirations(request, snapID):
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         errorLog(e)
         raise Http404(e)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -1088,7 +1122,7 @@ def liveData(request: WSGIRequest, projID: UUID) -> HttpResponse:
             commitsHTML=commitsHTML
         )
         return respondJson(Code.OK, data)
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1104,7 +1138,7 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
         payload = request.POST['payload']
         ghapp = GhMarketApp.objects.get(gh_id=botID)
         hookrecord, _ = BotHookRecord.objects.get_or_create(
-            hookID=hookID, 
+            hookID=hookID,
             ghmarketapp=ghapp,
             defaults=dict(
                 success=False,
@@ -1117,10 +1151,11 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
             installation = payload['installation']
             account = installation['account']
             permissions = installation['permissions']
-            frepos = FreeRepository.objects.filter(free_project__creator__githubID=account["login"])
+            frepos = FreeRepository.objects.filter(
+                free_project__creator__githubID=account["login"])
             if action == 'created':
                 repositories = payload['repositories']
-                repo_ids = map(lambda r: r['id'] ,repositories)
+                repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
                 apprepos = []
                 for frepo in frepos:
@@ -1132,13 +1167,17 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                         ))
                 AppRepository.objects.bulk_create(apprepos)
             elif action == 'deleted':
-                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).delete()
+                AppRepository.objects.filter(
+                    free_repo__in=list(frepos), gh_app=ghapp).delete()
             elif action == 'suspend':
-                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(suspended=True)
+                AppRepository.objects.filter(free_repo__in=list(
+                    frepos), gh_app=ghapp).update(suspended=True)
             elif action == 'unsuspend':
-                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(suspended=False)
+                AppRepository.objects.filter(free_repo__in=list(
+                    frepos), gh_app=ghapp).update(suspended=False)
             elif action == 'new_permissions_accepted':
-                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).update(permissions=permissions)
+                AppRepository.objects.filter(free_repo__in=list(
+                    frepos), gh_app=ghapp).update(permissions=permissions)
             else:
                 raise Exception("Invalid action", event, action)
             hookrecord.success = True
@@ -1150,7 +1189,7 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
             account = installation['account']
             if action == 'added':
                 repositories = payload['repositories_added']
-                repo_ids = map(lambda r: r['id'] ,repositories)
+                repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
                 apprepos = []
                 for frepo in frepos:
@@ -1163,9 +1202,10 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 AppRepository.objects.bulk_create(apprepos)
             elif action == 'removed':
                 repositories = payload['repositories_removed']
-                repo_ids = map(lambda r: r['id'] ,repositories)
+                repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
-                AppRepository.objects.filter(free_repo__in=list(frepos), gh_app=ghapp).delete()
+                AppRepository.objects.filter(
+                    free_repo__in=list(frepos), gh_app=ghapp).delete()
             else:
                 raise Exception("Invalid action", event, action)
             hookrecord.success = True
@@ -1174,8 +1214,10 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
             repository = payload.get("repository", None)
             if not repository:
                 return HttpResponseBadRequest(event)
-            freeproject = (FreeRepository.objects.get(repo_id=repository["id"])).free_project
-            addMethodToAsyncQueue(f"{APPNAME}.methods.{handleGithubKnottersRepoHook.__name__}", hookrecord.id, event, payload, freeproject)
+            freeproject = (FreeRepository.objects.get(
+                repo_id=repository["id"])).free_project
+            addMethodToAsyncQueue(
+                f"{APPNAME}.methods.{handleGithubKnottersRepoHook.__name__}", hookrecord.id, event, payload, freeproject)
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
@@ -1223,7 +1265,8 @@ def githubEventsListener(request: WSGIRequest, type: str, projID: UUID) -> HttpR
         if hookrecord.success:
             return HttpResponse(Code.NO)
         postData = request.POST
-        addMethodToAsyncQueue(f"{APPNAME}.methods.{handleGithubKnottersRepoHook.__name__}", hookrecord.id, ghevent, postData, project)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.methods.{handleGithubKnottersRepoHook.__name__}", hookrecord.id, ghevent, postData, project)
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
@@ -1243,10 +1286,11 @@ def browseSearch(request: WSGIRequest):
             excludecreatorIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
-        projects = cache.get(cachekey,[])
-        
-        if not len(projects):    
-            specials = ('tag:', 'category:', 'topic:', 'creator:', 'license:', 'type:')
+        projects = cache.get(cachekey, [])
+
+        if not len(projects):
+            specials = ('tag:', 'category:', 'topic:',
+                        'creator:', 'license:', 'type:')
             verified = None
             core = None
             pquery = None
@@ -1255,14 +1299,15 @@ def browseSearch(request: WSGIRequest):
             if query.startswith(specials):
                 def specquerieslist(q):
                     return [
-                        Q(tags__name__iexact=q), 
-                        Q(category__name__iexact=q), 
-                        Q(topics__name__iexact=q), 
+                        Q(tags__name__iexact=q),
+                        Q(category__name__iexact=q),
+                        Q(topics__name__iexact=q),
                         Q(
-                            Q(creator__user__first_name__iexact=q)|Q(creator__user__last_name__iexact=q)|Q(creator__user__email__iexact=q)|Q(creator__nickname__iexact=q)
-                            |Q(co_creators__user__first_name__iexact=q)|Q(co_creators__user__last_name__iexact=q)|Q(co_creators__user__email__iexact=q)|Q(co_creators__nickname__iexact=q)
+                            Q(creator__user__first_name__iexact=q) | Q(creator__user__last_name__iexact=q) | Q(
+                                creator__user__email__iexact=q) | Q(creator__nickname__iexact=q)
                         ),
-                        Q(Q(license__name__iexact=q)|Q(license__name__istartswith=q)),
+                        Q(Q(license__name__iexact=q) | Q(
+                            license__name__istartswith=q)),
                         Q()
                     ]
                 commaparts = query.split(",")
@@ -1290,9 +1335,6 @@ def browseSearch(request: WSGIRequest):
                     | Q(creator__user__last_name__istartswith=pquery)
                     | Q(creator__user__email__istartswith=pquery)
                     | Q(creator__nickname__istartswith=pquery)
-                    | Q(co_creators__user__last_name__istartswith=pquery)
-                    | Q(co_creators__user__email__istartswith=pquery)
-                    | Q(co_creators__nickname__istartswith=pquery)
                     | Q(category__name__iexact=pquery)
                     | Q(topics__name__iexact=pquery)
                     | Q(tags__name__iexact=pquery)
@@ -1306,15 +1348,25 @@ def browseSearch(request: WSGIRequest):
             if not invalidQuery:
                 projects = BaseProject.objects.exclude(trashed=True).exclude(
                     suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(dbquery).distinct()[0:limit]
-                projects = list(filter(lambda m: m.is_approved, list(projects)))
-                if verified != None and verified:
-                    projects = list(filter(lambda m: m.is_verified, list(projects)))
-                if core != None and core:
-                    projects = list(filter(lambda m: m.is_core, list(projects)))
+                if not len(projects):
+                    projects = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(
+                        Q(co_creators__user__last_name__istartswith=pquery)
+                        | Q(co_creators__user__email__istartswith=pquery)
+                        | Q(co_creators__nickname__istartswith=pquery)
+                    ).distinct()[:limit]
 
                 if len(projects):
-                    cache.set(cachekey, projects, settings.CACHE_SHORT)
-        
+                    projects = list(
+                        filter(lambda m: m.is_approved, list(projects)))
+                    if verified != None and verified:
+                        projects = list(
+                            filter(lambda m: m.is_verified, list(projects)))
+                    if core != None and core:
+                        projects = list(
+                            filter(lambda m: m.is_core, list(projects)))
+                    if len(projects):
+                        cache.set(cachekey, projects, settings.CACHE_SHORT)
+
         if json_body:
             return respondJson(Code.OK, dict(
                 projects=list(map(lambda m: dict(
@@ -1325,13 +1377,14 @@ def browseSearch(request: WSGIRequest):
                 ), projects)),
                 query=query
             ))
-        
+
         return rendererstr(request, Template.Projects.BROWSE_SEARCH, dict(projects=projects, query=query))
     except Exception as e:
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
+
 
 @ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
@@ -1344,8 +1397,8 @@ def licenseSearch(request: WSGIRequest):
 
         if request.user.is_authenticated:
             cachekey = f"{cachekey}{request.user.id}"
-        
-        licenses = cache.get(cachekey,[])
+
+        licenses = cache.get(cachekey, [])
         if not len(licenses):
             licenses = License.objects.exclude(public=False).filter(Q(
                 Q(name__istartswith=query)
@@ -1356,25 +1409,26 @@ def licenseSearch(request: WSGIRequest):
                 | Q(description__icontains=query)
             ))[0:limit]
             if len(licenses):
-                cache.set(cachekey,licenses,settings.CACHE_SHORT)
+                cache.set(cachekey, licenses, settings.CACHE_SHORT)
 
         if json_body:
             return respondJson(Code.OK, dict(
                 licenses=list(map(lambda l: dict(
                     id=l.get_id,
-                    name=l.name, 
+                    name=l.name,
                     keyword=l.keyword,
                     url=l.get_link,
                     description=l.description,
                     creator=l.creator.get_name
                 ), licenses)),
                 query=query
-            ))    
+            ))
         return rendererstr(request, Template.Projects.LICENSE_SEARCH, dict(licenses=licenses, query=query))
     except Exception as e:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
+
 
 @require_JSON_body
 def snapshots(request: WSGIRequest, projID: UUID, limit: int):
@@ -1387,17 +1441,19 @@ def snapshots(request: WSGIRequest, projID: UUID, limit: int):
         cachekey = f"project_snapshots_{projID}_{limit}"
         if len(excludeIDs):
             cachekey = cachekey + "".join(excludeIDs)
-            
-        snaps = cache.get(cachekey,[])
+
+        snaps = cache.get(cachekey, [])
         snapIDs = [snap.id for snap in snaps]
-        
+
         if not len(snaps):
-            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False,suspended=False).exclude(id__in=excludeIDs).order_by('-created_on')[0:int(limit)]
+            snaps = Snapshot.objects.filter(base_project__id=projID, base_project__trashed=False, base_project__suspended=False, suspended=False).exclude(
+                id__in=excludeIDs).order_by('-created_on')[0:int(limit)]
             snapIDs = [snap.id for snap in snaps]
             if len(snaps):
                 cache.set(cachekey, snaps, settings.CACHE_INSTANT)
         return respondJson(Code.OK, dict(
-            html=renderer_stronly(request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
+            html=renderer_stronly(
+                request, Template.Projects.SNAPSHOTS, dict(snaps=snaps)),
             snapIDs=snapIDs
         ))
     except Exception as e:
@@ -1433,7 +1489,6 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str):
                 videofile = base64ToImageFile(video)
             except:
                 videofile = None
-                
 
             snapshot = Snapshot.objects.create(
                 base_project=baseproject,
@@ -1534,7 +1589,8 @@ def handleOwnerInvitation(request: WSGIRequest):
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
             if not baseproject.can_invite_owner():
-                raise ObjectDoesNotExist("Cannot invite owner for", baseproject)
+                raise ObjectDoesNotExist(
+                    "Cannot invite owner for", baseproject)
             receiver = Profile.objects.get(
                 user__email=email, suspended=False, is_active=True, to_be_zombie=False)
             if not baseproject.can_invite_owner_profile(receiver):
@@ -1555,13 +1611,14 @@ def handleOwnerInvitation(request: WSGIRequest):
                 inv.receiver = receiver
                 inv.expiresOn = timezone.now() + timedelta(days=1)
                 inv.save()
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
         elif action == Action.REMOVE:
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
             baseproject.cancel_invitation()
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist,InvalidUserOrProfile):
+    except (ObjectDoesNotExist, InvalidUserOrProfile):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -1575,12 +1632,13 @@ def projectTransferInvite(request: WSGIRequest, inviteID: UUID):
         invitation = ProjectTransferInvitation.objects.get(id=inviteID, baseproject__suspended=False,
                                                            baseproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.INVITATION,
-                 dict(invitation=invitation))
-    except (ObjectDoesNotExist,ValidationError) as o:
+                        dict(invitation=invitation))
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -1599,17 +1657,20 @@ def projectTransferInviteAction(request: WSGIRequest, inviteID: UUID):
         if not done:
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
-            message = Message.PROJECT_TRANSFER_ACCEPTED 
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferAcceptedInvitation.__name__}",invitation)
+            message = Message.PROJECT_TRANSFER_ACCEPTED
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{projectTransferAcceptedInvitation.__name__}", invitation)
         else:
             message = Message.PROJECT_TRANSFER_DECLINED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferDeclinedInvitation.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{projectTransferDeclinedInvitation.__name__}", invitation)
         return redirect(invitation.baseproject.getLink(alert=message))
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @moderator_only
 @require_JSON_body
@@ -1617,12 +1678,13 @@ def handleVerModInvitation(request: WSGIRequest):
     try:
         action = request.POST['action']
         projID = request.POST['projectID']
-        
+
         if action == Action.CREATE:
             email = request.POST['email'].lower()
             if (request.user.email == email) or (email in request.user.emails()):
                 raise ObjectDoesNotExist(email)
-            project = Project.objects.get(id=projID, suspended=False, trashed=False)
+            project = Project.objects.get(
+                id=projID, suspended=False, trashed=False)
             if project.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
             if not project.can_invite_mod():
@@ -1631,11 +1693,11 @@ def handleVerModInvitation(request: WSGIRequest):
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
             if not project.can_invite_profile(receiver):
                 raise InvalidUserOrProfile(receiver)
-            
+
             if ProjectTransferInvitation.objects.filter(baseproject=project.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv, created = ProjectModerationTransferInvitation.objects.get_or_create(
-                project=project, 
+                project=project,
                 sender=request.user.profile,
                 resolved=False,
                 defaults=dict(
@@ -1654,14 +1716,16 @@ def handleVerModInvitation(request: WSGIRequest):
                 else:
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             if alert:
-                addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferInvitation.__name__}", inv)
+                addMethodToAsyncQueue(
+                    f"{APPNAME}.mailers.{projectModTransferInvitation.__name__}", inv)
         elif action == Action.REMOVE:
-            project = Project.objects.get(id=projID, suspended=False, trashed=False)
+            project = Project.objects.get(
+                id=projID, suspended=False, trashed=False)
             if project.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
             project.cancel_moderation_invitation()
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist,InvalidUserOrProfile):
+    except (ObjectDoesNotExist, InvalidUserOrProfile):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -1673,14 +1737,15 @@ def handleVerModInvitation(request: WSGIRequest):
 def projectModTransferInvite(request: WSGIRequest, inviteID: UUID):
     try:
         invitation = ProjectModerationTransferInvitation.objects.get(id=inviteID, project__suspended=False,
-                                                           project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                                     project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.VER_M_INVITATION,
-                 dict(invitation=invitation))
-    except (ObjectDoesNotExist,ValidationError) as o:
+                        dict(invitation=invitation))
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @moderator_only
 @require_JSON_body
@@ -1688,7 +1753,7 @@ def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
     try:
         action = request.POST['action']
         invitation = ProjectModerationTransferInvitation.objects.get(id=inviteID, project__suspended=False,
-                                                           project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                                     project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         done = False
         accept = False
         if action == Action.ACCEPT:
@@ -1699,17 +1764,20 @@ def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
         if not done:
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
-            message = Message.PROJECT_MOD_TRANSFER_ACCEPTED 
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferAcceptedInvitation.__name__}",invitation)
+            message = Message.PROJECT_MOD_TRANSFER_ACCEPTED
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{projectModTransferAcceptedInvitation.__name__}", invitation)
         else:
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferDeclinedInvitation.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{projectModTransferDeclinedInvitation.__name__}", invitation)
         return redirect(invitation.project.getLink(alert=message))
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @moderator_only
 @require_JSON_body
@@ -1721,7 +1789,8 @@ def handleCoreModInvitation(request: WSGIRequest):
             email = request.POST['email'].lower()
             if (request.user.email == email) or (email in request.user.emails()):
                 raise ObjectDoesNotExist(email)
-            coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
+            coreproject = CoreProject.objects.get(
+                id=projID, suspended=False, trashed=False)
             if coreproject.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
             if not coreproject.can_invite_mod():
@@ -1734,7 +1803,7 @@ def handleCoreModInvitation(request: WSGIRequest):
             if ProjectTransferInvitation.objects.filter(baseproject=coreproject.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv, created = CoreModerationTransferInvitation.objects.get_or_create(
-                coreproject=coreproject, 
+                coreproject=coreproject,
                 sender=request.user.profile,
                 resolved=False,
                 defaults=dict(
@@ -1753,9 +1822,11 @@ def handleCoreModInvitation(request: WSGIRequest):
                 else:
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             if alert:
-                addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferInvitation.__name__}", inv)
+                addMethodToAsyncQueue(
+                    f"{APPNAME}.mailers.{coreProjectModTransferInvitation.__name__}", inv)
         elif action == Action.REMOVE:
-            coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
+            coreproject = CoreProject.objects.get(
+                id=projID, suspended=False, trashed=False)
             if coreproject.moderator != request.user.profile:
                 raise ObjectDoesNotExist(request.user.profile)
             coreproject.cancel_moderation_invitation()
@@ -1772,14 +1843,15 @@ def handleCoreModInvitation(request: WSGIRequest):
 def coreProjectModTransferInvite(request: WSGIRequest, inviteID: UUID):
     try:
         invitation = CoreModerationTransferInvitation.objects.get(id=inviteID, coreproject__suspended=False,
-                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                                  coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.CORE_M_INVITATION,
-                 dict(invitation=invitation))
-    except (ObjectDoesNotExist,ValidationError) as o:
+                        dict(invitation=invitation))
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @moderator_only
 @require_JSON_body
@@ -1787,7 +1859,7 @@ def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
     try:
         action = request.POST['action']
         invitation = CoreModerationTransferInvitation.objects.get(id=inviteID, coreproject__suspended=False,
-                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                                  coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         done = False
         accept = False
         if action == Action.ACCEPT:
@@ -1798,17 +1870,20 @@ def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
         if not done:
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
-            message = Message.PROJECT_MOD_TRANSFER_ACCEPTED 
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferAcceptedInvitation.__name__}",invitation)
+            message = Message.PROJECT_MOD_TRANSFER_ACCEPTED
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{coreProjectModTransferAcceptedInvitation.__name__}", invitation)
         else:
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferDeclinedInvitation.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{coreProjectModTransferDeclinedInvitation.__name__}", invitation)
         return redirect(invitation.coreproject.getLink(alert=message))
-    except (ObjectDoesNotExist,ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @moderator_only
 @require_GET
@@ -1822,6 +1897,7 @@ def verProjectDeleteRequest(request, inviteID):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @moderator_only
 @require_JSON_body
@@ -1841,12 +1917,15 @@ def verProjectDeleteRequestAction(request, inviteID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_DEL_ACCEPTED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionAcceptedRequest.__name__}",invitation)
-            addMethodToAsyncQueue(f"{APPNAME}.methods.{deleteGhOrgVerifiedRepository.__name__}",invitation.project)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{verProjectDeletionAcceptedRequest.__name__}", invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.methods.{deleteGhOrgVerifiedRepository.__name__}", invitation.project)
             return redirect(request.user.profile.getLink(alert=message))
         else:
             message = Message.PROJECT_DEL_DECLINED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{verProjectDeletionDeclinedRequest.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{verProjectDeletionDeclinedRequest.__name__}", invitation)
             return redirect(invitation.project.getLink(alert=message))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -1854,12 +1933,13 @@ def verProjectDeleteRequestAction(request, inviteID):
         errorLog(e)
         raise Http404(e)
 
+
 @moderator_only
 @require_GET
 def coreProjectDeleteRequest(request, inviteID):
     try:
         invitation = CoreProjectDeletionRequest.objects.get(id=inviteID, coreproject__suspended=False,
-                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                            coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.CORE_DEL_INVITATION, dict(invitation=invitation))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -1867,13 +1947,14 @@ def coreProjectDeleteRequest(request, inviteID):
         errorLog(e)
         raise Http404(e)
 
+
 @moderator_only
 @require_JSON_body
 def coreProjectDeleteRequestAction(request, inviteID):
     try:
         action = request.POST['action']
         invitation = CoreProjectDeletionRequest.objects.get(id=inviteID, coreproject__suspended=False,
-                                                           coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                            coreproject__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         done = False
         accept = False
         if action == Action.ACCEPT:
@@ -1885,12 +1966,15 @@ def coreProjectDeleteRequestAction(request, inviteID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_DEL_ACCEPTED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionAcceptedRequest.__name__}",invitation)
-            addMethodToAsyncQueue(f"{APPNAME}.methods.{deleteGhOrgCoreepository.__name__}",invitation.coreproject)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{coreProjectDeletionAcceptedRequest.__name__}", invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.methods.{deleteGhOrgCoreepository.__name__}", invitation.coreproject)
             return redirect(request.user.profile.getLink(alert=message))
         else:
             message = Message.PROJECT_DEL_DECLINED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectDeletionDeclinedRequest.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{coreProjectDeletionDeclinedRequest.__name__}", invitation)
             return redirect(invitation.coreproject.getLink(alert=message))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -1906,11 +1990,13 @@ def coreVerificationRequest(request: WSGIRequest):
         action = request.POST['action']
         projID = request.POST['projectID']
         if action == Action.CREATE:
-            coreproject = CoreProject.objects.get(id=projID,creator=request.user.profile, suspended=False, trashed=False)
+            coreproject = CoreProject.objects.get(
+                id=projID, creator=request.user.profile, suspended=False, trashed=False)
             if not coreproject.can_request_verification():
-                raise ObjectDoesNotExist("cannot request verification: ", coreproject)
+                raise ObjectDoesNotExist(
+                    "cannot request verification: ", coreproject)
 
-            if Project.objects.filter(reponame=coreproject.codename, creator=request.user.profile, status__in=[Code.MODERATION,Code.APPROVED], trashed=False).exists():
+            if Project.objects.filter(reponame=coreproject.codename, creator=request.user.profile, status__in=[Code.MODERATION, Code.APPROVED], trashed=False).exists():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
             if CoreProjectVerificationRequest.objects.filter(coreproject=coreproject).exists():
@@ -1921,10 +2007,12 @@ def coreVerificationRequest(request: WSGIRequest):
 
             requestData = request.POST['requestData']
             stale_days = int(request.POST.get("stale_days", 3))
-            stale_days = stale_days if stale_days in range(1,16) else coreproject.moderation.stale_days
+            stale_days = stale_days if stale_days in range(
+                1, 16) else coreproject.moderation.stale_days
             referURL = coreproject.get_abs_link
 
-            verifiedproject = createConversionProjectFromCore(coreproject, request.POST['licenseID'])
+            verifiedproject = createConversionProjectFromCore(
+                coreproject, request.POST['licenseID'])
             if not verifiedproject:
                 raise Exception(verifiedproject)
             vreq = CoreProjectVerificationRequest.objects.create(
@@ -1938,14 +2026,17 @@ def coreVerificationRequest(request: WSGIRequest):
             verifiedproject.topics.set(coreproject.topics.all())
             verifiedproject.tags.set(coreproject.tags.all())
             verifiedproject.save()
-            done = assignModeratorToObject(APPNAME,verifiedproject, coreproject.moderator, requestData,referURL,stale_days, internal_mod=coreproject.moderation.internal_mod)
+            done = assignModeratorToObject(APPNAME, verifiedproject, coreproject.moderator,
+                                           requestData, referURL, stale_days, internal_mod=coreproject.moderation.internal_mod)
             if not done:
                 verifiedproject.delete()
                 raise Exception('err verrequest moderation assign', done)
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
             return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
         elif action == Action.REMOVE:
-            coreproject = CoreProject.objects.get(id=projID, suspended=False, trashed=False)
+            coreproject = CoreProject.objects.get(
+                id=projID, suspended=False, trashed=False)
             if not coreproject.cancel_verification_request():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         return respondJson(Code.OK)
@@ -1955,6 +2046,7 @@ def coreVerificationRequest(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
+
 @normal_profile_required
 @require_JSON_body
 def freeVerificationRequest(request: WSGIRequest):
@@ -1962,11 +2054,13 @@ def freeVerificationRequest(request: WSGIRequest):
         action = request.POST['action']
         projID = request.POST['projectID']
         if action == Action.CREATE:
-            freeproject = FreeProject.objects.get(id=projID,creator=request.user.profile, suspended=False, trashed=False)
+            freeproject = FreeProject.objects.get(
+                id=projID, creator=request.user.profile, suspended=False, trashed=False)
             if not freeproject.can_request_verification():
-                raise ObjectDoesNotExist("cannot request verification: ", freeproject)
+                raise ObjectDoesNotExist(
+                    "cannot request verification: ", freeproject)
 
-            if Project.objects.filter(reponame=freeproject.nickname, creator=request.user.profile, status__in=[Code.MODERATION,Code.APPROVED], trashed=False).exists():
+            if Project.objects.filter(reponame=freeproject.nickname, creator=request.user.profile, status__in=[Code.MODERATION, Code.APPROVED], trashed=False).exists():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
 
             if FreeProjectVerificationRequest.objects.filter(freeproject=freeproject).exists():
@@ -1977,7 +2071,7 @@ def freeVerificationRequest(request: WSGIRequest):
 
             requestData = request.POST['requestData']
             stale_days = int(request.POST.get("stale_days", 3))
-            stale_days = stale_days if stale_days in range(1,16) else 3
+            stale_days = stale_days if stale_days in range(1, 16) else 3
             referURL = freeproject.get_abs_link
 
             useInternalMods = request.POST.get('useInternalMods', False)
@@ -1999,14 +2093,16 @@ def freeVerificationRequest(request: WSGIRequest):
             verifiedproject.tags.set(freeproject.tags.all())
             verifiedproject.save()
             winnerVerification = request.POST.get('winnerVerification', False)
-          
+
             mod = None
             if winnerVerification:
                 subm = freeproject.submission()
                 if subm and subm.is_winner():
-                    mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, stale_days=stale_days, chosenModerator=subm.competition.moderator)
+                    mod = requestModerationForObject(
+                        verifiedproject, APPNAME, requestData, referURL, stale_days=stale_days, chosenModerator=subm.competition.moderator)
             if not mod:
-                mod = requestModerationForObject(verifiedproject, APPNAME, requestData, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
+                mod = requestModerationForObject(
+                    verifiedproject, APPNAME, requestData, referURL, useInternalMods=useInternalMods, stale_days=stale_days)
             if not mod:
                 verifiedproject.delete()
                 if useInternalMods:
@@ -2018,7 +2114,8 @@ def freeVerificationRequest(request: WSGIRequest):
                     f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
         elif action == Action.REMOVE:
-            freeproject = FreeProject.objects.get(id=projID, suspended=False, trashed=False)
+            freeproject = FreeProject.objects.get(
+                id=projID, suspended=False, trashed=False)
             if not freeproject.cancel_verification_request():
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         return respondJson(Code.OK)
@@ -2031,7 +2128,7 @@ def freeVerificationRequest(request: WSGIRequest):
 
 @normal_profile_required
 @require_JSON
-def handleCocreatorInvitation(request,projectID):
+def handleCocreatorInvitation(request, projectID):
     """
         To manage co-creator invitation 
     """
@@ -2041,16 +2138,18 @@ def handleCocreatorInvitation(request,projectID):
             email = request.POST['email'].lower()
             if (request.user.email == email) or (email in request.user.emails()):
                 raise ObjectDoesNotExist(email)
-            baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
+            baseproject = BaseProject.objects.get(
+                id=projectID, suspended=False, trashed=False, creator=request.user.profile)
             if not baseproject.can_invite_cocreator():
-                raise ObjectDoesNotExist("cannot invite cocreator: ", baseproject)
+                raise ObjectDoesNotExist(
+                    "cannot invite cocreator: ", baseproject)
             receiver = Profile.objects.get(
-                user__email=email,suspended=False, is_active=True, to_be_zombie=False)
+                user__email=email, suspended=False, is_active=True, to_be_zombie=False)
             if not baseproject.can_invite_cocreator_profile(receiver):
                 raise InvalidUserOrProfile(receiver)
 
             inv, created = BaseProjectCoCreatorInvitation.objects.get_or_create(
-                base_project=baseproject, 
+                base_project=baseproject,
                 sender=request.user.profile,
                 resolved=False,
                 receiver=receiver,
@@ -2062,14 +2161,17 @@ def handleCocreatorInvitation(request,projectID):
             if not created:
                 inv.expiresOn = timezone.now() + timedelta(days=1)
                 inv.save()
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{baseProjectCoCreatorInvitation.__name__}", inv)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{baseProjectCoCreatorInvitation.__name__}", inv)
         elif action == Action.REMOVE:
             receiver_id = request.POST['receiver_id']
-            baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
+            baseproject = BaseProject.objects.get(
+                id=projectID, suspended=False, trashed=False, creator=request.user.profile)
             receiver = Profile.objects.get(user__id=receiver_id)
             baseproject.cancel_cocreator_invitation(receiver)
         elif action == Action.REMOVE_ALL:
-            baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
+            baseproject = BaseProject.objects.get(
+                id=projectID, suspended=False, trashed=False, creator=request.user.profile)
             baseproject.cancel_all_cocreator_invitations()
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile) as o:
@@ -2077,34 +2179,37 @@ def handleCocreatorInvitation(request,projectID):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-    
+
+
 @normal_profile_required
 @require_GET
-def projectCocreatorInvite(request,inviteID):
+def projectCocreatorInvite(request, inviteID):
     """
     To render view/page for receiver of cocreator invitation 
     """
     try:
-        invitation = BaseProjectCoCreatorInvitation.objects.get(id=inviteID, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+        invitation = BaseProjectCoCreatorInvitation.objects.get(
+            id=inviteID, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         return renderer(request, Template.Projects.COCREATOR_INVITATION,
-                 dict(invitation=invitation))
-    except (ObjectDoesNotExist,ValidationError) as o:
+                        dict(invitation=invitation))
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
     return
 
+
 @normal_profile_required
 @require_JSON
-def projectCocreatorInviteAction(request,inviteID):
+def projectCocreatorInviteAction(request, inviteID):
     """
         To handle invitation action(accept/decline) by receiver of cocreator invitation
     """
     try:
         action = request.POST['action']
         invitation = BaseProjectCoCreatorInvitation.objects.get(id=inviteID, base_project__suspended=False,
-                                                           base_project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
+                                                                base_project__trashed=False, resolved=False, receiver=request.user.profile, expiresOn__gt=timezone.now())
         done = False
         accept = False
         if action == Action.ACCEPT:
@@ -2116,20 +2221,23 @@ def projectCocreatorInviteAction(request,inviteID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.COCREATOR_INVITE_ACCEPTED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{baseProjectCoCreatorAcceptedInvitation.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{baseProjectCoCreatorAcceptedInvitation.__name__}", invitation)
         else:
             message = Message.COCREATOR_INVITE_DECLINED
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{baseProjectCoCreatorDeclinedInvitation.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{baseProjectCoCreatorDeclinedInvitation.__name__}", invitation)
         return redirect(invitation.base_project.getLink(alert=message))
-    except (ObjectDoesNotExist,ValidationError,KeyError) as o:
+    except (ObjectDoesNotExist, ValidationError, KeyError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
 
+
 @normal_profile_required
 @require_JSON
-def projectCocreatorManage(request,projectID):
+def projectCocreatorManage(request, projectID):
     """
     To manage existing co-creators
     """
@@ -2138,9 +2246,9 @@ def projectCocreatorManage(request,projectID):
         cocreator_id = request.POST['cocreator_id']
         if action == Action.REMOVE:
             project = BaseProject.objects.get(
-            Q(id=projectID,suspended=False,trashed=False),
-            Q(creator=request.user.profile) 
-            | Q(co_creators=request.user.profile))
+                Q(id=projectID, suspended=False, trashed=False),
+                Q(creator=request.user.profile)
+                | Q(co_creators=request.user.profile))
             profile = project.co_creators.filter(user__id=cocreator_id).first()
             if not profile:
                 raise InvalidUserOrProfile(cocreator_id)
@@ -2150,9 +2258,8 @@ def projectCocreatorManage(request,projectID):
                 raise ObjectDoesNotExist(cocreator_id)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
-    except (ObjectDoesNotExist,KeyError, InvalidUserOrProfile):
-        return respondJson(Code.NO,error=Message.INVALID_REQUEST)
+    except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
-    
