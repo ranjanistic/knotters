@@ -269,11 +269,12 @@ def testPathRegex(pathreg, path):
     if regpath == path:
         return True
     parts = regpath.split("+")
-    parts.pop()
+    if not parts[-1]:
+        parts.pop()
 
     def eachpart(part: str):
         return localParamRegex if part == localParamRegex else f"({part})"
-    finalreg = "+".join(map(eachpart, parts))
+    finalreg = "^" + "+".join(map(eachpart, parts)) + "+$"
     match = re_compile(finalreg).match(path)
     if match:
         return len(match.groups()) > 0

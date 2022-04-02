@@ -130,25 +130,26 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
     """
 
     def process_request(self, request):
-        match = resolve(request.path)
-        except_list = settings.BYPASS_2FA_PATHS
-        except_list += (f'/{URL.AUTH}two-factor-authenticate',)
-        if (request.path.strip('/') not in except_list) and (not match.url_name or not match.url_name.startswith(except_list)):
-            deleteSession = True
-            for p in except_list:
-                if request.path == p:
-                    deleteSession = False
-                elif testPathRegex(p, request.path) or testPathRegex(p, request.path.strip('/')):
-                    deleteSession = False
-                elif request.path.startswith(p) or request.path.strip('/').startswith(p) or request.path.strip('/').startswith(p.strip('/')):
-                    deleteSession = False
-                if not deleteSession:
-                    break
-            try:
-                if deleteSession:
-                    del request.session['allauth_2fa_user_id']
-            except KeyError:
-                pass
+        if request.session.get('allauth_2fa_user_id', None):
+            match = resolve(request.path)
+            except_list = settings.BYPASS_2FA_PATHS
+            except_list += (f'/{URL.AUTH}two-factor-authenticate',)
+            if (request.path.strip('/') not in except_list) and (not match.url_name or not match.url_name.startswith(except_list)):
+                deleteSession = True
+                for p in except_list:
+                    if request.path == p:
+                        deleteSession = False
+                    elif testPathRegex(p, request.path) or testPathRegex(p, request.path.strip('/')):
+                        deleteSession = False
+                    elif request.path.startswith(p) or request.path.strip('/').startswith(p) or request.path.strip('/').startswith(p.strip('/')):
+                        deleteSession = False
+                    if not deleteSession:
+                        break
+                try:
+                    if deleteSession:
+                        del request.session['allauth_2fa_user_id']
+                except KeyError:
+                    pass
 
 
 class ExtendedSessionMiddleware(SessionMiddleware):
