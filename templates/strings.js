@@ -19,7 +19,7 @@ const STRING = {
     will_take_few_seconds: `{% trans "It will take a few seconds, depending upon your network strength." %}`,
     yes_up_now: `{% trans "Yes, update now" %}`,
     not_now: `{% trans "No, not now" %}`,
-    re_introduction: `{% trans "Press Alt+R for re-introduction, or visit The Landing Page" %}`,
+    re_introduction: `{% trans "Press Alt+R for re-introduction, or visit About Knotters page." %}`,
     update_available: `{% trans "Update available" %}`,
     default_error_message: `{% trans "Something went wrong." %}`,
     default_success_message: `{% trans "Successfull" %}`,

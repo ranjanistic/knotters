@@ -108,7 +108,7 @@ const loadGlobalEventListeners = () => {
                 getElement(`close-${view.id}`).addEventListener("click", () => {
                     localStorage.setItem(`first-intro-${view.id}`, 1);
                     message(STRING.re_introduction, (t) => {
-                        t.onclick = (_) => refer({ path: URLS.LANDING });
+                        t.onclick = (_) => refer({ path: URLS.HOME });
                     });
                     hide(view);
                 });

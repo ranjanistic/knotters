@@ -6,15 +6,15 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block meta_description %}Meet the people you share this platform with. Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.{% endblock %}
+{% block meta_description %}Meet the people you share this platform with. Who knows maybe you'd find a not-so-strange profile interesting?{% endblock %}
 {% block og_url %}{{URLS.PEOPLE}}{% endblock %}
 {% block og_title %}{% trans "Community" %}{% endblock %}
-{% block og_description %}Meet the people you share this platform with. Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.{% endblock %}
+{% block og_description %}Meet the people you share this platform with. Who knows maybe you'd find a not-so-strange profile interesting?{% endblock %}
 {% block og_site_name %}{% trans "Community" %}{% endblock %}
 
 {% block tw_url %}{{URLS.PEOPLE}}{% endblock %}
 {% block tw_title %}{% trans "Community" %}{% endblock %}
-{% block tw_description %}Meet the people you share this platform with. Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.{% endblock %}
+{% block tw_description %}Meet the people you share this platform with. Who knows maybe you'd find a not-so-strange profile interesting?{% endblock %}
 {% block tw_site_name %}{% trans "Community" %}{% endblock %}
 
 {% block themecolor %}accent{% endblock %}
@@ -36,27 +36,43 @@
 
 {% block content %}
 <div class="w3-row w3-center w3-padding-32 welcome-row first-time-view" id='people-intro-banner'>
-  <br/><br/>
-  <h1>{% trans "Community" %}</h1>
+  <br/>
+  <h1 class="w3-jumbo w3-hide-small">{% trans "Community" %}</h1>
+  <h2 class="w3-hide-medium w3-hide-large">{% trans "Community" %}</h2>
   <br/>
   <div class='w3-row w3-padding'>
-  <strong class='text-medium'>
-    Meet the people you share this platform with.<br/>
-	Who knows maybe you'd find an interesting project in a not-so-strange profile? Who knows.
+  <strong class='text-large'>
+    Meet the people you share this platform with.<br/><br/>
+	Who knows maybe you'd find a not-so-strange profile interesting?
   </strong>
   </div>
   <br/><br/>
   <div class='w3-row'>
-    <a href='{{URLS.LANDING}}'>
-      <button class='positive big-button' data-icon='flight_land'>
-        {% trans "Learn More" %}
-      </button>
-    </a>
-  
     <button class='big-button accent' id='close-people-intro-banner' data-icon='flight_takeoff'>
-      {% trans "I'm ready" %}
+      {% trans "Got it!" %}
     </button>
+    {% if not request.user.is_authenticated %}
+    <a href="{{URLS.Auth.SIGNUP}}">
+    <button class='big-button positive' data-icon='person_add'>
+      {% trans "Join" %} {{APPNAME}}
+    </button>
+    </a>
+    {% elif not request.user.profile.on_boarded %}
+    <a href="{{URLS.ON_BOARDING}}">
+    <button class='big-button positive' data-icon='arrow_forward'>
+      {% trans "Get started" %}
+    </button>
+    </a>
+    {% else %}
+    <a href="{{request.user.profile.get_link}}">
+    <button class='big-button {{request.user.profile.theme}}'>
+      <img class="circle" src="{{request.user.profile.get_dp}}" alt="{{request.user.profile.get_name}}" />
+      {% trans "Your profile" %}
+    </button>
+    </a>
+    {% endif %}
   </div>
+  <br/><br/>
 </div>
 
 <div class="w3-row">

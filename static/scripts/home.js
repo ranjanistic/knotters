@@ -16,3 +16,5 @@ if(getElements("domain-colab-tab").length){
         setDefaultViews: false,
     });
 }
+
+restartIntros()

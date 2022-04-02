@@ -39,24 +39,19 @@
 {% block content %}
 <div class="w3-row w3-padding welcome-row first-time-view" id='projects-intro-banner'>
 <br/>
-  <br/>
   <div class='w3-row w3-padding'>
-  <h1>{% trans "Projects" %}</h1>
+  <h1 class="w3-jumbo w3-hide-small">{% trans "Projects" %}</h1>
+  <h2 class="w3-hide-medium w3-hide-large">{% trans "Projects" %}</h1>
   </div>
   <br/>
   <div class='w3-row w3-padding'>
-  <strong class='text-medium'>
-    Community projects, open for everyone, to everyone.<br/>
+  <strong class='text-large'>
+    Community projects, open for everyone, to everyone.<br/><br/>
     Contribute to existing ideas, or submit your own to make it real together with everyone.
   </strong>
   </div>
   <br/><br/>
   <div class='w3-row w3-padding'>
-    <a href='{{URLS.LANDING}}'>
-      <button class='primary big-button' data-icon='flight_land'>
-        {% trans "Learn More" %}
-      </button>
-    </a>
     <button class='big-button accent' id='close-projects-intro-banner' data-icon='flight_takeoff'>
       {% trans "Got it" %}
     </button>
@@ -66,6 +61,7 @@
     </button>
     </a>
   </div>
+  <br/><br/>
 </div>
 
 <div class="w3-row" >
