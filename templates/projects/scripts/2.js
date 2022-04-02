@@ -10,7 +10,8 @@ const selfProject = "{{iscreator}}"==='True';
 const ismoderator = "{{ismoderator}}" === 'True';
 const iscreator = selfProject;
 const iscocreator = "{{iscocreator}}"==='True';
-const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--positive').trim().replace('#','');
+const isSuspended = "{{project.suspended}}"==='True';
+const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--{{project.theme}}').trim().replace('#','');
 
 {% if not project.suspended %}
     {% if iscreator %}
@@ -290,29 +291,15 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
             }
         {% endif %}
     {% endif %}
-
-    {% if iscreator or ismoderator %}
+    {% if request.GET.admirers %}
+    getElement('show-admirations').click()
     {% endif %}
-    if(authenticated){
+    {% if request.user.is_authenticated %}
         {% if request.GET.admire == '1' and not isAdmirer %}
             getElement("toggle-admiration").click()
         {% endif %}
         {% if request.GET.admire == '0' and isAdmirer %}
             getElement("toggle-admiration").click()
         {% endif %}
-        {% if not iscreator %}
-        getElement('report-project').onclick=async()=>{
-            await violationReportDialog(URLS.REPORT_PROJECT,{projectID},"{{project.nickname}}", URLS.REPORT_CATEGORIES)   
-        }
-        {% endif %}
-    }
-    getElement('show-admirations').onclick=async(_)=>{
-        Swal.fire({ 
-            html: await getRequest2({ path:setUrlParams(URLS.ADMIRATIONS, projectID)}), 
-            title:"<h4 class='positive-text'>Admirers</h4>"
-        })
-    }
-    {% if request.GET.admirers %}
-    getElement('show-admirations').click()
     {% endif %}
 {% endif %}

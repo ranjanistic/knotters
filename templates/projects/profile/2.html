@@ -316,7 +316,7 @@
                             </div>
                         </div>
                         <div class="w3-row" align='right'>
-                            {% if iscreator or request.user.profile==cocreator %}
+                            {% if iscreator or request.user.profile == cocreator %}
                             <i class="circle delete-cocreator-action negative-text" data-userid="{{cocreator.get_userid}}">delete_forever</i>
                             {% endif %}
                         </div>

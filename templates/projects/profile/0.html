@@ -254,7 +254,7 @@
                             </div>
                         </div>
                         <div class="w3-row" align='right'>
-                            {% if iscreator or request.user.profile==cocreator %}
+                            {% if iscreator or request.user.profile == cocreator %}
                             <i class="circle delete-cocreator-action negative-text" data-userid="{{cocreator.get_userid}}">delete_forever</i>
                             {% endif %}
                         </div>
@@ -332,15 +332,17 @@
                             </div>
                             <div class="w3-row" align='right'>
                                 <a href="{{asset.creator.get_link}}"><img style="margin-bottom:10px" title="{{asset.creator.get_name}}" src="{{asset.creator.get_dp}}" class="w3-circle primary pallete" width="25" /></a>
-                                {% if iscreator %}
+                                {% if iscreator or iscocreator %}
                                 <a href="{{asset.get_link}}" download><i class="circle">download</i></a>
                                 <i class="circle visibility-assets-action {% if asset.public %}positive-text{% else %}active-text{% endif %}" data-assetid="{{asset.get_id}}" data-public="{{asset.public|onezero}}"
                                     title="{% if asset.public %}{{APPNAME}} community can access{% else %}Only you can access{% endif %}"
                                     >{{asset.public|publicprivateicon}}</i>
-                                <i class="circle delete-assets-action negative-text" data-assetid="{{asset.get_id}}">delete_forever</i>
+                                    {% if not iscocreator or asset.creator == request.user.profile %}
+                                        <i class="circle delete-assets-action negative-text" data-assetid="{{asset.get_id}}">delete_forever</i>
+                                    {% endif %}
                                 {% else %}
                                     {% if request.user.is_authenticated %}
-                                        {% if asset.public or iscocreator%}
+                                        {% if asset.public or iscocreator %}
                                         <a href="{{asset.get_link}}" download><i class="circle">download</i></a>
                                         {% else %}
                                         <i class="circle active-text message-action" title="Private asset">lock</i>

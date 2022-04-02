@@ -4,15 +4,7 @@ on:
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - '**/test_views.py'
-      - '**/views.py'
-      - '**/test_methods.py'
-      - '**/methods.py'
-      - '**/test_models.py'
-      - '**/models.py'
       - '**.md'
-      - 'static/**'
-      - 'templates/**'
       - '.gitignore'
       - ".github/**"
 
@@ -71,7 +63,7 @@ jobs:
         python3 manage.py migrate --noinput
     - name: Run tests
       run: |
-        python3 manage.py test --noinput --verbosity=1 --parallel --tag=rest
+        python3 manage.py test --noinput --verbosity=1 --parallel
     - name: Clear environment
       run: |
         rm -f ${{ secrets.ENVPATH }}
