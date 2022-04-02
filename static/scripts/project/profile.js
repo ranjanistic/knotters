@@ -609,30 +609,44 @@ if (!isSuspended) {
     if (iscreator || iscocreator) {
         getElements("delete-cocreator-action").forEach((delcocreator) => {
             delcocreator.onclick = async (e) => {
-                message("Removing Co-Creator...");
-                const data = await postRequest2({
-                    path: setUrlParams(
-                        URLS.MANAGE_PROJECT_COCREATOR,
-                        projectID
-                    ),
-                    data: {
-                        action: "remove",
-                        cocreator_id: delcocreator.getAttribute("data-userid"),
-                    },
-                });
-                if (data.code === code.OK) {
-                    futuremessage("Co-Creator removed");
-                    if (getElements("delete-cocreator-action").length > 1) {
-                        getElement(
-                            `cocreator-view-${delcocreator.getAttribute(
-                                "data-userid"
-                            )}`
-                        ).remove();
-                        return true;
+                Swal.fire({
+                    title: 'Remove co-creator?',
+                    html: `
+                    <h6>Are you sure you want to remove ${iscocreator?'yourself as co-creator':'the co-creator'} from this project?<br/>
+                    This action is permanent!
+                    </h6>`,
+                    showConfirmButton: false,
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    denyButtonText: "Yes, remove"
+                }).then(async(result)=>{
+                    if(result.isDenied){
+                        message("Removing Co-Creator...");
+                        const data = await postRequest2({
+                            path: setUrlParams(
+                                URLS.MANAGE_PROJECT_COCREATOR,
+                                projectID
+                            ),
+                            data: {
+                                action: "remove",
+                                cocreator_id: delcocreator.getAttribute("data-userid"),
+                            },
+                        });
+                        if (data.code === code.OK) {
+                            futuremessage("Co-Creator removed");
+                            if (getElements("delete-cocreator-action").length > 1) {
+                                getElement(
+                                    `cocreator-view-${delcocreator.getAttribute(
+                                        "data-userid"
+                                    )}`
+                                ).remove();
+                                return true;
+                            }
+                            return window.location.reload();
+                        }
+                        error(data.error);
                     }
-                    return window.location.reload();
-                }
-                error(data.error);
+                });
             };
         });
     }
