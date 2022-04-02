@@ -21,7 +21,7 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 from allauth.account.models import EmailAddress
 from management.models import ActivityRecord
-from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISTESTING
+from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISPRODUCTION, ISTESTING
 from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, AUTH2, AUTH
 
 
@@ -207,6 +207,8 @@ class JsonEncoder(DjangoJSONEncoder):
 def errorLog(*args, raiseErr=True):
     if not ISTESTING:
         log(LOG_CODE_ERROR, args)
+        if ISPRODUCTION:
+            return addMethodToAsyncQueue("main.mailers.sendErrorLog", *args)
         if ISDEVELOPMENT:
             return print_exc()
 
