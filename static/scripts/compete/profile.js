@@ -285,32 +285,33 @@ const loadTabScript = (attr, tab) => {
                                 };
                         } catch {}
                         try {
-                            getElement("save-url-submission").onclick =
-                                async () => {
-                                    let submissionurl =
-                                        getElement(
-                                            "submissionurl"
-                                        ).value.trim();
-                                    if (!submissionurl)
-                                        return error(
-                                            "No submission URL saved!"
-                                        );
-                                    const data = await postRequest2({
-                                        path: setUrlParams(
-                                            URLS.SAVE,
-                                            compID,
-                                            compdata.subID
-                                        ),
-                                        data: {
-                                            submissionurl,
-                                        },
-                                    });
-                                    if (data && data.code == CODE.OK) {
-                                        message("Saved!");
-                                        return tab.click();
-                                    }
-                                    return error(data.error);
-                                };
+                            // Disabling URL submissions
+                            // getElement("save-url-submission").onclick =
+                            //     async () => {
+                            //         let submissionurl =
+                            //             getElement(
+                            //                 "submissionurl"
+                            //             ).value.trim();
+                            //         if (!submissionurl)
+                            //             return error(
+                            //                 "No submission URL saved!"
+                            //             );
+                            //         const data = await postRequest2({
+                            //             path: setUrlParams(
+                            //                 URLS.SAVE,
+                            //                 compID,
+                            //                 compdata.subID
+                            //             ),
+                            //             data: {
+                            //                 submissionurl,
+                            //             },
+                            //         });
+                            //         if (data && data.code == CODE.OK) {
+                            //             message("Saved!");
+                            //             return tab.click();
+                            //         }
+                            //         return error(data.error);
+                            //     };
                         } catch {}
                     }
                 } else {
@@ -361,7 +362,7 @@ const loadTabScript = (attr, tab) => {
                                     }
                                     if (suburl != nsuburl) {
                                         error(
-                                            "Submission URL changed, save before submitting!"
+                                            "Submission changed, save before submitting!"
                                         );
                                         return false;
                                     }

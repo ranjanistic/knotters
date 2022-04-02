@@ -7,9 +7,9 @@ const loadDemoteMnts = () => {
                     `<h5>Are you sure that you want to ${NegativeText(
                         "demote"
                     )} 
-                <span class="positive-text" onclick="miniWindow('${e.target.getAttribute(
+                <a href="${e.target.getAttribute(
                     "data-profileurl"
-                )}')">${e.target.getAttribute("data-name")}</span>
+                )}" target="_blank">${e.target.getAttribute("data-name")}</a>
                  as a mentor on ${APPNAME}? Their pending mentorships will be transferred to a new mentor. (You are not deleting their account)</h5>`,
                     () => {},
                     async () => {
@@ -51,7 +51,7 @@ getElement("search-mnt-input").oninput = async (e) => {
         resview,
         `<div class="w3-row pallete-slab" id="pallete-demote-${data.mnt.userID}">
                 <div class="w3-col s2 m1">
-                    <a onclick="miniWindow('${mnt.url}')"><img src="${mnt.dp}" class="w3-circle primary" width="50" /></a>
+                    <a href="${mnt.url}" target="_blank"><img src="${mnt.dp}" class="w3-circle primary" width="50" /></a>
                 </div>
                 <div class="w3-col s10 m8 w3-padding-small">
                     <div class="w3-row">
@@ -82,7 +82,7 @@ getElement("search-profile-input").oninput = async (e) => {
         resview,
         `<div class="w3-row pallete-slab" id="pallete-promote-${data.mnt.userID}">
                 <div class="w3-col s2 m1">
-                    <a onclick="miniWindow('${mnt.url}')"><img src="${mnt.dp}" class="w3-circle primary" width="50" /></a>
+                    <a href="${mnt.url}" target="_blank"><img src="${mnt.dp}" class="w3-circle primary" width="50" /></a>
                 </div>
                 <div class="w3-col s10 m8 w3-padding-small">
                     <div class="w3-row">
@@ -109,9 +109,9 @@ const loadAddMnts = () => {
                 .confirm(
                     "Promote as mentor?",
                     `<h5>Are you sure that you want to promote 
-                    <span class="positive-text" onclick="miniWindow('${e.target.getAttribute(
+                    <a href="${e.target.getAttribute(
                         "data-profileurl"
-                    )}')">${e.target.getAttribute("data-name")}</span>
+                    )}" target="_blank">${e.target.getAttribute("data-name")}</a>
                     as a mentor on ${APPNAME}?</h5>`,
                     async () => {
                         const userID = e.target.getAttribute("data-userID");

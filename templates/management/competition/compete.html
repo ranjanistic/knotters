@@ -177,7 +177,7 @@
             {% endif %}
 
             {% if not compete.resultDeclared %}
-                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
+                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge {{compete.canChangeJudges}}</button>
             {% endif %}
 
             {% if compete.canBeEdited %}
@@ -197,6 +197,7 @@
                 <input placeholder="Start at" value="{{compete.startAt|date:'Y-m-d'}}T{{compete.startAt|time:'H:i:s'}}" type="datetime-local" name="compstartAt" id="compstartAt" title="Begin time"><br/>
                 End at<br/><input placeholder="End at" value="{{compete.endAt|date:'Y-m-d'}}T{{compete.endAt|time:'H:i:s'}}" type="datetime-local" name="compendAt" id="compendAt" title="Ending time" /><br/>
                 Max topic points <input title="Max points for each topic" class="wide" placeholder="Max 100" type="number" min="{{compete.eachTopicMaxPoint}}" value="{{compete.eachTopicMaxPoint}}" max="100" name="compeachTopicMaxPoint" id="compeachTopicMaxPoint"><br/>
+                Max members in a group: <input title="Max members in submission" class="wide" placeholder="Min. 1" type="number" min="1" value="{{compete.max_grouping|or:1}}" max="100" name="compMaxGrouping" id="compMaxGrouping"><br/>
                 Short Description <textarea rows="5" cols="20" class="wide" placeholder="Short description of competition (max 400 characters)" type="text" name="compshortdesc" id="compshortdesc" maxlength="400">{{compete.shortdescription}}</textarea>
                 Description <textarea rows="4" cols="18" class="wide" placeholder="Competition description (max 1000 characters)" type="text" name="compdesc" id="compdesc" maxlength="1000">{{compete.description}}</textarea><br/><br/>
             {% endif %}

@@ -6,9 +6,9 @@ const loadDemoteMods = () => {
                 html: `<h5>Are you sure that you want to ${NegativeText(
                     "demote"
                 )} 
-                <span class="positive-text pointer" onclick="miniWindow('${demote.getAttribute(
+                <a href="${demote.getAttribute(
                     "data-profileurl"
-                )}')">${demote.getAttribute("data-name")}</span>
+                )}" target="_blank">${demote.getAttribute("data-name")}</a>
                  as a moderator on ${APPNAME}? Their pending moderations will be transferred to a new moderator. (You are not deleting their account)</h5>`,
                 imageUrl: demote.getAttribute("data-dp"),
                 imageWidth: 100,
@@ -54,7 +54,7 @@ getElement("search-mod-input").oninput = async (e) => {
         resview,
         `<div class="w3-row pallete-slab" id="pallete-demote-${data.mod.userID}">
                 <div class="w3-col s2 m1">
-                    <a onclick="miniWindow('${mod.url}')"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
+                    <a href="${mod.url}" target="_blank"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
                 </div>
                 <div class="w3-col s10 m8 w3-padding-small">
                     <div class="w3-row">
@@ -85,7 +85,7 @@ getElement("search-profile-input").oninput = async (e) => {
         resview,
         `<div class="w3-row pallete-slab" id="pallete-promote-${data.mod.userID}">
                 <div class="w3-col s2 m1">
-                    <a onclick="miniWindow('${mod.url}')"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
+                    <a href="${mod.url}" target="_blank"><img src="${mod.dp}" class="w3-circle primary" width="50" /></a>
                 </div>
                 <div class="w3-col s10 m8 w3-padding-small">
                     <div class="w3-row">
@@ -113,9 +113,9 @@ const loadAddMods = () => {
                 html: `<h5>Are you sure that you want to ${PositiveText(
                     "promote"
                 )} 
-                        <span class="positive-text" onclick="miniWindow('${promote.getAttribute(
+                        <a href="${promote.getAttribute(
                             "data-profileurl"
-                        )}')">${promote.getAttribute("data-name")}</span>
+                        )}" target="_blank">${promote.getAttribute("data-name")}</a>
                         as a moderator on ${APPNAME}?</h5>`,
                 imageUrl: promote.getAttribute("data-dp"),
                 imageWidth: 100,

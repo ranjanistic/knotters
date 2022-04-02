@@ -435,6 +435,14 @@ class BaseProject(models.Model):
                 cache.set(cacheKey, count, settings.CACHE_INSTANT)
         return count
 
+    def total_admirers(self):
+        return self.total_admiration
+
+    def get_moderator(self):
+        if self.is_free:
+            return None
+        return self.getProject(True).moderator
+
     def isAdmirer(self, profile):
         return self.admirers.filter(id=profile.id).exists()
 

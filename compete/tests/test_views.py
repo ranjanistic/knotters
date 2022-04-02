@@ -18,6 +18,7 @@ from people.tests.utils import getTestTopicsInst
 from people.models import Profile, ProfileTopic, Topic
 from moderation.models import Moderation
 from moderation.methods import assignModeratorToObject, requestModerationForObject
+from projects.models import Category, FreeProject, License
 from .utils import getCompTitle, root, getTestUrl
 from compete.methods import *
 
@@ -26,7 +27,7 @@ from compete.methods import *
 class TestViews(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
-        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+        self.bot, created = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.email = getTestEmail()
         self.password = getTestPassword()
@@ -567,11 +568,23 @@ class TestViews(TestCase):
         resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
             'submissionurl': getTestUrl()
         })
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        freeproject = FreeProject.objects.create(
+            name=getTestName(),
+            creator=self.profile,
+            nickname=getTestName(),
+            acceptedTerms=True,
+            category=Category.objects.create(name=getTestName()),
+            license=License.objects.create(name=getTestName(), content=getTestName(), description=getTestName(), creator=self.bot.profile),
+        )
+        resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
+            'submissionfreeproject': freeproject.get_id
+        })
         self.assertTemplateUsed(resp, template.compete.profile)
-
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
         Submission.objects.filter(competition=self.comp).delete()
 
+    @tag("finalsubm")
     def test_finalSubmit(self):
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True, path=root(
@@ -583,6 +596,17 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
+        freeproject = FreeProject.objects.create(
+                name=getTestName(),
+                creator=self.profile,
+                nickname=getTestName(),
+                acceptedTerms=True,
+                category=Category.objects.create(name=getTestName()),
+                license=License.objects.create(name=getTestName(), content=getTestName(), description=getTestName(), creator=self.bot.profile),
+            )
+        resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
+            'submissionfreeproject': freeproject.get_id
+        })
         resp = self.client.post(follow=True, path=root(
             url.compete.submit(self.comp.getID(), subID)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -607,7 +631,7 @@ class TestViews(TestCase):
             url.compete.submit(comp.getID(), subID)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(
-            Code.UTF_8)), dict(code=Code.OK, message=Message.SUBMITTED_LATE))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
 
         Submission.objects.filter(competition=self.comp).delete()
 
@@ -642,7 +666,7 @@ class TestViews(TestCase):
             profiles.append(Profile(user=u))
         profiles = Profile.objects.bulk_create(profiles)
         i = -1
-        for _ in profiles:
+        for profile in profiles:
             i += 1
             client = Client()
             self.assertTrue(client.login(
@@ -654,8 +678,16 @@ class TestViews(TestCase):
                 url.compete.data(self.comp.getID())))
             self.assertEqual(resp.status_code, HttpResponse.status_code)
             subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
+            freeproject = FreeProject.objects.create(
+                name=getTestName(),
+                creator=profile,
+                nickname=getTestName(),
+                acceptedTerms=True,
+                category=Category.objects.create(name=getTestName()),
+                license=License.objects.create(name=getTestName(), content=getTestName(), description=getTestName(), creator=self.bot.profile),
+            )
             resp = client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
-                'submissionurl': getTestUrl()
+                'submissionfreeproject': freeproject.get_id
             })
             self.assertEqual(resp.status_code, HttpResponse.status_code)
             resp = client.post(follow=True, path=root(

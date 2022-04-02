@@ -95,7 +95,7 @@ getElement("addtopicbutton").onclick = (_) => {
         <input id='topicquery' placeholder="Type to search topic" class="wide"></input><br/><br/>
         <div id='topicqueryresult'>
         </div>
-        <div><a onclick="newTab(setUrlQueries(URLS.LABELS,{tab:1}))">Click here</a> to see available topics.</div>
+        <div><a href="${setUrlQueries(URLS.LABELS,{tab:1})}" target="_blank">Click here</a> to see available topics.</div>
         `,
         didOpen: () => {
             getElement("topicquery").focus();
@@ -168,7 +168,7 @@ getElement("addjudgebutton").onclick = (_) => {
                         }" width="20" class="w3-circle primary" /> ${
                         data.judge.name
                     }</button>
-                        <a onclick="miniWindow('${data.judge.url}')">${Icon(
+                    <a href="${data.judge.url}" target="_blank">${Icon(
                         "open_in_new"
                     )}</a>`;
                     getElement(data.judge.id).onclick = (e) => {
@@ -238,7 +238,8 @@ getElement("selectmodbutton").onclick = (ebtn) => {
                         <img src="${
                             data.mod.dp
                         }" width="20" class="w3-circle" /> ${data.mod.name}
-                    </button><a onclick="miniWindow('${data.mod.url}')">${Icon(
+                    </button>
+                    <a href="${data.mod.url}" target="_blank">${Icon(
                         "open_in_new"
                     )}</a>
                     `;

@@ -367,12 +367,12 @@ const troubleShootingInfo = () => {
             <h5>If you are facing problems during normal usage of ${APPNAME}, then any or all of the following steps might help you out.</h5>
             <br/>
             <strong class="text-medium">
-            <a onclick="miniWindow('https://www.google.com/search?q=clear+browser+cache')">Clear your browser's cache</a>
+            <a href="https://www.google.com/search?q=clear+browser+cache" target="_blank" rel="noreferrer">Clear your browser's cache</a>
             <br/><br/>
-            <a onclick="miniWindow('https://www.google.com/search?q=how+to+clear+specific+site+data')">Clear site data</a> from your browser's settings
-            ${authenticated ? "<br/>(this will log you out)" : ""}
+            <a href="https://www.google.com/search?q=how+to+clear+specific+site+data" target="_blank" rel="noreferrer">Clear site data</a> from your browser's settings
+            ${AUTHENTICATED ? "<br/>(this will log you out)" : ""}
             <br/><br/>
-            <a onclick="miniWindow('https://www.google.com/search?q=hard+reload+site')">Force reload current page</a>
+            <a href="https://www.google.com/search?q=hard+reload+site" target="_blank" rel="noreferrer">Force reload current page</a>
             </span>
             </div>
         `,

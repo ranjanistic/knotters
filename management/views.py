@@ -661,7 +661,7 @@ def submitCompetition(request) -> HttpResponse:
 
 
 @manager_only
-@require_JSON_body
+@require_JSON
 def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
     try:
         compete = Competition.objects.get(id=compID,creator=request.user.profile)
@@ -692,6 +692,9 @@ def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
             eachTopicMaxPoint = request.POST.get("compeachTopicMaxPoint",None)
             if eachTopicMaxPoint and eachTopicMaxPoint != compete.eachTopicMaxPoint:
                 compete.eachTopicMaxPoint = eachTopicMaxPoint
+            maxGrouping = int(request.POST.get("compMaxGrouping",1))
+            if maxGrouping and maxGrouping != compete.max_grouping:
+                compete.max_grouping = maxGrouping
             if compete.reg_fee:
                 reg_fee = request.POST.get("compregfee",None)
                 if reg_fee and reg_fee != compete.reg_fee:

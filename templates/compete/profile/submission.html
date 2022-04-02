@@ -22,14 +22,15 @@
                <button class="negative-text primary" data-icon="close" id="remove-quick-project">Remove project as submission</button>
                <input type="url" hidden name="submissionurl" id="submissionurl" data-saved="{{submission.getRepo}}" value="{{submission.getRepo}}">
               {% else %}
-                <button <button class="big-button primary" id="submit-quick-project" data-icon="widgets">Submit as a Quick Project</button>
-                <div class="text-big">OR</div>
+                <button <button class="big-button primary" id="submit-quick-project" data-icon="widgets">Submit a Quick Project</button>
+                <input hidden class="wide positive-text" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" value="{{submission.getRepo}}">
+                {% comment %} <div class="text-big">OR</div>
                <form class="w3-row no-auto" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
                 <strong><input class="wide positive-text" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}"></strong>
                 <div><br/></div>
                 <button type="submit" class="primary" id="save-url-submission" data-icon="save">Save</button>
-               </form>
+               </form> {% endcomment %}
               {% endif %}
             {% elif not submission.submittingLate and submission.submitted %}
                 <br/>
@@ -49,7 +50,7 @@
         {% endif %}
         </button>
 
-        <br/><br/><strong>{% trans "Save your submission before final submit." %}</strong>
+        <br/><br/><strong>{% trans "Verify your submission before final submit." %}</strong>
         {% endif %}
         {% if not submission.submitted and compete.moderated %}
             <br/>

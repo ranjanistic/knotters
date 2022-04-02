@@ -294,9 +294,9 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(c)
     except Exception as e:
+        errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        errorLog(e)
         raise Http404(e)
 
 
@@ -305,6 +305,9 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
 @decode_JSON
 @ratelimit(key='user', rate='5/s', block=True, method=(Code.POST))
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
+    """
+    For participant to save/update their submission, before finally submitting.
+    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         now = timezone.now()
@@ -315,22 +318,17 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                                 )
         if not subm.competition.isAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist('not allowed to part save subm')
-        fprojID = request.POST.get('submissionfreeproject', None)
-        if fprojID:
-            if fprojID == "remove":
-                subm.free_project = None
-            else:
-                subm.free_project = FreeProject.objects.get(id=fprojID, creator=request.user.profile, suspended=False, trashed=False)
-                subm.repo = ""
+        fprojID = request.POST['submissionfreeproject']
+        if fprojID == Action.REMOVE:
+            subm.free_project = None
         else:
-            if not subm.free_project:
-                subm.repo = str(request.POST.get('submissionurl', '')).strip()
+            subm.free_project = FreeProject.objects.get(id=fprojID, creator=request.user.profile, suspended=False, trashed=False, createdOn__gte=subm.competition.startAt)
         subm.modifiedOn = now
         subm.save()
         if json_body:
             return respondJson(Code.OK)
         return redirect(subm.competition.getLink(alert=Message.SAVED))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,KeyError) as o:
         if json_body:
             return respondJson(Code.NO)
         raise Http404(o)
@@ -356,6 +354,8 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
             raise ObjectDoesNotExist('unconfirmed participant try final subm')
         if not submission.competition.isAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist('not allowd to part final subm')
+        if not submission.free_project:
+            raise ObjectDoesNotExist('no submission made')
         if submission.competition.moderated():
             return respondJson(Code.OK, error=Message.SUBMISSION_TOO_LATE)
         if submission.competition.endAt < now:
@@ -371,8 +371,8 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         addMethodToAsyncQueue(
             f"{APPNAME}.mailers.{submissionConfirmedAlert.__name__}", submission)
         return respondJson(Code.OK, message=message)
-    except ObjectDoesNotExist as o:
-        raise Http404(o)
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -383,7 +383,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     """
-    For judge to submit their markings of all submissions of a competition.
+    For a judge to submit their markings of all submissions of a competition.
     """
     try:
         subs = request.POST.get('submissions', None)
@@ -469,7 +469,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
-    For manager to declare results after markings of all submissions by all judges have been completed.
+    For a manager to declare results after markings of all submissions by all judges have been completed.
     """
     try:
         comp = Competition.objects.get(
@@ -499,6 +499,9 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
 @require_POST
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
+    """
+    For a participant to claim her/his XP from competition after results declaration.
+    """
     try:
         result = Result.objects.get(submission__competition__id=compID,
                                     submission__id=subID, submission__members=request.user.profile)
@@ -599,7 +602,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
                 user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and member.isBlocked(request.user):
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(request.user)
 
         result = Result.objects.get(id=resID, submission__members=member)
 
@@ -628,7 +631,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
                 user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and person.isBlocked(request.user):
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(request.user)
 
         appcert = AppreciationCertificate.objects.filter(
             competition__id=compID, appreciatee=person).first()

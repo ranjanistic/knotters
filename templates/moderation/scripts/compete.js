@@ -382,9 +382,7 @@ if (allsubsMarked) {
                     .confirm(
                         `{% trans "Confirm rejection" %}?`,
                         `<h4>Confirm to <span class="negative-text">reject</span> the following submission?</h4>
-                    <button class="small primary" onclick="miniWindow('${reject.getAttribute(
-                        "data-subItem"
-                    )}')">${Icon("open_in_new")}View submission</button>
+                    <button class="small primary" id="view-rej-submission">${Icon("open_in_new")}View submission</button>
                 `,
                         () => {
                             message(`rejecting...`);
@@ -420,6 +418,9 @@ if (allsubsMarked) {
                         ok: '{% trans "Yes" %}, {% trans "reject this one" %}',
                         cancel: '{% trans "No" %}, {% trans "wait" %}!',
                     });
+                getElement("view-rej-submission").onclick=_=>{
+                    miniWindow(reject.getAttribute("data-subItem"))
+                }
             };
         });
 
@@ -524,7 +525,7 @@ if (allsubsMarked) {
                 submission.members.forEach((member) => {
                     mdata += `
                     <div class="pallete-slab">
-                        <a onclick="miniWindow('${member.link}')"><img src="${member.dp}" class="w3-circle" width="30" /></a>
+                        <a class="sub-member-link" data-link="${member.link}"><img src="${member.dp}" class="w3-circle" width="30" /></a>
                         <strong>${member.name}</strong><br/>
                         <span>${member.email}</span>
                     </div>
@@ -535,6 +536,11 @@ if (allsubsMarked) {
                     mdata,
                     () => {}
                 );
+                getElements("sub-member-link").forEach((mem)=>{
+                    mem.onclick=_=>{
+                        miniWindow(mem.getAttribute("data-link"))
+                    }
+                })
             };
         });
     }
