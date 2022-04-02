@@ -491,13 +491,13 @@ class BaseProject(models.Model):
                 except:
                     pass
                 try:
-                    nghuser = newcreator.gh_user
+                    nghuser = newcreator.gh_user()
                     if nghuser:
                         getproject.gh_team().add_membership(
                             member=nghuser,
                             role="maintainer"
                         )
-                    oghuser = oldcreator.gh_user
+                    oghuser = oldcreator.gh_user()
                     if oghuser:
                         getproject.gh_team().remove_membership(
                             member=oghuser
@@ -544,13 +544,7 @@ class BaseProject(models.Model):
                 if self.is_not_free and self.is_approved:
                     getproject = self.getProject()
                     try:
-                        nghid = co_creator.ghID
-                        if nghid:
-                            getproject.gh_repo().add_to_collaborators(nghid,permission='push')
-                    except:
-                        pass
-                    try:
-                        nghuser = co_creator.gh_user
+                        nghuser = co_creator.gh_user()
                         if nghuser:
                             getproject.gh_team().add_membership(
                                 member=nghuser,
@@ -563,6 +557,27 @@ class BaseProject(models.Model):
             return True
         else :
             return False
+            
+    def remove_cocreator(self,co_creator):
+        if self.co_creators.filter(id=co_creator.id).exists():
+            self.co_creators.remove(co_creator)
+            try:
+                if self.is_not_free and self.is_approved:
+                    getproject = self.getProject()
+                    try:
+                        nghuser = co_creator.gh_user()
+                        if nghuser:
+                            getproject.gh_team().remove_membership(
+                                member=nghuser,
+                            )
+                    except:
+                        pass
+            except:
+                pass
+            return True
+        else:
+            return False
+
     def total_cocreators(self):
         return self.co_creators.count()
     
@@ -823,11 +838,11 @@ class Project(BaseProject):
                 pass
             try:
                 self.gh_team().add_membership(
-                    member=newmoderator.gh_user,
+                    member=newmoderator.gh_user(),
                     role="maintainer"
                 )
                 self.gh_team().remove_membership(
-                    member=oldmoderator.gh_user
+                    member=oldmoderator.gh_user()
                 )
             except:
                 pass
@@ -1302,11 +1317,11 @@ class CoreProject(BaseProject):
                 pass
             try:
                 self.gh_team().add_membership(
-                    member=newmoderator.gh_user,
+                    member=newmoderator.gh_user(),
                     role="maintainer"
                 )
                 self.gh_team().remove_membership(
-                    member=oldmoderator.gh_user
+                    member=oldmoderator.gh_user()
                 )
             except:
                 pass

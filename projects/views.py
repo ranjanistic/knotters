@@ -2139,8 +2139,13 @@ def projectCocreatorManage(request,projectID):
             Q(id=projectID,suspended=False,trashed=False),
             Q(creator=request.user.profile) 
             | Q(co_creators=request.user.profile))
-            profile =project.co_creators.filter(user__id=cocreator_id).first()
-            project.co_creators.remove(profile)
+            profile = project.co_creators.filter(user__id=cocreator_id).first()
+            if not profile: 
+                raise ObjectDoesNotExist(cocreator_id)
+            if profile != request.user.profile and project.creator != request.user.profile:
+                raise ObjectDoesNotExist(request.user.profile)
+            if not project.remove_cocreator(profile):
+                raise ObjectDoesNotExist(cocreator_id, done)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
     except (ObjectDoesNotExist,KeyError):
