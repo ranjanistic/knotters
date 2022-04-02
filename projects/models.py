@@ -462,7 +462,7 @@ class BaseProject(models.Model):
         return profile.is_normal and self.getProject().can_invite_profile(profile)
 
     def can_invite_owner_profile(self, profile):
-        return self.can_invite_owner() and self.can_invite_profile(profile)
+        return self.can_invite_owner() and self.can_invite_profile(profile) and (profile.is_manager() if self.is_core else True)
 
     def current_invitation(self):
         try:
@@ -1296,7 +1296,7 @@ class CoreProject(BaseProject):
 
     def can_invite_profile(self, profile):
         
-        return profile.is_manager() and (profile not in [self.creator, self.moderator, self.mentor]) and not (
+        return (profile not in [self.creator, self.moderator, self.mentor]) and not (
             self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
         )
 
