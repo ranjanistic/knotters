@@ -783,25 +783,26 @@ def browseSearch(request: WSGIRequest):
             
             if pquery and not invalidQuery:
                 dbquery = Q(dbquery, Q(
-                    Q(title__iexact=pquery)
-                    | Q(title__istartswith=pquery)
-                    | Q(title__icontains=pquery)
-                    | Q(title__istartswith=pquery)
-
+                    Q(title__istartswith=pquery)
                     | Q(tagline__istartswith=pquery)
-                    | Q(tagline__icontains=pquery)
-                    | Q(tagline__istartswith=pquery)
-
+                    | Q(nickname__istartswith=pquery)
                     | Q(shortdescription__istartswith=pquery)
-                    | Q(shortdescription__icontains=pquery)
-                    | Q(shortdescription__istartswith=pquery)
-                    
-                    | Q(topics__name__iexact=pquery)
                     | Q(topics__name__istartswith=pquery)
+                    | Q(title__icontains=pquery)
+                    | Q(nickname__icontains=pquery)
+                    | Q(tagline__icontains=pquery)
+                    | Q(shortdescription__icontains=pquery)
+                    | Q(creator__user__first_name__istartswith=pquery)
+                    | Q(creator__user__last_name__istartswith=pquery)
+                    | Q(creator__user__email__istartswith=pquery)
+                    | Q(creator__nickname__istartswith=pquery)
+                    | Q(qualifier__title__istartswith=pquery)
+                    | Q(qualifier__tagline__istartswith=pquery)
+                    | Q(qualifier__topics__name__istartswith=pquery)
                 ))
             
             if not invalidQuery:
-                competitions = Competition.objects.filter(dbquery).exclude(hidden=True).exclude(is_draft=True).order_by('title').distinct()[0:limit]
+                competitions = Competition.objects.filter(dbquery).exclude(hidden=True).exclude(is_draft=True).distinct()[:limit]
                 if len(competitions):
                     cache.set(cachekey, competitions, settings.CACHE_SHORT)
             

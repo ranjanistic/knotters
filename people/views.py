@@ -620,20 +620,15 @@ def browseSearch(request: WSGIRequest):
                 fname, lname = convertToFLname(pquery)
                 dbquery = Q(dbquery, Q(
                     Q(user__email__istartswith=pquery)
-                    | Q(user__email__icontains=pquery)
                     | Q(user__first_name__istartswith=fname)
                     | Q(user__first_name__iendswith=fname)
                     | Q(user__last_name__istartswith=(lname or fname))
                     | Q(user__last_name__iendswith=(lname or fname))
-                    | Q(githubID__istartswith=pquery)
-                    | Q(githubID__iexact=pquery)
-                    | Q(user__first_name__iexact=pquery)
-                    | Q(user__last_name__iexact=pquery)
-                    | Q(user__last_name__iexact=(lname or fname))
-                    | Q(topics__name__iexact=pquery)
+                    | Q(nickname__istartswith=pquery)
+                    | Q(nickname__iexact=pquery)
                     | Q(topics__name__istartswith=pquery)
-                    | Q(tags__name__iexact=pquery)
                     | Q(tags__name__istartswith=pquery)
+                    | Q(user__email__icontains=pquery)
                 ))
             if not invalidQuery:
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(

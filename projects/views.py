@@ -1258,7 +1258,10 @@ def browseSearch(request: WSGIRequest):
                         Q(tags__name__iexact=q), 
                         Q(category__name__iexact=q), 
                         Q(topics__name__iexact=q), 
-                        Q(Q(creator__user__first_name__iexact=q)|Q(creator__user__last_name__iexact=q)|Q(creator__user__email__iexact=q)|Q(creator__githubID__iexact=q)),
+                        Q(
+                            Q(creator__user__first_name__iexact=q)|Q(creator__user__last_name__iexact=q)|Q(creator__user__email__iexact=q)|Q(creator__nickname__iexact=q)
+                            |Q(co_creators__user__first_name__iexact=q)|Q(co_creators__user__last_name__iexact=q)|Q(co_creators__user__email__iexact=q)|Q(co_creators__nickname__iexact=q)
+                        ),
                         Q(Q(license__name__iexact=q)|Q(license__name__istartswith=q)),
                         Q()
                     ]
@@ -1283,23 +1286,22 @@ def browseSearch(request: WSGIRequest):
             if pquery and not invalidQuery:
                 dbquery = Q(dbquery, Q(
                     Q(name__istartswith=pquery)
-                    | Q(name__iendswith=pquery)
-                    | Q(name__iexact=pquery)
-                    | Q(name__icontains=pquery)
-                    | Q(description__icontains=pquery)
                     | Q(creator__user__first_name__istartswith=pquery)
                     | Q(creator__user__last_name__istartswith=pquery)
                     | Q(creator__user__email__istartswith=pquery)
-                    | Q(creator__githubID__istartswith=pquery)
-                    | Q(creator__githubID__iexact=pquery)
+                    | Q(creator__nickname__istartswith=pquery)
+                    | Q(co_creators__user__last_name__istartswith=pquery)
+                    | Q(co_creators__user__email__istartswith=pquery)
+                    | Q(co_creators__nickname__istartswith=pquery)
                     | Q(category__name__iexact=pquery)
                     | Q(topics__name__iexact=pquery)
                     | Q(tags__name__iexact=pquery)
                     | Q(category__name__istartswith=pquery)
                     | Q(topics__name__istartswith=pquery)
                     | Q(tags__name__istartswith=pquery)
-                    | Q(license__name__iexact=pquery)
                     | Q(license__name__istartswith=pquery)
+                    | Q(name__icontains=pquery)
+                    | Q(description__icontains=pquery)
                 ))
             if not invalidQuery:
                 projects = BaseProject.objects.exclude(trashed=True).exclude(

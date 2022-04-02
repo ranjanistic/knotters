@@ -1,6 +1,7 @@
 from requests import get as getRequest
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Q
 from django.http.response import HttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from django.core.cache import cache
@@ -148,8 +149,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         elif section == profileString.PROJECTS:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = BaseProject.objects.filter(
-                    creator=profile, trashed=False).order_by("-createdOn").distinct()
+                projects = BaseProject.objects.filter(Q(Q(trashed=False), Q(creator=profile)|Q(co_creators=profile))).order_by("-createdOn").distinct()
 
             if not selfprofile:
                 projects = projects.filter(suspended=False)
