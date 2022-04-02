@@ -8,6 +8,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
+from main.exceptions import InvalidUserOrProfile
 from ratelimit.decorators import ratelimit
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
@@ -1535,7 +1536,7 @@ def handleOwnerInvitation(request: WSGIRequest):
             receiver = Profile.objects.get(
                 user__email=email, suspended=False, is_active=True, to_be_zombie=False)
             if not baseproject.can_invite_owner_profile(receiver):
-                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+                raise InvalidUserOrProfile(receiver)
 
             inv, created = ProjectTransferInvitation.objects.get_or_create(
                 baseproject=baseproject, sender=request.user.profile, resolved=False,
@@ -1558,7 +1559,7 @@ def handleOwnerInvitation(request: WSGIRequest):
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
             baseproject.cancel_invitation()
         return respondJson(Code.OK)
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist,InvalidUserOrProfile):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -1627,7 +1628,7 @@ def handleVerModInvitation(request: WSGIRequest):
             receiver = Profile.objects.get(
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
             if not project.can_invite_profile(receiver):
-                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+                raise InvalidUserOrProfile(receiver)
             
             if ProjectTransferInvitation.objects.filter(baseproject=project.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
@@ -1658,7 +1659,7 @@ def handleVerModInvitation(request: WSGIRequest):
                 raise ObjectDoesNotExist(request.user.profile)
             project.cancel_moderation_invitation()
         return respondJson(Code.OK)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist,InvalidUserOrProfile):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -1726,7 +1727,7 @@ def handleCoreModInvitation(request: WSGIRequest):
             receiver = Profile.objects.get(
                 user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
             if not coreproject.can_invite_profile(receiver):
-                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+                raise InvalidUserOrProfile(receiver)
 
             if ProjectTransferInvitation.objects.filter(baseproject=coreproject.base(), receiver=receiver).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
@@ -2044,7 +2045,7 @@ def handleCocreatorInvitation(request,projectID):
             receiver = Profile.objects.get(
                 user__email=email,suspended=False, is_active=True, to_be_zombie=False)
             if not baseproject.can_invite_cocreator_profile(receiver):
-                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+                raise InvalidUserOrProfile(receiver)
 
             inv, created = BaseProjectCoCreatorInvitation.objects.get_or_create(
                 base_project=baseproject, 
@@ -2069,8 +2070,7 @@ def handleCocreatorInvitation(request,projectID):
             baseproject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False,creator=request.user.profile)
             baseproject.cancel_all_cocreator_invitations()
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist, KeyError) as o:
-        errorLog(o)
+    except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -2140,15 +2140,15 @@ def projectCocreatorManage(request,projectID):
             Q(creator=request.user.profile) 
             | Q(co_creators=request.user.profile))
             profile = project.co_creators.filter(user__id=cocreator_id).first()
-            if not profile: 
-                raise ObjectDoesNotExist(cocreator_id)
+            if not profile:
+                raise InvalidUserOrProfile(cocreator_id)
             if profile != request.user.profile and project.creator != request.user.profile:
-                raise ObjectDoesNotExist(request.user.profile)
+                raise InvalidUserOrProfile(request.user.profile)
             if not project.remove_cocreator(profile):
-                raise ObjectDoesNotExist(cocreator_id, done)
+                raise ObjectDoesNotExist(cocreator_id)
             return respondJson(Code.OK)
         return respondJson(Code.NO)
-    except (ObjectDoesNotExist,KeyError):
+    except (ObjectDoesNotExist,KeyError, InvalidUserOrProfile):
         return respondJson(Code.NO,error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

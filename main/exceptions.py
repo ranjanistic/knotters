@@ -34,3 +34,7 @@ class InvalidBaseProject(Exception):
 class InactiveCompetitionError(Exception):
     """The given competition is inactive"""
     pass
+
+class InvalidUserOrProfile(Exception):
+    """The profile/user being accessed is not available or restricted or invalid"""
+    pass

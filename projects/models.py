@@ -447,16 +447,22 @@ class BaseProject(models.Model):
         return self.admirers.filter(id=profile.id).exists()
 
     def under_invitation(self):
+        """
+        Under ownership invitation
+        """
         return ProjectTransferInvitation.objects.filter(baseproject=self, resolved=False).exists()
 
     def can_invite_owner(self):
         return self.is_approved and not self.under_invitation() and not (self.is_not_free and (self.getProject().under_mod_invitation() or self.getProject().under_del_request()))
 
     def can_invite_profile(self, profile):
-        return self.getProject().can_invite_profile(profile)
+        """
+        For ownership, primarily, but can be used for other invitations as well
+        """
+        return profile.is_normal and self.getProject().can_invite_profile(profile)
 
     def can_invite_owner_profile(self, profile):
-        return self.can_invite_owner() and self.can_invite_profile(profile) and (profile.is_manager if self.is_core else True)
+        return self.can_invite_owner() and self.can_invite_profile(profile)
 
     def current_invitation(self):
         try:
@@ -591,14 +597,13 @@ class BaseProject(models.Model):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile).exists()
 
     def can_invite_cocreator(self):
-        return self.is_approved and not self.under_invitation() and \
-            not (self.is_not_free and self.getProject().under_del_request()) and (self.total_cocreator_invitations() +  self.total_cocreators())<=10
+        return self.is_approved and not self.under_invitation() and not (self.is_not_free and self.getProject().under_del_request()) and ((self.total_cocreator_invitations() +  self.total_cocreators())<=10)
 
     def has_cocreators(self):
         return self.co_creators.filter().exists()
 
     def can_invite_cocreator_profile(self, profile):
-        return profile.is_normal and self.creator!=profile and profile not in self.co_creators.all() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
+        return profile.is_normal and not self.co_creators.filter(user=profile.user).exists() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
 
     def current_cocreator_invitations(self):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False)
@@ -891,7 +896,8 @@ class Project(BaseProject):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).first() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).first() or None
     
     def can_invite_cocreator_profile(self,profile):
-        return self.moderator!=profile and self.mentor!=profile
+        return self.can_invite_profile(profile)
+        
 
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
@@ -1042,7 +1048,7 @@ class FreeProject(BaseProject):
             return False
 
     def can_invite_cocreator_profile(self,profile):
-        return True
+        return self.can_invite_profile(profile)
 
 
 class FreeRepository(models.Model):
@@ -1289,7 +1295,8 @@ class CoreProject(BaseProject):
         return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
 
     def can_invite_profile(self, profile):
-        return (profile not in [self.creator, self.moderator, self.mentor]) and not (
+        
+        return profile.is_manager() and (profile not in [self.creator, self.moderator, self.mentor]) and not (
             self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
         )
 
@@ -1402,7 +1409,7 @@ class CoreProject(BaseProject):
             return False
     
     def can_invite_cocreator_profile(self,profile):
-        return self.moderator!=profile and self.mentor!=profile
+        return self.can_invite_profile(profile)
 
 
 class LegalDoc(models.Model):
