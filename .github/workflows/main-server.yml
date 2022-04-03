@@ -5,10 +5,12 @@ on:
     branches: [ main ]
     paths-ignore:
       - '**.md'
+      - '**.json'
       - 'static/**'
       - '.gitignore'
       - ".github/**"
       - "setup.py"
+      - "static.py"
       - "genenv.py"
       - "genversion.py"
       - "refresh.py"

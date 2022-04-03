@@ -67,7 +67,7 @@
     <a href="{{request.user.profile.get_link}}">
     <button class='big-button {{request.user.profile.theme}}'>
       <img class="circle" src="{{request.user.profile.get_dp}}" alt="{{request.user.profile.get_name}}" />
-      {% trans "Your profile" %}
+      &nbsp;{% trans "Your profile" %}
     </button>
     </a>
     {% endif %}

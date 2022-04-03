@@ -359,7 +359,8 @@
                                 </div>
                                 <div class="w3-row"><strong class="align w3-left dead-text">{{invitation.receiver.get_email}}</strong>
                                 </div>
-                                <div class="w3-row"><span class="align w3-left dead-text">Invited</span>
+                                <div class="w3-row">
+                                <span class="align w3-left dead-text">{% if invitation.expired %}Expired{% else %}Invited{% endif %}</span>
                                 </div>
                             </div>
                             <div class="w3-row" align='right'>

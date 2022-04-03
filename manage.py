@@ -10,15 +10,15 @@ def main(ENVPATH):
     try:
         from django.core.management import execute_from_command_line
         environ.setdefault('ENVPATH', ENVPATH)
-        from main.env import ISPRODUCTION, ENV, DBNAME, VERSION, STATIC_ROOT, STATIC_URL, REDIS_DB
-        print(f"Environment: {ENV}")
-        if not ISPRODUCTION:
-            print(f"Environment from: {ENVPATH}")
-            print(f"Default Database: {DBNAME}")
-            print(f"Redis Database: {REDIS_DB}")
-            print(f"Version: {VERSION}")
-            print(f"Static Root: {STATIC_ROOT}")
-            print(f"Static URL: {STATIC_URL}")    
+        from main import env
+        print(f"Environment from: {ENVPATH}")
+        print(f"Environment: {env.ENV}")
+        print(f"Default Database: {env.DBNAME}")
+        print(f"Redis Database: {env.REDIS_DB}")
+        print(f"Version: {env.VERSION}")
+        print(f"Static Root: {env.STATIC_ROOT}")
+        print(f"Static URL: {env.STATIC_URL}")
+
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "

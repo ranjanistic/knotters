@@ -552,32 +552,41 @@
         {% block footer %}
         <footer class="w3-row secondary w3-padding w3-animate-bottom" >
             <br/><br/>
-            <div class="w3-col w3-half primary-text w3-padding">
-                {% if LANGUAGES|length %}
-                <form action="{% url "set_language" %}" method="POST">
-                    {% csrf_token %}
-                    <select name="language" class="selectLanguage" id="language">
-                    {% for language in LANGUAGES %}
-                        <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
-                    {% endfor %}
-                    </select>
-                </form>
-                {% endif %}
-                
-                <a href="/press" class="text-secondary w3-animate-left" hidden>{% trans "For the press" %}</a><br/>
+            <div class="w3-row w3-padding-small">
+            {% if LANGUAGES|length %}
+            <form action="{% url "set_language" %}" method="POST">
+                {% csrf_token %}
+                <select name="language" class="selectLanguage" id="language">
+                {% for language in LANGUAGES %}
+                    <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
+                {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+            </div>
+            <br/>
+            <div class="w3-col w3-half primary-text">
+                <div class="w3-col l4 m6 s6 w3-padding-small">
                 <a href="#0" class="text-secondary w3-animate-left pointer troubleshoot-action">{% trans "Troubleshooting" %}</a><br/>
+                <a href="#0" class="text-secondary w3-animate-left webapp-install-action">{% trans "Web App Installation" %}</a><br/>
                 <a href="#0" class="text-secondary w3-animate-left pointer report-feedback-action">{% trans "Report" %} &amp; {% trans "Feedback" %}</a><br/>
-                <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "statements" %}</a><br/>
-                <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of service" %}</a><br/>
-                <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">{% trans "Privacy Policy" %}</a><br/>
                 <a href="#0" class="text-secondary w3-animate-left contact-request-action">{% trans "Contact us" %}</a><br/>
+                </div>
+                <div class="w3-col l4 m6 s6 w3-padding-small">
+                {% comment %} <a href="/press" class="text-secondary w3-animate-left">{% trans "For the press" %}</a><br/> {% endcomment %}
                 <a href="{{URLS.HOME}}" class="text-secondary w3-animate-left">{% trans "About" %} {{APPNAME}}</a><br/>
+                <a href="{{URLS.DOCS}}" class="text-secondary w3-animate-left">{% trans "Docs" %} &amp; {% trans "Statements" %}</a><br/>
+                <a href="{{URLS.Docs.TYPE|params:'termsofservice'}}" class="text-secondary w3-animate-left">{% trans "Terms of Service" %}</a><br/>
+                <a href="{{URLS.Docs.TYPE|params:'privacypolicy'}}" class="text-secondary w3-animate-left">{% trans "Privacy Policy" %}</a><br/>
+                </div>
+                <div class="w3-col l4 m6 s6 w3-padding-small">
                 <a href="{{URLS.BRANDING}}" class="text-secondary w3-animate-left">{% trans "Brand Resources" %}</a><br/>
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
-                <a href="#0" class="text-secondary w3-animate-left webapp-install-action">{% trans "Web App Installation" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
                 <a href="https://events.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Events" %}</a><br/>
                 <a href="https://beta.knotters.org/" target="_blank" rel="nofollow" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
+                <a href="https://knotters.org/projects/profile/knottrans" target="_blank" class="text-secondary w3-animate-left">{% trans "Translation Project" %}</a><br/>
+                </div>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">
                 <br/><br/>                
@@ -684,7 +693,7 @@
         </div>
         {% endblock %}
         <script nonce="{{request.csp_nonce}}" defer src="{% static 'alertify/alertify.min.js' %}"></script>
-        <script nonce="{{request.csp_nonce}}" src="{% static 'sweetalert2/swa2.min.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'sweetalert2/sweetalert2.all.min.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'cropper/cropper.min.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.STRINGS}}"></script>
