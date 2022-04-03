@@ -9,7 +9,7 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 ### Prerequisites
 
 - Python 3.8.x or above, pip 22.x or above
-- MongoDB (4.2.x) connection string (mongodb://user:password@host:port/database)
+- MongoDB (5.0.x) connection string (mongodb://user:password@host:port/database)
 - A running redis server
 
 ### Initial setup
