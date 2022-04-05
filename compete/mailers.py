@@ -1,9 +1,11 @@
+from main.env import PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail, sendCCActionEmail
 from main.strings import URL, url
-from main.env import PUBNAME
 from people.models import Profile
-from .models import AppreciationCertificate, Competition, ParticipantCertificate, Submission
+
 from .apps import APPNAME
+from .models import (AppreciationCertificate, Competition,
+                     ParticipantCertificate, Submission)
 
 
 def participantInviteAlert(profile: Profile, host: Profile, submission: Submission) -> bool:

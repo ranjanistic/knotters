@@ -165,7 +165,7 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        EmailAddress.objects.filter(email=E2).update(verified=True)
+        EmailAddress.objects.filter().update(verified=True)
         client2.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             email=E2,
             password=P2
@@ -198,7 +198,7 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        EmailAddress.objects.filter(email=E2).update(verified=True)
+        EmailAddress.objects.filter().update(verified=True)
         client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             email=E2,
             password=P2
@@ -281,7 +281,7 @@ class TestViews(TestCase):
             first_name=getTestName(),
             password1=P2
         ))
-        EmailAddress.objects.filter(email=E2).update(verified=True)
+        EmailAddress.objects.filter().update(verified=True)
         clientx.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             email=E2,
             password=P2

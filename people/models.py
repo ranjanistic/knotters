@@ -838,6 +838,30 @@ class Profile(models.Model):
         )
         return proftop.increasePoints(by, notify, reason)
 
+    def increaseBulkTopicPoints(self, topics, by: int = 0, notify=True, reason='') -> int:
+        proftops = []
+        for topic in topics:
+            proftops.append(
+                ProfileTopic(
+                    topic=topic,
+                    profile=self,
+                    trashed=True,
+                    points=0
+                )
+            )
+
+        ProfileTopic.objects.bulk_create(proftops, ignore_conflicts=True)
+
+        for proftop in proftops:
+            proftop.increasePoints(by, notify=False, record=False)
+
+        profbulktoprecord = ProfileBulkTopicXPRecord.objects.create(xp=by, reason=reason)
+        profbulktoprecord.profile_topics.set(proftops)
+        if notify:
+            user_device_notify(self.user, "Bulk Topics XP Increased!",
+                               f"You have gained +{by} XP in multiple topics at once!", self.get_abs_link)
+        return profbulktoprecord
+
     def decreaseTopicPoints(self, topic, by: int = 0, notify=True, reason='') -> int:
         proftop, _ = ProfileTopic.objects.get_or_create(
             profile=self, topic=topic, defaults=dict(
@@ -1126,7 +1150,7 @@ class ProfileTopic(models.Model):
     def hidden(self) -> bool:
         return self.trashed
 
-    def increasePoints(self, by: int = 0, notify=True, reason='') -> int:
+    def increasePoints(self, by: int = 0, notify=True, reason='', record = True) -> int:
         points = 0
         if not self.points:
             points = by
@@ -1137,8 +1161,9 @@ class ProfileTopic(models.Model):
         if notify:
             user_device_notify(self.profile.user, "Topic XP Increased!",
                                f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
-        ProfileTopicXPRecord.objects.create(
-            profile_topic=self, xp=by, reason=reason)
+        if record:
+            ProfileTopicXPRecord.objects.create(
+                profile_topic=self, xp=by, reason=reason)
         return self.points
 
     def decreasePoints(self, by: int = 0, notify=True, reason='') -> int:
@@ -1410,3 +1435,17 @@ class ProfileTopicXPRecord(models.Model):
     xp = models.IntegerField(default=0, editable=False)
     reason = models.TextField(max_length=500, null=True, blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+class ProfileBulkTopicXPRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    profile_topics = models.ManyToManyField(ProfileTopic, related_name='profilets_xp_record_profilets', through='ProfileBulkTopicXPRecordTopic', default=[])
+    xp = models.IntegerField(default=0, editable=False)
+    reason = models.TextField(max_length=500, null=True, blank=True)
+    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+
+
+class ProfileBulkTopicXPRecordTopic(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    profile_topic = models.ForeignKey(ProfileTopic, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets')
+    profile_bulk_topic_xp_record = models.ForeignKey(ProfileBulkTopicXPRecord, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets_xp_record')
+

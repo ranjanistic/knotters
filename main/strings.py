@@ -155,9 +155,6 @@ class Event():
     MARKETPLACE_PURCHASE = 'marketplace_purchase'
     PUBLISHED = 'published'
 
-# ENVIRONMENTS = [Environment.DEVELOPMENT,
-#                 Environment.TESTING, Environment.PRODUCTION]
-
 
 class Message():
 

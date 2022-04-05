@@ -1,11 +1,17 @@
-from os import remove as os_remove, path as os_path
-from django.dispatch import receiver
-from django.db.models.signals import post_delete
+from os import path as os_path
+from os import remove as os_remove
+
 from django.conf import settings
-from .models import ParticipantCertificate,AppreciationCertificate
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+from .models import AppreciationCertificate, ParticipantCertificate
+
 
 @receiver(post_delete, sender=ParticipantCertificate)
-def on_cert_delete(sender, instance, **kwargs):
+def on_cert_delete(sender, instance:ParticipantCertificate, **kwargs):
+    """To remove certificate media on Participant Certificate instance deletion
+    """
     try:
         if instance.certificate:
             os_remove(os_path.join(settings.MEDIA_ROOT, instance.certificate))
@@ -15,7 +21,9 @@ def on_cert_delete(sender, instance, **kwargs):
         pass
 
 @receiver(post_delete, sender=AppreciationCertificate)
-def on_appcert_delete(sender, instance, **kwargs):
+def on_appcert_delete(sender, instance:AppreciationCertificate, **kwargs):
+    """To remove certificate media on Appreciant Certificate instance deletion
+    """
     try:
         if instance.certificate:
             os_remove(os_path.join(settings.MEDIA_ROOT, instance.certificate))

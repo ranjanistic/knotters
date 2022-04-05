@@ -3,7 +3,7 @@ from pathlib import Path
 from .strings import DOCS, url, DIVISIONS, PEOPLE, AUTH2, MANAGEMENT, DB
 from . import env
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = env.BASE_DIR
 SECRET_KEY = env.PROJECTKEY
 
 VERSION = env.VERSION
@@ -250,7 +250,7 @@ WSGI_APPLICATION = "main.wsgi.application"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10*1024*1024
 
 STATIC_URL = env.STATIC_URL
-MEDIA_ROOT = os_path.join(BASE_DIR, 'media')
+MEDIA_ROOT = env.MEDIA_ROOT
 MEDIA_URL = env.MEDIA_URL
 
 

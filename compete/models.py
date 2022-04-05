@@ -313,6 +313,14 @@ class Competition(models.Model):
             return self.get_link
         return f"{settings.SITE}{self.get_link}"
 
+    
+    @property
+    def CACHE_KEYS(self):
+        class CKEYS():
+            result_declaration_task = f"results_declaration_task_{self.get_id}"
+            certificates_allotment_task = f"certificates_allotment_task_{self.get_id}"
+        return CKEYS()
+
     def participationLink(self) -> str:
         """Get the participation link. To be used by participants for participating, via POST method.
 

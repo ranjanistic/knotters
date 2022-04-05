@@ -439,16 +439,14 @@ def DeclareResults(competition: Competition):
     Raises:
         Exception, bool: If the results are not declared, an exception is raised, otherwise True is returned.
     """
-    cache.set(f"results_declaration_task_{competition.get_id}",
-              Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
+    taskKey = competition.CACHE_KEYS.result_declaration_task
+    cache.set(taskKey,Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
     declared = competition.declareResults()
     if not declared:
-        cache.delete(f"results_declaration_task_{competition.get_id}")
-        raise Exception(f'Result declaration failed: {competition.id}')
-    cache.set(f"results_declaration_task_{competition.get_id}",
-              Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
+        cache.delete(taskKey)
+        raise Exception(f'Result declaration failed!', competition)
+    cache.set(taskKey,Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
+    addMethodToAsyncQueue(f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
     return True
 
 
@@ -468,16 +466,15 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
         bool: True if all certificates are allotted, False if exceptions are raised.
     """
     try:
-        taskCacheKey = f"certificates_allotment_task_{competition.get_id}"
-        cache.set(taskCacheKey,
+        taskKey = competition.CACHE_KEYS.certificates_allotment_task
+        cache.set(taskKey,
                   Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
         appreciateeCerts = []
         id = uuid4()
         certificate = generateModCertificate(competition, id.hex)
         if not certificate:
-            cache.delete(taskCacheKey)
-            raise Exception(
-                f"Couldn't generate certificate of {competition.moderator.getName()} (mod) for {competition.title}", competition.moderator, competition)
+            cache.delete(taskKey)
+            raise Exception(f"Couldn't generate certificate (mod)!", competition.moderator, competition)
         appreciateeCerts.append(
             AppreciationCertificate(
                 id=id,
@@ -491,9 +488,8 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
             certificate = generateJudgeCertificate(judge, competition, id.hex)
             if not certificate:
                 cache.delete(
-                    taskCacheKey)
-                raise Exception(
-                    f"Couldn't generate certificate of {judge.getName()} (judge) for {competition.title}", judge, competition)
+                    taskKey)
+                raise Exception(f"Couldn't generate certificate (judge)!", judge, competition)
             appreciateeCerts.append(
                 AppreciationCertificate(
                     id=id,
@@ -511,9 +507,8 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
                     member, result, id.hex)
                 if not certificate:
                     cache.delete(
-                        taskCacheKey)
-                    raise Exception(
-                        f"Couldn't generate certificate of {member.getName()} (participant) for {competition.title}", member, competition)
+                        taskKey)
+                    raise Exception(f"Couldn't generate certificate (participant)!", member, competition)
                 participantCerts.append(
                     ParticipantCertificate(
                         id=id,
@@ -524,14 +519,14 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
                 )
         ParticipantCertificate.objects.bulk_create(
             participantCerts, batch_size=100)
-        cache.set(taskCacheKey,
+        cache.set(taskKey,
                   Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
         addMethodToAsyncQueue(
             f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
         return True
     except Exception as e:
         errorLog(e)
-        cache.delete(taskCacheKey)
+        cache.delete(taskKey)
         return False
 
 from .receivers import *

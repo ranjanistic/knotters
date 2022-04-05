@@ -14,8 +14,9 @@ class Environment():
 
 env = Env()
 
-Env.read_env(env_file=os_path.join(
-    Path(__file__).resolve().parent.parent, env('ENVPATH')))
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+Env.read_env(env_file=os_path.join(BASE_DIR, env('ENVPATH')))
 
 PROJECTKEY = env('PROJECTKEY')
 PUBNAME = env('PUBNAME').strip()
@@ -37,6 +38,7 @@ SENDERTOKEN = env('SENDERTOKEN').strip()
 STATIC_URL = env('STATIC_URL').strip()
 MEDIA_URL = env('MEDIA_URL').strip()
 STATIC_ROOT = env('STATIC_ROOT').strip()
+MEDIA_ROOT = env('MEDIA_ROOT', default=os_path.join(BASE_DIR, 'media')).strip()
 SERVER_EMAIL = env('SERVER_EMAIL').strip()
 GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
 REDIS_LOCATION = env('REDIS_LOCATION').strip()
