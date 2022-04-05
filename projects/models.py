@@ -594,7 +594,7 @@ class BaseProject(models.Model):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).count()
     
     def under_cocreator_invitation_profile(self,profile):
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile).exists()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile, expiresOn__gt=timezone.now()).exists()
 
     def can_invite_cocreator(self):
         return self.is_approved and not self.under_invitation() and not (self.is_not_free and self.getProject().under_del_request()) and ((self.total_cocreator_invitations() +  self.total_cocreators())<=10)
