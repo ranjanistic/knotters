@@ -124,7 +124,7 @@ jobs:
     steps:
     - name: Create backup
       run: |
-        tar czf _backup_/media.tar.gz media
+        tar czf _backup_/media.tar.gz /var/www/knotters/media
         rm -f _backup_/media.tar.gz.gpg
         gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
         rm -f _backup_/media.tar.gz

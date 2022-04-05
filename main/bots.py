@@ -17,7 +17,7 @@ try:
         Github = None
         GithubKnotters = None
 except Exception as e:
-    print(e)
+    # print(e)
     Github = None
     GithubKnotters = None
 
