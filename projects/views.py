@@ -403,6 +403,42 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
 
 
 @normal_profile_required
+@require_POST
+@decode_JSON
+def acceptTerms(request: WSGIRequest, projID: UUID) -> HttpResponse:
+    """To accept the terms & conditions for an existing project.
+    Can be used for revised terms & conditions as well.
+
+    Args:
+        request (WSGIRequest): Django request object
+        projID (UUID): Project ID
+
+    Returns:
+        HttpResponse: 301 redirect to the project page if successful
+        HttpResponseNotFound: 404 if unsuccessful
+        JsonResponse: 200 with Code.OK if successful
+        JsonResponse: 200 with Code.NO if unsuccessful
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        project = BaseProject.objects.get(id=projID, acceptedTerms=True, creator=request.user.profile)
+        project.acceptedTerms = True
+        project.save()
+        if json_body:
+            return respondJson(Code.OK, message=Message.ACCEPTED_TERMS)
+        return redirect(project.getLink(success=Message.TERMS_ACCEPTED))
+    except (ObjectDoesNotExist, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
+
+
+@normal_profile_required
 @require_JSON_body
 def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
     json_body = request.POST.get(Code.JSON_BODY, False)

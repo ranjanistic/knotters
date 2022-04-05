@@ -20,6 +20,7 @@ urlpatterns = [
     path(URL.Projects.SUBMIT_FREE, submitFreeProject),
     path(URL.Projects.SUBMIT_MOD, submitProject),
     path(URL.Projects.SUBMIT_CORE, submitCoreProject),
+    path(URL.Projects.ACCEPT_TERMS, acceptTerms),
     path(URL.Projects.TRASH, trashProject),
     # Projects profile
     path(URL.Projects.PROFILE_BASE, profileBase),

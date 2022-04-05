@@ -163,6 +163,7 @@ class Message():
 
     ERROR_OCCURRED = _("An error occurred.")
     INVALID_REQUEST = _("Invalid request")
+    TERMS_ACCEPTED = _("You've accepted the terms and conditions.")
     INVALID_RESPONSE = _("Invalid response")
     INVALID_CREDENTIALS = _("Invalid credentials")
     SAVED = _("Saved")
@@ -917,8 +918,10 @@ class URL():
         SUBMIT_MOD = 'submit/1/'
         SUBMIT_CORE = 'submit/2/'
 
-        """ deprecated """
         SUBMIT = SUBMIT_MOD
+        """ deprecated """
+
+        ACCEPT_TERMS = "accept-terms/<str:projID>"
 
         TRASH = 'trash/<str:projID>/'
 

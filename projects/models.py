@@ -305,7 +305,7 @@ class BaseProject(models.Model):
 
     @property
     def is_normal(self):
-        return not (self.suspended or self.trashed or not self.is_approved)
+        return not (self.suspended or self.trashed or self.is_archived or not self.acceptedTerms or not self.is_approved)
 
     @property
     def socialsites(self):
