@@ -1,15 +1,17 @@
 from datetime import timedelta
-from django.utils import timezone
-from projects.models import Category, License
+
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
-from people.tests.utils import getTestUsersInst
-from people.models import User
+from compete.tests.utils import getCompTitle
 from django.test import TestCase, tag
+from django.utils import timezone
 from main.env import BOTMAIL
 from main.tests.utils import getRandomStr
 from moderation.methods import *
-from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
-from compete.tests.utils import getCompTitle
+from people.models import User
+from people.tests.utils import getTestUsersInst
+from projects.models import Category, License
+from projects.tests.utils import (getLicDesc, getLicName, getProjCategory,
+                                  getProjName, getProjRepo)
 
 
 @tag(Code.Test.METHOD, APPNAME)
@@ -30,15 +32,19 @@ class ModerationMethodTest(TestCase):
             c += 1
         self.profiles = Profile.objects.bulk_create(profiles)
         self.profile = self.profiles[0]
-        self.mguser = User.objects.create_user(email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
+        self.mguser = User.objects.create_user(
+            email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
-        self.competition = Competition.objects.create(title=getCompTitle(),creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
+        self.competition = Competition.objects.create(title=getCompTitle(
+        ), creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
         self.competition.judges.add(self.profiles[1])
         self.competition.judges.add(self.profiles[2])
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
-        self.project = Project.objects.create(name=getProjName(), creator=self.profiles[3], reponame=getProjRepo(),category=self.category, license=self.license)
+        self.license = License.objects.create(name=getLicName(
+        ), description=getLicDesc(), creator=self.bot.profile, public=True)
+        self.project = Project.objects.create(name=getProjName(
+        ), creator=self.profiles[3], reponame=getProjRepo(), category=self.category, license=self.license)
         return super().setUpTestData()
 
     def test_getModelByType(self):

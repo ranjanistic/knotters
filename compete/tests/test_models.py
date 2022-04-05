@@ -1,14 +1,17 @@
 from datetime import timedelta
-from django.utils import timezone
-from django.test import TestCase, tag
 from random import randint
-from main.strings import Code
-from people.models import User
-from moderation.methods import requestModerationForObject
-from auth2.tests.utils import getTestEmail, getTestName, getTestPassword 
-from people.tests.utils import getTestUsersInst, getTestTopicsInst
-from .utils import getCompTitle, getCompPerks, getCompBanner, getSubmissionRepos
+
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
 from compete.models import *
+from django.test import TestCase, tag
+from django.utils import timezone
+from main.strings import Code
+from moderation.methods import requestModerationForObject
+from people.models import User
+from people.tests.utils import getTestTopicsInst, getTestUsersInst
+
+from .utils import (getCompBanner, getCompPerks, getCompTitle,
+                    getSubmissionRepos)
 
 
 @tag(Code.Test.MODEL, APPNAME)
@@ -19,7 +22,7 @@ class CompetitionTest(TestCase):
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
         comp = Competition.objects.create(
-            title=getCompTitle(), creator=self.mguser.profile,endAt=timezone.now()+timedelta(days=3))
+            title=getCompTitle(), creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
         self.assertIsNotNone(comp.title)
 
 
@@ -123,11 +126,10 @@ class CompetitionAttributeTest(TestCase):
         self.assertCountEqual(self.comp.getAllParticipants(), [])
         self.assertEqual(self.comp.totalAllParticipants(), 0)
 
-    
     def test_modified_comp_methods(self):
         self.comp.endAt = timezone.now()
         perks = []
-        for p,perk in enumerate(getCompPerks().split(';')):
+        for p, perk in enumerate(getCompPerks().split(';')):
             perks.append(Perk(
                 name=perk,
                 rank=p+1,
@@ -137,7 +139,8 @@ class CompetitionAttributeTest(TestCase):
         self.judges = None
         self.comp.save()
         self.assertEqual(self.comp.secondsLeft(), 0)
-        self.assertCountEqual(self.comp.getPerks(), Perk.objects.filter(competition=self.comp))
+        self.assertCountEqual(self.comp.getPerks(),
+                              Perk.objects.filter(competition=self.comp))
         users = User.objects.bulk_create(getTestUsersInst(3))
         Profile.objects.create(user=users[0], is_moderator=True)
         if requestModerationForObject(self.comp, APPNAME):

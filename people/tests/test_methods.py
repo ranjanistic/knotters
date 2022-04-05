@@ -1,10 +1,12 @@
-from main.strings import Code
-from django.test import TestCase, tag
-from main.tests.utils import getRandomStr
-from main.env import BOTMAIL
-from people.methods import *
 from auth2.methods import migrateUserAssets
-from auth2.tests.utils import getTestEmail, getTestFName, getTestLName, getTestName, getTestName, getTestPassword
+from auth2.tests.utils import (getTestEmail, getTestFName, getTestLName,
+                               getTestName, getTestPassword)
+from django.test import TestCase, tag
+from main.env import BOTMAIL
+from main.strings import Code
+from main.tests.utils import getRandomStr
+from people.methods import *
+
 from .utils import getTestBio
 
 

@@ -1,21 +1,23 @@
-from django.db.models.query import QuerySet
-from main.env import BOTMAIL
-from compete.models import SubmissionTopicPoint
-from uuid import uuid4
 from datetime import timedelta
-from django.utils import timezone
-from main.strings import Code
-from django.test import TestCase, tag
-from people.models import Profile, Topic
-from moderation.models import Moderation
-from moderation.methods import assignModeratorToObject
-from main.tests.utils import getRandomStr
+from random import randint
+from uuid import uuid4
+
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
-from people.tests.utils import getTestUsersInst, getTestTopicsInst
-from .utils import getCompTitle, getSubmissionRepos
 from compete.apps import APPNAME
 from compete.methods import *
-from random import randint
+from compete.models import SubmissionTopicPoint
+from django.db.models.query import QuerySet
+from django.test import TestCase, tag
+from django.utils import timezone
+from main.env import BOTMAIL
+from main.strings import Code
+from main.tests.utils import getRandomStr
+from moderation.methods import assignModeratorToObject
+from moderation.models import Moderation
+from people.models import Profile, Topic
+from people.tests.utils import getTestTopicsInst, getTestUsersInst
+
+from .utils import getCompTitle, getSubmissionRepos
 
 
 @tag(Code.Test.METHOD, APPNAME)
@@ -51,7 +53,7 @@ class CompeteMethodsTest(TestCase):
         self.user4 = Profile.objects.filter(user__in=users)[3:4][0]
         self.user5 = Profile.objects.filter(user__in=users)[4:5][0]
         self.moderator = Profile.objects.filter(user__in=users)[5:6][0]
-        self.moderator.is_moderator=True
+        self.moderator.is_moderator = True
         self.moderator.save()
         self.subm = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
@@ -68,8 +70,10 @@ class CompeteMethodsTest(TestCase):
         self.subm5 = Submission.objects.create(
             competition=self.comp, repo=getSubmissionRepos()[0], submitted=True, submitOn=now)
         self.subm5.members.add(self.user5)
-        SubmissionParticipant.objects.filter(confirmed=False).update(confirmed=True)
-        assignModeratorToObject(APPNAME,self.comp,self.moderator,self.comp.title)
+        SubmissionParticipant.objects.filter(
+            confirmed=False).update(confirmed=True)
+        assignModeratorToObject(
+            APPNAME, self.comp, self.moderator, self.comp.title)
         self.submTopicPoint = SubmissionTopicPoint.objects.create(
             submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
         self.submTopicPoint2 = SubmissionTopicPoint.objects.create(
@@ -80,12 +84,13 @@ class CompeteMethodsTest(TestCase):
             submission=self.subm4, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
         self.submTopicPoint5 = SubmissionTopicPoint.objects.create(
             submission=self.subm5, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
-        Moderation.objects.filter(type=APPNAME,competition=self.comp,moderator=self.moderator).update(resolved=True)
+        Moderation.objects.filter(
+            type=APPNAME, competition=self.comp, moderator=self.moderator).update(resolved=True)
         return super().setUpTestData()
 
-    
     def test_competition_section_data(self):
-        self.assertIsNone(getCompetitionSectionData(getRandomStr(), self.comp, self.user))
+        self.assertIsNone(getCompetitionSectionData(
+            getRandomStr(), self.comp, self.user))
         self.assertDictEqual(getCompetitionSectionData(
             Compete.OVERVIEW, self.comp, self.user), dict(compete=self.comp))
         self.assertDictEqual(getCompetitionSectionData(
@@ -98,22 +103,22 @@ class CompeteMethodsTest(TestCase):
             self.assertDictEqual(getCompetitionSectionData(
                 Compete.RESULT, self.comp, self.user), dict(compete=self.comp, results=None))
         else:
-            self.assertEqual(len(getCompetitionSectionData(Compete.RESULT, self.comp, self.user)['results']), len(Result.objects.filter(competition=self.comp)))
+            self.assertEqual(len(getCompetitionSectionData(Compete.RESULT, self.comp, self.user)[
+                             'results']), len(Result.objects.filter(competition=self.comp)))
 
-    
     def test_certificate_generator(self):
         self.comp.endAt = timezone.now()
         self.comp.save()
         self.comp.declareResults()
-        
+
         cert = generateCertificate(certname=f'{self.comp.get_id}-{self.user.getID()}',
-            certID=uuid4().hex,
-            userdisplayname=self.user.getName(),
-            compname=self.comp.title,
-            abouttext=f"from {self.comp.startAt.strftime('%B')} {self.comp.startAt.day}, {self.comp.startAt.year} to {self.comp.endAt.strftime('%B')} {self.comp.endAt.day}, {self.comp.endAt.year}"
-        )
+                                   certID=uuid4().hex,
+                                   userdisplayname=self.user.getName(),
+                                   compname=self.comp.title,
+                                   abouttext=f"from {self.comp.startAt.strftime('%B')} {self.comp.startAt.day}, {self.comp.startAt.year} to {self.comp.endAt.strftime('%B')} {self.comp.endAt.day}, {self.comp.endAt.year}"
+                                   )
         self.assertTrue(cert.endswith('.pdf'))
-        
+
         cert = generateModCertificate(
             competition=self.comp,
             certID=uuid4().hex,
@@ -127,11 +132,11 @@ class CompeteMethodsTest(TestCase):
         )
         self.assertTrue(cert.endswith('.pdf'))
 
-        result = Result.objects.get(submission=self.subm2,competition=self.comp)
+        result = Result.objects.get(
+            submission=self.subm2, competition=self.comp)
         cert = generateParticipantCertificate(
             profile=self.user2,
             result=result,
             certID=uuid4().hex,
         )
         self.assertTrue(cert.endswith('.pdf'))
-

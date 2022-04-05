@@ -1,8 +1,13 @@
 
-from requests import post as postRequest, delete as deleteRequest, get as getRequest
 from github import Github as GHub
-from .env import GITHUBBOTTOKEN, PUBNAME, ISPRODUCTION, DISCORDBOTTOKEN, DISCORDSERVERID
-from .settings import SENDER_API_URL_SUBS, SENDER_API_HEADERS, DISCORD_KNOTTERS_API_URL, DISCORD_KNOTTERS_HEADERS
+from requests import delete as deleteRequest
+from requests import get as getRequest
+from requests import post as postRequest
+
+from .env import (DISCORDBOTTOKEN, DISCORDSERVERID, GITHUBBOTTOKEN,
+                  ISPRODUCTION, PUBNAME)
+from .settings import (DISCORD_KNOTTERS_API_URL, DISCORD_KNOTTERS_HEADERS,
+                       SENDER_API_HEADERS, SENDER_API_URL_SUBS)
 
 try:
     if GITHUBBOTTOKEN:

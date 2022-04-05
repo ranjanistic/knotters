@@ -2,14 +2,16 @@
 Tests for models & signal receivers of people subapplication.
 """
 
+from allauth.account.models import EmailAddress
+from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
+                               getTestPassword)
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.test import TestCase, tag
-from django.core.exceptions import ObjectDoesNotExist
-from allauth.account.models import EmailAddress
 from main.env import BOTMAIL
 from people.apps import APPNAME
 from people.models import *
-from auth2.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword
+
 from .utils import getTestDP, getTestTopics
 
 
@@ -17,7 +19,7 @@ from .utils import getTestDP, getTestTopics
 class UserTest(TestCase):
 
     def test_setting_creation_fail(self):
-        with self.assertRaises((ObjectDoesNotExist,IntegrityError)):
+        with self.assertRaises((ObjectDoesNotExist, IntegrityError)):
             settings = ProfileSetting.objects.create()
             self.assertIsNone(settings.profile)
 
@@ -129,7 +131,7 @@ class ProfileAttributeTest(TestCase):
         self.setting = ProfileSetting.objects.get(profile=self.profile)
         self.emailaddress = EmailAddress.objects.create(
             user=self.user, email=self.user.email, verified=True)
-    
+
     @tag('testprofilemethods')
     def test_profile_methods(self):
         self.assertEqual(self.profile.getID(), self.profile.id.hex)

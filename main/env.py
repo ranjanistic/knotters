@@ -1,16 +1,19 @@
-from environ import Env
-from pathlib import Path
 from os import path as os_path
+from pathlib import Path
+
+from environ import Env
 
 try:
     from .__version__ import VERSION
 except:
     VERSION = 'vXXX'
 
+
 class Environment():
     DEVELOPMENT = 'development'
     TESTING = 'testing'
     PRODUCTION = 'production'
+
 
 env = Env()
 

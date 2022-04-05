@@ -1,8 +1,8 @@
-from main.mailers import sendAlertEmail, sendActionEmail
-from allauth.account.utils import send_email_confirmation
 from allauth.account.models import EmailAddress
+from allauth.account.utils import send_email_confirmation
 from main.env import PUBNAME
-from people.models import User, Profile
+from main.mailers import sendActionEmail, sendAlertEmail
+from people.models import Profile, User
 
 
 def passordChangeAlert(user: User) -> bool:
@@ -16,28 +16,28 @@ def passordChangeAlert(user: User) -> bool:
 def emailUpdateAlert(user: User, oldEmail: str, newEmail: str) -> bool:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
         return sendAlertEmail(to=oldEmail, username=user.first_name, subject='Primary Email Address Changed',
-                            header=f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently.",
-                            footer="If you acknowledge this action, then this email can be ignored safely.",
-                            conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us. Your {PUBNAME} account may have been compromised."
-                            )
+                              header=f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently.",
+                              footer="If you acknowledge this action, then this email can be ignored safely.",
+                              conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us. Your {PUBNAME} account may have been compromised."
+                              )
 
 
 def emailAddAlert(user: User, newEmail: str) -> bool:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
         return sendAlertEmail(to=user.email, username=user.first_name, subject='New Email Address Added',
-                            header=f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently. This however, will NOT affect your existing ({user.email}) login email address.",
-                            footer="If you acknowledge this action, then this email can be ignored safely.",
-                            conclusion=f"If this action is suspicious and you didn't do such thing, then immediately login to {PUBNAME} and remove this new email address from your acccount."
-                            )
+                              header=f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently. This however, will NOT affect your existing ({user.email}) login email address.",
+                              footer="If you acknowledge this action, then this email can be ignored safely.",
+                              conclusion=f"If this action is suspicious and you didn't do such thing, then immediately login to {PUBNAME} and remove this new email address from your acccount."
+                              )
 
 
 def emailRemoveAlert(user: User, removedEmail: str) -> bool:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
         return sendAlertEmail(to=user.email, username=user.first_name, subject='Email Address Removed',
-                            header=f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account.",
-                            footer="If you acknowledge this action, then this email can be ignored safely.",
-                            conclusion=f"If this action is suspicious and you didn't do such thing, then you can login to {PUBNAME} and add this email address again."
-                            )
+                              header=f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account.",
+                              footer="If you acknowledge this action, then this email can be ignored safely.",
+                              conclusion=f"If this action is suspicious and you didn't do such thing, then you can login to {PUBNAME} and add this email address again."
+                              )
 
 
 def accountInactiveAlert(profile: Profile) -> bool:
@@ -58,10 +58,10 @@ def accountReactiveAlert(profile: Profile) -> bool:
 
 def accountDeleteAlert(user: User) -> bool:
     return sendAlertEmail(to=user.email, username=user.first_name, subject='Account Deleted',
-                        header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
-                        footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
-                        conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
-                        )
+                          header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
+                          footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
+                          conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
+                          )
 
 
 def successorInvite(successor: User, predecessor: User) -> bool:
@@ -94,6 +94,7 @@ def successorDeclined(successor: User, predecessor: User) -> bool:
                           footer=f"You can request another successor using the same way you requested for {successor.getName()}.",
                           conclusion=f"This email was sent because you requested a successor for your {PUBNAME} account. If this wasn't you, then please report to us."
                           )
+
 
 def send_account_verification_email(request):
     send_email_confirmation(request, request.user)

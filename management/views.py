@@ -1,31 +1,42 @@
-from uuid import UUID
-from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.validators import validate_email
-from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import Http404, HttpResponse, JsonResponse
-from ratelimit.decorators import ratelimit
-from django.db.models import Q
-from django.shortcuts import redirect
-from django.views.decorators.http import require_GET, require_POST
 from datetime import timedelta
-from django.utils import timezone
-from django.core.cache import cache
-from main.decorators import manager_only, normal_profile_required, require_JSON, require_JSON_body
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, respondRedirect, errorLog, respondJson
-from main.strings import COMPETE, MODERATION, URL, Action, Message, Code, Template
-from management.mailers import managementInvitationAccepted, managementInvitationSent, managementPersonRemoved
-from moderation.mailers import moderationAssignedAlert
-from moderation.methods import assignModeratorToObject, getModeratorToAssignModeration
+from uuid import UUID
+
 from compete.models import Competition
-from projects.models import Category, Tag
-from people.models import ReportedUser, Topic, Profile
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.handlers.wsgi import WSGIRequest
+from django.core.validators import validate_email
+from django.db.models import Q
+from django.http.response import Http404, HttpResponse, JsonResponse
+from django.shortcuts import redirect
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
+from main.decorators import (manager_only, normal_profile_required,
+                             require_JSON, require_JSON_body)
+from main.methods import (addMethodToAsyncQueue, base64ToImageFile, errorLog,
+                          respondJson, respondRedirect)
+from main.strings import (COMPETE, MODERATION, URL, Action, Code, Message,
+                          Template)
+from moderation.mailers import moderationAssignedAlert
+from moderation.methods import (assignModeratorToObject,
+                                getModeratorToAssignModeration)
 from moderation.models import Moderation
-from projects.methods import addTagToDatabase, addCategoryToDatabase
 from people.methods import addTopicToDatabase
-from .methods import competitionManagementRenderData, labelRenderData, renderer, createCompetition, rendererstr
-from .models import ContactCategory, ContactRequest, Management, ManagementInvitation, Report, Feedback
+from people.models import Profile, ReportedUser, Topic
+from projects.methods import addCategoryToDatabase, addTagToDatabase
+from projects.models import Category, Tag
+from ratelimit.decorators import ratelimit
+
+from management.mailers import (managementInvitationAccepted,
+                                managementInvitationSent,
+                                managementPersonRemoved)
+
 from .apps import APPNAME
+from .methods import (competitionManagementRenderData, createCompetition,
+                      labelRenderData, renderer, rendererstr)
+from .models import (ContactCategory, ContactRequest, Feedback, Management,
+                     ManagementInvitation, Report)
 
 
 @manager_only
@@ -47,8 +58,10 @@ def community(request: WSGIRequest):
 def moderators(request: WSGIRequest):
     try:
         mgm = Management.objects.get(profile=request.user.profile)
-        moderators = mgm.people.filter(is_moderator=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
-        profiles = mgm.people.filter(is_moderator=False,is_mentor=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        moderators = mgm.people.filter(
+            is_moderator=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        profiles = mgm.people.filter(is_moderator=False, is_mentor=False,
+                                     to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = list(filter(lambda x: not x.is_manager(), profiles))
         return renderer(request, Template.Management.COMMUNITY_MODERATORS, dict(moderators=moderators, profiles=profiles))
     except Exception as e:
@@ -97,21 +110,25 @@ def removeModerator(request: WSGIRequest):
         if not modID or modID == request.user.get_id:
             return respondJson(Code.NO)
         mgm = Management.objects.get(profile=request.user.profile)
-        moderators = mgm.people.filter(user__id=modID, is_moderator=True).values_list('id',flat=True)
+        moderators = mgm.people.filter(
+            user__id=modID, is_moderator=True).values_list('id', flat=True)
         if not len(moderators):
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
-        unresolved = Moderation.objects.filter(moderator__user__id=modID, resolved=False)
+        unresolved = Moderation.objects.filter(
+            moderator__user__id=modID, resolved=False)
         for mod in unresolved:
             if mod.requestor == request.user.profile:
                 onlyModProfiles = None
                 preferModProfiles = []
                 if mod.internal_mod:
-                    onlyModProfiles = [mgm.people.filter(user__id=modID, is_moderator=True,to_be_zombie=False,is_active=True,suspended=False)]
+                    onlyModProfiles = [mgm.people.filter(
+                        user__id=modID, is_moderator=True, to_be_zombie=False, is_active=True, suspended=False)]
                 else:
                     if mod.project or mod.coreproject:
-                        preferModProfiles = Profile.objects.filter(is_moderator=True,suspended=False,is_active=True,to_be_zombie=False,topics__in=mod.object.category.topics).distinct()
+                        preferModProfiles = Profile.objects.filter(
+                            is_moderator=True, suspended=False, is_active=True, to_be_zombie=False, topics__in=mod.object.category.topics).distinct()
                 moderator = getModeratorToAssignModeration(
-                    mod.type, mod.object, ignoreModProfiles=[mod.moderator], 
+                    mod.type, mod.object, ignoreModProfiles=[mod.moderator],
                     onlyModProfiles=onlyModProfiles,
                     preferModProfiles=preferModProfiles,
                     internal=mod.internal_mod
@@ -120,12 +137,14 @@ def removeModerator(request: WSGIRequest):
                     mod.moderator = moderator
                     mod.requestOn = timezone.now()
                     mod.save()
-                    addMethodToAsyncQueue(f"{MODERATION}.mailers.{moderationAssignedAlert.__name__}", mod)
+                    addMethodToAsyncQueue(
+                        f"{MODERATION}.mailers.{moderationAssignedAlert.__name__}", mod)
                 else:
                     return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
             else:
                 return respondJson(Code.NO, error=Message.PENDING_MODERATIONS_EXIST)
-        moderators = Profile.objects.filter(id__in=list(moderators)).update(is_moderator=False)
+        moderators = Profile.objects.filter(
+            id__in=list(moderators)).update(is_moderator=False)
         if moderators == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -145,8 +164,9 @@ def addModerator(request: WSGIRequest):
             return respondJson(Code.NO)
         mgm = Management.objects.get(profile=request.user.profile)
         profiles = mgm.people.filter(user__id=userID, is_moderator=False, is_mentor=False,
-                                      suspended=False, to_be_zombie=False, is_active=True).values_list('id',flat=True)
-        profiles = Profile.objects.filter(id__in=list(profiles)).update(is_moderator=True)
+                                     suspended=False, to_be_zombie=False, is_active=True).values_list('id', flat=True)
+        profiles = Profile.objects.filter(
+            id__in=list(profiles)).update(is_moderator=True)
         if profiles == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -156,13 +176,16 @@ def addModerator(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO)
 
+
 @manager_only
 @require_GET
 def mentors(request: WSGIRequest):
     try:
         mgm = Management.objects.get(profile=request.user.profile)
-        mentors = mgm.people.filter(is_mentor=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
-        profiles = mgm.people.filter(is_mentor=False, is_moderator=False, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        mentors = mgm.people.filter(
+            is_mentor=True, to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
+        profiles = mgm.people.filter(is_mentor=False, is_moderator=False,
+                                     to_be_zombie=False, is_active=True, suspended=False).order_by('-xp')[0:10]
         profiles = list(filter(lambda x: not x.is_manager(), profiles))
         return renderer(request, Template.Management.COMMUNITY_MENTORS, dict(mentors=mentors, profiles=profiles))
     except ObjectDoesNotExist as o:
@@ -214,8 +237,10 @@ def removeMentor(request: WSGIRequest):
         if not mntID or mntID == request.user.get_id:
             return respondJson(Code.NO)
         mgm = Management.objects.get(profile=request.user.profile)
-        mentors = mgm.people.filter(user__id=mntID, is_mentor=True).values_list('id',flat=True)
-        mentors = Profile.objects.filter(id__in=list(mentors)).update(is_mentor=False)
+        mentors = mgm.people.filter(
+            user__id=mntID, is_mentor=True).values_list('id', flat=True)
+        mentors = Profile.objects.filter(
+            id__in=list(mentors)).update(is_mentor=False)
         if mentors == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -234,9 +259,10 @@ def addMentor(request: WSGIRequest):
         if not userID or userID == request.user.get_id:
             return respondJson(Code.NO)
         mgm = Management.objects.get(profile=request.user.profile)
-        profiles = mgm.people.filter(user__id=userID, is_mentor=False,is_moderator=False,
-                                      suspended=False, to_be_zombie=False, is_active=True).values_list('id',flat=True)
-        profiles = Profile.objects.filter(id__in=list(profiles)).update(is_mentor=True)
+        profiles = mgm.people.filter(user__id=userID, is_mentor=False, is_moderator=False,
+                                     suspended=False, to_be_zombie=False, is_active=True).values_list('id', flat=True)
+        profiles = Profile.objects.filter(
+            id__in=list(profiles)).update(is_mentor=True)
         if profiles == 0:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -245,6 +271,7 @@ def addMentor(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
 
 @manager_only
 @require_GET
@@ -259,13 +286,16 @@ def labelType(request: WSGIRequest, type: str):
     try:
         mgm = Management.objects.get(profile=request.user.profile)
         if type == Code.TOPIC:
-            topics = Topic.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
+            topics = Topic.objects.filter(
+                Q(Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_TOPICS, dict(topics=topics))
         if type == Code.CATEGORY:
-            categories = Category.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
+            categories = Category.objects.filter(
+                Q(Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_CATEGORIES, dict(categories=categories))
         if type == Code.TAG:
-            tags = Tag.objects.filter(Q(Q(creator__in=mgm.people.all())|Q(creator=request.user.profile)))
+            tags = Tag.objects.filter(
+                Q(Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile)))
             return rendererstr(request, Template.Management.COMMUNITY_LABELS_TAGS, dict(tags=tags))
         raise Exception('Invalid label')
     except ObjectDoesNotExist as o:
@@ -274,11 +304,12 @@ def labelType(request: WSGIRequest, type: str):
         errorLog(e)
         raise Http404(e)
 
+
 @manager_only
 @require_GET
 def label(request: WSGIRequest, type: str, labelID: UUID):
     try:
-        data = labelRenderData(request,type,labelID)
+        data = labelRenderData(request, type, labelID)
         if not data:
             raise ObjectDoesNotExist(type, labelID)
         if type == Code.TOPIC:
@@ -318,11 +349,14 @@ def labelUpdate(request: WSGIRequest, type: str, labelID: UUID):
         mgm = Management.objects.get(profile=request.user.profile)
         name = request.POST['name']
         if type == Code.TAG:
-            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).update(name=name)
+            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()]) | Q(
+                creator=request.user.profile))).update(name=name)
         elif type == Code.TOPIC:
-            Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
+            Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()]) | Q(
+                creator=request.user.profile)))).update(name=name)
         elif type == Code.CATEGORY:
-            Category.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile)))).update(name=name)
+            Category.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()]) | Q(
+                creator=request.user.profile)))).update(name=name)
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -336,15 +370,18 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
     try:
         mgm = Management.objects.get(profile=request.user.profile)
         if type == Code.TOPIC:
-            topic = Topic.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
+            topic = Topic.objects.filter(Q(id=labelID), Q(
+                Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).first()
             if topic.isDeletable:
                 topic.delete()
         elif type == Code.CATEGORY:
-            category = Category.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).first()
+            category = Category.objects.filter(Q(id=labelID), Q(
+                Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).first()
             if category.isDeletable:
                 category.delete()
         elif type == Code.TAG:
-            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()])|Q(creator=request.user.profile))).delete()
+            Tag.objects.filter(Q(id=labelID), Q(
+                Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).delete()
         else:
             return respondJson(Code.NO)
         return respondJson(Code.OK)
@@ -355,7 +392,7 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
 def contact_categories(request: WSGIRequest) -> HttpResponse:
     try:
         cacheKey = 'contact_categories'
-        categories = cache.get(cacheKey,[])
+        categories = cache.get(cacheKey, [])
         if not len(categories):
             cats = ContactCategory.objects.filter(disabled=False)
             for cat in cats:
@@ -368,7 +405,8 @@ def contact_categories(request: WSGIRequest) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        
+
+
 @require_JSON
 @ratelimit(key='user_or_ip', rate='10/m', block=True, method=(Code.POST))
 def contact_subm(request: WSGIRequest) -> HttpResponse:
@@ -379,7 +417,8 @@ def contact_subm(request: WSGIRequest) -> HttpResponse:
         senderEmail = request.POST['senderEmail']
         validate_email(senderEmail)
         senderMessage = request.POST['senderMessage']
-        created = ContactRequest.objects.create(contactCategory=contactCategory, senderName=senderName, senderEmail=senderEmail, message=senderMessage)
+        created = ContactRequest.objects.create(
+            contactCategory=contactCategory, senderName=senderName, senderEmail=senderEmail, message=senderMessage)
         if not created:
             raise Exception('Failed to create contact request')
         return respondJson(Code.OK)
@@ -388,6 +427,7 @@ def contact_subm(request: WSGIRequest) -> HttpResponse:
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
 
 @manager_only
 @require_GET
@@ -477,7 +517,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
             profile = mgm.people.exclude(user__id__in=excludeIDs).filter(
                 Q(
                     Q(is_active=True,
-                    suspended=False, to_be_zombie=False, is_moderator=True),
+                      suspended=False, to_be_zombie=False, is_moderator=True),
                     Q(user__email__startswith=query)
                     | Q(user__first_name__startswith=query)
                     | Q(githubID__startswith=query)
@@ -487,7 +527,7 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
             profile = Profile.objects.exclude(user__id__in=excludeIDs).filter(
                 Q(
                     Q(is_active=True,
-                    suspended=False, to_be_zombie=False, is_moderator=True),
+                      suspended=False, to_be_zombie=False, is_moderator=True),
                     Q(user__email__startswith=query)
                     | Q(user__first_name__startswith=query)
                     | Q(githubID__startswith=query)
@@ -495,7 +535,8 @@ def searchModerator(request: WSGIRequest) -> JsonResponse:
             ).first()
         if profile:
             if profile.isBlocked(request.user):
-                raise Exception('mgm modsearch blocked: ', profile, request.user)
+                raise Exception('mgm modsearch blocked: ',
+                                profile, request.user)
             return respondJson(Code.OK, dict(mod=dict(
                 id=profile.user.id,
                 userID=profile.getUserID(),
@@ -539,8 +580,8 @@ def submitCompetition(request) -> HttpResponse:
         endAt = request.POST['compendAt']
         eachTopicMaxPoint = int(request.POST['compeachTopicMaxPoint'])
         max_grouping = int(request.POST['compmaxgrouping'])
-        reg_fee = int(request.POST.get('compregfee',0))
-        fee_link = str(request.POST.get('compfeelink',""))
+        reg_fee = int(request.POST.get('compregfee', 0))
+        fee_link = str(request.POST.get('compfeelink', ""))
         topicIDs = str(request.POST['comptopicIDs']
                        ).strip().strip(',').split(',')
         judgeIDs = str(request.POST['compjudgeIDs']
@@ -549,7 +590,8 @@ def submitCompetition(request) -> HttpResponse:
         taskDetail = str(request.POST['comptaskDetail']).strip()
         taskSample = str(request.POST['comptaskSample']).strip()
 
-        qualifier_id = str(request.POST.get('qualifier-competition-id', '')).strip()
+        qualifier_id = str(request.POST.get(
+            'qualifier-competition-id', '')).strip()
         qualifier_rank = 0
 
         if qualifier_id:
@@ -588,11 +630,12 @@ def submitCompetition(request) -> HttpResponse:
         if startAt >= endAt:
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_TIME_PAIR)
 
-        if modID.replace('-','').lower() in list(map(lambda j: j.replace('-','').lower(), judgeIDs)):
+        if modID.replace('-', '').lower() in list(map(lambda j: j.replace('-', '').lower(), judgeIDs)):
             return respondRedirect(APPNAME, URL.Management.CREATE_COMP, error=Message.INVALID_TIME_PAIR)
         qualifier = None
         if qualifier_id:
-            qualifier = Competition.objects.get(id=qualifier_id, hidden=False,is_draft=False)
+            qualifier = Competition.objects.get(
+                id=qualifier_id, hidden=False, is_draft=False)
         compete = createCompetition(
             creator=request.user.profile,
             title=title,
@@ -662,57 +705,59 @@ def submitCompetition(request) -> HttpResponse:
 
 @manager_only
 @require_JSON
-def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
+def editCompetition(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        compete = Competition.objects.get(id=compID,creator=request.user.profile)
+        compete = Competition.objects.get(
+            id=compID, creator=request.user.profile)
         changed = False
         if compete.canBeEdited():
-            title = str(request.POST.get("comptitle",'')).strip()
+            title = str(request.POST.get("comptitle", '')).strip()
             if title and title != compete.title:
                 compete.title = title
-            tagline = str(request.POST.get("comptagline",'')).strip()
+            tagline = str(request.POST.get("comptagline", '')).strip()
             if tagline and tagline != compete.tagline:
                 compete.tagline = tagline
-            shortdescription = str(request.POST.get("compshortdesc",'')).strip()
+            shortdescription = str(
+                request.POST.get("compshortdesc", '')).strip()
             if shortdescription and shortdescription != compete.shortdescription:
                 compete.shortdescription = shortdescription
 
-            description = str(request.POST.get("compdesc",'')).strip()
+            description = str(request.POST.get("compdesc", '')).strip()
             if description and description != compete.description:
                 compete.description = description
 
-            startAt = request.POST.get("compstartAt",None)
+            startAt = request.POST.get("compstartAt", None)
             if startAt and startAt != compete.startAt:
                 compete.startAt = startAt
 
-            endAt = request.POST.get("compendAt",None)
+            endAt = request.POST.get("compendAt", None)
             if endAt and endAt != compete.endAt and endAt > compete.startAt:
                 compete.endAt = endAt
 
-            eachTopicMaxPoint = request.POST.get("compeachTopicMaxPoint",None)
+            eachTopicMaxPoint = request.POST.get("compeachTopicMaxPoint", None)
             if eachTopicMaxPoint and eachTopicMaxPoint != compete.eachTopicMaxPoint:
                 compete.eachTopicMaxPoint = eachTopicMaxPoint
-            maxGrouping = int(request.POST.get("compMaxGrouping",1))
+            maxGrouping = int(request.POST.get("compMaxGrouping", 1))
             if maxGrouping and maxGrouping != compete.max_grouping:
                 compete.max_grouping = maxGrouping
             if compete.reg_fee:
-                reg_fee = request.POST.get("compregfee",None)
+                reg_fee = request.POST.get("compregfee", None)
                 if reg_fee and reg_fee != compete.reg_fee:
                     compete.reg_fee = reg_fee
-                feelink = request.POST.get("compfeelink",None)
+                feelink = request.POST.get("compfeelink", None)
                 if feelink and feelink != compete.feelink:
                     compete.feelink = feelink
-            taskSummary = request.POST.get("comptaskSummary",None)
+            taskSummary = request.POST.get("comptaskSummary", None)
             if taskSummary and taskSummary != compete.taskSummary:
                 compete.taskSummary = taskSummary
-            taskDetail = request.POST.get("comptaskDetail",None)
+            taskDetail = request.POST.get("comptaskDetail", None)
             if taskDetail and taskDetail != compete.taskDetail:
                 compete.taskDetail = taskDetail
-            taskSample = request.POST.get("comptaskSample",None)
+            taskSample = request.POST.get("comptaskSample", None)
             if taskSample and taskSample != compete.taskSample:
                 compete.taskSample = taskSample
 
-            topicIDs = request.POST.get("comptopicIDs",None)
+            topicIDs = request.POST.get("comptopicIDs", None)
             if topicIDs and len(topicIDs) > 0:
                 topics = Topic.objects.filter(id__in=topicIDs)
                 compete.topics.set(topics)
@@ -735,9 +780,10 @@ def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
             changed = True
 
         if compete.canChangeModerator():
-            modID = request.POST.get("compmodID",None)
+            modID = request.POST.get("compmodID", None)
             if modID:
-                newmod = Profile.objects.filter(user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).first()
+                newmod = Profile.objects.filter(
+                    user__id=modID, is_moderator=True, is_active=True, to_be_zombie=False, suspended=False).first()
                 if newmod:
                     moderation = compete.moderation()
                     moderation.moderator = newmod
@@ -745,9 +791,10 @@ def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
                 changed = True
 
         if compete.canChangeJudges():
-            judgeIDs = request.POST.get("compjudgeIDs",None)
+            judgeIDs = request.POST.get("compjudgeIDs", None)
             if judgeIDs and len(judgeIDs) > 0:
-                newjudges = Profile.objects.filter(user__id__in=judgeIDs,is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
+                newjudges = Profile.objects.filter(
+                    user__id__in=judgeIDs, is_mentor=True, is_active=True, to_be_zombie=False, suspended=False)
                 compete.judges.set(newjudges)
                 changed = True
 
@@ -764,15 +811,16 @@ def editCompetition(request:WSGIRequest, compID: UUID)->HttpResponse:
 
 @manager_only
 @require_JSON_body
-def draftDeleteCompete(request:WSGIRequest, compID: UUID)->HttpResponse:
+def draftDeleteCompete(request: WSGIRequest, compID: UUID) -> HttpResponse:
     try:
-        compete = Competition.objects.get(id=compID,creator=request.user.profile)
+        compete = Competition.objects.get(
+            id=compID, creator=request.user.profile)
         delete = request.POST.get('delete', False)
         draft = request.POST.get('draft', None)
         confirmed = request.POST.get('confirmed', False)
         if not confirmed:
             raise ObjectDoesNotExist('not confirmed', compete)
-            
+
         if draft is not None:
             if draft and not compete.canBeSetToDraft():
                 raise ObjectDoesNotExist('cannot set to draft', compete)
@@ -789,7 +837,7 @@ def draftDeleteCompete(request:WSGIRequest, compID: UUID)->HttpResponse:
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-    
+
 
 @manager_only
 @require_GET
@@ -838,7 +886,8 @@ def reportfeedType(request: WSGIRequest, type: str):
     try:
         mgm = Management.objects.get(profile=request.user.profile)
         if type == Code.REPORTS:
-            userreports = ReportedUser.objects.filter(user__id__in=mgm.people.filter(suspended=False,is_active=True,to_be_zombie=False).values_list('user__id', flat=True))
+            userreports = ReportedUser.objects.filter(user__id__in=mgm.people.filter(
+                suspended=False, is_active=True, to_be_zombie=False).values_list('user__id', flat=True))
             return rendererstr(request, Template.Management.REPORTFEED_REPORTS, dict(reports=[], userreports=userreports))
         elif type == Code.FEEDBACKS:
             feedbacks = Feedback.objects.filter()
@@ -864,6 +913,7 @@ def reportfeedTypeID(request: WSGIRequest, type: str, ID: UUID):
     except Exception as e:
         raise Http404(e)
 
+
 @manager_only
 @require_JSON_body
 def sendPeopleInvite(request: WSGIRequest):
@@ -873,7 +923,8 @@ def sendPeopleInvite(request: WSGIRequest):
             email = request.POST['email'].lower()
             if (request.user.email == email) or (email in request.user.emails()):
                 return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-            receiver = Profile.objects.get(user__email=email, suspended=False, is_active=True, to_be_zombie=False)
+            receiver = Profile.objects.get(
+                user__email=email, suspended=False, is_active=True, to_be_zombie=False)
             if request.user.profile.management().people.filter(id=receiver.id).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_EXISTS)
             if receiver.isBlocked(request.user):
@@ -892,7 +943,8 @@ def sendPeopleInvite(request: WSGIRequest):
                 if inv.expired:
                     inv.expiresOn = timezone.now() + timedelta(days=1)
                     inv.save()
-                    addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementInvitationSent.__name__}", inv)
+                    addMethodToAsyncQueue(
+                        f"{APPNAME}.mailers.{managementInvitationSent.__name__}", inv)
                 else:
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
         elif action == Action.REMOVE:
@@ -912,17 +964,18 @@ def sendPeopleInvite(request: WSGIRequest):
 def peopleMGMInvitation(request: WSGIRequest, inviteID: UUID):
     try:
         invitation = ManagementInvitation.objects.get(id=inviteID,
-            receiver=request.user.profile, expiresOn__gt=timezone.now(),
-            resolved=False,
-            management__profile__suspended=False,
-            management__profile__is_active=True
-        )
+                                                      receiver=request.user.profile, expiresOn__gt=timezone.now(),
+                                                      resolved=False,
+                                                      management__profile__suspended=False,
+                                                      management__profile__is_active=True
+                                                      )
         return renderer(request, Template.Management.INVITATION,
-                 dict(invitation=invitation))
+                        dict(invitation=invitation))
     except ObjectDoesNotExist as o:
         raise Http404(o)
     except Exception as e:
         raise Http404(e)
+
 
 @normal_profile_required
 @require_JSON_body
@@ -930,11 +983,11 @@ def peopleMGMInvitationAction(request: WSGIRequest, inviteID: UUID):
     try:
         action = request.POST['action']
         invitation = ManagementInvitation.objects.get(id=inviteID,
-            receiver=request.user.profile, expiresOn__gt=timezone.now(),
-            resolved=False,
-            management__profile__suspended=False,
-            management__profile__is_active=True
-        )
+                                                      receiver=request.user.profile, expiresOn__gt=timezone.now(),
+                                                      resolved=False,
+                                                      management__profile__suspended=False,
+                                                      management__profile__is_active=True
+                                                      )
         done = False
         accept = False
         if action == Action.ACCEPT:
@@ -946,7 +999,8 @@ def peopleMGMInvitationAction(request: WSGIRequest, inviteID: UUID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.JOINED_MANAGEMENT
-            addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementInvitationAccepted.__name__}",invitation)
+            addMethodToAsyncQueue(
+                f"{APPNAME}.mailers.{managementInvitationAccepted.__name__}", invitation)
         else:
             message = Message.DECLINED_JOIN_MANAGEMENT
         return redirect(invitation.management.getLink(message=message))
@@ -954,14 +1008,15 @@ def peopleMGMInvitationAction(request: WSGIRequest, inviteID: UUID):
         raise Http404(o)
     except Exception as e:
         raise Http404(e)
-        
+
+
 @normal_profile_required
 @require_JSON_body
 def peopleMGMRemove(request: WSGIRequest):
     try:
         userID = request.POST['userID']
         mgmID = request.POST['mgmID']
-        
+
         person = Profile.objects.get(user__id=userID)
         mgm = Management.objects.get(id=mgmID)
 
@@ -975,7 +1030,8 @@ def peopleMGMRemove(request: WSGIRequest):
         if not done:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{managementPersonRemoved.__name__}",mgm, person)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{managementPersonRemoved.__name__}", mgm, person)
         return respondJson(Code.OK)
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)

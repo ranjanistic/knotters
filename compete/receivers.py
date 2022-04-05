@@ -9,25 +9,28 @@ from .models import AppreciationCertificate, ParticipantCertificate
 
 
 @receiver(post_delete, sender=ParticipantCertificate)
-def on_cert_delete(sender, instance:ParticipantCertificate, **kwargs):
+def on_cert_delete(sender, instance: ParticipantCertificate, **kwargs):
     """To remove certificate media on Participant Certificate instance deletion
     """
     try:
         if instance.certificate:
             os_remove(os_path.join(settings.MEDIA_ROOT, instance.certificate))
         if instance.certficateImage:
-            os_remove(os_path.join(settings.MEDIA_ROOT, instance.certficateImage))
+            os_remove(os_path.join(settings.MEDIA_ROOT,
+                      instance.certficateImage))
     except:
         pass
 
+
 @receiver(post_delete, sender=AppreciationCertificate)
-def on_appcert_delete(sender, instance:AppreciationCertificate, **kwargs):
+def on_appcert_delete(sender, instance: AppreciationCertificate, **kwargs):
     """To remove certificate media on Appreciant Certificate instance deletion
     """
     try:
         if instance.certificate:
             os_remove(os_path.join(settings.MEDIA_ROOT, instance.certificate))
         if instance.certficateImage:
-            os_remove(os_path.join(settings.MEDIA_ROOT, instance.certficateImage))
+            os_remove(os_path.join(settings.MEDIA_ROOT,
+                      instance.certficateImage))
     except:
         pass

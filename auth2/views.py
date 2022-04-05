@@ -1,20 +1,24 @@
 from uuid import UUID
+
+from allauth.account.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from django.views.decorators.http import require_GET, require_POST
-from django.shortcuts import redirect
 from django.http.response import Http404, HttpResponse, JsonResponse
-from allauth.account.decorators import login_required
-from main.env import BOTMAIL
-from main.strings import Action, Message, Template, Code
+from django.shortcuts import redirect
+from django.views.decorators.http import require_GET, require_POST
 from main.decorators import manager_only, normal_profile_required, require_JSON
-from main.methods import addMethodToAsyncQueue, errorLog, respondJson, user_device_notify
-from people.models import Profile, User
+from main.env import BOTMAIL
+from main.methods import (addMethodToAsyncQueue, errorLog, respondJson,
+                          user_device_notify)
+from main.strings import Action, Code, Message, Template
 from management.models import Management
-from .mailers import accountInactiveAlert, accountReactiveAlert, successorAccepted, successorDeclined, successorInvite
-from .models import DeviceNotification, EmailNotification
-from .methods import get_auth_section_html, migrateUserAssets, renderer
+from people.models import Profile, User
+
 from .apps import APPNAME
+from .mailers import (accountInactiveAlert, accountReactiveAlert,
+                      successorAccepted, successorDeclined, successorInvite)
+from .methods import get_auth_section_html, migrateUserAssets, renderer
+from .models import DeviceNotification, EmailNotification
 
 
 @normal_profile_required
@@ -58,6 +62,7 @@ def verify_authorization_method(request: WSGIRequest):
         errorLog(e)
         return respondJson(Code.NO)
 
+
 @normal_profile_required
 @require_JSON
 def verify_authorization(request: WSGIRequest):
@@ -66,7 +71,8 @@ def verify_authorization(request: WSGIRequest):
         totp = request.POST.get('totp', None)
         verified = False
         if password and totp:
-            verified = request.user.check_password(password) and request.user.verify_totp(totp)
+            verified = request.user.check_password(
+                password) and request.user.verify_totp(totp)
         elif password:
             verified = request.user.check_password(password)
         elif totp:
@@ -99,7 +105,6 @@ def change_ghorg(request: WSGIRequest):
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-
 
 
 @login_required
@@ -169,7 +174,8 @@ def profileSuccessor(request: WSGIRequest):
             elif userID and request.user.email != userID and not (userID in request.user.emails()):
                 try:
                     if request.user.profile.is_manager():
-                        smgm = Management.objects.get(profile__user__email=userID)
+                        smgm = Management.objects.get(
+                            profile__user__email=userID)
                         successor = smgm.profile.user
                     else:
                         successor = User.objects.get(
@@ -253,7 +259,8 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         predecessor = User.objects.get(id=predID)
 
         if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise ObjectDoesNotExist(predecessor.profile, request.user, predecessor.profile.successor)
+            raise ObjectDoesNotExist(
+                predecessor.profile, request.user, predecessor.profile.successor)
 
         if accept:
             successor = request.user
@@ -323,7 +330,6 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO)
-
 
 
 @normal_profile_required

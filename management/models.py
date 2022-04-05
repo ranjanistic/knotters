@@ -1,11 +1,13 @@
 from datetime import timedelta
 from uuid import uuid4
+
+from auth2.models import Address, PhoneNumber
 from django.conf import settings
 from django.core.cache import cache
-from django.utils import timezone
 from django.db import models
-from auth2.models import Address, PhoneNumber
-from main.strings import Message, url, Code, PEOPLE
+from django.utils import timezone
+from main.strings import PEOPLE, Code, Message, url
+
 from .apps import APPNAME
 
 
@@ -438,15 +440,19 @@ class ThirdPartyAccount(models.Model):
             cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
         return SOCIALS
 
+
 class Donor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.OneToOneField(f'{PEOPLE}.Profile', on_delete=models.SET_NULL, null=True, related_name='donor_profile')
+    profile = models.OneToOneField(
+        f'{PEOPLE}.Profile', on_delete=models.SET_NULL, null=True, related_name='donor_profile')
     donation_amount = models.IntegerField(default=0)
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(max_length=100, null=True, blank=True)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, related_name='donor_address')
-    phone = models.ForeignKey(PhoneNumber, on_delete=models.SET_NULL, null=True, related_name='donor_address')
+    address = models.ForeignKey(
+        Address, on_delete=models.SET_NULL, null=True, related_name='donor_address')
+    phone = models.ForeignKey(
+        PhoneNumber, on_delete=models.SET_NULL, null=True, related_name='donor_address')
 
     def __str__(self):
         return f"{self.profile} is a donor!"

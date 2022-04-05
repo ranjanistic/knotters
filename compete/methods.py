@@ -106,7 +106,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
         return False
 
 
-def competitionProfileData(request: WSGIRequest, compID: UUID = None, nickname: str =None) -> dict:
+def competitionProfileData(request: WSGIRequest, compID: UUID = None, nickname: str = None) -> dict:
     """Returns competition profile data.
     Needs only one of compID or nickname.
     If compID and nickname both are provided, nickname will be preferred.
@@ -440,13 +440,14 @@ def DeclareResults(competition: Competition):
         Exception, bool: If the results are not declared, an exception is raised, otherwise True is returned.
     """
     taskKey = competition.CACHE_KEYS.result_declaration_task
-    cache.set(taskKey,Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
+    cache.set(taskKey, Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
     declared = competition.declareResults()
     if not declared:
         cache.delete(taskKey)
         raise Exception(f'Result declaration failed!', competition)
-    cache.set(taskKey,Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
+    cache.set(taskKey, Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
+    addMethodToAsyncQueue(
+        f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
     return True
 
 
@@ -474,7 +475,8 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
         certificate = generateModCertificate(competition, id.hex)
         if not certificate:
             cache.delete(taskKey)
-            raise Exception(f"Couldn't generate certificate (mod)!", competition.moderator, competition)
+            raise Exception(f"Couldn't generate certificate (mod)!",
+                            competition.moderator, competition)
         appreciateeCerts.append(
             AppreciationCertificate(
                 id=id,
@@ -489,7 +491,8 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
             if not certificate:
                 cache.delete(
                     taskKey)
-                raise Exception(f"Couldn't generate certificate (judge)!", judge, competition)
+                raise Exception(
+                    f"Couldn't generate certificate (judge)!", judge, competition)
             appreciateeCerts.append(
                 AppreciationCertificate(
                     id=id,
@@ -508,7 +511,8 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
                 if not certificate:
                     cache.delete(
                         taskKey)
-                    raise Exception(f"Couldn't generate certificate (participant)!", member, competition)
+                    raise Exception(
+                        f"Couldn't generate certificate (participant)!", member, competition)
                 participantCerts.append(
                     ParticipantCertificate(
                         id=id,

@@ -1,9 +1,10 @@
-from django.core.cache import cache
 from django.conf import settings
-from people.models import Profile
+from django.core.cache import cache
 from management.models import ThirdPartyAccount
+from people.models import Profile
+
+from .env import BOTMAIL, PUBNAME, RECAPTCHA_KEY, SITE, VERSION
 from .methods import renderData
-from .env import PUBNAME, BOTMAIL, RECAPTCHA_KEY, SITE, VERSION
 from .strings import DIVISIONS, URL, Action, Browse, Code, Template
 
 GlobalContextData = dict(
@@ -33,18 +34,19 @@ GlobalContextData = dict(
     VAPID_KEY=settings.VAPID_PUBLIC_KEY,
 )
 
+
 def Global(request):
     data = dict(**GlobalContextData,
-        alerts=[],
-        knotbot=Profile.KNOTBOT(),
-        BROWSE=Browse.getAllKeys(),
-        SCRIPTS=Template.Script.getAllKeys(),
-        ACTIONS=Action.getAllKeys(),
-        CODE=Code.getAllKeys(),
-        SUBAPPS=dict(),
-        SUBAPPSLIST=[],
-        SOCIALS=ThirdPartyAccount.get_all()
-    )
+                alerts=[],
+                knotbot=Profile.KNOTBOT(),
+                BROWSE=Browse.getAllKeys(),
+                SCRIPTS=Template.Script.getAllKeys(),
+                ACTIONS=Action.getAllKeys(),
+                CODE=Code.getAllKeys(),
+                SUBAPPS=dict(),
+                SUBAPPSLIST=[],
+                SOCIALS=ThirdPartyAccount.get_all()
+                )
 
     for div in DIVISIONS:
         data['SUBAPPS'][div] = div

@@ -1,6 +1,7 @@
+from main.env import PUBNAME
 from main.mailers import sendActionEmail
 from main.strings import URL
-from main.env import PUBNAME
+
 from .models import User
 
 
@@ -19,4 +20,3 @@ def welcomeAlert(user: User) -> bool:
         footer="Please do not hesitate if you have any doubts or queries to ask. Do checkout our social channels (links below) for direct interactions.",
         conclusion=f"This email was sent because you created an account on {PUBNAME}. If there's a problem, then please report to us."
     )
-

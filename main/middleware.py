@@ -1,19 +1,21 @@
-from django.shortcuts import redirect
-from django.http.response import HttpResponseForbidden
-from django.urls import resolve
 from ipaddress import ip_address
-from django.utils.deprecation import MiddlewareMixin
 from time import time
+
 from allauth_2fa.middleware import AllauthTwoFactorMiddleware
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.sessions.backends.base import UpdateError
-from django.utils.cache import patch_vary_headers
-from django.utils.http import http_date
 from django.conf import settings
-from .strings import message, URL, Code
-from .env import ADMINPATH
-from .methods import allowBypassDeactivated, activity, htmlmin, testPathRegex
+from django.contrib.sessions.backends.base import UpdateError
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import HttpResponseForbidden
+from django.shortcuts import redirect
+from django.urls import resolve
+from django.utils.cache import patch_vary_headers
+from django.utils.deprecation import MiddlewareMixin
+from django.utils.http import http_date
+
+from .env import ADMINPATH
+from .methods import activity, allowBypassDeactivated, htmlmin, testPathRegex
+from .strings import URL, Code, message
 
 
 class MessageFilterMiddleware(object):

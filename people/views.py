@@ -1,24 +1,31 @@
-from uuid import UUID
 from re import sub as re_sub
-from ratelimit.decorators import ratelimit
+from uuid import UUID
+
+from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.views.decorators.csrf import csrf_exempt
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.forms.models import model_to_dict
+from django.http.response import (Http404, HttpResponse,
+                                  HttpResponseBadRequest, JsonResponse)
 from django.shortcuts import redirect, render
-from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-from main.decorators import decode_JSON, github_only, require_JSON_body, normal_profile_required
+from main.decorators import (decode_JSON, github_only, normal_profile_required,
+                             require_JSON_body)
 from main.methods import base64ToImageFile, errorLog, respondJson
 from main.strings import Code, Event, Message, Template, setURLAlerts
+from management.models import ReportCategory
 from projects.methods import addTagToDatabase
 from projects.models import Tag
-from management.models import ReportCategory
-from .models import ProfileSetting, ProfileSocial, ProfileTag, ProfileTopic, Topic, User, Profile
-from .methods import profileRenderData, renderer, getProfileSectionHTML, getSettingSectionHTML, convertToFLname, filterBio, rendererstr
+from ratelimit.decorators import ratelimit
+
+from .methods import (convertToFLname, filterBio, getProfileSectionHTML,
+                      getSettingSectionHTML, profileRenderData, renderer,
+                      rendererstr)
+from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
+                     ProfileTopic, Topic, User)
 
 
 @require_GET

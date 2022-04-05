@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import *
+
 from .forms import *
+from .models import *
+
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
@@ -14,6 +16,7 @@ class ProjectAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
+
 @admin.register(FreeProject)
 class FProjectAdmin(admin.ModelAdmin):
     list_display = ["name"]
@@ -25,6 +28,7 @@ class FProjectAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
 
 @admin.register(CoreProject)
 class CProjectAdmin(admin.ModelAdmin):
@@ -101,11 +105,13 @@ class ProjectTopicAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
+
 @admin.register(LegalDoc)
 class LegalDocAdmin(admin.ModelAdmin):
     list_display = ["name", "pseudonym", "icon", 'lastUpdate', 'effectiveDate']
 
     form = LegalDocForm
+
 
 admin.site.register(License)
 admin.site.register(ProjectSocial)
@@ -124,6 +130,7 @@ admin.site.register(CoreProjectDeletionRequest)
 admin.site.register(AppRepository)
 admin.site.register(Asset)
 admin.site.register(BaseProjectCoCreatorInvitation)
+
 
 @admin.register(TopicFileExtension)
 class TopicFileExtensionAdmin(admin.ModelAdmin):

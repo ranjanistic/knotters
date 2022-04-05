@@ -1,9 +1,10 @@
 from uuid import uuid4
+
+from auth2.tests.utils import getTestEmails, getTestNames, getTestPasswords
 from django.contrib.auth.hashers import make_password
 from main.strings import url
-from people.models import User, Topic
 from people.apps import APPNAME
-from auth2.tests.utils import getTestEmails, getTestNames, getTestPasswords
+from people.models import Topic, User
 
 
 def root(path='/', appendslash=False):

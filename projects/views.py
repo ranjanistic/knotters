@@ -1,31 +1,57 @@
 from datetime import timedelta
 from re import sub as re_sub
 from uuid import UUID
+
+from django.conf import settings
 from django.core.cache import cache
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
-from main.exceptions import InvalidUserOrProfile
-from ratelimit.decorators import ratelimit
-from django.views.decorators.http import require_GET, require_POST
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
-from django.conf import settings
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
+from main.decorators import (decode_JSON, github_bot_only, github_only,
+                             manager_only, moderator_only,
+                             normal_profile_required, require_JSON,
+                             require_JSON_body)
 from main.env import PUBNAME
-from main.decorators import github_bot_only, manager_only, moderator_only, require_JSON_body, require_JSON, github_only, normal_profile_required, decode_JSON
-from main.methods import addMethodToAsyncQueue, base64ToImageFile, base64ToFile,  errorLog, renderString, respondJson, respondRedirect
-from main.strings import CORE_PROJECT, Action, Code, Message, URL, Template, setURLAlerts
-from moderation.models import Moderation
-from moderation.methods import assignModeratorToObject, requestModerationForCoreProject, requestModerationForObject
+from main.exceptions import InvalidUserOrProfile
+from main.methods import (addMethodToAsyncQueue, base64ToFile,
+                          base64ToImageFile, errorLog, renderString,
+                          respondJson, respondRedirect)
+from main.strings import (CORE_PROJECT, URL, Action, Code, Message, Template,
+                          setURLAlerts)
 from management.models import GhMarketApp, ReportCategory
+from moderation.methods import (assignModeratorToObject,
+                                requestModerationForCoreProject,
+                                requestModerationForObject)
+from moderation.models import Moderation
 from people.models import Profile, Topic
-from .models import AppRepository, BaseProject, BotHookRecord, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, CoreProjectHookRecord, CoreProjectVerificationRequest, FileExtension, FreeProject, Asset, FreeProjectVerificationRequest, FreeRepository, License, Project, ProjectHookRecord, ProjectModerationTransferInvitation, ProjectSocial, ProjectTag, ProjectTopic, ProjectTransferInvitation, Snapshot, Tag, Category, VerProjectDeletionRequest, BaseProjectCoCreatorInvitation
-from .mailers import *
-from .methods import addTagToDatabase, coreProfileData, createConversionProjectFromCore, createConversionProjectFromFree, createCoreProject, createFreeProject, deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository, freeProfileData, handleGithubKnottersRepoHook, renderer, renderer_stronly, rendererstr, uniqueRepoName, createProject, getProjectLiveData, verifiedProfileData
+from ratelimit.decorators import ratelimit
+
 from .apps import APPNAME
+from .mailers import *
+from .methods import (addTagToDatabase, coreProfileData,
+                      createConversionProjectFromCore,
+                      createConversionProjectFromFree, createCoreProject,
+                      createFreeProject, createProject,
+                      deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository,
+                      freeProfileData, getProjectLiveData,
+                      handleGithubKnottersRepoHook, renderer, renderer_stronly,
+                      rendererstr, uniqueRepoName, verifiedProfileData)
+from .models import (AppRepository, Asset, BaseProject,
+                     BaseProjectCoCreatorInvitation, BotHookRecord, Category,
+                     CoreModerationTransferInvitation, CoreProject,
+                     CoreProjectDeletionRequest, CoreProjectHookRecord,
+                     CoreProjectVerificationRequest, FileExtension,
+                     FreeProject, FreeProjectVerificationRequest,
+                     FreeRepository, License, Project, ProjectHookRecord,
+                     ProjectModerationTransferInvitation, ProjectSocial,
+                     ProjectTag, ProjectTopic, ProjectTransferInvitation,
+                     Snapshot, Tag, VerProjectDeletionRequest)
 
 
 @require_GET
@@ -421,7 +447,8 @@ def acceptTerms(request: WSGIRequest, projID: UUID) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        project = BaseProject.objects.get(id=projID, acceptedTerms=True, creator=request.user.profile)
+        project = BaseProject.objects.get(
+            id=projID, acceptedTerms=True, creator=request.user.profile)
         project.acceptedTerms = True
         project.save()
         if json_body:

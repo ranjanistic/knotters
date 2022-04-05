@@ -1,5 +1,6 @@
 from django.urls import path
 from main.strings import URL
+
 from .views import *
 
 urlpatterns = [
@@ -69,7 +70,8 @@ urlpatterns = [
     # Core Projects moderatorship
     path(URL.Projects.INVITE_COREPROJECT_MOD, handleCoreModInvitation),
     path(URL.Projects.CORE_MOD_TRANS_INVITE, coreProjectModTransferInvite),
-    path(URL.Projects.CORE_MOD_TRANS_INVITE_ACT, coreProjectModTransferInviteAction),
+    path(URL.Projects.CORE_MOD_TRANS_INVITE_ACT,
+         coreProjectModTransferInviteAction),
     # Projects deletion
     path(URL.Projects.VER_DEL_REQUEST, verProjectDeleteRequest),
     path(URL.Projects.VER_DEL_REQUEST_ACT, verProjectDeleteRequestAction),

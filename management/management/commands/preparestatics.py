@@ -286,8 +286,9 @@ def compress(path):
                     print("COMPRESSING: ", filepath)
                     try:
                         with open(filepath, "r") as f:
-                            fdata = f.read()    
-                        compressedfdata = jsondumps(jsonloads(fdata), separators=(',', ':'))
+                            fdata = f.read()
+                        compressedfdata = jsondumps(
+                            jsonloads(fdata), separators=(',', ':'))
                         with open(filepath, "w") as f:
                             f.write(compressedfdata)
                     except Exception as e:

@@ -1,6 +1,11 @@
-from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
-from .models import BaseProjectCoCreatorInvitation, CoreModerationTransferInvitation, CoreProject, CoreProjectDeletionRequest, Project, FreeProject, ProjectModerationTransferInvitation, ProjectTransferInvitation, VerProjectDeletionRequest
+from main.mailers import sendActionEmail, sendAlertEmail
+
+from .models import (BaseProjectCoCreatorInvitation,
+                     CoreModerationTransferInvitation, CoreProject,
+                     CoreProjectDeletionRequest, FreeProject, Project,
+                     ProjectModerationTransferInvitation,
+                     ProjectTransferInvitation, VerProjectDeletionRequest)
 
 
 def freeProjectCreated(project: FreeProject):
@@ -20,6 +25,7 @@ def freeProjectCreated(project: FreeProject):
         conclusion=f"This email was sent because we have received a project from your {PUBNAME} account. If this wasn't you, then please report to us."
     )
 
+
 def freeProjectDeleted(project: FreeProject):
     """
     Project has been submitted for moderation
@@ -32,6 +38,7 @@ def freeProjectDeleted(project: FreeProject):
         footer=f"You can always create a new project, whenever you like to start one.",
         conclusion=f"This email was sent because a project from your {PUBNAME} account was deleted. If this wasn't you, then please report to us."
     )
+
 
 def sendProjectSubmissionNotification(project: Project):
     """
@@ -49,6 +56,7 @@ def sendProjectSubmissionNotification(project: Project):
         footer=f"We'll notify you as soon as the moderator reviews your project submission. Till then, chill out! NOTE: We're lenient.",
         conclusion=f"This email was sent because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
     )
+
 
 def coreProjectSubmissionNotification(coreproject: CoreProject):
     """
@@ -68,7 +76,6 @@ def coreProjectSubmissionNotification(coreproject: CoreProject):
     )
 
 
-
 def sendProjectApprovedNotification(project: Project):
     """
     Project has been approved by moderator
@@ -86,6 +93,7 @@ def sendProjectApprovedNotification(project: Project):
         footer=f"Your project's profile page & other related setup will be available in a few moments. Cheers! The moderator & community at {PUBNAME} will be working together with you on {project.name}.",
         conclusion=f"This email was generated because a project submission received from your {PUBNAME} account has been approved. If this is unfamiliar, then please report to us."
     )
+
 
 def sendCoreProjectApprovedNotification(project: CoreProject):
     """
@@ -124,12 +132,15 @@ def projectRejectedNotification(project: Project):
         conclusion=f"This email was generated we have rejected a project submission received from your {PUBNAME} account. If this is unfamiliar, then please report to us."
     )
 
-def projectTransferInvitation(invite:ProjectTransferInvitation):
+
+def projectTransferInvitation(invite: ProjectTransferInvitation):
     """
     Invitation to accept project ownership
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -155,11 +166,13 @@ def projectTransferInvitation(invite:ProjectTransferInvitation):
         conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting your project's profile."
     )
 
-def projectTransferAcceptedInvitation(invite:ProjectTransferInvitation):
+
+def projectTransferAcceptedInvitation(invite: ProjectTransferInvitation):
     """
     Invitation to accept project ownership
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -186,11 +199,13 @@ def projectTransferAcceptedInvitation(invite:ProjectTransferInvitation):
         conclusion=f"This email was sent because you've accepted the project's ownership."
     )
 
-def projectTransferDeclinedInvitation(invite:ProjectTransferInvitation):
+
+def projectTransferDeclinedInvitation(invite: ProjectTransferInvitation):
     """
     Invitation to accept project ownership
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -204,12 +219,15 @@ def projectTransferDeclinedInvitation(invite:ProjectTransferInvitation):
         conclusion=f"If this action is unfamiliar, then you may contact us."
     )
 
-def projectModTransferInvitation(invite:ProjectModerationTransferInvitation):
+
+def projectModTransferInvitation(invite: ProjectModerationTransferInvitation):
     """
     Invitation to accept project moderatorship
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -235,11 +253,13 @@ def projectModTransferInvitation(invite:ProjectModerationTransferInvitation):
         conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this verified project's profile."
     )
 
-def projectModTransferAcceptedInvitation(invite:ProjectModerationTransferInvitation):
+
+def projectModTransferAcceptedInvitation(invite: ProjectModerationTransferInvitation):
     """
     Invitation to accept project moderatorship
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -266,11 +286,13 @@ def projectModTransferAcceptedInvitation(invite:ProjectModerationTransferInvitat
         conclusion=f"This email was sent because you've accepted the verified project's moderatorship."
     )
 
-def projectModTransferDeclinedInvitation(invite:ProjectModerationTransferInvitation):
+
+def projectModTransferDeclinedInvitation(invite: ProjectModerationTransferInvitation):
     """
     Invitation to accept project moderatorship
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -284,12 +306,15 @@ def projectModTransferDeclinedInvitation(invite:ProjectModerationTransferInvitat
         conclusion=f"If this action is unfamiliar, then you may contact us."
     )
 
-def coreProjectModTransferInvitation(invite:CoreModerationTransferInvitation):
+
+def coreProjectModTransferInvitation(invite: CoreModerationTransferInvitation):
     """
     Invitation to accept project moderatorship
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -315,11 +340,13 @@ def coreProjectModTransferInvitation(invite:CoreModerationTransferInvitation):
         conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this core project's profile."
     )
 
-def coreProjectModTransferAcceptedInvitation(invite:CoreModerationTransferInvitation):
+
+def coreProjectModTransferAcceptedInvitation(invite: CoreModerationTransferInvitation):
     """
     Invitation to accept project moderatorship
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -346,11 +373,13 @@ def coreProjectModTransferAcceptedInvitation(invite:CoreModerationTransferInvita
         conclusion=f"This email was sent because you've accepted the core project's moderatorship."
     )
 
-def coreProjectModTransferDeclinedInvitation(invite:CoreModerationTransferInvitation):
+
+def coreProjectModTransferDeclinedInvitation(invite: CoreModerationTransferInvitation):
     """
     Invitation to accept project moderatorship
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -365,12 +394,14 @@ def coreProjectModTransferDeclinedInvitation(invite:CoreModerationTransferInvita
     )
 
 
-def verProjectDeletionRequest(invite:VerProjectDeletionRequest):
+def verProjectDeletionRequest(invite: VerProjectDeletionRequest):
     """
     Request to delete a verified project
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -396,11 +427,13 @@ def verProjectDeletionRequest(invite:VerProjectDeletionRequest):
         conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this verified project on {PUBNAME}, as soon as possible."
     )
 
-def verProjectDeletionAcceptedRequest(invite:VerProjectDeletionRequest):
+
+def verProjectDeletionAcceptedRequest(invite: VerProjectDeletionRequest):
     """
     Accepted request to verified project deletion
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -419,11 +452,13 @@ def verProjectDeletionAcceptedRequest(invite:VerProjectDeletionRequest):
         conclusion=f"This email was sent because you've deleted a verified project."
     )
 
-def verProjectDeletionDeclinedRequest(invite:VerProjectDeletionRequest):
+
+def verProjectDeletionDeclinedRequest(invite: VerProjectDeletionRequest):
     """
     Declinded request to verified project deletion
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -437,12 +472,15 @@ def verProjectDeletionDeclinedRequest(invite:VerProjectDeletionRequest):
         conclusion=f"If this action is unfamiliar, then you may contact us."
     )
 
-def coreProjectDeletionRequest(invite:CoreProjectDeletionRequest):
+
+def coreProjectDeletionRequest(invite: CoreProjectDeletionRequest):
     """
     Request to delete a core project
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -468,11 +506,13 @@ def coreProjectDeletionRequest(invite:CoreProjectDeletionRequest):
         conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this core project on {PUBNAME}, as soon as possible."
     )
 
-def coreProjectDeletionAcceptedRequest(invite:CoreProjectDeletionRequest):
+
+def coreProjectDeletionAcceptedRequest(invite: CoreProjectDeletionRequest):
     """
     Accepted Request to core project deletion
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -491,11 +531,13 @@ def coreProjectDeletionAcceptedRequest(invite:CoreProjectDeletionRequest):
         conclusion=f"This email was sent because you've deleted a core project."
     )
 
-def coreProjectDeletionDeclinedRequest(invite:CoreProjectDeletionRequest):
+
+def coreProjectDeletionDeclinedRequest(invite: CoreProjectDeletionRequest):
     """
     Declined Request to core project deletion
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -509,12 +551,15 @@ def coreProjectDeletionDeclinedRequest(invite:CoreProjectDeletionRequest):
         conclusion=f"If this action is unfamiliar, then you may contact us."
     )
 
-def baseProjectCoCreatorInvitation(invite:BaseProjectCoCreatorInvitation):
+
+def baseProjectCoCreatorInvitation(invite: BaseProjectCoCreatorInvitation):
     """
     To send co-creator invitation
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -540,11 +585,13 @@ def baseProjectCoCreatorInvitation(invite:BaseProjectCoCreatorInvitation):
         conclusion=f"If this action is unfamiliar, then you should delete the co-creator invite by visiting your project's profile."
     )
 
-def baseProjectCoCreatorAcceptedInvitation(invite:BaseProjectCoCreatorInvitation):
+
+def baseProjectCoCreatorAcceptedInvitation(invite: BaseProjectCoCreatorInvitation):
     """
     Accepted co-creatorship
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -571,11 +618,13 @@ def baseProjectCoCreatorAcceptedInvitation(invite:BaseProjectCoCreatorInvitation
         conclusion=f"This email was sent because you've accepted the project's co-creatorship."
     )
 
-def baseProjectCoCreatorDeclinedInvitation(invite:BaseProjectCoCreatorInvitation):
+
+def baseProjectCoCreatorDeclinedInvitation(invite: BaseProjectCoCreatorInvitation):
     """
     Declined Co-Creatorship  
     """
-    if not invite.resolved: return False
+    if not invite.resolved:
+        return False
     sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
@@ -588,4 +637,3 @@ def baseProjectCoCreatorDeclinedInvitation(invite:BaseProjectCoCreatorInvitation
         footer=f"This is because the invited person has rejected the invitation. You can re-invite them or anyone again.",
         conclusion=f"If this action is unfamiliar, then you may contact us."
     )
-

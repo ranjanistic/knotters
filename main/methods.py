@@ -1,28 +1,36 @@
-from os import path as ospath, walk as oswalk
-from logging import log, ERROR as LOG_CODE_ERROR
-from mimetypes import guess_extension, guess_type
-from re import sub as re_sub, compile as re_compile, findall as re_findall
-from traceback import print_exc
-from requests import post as postRequest
 from base64 import b64decode
-from uuid import uuid4
-from htmlmin.minify import html_minify
-from json import dumps as json_dumps
-from webpush import send_user_notification, send_group_notification
-from django.core.handlers.wsgi import WSGIRequest
-from django.utils import timezone
 from datetime import timedelta
-from django.core.serializers.json import DjangoJSONEncoder
-from django.core.files.base import ContentFile, File
-from django.db.models.fields.files import ImageFieldFile
-from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.template.loader import render_to_string
-from django.shortcuts import redirect, render
-from django.conf import settings
+from json import dumps as json_dumps
+from logging import ERROR as LOG_CODE_ERROR
+from logging import log
+from mimetypes import guess_extension, guess_type
+from os import path as ospath
+from os import walk as oswalk
+from re import compile as re_compile
+from re import findall as re_findall
+from re import sub as re_sub
+from traceback import print_exc
+from uuid import uuid4
+
 from allauth.account.models import EmailAddress
+from django.conf import settings
+from django.core.files.base import ContentFile, File
+from django.core.handlers.wsgi import WSGIRequest
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models.fields.files import ImageFieldFile
+from django.http.response import (HttpResponse, HttpResponseRedirect,
+                                  JsonResponse)
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.utils import timezone
+from htmlmin.minify import html_minify
 from management.models import ActivityRecord
+from requests import post as postRequest
+from webpush import send_group_notification, send_user_notification
+
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISPRODUCTION, ISTESTING
-from .strings import Code, url, MANAGEMENT, MODERATION, COMPETE, PROJECTS, PEOPLE, DOCS, AUTH2, AUTH
+from .strings import (AUTH, AUTH2, COMPETE, DOCS, MANAGEMENT, MODERATION,
+                      PEOPLE, PROJECTS, Code, url)
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -249,12 +257,13 @@ def addMethodToAsyncQueue(methodpath, *params):
             from django_q.tasks import async_task
             async_task(methodpath, *params)
         else:
-            import main
-            import people
-            import projects
+            import compete
             import management
             import moderation
-            import compete
+            import people
+            import projects
+
+            import main
             eval(f"{methodpath}{params}", dict(main=main, people=people, projects=projects,
                  management=management, moderation=moderation, compete=compete))
         return True
@@ -389,6 +398,7 @@ def htmlmin(htmlstr: str, *args, **kwargs):
         return re_sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
     except:
         return htmlstr.strip()
+
 
 def human_readable_size(num, suffix="B"):
     for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:

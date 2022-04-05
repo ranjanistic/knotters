@@ -1,26 +1,30 @@
 from uuid import uuid4
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from allauth_2fa.utils import user_has_valid_totp_device
-from django_otp import devices_for_user
+
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
+from allauth_2fa.utils import user_has_valid_totp_device
+from auth2.models import PhoneNumber
 from deprecated import deprecated
+from django.conf import settings
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
-from django.core.cache import cache
+from django.utils import timezone
+from django_otp import devices_for_user
 from main.bots import GH_API
 from main.env import BOTMAIL
 from main.methods import errorLog, user_device_notify
-from management.models import Management, ReportCategory, GhMarketPlan, Invitation
-from projects.models import BaseProject, ReportedProject, ReportedSnapshot, Project, Snapshot, FreeProject
-from moderation.models import ReportedModeration, Moderation
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.utils import timezone
-from django.conf import settings
-from main.strings import Code, PROJECTS, classAttrsToDict, url, MANAGEMENT
-from auth2.models import PhoneNumber
+from main.strings import MANAGEMENT, PROJECTS, Code, classAttrsToDict, url
+from management.models import (GhMarketPlan, Invitation, Management,
+                               ReportCategory)
+from moderation.models import Moderation, ReportedModeration
+from projects.models import (BaseProject, FreeProject, Project,
+                             ReportedProject, ReportedSnapshot, Snapshot)
+
 from .apps import APPNAME
 
 
@@ -855,7 +859,8 @@ class Profile(models.Model):
         for proftop in proftops:
             proftop.increasePoints(by, notify=False, record=False)
 
-        profbulktoprecord = ProfileBulkTopicXPRecord.objects.create(xp=by, reason=reason)
+        profbulktoprecord = ProfileBulkTopicXPRecord.objects.create(
+            xp=by, reason=reason)
         profbulktoprecord.profile_topics.set(proftops)
         if notify:
             user_device_notify(self.user, "Bulk Topics XP Increased!",
@@ -1076,9 +1081,11 @@ class Profile(models.Model):
                 constquery = ~Q(admirers=self, suspended=True,
                                 trashed=True, creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                projects = list(set(list(filter(approved_only, BaseProject.objects.filter(Q(constquery, query)).distinct()[:atmost]))))
+                projects = list(set(list(filter(approved_only, BaseProject.objects.filter(
+                    Q(constquery, query)).distinct()[:atmost]))))
                 if len(projects) < atleast:
-                    projects = list(set(list(filter(approved_only, BaseProject.objects.filter(constquery).distinct()[:atmost]))))
+                    projects = list(set(list(filter(
+                        approved_only, BaseProject.objects.filter(constquery).distinct()[:atmost]))))
                 if len(projects):
                     cache.set(cacheKey, projects, settings.CACHE_SHORT)
             return projects[:atmost]
@@ -1150,7 +1157,7 @@ class ProfileTopic(models.Model):
     def hidden(self) -> bool:
         return self.trashed
 
-    def increasePoints(self, by: int = 0, notify=True, reason='', record = True) -> int:
+    def increasePoints(self, by: int = 0, notify=True, reason='', record=True) -> int:
         points = 0
         if not self.points:
             points = by
@@ -1436,9 +1443,11 @@ class ProfileTopicXPRecord(models.Model):
     reason = models.TextField(max_length=500, null=True, blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
 
+
 class ProfileBulkTopicXPRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile_topics = models.ManyToManyField(ProfileTopic, related_name='profilets_xp_record_profilets', through='ProfileBulkTopicXPRecordTopic', default=[])
+    profile_topics = models.ManyToManyField(
+        ProfileTopic, related_name='profilets_xp_record_profilets', through='ProfileBulkTopicXPRecordTopic', default=[])
     xp = models.IntegerField(default=0, editable=False)
     reason = models.TextField(max_length=500, null=True, blank=True)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -1446,6 +1455,7 @@ class ProfileBulkTopicXPRecord(models.Model):
 
 class ProfileBulkTopicXPRecordTopic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile_topic = models.ForeignKey(ProfileTopic, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets')
-    profile_bulk_topic_xp_record = models.ForeignKey(ProfileBulkTopicXPRecord, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets_xp_record')
-
+    profile_topic = models.ForeignKey(
+        ProfileTopic, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets')
+    profile_bulk_topic_xp_record = models.ForeignKey(
+        ProfileBulkTopicXPRecord, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets_xp_record')

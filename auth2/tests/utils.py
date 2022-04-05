@@ -1,7 +1,8 @@
 from uuid import uuid4
+
+from auth2.apps import APPNAME
 from django.contrib.auth.hashers import make_password
 from main.strings import url
-from auth2.apps import APPNAME
 
 
 def root(path='/', appendslash=False):
@@ -59,6 +60,7 @@ def getTestPasswordsHash(count=1):
         hashes.append(make_password(
             uuid4().hex, None, 'md5'))
     return hashes
+
 
 def getTestGHID():
     return uuid4().hex

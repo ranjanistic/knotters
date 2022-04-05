@@ -1,26 +1,32 @@
+from functools import wraps
+from hashlib import sha256
+from hmac import compare_digest as hmac_compare_digest
+from hmac import new as hmac_new
+from ipaddress import ip_address, ip_network
 from json import loads as json_loads
 from json.decoder import JSONDecodeError
-from functools import wraps
-from ipaddress import ip_address, ip_network
-from hmac import new as hmac_new, compare_digest as hmac_compare_digest
-from hashlib import sha256
 from urllib.parse import unquote
-from requests import get as getRequest
+
+from allauth.account.models import EmailAddress
+from auth2.mailers import send_account_verification_email
 from deprecated.classic import deprecated
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import (Http404, HttpResponse,
+                                  HttpResponseBadRequest,
+                                  HttpResponseForbidden,
+                                  HttpResponseNotAllowed)
 from django.shortcuts import render
-from allauth.account.models import EmailAddress
+from django.utils.encoding import force_bytes
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
-from django.utils.encoding import force_bytes
-from django.conf import settings
-from auth2.mailers import send_account_verification_email
+from requests import get as getRequest
+
+from .env import INTERNAL_SHARED_SECRET, ISPRODUCTION, ISTESTING
 from .methods import errorLog
 from .strings import Code, Event
-from .env import INTERNAL_SHARED_SECRET, ISPRODUCTION, ISTESTING
 
 
 def decDec(inner_dec):

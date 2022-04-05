@@ -1,6 +1,7 @@
-from django.utils import timezone
 from django import forms
+from django.utils import timezone
 from people.models import Profile
+
 from .models import *
 
 
@@ -86,10 +87,13 @@ class JudgePanelForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class SubmissionParticipantForm(forms.ModelForm):
-    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(competition__resultDeclared=False, valid=True))
-    profile = forms.ModelChoiceField(queryset=Profile.objects.filter(is_zombie=False, to_be_zombie=False, is_active=True))
-    
+    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
+        competition__resultDeclared=False, valid=True))
+    profile = forms.ModelChoiceField(queryset=Profile.objects.filter(
+        is_zombie=False, to_be_zombie=False, is_active=True))
+
     class Meta:
         model = SubmissionParticipant
         fields = "__all__"
@@ -133,9 +137,11 @@ class SubmissionTopicPointForm(forms.ModelForm):
 
 
 class ResultAdminForm(forms.ModelForm):
-    
-    competition = forms.ModelChoiceField(queryset=Competition.objects.filter(resultDeclared=True))
-    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(competition__resultDeclared=True, valid=True))
+
+    competition = forms.ModelChoiceField(
+        queryset=Competition.objects.filter(resultDeclared=True))
+    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
+        competition__resultDeclared=True, valid=True))
 
     class Meta:
         model = Result
@@ -189,9 +195,8 @@ class ResultAdminForm(forms.ModelForm):
         return cleaned_data
 
 
-
 class ParticipantCertificateAdminForm(forms.ModelForm):
-    
+
     result = forms.ModelChoiceField(queryset=Result.objects.all())
     profile = forms.ModelChoiceField(queryset=Profile.objects.filter())
 

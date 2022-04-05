@@ -1,15 +1,19 @@
-from django.db.models.query import QuerySet
-from django.http.response import HttpResponseBadRequest
-from django.test import TestCase, Client, tag
 from json import loads as json_loads
-from main.env import PUBNAME, BOTMAIL, SITE, VERSION
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
-from main.strings import Code, setPathParams, url, template, DIVISIONS
-from projects.models import LegalDoc
-from moderation.models import LocalStorage
+
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
-from .utils import root, docroot, authroot, getRandomStr, getLegalName, getLegalPseudonym, getLegalContent
 from compete.methods import *
+from django.db.models.query import QuerySet
+from django.http import (HttpResponse, HttpResponseNotFound,
+                         HttpResponseRedirect)
+from django.http.response import HttpResponseBadRequest
+from django.test import Client, TestCase, tag
+from main.env import BOTMAIL, PUBNAME, SITE, VERSION
+from main.strings import DIVISIONS, Code, setPathParams, template, url
+from moderation.models import LocalStorage
+from projects.models import LegalDoc
+
+from .utils import (authroot, docroot, getLegalContent, getLegalName,
+                    getLegalPseudonym, getRandomStr, root)
 
 
 @tag(Code.Test.VIEW, Code.Test.REST)
@@ -98,7 +102,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['suspended'], QuerySet)
         self.assertFalse(resp.context['ISBETA'])
 
-    @tag(Code.Test.STATIC,"only-this")
+    @tag(Code.Test.STATIC, "only-this")
     def test_manifest(self):
         resp = self.client.get(follow=True, path=root(url.MANIFEST))
         self.assertEqual(resp.status_code, HttpResponse.status_code)

@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .forms import CompetitionAdminForm, ResultAdminForm, JudgePanelForm
+
 from compete.models import *
+
+from .forms import CompetitionAdminForm, JudgePanelForm, ResultAdminForm
 
 
 @admin.register(Competition)
@@ -62,6 +64,7 @@ class TopicRelationAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
+
 @admin.register(SubmissionParticipant)
 class SubmissionParticipantAdmin(admin.ModelAdmin):
     list_display = ["submission", "profile", "confirmed"]
@@ -69,6 +72,7 @@ class SubmissionParticipantAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
 
 @admin.register(ParticipantCertificate)
 class ParticipantCertificateAdmin(admin.ModelAdmin):
@@ -78,6 +82,7 @@ class ParticipantCertificateAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
+
 @admin.register(AppreciationCertificate)
 class AppreciationCertificateAdmin(admin.ModelAdmin):
     list_display = ["appreciatee", "competition"]
@@ -86,6 +91,7 @@ class AppreciationCertificateAdmin(admin.ModelAdmin):
     class Meta:
         ordering = ("")
 
+
 @admin.register(Perk)
 class PerkAdmin(admin.ModelAdmin):
     list_display = ["competition", "rank", "name"]
@@ -93,6 +99,7 @@ class PerkAdmin(admin.ModelAdmin):
 
     class Meta:
         ordering = ("")
+
 
 admin.site.register(Event)
 admin.site.register(EventCompetition)

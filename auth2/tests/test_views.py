@@ -1,20 +1,23 @@
 from json import loads as json_loads
-from django.core.exceptions import ObjectDoesNotExist
-from django.http.response import HttpResponseNotFound
-from django.test import TestCase, Client, tag
-from django.http import HttpResponse
-from main.strings import Code, url, template, Message, Action
+
 from allauth.account.models import EmailAddress
-from main.tests.utils import authroot, getRandomStr
-from main.env import BOTMAIL
-from people.models import Profile, User
 from auth2.apps import APPNAME
-from .utils import getTestEmail, getTestGHID, getTestName, getTestPassword, root
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
+from django.http.response import HttpResponseNotFound
+from django.test import Client, TestCase, tag
+from main.env import BOTMAIL
+from main.strings import Action, Code, Message, template, url
+from main.tests.utils import authroot, getRandomStr
+from people.models import Profile, User
+
+from .utils import (getTestEmail, getTestGHID, getTestName, getTestPassword,
+                    root)
 
 
 @tag(Code.Test.VIEW, APPNAME)
 class TestViews(TestCase):
-    
+
     @classmethod
     def setUpTestData(self) -> None:
         self.client = Client()
@@ -110,7 +113,8 @@ class TestViews(TestCase):
         P2 = getTestPassword()
         user = User.objects.create_user(
             email=E2, password=P2, first_name=getTestName())
-        EmailAddress.objects.create(user=user,email=user.email,primary=True,verified=True)
+        EmailAddress.objects.create(
+            user=user, email=user.email, primary=True, verified=True)
         resp = self.client.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
                                 'set': True, 'userID': E2})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -171,7 +175,7 @@ class TestViews(TestCase):
             password=P2
         ))
         resp = client2.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
-                           'set': True, 'userID': self.user.email})
+            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
@@ -298,7 +302,7 @@ class TestViews(TestCase):
             Code.UTF_8)), dict(code=Code.NO, error=Message.SUCCESSOR_UNSET))
 
         resp = clientx.post(follow=True, path=root(url.auth.INVITESUCCESSOR),
-                           data={'useDefault': True, 'set': True})
+                            data={'useDefault': True, 'set': True})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
         resp = clientx.post(follow=True, path=root(

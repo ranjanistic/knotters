@@ -1,4 +1,3 @@
-from ctypes import Union
 from os import path as os_path
 from uuid import UUID
 

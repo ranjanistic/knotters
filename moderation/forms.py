@@ -1,17 +1,20 @@
-from django.db.models import Q
-from django import forms
-from main.strings import Code, PROJECTS, PEOPLE, COMPETE
-from people.models import Profile
 from compete.models import Competition
+from django import forms
+from django.db.models import Q
+from main.strings import COMPETE, PEOPLE, PROJECTS, Code
+from people.models import Profile
 from projects.models import Project
+
 from .models import Moderation
 
 
 class ModerationAdminForm(forms.ModelForm):
     moderator = forms.ModelChoiceField(queryset=Profile.objects.filter(
-        is_zombie=False, to_be_zombie=False, is_active=True, is_moderator=True,suspended=False))
-    project = forms.ModelChoiceField(queryset=Project.objects.filter(~Q(status=Code.APPROVED),trashed=False),required=False)
-    competition = forms.ModelChoiceField(queryset=Competition.objects.filter(resultDeclared=False),required=False)
+        is_zombie=False, to_be_zombie=False, is_active=True, is_moderator=True, suspended=False))
+    project = forms.ModelChoiceField(queryset=Project.objects.filter(
+        ~Q(status=Code.APPROVED), trashed=False), required=False)
+    competition = forms.ModelChoiceField(
+        queryset=Competition.objects.filter(resultDeclared=False), required=False)
 
     class Meta:
         model = Moderation
@@ -47,7 +50,7 @@ class ModerationAdminForm(forms.ModelForm):
             if status != project.status:
                 raise forms.ValidationError(
                     f"Project status and moderation status cannot conflict.")
-            
+
             if moderator == project.creator:
                 raise forms.ValidationError(
                     f"Project creator cannot be its moderator.")

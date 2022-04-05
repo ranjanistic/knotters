@@ -1,15 +1,17 @@
 from json import loads as json_loads
-from django.http.response import HttpResponseNotFound
-from django.test import TestCase, Client, tag
-from django.http import HttpResponse
-from main.strings import Code, url, template
+
 from allauth.account.models import EmailAddress
-from main.tests.utils import authroot, getRandomStr
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
+from django.http import HttpResponse
+from django.http.response import HttpResponseNotFound
+from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
+from main.strings import Code, template, url
+from main.tests.utils import authroot, getRandomStr
 from people.apps import APPNAME
 from people.methods import profileString
 from people.models import Profile, Topic, User
-from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
+
 from .utils import getTestDP, getTestTopicsInst, root
 
 

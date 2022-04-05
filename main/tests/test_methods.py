@@ -1,13 +1,14 @@
-from main.env import BOTMAIL
-from django.test import TestCase, tag
-from people.models import User
 from auth2.tests.utils import getTestPassword
-from main.strings import Code, Message, classAttrsToDict
+from django.test import TestCase, tag
+from main.env import BOTMAIL
 from main.methods import *
+from main.strings import Code, Message, classAttrsToDict
+from people.models import User
+
 from .utils import B64
 
 
-@tag(Code.Test.METHOD,Code.Test.REST)
+@tag(Code.Test.METHOD, Code.Test.REST)
 class MainMethodsTest(TestCase):
     @classmethod
     def setUpTestData(self) -> None:
@@ -23,8 +24,8 @@ class MainMethodsTest(TestCase):
     def test_getDeepFilePaths(self):
         def appendWhen(path):
             return path.endswith('.html')
-        
-        self.assertEqual(len(getDeepFilePaths('template', appendWhen)),0)
+
+        self.assertEqual(len(getDeepFilePaths('template', appendWhen)), 0)
         templates = getDeepFilePaths('templates', appendWhen)
         self.assertIsInstance(templates, list)
         self.assertTrue(len(templates) > 0)

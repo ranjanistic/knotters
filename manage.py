@@ -5,6 +5,7 @@ ENVPATH = 'main/.env'
 ENVTESTPATH = 'main/.env.testing'
 ENVSAMPLEPATH = 'main/.env.example'
 
+
 def main(ENVPATH):
     environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
     try:
@@ -27,9 +28,9 @@ def main(ENVPATH):
         ) from exc
     execute_from_command_line(argv)
 
+
 if __name__ == '__main__':
     if argv[1] == 'test':
         main(ENVPATH=ENVTESTPATH)
     else:
         main(ENVPATH=ENVPATH)
-

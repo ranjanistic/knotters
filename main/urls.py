@@ -1,15 +1,17 @@
-from django.contrib.auth.decorators import user_passes_test
-from django.views.generic.base import RedirectView
-from allauth.account.decorators import login_required
-from django.contrib import admin
-from django.urls import path, include
-from django.conf.urls.static import static
-from django.conf import settings
-from ratelimit.decorators import ratelimit
-from .strings import URL, AUTH2, PROJECTS, COMPETE, PEOPLE, MODERATION, MANAGEMENT
-from .env import ISPRODUCTION, ADMINPATH
-from .views import *
 from allauth.account import views
+from allauth.account.decorators import login_required
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.contrib.auth.decorators import user_passes_test
+from django.urls import include, path
+from django.views.generic.base import RedirectView
+from ratelimit.decorators import ratelimit
+
+from .env import ADMINPATH, ISPRODUCTION
+from .strings import (AUTH2, COMPETE, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
+                      URL)
+from .views import *
 
 views.signup = ratelimit(key='user_or_ip', rate='10/m',
                          block=True, method=(Code.POST))(views.signup)
@@ -21,6 +23,7 @@ views.login = ratelimit(key='user_or_ip', rate='15/m',
                         block=True, method=(Code.POST))(views.login)
 
 admin.autodiscover()
+
 
 def staff_or_404(u):
     if u.is_active and u.profile.is_active:
@@ -50,10 +53,14 @@ urlpatterns = [
     path(URL.INDEX, index),
     path(URL.HOME, home),
     path(URL.HOME_DOMAINS, homeDomains),
-    path(URL.Auth.LOGIN, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
-    path(URL.Auth.SIGNUP, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
-    path(URL.Auth.SIGNIN, RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
-    path(URL.Auth.REGISTER,RedirectView.as_view(url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
+    path(URL.Auth.LOGIN, RedirectView.as_view(
+        url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
+    path(URL.Auth.SIGNUP, RedirectView.as_view(
+        url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
+    path(URL.Auth.SIGNIN, RedirectView.as_view(
+        url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
+    path(URL.Auth.REGISTER, RedirectView.as_view(
+        url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
     path(URL.WEBPUSH, include('webpush.urls')),
     path(URL.AT_NICKNAME, at_nickname),
     path(URL.AT_EMOTICON, at_emoji),

@@ -15,7 +15,8 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
     return sendActionEmail(
         to=profile.getEmail(), username=profile.getFName(), subject='Invitation to Participate Together',
         header=f"{host.getName()} ({host.getEmail()}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.",
-        actions=[{'text': "See invitation",'url': f"{url.getRoot(APPNAME)}{URL.compete.invitation(submission.get_id,profile.getUserID())}"}],
+        actions=[{'text': "See invitation",
+                  'url': f"{url.getRoot(APPNAME)}{URL.compete.invitation(submission.get_id,profile.getUserID())}"}],
         footer=f"You may accept or deny this invitation. If you won't respond, then this invitation will automatically become invalid at the end of competition, or, upon final submission, or, cancellation of your invitation by {host.getName()}, whichever occurrs earlier.",
         conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
     )
@@ -33,14 +34,16 @@ def participantWelcomeAlert(profile: Profile, submission: Submission) -> bool:
         footer=f"If you have other people with you, actively coordinate with them, and if you don't have a team, invite someone. However, if you are a lone wolf, then the community is always there for you.",
         conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
     )
-    return participantJoinedAlert(profile,submission)
+    return participantJoinedAlert(profile, submission)
 
-def participantJoinedAlert(profile:Profile,submission:Submission) -> bool:
+
+def participantJoinedAlert(profile: Profile, submission: Submission) -> bool:
     """
     Email alert to existing members of a submission notifying confirmed inclusion of a new member.
     """
     emails = submission.getMembersEmail()
-    if len(emails) < 2: return True 
+    if len(emails) < 2:
+        return True
     finalEmails = []
     for email in emails:
         if email != profile.getEmail():
@@ -50,10 +53,11 @@ def participantJoinedAlert(profile:Profile,submission:Submission) -> bool:
         subject=f"Teammate Joined Submission",
         header=f"This is to inform you that '{profile.getName()}' has joined your team in '{submission.competition.title}' competition.",
         actions=[{'text': "View competition",
-                'url': f'{submission.competition.getLink()}'}],
+                  'url': f'{submission.competition.getLink()}'}],
         footer=f"Someone from your team, or you had invited {profile.getFName()} to join your submission, and they have accepted the invite.",
         conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
     )
+
 
 def participationWithdrawnAlert(profile: Profile, submission: Submission) -> bool:
     """
@@ -82,7 +86,8 @@ def submissionConfirmedAlert(submission: Submission):
             conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
         )
 
-def submissionsModeratedAlert(competition:Competition):
+
+def submissionsModeratedAlert(competition: Competition):
     """
     Email alert to manager and all judges of a competition indicating the submissions have been moderated by the moderator.
     """
@@ -115,7 +120,8 @@ def submissionsModeratedAlert(competition:Competition):
         conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
 
-def submissionsJudgedAlert(competition:Competition,judge:Profile):
+
+def submissionsJudgedAlert(competition: Competition, judge: Profile):
     """
     Email alert to the manager of a competition indicating the submissions have been judged by the given judge.
     """
@@ -133,6 +139,7 @@ def submissionsJudgedAlert(competition:Competition,judge:Profile):
         footer=f"You will be able to declare the results, once all judges submit their judgement on all submissions.",
         conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
+
 
 def resultsDeclaredAlert(competition: Competition):
     """
@@ -156,6 +163,7 @@ def resultsDeclaredAlert(competition: Competition):
     resultsDeclaredJudgeAlert(competition)
     resultsDeclaredParticipantAlert(competition)
 
+
 def certsAllotedAlert(competition: Competition):
     """
     Notify certficates allotment to every receiver in given competition
@@ -174,7 +182,7 @@ def certsAllotedAlert(competition: Competition):
         footer=f"This marks the successfull end of this competition. Thank you for managing this competition, and thus contributing towards betterment of the {PUBNAME} platform.",
         conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
     )
-    
+
     apprcerts = AppreciationCertificate.objects.filter(competition=competition)
     for apprcert in apprcerts:
         sendActionEmail(
@@ -190,7 +198,8 @@ def certsAllotedAlert(competition: Competition):
             footer=f"Your can download your certificate, or just share it from the page itself. Any delay in allotment is deeply regretted. Thank you.",
             conclusion=f"You received this email because you contributed in the mentioned competition. If this is an error, then please report to us."
         )
-    partcerts = ParticipantCertificate.objects.filter(result__competition=competition)
+    partcerts = ParticipantCertificate.objects.filter(
+        result__competition=competition)
     for partcert in partcerts:
         sendActionEmail(
             to=partcert.profile.getEmail(),

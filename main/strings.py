@@ -1,16 +1,19 @@
 from re import sub as re_sub
+
+from auth2.apps import APPNAME as AUTH2
+from compete.apps import APPNAME as COMPETE
 from deprecated import deprecated
 from django.utils.translation import gettext_lazy as _
-from auth2.apps import APPNAME as AUTH2
-from projects.apps import APPNAME as PROJECTS
-from people.apps import APPNAME as PEOPLE
-from compete.apps import APPNAME as COMPETE
-from moderation.apps import APPNAME as MODERATION
 from management.apps import APPNAME as MANAGEMENT
+from moderation.apps import APPNAME as MODERATION
+from people.apps import APPNAME as PEOPLE
+from projects.apps import APPNAME as PROJECTS
+
 from .env import CDN_URL
 
 AUTH = 'auth'
 DOCS = 'docs'
+
 
 def classAttrsToDict(className, appendCondition=None) -> dict:
     data = dict()
@@ -57,8 +60,10 @@ def setURLAlerts(url, alert: str = '', error: str = '', success: str = '', other
             success) else ''
     return f"{url}{error}{alert}{success}"
 
+
 class DB():
     DEFAULT = 'default'
+
 
 class Code():
     OK = "OK"
@@ -117,7 +122,6 @@ class Code():
     FRAMEWORKS = 'frameworks'
     PEOPLE = "people"
 
-        
     def getAllKeys():
         def cond(key, value):
             return str(key).isupper()
@@ -130,8 +134,6 @@ class Code():
         STATIC = 'static'
         MAIL = 'mail'
         REST = 'rest'
-
-    
 
 
 code = Code()
@@ -217,7 +219,8 @@ class Message():
     MODERATION_REAPPLIED = _("Re-applied for moderation to another moderator.")
     SETTING_APPROVED_PROJECT = _("Setting up approved project.")
     SETUP_APPROVED_PROJECT_DONE = _("Approved project setup done.")
-    GH_REPO_NOT_SETUP = _("GitHub repository has not been setup yet. Check again later.")
+    GH_REPO_NOT_SETUP = _(
+        "GitHub repository has not been setup yet. Check again later.")
     GH_ORG_NOT_LINKED = _("No GitHub organization has been linked.")
     GH_ID_NOT_LINKED = _("No GitHub account has been linked.")
 
@@ -262,7 +265,8 @@ class Message():
         "You\'ve declined the ownership of this project.")
     COCREATOR_INVITE_ACCEPTED = _("You\'ve accepted the invite")
     COCREATOR_INVITE_DECLINED = _("You\'ve declined the invite")
-    PROJECT_MOD_TRANSFER_ACCEPTED = _("You\'re now the moderator of this project.")
+    PROJECT_MOD_TRANSFER_ACCEPTED = _(
+        "You\'re now the moderator of this project.")
     PROJECT_MOD_TRANSFER_DECLINED = _(
         "You\'ve declined the moderatorship of this project.")
     PROJECT_DEL_ACCEPTED = _("You\'ve accepted to delete the project.")
@@ -310,11 +314,12 @@ class Action():
     UPDATE = "update"
     REMOVE = "remove"
     REMOVE_ALL = "remove_all"
-    
+
     def getAllKeys():
         def cond(key, value):
             return str(key).isupper()
         return classAttrsToDict(Action, cond)
+
 
 action = Action()
 
@@ -331,8 +336,10 @@ class Project():
     )
     PALLETE = 'pallete'
 
+
 project = Project()
 CORE_PROJECT = Project.CORE_PROJECT
+
 
 class Moderation():
     MODSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
@@ -345,7 +352,7 @@ class Moderation():
     TYPES = [PROJECTS, PEOPLE, COMPETE, Project.CORE_PROJECT]
 
     TYPECHOICES = ([PROJECTS, PROJECTS.capitalize()], [PEOPLE, PEOPLE.capitalize(
-    )], [COMPETE, COMPETE.capitalize()], [Project.CORE_PROJECT,Project.CORE_PROJECT.capitalize()])
+    )], [COMPETE, COMPETE.capitalize()], [Project.CORE_PROJECT, Project.CORE_PROJECT.capitalize()])
 
 
 moderation = Moderation()
@@ -460,7 +467,7 @@ class URL():
     HOME_DOMAINS = 'home/<str:domain>'
     WEBPUSH = 'webpush/'
     AT_NICKNAME = "@<str:nickname>"
-    
+
     def at_nickname(self, nickname):
         return setPathParams(self.AT_NICKNAME, nickname)
 
@@ -932,7 +939,6 @@ class URL():
         def profileFree(self, nickname):
             return setPathParams(self.PROFILE_FREE, nickname)
 
-
         PROFILE_MOD = 'profile/1/<str:reponame>'
 
         def profileMod(self, reponame):
@@ -1030,7 +1036,6 @@ class URL():
         def coreModTransInvite(self, inviteID):
             return setPathParams(self.CORE_MOD_TRANS_INVITE, inviteID)
 
-
         VER_MOD_TRANS_INVITE_ACT = 'invitation/action/modtransfer/1/<str:inviteID>'
 
         def verifiedModTransInviteAct(self, inviteID):
@@ -1060,7 +1065,7 @@ class URL():
 
         def coreDeletionRequestAct(self, inviteID):
             return setPathParams(self.CORE_DEL_REQUEST_ACT, inviteID)
-        
+
         FREE_VERIFICATION_REQUEST = 'request/verification/0'
         CORE_VERIFICATION_REQUEST = 'request/verification/2'
 
@@ -1071,9 +1076,9 @@ class URL():
 
         def baseCocreatorInvite(self, inviteID):
             return setPathParams(self.VIEW_COCREATOR_INVITE, inviteID)
-        
+
         def baseCocreatorInviteAct(self, inviteID):
-            return setPathParams(self.COCREATOR_INVITE_ACT,inviteID)
+            return setPathParams(self.COCREATOR_INVITE_ACT, inviteID)
 
         def getURLSForClient(self):
             URLS = dict()
@@ -1092,7 +1097,7 @@ class URL():
 
         CONTACT_REQUEST_CATEGORIES = 'contact/categories'
         CONTACT_SUBM = 'contact/submit'
-        
+
         COMPETITIONS = 'competitions'
         CREATE_COMP = 'competitions/create'
         SUBMIT_COMP = 'competitions/submit'
@@ -1246,7 +1251,8 @@ class Template():
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []
-            def cond(key, value:str):
+
+            def cond(key, value: str):
                 if key.isupper() and value.endswith('.js'):
                     TEMPLATES.append(value)
 
@@ -1267,7 +1273,7 @@ class Template():
         return f'{self.INDEX}.html'
 
     HOME = 'home'
-    
+
     @property
     def home(self):
         return f'{self.INDEX}.html'
@@ -1333,10 +1339,10 @@ class Template():
         return f'{self.VIEW_SNAPSHOT}.html'
 
     DONATION = "donation"
+
     @property
     def donation(self):
         return f'{self.DONATION}.html'
-
 
     class Auth():
         DIRNAME = 'account'
@@ -1434,6 +1440,7 @@ class Template():
             return f"{self.DIRNAME}/{self.VERIFIED_EMAIL_REQUIRED}.html"
 
         NOTIFY_SW_JS = "notify-sw.js"
+
         @property
         def notify_sw_js(self):
             return f"{self.DIRNAME2}/{self.NOTIFY_SW_JS}"
@@ -1602,7 +1609,6 @@ class Template():
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
 
-
         BROWSE_NEWBIE = 'browse/newbie'
 
         @property
@@ -1690,7 +1696,7 @@ class Template():
         @property
         def profile_framework(self):
             return f'{self.DIRNAME}/{self.PROFILE_FRAMEWORK}.html'
-            
+
         TIMELINE_CONTENT = f"profile/{Profile.TIMELINE_CONTENT}"
 
         @property
@@ -1883,7 +1889,7 @@ class Template():
         @property
         def snapshots(self):
             return f'{self.DIRNAME}/{self.SNAPSHOTS}.html'
-        
+
         COCREATOR_INVITATION = 'cocreatorinvite'
 
         @property

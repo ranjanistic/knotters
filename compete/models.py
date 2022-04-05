@@ -313,7 +313,6 @@ class Competition(models.Model):
             return self.get_link
         return f"{settings.SITE}{self.get_link}"
 
-    
     @property
     def CACHE_KEYS(self):
         class CKEYS():

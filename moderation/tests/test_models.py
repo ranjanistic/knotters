@@ -1,18 +1,22 @@
-from django.test import TestCase, tag
-from django.core.exceptions import ObjectDoesNotExist
-from main.exceptions import DuplicateKeyError, IllegalModeration, IllegalModerationEntity, IllegalModerationState, IllegalModerationType, IllegalModerator
-from people.models import User, Profile
-from main.tests.utils import getRandomStr
-from main.env import BOTMAIL
+from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
 from compete.models import Competition
-from projects.tests.utils import getLicDesc, getLicName, getProjCategory, getProjName, getProjRepo
-from projects.models import Category, License, Project
 from compete.tests.utils import getCompTitle
-from people.tests.utils import getTestUsersInst
-from auth2.tests.utils import getTestEmail, getTestName, getTestPassword 
+from django.core.exceptions import ObjectDoesNotExist
+from django.test import TestCase, tag
+from main.env import BOTMAIL
+from main.exceptions import (DuplicateKeyError, IllegalModeration,
+                             IllegalModerationEntity, IllegalModerationState,
+                             IllegalModerationType, IllegalModerator)
+from main.tests.utils import getRandomStr
 from moderation.apps import APPNAME
-from .utils import getLocalKey, getLocalValue
 from moderation.models import *
+from people.models import Profile, User
+from people.tests.utils import getTestUsersInst
+from projects.models import Category, License, Project
+from projects.tests.utils import (getLicDesc, getLicName, getProjCategory,
+                                  getProjName, getProjRepo)
+
+from .utils import getLocalKey, getLocalValue
 
 
 @tag(Code.Test.MODEL, APPNAME)
@@ -31,10 +35,12 @@ class ModerationTest(TestCase):
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
         self.competition = Competition.objects.create(
-            title=getCompTitle(), creator=self.mguser.profile,endAt=timezone.now()+timedelta(days=3))
+            title=getCompTitle(), creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
-        self.project = Project.objects.create(name=getProjName(), creator=self.profile, reponame=getProjRepo(),category=self.category, license=self.license)
+        self.license = License.objects.create(name=getLicName(
+        ), description=getLicDesc(), creator=self.bot.profile, public=True)
+        self.project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)
 
         return super().setUpTestData()
 
@@ -73,14 +79,16 @@ class ModerationAttributeTest(TestCase):
 
         self.profile = Profile.objects.create(user=users[1])
         self.category = Category.objects.create(name=getProjCategory())
-        self.license = License.objects.create(name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
-        self.project = Project.objects.create(name=getProjName(), creator=self.profile, reponame=getProjRepo(),category=self.category, license=self.license)
+        self.license = License.objects.create(name=getLicName(
+        ), description=getLicDesc(), creator=self.bot.profile, public=True)
+        self.project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)
         self.mguser = User.objects.create_user(
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
         self.competition = Competition.objects.create(
-            title=getCompTitle(), creator=self.mguser.profile,endAt=timezone.now()+timedelta(days=3))
+            title=getCompTitle(), creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
         self.mod = Moderation.objects.create(
             moderator=self.moderator, type=PROJECTS, project=self.project)
 

@@ -1,7 +1,9 @@
-from os import path as os_path, environ as os_environ
+from os import environ as os_environ
+from os import path as os_path
 from pathlib import Path
-from .strings import DOCS, url, DIVISIONS, PEOPLE, AUTH2, MANAGEMENT, DB
+
 from . import env
+from .strings import AUTH2, DB, DIVISIONS, DOCS, MANAGEMENT, PEOPLE, url
 
 BASE_DIR = env.BASE_DIR
 SECRET_KEY = env.PROJECTKEY
@@ -286,8 +288,8 @@ LOGIN_URL = f'{url.getRoot(AUTH2)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
 BYPASS_2FA_PATHS = (url.ROBOTS_TXT, url.MANIFEST, url.SCRIPTS, url.SCRIPTS_SUBAPP, url.VERSION_TXT,
-    url.SERVICE_WORKER, url.SWITCH_LANG, url.VERIFY_CAPTCHA, url.OFFLINE,
-)
+                    url.SERVICE_WORKER, url.SWITCH_LANG, url.VERIFY_CAPTCHA, url.OFFLINE,
+                    )
 
 BYPASS_DEACTIVE_PATHS = BYPASS_2FA_PATHS + (
     url.REDIRECTOR,

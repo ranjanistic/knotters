@@ -1,10 +1,13 @@
-from management.models import ContactRequest, Management, ManagementInvitation
-from people.models import Profile
 from main.env import BOTMAIL, PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail, sendEmail
+from people.models import Profile
+
+from management.models import ContactRequest, Management, ManagementInvitation
+
 
 def alertLegalUpdate(docname, docurl):
-    emails = Profile.objects.filter(is_active=True,to_be_zombie=False).values_list('user__email',flat=True)
+    emails = Profile.objects.filter(
+        is_active=True, to_be_zombie=False).values_list('user__email', flat=True)
     for email in emails:
         sendActionEmail(
             to=email,
@@ -20,12 +23,15 @@ def alertLegalUpdate(docname, docurl):
     # print(f"{emails.count()} people alerted for change in {docname}")
     return True
 
-def managementInvitationSent(invite:ManagementInvitation):
+
+def managementInvitationSent(invite: ManagementInvitation):
     """
     Invitation to accept project ownership
     """
-    if invite.resolved: return False
-    if invite.expired: return False
+    if invite.resolved:
+        return False
+    if invite.expired:
+        return False
     return sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -39,12 +45,14 @@ def managementInvitationSent(invite:ManagementInvitation):
         conclusion=f"We recommed you to visit the link and make you decision there. You can block the user if this is a spam."
     )
 
-def managementInvitationAccepted(invite:ManagementInvitation):
+
+def managementInvitationAccepted(invite: ManagementInvitation):
     """
     Invitation to accept project ownership
     """
-    if not invite.resolved: return False
-    
+    if not invite.resolved:
+        return False
+
     return sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
@@ -58,7 +66,8 @@ def managementInvitationAccepted(invite:ManagementInvitation):
         conclusion=f"This email was sent because you accepted an organization's membership invitation."
     )
 
-def managementPersonRemoved(mgm:Management, person:Profile):
+
+def managementPersonRemoved(mgm: Management, person: Profile):
     """
     Remvoing a member from an organization alert
     """
@@ -72,7 +81,7 @@ def managementPersonRemoved(mgm:Management, person:Profile):
     )
 
 
-def newContactRequestAlert(contactRequest:ContactRequest):
+def newContactRequestAlert(contactRequest: ContactRequest):
     return sendEmail(
         to=BOTMAIL,
         subject="New Contact Request",

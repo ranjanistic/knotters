@@ -9,7 +9,8 @@ with open('static.json', 'r') as static:
         print(key)
         for path in statics[key]:
             filename = path.split("/")[-1]
-            finalpath = Path.joinpath(Path(os.getcwd()), "static", key, filename)
+            finalpath = Path.joinpath(
+                Path(os.getcwd()), "static", key, filename)
             print(finalpath)
             response = requests.get(path)
             with open(finalpath, 'w') as f:

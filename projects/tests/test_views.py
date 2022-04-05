@@ -1,19 +1,24 @@
 from json import loads as json_loads
-from django.http.response import HttpResponseNotFound, HttpResponseRedirect
-from django.test import TestCase, Client, tag
+
+from allauth.account.models import EmailAddress
+from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
+                               getTestPassword)
 from django.db.models import QuerySet
 from django.http import HttpResponse
+from django.http.response import HttpResponseNotFound, HttpResponseRedirect
+from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
-from main.strings import Code, url, template, Message
-from allauth.account.models import EmailAddress
+from main.strings import Code, Message, template, url
 from main.tests.utils import getRandomStr
-from people.models import Profile, Topic, User
-from auth2.tests.utils import getTestEmail, getTestGHID, getTestName, getTestPassword
-from people.tests.utils import getTestTopicsInst
-from projects.models import Project, License, Category, Tag, defaultImagePath
 from moderation.models import Moderation
+from people.models import Profile, Topic, User
+from people.tests.utils import getTestTopicsInst
 from projects.apps import APPNAME
-from .utils import getProjDesc, getProjRepo, getTestTags, getTestTagsInst, root, getLicName, getLicDesc, getProjName, getProjCategory
+from projects.models import Category, License, Project, Tag, defaultImagePath
+
+from .utils import (getLicDesc, getLicName, getProjCategory, getProjDesc,
+                    getProjName, getProjRepo, getTestTags, getTestTagsInst,
+                    root)
 
 
 @tag(Code.Test.VIEW, APPNAME)
@@ -24,7 +29,7 @@ class TestViews(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.client = Client()
         self.license = License.objects.create(
-            name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
+            name=getLicName(), description=getLicDesc(), creator=self.bot.profile, public=True)
         self.email = getTestEmail()
         self.ghID = getTestGHID()
         self.password = getTestPassword()
@@ -38,8 +43,9 @@ class TestViews(TestCase):
         self.modprofile.save()
         self.category = Category.objects.create(name=getProjCategory())
         self.license = License.objects.create(
-            name=getLicName(), description=getLicDesc(),creator=self.bot.profile,public=True)
-        EmailAddress.objects.get_or_create(user=self.user,email=self.email,verified=True,primary=True)
+            name=getLicName(), description=getLicDesc(), creator=self.bot.profile, public=True)
+        EmailAddress.objects.get_or_create(
+            user=self.user, email=self.email, verified=True, primary=True)
         return super().setUpTestData()
 
     def setUp(self) -> None:

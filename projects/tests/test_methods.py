@@ -1,11 +1,13 @@
-from main.strings import Code
-from people.models import User
+from auth2.tests.utils import getTestPassword
 from django.test import TestCase, tag
 from main.env import BOTMAIL
-from auth2.tests.utils import getTestPassword
+from main.strings import Code
+from people.models import User
 from people.tests.utils import getTestUsersInst
-from .utils import getProjName, getProjRepo, getProjCategory, getProjDesc, getTag, getLicName, getLicDesc
 from projects.methods import *
+
+from .utils import (getLicDesc, getLicName, getProjCategory, getProjDesc,
+                    getProjName, getProjRepo, getTag)
 
 
 @tag(Code.Test.METHOD, APPNAME)
@@ -18,7 +20,7 @@ class ProjectsMethodTest(TestCase):
         self.creator = Profile.objects.create(user=users[0])
         self.mod = Profile.objects.create(user=users[1], is_moderator=True)
         self.license = License.objects.create(
-            name=getLicName(), description=getLicDesc(),creator=self.bot.profile, public=True)
+            name=getLicName(), description=getLicDesc(), creator=self.bot.profile, public=True)
         return super().setUpTestData()
 
     def test_uniqueRepoName(self):
@@ -36,11 +38,13 @@ class ProjectsMethodTest(TestCase):
 
     @tag('create')
     def test_createProject(self):
-        self.assertIsInstance(createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), self.creator, self.license.getID()), Project)
+        self.assertIsInstance(createProject(getProjName(), getProjCategory(
+        ), getProjRepo(), getProjDesc(), self.creator, self.license.getID()), Project)
         pass
 
     def test_setupApprovedProject(self):
-        project = createProject(getProjName(), getProjCategory(), getProjRepo(), getProjDesc(), self.creator, self.license.getID())
+        project = createProject(getProjName(), getProjCategory(
+        ), getProjRepo(), getProjDesc(), self.creator, self.license.getID())
         self.assertIsInstance(project, Project)
         self.assertFalse(setupApprovedProject(project, self.mod))
         project.status = Code.APPROVED

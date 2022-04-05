@@ -1,44 +1,57 @@
-from json import dumps as jsondumps, loads as jsonloads
-from os import path as ospath
-from django.db.models import Count
-from django.core.exceptions import ObjectDoesNotExist
-from django.template.loader import render_to_string
-from django.views.decorators.cache import cache_control
-from management.methods import competitionManagementRenderData, labelRenderData
-from moderation.methods import moderationRenderData
-from rjsmin import jsmin
-from django.utils import timezone
-from django.core.handlers.wsgi import WSGIRequest
-from django.views.generic import TemplateView
 from datetime import timedelta
-from allauth.socialaccount.models import SocialAccount
+from json import dumps as jsondumps
+from json import loads as jsonloads
+from os import path as ospath
+
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
+from compete.methods import competitionProfileData
+from compete.methods import rendererstr as competeRendererstr
+from compete.models import Competition, Result
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Count, Q
 from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from django.utils.decorators import method_decorator
+from django.utils.timezone import is_aware, make_aware
+from django.views.decorators.cache import cache_control, cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-from django.utils.decorators import method_decorator
-from django.utils.dateparse import parse_datetime
-from django.utils.timezone import is_aware, make_aware
-from django.core.cache import cache
-from django.db.models import Q
-from django.conf import settings
-from django.views.decorators.cache import cache_page
-from django.shortcuts import redirect, render
-from management.models import HookRecord, GhMarketPlan, GhMarketApp, ThirdPartyLicense
+from django.views.generic import TemplateView
+from management.methods import competitionManagementRenderData, labelRenderData
+from management.models import (GhMarketApp, GhMarketPlan, HookRecord,
+                               ThirdPartyLicense)
+from moderation.methods import moderationRenderData
 from moderation.models import LocalStorage
-from projects.models import BaseProject, CoreProject, FreeProject, LegalDoc, Project, Snapshot
-from compete.models import Result, Competition
-from people.models import CoreMember, DisplayMentor, Profile, GHMarketPurchase, Topic
-from people.methods import profileRenderData, rendererstr as peopleRendererstr
-from projects.methods import coreProfileData, freeProfileData, rendererstr as projectsRendererstr, verifiedProfileData
-from compete.methods import competitionProfileData, rendererstr as competeRendererstr
+from people.methods import profileRenderData
+from people.methods import rendererstr as peopleRendererstr
+from people.models import (CoreMember, DisplayMentor, GHMarketPurchase,
+                           Profile, Topic)
+from projects.methods import coreProfileData, freeProfileData
+from projects.methods import rendererstr as projectsRendererstr
+from projects.methods import verifiedProfileData
+from projects.models import (BaseProject, CoreProject, FreeProject, LegalDoc,
+                             Project, Snapshot)
+from rjsmin import jsmin
+
 from .bots import Github
-from .env import ADMINPATH, ISPRODUCTION, ISBETA
-from .methods import addMethodToAsyncQueue, errorLog, getDeepFilePaths, renderData, renderView, respondJson, respondRedirect, verify_captcha, renderString
-from .decorators import dev_only, github_only, normal_profile_required, require_JSON, decode_JSON
+from .decorators import (decode_JSON, dev_only, github_only,
+                         normal_profile_required, require_JSON)
+from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
-from .strings import Code, URL, Message, setPathParams, Template, Browse, DOCS, COMPETE, PEOPLE, PROJECTS, MANAGEMENT, MODERATION, Event
+from .methods import (addMethodToAsyncQueue, errorLog, getDeepFilePaths,
+                      renderData, renderString, renderView, respondJson,
+                      respondRedirect, verify_captcha)
+from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
+                      URL, Browse, Code, Event, Message, Template,
+                      setPathParams)
 
 
 @require_GET
@@ -81,9 +94,10 @@ def index(request: WSGIRequest) -> HttpResponse:
         cache.set('homepage_topics', topics, settings.CACHE_LONG)
     project = cache.get('homepage_projects', None)
     if not project:
-        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("createdOn").first()
+        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(
+        ), suspended=False, trashed=False).order_by("createdOn").first()
         cache.set('homepage_projects', project, settings.CACHE_LONG)
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project,competition=competition))
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
 
 
 @require_GET
@@ -102,12 +116,14 @@ def home(request: WSGIRequest) -> HttpResponse:
         cache.set('homepage_topics', topics, settings.CACHE_LONG)
     project = cache.get('homepage_project', None)
     if not project:
-        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),suspended=False,trashed=False).order_by("createdOn").first()
+        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(
+        ), suspended=False, trashed=False).order_by("createdOn").first()
         cache.set('homepage_project', project, settings.CACHE_LONG)
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project,competition=competition))
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
+
 
 @require_GET
-def homeDomains(request: WSGIRequest, domain:str) -> HttpResponse:
+def homeDomains(request: WSGIRequest, domain: str) -> HttpResponse:
     return renderView(request, domain, fromApp="home")
 
 
@@ -847,17 +863,18 @@ def browser(request: WSGIRequest, type: str):
                 profiles = Profile.objects.filter(
                     Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
                         user__id__in=excludeUserIDs
-                    ).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                ).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.NEWLY_MODERATED:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                vids = Project.objects.filter(status=Code.APPROVED, trashed=False, suspended=False,approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
-                            creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
-                cids = CoreProject.objects.filter(status=Code.APPROVED, trashed=False, suspended=False,approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
-                            creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
-                projects = BaseProject.objects.filter(id__in=list(cids)+list(vids))
+                vids = Project.objects.filter(status=Code.APPROVED, trashed=False, suspended=False, approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
+                cids = CoreProject.objects.filter(status=Code.APPROVED, trashed=False, suspended=False, approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
+                projects = BaseProject.objects.filter(
+                    id__in=list(cids)+list(vids))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWLY_MODERATED, dict(projects=projects, count=len(projects)))
         elif type == Browse.HIGHEST_MONTH_XP_PROFILES:
@@ -866,7 +883,7 @@ def browser(request: WSGIRequest, type: str):
                 profiles = Profile.objects.filter(
                     Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
                         user__id__in=excludeUserIDs
-                    ).order_by('-xp')[:limit]
+                ).order_by('-xp')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_HIGHEST_MONTH_XP_PROFILES, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.LATEST_COMPETITIONS:
@@ -944,7 +961,8 @@ def browser(request: WSGIRequest, type: str):
                         topic = request.user.profile.getAllTopics()[0]
                     else:
                         topic = request.user.profile.recommended_topics()[0]
-                    profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(user__id__in=excludeUserIDs)[:limit]
+                    profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
+                        user__id__in=excludeUserIDs)[:limit]
                     cache.set(cachekey, profiles, settings.CACHE_MINI)
                     cache.set(tcacheKey, topic, settings.CACHE_MINI)
                 return peopleRendererstr(request, Template.People.BROWSE_TOPIC_PROFILES, dict(profiles=profiles, count=len(profiles), topic=topic))

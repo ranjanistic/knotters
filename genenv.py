@@ -20,15 +20,17 @@ if str(input(f'This will create/overwrite {filepath} & {testfilepath}. Continue?
         if str(key).strip():
             subkeys = key.split('=')
             if len(subkeys) > 1:
-                if not subkeys[1]: del subkeys[1]
+                if not subkeys[1]:
+                    del subkeys[1]
             val = ''
             if len(subkeys) > 1:
                 val = str(input(f"{subkeys[0]} (default:{subkeys[1]}) ="))
                 if not val:
                     val = subkeys[1]
-            else: val = str(input(f"{subkeys[0]}="))
+            else:
+                val = str(input(f"{subkeys[0]}="))
             data[subkeys[0]] = val
-        
+
     f = open(filepath, "w")
     content = ''
     for key in data:
@@ -39,10 +41,9 @@ if str(input(f'This will create/overwrite {filepath} & {testfilepath}. Continue?
     f.write(content)
     f.close()
     print(f'Created {filepath}.')
-    content = content.replace('development','testing').replace('HOSTS=','HOSTS=testserver,')
+    content = content.replace('development', 'testing').replace(
+        'HOSTS=', 'HOSTS=testserver,')
     f = open(testfilepath, "w")
     f.write(content)
     f.close()
     print(f'Created {testfilepath}.')
-
-    

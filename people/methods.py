@@ -1,22 +1,25 @@
-from requests import get as getRequest
+from allauth.socialaccount.models import SocialAccount, SocialToken
+from allauth.socialaccount.providers.discord.provider import DiscordProvider
+from allauth.socialaccount.providers.github.provider import GitHubProvider
+from allauth.socialaccount.providers.google.provider import GoogleProvider
+from allauth.socialaccount.providers.linkedin_oauth2.provider import \
+    LinkedInOAuth2Provider
+from compete.models import Competition, CompetitionJudge, Result
+from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http.response import HttpResponse
-from allauth.socialaccount.models import SocialAccount, SocialToken
-from django.core.cache import cache
-from allauth.socialaccount.providers.github.provider import GitHubProvider
-from allauth.socialaccount.providers.google.provider import GoogleProvider
-from allauth.socialaccount.providers.discord.provider import DiscordProvider
-from allauth.socialaccount.providers.linkedin_oauth2.provider import LinkedInOAuth2Provider
-from django.conf import settings
 from main.methods import errorLog, renderString, renderView
-from main.strings import Code, profile as profileString, COMPETE
-from projects.models import BaseProject, Project
+from main.strings import COMPETE, Code
+from main.strings import profile as profileString
 from moderation.models import Moderation
-from compete.models import Competition, CompetitionJudge, Result
-from .models import ProfileSetting, Topic, User, Profile, isPictureDeletable
+from projects.models import BaseProject, Project
+from requests import get as getRequest
+
 from .apps import APPNAME
+from .models import Profile, ProfileSetting, Topic, User, isPictureDeletable
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -149,7 +152,8 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         elif section == profileString.PROJECTS:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = BaseProject.objects.filter(Q(Q(trashed=False), Q(creator=profile)|Q(co_creators=profile))).order_by("-createdOn").distinct()
+                projects = BaseProject.objects.filter(Q(Q(trashed=False), Q(
+                    creator=profile) | Q(co_creators=profile))).order_by("-createdOn").distinct()
 
             if not selfprofile:
                 projects = projects.filter(suspended=False)

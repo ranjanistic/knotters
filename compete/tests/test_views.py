@@ -1,26 +1,30 @@
-from json import loads as json_loads
-from django.db.models import Sum
-from compete.models import ParticipantCertificate, SubmissionTopicPoint
-from django.http.response import HttpResponseNotFound, HttpResponseForbidden
-from django.contrib.auth.hashers import make_password
-from allauth.account.models import EmailAddress
-from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta
-from django.utils import timezone
+from json import loads as json_loads
 from random import randint
-from django.test import TestCase, Client, tag
-from django.http import HttpResponse
-from main.env import BOTMAIL
-from main.strings import Code, url, template, Message, Action
-from main.tests.utils import authroot, getRandomStr
-from auth2.tests.utils import getTestEmail, getTestName, getTestPassword, getTestPasswords, getTestEmails, getTestNames
-from people.tests.utils import getTestTopicsInst
-from people.models import Profile, ProfileTopic, Topic
-from moderation.models import Moderation
-from moderation.methods import assignModeratorToObject, requestModerationForObject
-from projects.models import Category, FreeProject, License
-from .utils import getCompTitle, root, getTestUrl
+
+from allauth.account.models import EmailAddress
+from auth2.tests.utils import (getTestEmail, getTestEmails, getTestName,
+                               getTestNames, getTestPassword, getTestPasswords)
 from compete.methods import *
+from compete.models import ParticipantCertificate, SubmissionTopicPoint
+from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.http.response import HttpResponseForbidden, HttpResponseNotFound
+from django.test import Client, TestCase, tag
+from django.utils import timezone
+from main.env import BOTMAIL
+from main.strings import Action, Code, Message, template, url
+from main.tests.utils import authroot, getRandomStr
+from moderation.methods import (assignModeratorToObject,
+                                requestModerationForObject)
+from moderation.models import Moderation
+from people.models import Profile, ProfileTopic, Topic
+from people.tests.utils import getTestTopicsInst
+from projects.models import Category, FreeProject, License
+
+from .utils import getCompTitle, getTestUrl, root
 
 
 @tag(Code.Test.VIEW, APPNAME)
@@ -575,7 +579,8 @@ class TestViews(TestCase):
             nickname=getTestName(),
             acceptedTerms=True,
             category=Category.objects.create(name=getTestName()),
-            license=License.objects.create(name=getTestName(), content=getTestName(), description=getTestName(), creator=self.bot.profile),
+            license=License.objects.create(name=getTestName(), content=getTestName(
+            ), description=getTestName(), creator=self.bot.profile),
         )
         resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
             'submissionfreeproject': freeproject.get_id
@@ -597,13 +602,14 @@ class TestViews(TestCase):
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
         freeproject = FreeProject.objects.create(
-                name=getTestName(),
-                creator=self.profile,
-                nickname=getTestName(),
-                acceptedTerms=True,
-                category=Category.objects.create(name=getTestName()),
-                license=License.objects.create(name=getTestName(), content=getTestName(), description=getTestName(), creator=self.bot.profile),
-            )
+            name=getTestName(),
+            creator=self.profile,
+            nickname=getTestName(),
+            acceptedTerms=True,
+            category=Category.objects.create(name=getTestName()),
+            license=License.objects.create(name=getTestName(), content=getTestName(
+            ), description=getTestName(), creator=self.bot.profile),
+        )
         resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
             'submissionfreeproject': freeproject.get_id
         })
@@ -684,7 +690,8 @@ class TestViews(TestCase):
                 nickname=getTestName(),
                 acceptedTerms=True,
                 category=Category.objects.create(name=getTestName()),
-                license=License.objects.create(name=getTestName(), content=getTestName(), description=getTestName(), creator=self.bot.profile),
+                license=License.objects.create(name=getTestName(), content=getTestName(
+                ), description=getTestName(), creator=self.bot.profile),
             )
             resp = client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
                 'submissionfreeproject': freeproject.get_id

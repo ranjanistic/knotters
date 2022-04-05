@@ -1,7 +1,8 @@
-from people.models import Profile
-from main.strings import CORE_PROJECT, PROJECTS, COMPETE, PEOPLE
-from main.mailers import sendActionEmail, sendAlertEmail
 from main.env import PUBNAME
+from main.mailers import sendActionEmail, sendAlertEmail
+from main.strings import COMPETE, CORE_PROJECT, PEOPLE, PROJECTS
+from people.models import Profile
+
 from .models import Moderation
 
 
@@ -34,6 +35,7 @@ def moderationActionAlert(moderation: Moderation, status: str) -> bool:
         conclusion=f"You received this email because you're a moderator at {PUBNAME}. If this is an error, please report to us."
     )
 
+
 def madeModeratorAlert(profile: Profile) -> bool:
     return sendActionEmail(
         to=profile.getEmail(),
@@ -41,7 +43,7 @@ def madeModeratorAlert(profile: Profile) -> bool:
         subject=f"Promotion to Moderator",
         header=f"Congratulations! You have been made one of our moderators. This brings previleges and duties with rewards! The following link button will brief you as a moderator.",
         actions=[{
-            'text':"Get started",
+            'text': "Get started",
             'url': '/docs/moderationguidelines'
         }],
         footer=f"It's fun and rewarding to be a moderator at {PUBNAME}, and we wish you loads of luck with your adventure lying ahead!",

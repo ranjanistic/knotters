@@ -1,14 +1,16 @@
 from smtplib import SMTPException
+
+from django.conf import settings
+from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives
+from django.core.mail.backends.smtp import EmailBackend as EB
 from django.core.mail.message import sanitize_address
 from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
-from django.core.cache import cache
-from django.core.mail.backends.smtp import EmailBackend as EB
-from django.conf import settings
-from people.models import Profile
 from management.models import ThirdPartyAccount
-from .methods import errorLog, addMethodToAsyncQueue, htmlmin
-from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SITE, SERVER_EMAIL
+from people.models import Profile
+
+from .env import ISDEVELOPMENT, ISPRODUCTION, PUBNAME, SERVER_EMAIL, SITE
+from .methods import addMethodToAsyncQueue, errorLog, htmlmin
 from .strings import URL
 
 
@@ -60,6 +62,7 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
             print("BODY:", body)
             print("==============END EMAIL==============")
         return True
+
 
 def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
     """

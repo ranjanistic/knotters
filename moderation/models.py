@@ -1,12 +1,14 @@
-from django.db import models
-from uuid import uuid4
-from django.utils import timezone
 from datetime import timedelta
-from main.strings import Code, url, PROJECTS, PEOPLE, COMPETE, CORE_PROJECT, moderation
-from main.methods import maxLengthInList
-from main.exceptions import IllegalModerationEntity
-from management.models import ReportCategory
+from uuid import uuid4
+
+from django.db import models
 from django.utils import timezone
+from main.exceptions import IllegalModerationEntity
+from main.methods import maxLengthInList
+from main.strings import (COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code,
+                          moderation, url)
+from management.models import ReportCategory
+
 from .apps import APPNAME
 
 
@@ -52,6 +54,7 @@ class Moderation(models.Model):
             return self.profile.getName()
         elif self.type == COMPETE:
             return self.competition.title
+
     @property
     def get_id(self) -> str:
         return self.id.hex
@@ -59,16 +62,16 @@ class Moderation(models.Model):
     def getID(self) -> str:
         return self.get_id
 
-
     @property
     def object(self) -> models.Model:
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type in [PROJECTS, CORE_PROJECT]:
             return self.project
         elif self.type == PEOPLE:
             return self.profile
         elif self.type == COMPETE:
             return self.competition
-        else: return None
+        else:
+            return None
 
     def getLink(self, alert: str = '', error: str = '', success: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.moderation.modID(modID=self.get_id)}{url.getMessageQuery(alert,error,success)}"
@@ -79,7 +82,8 @@ class Moderation(models.Model):
         No response for consecutive stale_days or 3
         """
         # return True
-        if self.resolved: return False
+        if self.resolved:
+            return False
         stale_days = self.stale_days or 3
         if not self.respondOn:
             if timezone.now() > (self.requestOn + timedelta(days=stale_days)):
@@ -106,7 +110,7 @@ class Moderation(models.Model):
             return self.coreproject.creator
 
     def isRequestor(self, profile) -> bool:
-        if self.type in [PROJECTS,CORE_PROJECT]:
+        if self.type in [PROJECTS, CORE_PROJECT]:
             return profile == self.requestor
         if self.type == PEOPLE:
             return self.profile == profile
@@ -207,11 +211,15 @@ class LocalStorage(models.Model):
     def __str__(self) -> str:
         return self.key
 
+
 class ReportedModeration(models.Model):
     class Meta:
         unique_together = ('profile', 'moderation', 'category')
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='moderation_reporter_profile')
-    moderation = models.ForeignKey(Moderation, on_delete=models.CASCADE, related_name='reported_moderation')
-    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_moderation_category')
+    profile = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='moderation_reporter_profile')
+    moderation = models.ForeignKey(
+        Moderation, on_delete=models.CASCADE, related_name='reported_moderation')
+    category = models.ForeignKey(
+        ReportCategory, on_delete=models.PROTECT, related_name='reported_moderation_category')

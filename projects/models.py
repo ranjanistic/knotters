@@ -1,23 +1,31 @@
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
+
 from deprecated import deprecated
+from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
+from jsonfield import JSONField
 from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL
-from django.core.cache import cache
-from django.conf import settings
-from main.methods import addMethodToAsyncQueue, human_readable_size, maxLengthInList, errorLog
-from jsonfield import JSONField
-from main.strings import CORE_PROJECT, Code, Message, url, PEOPLE, project, MANAGEMENT, DOCS
+from main.methods import (addMethodToAsyncQueue, errorLog, human_readable_size,
+                          maxLengthInList)
+from main.strings import (CORE_PROJECT, DOCS, MANAGEMENT, PEOPLE, Code,
+                          Message, project, url)
+from management.models import (GhMarketApp, HookRecord, Invitation,
+                               ReportCategory)
 from moderation.models import Moderation
-from management.models import GhMarketApp, HookRecord, ReportCategory, Invitation
+
 from .apps import APPNAME
+
 
 class Tag(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True,blank=True, related_name="tag_creator")
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
+                                null=True, blank=True, related_name="tag_creator")
+
     def __str__(self):
         return self.name
 
@@ -59,7 +67,8 @@ class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000, null=False,
                             blank=False, unique=True)
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True,blank=True, related_name="category_creator")
+    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
+                                null=True, blank=True, related_name="category_creator")
     tags = models.ManyToManyField(Tag, through='CategoryTag', default=[])
 
     def __str__(self):
@@ -84,7 +93,7 @@ class Category(models.Model):
     @property
     def topicIDs(self):
         topics = self.getProjects().values_list("topics", flat=True).distinct()
-        return list(filter(lambda x: x != None,topics))
+        return list(filter(lambda x: x != None, topics))
 
     @property
     def topics(self):
@@ -133,13 +142,15 @@ class License(models.Model):
     name = models.CharField(max_length=50)
     keyword = models.CharField(max_length=80, null=True, blank=True,
                                help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
-    description = models.CharField(max_length=1000,null=True, blank=True)
+    description = models.CharField(max_length=1000, null=True, blank=True)
     content = models.CharField(max_length=300000, null=True, blank=True)
     public = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now, null=True,blank=True)
-    modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now, null=True,blank=True)
+    createdOn = models.DateTimeField(
+        auto_now=False, default=timezone.now, null=True, blank=True)
+    modifiedOn = models.DateTimeField(
+        auto_now=False, default=timezone.now, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -185,24 +196,29 @@ class License(models.Model):
     def totalprojects(self):
         return self.projects().count()
 
+
 def projectImagePath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.getID())}_{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
+
 def defaultImagePath():
     return f"{APPNAME}/default.png"
+
 
 class BaseProject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=50, null=False, blank=False)
-    image = models.ImageField(upload_to=projectImagePath, max_length=500, default=defaultImagePath, null=True, blank=True)
+    image = models.ImageField(upload_to=projectImagePath, max_length=500,
+                              default=defaultImagePath, null=True, blank=True)
     description = models.CharField(max_length=5000, null=False, blank=False)
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
     creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
     migrated = models.BooleanField(
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
-    migrated_by = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, null=True, blank=True, related_name="baseproject_migrated_by")
+    migrated_by = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
+                                    null=True, blank=True, related_name="baseproject_migrated_by")
     migrated_on = models.DateTimeField(auto_now=False, null=True, blank=True)
     trashed = models.BooleanField(
         default=False, help_text="Deleted for creator, can be used when rejected.")
@@ -213,13 +229,17 @@ class BaseProject(models.Model):
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     topics = models.ManyToManyField(
         f'{PEOPLE}.Topic', through='ProjectTopic', default=[])
-    co_creators = models.ManyToManyField(f"{PEOPLE}.Profile",through="BaseProjectCoCreator",default=[],related_name='base_project_co_creator')
-    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[], related_name='base_project_admirer')
-    prime_collaborators = models.ManyToManyField(f"{PEOPLE}.Profile",through='BaseProjectPrimeCollaborator',default=[],related_name='base_project_prime_collaborator')
+    co_creators = models.ManyToManyField(f"{PEOPLE}.Profile", through="BaseProjectCoCreator", default=[
+    ], related_name='base_project_co_creator')
+    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[
+    ], related_name='base_project_admirer')
+    prime_collaborators = models.ManyToManyField(f"{PEOPLE}.Profile", through='BaseProjectPrimeCollaborator', default=[
+    ], related_name='base_project_prime_collaborator')
 
     is_archived = models.BooleanField(default=False)
-    archive_forward_link = models.URLField(max_length=500, null=True, blank=True)
-    
+    archive_forward_link = models.URLField(
+        max_length=500, null=True, blank=True)
+
     def __str__(self):
         return self.name
 
@@ -236,7 +256,7 @@ class BaseProject(models.Model):
     def save(self, *args, **kwargs):
         try:
             previous = BaseProject.objects.get(id=self.id)
-            if not (previous.image in [self.image,defaultImagePath()]):
+            if not (previous.image in [self.image, defaultImagePath()]):
                 previous.image.delete(False)
         except:
             pass
@@ -265,13 +285,12 @@ class BaseProject(models.Model):
 
     def getDP(self) -> str:
         return self.get_dp
-    
+
     def getTopics(self) -> list:
         return self.topics.all()
 
     def getPalleteTopics(self) -> list:
         return self.topics.filter()[:2]
-
 
     def getTopicsData(self):
         return ProjectTopic.objects.filter(project=self)
@@ -288,7 +307,7 @@ class BaseProject(models.Model):
 
     def totalTags(self):
         return self.tags.count()
-    
+
     def theme(self):
         if self.is_verified:
             return 'accent'
@@ -317,12 +336,12 @@ class BaseProject(models.Model):
                 cache.set(cacheKey, sites, settings.CACHE_INSTANT)
         return sites
 
-    def addSocial(self, site:str):
-        return ProjectSocial.objects.create(project=self,site=site)
+    def addSocial(self, site: str):
+        return ProjectSocial.objects.create(project=self, site=site)
 
-    def removeSocial(self, id:UUID):
-        return ProjectSocial.objects.filter(id=id,project=self).delete()
-    
+    def removeSocial(self, id: UUID):
+        return ProjectSocial.objects.filter(id=id, project=self).delete()
+
     @property
     def is_free(self):
         cacheKey = f"baseproject_is_free_{self.id}"
@@ -359,7 +378,8 @@ class BaseProject(models.Model):
         cacheKey = f"baseproject_is_approved_{self.id}"
         isApproved = cache.get(cacheKey, None)
         if isApproved is None:
-            isApproved = self.is_free or Project.objects.filter(id=self.id,status=Code.APPROVED).exists() or CoreProject.objects.filter(id=self.id,status=Code.APPROVED).exists()
+            isApproved = self.is_free or Project.objects.filter(id=self.id, status=Code.APPROVED).exists(
+            ) or CoreProject.objects.filter(id=self.id, status=Code.APPROVED).exists()
             if isApproved:
                 cache.set(cacheKey, isApproved, settings.CACHE_LONG)
         return isApproved
@@ -369,7 +389,8 @@ class BaseProject(models.Model):
         cacheKey = f"baseproject_is_pending_{self.id}"
         isPending = cache.get(cacheKey, None)
         if isPending is None:
-            isPending = Project.objects.filter(id=self.id,status=Code.MODERATION).exists() or CoreProject.objects.filter(id=self.id,status=Code.MODERATION).exists()
+            isPending = Project.objects.filter(id=self.id, status=Code.MODERATION).exists(
+            ) or CoreProject.objects.filter(id=self.id, status=Code.MODERATION).exists()
             if not isPending:
                 cache.set(cacheKey, isPending, settings.CACHE_LONG)
         return isPending
@@ -379,12 +400,13 @@ class BaseProject(models.Model):
         cacheKey = f"baseproject_is_rejected_{self.id}"
         isRejected = cache.get(cacheKey, None)
         if isRejected is None:
-            isRejected = Project.objects.filter(id=self.id,status=Code.REJECTED).exists() or CoreProject.objects.filter(id=self.id,status=Code.REJECTED).exists()
+            isRejected = Project.objects.filter(id=self.id, status=Code.REJECTED).exists(
+            ) or CoreProject.objects.filter(id=self.id, status=Code.REJECTED).exists()
             if isRejected:
                 cache.set(cacheKey, isRejected, settings.CACHE_LONG)
-        return isRejected 
+        return isRejected
 
-    def getProject(self,onlyApproved=False):
+    def getProject(self, onlyApproved=False):
         cacheKey = f'{self.id}_subproject_appr_{onlyApproved}'
         project = cache.get(cacheKey, None)
         if project:
@@ -414,11 +436,10 @@ class BaseProject(models.Model):
         if self.get_link.startswith('http:'):
             return self.get_link
         return f"{settings.SITE}{self.get_link}"
-  
+
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return self.getProject().getLink(success, error, alert)
-        
-  
+
     @property
     def get_nickname(self):
         project = self.getProject()
@@ -475,12 +496,13 @@ class BaseProject(models.Model):
 
     def cancel_invitation(self):
         return ProjectTransferInvitation.objects.filter(baseproject=self).delete()
-    
-    def transfer_to(self,newcreator):
+
+    def transfer_to(self, newcreator):
         if not self.is_normal:
             return False
         if self.is_free:
-            FreeRepository.objects.filter(free_project=self.getProject()).delete()
+            FreeRepository.objects.filter(
+                free_project=self.getProject()).delete()
         oldcreator = self.creator
         self.migrated_by = self.creator
         self.creator = newcreator
@@ -493,7 +515,7 @@ class BaseProject(models.Model):
                 try:
                     nghid = newcreator.ghID
                     if nghid:
-                        getproject.gh_repo().add_to_collaborators(nghid,permission='push')
+                        getproject.gh_repo().add_to_collaborators(nghid, permission='push')
                     oghid = oldcreator.ghID
                     if oghid:
                         getproject.gh_repo().remove_from_collaborators(oghid)
@@ -516,11 +538,12 @@ class BaseProject(models.Model):
         except:
             pass
         return True
-    
+
     def max_allowed_assets(self):
         if self.is_free:
             return 5
-        else: return 10
+        else:
+            return 10
 
     def assets(self):
         return Asset.objects.filter(baseproject=self)
@@ -535,18 +558,18 @@ class BaseProject(models.Model):
         return self.max_allowed_assets() - self.total_assets()
 
     def public_assets(self):
-        return Asset.objects.filter(baseproject=self,public=True)
+        return Asset.objects.filter(baseproject=self, public=True)
 
     def total_public_assets(self):
-        return Asset.objects.filter(baseproject=self,public=True).count()
+        return Asset.objects.filter(baseproject=self, public=True).count()
 
     def private_assets(self):
-        return Asset.objects.filter(baseproject=self,public=False)
+        return Asset.objects.filter(baseproject=self, public=False)
 
     def total_private_assets(self):
-        return Asset.objects.filter(baseproject=self,public=False).count()
-    
-    def add_cocreator(self,co_creator):
+        return Asset.objects.filter(baseproject=self, public=False).count()
+
+    def add_cocreator(self, co_creator):
         if co_creator.is_normal:
             self.co_creators.add(co_creator)
             try:
@@ -564,10 +587,10 @@ class BaseProject(models.Model):
             except:
                 pass
             return True
-        else :
+        else:
             return False
-            
-    def remove_cocreator(self,co_creator):
+
+    def remove_cocreator(self, co_creator):
         if self.co_creators.filter(id=co_creator.id).exists():
             self.co_creators.remove(co_creator)
             try:
@@ -589,18 +612,18 @@ class BaseProject(models.Model):
 
     def total_cocreators(self):
         return self.co_creators.count()
-    
+
     def under_cocreator_invitation(self):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).exists()
 
     def total_cocreator_invitations(self):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).count()
-    
-    def under_cocreator_invitation_profile(self,profile):
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile, expiresOn__gt=timezone.now()).exists()
+
+    def under_cocreator_invitation_profile(self, profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile, expiresOn__gt=timezone.now()).exists()
 
     def can_invite_cocreator(self):
-        return self.is_normal and not self.under_invitation() and not (self.is_not_free and self.getProject().under_del_request()) and ((self.total_cocreator_invitations() +  self.total_cocreators())<=10)
+        return self.is_normal and not self.under_invitation() and not (self.is_not_free and self.getProject().under_del_request()) and ((self.total_cocreator_invitations() + self.total_cocreators()) <= 10)
 
     def has_cocreators(self):
         return self.co_creators.filter().exists()
@@ -609,13 +632,13 @@ class BaseProject(models.Model):
         return profile.is_normal and not self.co_creators.filter(user=profile.user).exists() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
 
     def current_cocreator_invitations(self):
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False)
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False)
 
-    def cancel_cocreator_invitation(self,profile):
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False,receiver=profile).delete()
-    
+    def cancel_cocreator_invitation(self, profile):
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile).delete()
+
     def cancel_all_cocreator_invitations(self):
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).delete()
 
     def moveToArchive(self, archive_forward_link: str = None) -> bool:
         """Move the project to archive.
@@ -631,7 +654,8 @@ class BaseProject(models.Model):
             if not self.is_normal:
                 return False
             if self.is_free:
-                FreeRepository.objects.filter(free_project=self.getProject()).delete()
+                FreeRepository.objects.filter(
+                    free_project=self.getProject()).delete()
             self.archive_forward_link = archive_forward_link
             self.is_archived = True
             self.save()
@@ -642,22 +666,33 @@ class BaseProject(models.Model):
 
 class BaseProjectPrimeCollaborator(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    prime_collaborator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE,related_name="base_project_prime_collaborator_prime_collaborator")
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_base_project")
+    prime_collaborator = models.ForeignKey(
+        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="base_project_prime_collaborator_prime_collaborator")
+    base_project = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name="base_project_prime_collaborator_base_project")
+
 
 class BaseProjectCoCreator(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    co_creator = models.ForeignKey(f"{PEOPLE}.Profile",on_delete=models.CASCADE,related_name="base_project_co_creator_co_creator")
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_base_project")
+    co_creator = models.ForeignKey(
+        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="base_project_co_creator_co_creator")
+    base_project = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name="base_project_co_creator_base_project")
+
 
 class BaseProjectCoCreatorInvitation(Invitation):
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_co_creator_invitation_base_project")
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_co_creator_invitation_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_co_creator_invitation_receiver')
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
+                                     related_name="base_project_co_creator_invitation_base_project")
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                               related_name='base_project_co_creator_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                                 related_name='base_project_co_creator_invitation_receiver')
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         done = self.base_project.add_cocreator(self.receiver)
         if not done:
             return False
@@ -671,24 +706,28 @@ class BaseProjectCoCreatorInvitation(Invitation):
             return False
         self.delete()
         return True
-    
+
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
-    
+
     @property
     def get_link(self):
         return self.getLink()
-    
+
     @property
-    #@property --> Gets initialised when class object is created.
+    # @property --> Gets initialised when class object is created.
     def get_act_link(self):
         return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInviteAct(self.get_id)}"
 
-       
+
 class BaseProjectPrimeCollaboratorInvitation(Invitation):
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,related_name="base_project_prime_collaborator_invitation_base_project")
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='base_project_prime_collaborator_invitation_receiver')
+    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
+                                     related_name="base_project_prime_collaborator_invitation_base_project")
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                               related_name='base_project_prime_collaborator_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                                 related_name='base_project_prime_collaborator_invitation_receiver')
+
 
 class Project(BaseProject):
     """
@@ -702,18 +741,19 @@ class Project(BaseProject):
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
 
-    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, related_name='verified_project_mentor',null=True, blank=True)
+    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
+                               related_name='verified_project_mentor', null=True, blank=True)
 
     verified = True
     core = False
 
     def sub_save(self):
         assert len(self.reponame) > 0
-        
+
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return self.moderation.getLink(alert=alert, error=error,success=success)
+                return self.moderation.getLink(alert=alert, error=error, success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profile(reponame=self.reponame)}{url.getMessageQuery(alert,error,success)}"
         except Exception as e:
             errorLog(e)
@@ -737,13 +777,15 @@ class Project(BaseProject):
                 repo = cache.get(f"gh_repo_data_{self.repo_id}", None)
                 if not repo:
                     repo = GithubKnotters.get_repo(self.reponame)
-                    cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                    cache.set(
+                        f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
                 return repo
             else:
                 repo = GithubKnotters.get_repo(self.reponame)
                 self.repo_id = repo.id
                 self.save()
-                cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                cache.set(f"gh_repo_data_{self.repo_id}",
+                          repo, settings.CACHE_LONG)
                 return repo
         except Exception as e:
             if not GithubKnotters:
@@ -766,7 +808,8 @@ class Project(BaseProject):
 
     def gh_team(self):
         try:
-            if not self.isApproved(): return None
+            if not self.isApproved():
+                return None
             cachekey = f"gh_team_data_{self.reponame}"
             team = cache.get(cachekey, None)
             if not team:
@@ -790,7 +833,7 @@ class Project(BaseProject):
 
     @property
     def moderation(self) -> Moderation:
-        return Moderation.objects.filter(project=self, type=APPNAME).order_by('-requestOn','-respondOn').first()
+        return Moderation.objects.filter(project=self, type=APPNAME).order_by('-requestOn', '-respondOn').first()
 
     @property
     def moderator(self):
@@ -812,7 +855,9 @@ class Project(BaseProject):
     def moderationRetriesLeft(self) -> int:
         maxtries = 0
         if self.status != Code.APPROVED:
-            maxtries = 1 - Moderation.objects.filter(type=APPNAME, project=self, resolved=True).count()
+            maxtries = 1 - \
+                Moderation.objects.filter(
+                    type=APPNAME, project=self, resolved=True).count()
         return maxtries
 
     def canRetryModeration(self) -> bool:
@@ -824,7 +869,6 @@ class Project(BaseProject):
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
 
-
     def under_mod_invitation(self):
         return ProjectModerationTransferInvitation.objects.filter(project=self, resolved=False).exists()
 
@@ -833,7 +877,8 @@ class Project(BaseProject):
 
     def can_invite_profile(self, profile):
         return (profile not in [self.creator, self.moderator, self.mentor]) and not (
-            self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
+            self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(
+                profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
         )
 
     def can_invite_mod_profile(self, profile):
@@ -848,7 +893,7 @@ class Project(BaseProject):
     def cancel_moderation_invitation(self):
         return ProjectModerationTransferInvitation.objects.filter(project=self).delete()
 
-    def transfer_moderation_to(self,newmoderator):
+    def transfer_moderation_to(self, newmoderator):
         if not (self.isApproved() or self.trashed or self.suspended):
             return False
         elif ProjectModerationTransferInvitation.objects.filter(project=self, sender=self.moderator, receiver=newmoderator, resolved=True).exists():
@@ -860,7 +905,7 @@ class Project(BaseProject):
             mod.save()
             cache.delete(f"project_moderation_{self.get_id}")
             try:
-                self.gh_repo().add_to_collaborators(newmoderator.ghID,permission='maintain')
+                self.gh_repo().add_to_collaborators(newmoderator.ghID, permission='maintain')
                 self.gh_repo().remove_from_collaborators(oldmoderator.ghID)
             except:
                 pass
@@ -876,7 +921,6 @@ class Project(BaseProject):
                 pass
             return True
         return False
-
 
     def under_del_request(self):
         return VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator, resolved=False).exists()
@@ -897,7 +941,7 @@ class Project(BaseProject):
         if not self.can_request_deletion():
             return False
         return VerProjectDeletionRequest.objects.create(project=self, sender=self.creator, receiver=self.moderator)
-    
+
     def moveToTrash(self) -> bool:
         if not self.isApproved():
             self.trashed = True
@@ -914,40 +958,42 @@ class Project(BaseProject):
 
     def is_from_verification(self):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).exists() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).exists()
-    
+
     def from_verification(self):
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).first() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).first() or None
-    
-    def can_invite_cocreator_profile(self,profile):
+
+    def can_invite_cocreator_profile(self, profile):
         return self.can_invite_profile(profile)
-        
+
 
 def assetFilePath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/assets/{str(instance.baseproject.get_id)}-{str(instance.get_id)}_{uuid4().hex}.{fileparts[-1]}"
+
 
 class Asset(models.Model):
     """
     A project's asset (file) model.
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    baseproject = models.ForeignKey(BaseProject,on_delete=models.CASCADE)
+    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
     name = models.CharField(max_length=250, null=False, blank=False)
-    file = models.FileField(upload_to=assetFilePath,max_length=500)
+    file = models.FileField(upload_to=assetFilePath, max_length=500)
     public = models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
     modified_on = models.DateTimeField(auto_now=False)
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="asset_creator")
+    creator = models.ForeignKey(
+        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="asset_creator")
 
     @property
     def get_id(self):
         return self.id.hex
-    
+
     def save(self, *args, **kwargs):
         self.modified_on = timezone.now()
         super(Asset, self).save(*args, **kwargs)
 
-    def move_to_project(self, baseproject:BaseProject) -> bool:
+    def move_to_project(self, baseproject: BaseProject) -> bool:
         """
         Moves the asset to a new project, if possible
         """
@@ -978,7 +1024,8 @@ class FreeProject(BaseProject):
     """
     A quick project model
     """
-    nickname = models.CharField(max_length=500, unique=True, null=False, blank=False)
+    nickname = models.CharField(
+        max_length=500, unique=True, null=False, blank=False)
     verified = False
     core = False
 
@@ -997,7 +1044,8 @@ class FreeProject(BaseProject):
         cacheKey = f"freeproject_freerepo_exists_{self.id}"
         freerepo = cache.get(cacheKey, None)
         if freerepo is None:
-            freerepo = FreeRepository.objects.filter(free_project=self).exists()
+            freerepo = FreeRepository.objects.filter(
+                free_project=self).exists()
             cache.set(cacheKey, freerepo, settings.CACHE_INSTANT)
         return freerepo
 
@@ -1054,17 +1102,21 @@ class FreeProject(BaseProject):
         if not self.can_request_verification():
             return False
         return FreeProjectVerificationRequest.objects.create(freeproject=self)
-    
+
     def moveToVerified(self) -> bool:
         try:
-            fpvr = FreeProjectVerificationRequest.objects.get(freeproject=self, resolved=True)
+            fpvr = FreeProjectVerificationRequest.objects.get(
+                freeproject=self, resolved=True)
             if not fpvr.verifiedproject.isApproved():
                 return False
-            Snapshot.objects.filter(base_project=self.base()).update(base_project=fpvr.verifiedproject.base())
-            ProjectSocial.objects.filter(project=self.base()).update(project=fpvr.verifiedproject.base())
+            Snapshot.objects.filter(base_project=self.base()).update(
+                base_project=fpvr.verifiedproject.base())
+            ProjectSocial.objects.filter(project=self.base()).update(
+                project=fpvr.verifiedproject.base())
             fpvr.verifiedproject.admirers.set(self.admirers.all())
             fpvr.verifiedproject.co_creators.set(self.co_creators.all())
-            fpvr.verifiedproject.prime_collaborators.set(self.prime_collaborators.all())
+            fpvr.verifiedproject.prime_collaborators.set(
+                self.prime_collaborators.all())
             if self.is_submission():
                 self.moveToArchive(fpvr.verifiedproject.get_abs_link)
             else:
@@ -1081,7 +1133,7 @@ class FreeProject(BaseProject):
         from compete.models import Submission
         return Submission.objects.filter(free_project=self).first()
 
-    def can_invite_cocreator_profile(self,profile):
+    def can_invite_cocreator_profile(self, profile):
         return self.can_invite_profile(profile)
 
 
@@ -1102,7 +1154,8 @@ class FreeRepository(models.Model):
                     api = Github
                 data = api.get_repo(int(self.repo_id))
                 if data:
-                    cache.set(f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
+                    cache.set(
+                        f"gh_repo_data_{self.repo_id}", data, settings.CACHE_LONG)
             return data
         except Exception as e:
             return None
@@ -1126,7 +1179,6 @@ class FreeRepository(models.Model):
 
     def installed_app(self):
         return AppRepository.objects.filter(free_repo=self).first()
-
 
 
 class AppRepository(models.Model):
@@ -1168,6 +1220,7 @@ class ProjectTopic(models.Model):
     topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
                               null=True, blank=True, related_name='project_topic')
 
+
 class ProjectSocial(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     project = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
@@ -1178,27 +1231,28 @@ class CoreProject(BaseProject):
     """
     A core project's model
     """
-    codename = models.CharField(max_length=500, unique=True, null=False, blank=False)
+    codename = models.CharField(
+        max_length=500, unique=True, null=False, blank=False)
     repo_id = models.IntegerField(default=0, null=True, blank=True)
     budget = models.FloatField(default=0)
-    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL, related_name='core_project_mentor',null=True, blank=True)
+    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
+                               related_name='core_project_mentor', null=True, blank=True)
     status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
     verified = False
     core = True
-    
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
-    
+
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         try:
             if self.status != Code.APPROVED:
-                return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn','-respondOn').first()).getLink(alert=alert, error=error,success=success)
+                return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn', '-respondOn').first()).getLink(alert=alert, error=error, success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
         except:
             return f"{url.getRoot(APPNAME)}{url.getMessageQuery(alert,error,success)}"
@@ -1215,20 +1269,21 @@ class CoreProject(BaseProject):
     def underModeration(self) -> bool:
         return self.status == Code.MODERATION
 
-    
     def gh_repo(self):
         try:
             if self.repo_id:
                 repo = cache.get(f"gh_repo_data_{self.repo_id}", None)
                 if not repo:
                     repo = GithubKnotters.get_repo(self.codename)
-                    cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                    cache.set(
+                        f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
                 return repo
             else:
                 repo = GithubKnotters.get_repo(self.codename)
                 self.repo_id = repo.id
                 self.save()
-                cache.set(f"gh_repo_data_{self.repo_id}", repo, settings.CACHE_LONG)
+                cache.set(f"gh_repo_data_{self.repo_id}",
+                          repo, settings.CACHE_LONG)
                 return repo
         except Exception as e:
             if not GithubKnotters:
@@ -1244,14 +1299,15 @@ class CoreProject(BaseProject):
 
     def getRepoLink(self) -> str:
         return self.gh_repo_link()
-    
+
     @property
     def gh_team_name(self):
         return f'team-{self.codename}'
 
     def gh_team(self):
         try:
-            if not self.isApproved(): return None
+            if not self.isApproved():
+                return None
             cachekey = f"gh_team_data_{self.codename}"
             team = cache.get(cachekey, None)
             if not team:
@@ -1275,8 +1331,8 @@ class CoreProject(BaseProject):
 
     @property
     def moderation(self) -> Moderation:
-        return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT).order_by('-requestOn','-respondOn').first()
-                                        
+        return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT).order_by('-requestOn', '-respondOn').first()
+
     @property
     def moderator(self):
         mod = self.moderation
@@ -1307,7 +1363,7 @@ class CoreProject(BaseProject):
 
     def editProfileLink(self):
         return f"{url.getRoot(APPNAME)}{url.projects.profileEdit(projectID=self.getID(),section=project.PALLETE)}"
-    
+
     def under_mod_invitation(self):
         return CoreModerationTransferInvitation.objects.filter(coreproject=self, resolved=False).exists()
 
@@ -1321,9 +1377,10 @@ class CoreProject(BaseProject):
         return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
 
     def can_invite_profile(self, profile):
-        
+
         return (profile not in [self.creator, self.moderator, self.mentor]) and not (
-            self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
+            self.moderator.isBlockedProfile(profile) or self.creator.isBlockedProfile(
+                profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
         )
 
     def can_invite_mod_profile(self, profile):
@@ -1332,7 +1389,7 @@ class CoreProject(BaseProject):
     def cancel_moderation_invitation(self):
         return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
 
-    def transfer_moderation_to(self,newmoderator):
+    def transfer_moderation_to(self, newmoderator):
         if not (self.isApproved() or self.trashed or self.suspended):
             return False
         elif CoreModerationTransferInvitation.objects.filter(coreproject=self, sender=self.moderator, receiver=newmoderator, resolved=True).exists():
@@ -1344,7 +1401,7 @@ class CoreProject(BaseProject):
             mod.save()
             cache.delete(f"coreproject_moderation_{self.get_id}")
             try:
-                self.gh_repo().add_to_collaborators(newmoderator.ghID,permission='maintain')
+                self.gh_repo().add_to_collaborators(newmoderator.ghID, permission='maintain')
                 self.gh_repo().remove_from_collaborators(oldmoderator.ghID)
             except:
                 pass
@@ -1380,7 +1437,7 @@ class CoreProject(BaseProject):
 
     def cancel_del_request(self):
         return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()
-    
+
     def moveToTrash(self) -> bool:
         if not (self.isApproved() or self.trashed or self.suspended):
             self.trashed = True
@@ -1419,22 +1476,25 @@ class CoreProject(BaseProject):
         if not self.can_request_verification():
             return False
         return CoreProjectVerificationRequest.objects.create(coreproject=self)
-    
+
     def moveToVerified(self) -> bool:
         try:
-            cpvr = CoreProjectVerificationRequest.objects.get(coreproject=self, resolved=True)
+            cpvr = CoreProjectVerificationRequest.objects.get(
+                coreproject=self, resolved=True)
             if not cpvr.verifiedproject.isApproved():
                 return False
-            Snapshot.objects.filter(base_project=self.base()).update(base_project=cpvr.verifiedproject.base())
-            ProjectSocial.objects.filter(project=self.base()).update(project=cpvr.verifiedproject.base())
+            Snapshot.objects.filter(base_project=self.base()).update(
+                base_project=cpvr.verifiedproject.base())
+            ProjectSocial.objects.filter(project=self.base()).update(
+                project=cpvr.verifiedproject.base())
             cpvr.verifiedproject.admirers.set(self.admirers.all())
             self.gh_repo().edit(private=False)
             self.delete()
             return True
         except:
             return False
-    
-    def can_invite_cocreator_profile(self,profile):
+
+    def can_invite_cocreator_profile(self, profile):
         return self.can_invite_profile(profile)
 
 
@@ -1459,7 +1519,8 @@ class LegalDoc(models.Model):
             if self.content != (LegalDoc.objects.get(id=self.id)).content:
                 self.lastUpdate = timezone.now()
                 if self.notify_all:
-                    addMethodToAsyncQueue(f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.getLink())
+                    addMethodToAsyncQueue(
+                        f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.getLink())
         self.notify_all = False
         super(LegalDoc, self).save(*args, **kwargs)
 
@@ -1471,35 +1532,48 @@ class ProjectHookRecord(HookRecord):
     """
     Github Webhook event record to avoid redelivery misuse.
     """
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='hook_record_project')
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name='hook_record_project')
+
 
 class BotHookRecord(HookRecord):
     """
     Github Webhook event record to avoid redelivery misuse.
     """
-    ghmarketapp = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE, related_name='hook_record_ghmarketapp')
-    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, null=True,blank=True, related_name='bot_hook_record_baseproject')
+    ghmarketapp = models.ForeignKey(
+        GhMarketApp, on_delete=models.CASCADE, related_name='hook_record_ghmarketapp')
+    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
+                                    null=True, blank=True, related_name='bot_hook_record_baseproject')
+
 
 class CoreProjectHookRecord(HookRecord):
     """
     Github Webhook event record to avoid redelivery misuse.
     """
-    coreproject = models.ForeignKey(CoreProject, on_delete=models.CASCADE, related_name='hook_record_project')
+    coreproject = models.ForeignKey(
+        CoreProject, on_delete=models.CASCADE, related_name='hook_record_project')
+
 
 def snapMediaPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/snapshots/{str(instance.get_id)}-{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
+
 class Snapshot(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='base_project_snapshot')
-    text = models.CharField(max_length=6000,null=True,blank=True)
-    image = models.ImageField(upload_to=snapMediaPath, max_length=500, null=True, blank=True)
-    video = models.FileField(upload_to=snapMediaPath, max_length=500, null=True, blank=True)
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='project_snapshot_creator')
+    base_project = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name='base_project_snapshot')
+    text = models.CharField(max_length=6000, null=True, blank=True)
+    image = models.ImageField(upload_to=snapMediaPath,
+                              max_length=500, null=True, blank=True)
+    video = models.FileField(upload_to=snapMediaPath,
+                             max_length=500, null=True, blank=True)
+    creator = models.ForeignKey(
+        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='project_snapshot_creator')
     created_on = models.DateTimeField(auto_now=False, default=timezone.now)
     modified_on = models.DateTimeField(auto_now=False, default=timezone.now)
-    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='SnapshotAdmirer', default=[], related_name='snapshot_admirer')
+    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='SnapshotAdmirer', default=[
+    ], related_name='snapshot_admirer')
     suspended = models.BooleanField(default=False)
 
     @property
@@ -1533,54 +1607,70 @@ class Snapshot(models.Model):
         cacheKey = f"admirer_{profile.id}_of_snap_{self.id}"
         isadm = cache.get(cacheKey, None)
         if isadm is None:
-            isadm = SnapshotAdmirer.objects.filter(snapshot=self, profile=profile).exists()
+            isadm = SnapshotAdmirer.objects.filter(
+                snapshot=self, profile=profile).exists()
             cache.set(cacheKey, isadm, settings.CACHE_LONG)
         return isadm
+
 
 class ReportedProject(models.Model):
     class Meta:
         unique_together = ('profile', 'baseproject', 'category')
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_reporter_profile')
-    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
-    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')
+    profile = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_reporter_profile')
+    baseproject = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
+    category = models.ForeignKey(
+        ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')
+
 
 class ReportedSnapshot(models.Model):
     class Meta:
         unique_together = ('profile', 'snapshot', 'category')
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_reporter_profile')
-    snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='reported_snapshot')
-    category = models.ForeignKey(ReportCategory, on_delete=models.PROTECT, related_name='reported_snapshot_category')
+    profile = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_reporter_profile')
+    snapshot = models.ForeignKey(
+        Snapshot, on_delete=models.CASCADE, related_name='reported_snapshot')
+    category = models.ForeignKey(
+        ReportCategory, on_delete=models.PROTECT, related_name='reported_snapshot_category')
+
 
 class ProjectAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'base_project')
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_admirer_profile')
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
+    profile = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_admirer_profile')
+    base_project = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
+
 
 class SnapshotAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'snapshot')
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
-    snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name='admired_snapshot')
+    profile = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
+    snapshot = models.ForeignKey(
+        Snapshot, on_delete=models.CASCADE, related_name='admired_snapshot')
 
 
 class FileExtension(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     extension = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=500, null=True, blank=True)
-    topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[], related_name='file_extension_topics')
+    topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[
+    ], related_name='file_extension_topics')
 
     def __str__(self):
         return str(self.extension)
-        
+
     def getTags(self):
         tags = []
         for topic in self.topics.all():
@@ -1588,26 +1678,34 @@ class FileExtension(models.Model):
         return tags
 
     def getTopics(self):
-        topics = cache.get(f"file_ext_topics_{self.id}",[])
+        topics = cache.get(f"file_ext_topics_{self.id}", [])
         if not len(topics):
             topics = self.topics.all()
             if len(topics):
-                cache.set(f"file_ext_topics_{self.id}", topics, settings.CACHE_INSTANT)
+                cache.set(f"file_ext_topics_{self.id}",
+                          topics, settings.CACHE_INSTANT)
         return topics
+
 
 class TopicFileExtension(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
-    file_extension = models.ForeignKey(FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
+    topic = models.ForeignKey(
+        f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
+    file_extension = models.ForeignKey(
+        FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
+
 
 class ProjectTransferInvitation(Invitation):
-    baseproject = models.OneToOneField(BaseProject, on_delete=models.CASCADE, related_name='invitation_baseproject')
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_receiver')
+    baseproject = models.OneToOneField(
+        BaseProject, on_delete=models.CASCADE, related_name='invitation_baseproject')
+    sender = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_sender')
+    receiver = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_receiver')
 
     class Meta:
         unique_together = ('sender', 'receiver', 'baseproject')
-    
+
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.projectTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
@@ -1620,23 +1718,30 @@ class ProjectTransferInvitation(Invitation):
         return f"{url.getRoot(APPNAME)}{url.projects.projectTransInviteAct(self.get_id)}"
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         done = self.baseproject.transfer_to(self.receiver)
-        if not done: return done
+        if not done:
+            return done
         self.resolve()
         return done
 
     def decline(self):
         return super(ProjectTransferInvitation, self).decline()
 
+
 class CoreModerationTransferInvitation(Invitation):
-    coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='mod_invitation_coreproject')
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_receiver')
+    coreproject = models.OneToOneField(
+        CoreProject, on_delete=models.CASCADE, related_name='mod_invitation_coreproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                               related_name='mod_coretransfer_invitation_sender')
+    receiver = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_receiver')
 
     class Meta:
-        unique_together = ('sender', 'receiver','coreproject')
+        unique_together = ('sender', 'receiver', 'coreproject')
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.coreModTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
@@ -1650,8 +1755,10 @@ class CoreModerationTransferInvitation(Invitation):
         return f"{url.getRoot(APPNAME)}{url.projects.coreModTransInviteAct(self.get_id)}"
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         done = self.coreproject.transfer_moderation_to(self.receiver)
         if not done:
@@ -1661,13 +1768,17 @@ class CoreModerationTransferInvitation(Invitation):
     def decline(self):
         return super(CoreModerationTransferInvitation, self).decline()
 
+
 class ProjectModerationTransferInvitation(Invitation):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='mod_invitation_verifiedproject')
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_verifiedtransfer_invitation_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_verifiedtransfer_invitation_receiver')
+    project = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name='mod_invitation_verifiedproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                               related_name='mod_verifiedtransfer_invitation_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                                 related_name='mod_verifiedtransfer_invitation_receiver')
 
     class Meta:
-        unique_together = ('sender', 'receiver','project')
+        unique_together = ('sender', 'receiver', 'project')
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.verifiedModTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
@@ -1681,8 +1792,10 @@ class ProjectModerationTransferInvitation(Invitation):
         return f"{url.getRoot(APPNAME)}{url.projects.verifiedModTransInviteAct(self.get_id)}"
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         done = self.project.transfer_moderation_to(self.receiver)
         if not done:
@@ -1692,13 +1805,17 @@ class ProjectModerationTransferInvitation(Invitation):
     def decline(self):
         return super(ProjectModerationTransferInvitation, self).decline()
 
+
 class VerProjectDeletionRequest(Invitation):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='deletion_request_project')
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_receiver')
+    project = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name='deletion_request_project')
+    sender = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_sender')
+    receiver = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_receiver')
 
     class Meta:
-        unique_together = ('sender', 'receiver','project')
+        unique_together = ('sender', 'receiver', 'project')
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.verDeletionRequest(self.get_id)}{url.getMessageQuery(alert,error,success)}"
@@ -1712,8 +1829,10 @@ class VerProjectDeletionRequest(Invitation):
         return f"{url.getRoot(APPNAME)}{url.projects.verDeletionRequestAct(self.get_id)}"
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         done = self.project.moveToTrash()
         if not done:
@@ -1724,13 +1843,17 @@ class VerProjectDeletionRequest(Invitation):
         self.delete()
         return True
 
+
 class CoreProjectDeletionRequest(Invitation):
-    coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='deletion_request_coreproject')
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_coreproject_request_sender')
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_coreproject_request_receiver')
+    coreproject = models.OneToOneField(
+        CoreProject, on_delete=models.CASCADE, related_name='deletion_request_coreproject')
+    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                               related_name='deletion_coreproject_request_sender')
+    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
+                                 related_name='deletion_coreproject_request_receiver')
 
     class Meta:
-        unique_together = ('sender', 'receiver','coreproject')
+        unique_together = ('sender', 'receiver', 'coreproject')
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return f"{url.getRoot(APPNAME)}{url.projects.coreDeletionRequest(self.get_id)}{url.getMessageQuery(alert,error,success)}"
@@ -1744,8 +1867,10 @@ class CoreProjectDeletionRequest(Invitation):
         return f"{url.getRoot(APPNAME)}{url.projects.coreDeletionRequestAct(self.get_id)}"
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         done = self.coreproject.moveToTrash()
         if not done:
@@ -1756,19 +1881,25 @@ class CoreProjectDeletionRequest(Invitation):
         self.delete()
         return True
 
+
 class FreeProjectVerificationRequest(Invitation):
-    
-    freeproject = models.OneToOneField(FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
+
+    freeproject = models.OneToOneField(
+        FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
     """freeproject (OneToOneField<FreeProject>): The free project that is under verification"""
-    verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
+    verifiedproject = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
     from_free = True
     from_core = False
+
     class Meta:
         unique_together = ('freeproject', 'verifiedproject')
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         done = self.freeproject.moveToVerified()
         if not done:
@@ -1782,18 +1913,24 @@ class FreeProjectVerificationRequest(Invitation):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return self.verifiedproject.getLink(success, error, alert)
 
+
 class CoreProjectVerificationRequest(Invitation):
-    
-    coreproject = models.OneToOneField(CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
-    verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
+
+    coreproject = models.OneToOneField(
+        CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
+    verifiedproject = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
     from_free = False
     from_core = True
+
     class Meta:
         unique_together = ('coreproject', 'verifiedproject')
 
     def accept(self):
-        if self.expired: return False
-        if self.resolved: return False
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
         self.resolve()
         done = self.coreproject.moveToVerified()
         if not done:

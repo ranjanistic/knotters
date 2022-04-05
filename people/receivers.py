@@ -1,37 +1,45 @@
-from django.db.models.signals import post_save, post_delete
-from allauth.account.signals import user_signed_up, user_logged_in
-from django.dispatch import receiver
-from allauth.socialaccount.signals import social_account_added, social_account_updated, social_account_removed, pre_social_login
+from allauth.account.signals import user_logged_in, user_signed_up
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
+from allauth.socialaccount.signals import (pre_social_login,
+                                           social_account_added,
+                                           social_account_removed,
+                                           social_account_updated)
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from main.bots import Sender
-from main.methods import errorLog, addMethodToAsyncQueue
-from .models import ProfileSetting, User, Profile, defaultImagePath, isPictureDeletable, Framework, Frame
-from .mailers import welcomeAlert
-from .methods import getProfileImageBySocialAccount, isPictureSocialImage, getUsernameFromGHSocial
+from main.methods import addMethodToAsyncQueue, errorLog
+
 from .apps import APPNAME
+from .mailers import welcomeAlert
+from .methods import (getProfileImageBySocialAccount, getUsernameFromGHSocial,
+                      isPictureSocialImage)
+from .models import (Frame, Framework, Profile, ProfileSetting, User,
+                     defaultImagePath, isPictureDeletable)
+
 
 @receiver(post_save, sender=User)
-def on_user_create(sender, instance:User, created, **kwargs):
+def on_user_create(sender, instance: User, created, **kwargs):
     """
     Creates Profile 121 after new User creation.
     Adds user to mailing server.
     """
     if created:
         Profile.objects.create(user=instance)
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{welcomeAlert.__name__}",instance)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{welcomeAlert.__name__}", instance)
 
 
 @receiver(post_save, sender=Profile)
-def on_profile_create(sender, instance:Profile, created, **kwargs):
+def on_profile_create(sender, instance: Profile, created, **kwargs):
     """
     Creates Setting 121 after new Profile creation.
     Adds user to mailing server.
     """
     if created:
         ProfileSetting.objects.create(profile=instance)
-        Sender.addUserToMailingServer(instance.user.email, instance.user.first_name, instance.user.last_name)
-
+        Sender.addUserToMailingServer(
+            instance.user.email, instance.user.first_name, instance.user.last_name)
 
 
 @receiver(post_delete, sender=Profile)
@@ -70,7 +78,6 @@ def on_user_signup(request, user, **kwargs):
         pass
 
 
-
 @receiver(social_account_removed)
 def social_removed(request, socialaccount, **kwargs):
     try:
@@ -100,7 +107,8 @@ def social_added(request, sociallogin, **kwargs):
                 if data:
                     profile.update_githubID(getUsernameFromGHSocial(data))
                     changed = True
-            except: pass
+            except:
+                pass
         if str(profile.picture) == defaultImagePath():
             profile.picture = getProfileImageBySocialAccount(
                 sociallogin.account)
@@ -151,7 +159,8 @@ def on_framework_delete(sender, instance, **kwargs):
             instance.banner.delete(save=False)
     except Exception as e:
         pass
-    
+
+
 @receiver(post_delete, sender=Frame)
 def on_frame_delete(sender, instance, **kwargs):
     """
