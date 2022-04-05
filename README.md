@@ -94,6 +94,16 @@ python3 manage.py collectstatic
 
 This step should be done to prevent failing tests which depend on the presence of static files.
 
+### Update static libraries
+
+```bash
+python3 static.py
+```
+
+This will read libraries source paths mentioned in `static.json`, and overwrite the files present.
+
+Should only be used when static libraries need to be updated. If updated, then re-check if everything works fine on client side.
+
 ## Testing
 
 Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.

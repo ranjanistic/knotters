@@ -3,9 +3,7 @@
         "https://cdn.jsdelivr.net/npm/@animxyz/core/dist/animxyz.min.css",
         "https://cdn.jsdelivr.net/npm/@animxyz/core/dist/animxyz.min.css.map"
     ],
-    "chartjs": [
-        "https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.js"
-    ],
+    "chartjs": ["https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.js"],
     "cropper": [
         "https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js",
         "https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css"
@@ -21,7 +19,7 @@
     "sweetalert2": [
         "https://cdn.jsdelivr.net/npm/sweetalert2/dist/sweetalert2.all.min.js"
     ],
-    "swiper":[
+    "swiper": [
         "https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js",
         "https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js.map",
         "https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css"
