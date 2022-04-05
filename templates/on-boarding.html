@@ -522,7 +522,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script nonce="{{request.csp_nonce}}" src="{% static 'interactjs/interactjs.min.js' %}"></script>
+    <script nonce="{{request.csp_nonce}}" src="{% static 'interactjs/interact.min.js' %}"></script>
     <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.ON_BOARDING}}?next={{request.GET.next}}"></script>
 {% endblock %}
 
