@@ -5,6 +5,9 @@ from .models import *
 
 
 class CompetitionAdminForm(forms.ModelForm):
+    """
+    Strictly for admin view of competition model
+    """
     description = forms.CharField(widget=forms.Textarea, max_length=20000,
                                   help_text="This will be shown in the overview, along with perks, only after the competition as started.")
     taskSummary = forms.CharField(

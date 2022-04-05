@@ -1,33 +1,79 @@
+from os import path as os_path
+from uuid import UUID, uuid4
+
+from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from qrcode import make
-from uuid import UUID, uuid4
-from os import path as os_path
-from django.core.cache import cache
-from PIL import Image, ImageFont, ImageDraw
-from django.utils import timezone
 from django.http.response import HttpResponse
-from main.methods import addMethodToAsyncQueue, errorLog, renderView, renderString
-from main.strings import Compete, Message, url
+from django.utils import timezone
 from main.env import ISTESTING, SITE
-from people.models import User, Profile
-from django.conf import settings
-from .models import Competition, ParticipantCertificate, AppreciationCertificate, SubmissionParticipant, Result, Submission
-from .mailers import resultsDeclaredAlert, certsAllotedAlert
+from main.methods import (addMethodToAsyncQueue, errorLog, renderString,
+                          renderView)
+from main.strings import Compete, Message, url
+from people.models import Profile, User
+from PIL import Image, ImageDraw, ImageFont
+from qrcode import make
+
 from .apps import APPNAME
+from .mailers import certsAllotedAlert, resultsDeclaredAlert
+from .models import (AppreciationCertificate, Competition,
+                     ParticipantCertificate, Result, Submission,
+                     SubmissionParticipant)
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Renders view for competition module, with appropriate preset data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file name (inside compete directory) of the view to be rendered.
+        data (dict, optional): The data to be passed to the view. Defaults to dict().
+
+    Returns:
+        HttpResponse: The rendered view.
+    """
     return renderView(request, file, data, fromApp=APPNAME)
 
+
 def rendererstrResponse(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Returns HttpResponse of html string of view for competition module, with appropriate preset data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file name (inside compete directory) of the view to be rendered.
+        data (dict, optional): The data to be passed to the view. Defaults to dict().
+
+    Returns:
+        HttpResponse: The http response of the rendered html.
+    """
     return HttpResponse(rendererstr(request, file, data))
 
+
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> str:
+    """Returns string form of html for the view of competition module, with appropriate preset data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file name (inside compete directory) of the view to be rendered.
+        data (dict, optional): The data to be passed to the view. Defaults to dict().
+
+    Returns:
+        str: The html string of the view.
+    """
     return renderString(request, file, data, fromApp=APPNAME)
 
 
 def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
+    """Returns html for the given section of comeptition index page.
+
+    Args:
+        section (str): The section name as per main.strings.Compete attributes.
+        request (WSGIRequest): The request object.
+
+    Returns:
+        str: The html string.
+    """
     try:
         now = timezone.now()
         data = dict()
@@ -35,14 +81,14 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
         if section == Compete.ACTIVE:
             try:
                 actives = Competition.objects.filter(
-                    startAt__lte=now, endAt__gt=now,is_draft=False).order_by('-endAt')
+                    startAt__lte=now, endAt__gt=now, is_draft=False).order_by('-endAt')
             except:
                 actives = list()
             data[Compete.ACTIVE] = actives
         elif section == Compete.UPCOMING:
             try:
                 upcomings = Competition.objects.filter(
-                    startAt__gt=now,is_draft=False).order_by('-startAt')
+                    startAt__gt=now, is_draft=False).order_by('-startAt')
             except:
                 upcomings = list()
             data[Compete.UPCOMING] = upcomings
@@ -50,7 +96,7 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
             history = cache.get(cacheKey, [])
             if not len(history):
                 history = Competition.objects.filter(
-                    endAt__lte=now, hidden=False,is_draft=False).order_by('-endAt')
+                    endAt__lte=now, hidden=False, is_draft=False).order_by('-endAt')
                 cache.set(cacheKey, history, settings.CACHE_MINI)
             data[Compete.HISTORY] = history
         else:
@@ -60,29 +106,41 @@ def getIndexSectionHTML(section: str, request: WSGIRequest) -> str:
         return False
 
 
-def competitionProfileData(request,compID=None, nickname=None):
-    """
-    Returns competition profile data.
+def competitionProfileData(request: WSGIRequest, compID: UUID = None, nickname: str =None) -> dict:
+    """Returns competition profile data.
+    Needs only one of compID or nickname.
+    If compID and nickname both are provided, nickname will be preferred.
+
+    Args:
+        request (WSGIRequest): The request object.
+        compID (UUID, optional): The competition id. Defaults to None.
+        nickname (str, optional): The nickname of the user. Defaults to None.
+
+    Raises:
+        ObjectDoesNotExist: If the any requested info is not returnable.
+
+    Returns:
+        dict: The competition profile data.
     """
     try:
         cacheKey = f"{APPNAME}_competition_profile"
-        if compID:
-            cacheKey = f"{cacheKey}_{compID}"
-            compete = cache.get(cacheKey, None)
-            if not compete:
-                compete = Competition.objects.get(id=compID)
-                cache.set(cacheKey, compete, settings.CACHE_MICRO)
-        else:
+        if nickname:
             cacheKey = f"{cacheKey}_{nickname}"
             compete = cache.get(cacheKey, None)
             if not compete:
                 compete = Competition.objects.get(nickname=nickname)
                 cache.set(cacheKey, compete, settings.CACHE_MICRO)
+        else:
+            cacheKey = f"{cacheKey}_{compID}"
+            compete = cache.get(cacheKey, None)
+            if not compete:
+                compete = Competition.objects.get(id=compID)
+                cache.set(cacheKey, compete, settings.CACHE_MICRO)
 
         isManager = request.user.is_authenticated and compete.creator == request.user.profile
         if compete.is_draft and not isManager:
             raise ObjectDoesNotExist('isdraft: ', compete)
-            
+
         if request.user.is_authenticated:
             data = dict(
                 compete=compete,
@@ -100,13 +158,18 @@ def competitionProfileData(request,compID=None, nickname=None):
     except Exception as e:
         errorLog(e)
         return False
-def getCompetitionSectionData(section: str, competition: Competition, user: User) -> dict:
-    """
-    Returns section (tab) data for the given competition.
 
-    :section: The section name as per main.strings.Compete attributes.
-    :competition: The competition object instance of which the data will be provided.
-    :user: The requesting user (anonymous allowed)
+
+def getCompetitionSectionData(section: str, competition: Competition, user: User) -> dict:
+    """Returns competition section data.
+
+    Args:
+        section (str): The section name as per main.strings.Compete attributes.
+        competition (Competition): The competition object.
+        user (User): The requesting user object.
+
+    Returns:
+        dict: The competition section data.
     """
     data = dict(compete=competition)
 
@@ -121,13 +184,13 @@ def getCompetitionSectionData(section: str, competition: Competition, user: User
             profile = user.profile
             if competition.isNotAllowedToParticipate(profile, False):
                 return None
-                
+
             relation = SubmissionParticipant.objects.get(
                 submission__competition=competition, profile=profile)
             data['submission'] = relation.submission
             data['confirmed'] = relation.confirmed
         except Exception as e:
-            data['submission'] = None        
+            data['submission'] = None
     elif section == Compete.RESULT:
         if not competition.resultDeclared:
             data['results'] = None
@@ -153,6 +216,16 @@ def getCompetitionSectionData(section: str, competition: Competition, user: User
 
 
 def getCompetitionSectionHTML(competition: Competition, section: str, request: WSGIRequest) -> str:
+    """Returns html for the given section of competition page.
+
+    Args:
+        competition (Competition): The competition object instance of which the data will be provided.
+        section (str): The section name as per main.strings.Compete attributes.
+        request (WSGIRequest): The request object.
+
+    Returns:
+        str: The html string.
+    """
     if not Compete().COMPETE_SECTIONS.__contains__(section):
         return False
     data = dict()
@@ -162,43 +235,82 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
             break
     return rendererstr(request, f'profile/{section}', data)
 
-def generateCertificate(certname:str, certID, username, compname, abouttext, associate=None, template='certificate'):
+
+def generateCertificate(certname: str, certID: str, userdisplayname: str, compname: str, abouttext: str, associate=None, template='certificate'):
+    """
+    Generates a certificate for the given user.
+
+    Args:
+        certname (str): The name of the certificate.
+        certID (str): The ID of the certificate.
+        userdisplayname (str): The display name of the user.
+        compname (str): The name of the competition.
+        abouttext (str): The sub-text to be displayed in the certificate. Can be the date of the competition.
+        associate (ImageFile, optional): The associate image file instance. Defaults to None.
+        template (str, optional): The certificate template name. Defaults to 'certificate'. Presumed to be at templates/<template>.jpg
+
+    Returns:
+        str: Path of generated certificate, pdf. (similar for jpg format)
+    """
     imagex = 1632
     imagey = 1056
     font_dir = 'templates/poppins-500.ttf'
     body_font_dir = 'templates/questrial-400.ttf'
     cert_dir = f'templates/{template}.jpg'
-    name_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, font_dir), 72)
-    comp_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, font_dir), 56)
-    about_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, font_dir), 28)
-    id_font = ImageFont.truetype(os_path.join(settings.BASE_DIR, body_font_dir), 18)
-    namexy = (imagex-name_font.getsize(username)[0]-77, 220)
+    name_font = ImageFont.truetype(
+        os_path.join(settings.BASE_DIR, font_dir), 72)
+    comp_font = ImageFont.truetype(
+        os_path.join(settings.BASE_DIR, font_dir), 56)
+    about_font = ImageFont.truetype(
+        os_path.join(settings.BASE_DIR, font_dir), 28)
+    id_font = ImageFont.truetype(os_path.join(
+        settings.BASE_DIR, body_font_dir), 18)
+    namexy = (imagex-name_font.getsize(userdisplayname)[0]-77, 220)
     compxy = (imagex-comp_font.getsize(compname)[0]-77, 411)
     aboutxy = (imagex-about_font.getsize(abouttext)[0]-77, 515)
-    idxy = (14,1020)
-    qrxy = (14,14)
+    idxy = (14, 1020)
+    qrxy = (14, 14)
     certpath = f"{APPNAME}/certificates/{certname}.pdf"
     certpathimg = f"{APPNAME}/certificates/{certname}.jpg"
-    qrimage = make(f"{SITE}{url.getRoot(APPNAME)}{url.compete.CERT_VERIFY}?id={certID}")
-    qrimage = qrimage.resize((222,222),Image.ANTIALIAS)
+    qrimage = make(
+        f"{SITE}{url.getRoot(APPNAME)}{url.compete.CERT_VERIFY}?id={certID}")
+    qrimage = qrimage.resize((222, 222), Image.ANTIALIAS)
     if not ISTESTING:
         certimage = Image.open(os_path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
-        image_editable.text(xy=namexy, text=username, fill=(0, 0, 0), font=name_font, align='right')
-        image_editable.text(xy=compxy, text=compname, fill=(0, 0, 0), font=comp_font, align='right')
-        image_editable.text(xy=aboutxy, text=abouttext, fill=(0, 0, 0), font=about_font,align='right')
-        image_editable.text(xy=idxy, text=str(certID).upper(), fill=(0, 0, 0), font=id_font)
+        image_editable.text(xy=namexy, text=userdisplayname, fill=(
+            0, 0, 0), font=name_font, align='right')
+        image_editable.text(xy=compxy, text=compname, fill=(
+            0, 0, 0), font=comp_font, align='right')
+        image_editable.text(xy=aboutxy, text=abouttext, fill=(
+            0, 0, 0), font=about_font, align='right')
+        image_editable.text(xy=idxy, text=str(
+            certID).upper(), fill=(0, 0, 0), font=id_font)
         certimage.paste(qrimage, qrxy)
         if associate:
-            assxy = (776,904)
-            assimage = Image.open(os_path.join(settings.MEDIA_ROOT, str(associate)))
-            assimage = assimage.resize((474,144),Image.ANTIALIAS)
+            assxy = (776, 904)
+            assimage = Image.open(os_path.join(
+                settings.MEDIA_ROOT, str(associate)))
+            assimage = assimage.resize((474, 144), Image.ANTIALIAS)
             certimage.paste(assimage, assxy)
-        certimage.save(os_path.join(settings.MEDIA_ROOT, certpath), save_all=True)
+        certimage.save(os_path.join(
+            settings.MEDIA_ROOT, certpath), save_all=True)
         certimage.save(os_path.join(settings.MEDIA_ROOT, certpathimg))
     return certpath
 
-def prepareNameForCertificate(name, fname, lname):
+
+def prepareNameForCertificate(name: str, fname: str, lname: str):
+    """
+    Prepares the display name of user for certificate. (Long names are shortened to initials, and are capitalized)
+
+    Args:
+        name (str): The name of the user.
+        fname (str): The first name of the user.
+        lname (str): The last name of the user.
+
+    Returns:
+        str: The name to be displayed on certificate.
+    """
     if len(name) > 30:
         name = fname.capitalize()
         lastnames = lname.split(" ")
@@ -212,17 +324,27 @@ def prepareNameForCertificate(name, fname, lname):
                         name = f"{name} {str(last[0]).upper()}."
                 else:
                     name = f"{name} {str(last[0]).upper()}."
-            i+=1
+            i += 1
     if len(name) > 30:
         name = name[:(30-len(name))]
     return name
 
-def generateParticipantCertificate(profile:Profile,result:Result, certID: UUID) -> str:
+
+def generateParticipantCertificate(profile: Profile, result: Result, certID: UUID) -> str:
     """
-    Generates certificate for profile's result, and returns generated path.
+    Generates a certificate for the given participant.
+
+    Args:
+        profile (Profile): The profile instance of the participant.
+        result (Result): The result instance of the participant.
+        certID (UUID): The ID of the certificate.
+
+    Returns:
+        str, bool: Path of generated certificate, pdf. (similar for jpg format), if successful. False otherwise.
     """
     try:
-        name = prepareNameForCertificate(profile.getName(),profile.getFName(),profile.getLName())
+        name = prepareNameForCertificate(
+            profile.getName(), profile.getFName(), profile.getLName())
 
         comp = result.competition.title
         if len(comp) > 39:
@@ -231,7 +353,7 @@ def generateParticipantCertificate(profile:Profile,result:Result, certID: UUID) 
         return generateCertificate(
             certname=f"{result.competition.getID()}-{profile.getUserID()}",
             certID=certID,
-            username=name,
+            userdisplayname=name,
             compname=comp,
             abouttext=about,
             associate=result.competition.associate,
@@ -241,13 +363,22 @@ def generateParticipantCertificate(profile:Profile,result:Result, certID: UUID) 
         errorLog(e)
         return False
 
-def generateJudgeCertificate(judge:Profile,competition:Competition, certID: UUID) -> str:
+
+def generateJudgeCertificate(judge: Profile, competition: Competition, certID: UUID) -> str:
     """
-    Generates certificate for competition's judge, and returns generated path.
+    Generates a certificate for the given judge.
+
+    Args:
+        judge (Profile): The profile instance of the judge.
+        competition (Competition): The competition instance.
+        certID (UUID): The ID of the certificate.
+
+    Returns:
+        str, bool: Path of generated certificate, pdf. (similar for jpg format), if successful. False otherwise.
     """
     try:
-        name = prepareNameForCertificate(judge.getName(),judge.getFName(),judge.getLName())
-        
+        name = prepareNameForCertificate(
+            judge.getName(), judge.getFName(), judge.getLName())
         comp = competition.title
         if len(comp) > 39:
             comp = comp[:(39-len(comp))]
@@ -255,7 +386,7 @@ def generateJudgeCertificate(judge:Profile,competition:Competition, certID: UUID
         return generateCertificate(
             certname=f"{competition.getID()}-{judge.getUserID()}",
             certID=certID,
-            username=name,
+            userdisplayname=name,
             compname=comp,
             abouttext=about,
             associate=competition.associate,
@@ -265,13 +396,21 @@ def generateJudgeCertificate(judge:Profile,competition:Competition, certID: UUID
         errorLog(e)
         return False
 
-def generateModCertificate(competition:Competition, certID: UUID) -> str:
-    """
-    Generates certificate for competition's mod, and returns generated path.
+
+def generateModCertificate(competition: Competition, certID: UUID) -> str:
+    """Generates a certificate for the given moderator.
+
+    Args:
+        competition (Competition): The competition instance.
+        certID (UUID): The ID of the certificate.
+
+    Returns:
+        str, bool: Path of generated certificate, pdf. (similar for jpg format), if successful. False otherwise.
     """
     try:
         mod = competition.moderator
-        name = prepareNameForCertificate(mod.getName(),mod.getFName(),mod.getLName())
+        name = prepareNameForCertificate(
+            mod.getName(), mod.getFName(), mod.getLName())
 
         comp = competition.title
         if len(comp) > 39:
@@ -280,7 +419,7 @@ def generateModCertificate(competition:Competition, certID: UUID) -> str:
         return generateCertificate(
             certname=f"{competition.getID()}-{mod.getUserID()}",
             certID=certID,
-            username=name,
+            userdisplayname=name,
             compname=comp,
             abouttext=about,
             associate=competition.associate,
@@ -290,28 +429,55 @@ def generateModCertificate(competition:Competition, certID: UUID) -> str:
         errorLog(e)
         return False
 
-def DeclareResults(competition:Competition):
-    cache.set(f"results_declaration_task_{competition.get_id}", Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
+
+def DeclareResults(competition: Competition):
+    """Declairs the results of the competition, adds results alerts email task to the queue.
+
+    Args:
+        competition (Competition): The competition instance.
+
+    Raises:
+        Exception, bool: If the results are not declared, an exception is raised, otherwise True is returned.
+    """
+    cache.set(f"results_declaration_task_{competition.get_id}",
+              Message.RESULT_DECLARING, settings.CACHE_ETERNAL)
     declared = competition.declareResults()
     if not declared:
         cache.delete(f"results_declaration_task_{competition.get_id}")
         raise Exception(f'Result declaration failed: {competition.id}')
-    cache.set(f"results_declaration_task_{competition.get_id}", Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
-    addMethodToAsyncQueue(f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
+    cache.set(f"results_declaration_task_{competition.get_id}",
+              Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
+    addMethodToAsyncQueue(
+        f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
+    return True
 
 
-def AllotCompetitionCertificates(results:list,competition:Competition):
-    """
-    @async
+def AllotCompetitionCertificates(results: list, competition: Competition) -> bool:
+    """Allots certificates to the participants of the competition.
+
+    Args:
+        results (list): List of results instances of the competition.
+        competition (Competition): The competition instance.
+
+    Raises:
+        Exception: If the certificate of moderator is not allotted, an exception is raised, no further generation is performed.
+        Exception: If the certificates of judges are not allotted, an exception is raised, no further generation is performed.
+        Exception: If the certificate of any participant is not allotted, an exception is raised, no further generation is performed.
+
+    Returns:
+        bool: True if all certificates are allotted, False if exceptions are raised.
     """
     try:
-        cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
+        taskCacheKey = f"certificates_allotment_task_{competition.get_id}"
+        cache.set(taskCacheKey,
+                  Message.CERTS_GENERATING, settings.CACHE_ETERNAL)
         appreciateeCerts = []
         id = uuid4()
-        certificate = generateModCertificate(competition,id.hex)
+        certificate = generateModCertificate(competition, id.hex)
         if not certificate:
-            cache.delete(f"certificates_allotment_task_{competition.get_id}")
-            raise Exception(f"Couldn't generate certificate of {competition.moderator.getName()} (m) for {competition.title}")
+            cache.delete(taskCacheKey)
+            raise Exception(
+                f"Couldn't generate certificate of {competition.moderator.getName()} (mod) for {competition.title}", competition.moderator, competition)
         appreciateeCerts.append(
             AppreciationCertificate(
                 id=id,
@@ -322,10 +488,12 @@ def AllotCompetitionCertificates(results:list,competition:Competition):
         )
         for judge in competition.getJudges():
             id = uuid4()
-            certificate = generateJudgeCertificate(judge,competition,id.hex)
+            certificate = generateJudgeCertificate(judge, competition, id.hex)
             if not certificate:
-                cache.delete(f"certificates_allotment_task_{competition.get_id}")
-                raise Exception(f"Couldn't generate certificate of {judge.getName()} (j) for {competition.title}")
+                cache.delete(
+                    taskCacheKey)
+                raise Exception(
+                    f"Couldn't generate certificate of {judge.getName()} (judge) for {competition.title}", judge, competition)
             appreciateeCerts.append(
                 AppreciationCertificate(
                     id=id,
@@ -339,10 +507,13 @@ def AllotCompetitionCertificates(results:list,competition:Competition):
         for result in results:
             for member in result.getMembers():
                 id = uuid4()
-                certificate = generateParticipantCertificate(member,result,id.hex)
+                certificate = generateParticipantCertificate(
+                    member, result, id.hex)
                 if not certificate:
-                    cache.delete(f"certificates_allotment_task_{competition.get_id}")
-                    raise Exception(f"Couldn't generate certificate of {member.getName()} (p) for {competition.title}")
+                    cache.delete(
+                        taskCacheKey)
+                    raise Exception(
+                        f"Couldn't generate certificate of {member.getName()} (participant) for {competition.title}", member, competition)
                 participantCerts.append(
                     ParticipantCertificate(
                         id=id,
@@ -351,14 +522,16 @@ def AllotCompetitionCertificates(results:list,competition:Competition):
                         certificate=certificate
                     )
                 )
-        ParticipantCertificate.objects.bulk_create(participantCerts, batch_size=100)
-        cache.set(f"certificates_allotment_task_{competition.get_id}", Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
+        ParticipantCertificate.objects.bulk_create(
+            participantCerts, batch_size=100)
+        cache.set(taskCacheKey,
+                  Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
+        addMethodToAsyncQueue(
+            f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
         return True
     except Exception as e:
         errorLog(e)
-        cache.delete(f"certificates_allotment_task_{competition.get_id}")
+        cache.delete(taskCacheKey)
         return False
-
 
 from .receivers import *

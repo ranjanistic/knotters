@@ -54,6 +54,9 @@ def participantJoinedAlert(profile:Profile,submission:Submission) -> bool:
     )
 
 def participationWithdrawnAlert(profile: Profile, submission: Submission) -> bool:
+    """
+    Email alert to a participant of a submission notifying their participation cancellation
+    """
     return sendActionEmail(
         to=profile.getEmail(), username=profile.getFName(), subject=f"Your Participation Cancelled",
         header=f"This is to inform you that your existing participation in our '{submission.competition.title}' competition has been cancelled. Either someone has removed you from your team, or you have withdrawn yourself.",
@@ -78,6 +81,9 @@ def submissionConfirmedAlert(submission: Submission):
         )
 
 def submissionsModeratedAlert(competition:Competition):
+    """
+    Email alert to manager and all judges of a competition indicating the submissions have been moderated by the moderator.
+    """
     if (not competition.moderated()) or competition.resultDeclared:
         return False
     for judge in competition.getJudges():
@@ -108,6 +114,9 @@ def submissionsModeratedAlert(competition:Competition):
     )
 
 def submissionsJudgedAlert(competition:Competition,judge:Profile):
+    """
+    Email alert to the manager of a competition indicating the submissions have been judged by the given judge.
+    """
     if (not competition.moderated()) or competition.resultDeclared or (not competition.allSubmissionsMarkedByJudge(judge)):
         return False
     return sendActionEmail(
@@ -147,7 +156,7 @@ def resultsDeclaredAlert(competition: Competition):
 
 def certsAllotedAlert(competition: Competition):
     """
-    Notify certficates allotment to every participant in given competition
+    Notify certficates allotment to every receiver in given competition
     """
     if not competition.resultDeclared:
         return False
@@ -195,6 +204,9 @@ def certsAllotedAlert(competition: Competition):
 
 
 def resultsDeclaredParticipantAlert(competition: Competition):
+    """
+    Notify results to every participant in given competition
+    """
     if not competition.resultDeclared:
         return False
     subs = competition.getValidSubmissions()
@@ -215,6 +227,9 @@ def resultsDeclaredParticipantAlert(competition: Competition):
 
 
 def resultsDeclaredJudgeAlert(competition: Competition):
+    """
+    Notify results to every judge in given competition
+    """
     if not competition.resultDeclared:
         return False
     judges = competition.getJudges()
@@ -237,6 +252,9 @@ def resultsDeclaredJudgeAlert(competition: Competition):
 
 
 def resultsDeclaredModeratorAlert(competition: Competition):
+    """
+    Notify results to the moderator in given competition
+    """
     if not competition.resultDeclared:
         return False
     mod = competition.getModerator()

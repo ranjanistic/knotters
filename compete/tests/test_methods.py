@@ -108,7 +108,7 @@ class CompeteMethodsTest(TestCase):
         
         cert = generateCertificate(certname=f'{self.comp.get_id}-{self.user.getID()}',
             certID=uuid4().hex,
-            username=self.user.getName(),
+            userdisplayname=self.user.getName(),
             compname=self.comp.title,
             abouttext=f"from {self.comp.startAt.strftime('%B')} {self.comp.startAt.day}, {self.comp.startAt.year} to {self.comp.endAt.strftime('%B')} {self.comp.endAt.day}, {self.comp.endAt.year}"
         )

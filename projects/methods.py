@@ -281,30 +281,29 @@ def addTagToDatabase(tag: str, creator = None) -> Tag:
 
 def uniqueRepoName(reponame: str, forConversion = False) -> bool:
     """
-    Checks for unique repository name among existing projects
+    Checks for unique nickname name among all kinds of existing projects
     """
+    reponame = str(reponame).strip('-').strip().replace(' ', '-').replace('--', '-').lower()
     if reponame.startswith('-') or reponame.endswith('-') or reponame.__contains__('--'):
         return False
-    reponame = str(reponame).strip(
-        '-').strip().replace(' ', '-').replace('--', '-').lower()
     if len(reponame) > 20 or len(reponame) < 3:
         return False
     project = Project.objects.filter(
-        reponame=str(reponame), trashed=False).first()
+        reponame=str(reponame), trashed=False, is_archived=False).first()
     if project:
         if project.rejected() and project.canRetryModeration():
             return False
         if project.underModeration() or project.isApproved():
             return False
 
-    if FreeProject.objects.filter(nickname__iexact=str(reponame), trashed=False).exists():
+    if FreeProject.objects.filter(nickname__iexact=str(reponame), trashed=False, is_archived=False).exists():
         if not (forConversion and FreeProjectVerificationRequest.objects.filter(freeproject__nickname__iexact=str(reponame), resolved=False).exists()):
             return False
         else:
             return False
 
     project = CoreProject.objects.filter(
-        codename=str(reponame), trashed=False).first()
+        codename=str(reponame), trashed=False, is_archived=False).first()
     if project:
         if project.rejected() and project.canRetryModeration():
             return False

@@ -216,6 +216,9 @@ class BaseProject(models.Model):
     co_creators = models.ManyToManyField(f"{PEOPLE}.Profile",through="BaseProjectCoCreator",default=[],related_name='base_project_co_creator')
     admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[], related_name='base_project_admirer')
     prime_collaborators = models.ManyToManyField(f"{PEOPLE}.Profile",through='BaseProjectPrimeCollaborator',default=[],related_name='base_project_prime_collaborator')
+
+    is_archived = models.BooleanField(default=False)
+    archive_forward_link = models.URLField(max_length=500, null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -453,7 +456,7 @@ class BaseProject(models.Model):
         return ProjectTransferInvitation.objects.filter(baseproject=self, resolved=False).exists()
 
     def can_invite_owner(self):
-        return self.is_approved and not self.under_invitation() and not (self.is_not_free and (self.getProject().under_mod_invitation() or self.getProject().under_del_request()))
+        return self.is_normal and not self.under_invitation() and not (self.is_not_free and (self.getProject().under_mod_invitation() or self.getProject().under_del_request()))
 
     def can_invite_profile(self, profile):
         """
@@ -474,7 +477,7 @@ class BaseProject(models.Model):
         return ProjectTransferInvitation.objects.filter(baseproject=self).delete()
     
     def transfer_to(self,newcreator):
-        if self.suspended or self.trashed:
+        if not self.is_normal:
             return False
         if self.is_free:
             FreeRepository.objects.filter(free_project=self.getProject()).delete()
@@ -597,7 +600,7 @@ class BaseProject(models.Model):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False,receiver=profile, expiresOn__gt=timezone.now()).exists()
 
     def can_invite_cocreator(self):
-        return self.is_approved and not self.under_invitation() and not (self.is_not_free and self.getProject().under_del_request()) and ((self.total_cocreator_invitations() +  self.total_cocreators())<=10)
+        return self.is_normal and not self.under_invitation() and not (self.is_not_free and self.getProject().under_del_request()) and ((self.total_cocreator_invitations() +  self.total_cocreators())<=10)
 
     def has_cocreators(self):
         return self.co_creators.filter().exists()
@@ -614,7 +617,27 @@ class BaseProject(models.Model):
     def cancel_all_cocreator_invitations(self):
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self,resolved=False).delete()
 
-        
+    def moveToArchive(self, archive_forward_link: str = None) -> bool:
+        """Move the project to archive.
+        If archive_forward_link is provided, it will be used as the forwarding link for this archived project.
+
+        Args:
+            archive_forward_link (str, optional): Forwarding link for this archived project.
+
+        Returns:
+            bool: True if the project is moved to archive successfully.
+        """
+        try:
+            if not self.is_normal:
+                return False
+            if self.is_free:
+                FreeRepository.objects.filter(free_project=self.getProject()).delete()
+            self.archive_forward_link = archive_forward_link
+            self.is_archived = True
+            self.save()
+            return True
+        except:
+            return False
 
 
 class BaseProjectPrimeCollaborator(models.Model):
@@ -1042,10 +1065,21 @@ class FreeProject(BaseProject):
             fpvr.verifiedproject.admirers.set(self.admirers.all())
             fpvr.verifiedproject.co_creators.set(self.co_creators.all())
             fpvr.verifiedproject.prime_collaborators.set(self.prime_collaborators.all())
-            self.delete()
+            if self.is_submission():
+                self.moveToArchive(fpvr.verifiedproject.get_abs_link)
+            else:
+                self.delete()
             return True
         except:
             return False
+
+    def is_submission(self):
+        from compete.models import Submission
+        return Submission.objects.filter(free_project=self).exists()
+
+    def submission(self):
+        from compete.models import Submission
+        return Submission.objects.filter(free_project=self).first()
 
     def can_invite_cocreator_profile(self,profile):
         return self.can_invite_profile(profile)
@@ -1092,14 +1126,6 @@ class FreeRepository(models.Model):
 
     def installed_app(self):
         return AppRepository.objects.filter(free_repo=self).first()
-
-    def is_submission(self):
-        from compete.models import Submission
-        return Submission.objects.filter(free_project=self).exists()
-
-    def submission(self):
-        from compete.models import Submission
-        return Submission.objects.filter(free_project=self).first()
 
 
 
@@ -1733,6 +1759,7 @@ class CoreProjectDeletionRequest(Invitation):
 class FreeProjectVerificationRequest(Invitation):
     
     freeproject = models.OneToOneField(FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
+    """freeproject (OneToOneField<FreeProject>): The free project that is under verification"""
     verifiedproject = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
     from_free = True
     from_core = False

@@ -744,7 +744,7 @@ class URL():
         def apprCertificateDownload(self, compID, userID):
             return setPathParams(self.APPR_CERTDOWNLOAD, compID, userID)
 
-        @deprecated
+        @deprecated("Typo")
         def certficateDownload(self, resID, userID):
             return self.certificateDownload(resID, userID)
 
