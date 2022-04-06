@@ -29,7 +29,7 @@
 <div style="background:url('{{result.competition.getBanner}}'); background-size:cover; height:100%; background-repeat:no-repeat;">
 <div class="w3-row">
     <div class="w3-col w3-twothird">
-        <div class="primary w3-padding"><h4><a href="{{member.getLink}}"><img src="{{member.getDP}}" class="w3-circle" width="30" alt="{{member.getName}}" /></a> <b>{{member.getName}}</b> participated in <a href="{{result.competition.getLink}}" >{{result.competition.title}}</a>{% if result.submission.totalMembers > 1 %}, along with {{result.submission.totalMembers|add:'-1'}} {% if result.submission.totalMembers == 2 %}other{% else %}others{% endif %}{% endif%}.</h4></div>
+        <div class="primary w3-padding"><h4><a href="{{member.getLink}}"><img src="{{member.getDP}}" class="w3-circle" width="30" alt="{{member.getName}}" /></a> <b>{{member.getName}}</b> {% trans "participated in" %} <a href="{{result.competition.getLink}}" target="_blank">{{result.competition.title}}</a>{% if result.submission.totalMembers > 1 %}, {% trans "along with" %} {{result.submission.totalMembers|add:'-1'}} other{% pluralize result.submission.totalMembers %}{% endif %}.</h4></div>
         {% if certpath %}
         <img src="{{certpath}}" width="100%" class="preview-type-image" alt="{{member.getName}}'s certificate of participation in {{result.competition.title}}" />
         {% else %}

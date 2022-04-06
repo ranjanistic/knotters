@@ -44,6 +44,19 @@ class EmailBackend(EB):
 
 
 def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
+    """To send email to a single recipient.
+
+    Args:
+        to (str): Recipient's email address
+        subject (str): Email subject
+        html (str, optional): Email html content
+        body (str): Email body content
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+
+    NOTE: In development mode, the email is sent to the console.
+    """
     if ISPRODUCTION:
         try:
             msg = EmailMultiAlternatives(subject, body=body, to=[to])
@@ -60,13 +73,23 @@ def sendEmail(to: str, subject: str, html: str, body: str) -> bool:
             print("TO:", to)
             print("SUBJECT:", subject)
             print("BODY:", body)
-            print("==============END EMAIL==============")
+            print("==============END EMAIL==============\n")
         return True
 
 
 def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
-    """
-    To send email to a list of recipients as CC.
+    """To send email to multiple recipients as CC.
+
+    Args:
+        to (list<str>): List of recipients' email addresses
+        subject (str): Email subject
+        html (str, optional): Email html content
+        body (str): Email body content
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+
+    NOTE: In development mode, the email is sent to the console.
     """
     if ISPRODUCTION:
         try:
@@ -80,41 +103,70 @@ def sendCCEmail(to: list, subject: str, html: str, body: str) -> bool:
             return False
     else:
         if ISDEVELOPMENT:
-            print(to)
-            print(subject)
-            print(body)
+            print("\n==============CC EMAIL==============")
+            print("CC:", to)
+            print("SUBJECT:", subject)
+            print("BODY:", body)
+            print("==============END CC EMAIL==============\n")
         return True
 
 
-def sendBulkEmails(emails: list, subject, html, body):
-    for email in emails:
-        sendEmail(email, subject, html, body)
-    return True
+def sendBulkEmails(emails: list, subject: str, html: str, body: str) -> list:
+    """To send email to multiple recipients, separetly with same subject and content.
+
+    Args:
+        emails (list<str>): List of recipients' email addresses
+        subject (str): Email subject
+        html (str): Email html content
+        body (str): Email body content
+
+    Returns:
+        list<bool>: List of True with corresponding email addresses if email was sent successfully, False otherwise.
+
+    NOTE: In development mode, the emails are sent to the console.
+    """
+    if ISDEVELOPMENT:
+        print("\n==============BULK EMAILS==============")
+        print("TO:", emails)
+        print("SUBJECT:", subject)
+        print("BODY:", body)
+        print("==============END BULK EMAILS==============\n")
+        return [[True, email] for email in emails]
+    else:
+        donelist = []
+        for email in emails:
+            done = sendEmail(email, subject, html, body)
+            donelist.append([email, done])
+    return donelist
 
 
 def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list = [], greeting: str = '', conclusion: str = '', action=False) -> str and str:
-    """
-    Creates html and body content using parameters via the application's standard email template.
+    """Creates html and body content using parameters via the application's standard email template depending upon action.
 
-    :greeting: Top greeting to target
-    :header: Beginnning text
-    :footer: Ending text
-    :actions: Actions, list of { text, url } to be included in content
-    :conclusion: Final short summary text
-    :action: Final short summary text
+    Args:
+        header (str): Email header content
+        footer (str): Email footer content
+        username (str, optional): Username of the user
+        actions (list<str>, optional): List of actions to be displayed in the email
+        greeting (str, optional): Greeting to be displayed in the email
+        conclusion (str, optional): Conclusion to be displayed in the email
+        action (bool, optional): If email template type is action, or an alert.
 
-    :returns: html, body
+    Returns:
+        str, str: Email html content, Email body content
     """
-    data = {
-        'greeting': greeting,
-        'username': username,
-        'headertext': header,
-        'footertext': footer,
-        'current_site': {
-            'name': PUBNAME,
-            'domain': SITE
-        }
-    }
+    data = dict(
+        greeting=greeting,
+        username=username,
+        headertext=header,
+        footertext=footer,
+        current_site=dict(
+            name=PUBNAME,
+            domain=SITE
+        ),
+        SOCIALS=ThirdPartyAccount.get_all()
+    )
+
     body = f"{greeting}\n\n{header}\n\n"
 
     if action:
@@ -145,11 +197,6 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
         data['conclusion'] = conclusion
         body = f"{body}\n{footer}\n{conclusion}"
 
-    SOCIALS = cache.get(ThirdPartyAccount.cachekey, None)
-    if not SOCIALS:
-        SOCIALS = ThirdPartyAccount.objects.all()
-        cache.set(ThirdPartyAccount.cachekey, SOCIALS, settings.CACHE_MAX)
-    data["SOCIALS"] = SOCIALS
     try:
         html = htmlmin(render_to_string(
             f"account/email/{'action' if action else 'alert'}.html", data))
@@ -160,21 +207,63 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
 
 
 def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = '') -> bool:
+    """To send alert type email to a single recipient.
+
+    Args:
+        to (str): Recipient's email address
+        username (str): Display name of the user
+        subject (str): Email subject
+        header (str): Email header content
+        footer (str): Email footer content
+        conclusion (str, optional): Email conclusion
+        greeting (str, optional): Email greeting. If not provided, default is 'Hello there,'
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+    """
     html, body = getEmailHtmlBody(
         greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
 def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = 'Hello') -> bool:
+    """To send alert type email to multiple recipients as CC.
+
+    Args:
+        to (list<str>): List of recipients' email addresses
+        subject (str): Email subject
+        header (str): Email header content
+        footer (str): Email footer content
+        conclusion (str, optional): Email conclusion.
+        greeting (str, optional): Email greeting. If not provided, default is 'Hello'
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+    """
     html, body = getEmailHtmlBody(
         greeting=greeting, header=header, footer=footer, conclusion=conclusion)
     return sendEmail(to=to, subject=subject, html=html, body=body)
 
 
 def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], username: str = '', greeting: str = '') -> bool:
-    """
+    """To send action type email to a single recipient.
 
-    :actions: List of { text:str, url: str }
+    Args:
+        to (str): Recipient's email address
+        subject (str): Email subject
+        header (str): Email header content
+        footer (str): Email footer content
+        conclusion (str, optional): Email conclusion
+        actions (list<dict>, optional): List of actions to be displayed in the email. Default is empty list. Following is the format of each action:
+            {
+                'text': 'Action text',
+                'url': 'Action url'
+            }
+        username (str, optional): Display name of the user
+        greeting (str, optional): Email greeting. If not provided, default is 'Hello there,'
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
     """
     html, body = getEmailHtmlBody(
         greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
@@ -182,9 +271,23 @@ def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion:
 
 
 def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], greeting: str = 'Hello') -> bool:
-    """
+    """To send action type email to multiple recipients as CC.
 
-    :actions: List of { text:str, url: str }
+    Args:
+        to (list<str>): List of recipients' email addresses
+        subject (str): Email subject
+        header (str): Email header content
+        footer (str): Email footer content
+        conclusion (str, optional): Email conclusion
+        actions (list, optional): List of actions to be displayed in the email. Default is empty list. Following is the format of each action:
+            {
+                'text': 'Action text',
+                'url': 'Action url'
+            }
+        greeting (str, optional): Email greeting. If not provided, default is 'Hello'
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
     """
     html, body = getEmailHtmlBody(
         greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
@@ -222,5 +325,13 @@ def downtimeAlert():
         f'main.mailers.{sendBulkEmails.__name__}', emails, "Scheduled Downtime Alert", html, body)
 
 
-def sendErrorLog(error):
-    return sendEmail(to=SERVER_EMAIL, subject=f"KnottersERROR LOG", html=error, body=error)
+def sendErrorLog(error: Exception) -> bool:
+    """To send error log to admin.
+
+    Args:
+        error (Exception): Error object, str
+
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+    """
+    return addMethodToAsyncQueue(f"main.mailers.{sendEmail.__name__}", SERVER_EMAIL, f"KnottersERROR LOG", error, error)

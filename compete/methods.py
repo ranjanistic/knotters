@@ -532,5 +532,3 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
         errorLog(e)
         cache.delete(taskKey)
         return False
-
-from .receivers import *

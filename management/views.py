@@ -37,6 +37,7 @@ from .methods import (competitionManagementRenderData, createCompetition,
                       labelRenderData, renderer, rendererstr)
 from .models import (ContactCategory, ContactRequest, Feedback, Management,
                      ManagementInvitation, Report)
+from .receivers import *
 
 
 @manager_only

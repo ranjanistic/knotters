@@ -23,7 +23,7 @@ from .mailers import (sendCoreProjectApprovedNotification,
 from .models import (Category, CoreProject, CoreProjectVerificationRequest,
                      FileExtension, FreeProject,
                      FreeProjectVerificationRequest, License, Project,
-                     ProjectHookRecord, ProjectSocial, Tag)
+                     ProjectSocial, Tag)
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -997,5 +997,3 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
         return False, f"objnotexist hook record ID: {hookrecordID}"
     except:
         return False, format_exc()
-
-from .receivers import *

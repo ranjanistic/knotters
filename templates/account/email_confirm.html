@@ -30,10 +30,9 @@
   
   {% if confirmation %}
   <h4>
-    {% blocktrans with confirmation.email_address.email as email %}
-    Please confirm that you provided <a class="positive-text" href="mailto:{{ email }}">{{ email }}</a> as your email address for membership at
+    {% blocktrans %}Please confirm that you provided{% endblocktrans %} <a class="positive-text" href="mailto:{{ confirmation.email_address.email }}">{{ confirmation.email_address.email }}</a>
+    {% blocktrans %} as your email address for membership at {% endblocktrans %}
     <br/>{{APPNAME}}.
-    {% endblocktrans %}
   </h4>
   <br/>
   <form method="POST" action="{% url 'account_confirm_email' confirmation.key %}">

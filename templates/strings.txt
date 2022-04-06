@@ -1,0 +1,92 @@
+{% trans "India's first open source collaborative community platform. Be a part of Knotters community and explore what everyone's involved into." %}
+{% trans "An error occurred." %}
+{% trans "Invalid request" %}
+{% trans "You've accepted the terms and conditions." %}
+{% trans "Invalid response" %}
+{% trans "Invalid credentials" %}
+{% trans "Saved" %}
+{% trans "Profile updated, it might take some time for changes to appear." %}
+{% trans "Tags updated." %}
+{% trans "Topics updated." %}
+{% trans "No topics selected" %}
+{% trans "Maximum tags limit reached." %}
+{% trans "No tags selected" %}
+{% trans "Maximum topics limit reached." %}
+{% trans "Please login to continue." %}
+{% trans "Results declared!" %}
+{% trans "Results not declared." %}
+{% trans "Results declaration in progress" %}
+{% trans "You're already participating." %}
+{% trans 'Participation confirmed!' %}
+{% trans 'You are currently not allowed to participate.' %}
+{% trans 'Participation withdrawn.' %}
+{% trans 'Member removed' %}
+{% trans 'Invalid ID' %}
+{% trans "User doesn\'t exist." %}
+{% trans "User already participating or invited." %}
+{% trans "Invitation does not exists" %}
+{% trans "Already submitted" %}
+{% trans "Submitted successfully" %}
+{% trans "Submitted, but late." %}
+{% trans "It is too late now." %}
+{% trans "Invalid submission markings, try again." %}
+{% trans "Error in submission" %}
+{% trans "No moderators in available your organization" %}
+{% trans "Project created successfully!" %}
+{% trans "Sent for review" %}
+{% trans "Project deleted" %}
+{% trans "You have not accepted the terms" %}
+{% trans "You have to choose a license" %}
+{% trans "The nickname is not available, try something else." %}
+{% trans "The codename is not available, try something else." %}
+{% trans 'Invalid license data' %}
+{% trans "Snapshot published" %}
+{% trans "Snapshot updated" %}
+{% trans "Snapshot removed" %}
+{% trans "Currently under moderation" %}
+{% trans "Already resolved" %}
+{% trans "Already exists" %}
+{% trans "Request message saved" %}
+{% trans "Response message saved" %}
+{% trans "Re-applied for moderation to another moderator." %}
+{% trans "Setting up approved project." %}
+{% trans "Approved project setup done." %}
+{% trans "GitHub repository has not been setup yet. Check again later." %}
+{% trans "No GitHub organization has been linked." %}
+{% trans "No GitHub account has been linked." %}
+{% trans "Account preferences saved." %}
+{% trans 'Your successor should have Github profile linked to their account.' %}
+{% trans 'You are the successor of this profile.' %}
+{% trans 'Successor not found' %}
+{% trans 'Successor not set, use default successor if none.' %}
+{% trans "You\'ve declined this profile\'s successorship" %}
+{% trans "You\'re now the successor of this profile\'s assets." %}
+{% trans "Account deactivated." %}
+{% trans "Account deleted successfully." %}
+{% trans "Profile XP increased" %}
+{% trans 'Unauthorized access' %}
+{% trans 'Invalid moderator' %}
+{% trans 'Competition with similar title exists' %}
+{% trans 'Timings are abnormal, please correct them' %}
+{% trans 'The qualifier rank is not valid. Use rank > 0 or 1' %}
+{% trans 'Moderator and judges should be different' %}
+{% trans "Competition created successfully" %}
+{% trans 'Certificates generated successfully.' %}
+{% trans 'Certificates are being generated.' %}
+{% trans 'Certificate not found' %}
+{% trans "That moderation was passed on to another moderator." %}
+{% trans "No moderators available" %}
+{% trans "You have successfully paid the registration fee" %}
+{% trans "Invitation already exists" %}
+{% trans "You\'re now the owner of this project." %}
+{% trans "You\'ve declined the ownership of this project." %}
+{% trans "You\'ve accepted the invite" %}
+{% trans "You\'ve declined the invite" %}
+{% trans "You\'re now the moderator of this project." %}
+{% trans "You\'ve declined the moderatorship of this project." %}
+{% trans "You\'ve accepted to delete the project." %}
+{% trans "You\'ve declined to delete this project." %}
+{% trans "User already invited." %}
+{% trans "You\'ve joined this organization." %}
+{% trans "You\'ve declined invitation to join this organization." %}
+{% trans "Pending unresolved moderation requests exist." %}

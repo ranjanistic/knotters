@@ -31,6 +31,7 @@ from .methods import (AllotCompetitionCertificates, DeclareResults,
 from .models import (AppreciationCertificate, Competition,
                      ParticipantCertificate, Result, Submission,
                      SubmissionParticipant, SubmissionTopicPoint)
+from .receivers import *
 
 
 @require_GET

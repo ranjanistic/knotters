@@ -23,6 +23,7 @@ from django.http.response import (HttpResponse, HttpResponseRedirect,
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django_q.tasks import async_task
 from htmlmin.minify import html_minify
 from management.models import ActivityRecord
 from requests import post as postRequest
@@ -34,10 +35,14 @@ from .strings import (AUTH, AUTH2, COMPETE, DOCS, MANAGEMENT, MODERATION,
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
-    """
-    Adds default meta data to the dictionary 'data' which is assumed to be sent with a rendering template.
+    """Returns default context data for the given subapplication.
 
-    :param: fromApp: The subapplication name from whose context this method will return udpated data.
+    Args:
+        data (dict, optional): The additional dict data in context. Defaults to dict().
+        fromApp (str, optional): The subapplication division name under which the context data is generated. Defaults to str().
+
+    Returns:
+        dict: The default context data for the given subapplication.
     """
     URLS = dict(**data.get('URLS', dict()), **url.getURLSForClient())
     if data.get('URLS', None):
@@ -74,59 +79,89 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
 
 
 def renderView(request: WSGIRequest, view: str, data: dict = dict(), fromApp: str = str()) -> HttpResponse:
-    """
-    Returns text/html data as http response via given template view name.
+    """Returns text/html http response via given template view name under fromApp subapplication, with default context data.
 
-    :view: The template view name (without extension), under the fromApp named folder
-    :data: The dict data to be render in the view.
-    :fromApp: The subapplication division name under which the given view named template file resides
+    Args:
+        request (WSGIRequest): The request object.
+        view (str): The template view name (without extension), under the fromApp named folder
+        data (dict, optional): The dict data to be render in the view. Defaults to dict().
+        fromApp (str, optional): The subapplication division name under which the given view named template file resides. Defaults to str().
+
+    Returns:
+        HttpResponse: The rendered text/html view as http response.
     """
 
     return render(request, f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp))
 
 
 def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: str = str()) -> str:
-    """
-    Returns text/html data as string via given template view name.
+    """Returns text/html data as string via given template view name under fromApp subapplication, with default context data.
 
-    :view: The template view name (without extension), under the fromApp named folder.
-    :data: The dict data to be render in the view.
-    :fromApp: The subapplication division name under which the given view named template file resides
+    Args:
+        request (WSGIRequest): The request object.
+        view (str): The template view name (without extension), under the fromApp named folder
+        data (dict, optional): The dict data to be render in the view. Defaults to dict().
+        fromApp (str, optional): The subapplication division name under which the given view named template file resides. Defaults to str().
+
+    Returns:
+        str: The rendered text/html view as string.
     """
     return htmlmin(render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request))
 
 
-def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str()) -> JsonResponse:
-    """
-    Returns application/json data as http response.
+def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str(), success: str = str()) -> JsonResponse:
+    """returns json http response, with custom data.
 
-    :code: A code name, indicating response type.
-    :data: The dict data to be sent along with code.
+    Args:
+        code (str): The response code. [main.strings.Code.OK, main.strings.Code.NO]
+        data (dict, optional): The data to be sent along with the response. Defaults to dict().
+        error (str, optional): The error message to be sent along with the response. Defaults to str().
+        message (str, optional): The message to be sent along with the response. Defaults to str().
+        success (str, optional): The success message to be sent along with the response. Defaults to str().
+
+    Returns:
+        JsonResponse: The json http response.
     """
 
     if error:
         data = dict(**data, error=error)
     if message:
         data = dict(**data, message=message)
+    if success:
+        data = dict(**data, success=success)
 
-    return JsonResponse({
-        'code': code,
+    return JsonResponse(dict(
+        code=code,
         **data
-    }, encoder=JsonEncoder)
+    ), encoder=JsonEncoder)
 
 
 def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(), error: str = str()) -> HttpResponseRedirect:
-    """
-    returns redirect http response, with some parametric modifications.
+    """returns redirect http response, with some parametric modifications.
+
+    Args:
+        fromApp (str, optional): The subapplication division name under which the given path resides.
+        path (str, optional): The path to redirect to.
+        alert (str, optional): The alert message to be sent along with the redirect.
+        error (str, optional): The error message to be sent along with the redirect.
+
+    Returns:
+        HttpResponseRedirect: The redirect http response.
     """
     return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
 
 
-def getDeepFilePaths(dir_name: str, appendWhen=None):
-    """
-    Returns list of mapping of file paths only inside the given directory.
+def getDeepFilePaths(dir_name: str, appendWhen: callable = None):
+    """Returns list of mapping of file paths only inside the given directory.
 
-    :appendWhen: a function, with argument as traversed path in loop, should return bool whether given arg path is to be included or not.
+    :appendWhen: 
+
+    Args:
+        dir_name (str): The directory name to be searched.
+        appendWhen (callable, optional): a function, with argument as traversed path in loop, should return bool whether given arg path is to be included or not.
+
+    Returns:
+        list: list of mapping of file paths only inside the given directory.
     """
     allassets = mapDeepPaths(ospath.join(settings.BASE_DIR, f'{dir_name}/'))
     assets = list()
@@ -145,18 +180,31 @@ def getDeepFilePaths(dir_name: str, appendWhen=None):
     return assets
 
 
-def mapDeepPaths(dir_name):
-    """
-    Returns list of mapping of paths inside the given directory.
+def mapDeepPaths(dir_path: str) -> list:
+    """Returns list of absolute file paths of all files inside the given directory.
+
+    Args:
+        dir_path (str): The directory path to be traversed.
+
+    Returns:
+        list<str>: List of absolute file paths of all files inside the given directory.
     """
     paths = []
-    for root, _, files in oswalk(dir_name):
+    for root, _, files in oswalk(dir_path):
         for file in files:
             paths.append(ospath.join(root, file))
     return paths
 
 
 def maxLengthInList(list: list = list()) -> int:
+    """Returns the maximum length of str items in the list.
+
+    Args:
+        list (list<str>): list of str items. Defaults to [].
+
+    Returns:
+        int: maximum length of str items in the list.
+    """
     max = len(str(list[0]))
     for item in list:
         if max < len(str(item)):
@@ -164,7 +212,15 @@ def maxLengthInList(list: list = list()) -> int:
     return max
 
 
-def minLengthInList(list: list = list()) -> int:
+def minLengthInList(list: list = []) -> int:
+    """Returns the minimum length of str items in the list.
+
+    Args:
+        list (list<str>): list of str items. Defaults to [].
+
+    Returns:
+        int: minimum length of str items in the list.
+    """
     min = len(str(list[0]))
     for item in list:
         if min > len(str(item)):
@@ -173,6 +229,17 @@ def minLengthInList(list: list = list()) -> int:
 
 
 def base64ToImageFile(base64Data) -> File:
+    """Converts base64 data to file object, particularly for image file.
+
+    Args:
+        base64Data (str): base64 data of file
+        filename (str, optional): actual filename of the file
+
+    Returns:
+        File: file object
+        bool: False if file is not valid image file [png, jpg, jpeg]
+        None: if base64 data is not valid or exception occurs
+    """
     try:
         format, imgstr = base64Data.split(';base64,')
         ext = format.split('/')[-1]
@@ -186,7 +253,17 @@ def base64ToImageFile(base64Data) -> File:
         return None
 
 
-def base64ToFile(base64Data, filename=None) -> File:
+def base64ToFile(base64Data: str, filename=None) -> File:
+    """Converts base64 data to file object.
+
+    Args:
+        base64Data (str): base64 data of file
+        filename (str, optional): actual filename of the file
+
+    Returns:
+        File: file object
+        None: if base64 data is not valid or exception occurs
+    """
     try:
         format, filestr = base64Data.split(';base64,')
         if filename:
@@ -206,42 +283,64 @@ def base64ToFile(base64Data, filename=None) -> File:
 
 
 class JsonEncoder(DjangoJSONEncoder):
+    """A custom JSON encoder based on DjangoJSONEncoder.
+    """
+
     def default(self, obj):
         if isinstance(obj, ImageFieldFile):
             return str(obj)
         return super(JsonEncoder, self).default(obj)
 
 
-def errorLog(*args, raiseErr=True):
+def errorLog(*args):
+    """Logs error to console/file and emails error to admin, depending upon environment and logging settings.
+    """
     if not ISTESTING:
         log(LOG_CODE_ERROR, args)
         if ISPRODUCTION:
-            return addMethodToAsyncQueue("main.mailers.sendErrorLog", *args)
+            return addMethodToAsyncQueue(f"main.mailers.sendErrorLog", *args)
         if ISDEVELOPMENT:
             return print_exc()
 
 
-def getNumberSuffix(value: int) -> str:
+def getNumberSuffix(value: int, withNumber=False) -> str:
+    """Returns the suffix for the given number.
+
+    Args:
+        value (int): The number to get suffix for.
+        withNumber (bool): Whether to return the number with suffix or not. Default is False.
+
+    Returns:
+        str: The suffix for the given number.
+    """
     valuestr = str(value)
     if value == 1:
-        return 'st'
+        return 'st' if not withNumber else f'{value}st'
     elif value == 2:
-        return 'nd'
+        return 'nd' if not withNumber else f'{value}nd'
     elif value == 3:
-        return 'rd'
+        return 'rd' if not withNumber else f'{value}rd'
     else:
         if value > 9:
             if valuestr[len(valuestr) - 2] == "1" or valuestr[len(valuestr) - 1] == "0":
-                return "th"
-            return getNumberSuffix(value=int(valuestr[len(valuestr) - 1]))
+                return "th" if not withNumber else f'{value}th'
+            return getNumberSuffix(value=int(valuestr[len(valuestr) - 1]), withNumber=withNumber)
         else:
-            return "th"
+            return "th" if not withNumber else f'{value}th'
 
 
 def verify_captcha(recaptcha_response: str) -> bool:
+    """To verify google recaptcha response
+
+    Args:
+        recaptcha_response (str): recaptcha response received from client.
+
+    Returns:
+        bool: True if valid recaptcha response (not a bot) else False
+    """
     try:
-        resp = postRequest(settings.GOOGLE_RECAPTCHA_VERIFY_SITE, dict(
-            secret=settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+        resp = postRequest(settings.GOOGLE_RECAPTCHA_API_VERIFY_SITE, dict(
+            secret=settings.GOOGLE_RECAPTCHA_SECRET,
             response=recaptcha_response
         ))
         result = resp.json()
@@ -251,30 +350,37 @@ def verify_captcha(recaptcha_response: str) -> bool:
         return False
 
 
-def addMethodToAsyncQueue(methodpath, *params):
+def addMethodToAsyncQueue(methodpath, *params) -> str:
+    """Adds method to task queue for cluster execution.
+
+    Args:
+        methodpath: The path of the method to be executed.
+
+    Returns:
+        str: The task id of the task added to the queue.
+        bool: False if exception occurred.
+    """
     try:
         if ASYNC_CLUSTER:
-            from django_q.tasks import async_task
-            async_task(methodpath, *params)
-        else:
-            import compete
-            import management
-            import moderation
-            import people
-            import projects
-
-            import main
-            eval(f"{methodpath}{params}", dict(main=main, people=people, projects=projects,
-                 management=management, moderation=moderation, compete=compete))
+            return async_task(methodpath, *params)
         return True
     except Exception as e:
         errorLog(e)
         return False
 
 
-def testPathRegex(pathreg, path):
+def testPathRegex(parampath: str, path: str) -> bool:
+    """Tests if given path matches the params based url path.
+
+    Args:
+        parampath (str): The params based (main.strings.Code.URLPARAM) url path to be used to check the given path.
+        path (str): The path to be tested
+
+    Returns:
+        bool: True if path matches the params based url path.
+    """
     localParamRegex = "[a-zA-Z0-9\. \\-\_\%]"
-    regpath = re_sub(Code.URLPARAM, f"+{localParamRegex}+", pathreg)
+    regpath = re_sub(Code.URLPARAM, f"+{localParamRegex}+", parampath)
     if regpath == path:
         return True
     parts = regpath.split("+")
@@ -290,9 +396,17 @@ def testPathRegex(pathreg, path):
     return False
 
 
-def allowBypassDeactivated(path):
-    path = path.split('?')[0].strip()
+def allowBypassDeactivated(path: str) -> bool:
+    """To check if the path is allowed to be requested by a deactivated user
+
+    Args:
+        path (str): The path to be checked
+
+    Returns:
+        bool: True if the path is allowed to be requested by a deactivated user
+    """
     path = path.split('#')[0].strip()
+    path = path.split('?')[0].strip()
     for pathreg in settings.BYPASS_DEACTIVE_PATHS:
         if path == pathreg or testPathRegex(pathreg, path) or path.startswith(pathreg):
             return True
@@ -301,7 +415,17 @@ def allowBypassDeactivated(path):
     return False
 
 
-def sendUserNotification(users, payload: dict, ttl=1000):
+def sendUserNotification(users: list, payload: dict, ttl=1000):
+    """To send device push notification to users.
+
+    Args:
+        groups (list<User>): List of user instances
+        payload (dict): Notification payload data
+        ttl (int, optional): Time to live in milliseconds. Defaults to 1000.
+
+    Returns:
+        bool: True if success, False otherwise.
+    """
     try:
         for user in users:
             send_user_notification(user, payload=payload, ttl=ttl)
@@ -311,7 +435,17 @@ def sendUserNotification(users, payload: dict, ttl=1000):
         return False
 
 
-def sendGroupNotification(groups, payload, ttl=1000):
+def sendGroupNotification(groups: list, payload: dict, ttl: int = 1000):
+    """To send device push notification to subscription groups.
+
+    Args:
+        groups (list<str>): List of group names.
+        payload (dict): Notification payload data
+        ttl (int, optional): Time to live in milliseconds. Defaults to 1000.
+
+    Returns:
+        bool: True if success, False otherwise.
+    """
     try:
         for group in groups:
             send_group_notification(group, payload=payload, ttl=ttl)
@@ -321,11 +455,35 @@ def sendGroupNotification(groups, payload, ttl=1000):
         return False
 
 
-def user_device_notify(user_s,
-                       title, body=None, url=None, icon=None,
-                       badge=None, actions=[],
-                       dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
+def user_device_notify(user_s: str,
+                       title: str, body: str = None, url: str = None, icon: str = None,
+                       badge: str = None, actions: list = [],
+                       dir: str = None, image: str = None, lang: str = None, renotify: bool = None, requireInteraction: bool = False, silent: bool = False, tag: str = None, timestamp=None, vibrate: list = None
                        ):
+    """Add queue task to send device push notification to a subscription group.
+
+    Args:
+        user_s (User, list<User>): The user instance or list of instances to send to.
+        title (str): The notification title.
+        body (str, optional): The notification body. Defaults to None.
+        url (str, optional): The notification url. Defaults to None.
+        icon (str, optional):  The notification icon url. Defaults to None.
+        badge (str, optional): The notification badge url. Defaults to None.
+        actions (list, optional): The notification actions. Defaults to [].
+        dir (str, optional): The notification direction. Defaults to None.
+        image (str, optional): The notification image url. Defaults to None.
+        lang (str, optional): The notification language. Defaults to None.
+        renotify (bool, optional): Whether to renotify. Defaults to None.
+        requireInteraction (bool, optional): Whether the notification requires interaction. Defaults to False.
+        silent (bool, optional): Whether the notification is silent. Defaults to False.
+        tag (str, optional): The notification tag. Defaults to None.
+        timestamp (int, optional): The notification timestamp. Defaults to None.
+        vibrate (list, optional): The notification vibration levels list. Defaults to None.
+
+    Returns:
+        str: Task ID if successfully queued
+        bool: False if failed
+    """
     if not user_s:
         return False
     users = user_s
@@ -341,10 +499,34 @@ def user_device_notify(user_s,
     ))
 
 
-def group_device_notify(group_s, title, body=None, url=None, icon=None,
-                        badge=None, actions=[],
-                        dir=None, image=None, lang=None, renotify=None, requireInteraction=False, silent=False, tag=None, timestamp=None, vibrate=None
+def group_device_notify(group_s: str, title: str, body: str = None, url: str = None, icon: str = None,
+                        badge: str = None, actions: list = [],
+                        dir: str = None, image: str = None, lang: str = None, renotify: bool = None, requireInteraction: bool = False, silent: bool = False, tag: str = None, timestamp=None, vibrate: list = None
                         ):
+    """Add queue task to send device push notification to a subscription group.
+
+    Args:
+        group_s (str, list): The subscription group name or list of names to send to.
+        title (str): The notification title.
+        body (str, optional): The notification body. Defaults to None.
+        url (str, optional): The notification url. Defaults to None.
+        icon (str, optional):  The notification icon url. Defaults to None.
+        badge (str, optional): The notification badge url. Defaults to None.
+        actions (list, optional): The notification actions. Defaults to [].
+        dir (str, optional): The notification direction. Defaults to None.
+        image (str, optional): The notification image url. Defaults to None.
+        lang (str, optional): The notification language. Defaults to None.
+        renotify (bool, optional): Whether to renotify. Defaults to None.
+        requireInteraction (bool, optional): Whether the notification requires interaction. Defaults to False.
+        silent (bool, optional): Whether the notification is silent. Defaults to False.
+        tag (str, optional): The notification tag. Defaults to None.
+        timestamp (int, optional): The notification timestamp. Defaults to None.
+        vibrate (list, optional): The notification vibration levels list. Defaults to None.
+
+    Returns:
+        str: Task ID if successfully queued
+        bool: False if failed
+    """
     if not group_s or not len(group_s):
         return False
     groups = group_s
@@ -385,22 +567,36 @@ def removeUnverified():
     return False
 
 
-def htmlmin(htmlstr: str, *args, **kwargs):
-    """
-    Minifies string based html code.
+def htmlmin(htmlstr: str, *args, **kwargs) -> str:
+    """Minifies string based html code.
+        If htmlstr does not contain <html> tags, then <head> and <body> tags will be removed, 
+        presuming the htmlstr to be a component of an html page.
+
+    Args:
+        htmlstr (str): String based html code.
+
+    Returns:
+        str: Minified string based html code.
     """
     try:
         mincode = html_minify(htmlstr, *args, **kwargs)
         if len(re_findall(r'<(html|\/html|)>', htmlstr)) != 0:
-            # If includes html tags, means it is a standalone page.
             return mincode
-        # Otherwise it is a component html code.
         return re_sub(r'<(html|head|body|\/html|\/head|\/body)>', '', mincode)
     except:
         return htmlstr.strip()
 
 
-def human_readable_size(num, suffix="B"):
+def human_readable_size(num: float, suffix="B") -> str:
+    """Converts a number to human readable memory size format.
+
+    Args:
+        num (float): Number to convert.
+        suffix (str, optional): Suffix to append to the number. Defaults to "B".
+
+    Returns:
+        str: Human readable memory size format.
+    """
     for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
         if abs(num) < 1024.0:
             return f"{num:3.1f}{unit}{suffix}"

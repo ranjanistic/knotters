@@ -1,18 +1,13 @@
 import os
-from manage import ENVPATH, ENVSAMPLEPATH
-from testmanage import ENVTESTPATH
+from manage import ENVPATH, ENVSAMPLEPATH, ENVTESTPATH
 
 if str(input('This will override previously done setup, if any. Continue? (y/n) : ')) == 'y':
 
-    print('Creating _logs_/error.txt')
+    print('Creating _logs_/')
     try:
         os.mkdir('_logs_')
     except:
         pass
-    f = open('_logs_/error.txt', 'w')
-    f.write('Exception logs will also remain here.')
-    f.close()
-    print('Created _logs_/error.txt')
 
     fd = open(ENVSAMPLEPATH, "r")
     envcontent = fd.read()

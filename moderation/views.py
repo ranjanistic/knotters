@@ -26,6 +26,7 @@ from .methods import (getModeratorToAssignModeration, moderationRenderData,
                       renderer, requestModerationForCoreProject,
                       requestModerationForObject)
 from .models import Moderation
+from .receivers import *
 
 
 @normal_profile_required

@@ -245,6 +245,14 @@ class Topic(models.Model):
             return False
         return True
 
+    def homepage_topics(limit:int = 3) -> models.QuerySet:
+        cacheKey = 'homepage_topics'
+        topics = cache.get(cacheKey, [])
+        if not len(topics):
+            topics = Topic.objects.filter()[:limit]
+            cache.set(cacheKey, topics, settings.CACHE_LONG)
+        return topics
+
 
 class TopicTag(models.Model):
     class Meta:
@@ -1112,6 +1120,24 @@ class Profile(models.Model):
         except Exception as e:
             errorLog(e)
             return []
+    
+    def nickname_profile_url(nickname) -> str:
+        cacheKey = f"nickname_profile_url_{nickname}"
+        profile_url = cache.get(cacheKey, None)
+        if not profile_url:
+            profile = Profile.objects.get(nickname=nickname)
+            profile_url = profile.get_link
+            cache.set(cacheKey, profile_url, settings.CACHE_SHORT)
+        return profile_url
+
+    def emoticon_profile_url(emoticon) -> str:
+        cacheKey = f"emoticon_profile_url_{emoticon}"
+        profile_url = cache.get(cacheKey, None)
+        if not profile_url:
+            profile = Profile.objects.get(emoticon=emoticon)
+            profile_url = profile.get_link
+            cache.set(cacheKey, profile_url, settings.CACHE_SHORT)
+        return profile_url
 
     def clearCache(self):
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())

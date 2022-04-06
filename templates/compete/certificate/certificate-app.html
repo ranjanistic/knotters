@@ -34,7 +34,7 @@
                 <a href="{{person.getLink}}">
                     <img src="{{person.getDP}}" class="w3-circle" width="30" alt="{{person.getName}}" />
                 </a> 
-                <b>{% blocktrans with personname=person.getName competelink=compete.getLink competetitle=compete.title %}{{personname}}</b> contributed in <a href="{{competelink}}" >{{competetitle}}{% endblocktrans %}</a>.
+                <b>{{person.getName}}</b> {% trans "contributed in" %} <a href="{{compete.get_link}}" target="_blank">{{compete.title}}</a>.
             </h4>
         </div>
         {% if certpath %}

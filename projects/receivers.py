@@ -4,7 +4,7 @@ from main.methods import addMethodToAsyncQueue
 
 from .apps import APPNAME
 from .mailers import freeProjectCreated, freeProjectDeleted
-from .models import (Asset, BaseProject, CoreProject, FreeProject, Project,
+from .models import (Asset, BaseProject, CoreProject, FreeProject, LegalDoc, Project,
                      Snapshot, defaultImagePath)
 
 
@@ -92,26 +92,12 @@ def on_snap_delete(sender, instance, **kwargs):
     except Exception as e:
         pass
 
-# @receiver(post_save, sender=ProjectTransferInvitation)
-# def on_transfer_invite_create(sender, instance, created, **kwargs):
-#     """
-#     Project invitaion created.
-#     """
-#     if created:
-#         addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectTransferInvitation.__name__}",instance)
-
-# @receiver(post_save, sender=ProjectModerationTransferInvitation)
-# def on_transfer_invite_create(sender, instance, created, **kwargs):
-#     """
-#     Verified Project invitaion created.
-#     """
-#     if created:
-#         addMethodToAsyncQueue(f"{APPNAME}.mailers.{projectModTransferInvitation.__name__}",instance)
-
-# @receiver(post_save, sender=CoreModerationTransferInvitation)
-# def on_transfer_invite_create(sender, instance, created, **kwargs):
-#     """
-#     Core Project invitaion created.
-#     """
-#     if created:
-#         addMethodToAsyncQueue(f"{APPNAME}.mailers.{coreProjectModTransferInvitation.__name__}",instance)
+@receiver(post_delete, sender=LegalDoc)
+def on_legaldoc_delete(sender, instance:LegalDoc, **kwargs):
+    """
+    Legaldoc cache reset.
+    """
+    try:
+        instance.reset_all_cache()
+    except Exception as e:
+        pass

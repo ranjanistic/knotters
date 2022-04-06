@@ -984,6 +984,15 @@ class Competition(models.Model):
         """
         return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.getID(),userID='*')}"
 
+    def latest_competition() -> "Competition":
+        cacheKey = "latest_competition"
+        competition = cache.get(cacheKey, None)
+        if not competition:
+            competition = Competition.objects.filter(endAt__gt=timezone.now(),
+                                                     is_draft=False, resultDeclared=False).order_by("-startAt").first()
+            cache.set(cacheKey, competition, settings.CACHE_MINI)
+        return competition
+
 
 class Perk(models.Model):
     """

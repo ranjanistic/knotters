@@ -19,7 +19,8 @@ from projects.models import BaseProject, Project
 from requests import get as getRequest
 
 from .apps import APPNAME
-from .models import Profile, ProfileSetting, Topic, User, isPictureDeletable
+from .models import (Framework, Profile, ProfileSetting, Topic, User,
+                     defaultImagePath, isPictureDeletable)
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -339,5 +340,3 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
         return urlparts[len(urlparts)-1] if urlparts[len(urlparts)-1] else None
     except:
         return None
-
-from .receivers import *

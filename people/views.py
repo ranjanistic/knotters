@@ -26,6 +26,7 @@ from .methods import (convertToFLname, filterBio, getProfileSectionHTML,
                       rendererstr)
 from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
                      ProfileTopic, Topic, User)
+from .receivers import *
 
 
 @require_GET

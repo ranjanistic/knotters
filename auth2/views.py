@@ -19,6 +19,7 @@ from .mailers import (accountInactiveAlert, accountReactiveAlert,
                       successorAccepted, successorDeclined, successorInvite)
 from .methods import get_auth_section_html, migrateUserAssets, renderer
 from .models import DeviceNotification, EmailNotification
+from .receivers import *
 
 
 @normal_profile_required

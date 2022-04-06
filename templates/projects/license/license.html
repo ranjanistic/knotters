@@ -45,18 +45,18 @@
         {% endif %}
         </div>
     </div>
-<br/>
+    <br/>
+    <center><strong class="dead-text">
     {% if license.public %}
-        <center><strong><span class="dead-text">
-            {% if license.creator == knotbot %}
-                {% trans "Source" %}:</span> <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> 
+            {% if license.creator == KNOTBOT %}
+                {% trans "Source" %}: <a href="http://choosealicense.com/" target="_blank" rel="noreferrer">choosealicense.com</a> 
             {% else %}
-                <center><strong><span class="dead-text">{% blocktrans with license.creator.getLink as creatorlink %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from <a target="_blank" href="{{creatorlink}}">creator</a>{% endblocktrans %}.</strong></center>
+                {% blocktrans %}This license is not provided by {{APPNAME}}, and may require modification to use, and permission from {% endblocktrans %}<a target="_blank" href="{{license.creator.get_link}}">{{license.creator.get_name}}</a>.
             {% endif %}
-        </strong></center>
     {% else %}
-        <center><strong><span class="dead-text">{% blocktrans %}This license is not intended to be used in open source projects.</a>{% endblocktrans %}</strong></center>
+        {% blocktrans %}This license is not intended to be used in open source projects.{% endblocktrans %}
     {% endif %}
+    </strong></center>
 </div>
 <br/>
 {% endblock %}

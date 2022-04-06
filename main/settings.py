@@ -459,8 +459,9 @@ SENDER_API_URL_GRPS = "https://api.sender.net/v2/groups"
 GITHUB_API_URL = "https://api.github.com"
 GH_HOOK_SECRET = env.GH_HOOK_SECRET
 
-GOOGLE_RECAPTCHA_SECRET_KEY = env.RECAPTCHA_SECRET
-GOOGLE_RECAPTCHA_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
+GOOGLE_RECAPTCHA_KEY = env.RECAPTCHA_KEY
+GOOGLE_RECAPTCHA_SECRET = env.RECAPTCHA_SECRET
+GOOGLE_RECAPTCHA_API_VERIFY_SITE = "https://www.google.com/recaptcha/api/siteverify"
 
 DISCORD_KNOTTERS_HEADERS = {
     "Authorization": env.INTERNAL_SHARED_SECRET,

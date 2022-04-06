@@ -49,6 +49,8 @@ class MessageFilterMiddleware(object):
 
 
 class MinifyMiddleware(object):
+    """This middleware will minify all 200 status html responses sent to the client, only in production mode.
+    """
 
     def __init__(self, get_response) -> None:
         self.get_response = get_response
@@ -71,6 +73,9 @@ class MinifyMiddleware(object):
 
 
 class ActivityMiddleware(object):
+    """
+    TODO: To maintain activity record of every authenticated user, for their own enhanced security.
+    """
 
     def __init__(self, get_response) -> None:
         self.get_response = get_response
@@ -90,6 +95,9 @@ class ActivityMiddleware(object):
 
 
 class AuthAccessMiddleware(object):
+    """
+    TODO: For authentication activity of a user for their own enhanced security. (Active session locations, etc.)
+    """
 
     def __init__(self, get_response) -> None:
         self.get_response = get_response
@@ -128,7 +136,8 @@ class ProfileActivationMiddleware(object):
 
 class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
     """
-    For two factor session key management.
+    For two factor temporary session key management, and allowing some crutial requests to bypass two factor authentication,
+    controlled by BYPASS_2FA_PATHS setting.
     """
 
     def process_request(self, request):
@@ -156,7 +165,9 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
 
 class ExtendedSessionMiddleware(SessionMiddleware):
     """
-    To extended session expiry date on every request.
+    To extend session on every request, unless user logs out.
+
+    TODO: Instead of extending session on every request, extend session only when session is about to expire.
     """
 
     def process_response(self, request: WSGIRequest, response):
@@ -206,6 +217,13 @@ class ExtendedSessionMiddleware(SessionMiddleware):
 
 
 class XForwardedForMiddleware(MiddlewareMixin):
+    """To support rate-limiter which relies on HTTP_X_PROXY_REMOTE_ADDR header, 
+    by setting it to REMOTE_ADDR header, and setting REMOTE_ADDR header to HTTP_X_FORWARDED_FOR.
+
+    This was done to fix the exception raised by rate-limiter in production behind a reverse proxy server
+    due to it apparently being unable to access IP address from any request headers set by the reverse proxy server.
+    """
+
     def process_request(self, request):
         if "HTTP_X_FORWARDED_FOR" in request.META:
             request.META["HTTP_X_PROXY_REMOTE_ADDR"] = request.META["REMOTE_ADDR"]

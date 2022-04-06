@@ -152,5 +152,3 @@ def competitionManagementRenderData(request, compID):
     except Exception as e:
         errorLog(e)
         return False
-
-from .receivers import *

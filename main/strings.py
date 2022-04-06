@@ -3,7 +3,9 @@ from re import sub as re_sub
 from auth2.apps import APPNAME as AUTH2
 from compete.apps import APPNAME as COMPETE
 from deprecated import deprecated
-from django.utils.translation import gettext_lazy as _
+from django.conf import settings
+from django.core.cache import cache
+from django.utils.translation import gettext_lazy as _, gettext as __
 from management.apps import APPNAME as MANAGEMENT
 from moderation.apps import APPNAME as MODERATION
 from people.apps import APPNAME as PEOPLE
@@ -15,7 +17,16 @@ AUTH = 'auth'
 DOCS = 'docs'
 
 
-def classAttrsToDict(className, appendCondition=None) -> dict:
+def classAttrsToDict(className, appendCondition: callable = None) -> dict:
+    """Converts class attributes to dict.
+
+    Args:
+        className (Class): The class to be converted to dict.
+        appendCondition (callable, optional): The condition callable provided with args (key, value), returning bool. Defaults to None.
+
+    Returns:
+        dict: The class attributes as dict.
+    """
     data = dict()
     for key in className.__dict__:
         if not (str(key).startswith('__') and str(key).endswith('__')):
@@ -27,26 +38,42 @@ def classAttrsToDict(className, appendCondition=None) -> dict:
     return data
 
 
-def setPathParams(path: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
+def setPathParams(parampath: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
     """
-    Replaces 'lookfor' of given 'path' with given with replacingChars. Replaces each finding with each element of replacingChars.
+    Replaces each param with each element of replacingChars, sequentially using lookfor.
 
-    :path: The string (primarily url path) to be operated on.
-    :replacingChars: Tuple of characters to replace findings one by one with each element. Defaults to '*' for all findings.
-    :lookfor: String or pattern to be looked for and replaced in path.
-    :extendRemaining: If there are more findings than provided replacingChars, the last element of replacingChars is used to replace the remaining findings.Defaults to True
+    Args:
+        parampath (str): The path (params based url path) to be operated on.
+        replacingChars (str): Tuple of characters to replace params in parampath one by one with each element. Defaults to '*' for all params.
+        lookfor (str): String or pattern to be looked for and replaced in parampath.
+        extendRemaining (bool): If there are more params than provided replacingChars, the last element of replacingChars is used to replace the remaining params. Defaults to True
+
+    Returns:
+        str: The final path with params replaced by replacing charcters.
     """
     lookfor = lookfor if lookfor else Code.URLPARAM
     if len(replacingChars) < 1:
         replacingChars = ['*']
     i = 0
     while i < len(replacingChars):
-        path = re_sub(lookfor, str(replacingChars[i]), path, 1)
+        parampath = re_sub(lookfor, str(replacingChars[i]), parampath, 1)
         i += 1
-    return path if not extendRemaining else re_sub(lookfor, str(replacingChars[len(replacingChars)-1]), path)
+    return parampath if not extendRemaining else re_sub(lookfor, str(replacingChars[len(replacingChars)-1]), parampath)
 
 
-def setURLAlerts(url, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
+def setURLAlerts(url: str, alert: str = '', error: str = '', success: str = '', otherQueries: bool = False) -> str:
+    """Attach alert, error, success to a url in query form, to be used while rendering & alerting the user.
+
+    Args:
+        url (str): The url to attach the alerts to.
+        alert (str, optional): The alert to be attached. Defaults to ''.
+        error (str, optional): The error to be attached. Defaults to ''.
+        success (str, optional): The success to be attached. Defaults to ''.
+        otherQueries (bool, optional): If True, other queries will be presumed to be present in the url. Defaults to False.
+
+    Returns:
+        str: The url with attached alerts.
+    """
     if error:
         error = f"{'&' if otherQueries else '?'}e={error}" if message.isValid(
             error) else ''
@@ -66,6 +93,9 @@ class DB():
 
 
 class Code():
+    """Codes for communication between client and server, in various circumstances.
+        This class & its attributes are sent to client, therefore no sensitive info should be present in this class.
+    """
     OK = "OK"
     PONG = "PONG"
     NO = "NO"
@@ -140,6 +170,7 @@ code = Code()
 
 
 class Event():
+    """For events string codes"""
     PING = 'ping'
     PUSH = 'push'
     PR = 'pull_request'
@@ -159,7 +190,15 @@ class Event():
 
 
 class Message():
+    """For valid error and success messages sent via server to client.
+        DO NOT send this whole class to client, only its individual attributes whenever required.
+        Treat the attributes of this class as sensitive.
 
+    NOTE: For translations of these messages, a strings.txt file is present in template. Thus, when creating a new Message attribute here,
+    make sure to add the same attribute to strings.txt as well for translation commands to pick it up.
+    """
+    APP_DESCRIPTION = _(
+        "India's first open source collaborative community platform. Be a part of Knotters community and explore what everyone's involved into.")
     ERROR_OCCURRED = _("An error occurred.")
     INVALID_REQUEST = _("Invalid request")
     TERMS_ACCEPTED = _("You've accepted the terms and conditions.")
@@ -287,26 +326,40 @@ class Message():
 
         This requires that all response messages should be an attribute of this Message class.
 
-        :message: The message string to be checked for validity.
+        Args:
+            message: The message to be checked.
+
+        Returns:
+            bool: True if the message is valid, False otherwise.
         """
-        def conditn(key, _):
-            return str(key).isupper()
-        attrs = classAttrsToDict(Message, conditn)
-        validMessages = []
-        for key in attrs:
-            validMessages.append(attrs[key])
-        return validMessages.__contains__(message)
+        cacheKey = 'main.strings.Message.valid_messages'
+        validMessages = cache.get(cacheKey, [])
+        if not len(validMessages):
+            def conditn(key, _):
+                return str(key).isupper()
+            attrs = classAttrsToDict(Message, conditn)
+            for key in attrs:
+                validMessages.append(attrs[key].lower())
+            cache.set(cacheKey, validMessages, settings.CACHE_MINI)
+
+        return message.lower() in validMessages
 
     class Custom():
+        """To generate custom messages"""
 
         def already_exists(something):
-            return f"{something} already exists"
+            return f"{something} " + __("already exists")
 
 
 message = Message()
 
 
 class Action():
+    """The actions strings for communication of actions between client & server.
+
+        This class & its attributes are sent to client, therefore no sensitive info should be present in this class.
+
+    """
     ACCEPT = "accept"
     DECLINE = "decline"
     CREATE = "create"
@@ -327,6 +380,8 @@ DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
 
 
 class Project():
+    """For strings related to projects. (section, states, etc)
+    """
     CORE_PROJECT = "core-project"
     PROJECTSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
     PROJECTSTATESCHOICES = (
@@ -342,6 +397,8 @@ CORE_PROJECT = Project.CORE_PROJECT
 
 
 class Moderation():
+    """For strings related to moderation. (states, types, etc)
+    """
     MODSTATES = [code.MODERATION, code.APPROVED, code.REJECTED]
     MODSTATESCHOICES = (
         [code.MODERATION, code.MODERATION.capitalize()],
@@ -359,6 +416,8 @@ moderation = Moderation()
 
 
 class Profile():
+    """For strings related to profiles. (sections, etc)
+    """
     OVERVIEW = "overview"
     PROJECTS = "projects"
     ACHEIVEMENTS = "acheivements"
@@ -380,6 +439,8 @@ class Profile():
 
 
 class Compete():
+    """For strings related to competitions. (sections, etc)
+    """
     ACTIVE = "active"
     UPCOMING = "upcoming"
     HISTORY = "history"
@@ -399,6 +460,8 @@ class Compete():
 
 
 class Auth2():
+    """For strings related to accounts. (sections, etc)
+    """
     ACCOUNT = "account"
     DEVICE = "device"
     SECURITY = "security"
@@ -422,6 +485,11 @@ compete = Compete()
 
 
 class Browse():
+    """This class contains types of browsable content for users
+
+        This class & its attributes are sent to client, therefore no sensitive info should be present in this class.
+
+    """
     PROJECT_SNAPSHOTS = "project-snapshots"
     NEW_PROFILES = "new-profiles"
     NEW_PROJECTS = "new-projects"
@@ -450,6 +518,10 @@ class Browse():
 
 
 class URL():
+    """This class provides and manages URLs and their related methods for the whole project and submodules, and client as well.
+
+        This class & its attributes are sent to client, therefore no sensitive info should be present in this class.
+    """
     INDEX = ''
     FAVICON = 'favicon.ico'
     ROBOTS_TXT = 'robots.txt'
@@ -1210,7 +1282,10 @@ url = URL()
 
 
 class Template():
+    """This class provides and manages templates and their related methods for the whole project and submodules.
 
+    Only a fraction of this class is sent to client. Therefore try not to put any sensitive data in here.
+    """
     ROBOTS_TXT = "robots.txt"
     SITEMAP = "sitemap.xml"
     SW_JS = "service-worker.js"
@@ -1218,6 +1293,11 @@ class Template():
     MANIFEST_JSON = "manifest.json"
 
     class Script():
+        """This class is a sub-class of main.strings.Template class, 
+        to manage & provide dynamic script templates for the whole project and submodules.
+
+        This class & its attributes are sent to client, therefore no sensitive info should be present in this class.
+        """
         STRINGS = "strings.js"
         CONSTANTS = "constants.js"
         QUERY_USE = "queryuse.js"
@@ -2054,3 +2134,21 @@ class Template():
 
 
 template = Template()
+
+
+class DiscordChannel():
+    """
+    This class provides Discord channel types for proper communitcation with our internal discordbot.
+    """
+    GUILD_TEXT = "GUILD_TEXT"
+    GUILD_VOICE = "GUILD_VOICE"
+    GUILD_CATEGORY = "GUILD_CATEGORY"
+    DM = "DM"
+    GROUP_DM = "GROUP_DM"
+    GUILD_NEWS = "GUILD_NEWS"
+    GUILD_STORE = "GUILD_STORE"
+    GUILD_INVITE = "GUILD_INVITE"
+    GUILD_ANOUNCEMENTS = "GUILD_ANOUNCEMENTS"
+    GUILD_DISCOVERY = "GUILD_DISCOVERY"
+    GUILD_PARTNERED = "GUILD_PARTNERED"
+    GUILD_PUBLIC = "GUILD_PUBLIC"

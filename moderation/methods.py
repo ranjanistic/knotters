@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Q
+from main.exceptions import IllegalModeration, IllegalModerationType
 from main.methods import errorLog, renderView
 from main.strings import COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code
 from people.models import Profile
@@ -450,4 +451,3 @@ def moderationRenderData(request, modID):
         errorLog(e)
         return False
 
-from .receivers import *

@@ -1,7 +1,8 @@
 from compete.models import Competition
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
-from main.methods import renderString, renderView
+from django.utils import timezone
+from main.methods import errorLog, renderString, renderView
 from main.strings import Auth2, Code
 from people.models import User
 from projects.models import CoreProject, FreeProject, FreeRepository, Project
@@ -91,5 +92,3 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
     except Exception as e:
         errorLog(e)
         return False
-
-from .receivers import *

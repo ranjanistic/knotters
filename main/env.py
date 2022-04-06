@@ -1,3 +1,6 @@
+"""
+Loads environment variables from file path specified in ENVPATH environment variable beforehand (generally main/.env).
+"""
 from os import path as os_path
 from pathlib import Path
 

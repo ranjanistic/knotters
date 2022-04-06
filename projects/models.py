@@ -269,6 +269,17 @@ class BaseProject(models.Model):
         self.sub_save()
         super(BaseProject, self).save(*args, **kwargs)
 
+
+    def homepage_project() -> "BaseProject":
+        cacheKey = 'homepage_project'
+        project = cache.get(cacheKey, None)
+        if not project:
+            from people.models import Profile
+            project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),
+                suspended=False, trashed=False, is_archived=False).order_by("createdOn").first()
+            cache.set(cacheKey, project, settings.CACHE_LONG)
+        return project
+
     @property
     def get_name(self) -> str:
         return self.name
@@ -1514,18 +1525,70 @@ class LegalDoc(models.Model):
     effectiveDate = models.DateTimeField(auto_now=False, default=timezone.now)
     notify_all = models.BooleanField(default=False)
 
+    ALL_CACHE_KEY = "legal_docs_all"
+
+    def __str__(self) -> str:
+        return self.pseudonym or self.name
+    
+    def doc_cache_key(pseudonym, *args):
+        return f"legal_doc_{pseudonym}"
+
+    @property
+    def CACHE_KEYS(self):
+        class CKEYS():
+            legaldoc_self = f"legaldoc_self_{self.id}"
+        return CKEYS()
+
     def save(self, *args, **kwargs):
         if LegalDoc.objects.filter(id=self.id).exists():
             if self.content != (LegalDoc.objects.get(id=self.id)).content:
                 self.lastUpdate = timezone.now()
                 if self.notify_all:
-                    addMethodToAsyncQueue(
-                        f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.getLink())
+                    addMethodToAsyncQueue(f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.get_link)
         self.notify_all = False
         super(LegalDoc, self).save(*args, **kwargs)
+        self.reset_all_cache()
 
     def getLink(self):
         return f"{url.getRoot(DOCS)}{url.docs.type(self.pseudonym)}"
+
+    @property
+    def get_link(self):
+        return self.getLink()
+
+    def get_doc(pseudonym:str) -> "LegalDoc": 
+        cacheKey = LegalDoc.doc_cache_key(pseudonym)
+        legaldoc = cache.get(cacheKey, None)
+        if not legaldoc:
+            legaldoc = LegalDoc.objects.get(pseudonym=pseudonym)
+            cache.set(cacheKey, legaldoc, settings.CACHE_ETERNAL)
+        return legaldoc
+    
+    def get_all(*args) -> models.QuerySet:
+        cacheKey = LegalDoc.ALL_CACHE_KEY
+        legaldocs = cache.get(cacheKey, None)
+        if not legaldocs:
+            legaldocs = LegalDoc.objects.all()
+            cache.set(cacheKey, legaldocs, settings.CACHE_ETERNAL)
+        return legaldocs
+
+    def reset_cache(self) -> "LegalDoc":
+        cacheKey = self.CACHE_KEYS.legaldoc_self
+        cache.delete(cacheKey)
+        cache.delete(self.doc_cache_key(self.pseudonym))
+        cache.set(cacheKey, self, settings.CACHE_ETERNAL)
+        cache.set(self.doc_cache_key(self.pseudonym), self, settings.CACHE_ETERNAL)
+        return self
+
+    def reset_all_cache(*args) -> models.QuerySet:
+        cacheKey = LegalDoc.ALL_CACHE_KEY
+        cache.delete(cacheKey)
+        legaldocs = LegalDoc.objects.all()
+        cache.set(cacheKey, legaldocs, settings.CACHE_ETERNAL)
+        for ldoc in legaldocs:
+            ldoc.reset_cache()
+        return legaldocs
+
 
 
 class ProjectHookRecord(HookRecord):

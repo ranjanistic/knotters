@@ -342,8 +342,28 @@ class GhMarketApp(models.Model):
     gh_name = models.CharField(max_length=100, unique=True)
     gh_url = models.URLField(max_length=200, unique=True)
 
+    ALL_CACHE_KEY = f"gh_market_apps"
+
     def __str__(self) -> str:
         return f'{self.gh_id} {self.gh_name}'
+
+    def save(self, *args, **kwargs):   
+       super(GhMarketApp, self).save(*args, **kwargs)
+       self.reset_all_cache()
+
+    def get_all(*args) -> models.QuerySet:
+        apps = cache.get(GhMarketApp.ALL_CACHE_KEY, [])
+        if not len(apps):
+            apps = GhMarketApp.objects.filter().order_by('gh_name')
+            cache.set(GhMarketApp.ALL_CACHE_KEY, apps, settings.CACHE_ETERNAL)
+        return apps
+
+    def reset_all_cache(*args) -> models.QuerySet:
+        cache.delete(GhMarketApp.ALL_CACHE_KEY)
+        apps = GhMarketApp.objects.filter().order_by('gh_name')
+        cache.set(GhMarketApp.ALL_CACHE_KEY, apps, settings.CACHE_ETERNAL)
+        return apps
+
 
 
 class GhMarketPlan(models.Model):
@@ -410,8 +430,29 @@ class ThirdPartyLicense(models.Model):
     link = models.URLField(max_length=150)
     license = models.TextField(max_length=300000)
 
+    ALL_CACHE_KEY = f"third_party_license_all"
+
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        super(ThirdPartyLicense, self).save(*args, **kwargs)
+        self.reset_all_cache()
+    
+    def get_all(*args) -> models.QuerySet:
+        cacheKey = ThirdPartyLicense.ALL_CACHE_KEY
+        tpls = cache.get(cacheKey, None)
+        if not tpls:
+            tpls = ThirdPartyLicense.objects.filter().order_by('title')
+            cache.set(cacheKey, tpls, timeout=settings.CACHE_ETERNAL)
+        return tpls
+
+    def reset_all_cache(*args) -> models.QuerySet:
+        cacheKey = ThirdPartyLicense.ALL_CACHE_KEY
+        cache.delete(cacheKey)
+        tpls = ThirdPartyLicense.objects.filter().order_by('title')
+        cache.set(cacheKey, tpls, timeout=settings.CACHE_ETERNAL)
+        return tpls
 
 
 class ThirdPartyAccount(models.Model):

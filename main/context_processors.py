@@ -1,16 +1,15 @@
 from django.conf import settings
-from django.core.cache import cache
 from management.models import ThirdPartyAccount
 from people.models import Profile
 
-from .env import BOTMAIL, PUBNAME, RECAPTCHA_KEY, SITE, VERSION
+from .env import BOTMAIL, PUBNAME, SITE, VERSION
 from .methods import renderData
-from .strings import DIVISIONS, URL, Action, Browse, Code, Template
+from .strings import DIVISIONS, URL, Action, Browse, Code, Message, Template
 
 GlobalContextData = dict(
     APPNAME=PUBNAME,
     CONTACTMAIL=BOTMAIL,
-    DESCRIPTION="India's first open source collaborative community platform. Be a part of Knotters community and explore what everyone's involved into.",
+    DESCRIPTION=Message.APP_DESCRIPTION,
     SITE=SITE,
     VERSION=VERSION,
     ICON=f"{settings.STATIC_URL}graphics/self/icon.svg",
@@ -23,7 +22,8 @@ GlobalContextData = dict(
     BANNER_PNG=f"{settings.STATIC_URL}graphics/self/2500x1000/banner-bg.webp",
     SERVICE_WORKER=f"/{URL.SERVICE_WORKER}",
     MANIFESTURL=f"/{URL.MANIFEST}",
-    RECAPTCHA_KEY=RECAPTCHA_KEY,
+    RECAPTCHA_KEY=settings.GOOGLE_RECAPTCHA_KEY,
+    VAPID_KEY=settings.VAPID_PUBLIC_KEY,
     CACHE_MICRO=settings.CACHE_MICRO,
     CACHE_MIN=settings.CACHE_MIN,
     CACHE_SHORT=settings.CACHE_SHORT,
@@ -31,13 +31,13 @@ GlobalContextData = dict(
     CACHE_LONGER=settings.CACHE_LONGER,
     CACHE_MAX=settings.CACHE_MAX,
     CACHE_ETERNAL=settings.CACHE_ETERNAL,
-    VAPID_KEY=settings.VAPID_PUBLIC_KEY,
 )
 
 
 def Global(request):
     data = dict(**GlobalContextData,
                 alerts=[],
+                KNOTBOT=Profile.KNOTBOT(),
                 knotbot=Profile.KNOTBOT(),
                 BROWSE=Browse.getAllKeys(),
                 SCRIPTS=Template.Script.getAllKeys(),

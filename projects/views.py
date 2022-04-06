@@ -46,12 +46,13 @@ from .models import (AppRepository, Asset, BaseProject,
                      BaseProjectCoCreatorInvitation, BotHookRecord, Category,
                      CoreModerationTransferInvitation, CoreProject,
                      CoreProjectDeletionRequest, CoreProjectHookRecord,
-                     CoreProjectVerificationRequest, FileExtension,
-                     FreeProject, FreeProjectVerificationRequest,
-                     FreeRepository, License, Project, ProjectHookRecord,
+                     CoreProjectVerificationRequest, FreeProject,
+                     FreeProjectVerificationRequest, FreeRepository, License,
+                     Project, ProjectHookRecord,
                      ProjectModerationTransferInvitation, ProjectSocial,
                      ProjectTag, ProjectTopic, ProjectTransferInvitation,
                      Snapshot, Tag, VerProjectDeletionRequest)
+from .receivers import *
 
 
 @require_GET

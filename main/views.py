@@ -2,6 +2,7 @@ from datetime import timedelta
 from json import dumps as jsondumps
 from json import loads as jsonloads
 from os import path as ospath
+from uuid import UUID
 
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
@@ -14,8 +15,10 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Count, Q
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest
+from django.http.response import (Http404, HttpResponse,
+                                  HttpResponseBadRequest, JsonResponse)
 from django.shortcuts import redirect, render
+from django.template.exceptions import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -56,79 +59,161 @@ from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
 
 @require_GET
 def offline(request: WSGIRequest) -> HttpResponse:
+    """To render offline view (particularly stored in client cache)
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
     return renderView(request, Template.OFFLINE)
 
 
 @require_GET
 def branding(request: WSGIRequest) -> HttpResponse:
+    """To render branding page
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
     return renderView(request, Template.BRANDING)
 
 
-@require_GET
 @dev_only
+@require_GET
 def mailtemplate(request: WSGIRequest, template: str) -> HttpResponse:
+    """To render an email template. Only used in development.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        template (str): The template name without extension.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
     return renderView(request, f'account/email/{template}')
 
 
 @require_GET
 @dev_only
 def template(request: WSGIRequest, template: str) -> HttpResponse:
+    """To render a template. Only used in development.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        template (str): The template name without extension.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
     return renderView(request, template)
 
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    competition = cache.get('latest_competition', [])
-    if not competition:
-        competition = Competition.objects.filter(
-            endAt__gt=timezone.now(), is_draft=False, resultDeclared=False
-        ).order_by("-startAt").first()
-        cache.set('latest_competition', competition, settings.CACHE_MICRO)
+    """To render the index page (home/root page)
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponseRedirect: If user is logged in, but not on-boarded, redirect to onboarding.
+        HttpResponse: The rendered text/html view with context.
+            If logged in, renders dashboard (home.html), else renders index.html
+
+    NOTE: The template index.html is used for both logged in and logged out users. (the about page)
+
+        The template home.html is only used for logged in users (the feed/dashboard).
+
+        But main.views.index & main.views.home render these two interchangably, i.e.,
+
+            main.views.home -> main.view.index (301) if logged in, else index.html
+
+            main.views.index -> home.html if logged in, else index.html
+
+    """
+
+    competition = Competition.latest_competition()
     if request.user.is_authenticated:
         if not request.user.profile.on_boarded:
             return respondRedirect(path=URL.ON_BOARDING)
         return renderView(request, Template.HOME, dict(competition=competition))
-    topics = cache.get('homepage_topics', [])
-    if not len(topics):
-        topics = Topic.objects.filter()[:3]
-        cache.set('homepage_topics', topics, settings.CACHE_LONG)
-    project = cache.get('homepage_projects', None)
-    if not project:
-        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(
-        ), suspended=False, trashed=False).order_by("createdOn").first()
-        cache.set('homepage_projects', project, settings.CACHE_LONG)
+
+    topics = Topic.homepage_topics()
+    project = BaseProject.homepage_project()
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
 
 
 @require_GET
 def home(request: WSGIRequest) -> HttpResponse:
+    """To render the home page (the about page) (index.html)
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponseRedirect: If user is not logged in, redirect to root path (main.views.index)
+        HttpResponse: The rendered text/html view of index.html.
+    """
     if not request.user.is_authenticated:
         return redirect(URL.ROOT)
-    competition = cache.get('latest_competition', [])
-    if not competition:
-        competition = Competition.objects.filter(
-            endAt__gt=timezone.now(), is_draft=False, resultDeclared=False
-        ).order_by("-startAt").first()
-        cache.set('latest_competition', competition, settings.CACHE_MICRO)
-    topics = cache.get('homepage_topics', [])
-    if not len(topics):
-        topics = Topic.objects.filter()[:3]
-        cache.set('homepage_topics', topics, settings.CACHE_LONG)
-    project = cache.get('homepage_project', None)
-    if not project:
-        project = BaseProject.objects.filter(creator=Profile.KNOTBOT(
-        ), suspended=False, trashed=False).order_by("createdOn").first()
-        cache.set('homepage_project', project, settings.CACHE_LONG)
+    competition = Competition.latest_competition()
+    topics = Topic.homepage_topics()
+    project = BaseProject.homepage_project()
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
 
 
 @require_GET
 def homeDomains(request: WSGIRequest, domain: str) -> HttpResponse:
+    """To respond with homepage domains tab section text/html content.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        domain (str): The domain (section) name.
+
+    Returns:
+        HttpResponse: The rendered text/html component content.
+    """
     return renderView(request, domain, fromApp="home")
 
 
 @require_GET
 def redirector(request: WSGIRequest) -> HttpResponse:
+    """To redirect to any path provided by the query string.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        request.GET.n (str): The path to redirect to.
+
+    Returns:
+        HttpResponse: renders the texthtml forwarding view if path is not a part of the app.
+        HttpResponseRedirect: The redirect response to the path provided, if path is safe, or to root path if any exception occurs.
+
+    NOTE: This redirector is primarily meant for client side service worker to clear cache,
+        whenever this redirector path is requested. For example: after logout, to clear
+        user specific cached data for the expired session, redirector path can be used to forward
+        to after logout page, to let the client service worker know that all user specific cache should be cleared now.
+    """
     try:
         next = request.GET.get('n', '/')
         next = '/' if str(next).strip() == '' or not next or next == 'None' else next
@@ -141,30 +226,88 @@ def redirector(request: WSGIRequest) -> HttpResponse:
 
 
 @require_GET
-def at_nickname(request: WSGIRequest, nickname) -> HttpResponse:
+def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponse:
+    """To redirect to profile url of the user with the nickname provided.
+    Primarily used for the short links of user profile.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        nickname (str): The nickname of the user.
+
+    Raises:
+        Http404: If user with the nickname provided does not exist, or any exception occurs.
+
+    Returns:
+        HttpResponseRedirect: The redirect response to the profile url of the user with the nickname provided.
+
+    NOTE: nickanme == "me" is reserved for the logged in user only, thus it is not allowed to be used as a nickname for any profile.
+    """
     try:
         if nickname == "me":
             if not request.user.is_authenticated:
                 return redirect(URL.Auth.LOGIN)
             return redirect(request.user.profile.get_link)
-        profile = Profile.objects.get(nickname=nickname)
-        return redirect(profile.get_link)
+        if request.user.is_authenticated:
+            if nickname == request.user.profile.get_nickname():
+                return redirect(request.user.profile.get_link)
+        profile_url = Profile.nickname_profile_url(nickname)
+        return redirect(profile_url)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
+        errorLog(e)
         raise Http404(e)
 
 
 @require_GET
-def at_emoji(request: WSGIRequest, emoticon) -> HttpResponse:
+def at_emoji(request: WSGIRequest, emoticon: str) -> HttpResponse:
+    """!EXPERIMENTAL!
+    To redirect to profile url of the user with the emoticon provided.
+    Primarily used for the short emoticon links of user profile.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        emoticon (str): The emoticon of the user.
+
+    Raises:
+        Http404: If user with the emoticon provided does not exist, or any exception occurs.
+
+    Returns:
+        HttpResponseRedirect: The redirect response to the profile url of the user with the emoticon provided.
+    """
     try:
-        profile = Profile.objects.get(emoticon=emoticon)
-        return redirect(profile.get_link)
-    except:
-        raise Http404()
+        if request.user.is_authenticated:
+            if emoticon == request.user.profile.emoticon:
+                return redirect(request.user.profile.get_link)
+        profile_url = Profile.emoticon_profile_url(emoticon)
+        return redirect(profile_url)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_GET
 def on_boarding(request: WSGIRequest) -> HttpResponse:
+    """To render the on boarding view for the logged in user.
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Raises:
+        Http404: If any exception occurs.
+
+    Returns:
+        HttpResponse: The rendered text/html view of on_boarding.html.
+    """
     try:
         return renderView(request, Template.ON_BOARDING)
     except Exception as e:
@@ -173,13 +316,23 @@ def on_boarding(request: WSGIRequest) -> HttpResponse:
 
 
 @normal_profile_required
-@require_POST
-@decode_JSON
-def on_boarding_update(request: WSGIRequest) -> HttpResponse:
+@require_JSON
+def on_boarding_update(request: WSGIRequest) -> JsonResponse:
+    """To update on boarding status of the logged in user.
+
+    Methods: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The response json with main.strings.Code.OK if the on boarding status is updated successfully, 
+            else main.strings.Code.NO
+    """
     try:
         on_boarded = request.POST.get('onboarded', False)
         if on_boarded and not (request.user.profile.on_boarded and request.user.profile.xp > 9):
-            request.user.profile.increaseXP(10)
+            request.user.profile.increaseXP(10, reason="On boarding complete")
         request.user.profile.on_boarded = on_boarded == True
         request.user.profile.save()
         return respondJson(Code.OK)
@@ -190,38 +343,72 @@ def on_boarding_update(request: WSGIRequest) -> HttpResponse:
 
 @require_GET
 def docIndex(request: WSGIRequest) -> HttpResponse:
-    docs = LegalDoc.objects.all()
-    return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=docs))
+    """To render docs & statements homepage
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view of hompage of docs & statements
+    """
+    return renderView(request, Template.Docs.INDEX, fromApp=DOCS, data=dict(docs=LegalDoc.get_all()))
 
 
 @require_GET
 def docs(request: WSGIRequest, type: str) -> HttpResponse:
+    """To render individual legal doc/guidleine page
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        type (str): The type of the doc/guideline (pseudonym or docs/template name)
+
+    Raises:
+        Http404: If the doc/guideline is not found
+
+    Returns:
+        HttpResponse: The rendered text/html view of the doc/guideline with content
+    """
     try:
-        doc = LegalDoc.objects.get(pseudonym=type)
+        doc = LegalDoc.get_doc(pseudonym=type)
         return renderView(request, Template.Docs.DOC, fromApp=DOCS, data=dict(doc=doc))
+    except ObjectDoesNotExist:
+        pass
     except Exception as e:
-        try:
-            tpls = []
-            if type == 'osl':
-                tpls = ThirdPartyLicense.objects.filter().order_by("title")
-            return renderView(request, type, fromApp=DOCS, data=dict(tpls=tpls))
-        except Exception as e:
-            raise Http404()
+        errorLog(e)
+        raise Http404(e)
+    try:
+        return renderView(request, type, fromApp=DOCS, data=dict(tpls=ThirdPartyLicense.get_all()))
+    except TemplateDoesNotExist:
+        raise Http404(type)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 
 @require_GET
 def landing(request: WSGIRequest) -> HttpResponse:
-    apps = cache.get('gh_market_apps', [])
-    if not len(apps):
-        apps = GhMarketApp.objects.filter()
-        cache.set('gh_market_apps', apps, settings.CACHE_SHORT)
+    """To render the traditional landing page.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view of the landing page.
+    """
     return renderView(request, Template.LANDING, dict(
-        gh_market_app=apps.first()
+        gh_market_app=GhMarketApp.get_all().first()
     ))
 
 
 @require_GET
 def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
+    """DEPRECATED"""
     if subapp == COMPETE:
         template = Template.Compete.LANDING
     elif subapp == PEOPLE:
@@ -234,26 +421,61 @@ def applanding(request: WSGIRequest, subapp: str) -> HttpResponse:
 
 
 @require_GET
-def fameWall(request: WSGIRequest):
+def fameWall(request: WSGIRequest) -> HttpResponse:
+    """To render the wall of fame
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view of wall of fame.
+    """
     return renderView(request, Template.FAME_WALL)
 
 
 @require_JSON
-def verifyCaptcha(request: WSGIRequest):
+def verifyCaptcha(request: WSGIRequest) -> JsonResponse:
+    """To verify google recaptcha response
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The response json with main.strings.Code.OK if the captcha is verified successfully, 
+            else main.strings.Code.NO
+    """
     try:
-        capt_response = request.POST.get('g-recaptcha-response', False)
-        if not capt_response:
-            return respondJson(Code.NO)
+        capt_response = request.POST['g-recaptcha-response']
         if verify_captcha(capt_response):
             return respondJson(Code.OK)
         return respondJson(Code.NO if ISPRODUCTION else Code.OK)
+    except KeyError:
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO if ISPRODUCTION else Code.OK)
+        return respondJson(Code.NO if ISPRODUCTION else Code.OK, error=Message.ERROR_OCCURRED)
 
 
 @require_GET
-def snapshot(request: WSGIRequest, snapID):
+def snapshot(request: WSGIRequest, snapID: UUID) -> HttpResponse:
+    """To render the snapshot view of the given snapID (standalone snapshot)
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        snapID (str): The snapshot ID
+
+    Raises:
+        Http404: If the snapshot is not found, or exception occurs
+
+    Returns:
+        HttpResponse: The rendered text/html standalone view of the snapshot.
+    """
     try:
         snapshot = Snapshot.objects.get(id=snapID)
         return renderView(request, Template.VIEW_SNAPSHOT, dict(snapshot=snapshot))
@@ -265,16 +487,40 @@ def snapshot(request: WSGIRequest, snapID):
 
 
 @decode_JSON
-def donation(request: WSGIRequest):
+def donation(request: WSGIRequest) -> HttpResponse:
+    """To render the donation page and handle all donation requests.
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view of donation page.
+        JsonResponse: the response json with main.strings.Code.OK if request succeeds, else main.strings.Code.NO.
+
+    """
     if request.method == "POST":
-        return respondJson(Code.OK)
+        return respondJson(Code.NO)
     else:
         return renderView(request, Template.DONATION)
 
 
 @require_GET
 @cache_control(no_cache=True, public=True, max_age=settings.CACHE_MINI)
-def scripts(request, script):
+def scripts(request: WSGIRequest, script: str) -> HttpResponse:
+    """To render the global dynamic script files depending on the script param
+
+    Args:
+        request (WSGIRequest): The request object.
+        script (str): The script file name
+
+    Raises:
+        Http404: If the script is not found
+
+    Returns:
+        HttpResponse: The rendered text/javascript view of the script file.
+    """
     if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
     stringrender = render_to_string(script, request=request, context=renderData(
@@ -286,7 +532,23 @@ def scripts(request, script):
 
 @require_GET
 @cache_control(no_cache=True, public=True, max_age=settings.CACHE_MINI)
-def scripts_subapp(request, subapp: str, script: str):
+def scripts_subapp(request: WSGIRequest, subapp: str, script: str) -> HttpResponse:
+    """To render the application specific dynamic script files depending on the subapp & script param.
+    The scripts are rendered with the page specific context as well, determined by script name.
+    Some scripts need extra query data depending upon the specificity of the page in which they are loaded,
+    For ex. User profile specific page's scripts may require userID for proper context.
+
+    Args:
+        request (WSGIRequest): The request object.
+        subapp (str): The subapplication module name under which the script file is located
+        script (str): The script file name
+
+    Raises:
+        Http404: If the script is not found
+
+    Returns:
+        HttpResponse: The rendered text/javascript view of the script file.
+    """
     if script not in Template.script.getScriptTemplates():
         raise Http404("Script not found")
     data = dict()
@@ -324,7 +586,9 @@ def scripts_subapp(request, subapp: str, script: str):
     return HttpResponse(stringrender, content_type=Code.APPLICATION_JS)
 
 
-def handler403(request, exception, template_name="403.html"):
+def handler403(request: WSGIRequest, exception: Exception, template_name="403.html") -> HttpResponse:
+    """To render the 403 error page (custom made)
+    """
     response = render(template_name)
     response.status_code = 403
     return response
@@ -332,7 +596,26 @@ def handler403(request, exception, template_name="403.html"):
 
 @csrf_exempt
 @github_only
-def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
+def githubEventsListener(request: WSGIRequest, type: str, targetID: str) -> HttpResponse:
+    """To handle the github webhook requests.
+
+    NOTE: This is not the handler for project respository webhooks. Check that in projects.views
+
+    TODO: Make the webhook handler logic a queue based task, see projects.views.githubEventsListener for this.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        type (str): The type of the webhook event
+        targetID (str): The target ID of the webhook event
+
+    Raises:
+        Http404: If an exception occurs
+
+    Returns:
+        HttpResponse: main.strings.Code.OK if request succeeds, else main.strings.Code.NO.
+    """
     try:
         if type != Code.HOOK:
             return HttpResponseBadRequest('Only hook events supported')
@@ -494,11 +777,14 @@ def githubEventsListener(request, type: str, targetID: str) -> HttpResponse:
         return HttpResponse(Code.OK)
     except Exception as e:
         errorLog(f"GH-EVENT: {e}")
-        raise Http404()
+        raise Http404(e)
 
 
-# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Robots(TemplateView):
+    """To render the robots.txt
+
+    METHODS: GET
+    """
     content_type = Code.TEXT_PLAIN
     template_name = Template.ROBOTS_TXT
 
@@ -517,6 +803,10 @@ class Robots(TemplateView):
 
 @method_decorator(cache_page(settings.CACHE_SHORT), name='dispatch')
 class Sitemap(TemplateView):
+    """To render the sitemap
+
+    METHODS: GET
+    """
     content_type = Code.APPLICATION_XML
     template_name = Template.SITEMAP
 
@@ -546,8 +836,11 @@ class Sitemap(TemplateView):
         return context
 
 
-# @method_decorator(cache_page(settings.CACHE_LONG), name='dispatch')
 class Manifest(TemplateView):
+    """To render the webapp manifest
+
+    METHODS: GET
+    """
     content_type = Code.APPLICATION_JSON
     template_name = Template.MANIFEST_JSON
 
@@ -595,6 +888,10 @@ class Manifest(TemplateView):
 
 
 class ServiceWorker(TemplateView):
+    """To render the service worker
+
+    METHODS: GET
+    """
     content_type = Code.APPLICATION_JS
     template_name = Template.SW_JS
 
@@ -742,6 +1039,10 @@ class ServiceWorker(TemplateView):
 
 
 class Version(TemplateView):
+    """To render the version.txt
+
+    METHODS: GET
+    """
     content_type = Code.TEXT_PLAIN
     template_name = Template.VERSION
 
@@ -751,7 +1052,24 @@ class Version(TemplateView):
 
 
 @decode_JSON
-def browser(request: WSGIRequest, type: str):
+def browser(request: WSGIRequest, type: str) -> HttpResponse:
+    """To respond with browsable text/html contetnt (component),
+        mainly for personal feed/home of logged in users.
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object
+        type (str): type of browsable content to render (an attribute of main.strings.Browse)
+
+    Raises:
+        Http404: If any exception occurs
+
+    Returns:
+        HttpResponseBadRequest: If the browsable content type is not valid
+        HttpResponse: The response text/html component content.
+        JsonResponse: The response json content with main.strings.Code.OK and requested content
+    """
     try:
         cachekey = f"main_browser_{type}{request.LANGUAGE_CODE}"
         excludeUserIDs = []
