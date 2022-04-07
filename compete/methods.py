@@ -8,7 +8,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.utils import timezone
 from main.env import ISTESTING, SITE
-from main.methods import (addMethodToAsyncQueue, errorLog, renderString,
+from main.methods import (errorLog, renderString,
                           renderView)
 from main.strings import Compete, Message, url
 from people.models import Profile, User
@@ -446,9 +446,7 @@ def DeclareResults(competition: Competition):
         cache.delete(taskKey)
         raise Exception(f'Result declaration failed!', competition)
     cache.set(taskKey, Message.RESULT_DECLARED, settings.CACHE_ETERNAL)
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{resultsDeclaredAlert.__name__}", declared)
-    return True
+    return resultsDeclaredAlert(declared)
 
 
 def AllotCompetitionCertificates(results: list, competition: Competition) -> bool:
@@ -525,8 +523,7 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
             participantCerts, batch_size=100)
         cache.set(taskKey,
                   Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{certsAllotedAlert.__name__}", competition)
+        certsAllotedAlert(competition)
         return True
     except Exception as e:
         errorLog(e)

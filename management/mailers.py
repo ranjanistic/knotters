@@ -1,15 +1,26 @@
-from main.env import BOTMAIL, PUBNAME
-from main.mailers import sendActionEmail, sendAlertEmail, sendEmail
+from allauth.account.models import EmailAddress
+from main.env import PUBNAME
+from main.mailers import sendActionEmail, sendAlertEmail, sendToAdmin
 from people.models import Profile
 
 from management.models import ContactRequest, Management, ManagementInvitation
 
 
-def alertLegalUpdate(docname, docurl):
-    emails = Profile.objects.filter(
-        is_active=True, to_be_zombie=False).values_list('user__email', flat=True)
+def alertLegalUpdate(docname: str, docurl: str) -> list:
+    """
+
+    Args:
+        docname (str): Name of the document
+        docurl (str): URL of the document
+
+    Returns:
+        list<list>: List of emails and corresponding queue task IDs
+    """
+    emails = EmailAddress.objects.filter(
+        primary=True, verified=True).values_list("email", flat=True)
+    done = []
     for email in emails:
-        sendActionEmail(
+        taskID = sendActionEmail(
             to=email,
             subject=f"Update to our {docname}",
             header=f"This is to infom you that our {docname} document was updated recently. You can read the latest information anytime from the following link",
@@ -20,13 +31,17 @@ def alertLegalUpdate(docname, docurl):
             footer="It is our duty to keep you updated with changes in our terms & policies.",
             conclusion=f"This email was sent because we have updated a legal document from our side, which may concern you as you are a member at {PUBNAME}."
         )
-    # print(f"{emails.count()} people alerted for change in {docname}")
-    return True
+        done.append([email, taskID])
+    return done
 
 
-def managementInvitationSent(invite: ManagementInvitation):
-    """
-    Invitation to accept project ownership
+def managementInvitationSent(invite: ManagementInvitation) -> str:
+    """To send invitation to a new member in an organization
+    Args:
+        invite (ManagementInvitation): Invitation instance
+
+    Returns:
+        str: Task ID of the email
     """
     if invite.resolved:
         return False
@@ -46,9 +61,14 @@ def managementInvitationSent(invite: ManagementInvitation):
     )
 
 
-def managementInvitationAccepted(invite: ManagementInvitation):
-    """
-    Invitation to accept project ownership
+def managementInvitationAccepted(invite: ManagementInvitation) -> str:
+    """To send email to the user who accepted the invitation
+
+    Args:
+        invite (ManagementInvitation): Invitation instance
+
+    Returns:
+        str: Task ID of the email
     """
     if not invite.resolved:
         return False
@@ -67,9 +87,15 @@ def managementInvitationAccepted(invite: ManagementInvitation):
     )
 
 
-def managementPersonRemoved(mgm: Management, person: Profile):
-    """
-    Remvoing a member from an organization alert
+def managementPersonRemoved(mgm: Management, person: Profile) -> str:
+    """To send email to the user who was removed from an organization
+
+    Args:
+        mgm (Management): Management instance
+        person (Profile): Profile instance of removed member
+
+    Returns:
+        str: Task ID of the email
     """
     return sendAlertEmail(
         to=person.getEmail(),
@@ -81,10 +107,17 @@ def managementPersonRemoved(mgm: Management, person: Profile):
     )
 
 
-def newContactRequestAlert(contactRequest: ContactRequest):
-    return sendEmail(
-        to=BOTMAIL,
+def newContactRequestAlert(contactRequest: ContactRequest) -> str:
+    """To send email to admin for a new contact request
+
+    Args:
+        contactRequest (ContactRequest): ContactRequest instance
+
+    Returns:
+        str: Task ID of the email
+    """
+    return sendToAdmin(
         subject="New Contact Request",
         body=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.\n\nCategory: {contactRequest.contactCategory.name}\n\nRequest Message: {contactRequest.message}\n",
-        html=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.\n\nCategory: {contactRequest.contactCategory.name}\n\nRequest Message: {contactRequest.message}\n"
+        html=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.<br/><br/>Category: {contactRequest.contactCategory.name}<br/><br/>Request Message: {contactRequest.message}\n"
     )

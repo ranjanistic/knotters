@@ -4,9 +4,10 @@ from allauth.account.models import EmailAddress
 from auth2.apps import APPNAME
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from django.http.response import HttpResponseNotFound
+from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
+from main.methods import testPathRegex
 from main.strings import Action, Code, Message, template, url
 from main.tests.utils import authroot, getRandomStr
 from people.models import Profile, User
@@ -56,6 +57,16 @@ class TestViews(TestCase):
         ))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTrue(resp.context['user'].is_authenticated)
+
+    def test_index(self):
+        client = Client()
+        resp = client.get(path=root(appendslash=True))
+        self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
+        self.assertTrue(testPathRegex(resp.url, root(url.auth.LOGIN)))
+        resp = client.get(path=root(appendslash=True), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
 
     @tag('acctiv')
     def test_accountActivation(self):
@@ -222,17 +233,18 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.index)
         self.assertTemplateUsed(resp, template.people.profile)
-        
+
         client2 = Client()
         resp = client2.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             login=E2,
             password=P2
         ))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        resp = client2.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={'set': True, 'userID': self.user.email})
+        resp = client2.post(follow=True, path=root(url.auth.INVITESUCCESSOR), data={
+                            'set': True, 'userID': self.user.email})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
-
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
 
         resp = self.client.post(follow=True, path=root(url.auth.successorInviteAction(Action.ACCEPT)), data={
             'predID': predprofile.get_userid
@@ -303,3 +315,127 @@ class TestViews(TestCase):
             Code.UTF_8)), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
+
+
+@tag(Code.Test.VIEW, Code.Test.REST, APPNAME)
+class TestViewsAuth(TestCase):
+    @classmethod
+    def setUpTestData(self) -> None:
+        self.client = Client()
+        self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
+            first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
+        return super().setUpTestData()
+
+    def test_signup(self):
+        resp = self.client.get(follow=True, path=authroot(url.auth.SIGNUP))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.auth.signup)
+
+    def test_login(self):
+        resp = self.client.get(follow=True, path=authroot(url.auth.LOGIN))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+    @tag('test-logout')
+    def test_logout(self):
+        resp = self.client.get(path=authroot(url.auth.LOGOUT))
+        self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
+        resp = self.client.get(path=authroot(url.auth.LOGOUT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+
+    @tag("signup_post")
+    def test_signup_post(self):
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.auth.signup)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            first_name=str(),
+            email=str(),
+            password=str(),
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.auth.signup)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=getTestEmail(),
+            first_name=getTestName(),
+            password1=getTestPassword()
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTrue(resp.context['user'].is_authenticated)
+
+    def test_login_post(self):
+        client = Client()
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGOUT))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=str(),
+            password=str(),
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=email,
+            password=getRandomStr(),
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=email,
+            password=password,
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTrue(resp.context['user'].is_authenticated)
+
+    @tag("logout_post")
+    def test_logout_post(self):
+        client = Client()
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTrue(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGOUT))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=email,
+            password=password,
+        ))
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.post(follow=True, path=authroot(url.auth.LOGOUT))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertFalse(resp.context['user'].is_authenticated)

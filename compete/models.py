@@ -224,7 +224,7 @@ class Competition(models.Model):
     """fee_link (URLField): The link to the registration fee payment page."""
     hidden = models.BooleanField(default=False)
     """hidden (BooleanField): Whether the competition is hidden or not. Not to be used by managers."""
-    is_draft = models.BooleanField(default=False)
+    is_draft = models.BooleanField(default=True)
     """is_draft (BooleanField): Whether the competition is a draft or not"""
     createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): When the competition was created"""

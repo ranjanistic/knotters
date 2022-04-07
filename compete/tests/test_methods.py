@@ -30,7 +30,7 @@ class CompeteMethodsTest(TestCase):
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
-        self.comp = Competition.objects.create(title=getCompTitle(), creator=self.mguser.profile, startAt=timezone.now(
+        self.comp = Competition.objects.create(is_draft=False,title=getCompTitle(), creator=self.mguser.profile, startAt=timezone.now(
         ), endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
         self.user = User.objects.create_user(email=getTestEmail(
         ), password=getTestPassword(), first_name=getTestName())

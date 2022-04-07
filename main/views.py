@@ -49,9 +49,8 @@ from .decorators import (decode_JSON, dev_only, github_only,
                          normal_profile_required, require_JSON)
 from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
-from .methods import (addMethodToAsyncQueue, errorLog, getDeepFilePaths,
-                      renderData, renderString, renderView, respondJson,
-                      respondRedirect, verify_captcha)
+from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
+                      renderView, respondJson, respondRedirect, verify_captcha)
 from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
                       URL, Browse, Code, Event, Message, Template,
                       setPathParams)
@@ -635,8 +634,7 @@ def githubEventsListener(request: WSGIRequest, type: str, targetID: str) -> Http
             action = request.POST.get('action', None)
             if action == Event.PUBLISHED:
                 if not release['draft'] and release['name'] and release['body']:
-                    addMethodToAsyncQueue(
-                        f'main.mailers.{featureRelease.__name__}', release['name'], release['body'])
+                    featureRelease(release['name'], release['body'])
 
         elif ghevent == Event.MARKETPLACE_PURCHASE:
             action = request.POST.get('action', None)

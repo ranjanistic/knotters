@@ -529,7 +529,15 @@ class URL():
     MANIFEST = 'manifest.json'
     SERVICE_WORKER = 'service-worker.js'
     SCRIPTS = 'scripts/<str:script>'
+
+    def scripts(self, script):
+        return setPathParams(self.SCRIPTS_SUBAPP, script)
+
     SCRIPTS_SUBAPP = f'scripts/<str:subapp>/scripts/<str:script>'
+
+    def scripts_subapp(self, subapp, script):
+        return setPathParams(self.SCRIPTS_SUBAPP, subapp, script)
+
     SWITCH_LANG = 'i18n/'
     VERSION_TXT = 'version.txt'
     OFFLINE = 'off408'

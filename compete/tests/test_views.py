@@ -57,7 +57,7 @@ class TestViews(TestCase):
         self.mgprofile = Profile.objects.get(user=self.mguser)
         self.mgprofile.convertToManagement()
         self.mgprofile.save()
-        self.comp = Competition.objects.create(title=getCompTitle(
+        self.comp = Competition.objects.create(is_draft=False,title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
         assignModeratorToObject(APPNAME, self.comp, self.modprofile)
         # requestModerationForObject(self.comp, APPNAME)
@@ -256,7 +256,7 @@ class TestViews(TestCase):
             submission__competition=self.comp, profile=self.profile, confirmed=True).count(), 1)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        comp = Competition.objects.create(title=getCompTitle(
+        comp = Competition.objects.create(is_draft=False,title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=2))
         resp = self.client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))
@@ -271,7 +271,7 @@ class TestViews(TestCase):
             submission__competition=comp, profile=self.profile, confirmed=True).count(), 1)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        comp = Competition.objects.create(
+        comp = Competition.objects.create(is_draft=False,
             title=getCompTitle(), creator=self.mgprofile, endAt=timezone.now())
         resp = self.client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))
@@ -339,7 +339,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED))
 
-        comp2 = Competition.objects.create(title=getCompTitle(
+        comp2 = Competition.objects.create(is_draft=False,title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=2))
         resp = client2.post(follow=True, path=root(
             url.compete.participate(comp2.getID())))
@@ -619,7 +619,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, message=Message.SUBMITTED_SUCCESS))
 
-        comp = Competition.objects.create(title=getCompTitle(
+        comp = Competition.objects.create(is_draft=False,title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(seconds=3))
         resp = self.client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))

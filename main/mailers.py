@@ -206,8 +206,8 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
         return '', body
 
 
-def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = '') -> bool:
-    """To send alert type email to a single recipient.
+def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = '') -> str:
+    """To queue task to send alert type email to a single recipient.
 
     Args:
         to (str): Recipient's email address
@@ -219,15 +219,16 @@ def sendAlertEmail(to: str, username: str, subject: str, header: str, footer: st
         greeting (str, optional): Email greeting. If not provided, default is 'Hello there,'
 
     Returns:
-        bool: True if email was sent successfully, False otherwise
+        str: The task ID
+        bool: False if task not queued
     """
     html, body = getEmailHtmlBody(
         greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion)
-    return sendEmail(to=to, subject=subject, html=html, body=body)
+    return addMethodToAsyncQueue(f"main.mailers.{sendEmail.__name__}", to, subject, html, body)
 
 
 def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusion: str = '', greeting: str = 'Hello') -> bool:
-    """To send alert type email to multiple recipients as CC.
+    """To queue task to send alert type email to multiple recipients as CC.
 
     Args:
         to (list<str>): List of recipients' email addresses
@@ -238,15 +239,16 @@ def sendCCAlertEmail(to: list, subject: str, header: str, footer: str, conclusio
         greeting (str, optional): Email greeting. If not provided, default is 'Hello'
 
     Returns:
-        bool: True if email was sent successfully, False otherwise
+        str: The task ID
+        bool: False if task not queued
     """
     html, body = getEmailHtmlBody(
         greeting=greeting, header=header, footer=footer, conclusion=conclusion)
-    return sendEmail(to=to, subject=subject, html=html, body=body)
+    return addMethodToAsyncQueue(f"main.mailers.{sendCCEmail.__name__}", to, subject, html, body)
 
 
 def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], username: str = '', greeting: str = '') -> bool:
-    """To send action type email to a single recipient.
+    """To queue task to send action type email to a single recipient.
 
     Args:
         to (str): Recipient's email address
@@ -263,15 +265,16 @@ def sendActionEmail(to: str, subject: str, header: str, footer: str, conclusion:
         greeting (str, optional): Email greeting. If not provided, default is 'Hello there,'
 
     Returns:
-        bool: True if email was sent successfully, False otherwise
+        str: The task ID
+        bool: False if task not queued
     """
     html, body = getEmailHtmlBody(
         greeting=greeting, username=username, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
-    return sendEmail(to=to, subject=subject, html=html, body=body)
+    return addMethodToAsyncQueue(f"main.mailers.{sendEmail.__name__}", to, subject, html, body)
 
 
 def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusion: str = '', actions: list = [], greeting: str = 'Hello') -> bool:
-    """To send action type email to multiple recipients as CC.
+    """To queue task to send action type email to multiple recipients as CC.
 
     Args:
         to (list<str>): List of recipients' email addresses
@@ -287,11 +290,12 @@ def sendCCActionEmail(to: list, subject: str, header: str, footer: str, conclusi
         greeting (str, optional): Email greeting. If not provided, default is 'Hello'
 
     Returns:
-        bool: True if email was sent successfully, False otherwise
+        str: The task ID
+        bool: False if task not queued
     """
     html, body = getEmailHtmlBody(
         greeting=greeting, header=header, footer=footer, conclusion=conclusion, actions=actions, action=True)
-    return sendCCEmail(to=to, subject=subject, html=html, body=body)
+    return addMethodToAsyncQueue(f"main.mailers.{sendCCEmail.__name__}", to, subject, html, body)
 
 
 def featureRelease(name, content):
@@ -299,12 +303,16 @@ def featureRelease(name, content):
         is_active=True, suspended=False, to_be_zombie=False).values_list("user__email", flat=True)
     html, body = getEmailHtmlBody(header=f'A new feature release - {name} - of {PUBNAME} is here! This release has the following details.', footer=content,
                                   conclusion="You aren't required to take any action. You were notified because you are a member. You can stop receiving such emails in future.")
-    return sendBulkEmails(emails, 'Feature Release!', html, body)
+    return addMethodToAsyncQueue(f"main.mailers.{sendBulkEmails.__name__}", emails, 'Feature Release!', html, body)
 
 
 def downtimeAlert():
     """
     To alert all users about any downtime, meant for manual invokation via shell only.
+
+    Returns:
+        str: The task ID
+        bool: False if task not queued
     """
 
     tillTime = str(input("Downtime Till (Month DD, YYYY, HH:MM): ")).strip()
@@ -321,9 +329,21 @@ def downtimeAlert():
         footer="Any inconvenience is deeply regretted. Thank you for your understanding.",
         conclusion="You received this alert because you are a member of our community. If this is an error, then please report to us."
     )
-    addMethodToAsyncQueue(
-        f'main.mailers.{sendBulkEmails.__name__}', emails, "Scheduled Downtime Alert", html, body)
+    addMethodToAsyncQueue(f'main.mailers.{sendBulkEmails.__name__}', emails, "Scheduled Downtime Alert", html, body)
 
+def sendToAdmin(subject:str, body:str, html:str) -> str:
+    """To send email to admin.
+
+    Args:
+        head (str): Email Heading
+        body (str): Email body
+        html (str): Email html
+
+    Returns:
+        str: The task ID
+        bool: False if task not queued
+    """
+    return addMethodToAsyncQueue(f"main.mailers.{sendEmail.__name__}", SERVER_EMAIL, subject, html, body)
 
 def sendErrorLog(error: Exception) -> bool:
     """To send error log to admin.
@@ -332,6 +352,8 @@ def sendErrorLog(error: Exception) -> bool:
         error (Exception): Error object, str
 
     Returns:
-        bool: True if email was sent successfully, False otherwise
+        str: The task ID
+        bool: False if task not queued
     """
-    return addMethodToAsyncQueue(f"main.mailers.{sendEmail.__name__}", SERVER_EMAIL, f"KnottersERROR LOG", error, error)
+    return sendToAdmin(f"KnottersERROR LOG", error, error)
+

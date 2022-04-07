@@ -4,10 +4,9 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from main.bots import Sender
-from main.methods import addMethodToAsyncQueue, errorLog
+from main.methods import errorLog
 from people.models import Profile, User, defaultImagePath, isPictureDeletable
 
-from .apps import APPNAME
 from .mailers import (accountDeleteAlert, emailAddAlert, emailRemoveAlert,
                       emailUpdateAlert, passordChangeAlert)
 from .models import DeviceNotification, EmailNotification, Notification
@@ -42,8 +41,7 @@ def on_user_delete(sender, instance, **kwargs):
     except Exception as e:
         errorLog(e)
         pass
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{accountDeleteAlert.__name__}", instance)
+    accountDeleteAlert(instance)
     try:
         Sender.removeUserFromMailingServer(instance.email)
     except Exception as e:
@@ -53,30 +51,25 @@ def on_user_delete(sender, instance, **kwargs):
 
 @receiver(password_changed)
 def user_password_changed(request, user, **kwargs):
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{passordChangeAlert.__name__}", user)
+    passordChangeAlert(user)
 
 
 @receiver(password_reset)
 def user_password_reset(request, user, **kwargs):
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{passordChangeAlert.__name__}", user)
+    passordChangeAlert(user)
 
 
 @receiver(email_changed)
 def user_email_changed(request, user, from_email_address, to_email_address, **kwargs):
     if from_email_address != to_email_address:
-        addMethodToAsyncQueue(f"{APPNAME}.mailers.{emailUpdateAlert.__name__}",
-                              user, from_email_address, to_email_address)
+        emailUpdateAlert(user, from_email_address, to_email_address)
 
 
 @receiver(email_added)
 def user_email_added(request, user, email_address, **kwargs):
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{emailAddAlert.__name__}", user, email_address)
+    emailAddAlert(user, email_address)
 
 
 @receiver(email_removed)
 def user_email_removed(request, user, email_address, **kwargs):
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{emailRemoveAlert.__name__}", user, email_address)
+    emailRemoveAlert(user, email_address)

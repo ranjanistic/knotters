@@ -8,13 +8,11 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import manager_only, normal_profile_required, require_JSON
 from main.env import BOTMAIL
-from main.methods import (addMethodToAsyncQueue, errorLog, respondJson,
-                          user_device_notify)
+from main.methods import errorLog, respondJson, user_device_notify
 from main.strings import Action, Code, Message, Template
 from management.models import Management
 from people.models import Profile, User
 
-from .apps import APPNAME
 from .mailers import (accountInactiveAlert, accountReactiveAlert,
                       successorAccepted, successorDeclined, successorInvite)
 from .methods import get_auth_section_html, migrateUserAssets, renderer
@@ -134,11 +132,9 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
         if not done:
             return respondJson(Code.NO)
         if is_active:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{accountReactiveAlert.__name__}", request.user.profile)
+            accountReactiveAlert(request.user.profile)
         else:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{accountInactiveAlert.__name__}", request.user.profile)
+            accountInactiveAlert(request.user.profile)
         return respondJson(Code.OK)
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -188,8 +184,7 @@ def profileSuccessor(request: WSGIRequest):
                         return respondJson(Code.NO, error=Message.SUCCESSOR_GH_UNLINKED)
                     if successor.profile.successor == request.user:
                         if not successor.profile.successor_confirmed:
-                            addMethodToAsyncQueue(
-                                f"{APPNAME}.mailers.{successorInvite.__name__}", request.user, successor)
+                            successorInvite(request.user, successor)
                         return respondJson(Code.NO, error=Message.SUCCESSOR_OF_PROFILE)
                     successor_confirmed = userID == BOTMAIL
                 except Exception as e:
@@ -204,8 +199,7 @@ def profileSuccessor(request: WSGIRequest):
         Profile.objects.filter(user=request.user).update(
             successor=successor, successor_confirmed=successor_confirmed)
         if successor and not successor_confirmed:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{successorInvite.__name__}", successor, request.user)
+            successorInvite(successor, request.user)
         return respondJson(Code.OK)
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -285,13 +279,11 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
         if accept:
             alert = Message.SUCCESSORSHIP_ACCEPTED
             if not deleted:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{successorAccepted.__name__}", successor, predecessor)
+                successorAccepted(successor, predecessor)
         else:
             alert = Message.SUCCESSORSHIP_DECLINED
             if not deleted:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{successorDeclined.__name__}", request.user, predecessor)
+                successorDeclined(request.user, predecessor)
         if not deleted:
             return redirect(predecessor.profile.getLink(alert=alert))
         return redirect(request.user.profile.getLink(alert=alert))

@@ -298,7 +298,8 @@ def errorLog(*args):
     if not ISTESTING:
         log(LOG_CODE_ERROR, args)
         if ISPRODUCTION:
-            return addMethodToAsyncQueue(f"main.mailers.sendErrorLog", *args)
+            from main.mailers import sendErrorLog
+            return sendErrorLog(*args)
         if ISDEVELOPMENT:
             return print_exc()
 
@@ -322,11 +323,15 @@ def getNumberSuffix(value: int, withNumber=False) -> str:
         return 'rd' if not withNumber else f'{value}rd'
     else:
         if value > 9:
-            if valuestr[len(valuestr) - 2] == "1" or valuestr[len(valuestr) - 1] == "0":
-                return "th" if not withNumber else f'{value}th'
-            return getNumberSuffix(value=int(valuestr[len(valuestr) - 1]), withNumber=withNumber)
+            if valuestr[-2] == "1" or valuestr[-1] == "0":
+                return "th" if not withNumber else f'{valuestr}th'
+            suffix = getNumberSuffix(
+                value=int(valuestr[-1]), withNumber=withNumber)
+            if withNumber:
+                return f'{valuestr[:-1]}{suffix}'
+            return suffix
         else:
-            return "th" if not withNumber else f'{value}th'
+            return "th" if not withNumber else f'{valuestr}th'
 
 
 def verify_captcha(recaptcha_response: str) -> bool:
@@ -380,6 +385,8 @@ def testPathRegex(parampath: str, path: str) -> bool:
         bool: True if path matches the params based url path.
     """
     localParamRegex = "[a-zA-Z0-9\. \\-\_\%]"
+    parampath = parampath.split("?")[0]
+    path = path.split("?")[0].replace("//", "/")
     regpath = re_sub(Code.URLPARAM, f"+{localParamRegex}+", parampath)
     if regpath == path:
         return True

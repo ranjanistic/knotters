@@ -38,6 +38,8 @@ from .receivers import *
 def index(request: WSGIRequest) -> HttpResponse:
     """The home page of competitions.
 
+    METHODS: GET
+
     Args:
         request (WSGIRequest): The request object.
 
@@ -50,6 +52,8 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_GET
 def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
     """To handle competitions homepage tabs request.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -75,6 +79,8 @@ def indexTab(request: WSGIRequest, tab: str) -> HttpResponse:
 @require_GET
 def competition(request: WSGIRequest, compID: str) -> HttpResponse:
     """To handle competition profile request.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -119,6 +125,8 @@ def competition(request: WSGIRequest, compID: str) -> HttpResponse:
 def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
     """To provide additional competition data.
 
+    METHODS: POST
+
     Args:
         request (WSGIRequest): The request object.
         compID (UUID): The competition UUID
@@ -154,6 +162,8 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
 def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResponse:
     """To handle competition profile tabs section request.
 
+    METHODS: GET
+
     Args:
         request (WSGIRequest): The request object.
         compID (UUID): The competition UUID
@@ -185,6 +195,8 @@ def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResp
 def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """To create a new submission.
 
+    METHODS: POST
+
     Args:
         request (WSGIRequest): The request object.
         compID (UUID): The competition UUID
@@ -198,8 +210,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     try:
         now = timezone.now()
-        competition = Competition.objects.get(
-            id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
+        competition = Competition.objects.get(id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
         try:
             # NOTE filter.delete doesn't work !?
             subpart = SubmissionParticipant.objects.get(
@@ -216,8 +227,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile).update(
             confirmed=True, confirmed_on=submission.createdOn)
         request.user.profile.increaseXP(by=5)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
+        participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink(alert=Message.PARTICIPATION_CONFIRMED))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -231,6 +241,8 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
 @ratelimit(key='user', rate='5/m', block=True, method=(Code.POST))
 def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
     """To invite a member in existing submission, relation to be confirmed via mail link.
+
+    METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
@@ -268,8 +280,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             if submission.competition.isJudge(person) or submission.competition.isModerator(person):
                 return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
             submission.members.add(person)
-            addMethodToAsyncQueue(
-                f'{APPNAME}.mailers.{participantInviteAlert.__name__}', person, request.user.profile, submission)
+            participantInviteAlert(person, request.user.profile, submission)
             return respondJson(Code.OK)
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -282,6 +293,8 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
 @require_GET
 def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """To render invitation action page for invitee of a submission.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -326,6 +339,8 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
 def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -> HttpResponse:
     """To accpet/decline participation invitation, by invitee for a submission of a competition.
 
+    METHODS: POST
+
     Args:
         request (WSGIRequest): The request object.
         subID (UUID): The submission UUID
@@ -356,8 +371,7 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
             SubmissionParticipant.objects.filter(
                 submission=submission, profile=request.user.profile, confirmed=False).update(confirmed=True, confirmed_on=timezone.now())
             request.user.profile.increaseXP(by=4)
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{participantWelcomeAlert.__name__}", request.user.profile, submission)
+            participantWelcomeAlert(request.user.profile, submission)
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission, accepted=True))
         else:
             raise ObjectDoesNotExist(action)
@@ -373,6 +387,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
 @decode_JSON
 def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
     """To remove member or withdraw participation from submission of a competition.
+
+    METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
@@ -409,8 +425,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             submission.save()
         if conf:
             member.decreaseXP(by=5)
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{participationWithdrawnAlert.__name__}", member, submission)
+            participationWithdrawnAlert(member, submission)
         if json_body:
             return respondJson(Code.OK, message=(Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED))
         return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
@@ -431,6 +446,8 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
 @ratelimit(key='user', rate='5/s', block=True, method=(Code.POST))
 def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     """To save/update a submission of a competition. (Not the final submission)
+
+    METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
@@ -483,6 +500,8 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
     """To permanently submit the existing saved unsubmitted submission of a competition.
     Late submission is allowed unless the copmetition has been moderated.
 
+    METHODS: POST
+
     Args:
         request (WSGIRequest): The request object.
         compID (UUID): The competition UUID
@@ -520,8 +539,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
                 member.increaseXP(by=1)
             else:
                 member.increaseXP(by=2)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{submissionConfirmedAlert.__name__}", submission)
+        submissionConfirmedAlert(submission)
         return respondJson(Code.OK, message=message)
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -537,6 +555,8 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
     """To submit their markings of all submissions of a competition by judge (mentor) of a competition.
     Only after the competition has been moderated, a judge can submit their markings.
     Also allotes topic XPs to the judge.
+
+    METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
@@ -621,8 +641,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
         _ = SubmissionTopicPoint.objects.bulk_create(
             topicpointsList)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{submissionsJudgedAlert.__name__}", competition, request.user.profile)
+        submissionsJudgedAlert(competition, request.user.profile)
 
         judgeXP = len(submissions)//(len(topics)+1)
         request.user.profile.increaseBulkTopicPoints(
@@ -642,6 +661,8 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     To declare results by the manager after markings of all submissions by all judges have been completed.
+
+    METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
@@ -683,6 +704,8 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     """To claim XP from competition by results declared submission's participant.
+
+    METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
@@ -740,6 +763,8 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
 def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
     """To get the scores of a result submission against all topics of the competition
 
+    METHODS: POST
+
     Args:
         request (WSGIRequest): The request object.
         resID (UUID): The result UUID.
@@ -773,6 +798,8 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
 def certificateIndex(request: WSGIRequest) -> HttpResponse:
     """Certfiicate homepage.
 
+    METHODS: GET
+
     Args:
         request (WSGIRequest): The request object.
 
@@ -786,6 +813,8 @@ def certificateIndex(request: WSGIRequest) -> HttpResponse:
 def certificateVerify(request: WSGIRequest) -> HttpResponse:
     """To verify a certificate.
     Accpets certID to verify via both GET and POST methods.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -820,6 +849,8 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
     """To render a participant's valid certificate view.
     Note that this will render the certificate view even if the certificate file is not yet generated,
     but the only when the reqeusted result ID is valid.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -864,6 +895,8 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
     """To render a appreciant's valid certificate view.
     Note that this will render the certificate view even if the certificate file is not yet generated,
     but the only when the reqeusted cometition ID is valid.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -912,6 +945,8 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """To create a task to be queued to generate certificates for a competition,
         if the competition's result has been declared, by the manager.
 
+    METHODS: POST
+
     Args:
         request (WSGIRequest): The request object.
         compID (UUID): The competition UUID.
@@ -953,6 +988,8 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     """To respond with a participant's certificate file.
+
+    METHODS: GET
 
     Args:
         request (WSGIRequest): The request object.
@@ -997,6 +1034,8 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
 def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
     """To respond with a appreciant's certificate file.
 
+    METHODS: GET
+
     Args:
         request (WSGIRequest): The request object.
         compID (UUID): The competition UUID.
@@ -1038,6 +1077,8 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
 @decode_JSON
 def browseSearch(request: WSGIRequest) -> HttpResponse:
     """To respond with a list of competitions (html/json) based on the search query.
+
+    METHODS: GET, POST
 
     Args:
         request (WSGIRequest): The request object.
