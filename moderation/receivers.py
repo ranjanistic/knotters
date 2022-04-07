@@ -4,10 +4,8 @@ from django.dispatch import receiver
 from main.exceptions import (DuplicateKeyError, IllegalModeration,
                              IllegalModerationState, IllegalModerationType,
                              IllegalModerator)
-from main.methods import addMethodToAsyncQueue
 from main.strings import moderation
 
-from .apps import APPNAME
 from .mailers import moderationAssignedAlert
 from .methods import getModelByType
 from .models import LocalStorage, Moderation
@@ -35,5 +33,4 @@ def before_moderation_update(sender, instance: Moderation, raw, **kwargs):
 @receiver(post_save, sender=Moderation)
 def on_moderation_update(sender, instance, created, **kwargs):
     if created:
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}", instance)
+        moderationAssignedAlert(instance)

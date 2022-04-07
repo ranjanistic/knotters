@@ -305,8 +305,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
                 return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
             return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
         else:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", projectobj)
+            sendProjectSubmissionNotification(projectobj)
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
@@ -409,8 +408,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
                 return respondJson(Code.NO, error=Message.NO_MODERATORS_AVAILABLE)
             return respondRedirect(APPNAME, URL.Projects.CREATE_CORE, error=Message.NO_MODERATORS_AVAILABLE)
         else:
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{coreProjectSubmissionNotification.__name__}", projectobj)
+            coreProjectSubmissionNotification(projectobj)
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
@@ -483,11 +481,11 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
                     return respondJson(Code.NO, error=Message.INVALID_REQUEST)
                 if subproject.request_deletion():
                     if subproject.verified:
-                        addMethodToAsyncQueue(
-                            f"{APPNAME}.mailers.{verProjectDeletionRequest.__name__}", subproject.current_del_request())
+                        verProjectDeletionRequest(
+                            subproject.current_del_request())
                     else:
-                        addMethodToAsyncQueue(
-                            f"{APPNAME}.mailers.{coreProjectDeletionRequest.__name__}", subproject.current_del_request())
+                        coreProjectDeletionRequest(
+                            subproject.current_del_request())
                     return respondJson(Code.OK)
                 return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
             elif action == Action.REMOVE:
@@ -1675,8 +1673,7 @@ def handleOwnerInvitation(request: WSGIRequest):
                 inv.receiver = receiver
                 inv.expiresOn = timezone.now() + timedelta(days=1)
                 inv.save()
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{projectTransferInvitation.__name__}", inv)
+            projectTransferInvitation(inv)
         elif action == Action.REMOVE:
             baseproject = BaseProject.objects.get(
                 id=projID, suspended=False, trashed=False, creator=request.user.profile)
@@ -1722,12 +1719,10 @@ def projectTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_TRANSFER_ACCEPTED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{projectTransferAcceptedInvitation.__name__}", invitation)
+            projectTransferAcceptedInvitation(invitation)
         else:
             message = Message.PROJECT_TRANSFER_DECLINED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{projectTransferDeclinedInvitation.__name__}", invitation)
+            projectTransferDeclinedInvitation(invitation)
         return redirect(invitation.baseproject.getLink(alert=message))
     except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
@@ -1780,8 +1775,7 @@ def handleVerModInvitation(request: WSGIRequest):
                 else:
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             if alert:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{projectModTransferInvitation.__name__}", inv)
+                projectModTransferInvitation(inv)
         elif action == Action.REMOVE:
             project = Project.objects.get(
                 id=projID, suspended=False, trashed=False)
@@ -1829,12 +1823,10 @@ def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_MOD_TRANSFER_ACCEPTED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{projectModTransferAcceptedInvitation.__name__}", invitation)
+            projectModTransferAcceptedInvitation(invitation)
         else:
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{projectModTransferDeclinedInvitation.__name__}", invitation)
+            projectModTransferDeclinedInvitation(invitation)
         return redirect(invitation.project.getLink(alert=message))
     except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
@@ -1886,8 +1878,7 @@ def handleCoreModInvitation(request: WSGIRequest):
                 else:
                     return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             if alert:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{coreProjectModTransferInvitation.__name__}", inv)
+                coreProjectModTransferInvitation(inv)
         elif action == Action.REMOVE:
             coreproject = CoreProject.objects.get(
                 id=projID, suspended=False, trashed=False)
@@ -1935,12 +1926,10 @@ def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_MOD_TRANSFER_ACCEPTED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{coreProjectModTransferAcceptedInvitation.__name__}", invitation)
+            coreProjectModTransferAcceptedInvitation(invitation)
         else:
             message = Message.PROJECT_MOD_TRANSFER_DECLINED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{coreProjectModTransferDeclinedInvitation.__name__}", invitation)
+            coreProjectModTransferDeclinedInvitation(invitation)
         return redirect(invitation.coreproject.getLink(alert=message))
     except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
@@ -1981,15 +1970,13 @@ def verProjectDeleteRequestAction(request, inviteID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_DEL_ACCEPTED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{verProjectDeletionAcceptedRequest.__name__}", invitation)
+            verProjectDeletionAcceptedRequest(invitation)
             addMethodToAsyncQueue(
                 f"{APPNAME}.methods.{deleteGhOrgVerifiedRepository.__name__}", invitation.project)
             return redirect(request.user.profile.getLink(alert=message))
         else:
             message = Message.PROJECT_DEL_DECLINED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{verProjectDeletionDeclinedRequest.__name__}", invitation)
+            verProjectDeletionDeclinedRequest(invitation)
             return redirect(invitation.project.getLink(alert=message))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -2030,15 +2017,13 @@ def coreProjectDeleteRequestAction(request, inviteID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.PROJECT_DEL_ACCEPTED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{coreProjectDeletionAcceptedRequest.__name__}", invitation)
+            coreProjectDeletionAcceptedRequest(invitation)
             addMethodToAsyncQueue(
                 f"{APPNAME}.methods.{deleteGhOrgCoreepository.__name__}", invitation.coreproject)
             return redirect(request.user.profile.getLink(alert=message))
         else:
             message = Message.PROJECT_DEL_DECLINED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{coreProjectDeletionDeclinedRequest.__name__}", invitation)
+            coreProjectDeletionDeclinedRequest(invitation)
             return redirect(invitation.coreproject.getLink(alert=message))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -2095,8 +2080,7 @@ def coreVerificationRequest(request: WSGIRequest):
             if not done:
                 verifiedproject.delete()
                 raise Exception('err verrequest moderation assign', done)
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
+            sendProjectSubmissionNotification(verifiedproject)
             return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
         elif action == Action.REMOVE:
             coreproject = CoreProject.objects.get(
@@ -2174,8 +2158,7 @@ def freeVerificationRequest(request: WSGIRequest):
                         return respondJson(Code.NO, error=Message.NO_INTERNAL_MODERATORS)
                 raise Exception('err verrequest moderation assign', mod)
             else:
-                addMethodToAsyncQueue(
-                    f"{APPNAME}.mailers.{sendProjectSubmissionNotification.__name__}", verifiedproject)
+                sendProjectSubmissionNotification(verifiedproject)
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
         elif action == Action.REMOVE:
             freeproject = FreeProject.objects.get(
@@ -2225,8 +2208,7 @@ def handleCocreatorInvitation(request, projectID):
             if not created:
                 inv.expiresOn = timezone.now() + timedelta(days=1)
                 inv.save()
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{baseProjectCoCreatorInvitation.__name__}", inv)
+            baseProjectCoCreatorInvitation(inv)
         elif action == Action.REMOVE:
             receiver_id = request.POST['receiver_id']
             baseproject = BaseProject.objects.get(
@@ -2285,12 +2267,10 @@ def projectCocreatorInviteAction(request, inviteID):
             return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
         if accept:
             message = Message.COCREATOR_INVITE_ACCEPTED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{baseProjectCoCreatorAcceptedInvitation.__name__}", invitation)
+            baseProjectCoCreatorAcceptedInvitation(invitation)
         else:
             message = Message.COCREATOR_INVITE_DECLINED
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{baseProjectCoCreatorDeclinedInvitation.__name__}", invitation)
+            baseProjectCoCreatorDeclinedInvitation(invitation)
         return redirect(invitation.base_project.getLink(alert=message))
     except (ObjectDoesNotExist, ValidationError, KeyError) as o:
         raise Http404(o)

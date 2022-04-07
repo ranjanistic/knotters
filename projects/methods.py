@@ -556,8 +556,7 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
 
         cache.set(f'approved_project_setup_{project.id}',
                   Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{sendProjectApprovedNotification.__name__}", project)
+        sendProjectApprovedNotification(project)
         return True, msg
     except Exception as e:
         errorLog(e)
@@ -687,8 +686,7 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
 
         cache.set(f'approved_coreproject_setup_{coreproject.id}',
                   Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{sendCoreProjectApprovedNotification.__name__}", coreproject)
+        sendCoreProjectApprovedNotification(coreproject)
         return True, msg
     except Exception as e:
         errorLog(e)

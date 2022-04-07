@@ -8,7 +8,7 @@ from django.utils import timezone
 from jsonfield import JSONField
 from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL
-from main.methods import (addMethodToAsyncQueue, errorLog, human_readable_size,
+from main.methods import (errorLog, human_readable_size,
                           maxLengthInList)
 from main.strings import (CORE_PROJECT, DOCS, MANAGEMENT, PEOPLE, Code,
                           Message, project, url)
@@ -269,14 +269,13 @@ class BaseProject(models.Model):
         self.sub_save()
         super(BaseProject, self).save(*args, **kwargs)
 
-
     def homepage_project() -> "BaseProject":
         cacheKey = 'homepage_project'
         project = cache.get(cacheKey, None)
         if not project:
             from people.models import Profile
             project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),
-                suspended=False, trashed=False, is_archived=False).order_by("createdOn").first()
+                                                 suspended=False, trashed=False, is_archived=False).order_by("createdOn").first()
             cache.set(cacheKey, project, settings.CACHE_LONG)
         return project
 
@@ -1529,7 +1528,7 @@ class LegalDoc(models.Model):
 
     def __str__(self) -> str:
         return self.pseudonym or self.name
-    
+
     def doc_cache_key(pseudonym, *args):
         return f"legal_doc_{pseudonym}"
 
@@ -1544,7 +1543,8 @@ class LegalDoc(models.Model):
             if self.content != (LegalDoc.objects.get(id=self.id)).content:
                 self.lastUpdate = timezone.now()
                 if self.notify_all:
-                    addMethodToAsyncQueue(f"{MANAGEMENT}.mailers.alertLegalUpdate", self.name, self.get_link)
+                    from management.mailers import alertLegalUpdate
+                    alertLegalUpdate(self.name, self.get_link)
         self.notify_all = False
         super(LegalDoc, self).save(*args, **kwargs)
         self.reset_all_cache()
@@ -1556,14 +1556,14 @@ class LegalDoc(models.Model):
     def get_link(self):
         return self.getLink()
 
-    def get_doc(pseudonym:str) -> "LegalDoc": 
+    def get_doc(pseudonym: str) -> "LegalDoc":
         cacheKey = LegalDoc.doc_cache_key(pseudonym)
         legaldoc = cache.get(cacheKey, None)
         if not legaldoc:
             legaldoc = LegalDoc.objects.get(pseudonym=pseudonym)
             cache.set(cacheKey, legaldoc, settings.CACHE_ETERNAL)
         return legaldoc
-    
+
     def get_all(*args) -> models.QuerySet:
         cacheKey = LegalDoc.ALL_CACHE_KEY
         legaldocs = cache.get(cacheKey, None)
@@ -1577,7 +1577,8 @@ class LegalDoc(models.Model):
         cache.delete(cacheKey)
         cache.delete(self.doc_cache_key(self.pseudonym))
         cache.set(cacheKey, self, settings.CACHE_ETERNAL)
-        cache.set(self.doc_cache_key(self.pseudonym), self, settings.CACHE_ETERNAL)
+        cache.set(self.doc_cache_key(self.pseudonym),
+                  self, settings.CACHE_ETERNAL)
         return self
 
     def reset_all_cache(*args) -> models.QuerySet:
@@ -1588,7 +1589,6 @@ class LegalDoc(models.Model):
         for ldoc in legaldocs:
             ldoc.reset_cache()
         return legaldocs
-
 
 
 class ProjectHookRecord(HookRecord):

@@ -8,9 +8,8 @@ from allauth.socialaccount.signals import (pre_social_login,
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from main.bots import Sender
-from main.methods import addMethodToAsyncQueue, errorLog
+from main.methods import errorLog
 
-from .apps import APPNAME
 from .mailers import welcomeAlert
 from .methods import (getProfileImageBySocialAccount, getUsernameFromGHSocial,
                       isPictureSocialImage)
@@ -26,8 +25,7 @@ def on_user_create(sender, instance: User, created, **kwargs):
     """
     if created:
         Profile.objects.create(user=instance)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{welcomeAlert.__name__}", instance)
+        welcomeAlert(instance)
 
 
 @receiver(post_save, sender=Profile)

@@ -10,8 +10,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import (decode_JSON, moderator_only,
                              normal_profile_required, require_JSON_body)
-from main.methods import (addMethodToAsyncQueue, errorLog, respondJson,
-                          user_device_notify)
+from main.methods import errorLog, respondJson, user_device_notify
 from main.strings import COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code, Message
 from management.models import ReportCategory
 from people.models import ProfileTopic
@@ -125,8 +124,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 return redirect(mod.getLink(error=Message.NO_MODERATORS_AVAILABLE))
             mod.moderator = newmod
             mod.save()
-            addMethodToAsyncQueue(
-                f"{APPNAME}.mailers.{moderationAssignedAlert.__name__}", mod)
+            moderationAssignedAlert(mod)
             return redirect(request.user.profile.getLink(alert=Message.MODERATION_SKIPPED))
         else:
             approve = request.POST.get('approve', None)
@@ -141,11 +139,9 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
                     elif CoreProjectVerificationRequest.objects.filter(verifiedproject=mod.project, resolved=False).exists():
                         done = (CoreProjectVerificationRequest.objects.get(
                             verifiedproject=mod.project, resolved=False)).decline()
-                    addMethodToAsyncQueue(
-                        f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}", mod.project)
+                    projectRejectedNotification(mod.project)
                 if done and mod.type == CORE_PROJECT:
-                    addMethodToAsyncQueue(
-                        f"{PROJECTS}.mailers.{projectRejectedNotification.__name__}", mod.coreproject)
+                    projectRejectedNotification(mod.coreproject)
                 return respondJson(Code.OK if done else Code.NO)
             elif approve:
                 done = mod.approve()
@@ -252,8 +248,7 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
         mod.status = Code.APPROVED
         mod.resolved = True
         mod.save()
-        addMethodToAsyncQueue(
-            f"{COMPETE}.mailers.{submissionsModeratedAlert.__name__}", competition)
+        submissionsModeratedAlert(competition)
 
         totalsubs = competition.totalSubmissions()
         topics = competition.getTopics()

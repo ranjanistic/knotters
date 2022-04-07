@@ -1,8 +1,6 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from main.methods import addMethodToAsyncQueue
 
-from .apps import APPNAME
 from .mailers import freeProjectCreated, freeProjectDeleted
 from .models import (Asset, BaseProject, BaseProjectCoCreator,
                      BaseProjectCoCreatorInvitation, CoreProject, FreeProject,
@@ -25,8 +23,7 @@ def on_freeproject_create(sender, instance: FreeProject, created, **kwargs):
     """
     if created:
         instance.creator.increaseXP(by=2)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.mailers.{freeProjectCreated.__name__}", instance)
+        freeProjectCreated(instance)
 
 
 @receiver(post_delete, sender=Project)
@@ -63,8 +60,7 @@ def on_freeproject_delete(sender, instance, **kwargs):
             instance.image.delete(save=False)
     except Exception as e:
         pass
-    addMethodToAsyncQueue(
-        f"{APPNAME}.mailers.{freeProjectDeleted.__name__}", instance)
+    freeProjectDeleted(instance)
 
 
 @receiver(post_delete, sender=CoreProject)
@@ -104,10 +100,11 @@ def on_legaldoc_delete(sender, instance: LegalDoc, **kwargs):
     except Exception as e:
         pass
 
+
 @receiver(post_delete, sender=BaseProjectCoCreator)
 def on_projectcocreator_delete(sender, instance: BaseProjectCoCreator, **kwargs):
     """
     On Base project cocreator relation delete.
     """
-    BaseProjectCoCreatorInvitation.objects.filter(receiver=instance.co_creator, base_project=instance.base_project).delete()
-
+    BaseProjectCoCreatorInvitation.objects.filter(
+        receiver=instance.co_creator, base_project=instance.base_project).delete()
