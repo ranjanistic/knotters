@@ -60,6 +60,7 @@ def on_user_login(sender, user, request, **kwargs):
 
 @receiver(user_signed_up)
 def on_user_signup(request, user, **kwargs):
+    """On user signup, to update relevant things."""
     try:
         accs = SocialAccount.objects.filter(user=user)
         picture = getProfileImageBySocialAccount(accs.first())
@@ -78,6 +79,7 @@ def on_user_signup(request, user, **kwargs):
 
 @receiver(social_account_removed)
 def social_removed(request, socialaccount, **kwargs):
+    """On social account added, to update relevant things."""
     try:
         profile = Profile.objects.get(user=socialaccount.user)
         if socialaccount.provider == GitHubProvider.id:
@@ -95,6 +97,7 @@ def social_removed(request, socialaccount, **kwargs):
 
 @receiver(social_account_added)
 def social_added(request, sociallogin, **kwargs):
+    """On social account added, to update relevant things."""
     try:
         changed = False
         profile = Profile.objects.get(user=sociallogin.user)
@@ -119,6 +122,7 @@ def social_added(request, sociallogin, **kwargs):
 
 @receiver(social_account_updated)
 def social_updated(request, sociallogin, **kwargs):
+    """On social account updated, to update relevant things."""
     try:
         profile = Profile.objects.get(user=sociallogin.account.user)
         if sociallogin.account.provider == GitHubProvider.id:
@@ -151,6 +155,7 @@ def before_social_login(request, sociallogin, **kwargs):
 def on_framework_delete(sender, instance, **kwargs):
     """
     Framework cleanup.
+    TODO
     """
     try:
         if instance.banner:
@@ -163,6 +168,7 @@ def on_framework_delete(sender, instance, **kwargs):
 def on_frame_delete(sender, instance, **kwargs):
     """
     Frame cleanup.
+    TODO
     """
     try:
         if instance.image:

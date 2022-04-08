@@ -24,19 +24,42 @@ from .models import (Framework, Profile, ProfileSetting, Topic, User,
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Renders the given file with the given data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file to render under templates/people, without extension.
+        data (dict, optional): The data to pass to the template. Defaults to dict().
+
+    Returns:
+        HttpResponse: The rendered text/html view with default and provided context.
+    """
     return renderView(request, file, data, fromApp=APPNAME)
 
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Returns text based html content as http response with the given data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file for html content under templates/people, without extension.
+        data (dict, optional): The data to pass to the template. Defaults to dict().
+    
+    Returns:
+        HttpResponse: The text based html string content http response with default and provided context.
+    """
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
-def convertToFLname(string: str) -> str and str:
-    """
-    Converts the given string to first and last name format.
+def convertToFLname(string: str) -> str:
+    """Converts the given string to first and last name format.
 
-    :string: Assuming a full name in this parameter, segragation of name parts will take place.
-    :returns: firtsname, lastname
+    Args:
+        string (str): The string to convert.
+    
+    Returns:
+        str, str: firstname, lastname.
+
     """
     name = str(string)
     namesequence = name.split(" ")
@@ -48,16 +71,19 @@ def convertToFLname(string: str) -> str and str:
         lastname = str()
     fullname = f"{firstname} {lastname}"
     if len(fullname) > 70:
-        fullname = fullname[:(70-len(fullname))]
+        fullname = fullname[:70]
         return convertToFLname(fullname)
     return firstname, lastname
 
 
 def filterBio(string: str) -> str:
-    """
-    Trims given string (assuming to be profile bio) to a certain length limit.
+    """Trims given string (assuming to be profile bio) to a certain length limit.
 
-    :string: Assuming this to be user profile bio, operations will take place.
+    Args:
+        string (str): Assuming this to be user profile bio, operations will take place.
+    
+    Returns:
+        str: Filtered string based profile bio.
     """
     bio = str(string)
     if len(bio) > 300:

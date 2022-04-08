@@ -5,7 +5,10 @@ from main.strings import URL
 from .models import User
 
 
-def welcomeAlert(user: User) -> bool:
+def welcomeAlert(user: User) -> str:
+    """
+    Send an email to a new user with a welcome message.
+    """
     return sendActionEmail(
         to=user.email,
         username=user.getName(),

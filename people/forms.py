@@ -1,12 +1,13 @@
 from allauth.account.forms import SignupForm
+from django.utils.translation import gettext_lazy as _
 from django import forms
 
 from .methods import convertToFLname
 
 
 class CustomSignupForm(SignupForm):
-    first_name = forms.CharField(max_length=70, label='Your Name', help_text="Your Name", widget=forms.TextInput(
-        attrs={'placeholder': 'Your Name', 'autocomplete': 'name', 'type': 'text', 'class': 'required-field'}))
+    first_name = forms.CharField(max_length=70, label=_('Your Name'), help_text=_('Your Name'), widget=forms.TextInput(
+        attrs={'placeholder': _('Your Name'), 'autocomplete': 'name', 'type': 'text', 'class': 'required-field'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

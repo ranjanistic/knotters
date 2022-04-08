@@ -211,7 +211,8 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     try:
         now = timezone.now()
-        competition = Competition.objects.get(id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
+        competition = Competition.objects.get(
+            id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
         try:
             # NOTE filter.delete doesn't work !?
             subpart = SubmissionParticipant.objects.get(
@@ -1095,7 +1096,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        query = request.GET.get('query', request.POST.get('query', ''))
+        query = request.GET.get('query', request.POST['query'])
         limit = request.GET.get('limit', request.POST.get('limit', 10))
 
         cachekey = f'compete_browse_search_{query}{request.LANGUAGE_CODE}'
@@ -1186,8 +1187,13 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
                 query=query
             ))
         return rendererstrResponse(request, Template.Compete.BROWSE_SEARCH, dict(competitions=competitions, query=query))
+    except KeyError:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        pass
     except Exception as e:
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        raise Http404(e)
+        pass
+    raise Http404(e)

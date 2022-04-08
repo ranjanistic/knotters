@@ -279,6 +279,11 @@ class Moderation(models.Model):
             by=3, reason=f'Took action on moderation {self.__str__()}')
         self.save()
         return True
+    
+    def alertModerator(self):
+        """Alerts the moderator of the moderation."""
+        from .mailers import moderationAssignedAlert
+        return moderationAssignedAlert(self)
 
 
 class LocalStorage(models.Model):

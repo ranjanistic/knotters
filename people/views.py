@@ -3,17 +3,16 @@ from uuid import UUID
 
 from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
-from django.forms.models import model_to_dict
 from django.http.response import (Http404, HttpResponse,
                                   HttpResponseBadRequest, JsonResponse)
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import (decode_JSON, github_only, normal_profile_required,
-                             require_JSON_body)
+                             require_JSON)
 from main.methods import base64ToImageFile, errorLog, respondJson
 from main.strings import Code, Event, Message, Template, setURLAlerts
 from management.models import ReportCategory
@@ -31,11 +30,35 @@ from .receivers import *
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
+    """To render community home page.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
     return renderer(request, Template.People.INDEX)
 
 
 @require_GET
-def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
+def profile(request: WSGIRequest, userID: str) -> HttpResponse:
+    """To render a profile page.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        userID (str): The user ID or nickname
+
+    Raises:
+        Http404: If the user does not exist.
+
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+    """
     try:
         try:
             userID = UUID(userID)
@@ -54,7 +77,7 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
             return redirect(data["person"].profile.getLink())
 
         return renderer(request, Template.People.PROFILE, data)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError, KeyError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -63,6 +86,22 @@ def profile(request: WSGIRequest, userID: UUID or str) -> HttpResponse:
 
 @require_GET
 def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse:
+    """To render a profile tab.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        userID (UUID): The user ID.
+        section (str): The section to render.
+
+    Raises:
+        Http404: If the section does not exist or invalid request
+
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+
+    """
     try:
         if request.user.is_authenticated and request.user.id == userID:
             profile = request.user.profile
@@ -73,7 +112,7 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
             if profile.isBlocked(request.user):
                 raise ObjectDoesNotExist(profile)
         return getProfileSectionHTML(profile, section, request)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -82,6 +121,20 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
 
 @require_GET
 def timeline_content(request: WSGIRequest, userID: UUID) -> HttpResponse:
+    """To render a timeline content.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        userID (UUID): The user ID.
+
+    Raises:
+        Http404: If the user does not exist, or invalid request
+
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+    """
     try:
         if request.user.is_authenticated and request.user.id == userID:
             profile = request.user.profile
@@ -91,7 +144,7 @@ def timeline_content(request: WSGIRequest, userID: UUID) -> HttpResponse:
             if profile.isBlocked(request.user):
                 raise ObjectDoesNotExist(profile)
         return rendererstr(request, Template.People.TIMELINE_CONTENT, dict(profile=profile))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -101,6 +154,20 @@ def timeline_content(request: WSGIRequest, userID: UUID) -> HttpResponse:
 @normal_profile_required
 @require_GET
 def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
+    """To render a setting tab.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        section (str): The section to render.
+
+    Raises:
+        Http404: If the section does not exist or invalid request
+
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+    """
     try:
         data = getSettingSectionHTML(request.user, section, request)
         if data:
@@ -115,6 +182,21 @@ def settingTab(request: WSGIRequest, section: str) -> HttpResponse:
 @require_POST
 @decode_JSON
 def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
+    """To edit a profile.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        section (str): The section to edit.
+
+    Raises:
+        Http404: If the section does not exist or invalid request
+
+    Returns:
+        HttpResponseRedirect: Redirects to user profile view
+        JsonResponse: Responds with json object with main.strings.Code.OK or main.strings.Code.NO
+    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         profile = Profile.objects.get(user=request.user)
@@ -196,6 +278,12 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
 @normal_profile_required
 @require_POST
 def accountprefs(request: WSGIRequest) -> HttpResponse:
+    """To edit account preferences.
+
+    METHODS: POST
+
+    TODO
+    """
     try:
         newsletter = str(request.POST.get('newsletter', 'off')) != 'off'
         recommendations = str(request.POST.get(
@@ -214,52 +302,84 @@ def accountprefs(request: WSGIRequest) -> HttpResponse:
         return redirect(request.user.profile.getLink(error=Message.ERROR_OCCURRED))
 
 
-@require_JSON_body
+@require_JSON
 def topicsSearch(request: WSGIRequest) -> JsonResponse:
-    query = request.POST.get('query', None)
-    excludeProfileTopics = request.POST.get('excludeProfileTopics', True)
-    excludeProfileAllTopics = request.POST.get(
-        'excludeProfileAllTopics', False)
-    if not query:
-        return respondJson(Code.NO)
-    excluding = []
+    """To search topics for profile.
 
-    cacheKey = f"topicssearch_{query}"
-    if request.user.is_authenticated:
-        if excludeProfileAllTopics:
-            excluding = excluding + request.user.profile.getAllTopicIds()
-        elif excludeProfileTopics:
-            excluding = excluding + request.user.profile.getTopicIds()
-        cacheKey = f"{cacheKey}_{request.user.id}" + \
-            "".join(map(lambda i: str(i), excluding))
+    METHODS: POST
 
-    topicslist = cache.get(cacheKey, [])
+    Args:
+        request (WSGIRequest): The request object.
 
-    if not len(topicslist):
-        topics = Topic.objects.exclude(id__in=excluding).filter(
-            Q(name__istartswith=query)
-            | Q(name__iendswith=query)
-            | Q(name__iexact=query)
-            | Q(name__icontains=query)
-        )[0:5]
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK with topics list, or main.strings.Code.NO
+    """
+    try:
+        query = str(request.POST["query"][:200]).strip()
+        if not query:
+            raise KeyError(query)
+        limit = int(request.POST.get('limit', 5))
+        excludeProfileTopics = request.POST.get('excludeProfileTopics', True)
+        excludeProfileAllTopics = request.POST.get(
+            'excludeProfileAllTopics', False)
+        if not query:
+            return respondJson(Code.NO)
+        excluding = []
 
-        for topic in topics:
-            topicslist.append(dict(
-                id=topic.get_id,
-                name=topic.name
-            ))
+        cacheKey = f"topicssearch_{query}"
+        if request.user.is_authenticated:
+            if excludeProfileAllTopics:
+                excluding = excluding + request.user.profile.getAllTopicIds()
+            elif excludeProfileTopics:
+                excluding = excluding + request.user.profile.getTopicIds()
+            cacheKey = f"{cacheKey}_{request.user.id}" + \
+                "".join(map(lambda i: str(i), excluding))
 
-        cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
+        topicslist = cache.get(cacheKey, [])
 
-    return respondJson(Code.OK, dict(
-        topics=topicslist
-    ))
+        if not len(topicslist):
+            topics = Topic.objects.exclude(id__in=excluding).filter(
+                Q(name__istartswith=query)
+                | Q(name__iexact=query)
+                | Q(name__icontains=query)
+            )[:limit]
+
+            for topic in topics:
+                topicslist.append(dict(
+                    id=topic.get_id,
+                    name=topic.name
+                ))
+
+            cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
+
+        return respondJson(Code.OK, dict(
+            topics=topicslist
+        ))
+    except (KeyError, ValidationError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
 @require_POST
 @decode_JSON
 def topicsUpdate(request: WSGIRequest) -> HttpResponse:
+    """To update topics for profile.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Raises:
+        Http404: If the request is invalid
+
+    Returns:
+        HttpResponseRedirect: Redirects to profile page with relevant message
+        JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
@@ -340,9 +460,9 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(request.user.profile.getLink())
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
-            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -352,13 +472,26 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
 
 
 @normal_profile_required
-@require_JSON_body
+@require_JSON
 def tagsSearch(request: WSGIRequest) -> JsonResponse:
-    try:
-        query = request.POST.get('query', None)
-        if not query or not query.strip():
-            return respondJson(Code.NO)
+    """To search tags for profile.
 
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Raises:
+        Http404: If the request is invalid
+
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
+    try:
+        query = str(request.POST['query'][:200]).strip()
+        if not query:
+            raise KeyError(query)
+        limit = int(request.POST.get('limit', 5))
         excludeIDs = []
         for tag in request.user.profile.tags.all():
             excludeIDs.append(tag.id)
@@ -373,7 +506,7 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
                 | Q(name__iendswith=query)
                 | Q(name__iexact=query)
                 | Q(name__icontains=query)
-            )[0:5]
+            )[:limit]
             for tag in tags:
                 tagslist.append(dict(
                     id=tag.getID(),
@@ -384,7 +517,7 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.OK, dict(
             tags=tagslist
         ))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, KeyError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -396,6 +529,20 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def tagsUpdate(request: WSGIRequest) -> HttpResponse:
+    """To update tags for profile.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Raises:
+        Http404: If the request is invalid
+
+    Returns:
+        HttpResponseRedirect: Redirects to profile page with relevant message
+        JsonReponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     next = None
     try:
@@ -452,7 +599,7 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(next)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if next:
@@ -468,71 +615,153 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
 
 
 @normal_profile_required
-def zombieProfile(request: WSGIRequest, profileID: UUID) -> HttpResponse:
+def zombieProfile(request: WSGIRequest, profileID: UUID) -> JsonResponse:
+    """To view zombie profile data
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        profileID (UUID): The profile ID. (not user ID, as it is a zombie)
+
+    Raises:
+        Http404: If the request is invalid
+
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK and profile data, or main.strings.Code.NO
+    """
     try:
-        profile = Profile.objects.get(
-            id=profileID, successor=request.user, successor_confirmed=True)
-        profile.picture = str(profile.picture)
-        return respondJson(Code.OK, model_to_dict(profile))
+        profile = list(Profile.objects.filter(id=profileID, successor=request.user,
+                       successor_confirmed=True).values_list("id", "picture", "bio", "xp"))[0]
+        return respondJson(Code.OK, dict(profile=profile))
+    except (ObjectDoesNotExist, ValidationError):
+        raise Http404(e)
     except Exception as e:
         errorLog(e)
-        raise Http404()
+        raise Http404(e)
 
 
-def reportCategories(request: WSGIRequest):
+@ratelimit(key='user_or_ip', rate='1/s', block=True, method=(Code.POST, Code.GET))
+def reportCategories(request: WSGIRequest) -> JsonResponse:
+    """To get report categories
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK and report categories, or main.strings.Code.NO
+    """
     try:
-        categories = ReportCategory.objects.filter().order_by("name")
-        reports = []
-        for cat in categories:
-            reports.append(dict(id=cat.id, name=cat.name))
-        return respondJson(Code.OK, dict(reports=reports))
+        return respondJson(Code.OK, dict(
+            reports=list(ReportCategory.get_all().values_list("id", "name"))
+        ))
     except Exception as e:
+        errorLog(e)
         return respondJson(Code.NO)
 
 
 @normal_profile_required
-@require_JSON_body
-def reportUser(request: WSGIRequest):
+@require_JSON
+@ratelimit(key='user_or_ip', rate='20/m', block=True, method=(Code.POST))
+def reportUser(request: WSGIRequest) -> JsonResponse:
+    """To report a user
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
+
     try:
-        report = request.POST['report']
-        userID = request.POST['userID']
+        report = UUID(request.POST['report'][:20])
+        userID = UUID(request.POST['userID'][:20])
         user = User.objects.get(id=userID)
-        category = ReportCategory.objects.get(id=report)
+        category = ReportCategory.get_cache_one(id=report)
         request.user.profile.reportUser(user, category)
         return respondJson(Code.OK)
+    except (ValidationError, ObjectDoesNotExist):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
-        return respondJson(Code.NO)
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
-@require_JSON_body
-def blockUser(request: WSGIRequest):
+@require_JSON
+@ratelimit(key='user_or_ip', rate='20/m', block=True, method=(Code.POST))
+def blockUser(request: WSGIRequest) -> JsonResponse:
+    """To block a user
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
     try:
-        userID = request.POST['userID']
+        userID = UUID(request.POST['userID'][:20])
         user = User.objects.get(id=userID)
-        request.user.profile.blockUser(user)
+        done = request.user.profile.blockUser(user)
+        if not done:
+            raise ObjectDoesNotExist(user)
         return respondJson(Code.OK)
+    except (ValidationError, ObjectDoesNotExist):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
-@require_JSON_body
-def unblockUser(request: WSGIRequest):
+@require_JSON
+def unblockUser(request: WSGIRequest) -> JsonResponse:
+    """To unblock a user
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
     try:
-        userID = request.POST['userID']
+        userID = UUID(request.POST['userID'][:20])
         user = User.objects.get(id=userID)
-        request.user.profile.unblockUser(user)
+        done = request.user.profile.unblockUser(user)
+        if not done:
+            raise ObjectDoesNotExist(user)
         return respondJson(Code.OK)
+    except (ObjectDoesNotExist, ValidationError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @csrf_exempt
 @github_only
 def githubEventsListener(request, type: str, event: str) -> HttpResponse:
+    """To listen to github events
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Raises:
+        Http404: If the request is invalid
+
+    Returns:
+        HttpResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
     try:
         if type != Code.HOOK:
             return HttpResponseBadRequest('Invaild event type')
@@ -548,33 +777,49 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
                     member = Profile.objects.filter(
                         githubID=membership['user']['login'], is_active=True).first()
                     if member:
-                        member.increaseXP(by=10)
+                        member.increaseXP(
+                            by=6, reason="Github Organization Membership Accepted")
             elif action == Event.MEMBER_REMOVED:
                 membership = request.POST.get('membership', None)
                 if membership:
                     member = Profile.objects.filter(
                         githubID=membership['user']['login']).first()
-                    # if member:
-                    #     member.decreaseXP(by=10)
+                    if member:
+                        member.decreaseXP(
+                            by=6, reason="Github Organization Membership Removed")
         elif ghevent == Event.TEAMS:
             if action == Event.CREATED:
                 team = request.POST.get('team', None)
-                if team:
-                    team['name']
+                # if team:
+                #     team['name']
         else:
             return HttpResponseBadRequest(ghevent)
         return HttpResponse(Code.OK)
     except Exception as e:
-        errorLog(f"GH-EVENT: {e}")
-        raise Http404()
+        errorLog(f"GH-EVENT", e)
+        raise Http404(e)
 
 
 @ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
 def browseSearch(request: WSGIRequest):
+    """To search for users
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Raises:
+        Http404: If the request is invalid
+
+    Returns:
+        HttpResponse: Responds with text/html content with users list context.
+        JsonResponse: Responds with json object with main.strings.Code.OK and list of users, or main.strings.Code.NO
+    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        query = request.GET.get('query', request.POST.get('query', ''))
+        query = request.GET.get('query', request.POST['query'])
         limit = request.GET.get('limit', request.POST.get('limit', 10))
         excludeIDs = []
         cachekey = f'people_browse_search_{query}{request.LANGUAGE_CODE}'
@@ -585,7 +830,7 @@ def browseSearch(request: WSGIRequest):
         profiles = cache.get(cachekey, [])
 
         if not len(profiles):
-            specials = ('topic:', 'tag:', 'type:', 'xp:')
+            specials = ('topic:', 'tag:', 'xp:', 'type:')
             pquery = None
             is_moderator = is_mentor = is_verified = is_manager = None
             dbquery = Q()
@@ -595,8 +840,8 @@ def browseSearch(request: WSGIRequest):
                     return [
                         Q(topics__name__iexact=q),
                         Q(tags__name__iexact=q),
-                        Q(),
-                        Q(xp__gte=q)
+                        Q(xp__gte=q),
+                        Q()
                     ]
                 commaparts = query.split(",")
                 for cpart in commaparts:
@@ -640,10 +885,11 @@ def browseSearch(request: WSGIRequest):
                 ))
             if not invalidQuery:
                 profiles = Profile.objects.exclude(user__id__in=excludeIDs).exclude(suspended=True).exclude(
-                    to_be_zombie=True).exclude(is_active=False).filter(dbquery).distinct()[0:limit]
+                    to_be_zombie=True).exclude(is_active=False).filter(dbquery).distinct()[:limit]
 
                 if is_manager:
                     profiles = list(filter(lambda p: p.is_manager(), profiles))
+
                 if len(profiles):
                     cache.set(cachekey, profiles, settings.CACHE_SHORT)
 
@@ -663,37 +909,62 @@ def browseSearch(request: WSGIRequest):
             ))
 
         return rendererstr(request, Template.People.BROWSE_SEARCH, dict(profiles=profiles, query=query))
+    except KeyError:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        pass
     except Exception as e:
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        raise Http404(e)
+        pass
+    raise Http404(e)
 
 
 @normal_profile_required
 @require_GET
 def create_framework(request: WSGIRequest):
+    """To create a framework
+    TODO
+    """
     return renderer(request, Template.People.FRAMEWORK_CREATE)
 
 
 @normal_profile_required
-@require_JSON_body
+@require_JSON
 def publish_framework(request: WSGIRequest):
-
+    """To publish a framework
+    TODO
+    """
     raise Http404()
 
 
 @normal_profile_required
-@require_JSON_body
+@require_JSON
 def view_framework(request: WSGIRequest, frameworkID: UUID):
-
+    """To view a framework
+    TODO
+    """
     raise Http404()
 
 
 @normal_profile_required
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
-def toggleAdmiration(request: WSGIRequest, userID: UUID):
+def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
+    """To toggle profile admiration
+
+    Args:
+        request (WSGIRequest): The request object
+        userID (UUID): The user's ID
+
+    Raises:
+        Http404: If request is invalid
+
+    Returns:
+        HttpResponseRedirect: Redirect to the profile page with relvent message
+        JsonResponse: The response json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
     profile = None
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
@@ -706,9 +977,11 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID):
         if json_body:
             return respondJson(Code.OK)
         return redirect(profile.getLink())
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, KeyError, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if profile:
+            return redirect(profile.getLink(error=Message.INVALID_REQUEST))
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -719,8 +992,22 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID):
         raise Http404(e)
 
 
+@ratelimit(key='user_or_ip', rate='1/s', block=True)
 @decode_JSON
-def profileAdmirations(request, userID):
+def profileAdmirations(request: WSGIRequest, userID: UUID) -> HttpResponse:
+    """To view a profile's admirers list
+
+    Args:
+        request (WSGIRequest): The request object
+        userID (UUID): The user's ID
+
+    Raises:
+        Http404: If request is invalid
+
+    Returns:
+        HttpResponse: The response text/html of admirers list view
+        JsonResponse: The response json object with main.strings.Code.OK and list of admirers, or main.strings.Code.NO
+    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         profile = Profile.objects.get(
@@ -742,7 +1029,7 @@ def profileAdmirations(request, userID):
                 )
             return respondJson(Code.OK, dict(admirers=jadmirers))
         return render(request, Template().admirers, dict(admirers=admirers))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)

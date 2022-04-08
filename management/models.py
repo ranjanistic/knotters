@@ -1,5 +1,5 @@
 from datetime import timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from auth2.models import Address, PhoneNumber
 from django.conf import settings
@@ -116,7 +116,7 @@ class ReportCategory(models.Model):
             cache.set(cache_key, categories, settings.CACHE_ETERNAL)
         return categories
 
-    def get_cache_one(id, *args) -> "ReportCategory":
+    def get_cache_one(*args, id:UUID) -> "ReportCategory":
         """Get one report category by id, preferably from cache
         """
         return ReportCategory.get_all().get(id=id)

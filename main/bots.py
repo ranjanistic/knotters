@@ -1,4 +1,3 @@
-
 from github import Github as GHub
 from main.strings import DiscordChannel
 from requests import delete as deleteRequest

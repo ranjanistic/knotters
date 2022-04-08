@@ -161,12 +161,12 @@ class TestViews(TestCase):
             url.people.ACCOUNTPREFERENCES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
+    @tag("topsearch")
     def test_topicsSearch(self):
         resp = self.client.post(follow=True, path=root(url.people.TOPICSEARCH), data={
                                 'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json_loads(resp.content.decode(
-            Code.UTF_8)), dict(code=Code.OK, topics=[]))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK, topics=[]))
 
     def test_topicsUpdate(self):
         topics = Topic.objects.bulk_create(getTestTopicsInst(4))
