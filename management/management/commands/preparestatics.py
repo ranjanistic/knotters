@@ -18,10 +18,14 @@ class Command(BaseCommand):
     """
 
     """
-    help = 'Remove previous version static folders and generate error pages.'
+    help = """
+        Remove previous versions of static assets, minify the latest assets, link email assets to latest ones, and generate error pages,
+        depending on STATIC_ROOT & VERSION setting.
+        Please note that collectstatic command must be run before this command is used.
+        """
 
     def add_arguments(self, parser):
-        parser.add_argument('errors_dir', nargs='+', type=str)
+        parser.add_argument('errors_dir', nargs='+', type=str, help="The directory path for static error pages. (E.g. /var/www/knotters/errors/)")
 
     def decrease_version(self, version, by=2):
         """

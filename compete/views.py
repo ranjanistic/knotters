@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
+from django.views.decorators.cache import cache_control
 from django.db.models import Q, Sum
 from django.http.response import (Http404, HttpResponse,
                                   HttpResponseServerError, JsonResponse)
@@ -983,9 +984,10 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         return HttpResponseServerError(e)
 
 
+@ratelimit(key='user_or_ip', rate='1/s', block=True, method=(Code.POST))
 @normal_profile_required
 @require_GET
-@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+@cache_control(no_cache=True, public=True, max_age=settings.CACHE_LONG)
 def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse:
     """To respond with a participant's certificate file.
 
@@ -1028,9 +1030,10 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
         raise Http404(e)
 
 
+@ratelimit(key='user_or_ip', rate='1/s', block=True, method=(Code.POST))
 @normal_profile_required
 @require_GET
-@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+@cache_control(no_cache=True, public=True, max_age=settings.CACHE_LONG)
 def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResponse:
     """To respond with a appreciant's certificate file.
 

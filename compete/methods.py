@@ -239,6 +239,8 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
 def generateCertificate(certname: str, certID: str, userdisplayname: str, compname: str, abouttext: str, associate=None, template='certificate'):
     """
     Generates a certificate for the given user.
+    NOTE: This method depends on dimensions of the template images. If they're changed, then the coordinates utilized in this method
+        will also require modifications accordingly.
 
     Args:
         certname (str): The name of the certificate.
@@ -247,34 +249,34 @@ def generateCertificate(certname: str, certID: str, userdisplayname: str, compna
         compname (str): The name of the competition.
         abouttext (str): The sub-text to be displayed in the certificate. Can be the date of the competition.
         associate (ImageFile, optional): The associate image file instance. Defaults to None.
-        template (str, optional): The certificate template name. Defaults to 'certificate'. Presumed to be at templates/<template>.jpg
+        template (str, optional): The certificate template name. Defaults to 'certificate'. Expects the file at templates/<template>.jpg
 
     Returns:
         str: Path of generated certificate, pdf. (similar for jpg format)
     """
-    imagex = 1632
-    imagey = 1056
+    imagex = 5100
+    imagey = 3300
     font_dir = 'templates/poppins-500.ttf'
     body_font_dir = 'templates/questrial-400.ttf'
     cert_dir = f'templates/{template}.jpg'
     name_font = ImageFont.truetype(
-        os_path.join(settings.BASE_DIR, font_dir), 72)
+        os_path.join(settings.BASE_DIR, font_dir), 225)
     comp_font = ImageFont.truetype(
-        os_path.join(settings.BASE_DIR, font_dir), 56)
+        os_path.join(settings.BASE_DIR, font_dir), 175)
     about_font = ImageFont.truetype(
-        os_path.join(settings.BASE_DIR, font_dir), 28)
+        os_path.join(settings.BASE_DIR, font_dir), 88)
     id_font = ImageFont.truetype(os_path.join(
-        settings.BASE_DIR, body_font_dir), 18)
-    namexy = (imagex-name_font.getsize(userdisplayname)[0]-77, 220)
-    compxy = (imagex-comp_font.getsize(compname)[0]-77, 411)
-    aboutxy = (imagex-about_font.getsize(abouttext)[0]-77, 515)
-    idxy = (14, 1020)
-    qrxy = (14, 14)
+        settings.BASE_DIR, body_font_dir), 58)
+    namexy = (imagex-name_font.getsize(userdisplayname)[0]-240, 688)
+    compxy = (imagex-comp_font.getsize(compname)[0]-240, 1284)
+    aboutxy = (imagex-about_font.getsize(abouttext)[0]-240, 1610)
+    idxy = (44, 3188)
+    qrxy = (44, 44)
     certpath = f"{APPNAME}/certificates/{certname}.pdf"
     certpathimg = f"{APPNAME}/certificates/{certname}.jpg"
     qrimage = make(
         f"{SITE}{url.getRoot(APPNAME)}{url.compete.CERT_VERIFY}?id={certID}")
-    qrimage = qrimage.resize((222, 222), Image.ANTIALIAS)
+    qrimage = qrimage.resize((694, 694), Image.ANTIALIAS)
     if not ISTESTING:
         certimage = Image.open(os_path.join(settings.BASE_DIR, cert_dir))
         image_editable = ImageDraw.Draw(certimage)
@@ -288,10 +290,10 @@ def generateCertificate(certname: str, certID: str, userdisplayname: str, compna
             certID).upper(), fill=(0, 0, 0), font=id_font)
         certimage.paste(qrimage, qrxy)
         if associate:
-            assxy = (776, 904)
+            assxy = (2425, 2825)
             assimage = Image.open(os_path.join(
                 settings.MEDIA_ROOT, str(associate)))
-            assimage = assimage.resize((474, 144), Image.ANTIALIAS)
+            assimage = assimage.resize((1482, 450), Image.ANTIALIAS)
             certimage.paste(assimage, assxy)
         certimage.save(os_path.join(
             settings.MEDIA_ROOT, certpath), save_all=True)
@@ -398,7 +400,7 @@ def generateJudgeCertificate(judge: Profile, competition: Competition, certID: U
 
 
 def generateModCertificate(competition: Competition, certID: UUID) -> str:
-    """Generates a certificate for the given moderator.
+    """Generates a certificate for moderator of the given competition.
 
     Args:
         competition (Competition): The competition instance.
@@ -450,16 +452,11 @@ def DeclareResults(competition: Competition):
 
 
 def AllotCompetitionCertificates(results: list, competition: Competition) -> bool:
-    """Allots certificates to the participants of the competition.
+    """Allots certificates to the participants of the competition and also to the judges and moderator.
 
     Args:
         results (list): List of results instances of the competition.
         competition (Competition): The competition instance.
-
-    Raises:
-        Exception: If the certificate of moderator is not allotted, an exception is raised, no further generation is performed.
-        Exception: If the certificates of judges are not allotted, an exception is raised, no further generation is performed.
-        Exception: If the certificate of any participant is not allotted, an exception is raised, no further generation is performed.
 
     Returns:
         bool: True if all certificates are allotted, False if exceptions are raised.
@@ -499,7 +496,7 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
                     certificate=certificate
                 )
             )
-        AppreciationCertificate.objects.bulk_create(appreciateeCerts)
+        AppreciationCertificate.objects.bulk_create(appreciateeCerts, ignore_conflicts=True)
         participantCerts = []
         for result in results:
             for member in result.getMembers():
@@ -520,7 +517,7 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
                     )
                 )
         ParticipantCertificate.objects.bulk_create(
-            participantCerts, batch_size=100)
+            participantCerts, batch_size=100, ignore_conflicts=True)
         cache.set(taskKey,
                   Message.CERTS_GENERATED, settings.CACHE_ETERNAL)
         certsAllotedAlert(competition)
