@@ -34,7 +34,7 @@ def isPictureDeletable(picture: str) -> bool:
     """
     Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
     """
-    return picture != defaultImagePath() and not str(picture).startswith('http')
+    return picture != defaultImagePath() and not (str(picture).startswith('http') and str(picture).startswith(settings.SITE))
 
 
 class UserAccountManager(BaseUserManager):

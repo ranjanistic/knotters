@@ -3,17 +3,35 @@ from django.dispatch import receiver
 
 from .mailers import freeProjectCreated, freeProjectDeleted
 from .models import (Asset, BaseProject, BaseProjectCoCreator,
-                     BaseProjectCoCreatorInvitation, CoreProject, FreeProject,
+                     BaseProjectCoCreatorInvitation, Category, CoreProject, FreeProject,
                      LegalDoc, Project, Snapshot, defaultImagePath)
 
 
+@receiver(post_delete, sender=Category)
+def on_category_delete(sender, instance: Category, **kwargs):
+    """
+    Project submitted.
+    """
+    try:
+        instance.reset_all_cache()
+    except Exception as e:
+        pass
+
+@receiver(post_save, sender=Category)
+def on_category_create(sender, instance: Category, created, **kwargs):
+    """
+    Project submitted.
+    """
+    if created:
+        instance.reset_all_cache()
+        
 @receiver(post_save, sender=Project)
 def on_project_create(sender, instance: Project, created, **kwargs):
     """
     Project submitted.
     """
     if created:
-        instance.creator.increaseXP(by=2)
+        instance.creator.increaseXP(by=2, reason="Submitted a verified project")
 
 
 @receiver(post_save, sender=FreeProject)
@@ -22,7 +40,7 @@ def on_freeproject_create(sender, instance: FreeProject, created, **kwargs):
     Project submitted.
     """
     if created:
-        instance.creator.increaseXP(by=2)
+        instance.creator.increaseXP(by=2, reason="Created a Quick project")
         freeProjectCreated(instance)
 
 

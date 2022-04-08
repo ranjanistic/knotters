@@ -20,7 +20,7 @@ from projects.methods import addTagToDatabase
 from projects.models import Tag
 from ratelimit.decorators import ratelimit
 
-from .methods import (convertToFLname, filterBio, getProfileSectionHTML,
+from .methods import (addTopicToDatabase, convertToFLname, filterBio, getProfileSectionHTML,
                       getSettingSectionHTML, profileRenderData, renderer,
                       rendererstr)
 from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
@@ -441,13 +441,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
 
             profiletopics = []
             for top in addtopics:
-                if len(top) > 35:
-                    continue
-                top = re_sub('[^a-zA-Z \\\s-]', '', top)
-                if len(top) > 35:
-                    continue
-                topic, _ = Topic.objects.get_or_create(name__iexact=top, defaults=dict(
-                    name=str(top).capitalize(), creator=request.user.profile))
+                topic = addTopicToDatabase(top, request.user.profile)
                 profiletopics.append(ProfileTopic(
                     topic=topic, profile=request.user.profile))
             if len(profiletopics) > 0:

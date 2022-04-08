@@ -8,9 +8,15 @@ from .models import (BaseProjectCoCreatorInvitation,
                      ProjectTransferInvitation, VerProjectDeletionRequest)
 
 
-def freeProjectCreated(project: FreeProject):
+def freeProjectCreated(project: FreeProject) -> str:
     """
-    Project has been submitted for moderation
+    To notify creator for new free Project
+
+    Args:
+        project (FreeProject): Free Project instance that has been created
+
+    Returns:
+        str: task ID of email task
     """
     return sendActionEmail(
         to=project.creator.getEmail(),
@@ -26,9 +32,15 @@ def freeProjectCreated(project: FreeProject):
     )
 
 
-def freeProjectDeleted(project: FreeProject):
+def freeProjectDeleted(project: FreeProject) -> str:
     """
-    Project has been submitted for moderation
+    To notify creator for deleted free Project
+
+    Args:
+        project (FreeProject): Free Project instance that has been deleted
+
+    Returns:
+        str: task ID of email task
     """
     return sendAlertEmail(
         to=project.creator.getEmail(),
@@ -40,27 +52,39 @@ def freeProjectDeleted(project: FreeProject):
     )
 
 
-def sendProjectSubmissionNotification(project: Project):
+def sendProjectSubmissionNotification(verifiedproject: Project) -> str:
     """
-    Project has been submitted for moderation
+    Verified Project has been submitted for moderation
+
+    Args:
+        verifiedproject (Project): Verified Project instance that has been submitted
+
+    Returns:
+        str: task ID of email task
     """
     return sendActionEmail(
-        to=project.creator.getEmail(),
-        username=project.creator.getFName(),
+        to=verifiedproject.creator.getEmail(),
+        username=verifiedproject.creator.getFName(),
         subject='Project Status: Moderation',
-        header=f"This is to inform you that we have received your recently submitted project - {project.name} - for moderation. A moderator was assigned to review it.",
+        header=f"This is to inform you that we have received your recently submitted project - {verifiedproject.name} - for moderation. A moderator was assigned to review it.",
         actions=[{
             'text': 'View moderation state',
-            'url': project.getModLink()
+            'url': verifiedproject.getModLink()
         }],
         footer=f"We'll notify you as soon as the moderator reviews your project submission. Till then, chill out! NOTE: We're lenient.",
         conclusion=f"This email was sent because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
     )
 
 
-def coreProjectSubmissionNotification(coreproject: CoreProject):
+def coreProjectSubmissionNotification(coreproject: CoreProject) -> str:
     """
-    Project has been submitted for moderation
+    Core Project has been submitted for moderation
+
+    Args:
+        coreproject (CoreProject): Core Project instance that has been submitted
+
+    Returns:
+        str: task ID of email task
     """
     return sendActionEmail(
         to=coreproject.creator.getEmail(),
@@ -76,28 +100,40 @@ def coreProjectSubmissionNotification(coreproject: CoreProject):
     )
 
 
-def sendProjectApprovedNotification(project: Project):
+def sendProjectApprovedNotification(verifiedproject: Project) -> str:
     """
-    Project has been approved by moderator
+    Verified Project has been approved by moderator
+
+    Args:
+        verifiedproject (Project): Verified Project instance that has been approved
+
+    Returns:
+        str: task ID of email task
     """
     return sendActionEmail(
-        to=project.creator.getEmail(),
-        username=project.creator.getFName(),
+        to=verifiedproject.creator.getEmail(),
+        username=verifiedproject.creator.getFName(),
         subject='Project Status: Approved',
-        header=f"Congratulations! Your submitted project - {project.name} - has been reviewed, and has been approved by the assigned moderator. " +
+        header=f"Congratulations! Your submitted project - {verifiedproject.name} - has been reviewed, and has been approved by the assigned moderator. " +
         "You can get more details on this by visiting the moderation page of your project submission.",
         actions=[{
             'text': 'View moderation',
-            'url': project.getModLink()
+            'url': verifiedproject.getModLink()
         }],
-        footer=f"Your project's profile page & other related setup will be available in a few moments. Cheers! The moderator & community at {PUBNAME} will be working together with you on {project.name}.",
+        footer=f"Your project's profile page & other related setup will be available in a few moments. Cheers! The moderator & community at {PUBNAME} will be working together with you on {verifiedproject.name}.",
         conclusion=f"This email was generated because a project submission received from your {PUBNAME} account has been approved. If this is unfamiliar, then please report to us."
     )
 
 
-def sendCoreProjectApprovedNotification(project: CoreProject):
+def sendCoreProjectApprovedNotification(project: CoreProject) -> str:
     """
     Core Project has been approved by moderator
+
+    Args:
+        project (CoreProject): Core Project instance that has been approved
+
+    Returns:
+        str: task ID of email task
     """
     return sendActionEmail(
         to=project.creator.getEmail(),
@@ -114,34 +150,44 @@ def sendCoreProjectApprovedNotification(project: CoreProject):
     )
 
 
-def projectRejectedNotification(project: Project):
+def projectRejectedNotification(verifiedproject: Project) -> str:
     """
-    Project has been rejected by moderator
+    Verified Project has been rejected by moderator
+
+    Args:
+        verifiedproject (Project): Verified Project instance that has been rejected
+
+    Returns:
+        str: task ID of email task
     """
     return sendActionEmail(
-        to=project.creator.getEmail(),
-        username=project.creator.getFName(),
+        to=verifiedproject.creator.getEmail(),
+        username=verifiedproject.creator.getFName(),
         subject='Project Status: Rejected',
-        header=f"This is to inform you that your submitted project - {project.name} - has been reviewed, and unfortunately rejected by the assigned moderator. " +
+        header=f"This is to inform you that your submitted project - {verifiedproject.name} - has been reviewed, and unfortunately rejected by the assigned moderator. " +
         "You can get more details on this by visiting the moderation page of your project submission.",
         actions=[{
             'text': 'View moderation',
-            'url': project.getLink()
+            'url': verifiedproject.getLink()
         }],
         footer=f"The moderator must have found something unacceptable, but if you think this is a mistake, then you might be able to resubmit the same project for moderation. This is unfortunate.",
         conclusion=f"This email was generated we have rejected a project submission received from your {PUBNAME} account. If this is unfamiliar, then please report to us."
     )
 
 
-def projectTransferInvitation(invite: ProjectTransferInvitation):
+def projectTransferInvitation(invite: ProjectTransferInvitation) -> str:
     """
-    Invitation to accept project ownership
+    To send invitation to receiver for project ownership
+
+    Args:
+        invite (ProjectTransferInvitation): ProjectTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
-    if invite.resolved:
+    if invite.resolved or invite.expired:
         return False
-    if invite.expired:
-        return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Project Transfer Invite",
@@ -152,28 +198,34 @@ def projectTransferInvitation(invite: ProjectTransferInvitation):
         }],
         footer=f"Visit the above link to decide whether you'd want to take control of the project.",
         conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
-    )
-    return sendActionEmail(
-        to=invite.sender.getEmail(),
-        username=invite.sender.getFName(),
-        subject=f"Project Transfer Initiated",
-        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept ownership of your project {invite.baseproject.name}.",
-        actions=[{
-            'text': 'View projet',
-            'url': invite.baseproject.get_link
-        }],
-        footer=f"If they decline, then your project will not get transferred to them.",
-        conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting your project's profile."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.sender.getEmail(),
+            username=invite.sender.getFName(),
+            subject=f"Project Transfer Initiated",
+            header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept ownership of your project {invite.baseproject.name}.",
+            actions=[{
+                'text': 'View projet',
+                'url': invite.baseproject.get_link
+            }],
+            footer=f"If they decline, then your project will not get transferred to them.",
+            conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting your project's profile."
+        )
 
 
-def projectTransferAcceptedInvitation(invite: ProjectTransferInvitation):
+def projectTransferAcceptedInvitation(invite: ProjectTransferInvitation) -> str:
     """
-    Invitation to accept project ownership
+    To notify sender & receiver about acceptence of project ownership
+
+    Args:
+        invite (ProjectTransferInvitation): ProjectTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Project Transfer Success",
@@ -184,29 +236,34 @@ def projectTransferAcceptedInvitation(invite: ProjectTransferInvitation):
         }],
         footer=f"This action was irreversible, and now they control this project and you've been detached from it.",
         conclusion=f"If this action is unfamiliar, then you may contact the new owner, or contact us."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.receiver.getEmail(),
+            username=invite.receiver.getFName(),
+            subject=f"Project Ownership Accepted",
+            header=f"This is to inform you that you've accepted the ownership of {invite.baseproject.name}.",
+            actions=[{
+                'text': 'View Project',
+                'url': invite.baseproject.get_link
+            }],
+            footer=f"Now you have the control and will be shown as creator of the project at {PUBNAME}",
+            conclusion=f"This email was sent because you've accepted the project's ownership."
+        )
 
-    sendActionEmail(
-        to=invite.receiver.getEmail(),
-        username=invite.receiver.getFName(),
-        subject=f"Project Ownership Accepted",
-        header=f"This is to inform you that you've accepted the ownership of {invite.baseproject.name}.",
-        actions=[{
-            'text': 'View Project',
-            'url': invite.baseproject.get_link
-        }],
-        footer=f"Now you have the control and will be shown as creator of the project at {PUBNAME}",
-        conclusion=f"This email was sent because you've accepted the project's ownership."
-    )
 
-
-def projectTransferDeclinedInvitation(invite: ProjectTransferInvitation):
+def projectTransferDeclinedInvitation(invite: ProjectTransferInvitation) -> str:
     """
-    Invitation to accept project ownership
+    To notify sender about decline of project ownership
+
+    Args:
+        invite (ProjectTransferInvitation): ProjectTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Project Transfer Failed",
@@ -220,15 +277,19 @@ def projectTransferDeclinedInvitation(invite: ProjectTransferInvitation):
     )
 
 
-def projectModTransferInvitation(invite: ProjectModerationTransferInvitation):
+def projectModTransferInvitation(invite: ProjectModerationTransferInvitation) -> str:
     """
-    Invitation to accept project moderatorship
+    To send invitation to receiver and notify sender about project moderatorship transfer
+
+    Args:
+        invite (ProjectModerationTransferInvitation): ProjectModerationTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
-    if invite.resolved:
+    if invite.resolved or invite.expired:
         return False
-    if invite.expired:
-        return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Verified Project Moderation Transfer Invite",
@@ -239,28 +300,34 @@ def projectModTransferInvitation(invite: ProjectModerationTransferInvitation):
         }],
         footer=f"Visit the above link to decide whether you'd want to take moderatorship of the verified project.",
         conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
-    )
-    return sendActionEmail(
-        to=invite.sender.getEmail(),
-        username=invite.sender.getFName(),
-        subject=f"Verified Project Moderation Transfer Initiated",
-        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the verified project {invite.project.name}.",
-        actions=[{
-            'text': 'View Verified Project',
-            'url': invite.project.get_link
-        }],
-        footer=f"If they decline, then your moderatorship of this verified project will not get transferred to them.",
-        conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this verified project's profile."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.sender.getEmail(),
+            username=invite.sender.getFName(),
+            subject=f"Verified Project Moderation Transfer Initiated",
+            header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the verified project {invite.project.name}.",
+            actions=[{
+                'text': 'View Verified Project',
+                'url': invite.project.get_link
+            }],
+            footer=f"If they decline, then your moderatorship of this verified project will not get transferred to them.",
+            conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this verified project's profile."
+        )
 
 
 def projectModTransferAcceptedInvitation(invite: ProjectModerationTransferInvitation):
     """
-    Invitation to accept project moderatorship
+    To notify sender & receiver about acceptence of project moderatorship
+
+    Args:
+        invite (ProjectModerationTransferInvitation): ProjectModerationTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Verified Project Moderation Transfer Success",
@@ -271,29 +338,34 @@ def projectModTransferAcceptedInvitation(invite: ProjectModerationTransferInvita
         }],
         footer=f"This action was irreversible, and now they control this verified project as moderator and you've been detached from it.",
         conclusion=f"If this action is unfamiliar, then you may contact the new moderator, or contact us."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.receiver.getEmail(),
+            username=invite.receiver.getFName(),
+            subject=f"Verified Project Moderation Accepted",
+            header=f"This is to inform you that you've accepted the moderatorship of {invite.project.name}.",
+            actions=[{
+                'text': 'View Verified Project',
+                'url': invite.project.get_link
+            }],
+            footer=f"Now you have the control and will be shown as moderator of the verified project at {PUBNAME}",
+            conclusion=f"This email was sent because you've accepted the verified project's moderatorship."
+        )
 
-    sendActionEmail(
-        to=invite.receiver.getEmail(),
-        username=invite.receiver.getFName(),
-        subject=f"Verified Project Moderation Accepted",
-        header=f"This is to inform you that you've accepted the moderatorship of {invite.project.name}.",
-        actions=[{
-            'text': 'View Verified Project',
-            'url': invite.project.get_link
-        }],
-        footer=f"Now you have the control and will be shown as moderator of the verified project at {PUBNAME}",
-        conclusion=f"This email was sent because you've accepted the verified project's moderatorship."
-    )
 
-
-def projectModTransferDeclinedInvitation(invite: ProjectModerationTransferInvitation):
+def projectModTransferDeclinedInvitation(invite: ProjectModerationTransferInvitation) -> str:
     """
-    Invitation to accept project moderatorship
+    To notify sender about decline of project moderatorship
+
+    Args:
+        invite (ProjectModerationTransferInvitation): ProjectModerationTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Verified Project Moderation Transfer Failed",
@@ -307,15 +379,19 @@ def projectModTransferDeclinedInvitation(invite: ProjectModerationTransferInvita
     )
 
 
-def coreProjectModTransferInvitation(invite: CoreModerationTransferInvitation):
+def coreProjectModTransferInvitation(invite: CoreModerationTransferInvitation) -> str:
     """
-    Invitation to accept project moderatorship
+    To send invitation to receiver and notify sender about core project moderatorship transfer
+
+    Args:
+        invite (CoreModerationTransferInvitation): CoreModerationTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
-    if invite.resolved:
+    if invite.resolved or invite.expired:
         return False
-    if invite.expired:
-        return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Core Project Moderation Transfer Invite",
@@ -326,28 +402,34 @@ def coreProjectModTransferInvitation(invite: CoreModerationTransferInvitation):
         }],
         footer=f"Visit the above link to decide whether you'd want to take moderatorship of the coreproject.",
         conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
-    )
-    return sendActionEmail(
-        to=invite.sender.getEmail(),
-        username=invite.sender.getFName(),
-        subject=f"Core Project Moderation Transfer Initiated",
-        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the core project {invite.coreproject.name}.",
-        actions=[{
-            'text': 'View Core Project',
-            'url': invite.coreproject.get_link
-        }],
-        footer=f"If they decline, then your moderatorship of this core project will not get transferred to them.",
-        conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this core project's profile."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.sender.getEmail(),
+            username=invite.sender.getFName(),
+            subject=f"Core Project Moderation Transfer Initiated",
+            header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the core project {invite.coreproject.name}.",
+            actions=[{
+                'text': 'View Core Project',
+                'url': invite.coreproject.get_link
+            }],
+            footer=f"If they decline, then your moderatorship of this core project will not get transferred to them.",
+            conclusion=f"If this action is unfamiliar, then you should delete the tranfer invite by visiting this core project's profile."
+        )
 
 
-def coreProjectModTransferAcceptedInvitation(invite: CoreModerationTransferInvitation):
+def coreProjectModTransferAcceptedInvitation(invite: CoreModerationTransferInvitation) -> str:
     """
-    Invitation to accept project moderatorship
+    To notify sender & receiver about acceptence of core project moderatorship
+
+    Args:
+        invite (CoreModerationTransferInvitation): CoreModerationTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Core Project Moderation Transfer Success",
@@ -358,29 +440,34 @@ def coreProjectModTransferAcceptedInvitation(invite: CoreModerationTransferInvit
         }],
         footer=f"This action was irreversible, and now they control this core project as moderator and you've been detached from it.",
         conclusion=f"If this action is unfamiliar, then you may contact the new moderator, or contact us."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.receiver.getEmail(),
+            username=invite.receiver.getFName(),
+            subject=f"Core Project Moderation Accepted",
+            header=f"This is to inform you that you've accepted the moderatorship of {invite.coreproject.name}.",
+            actions=[{
+                'text': 'View Core Project',
+                'url': invite.coreproject.get_link
+            }],
+            footer=f"Now you have the control and will be shown as moderator of the core project at {PUBNAME}",
+            conclusion=f"This email was sent because you've accepted the core project's moderatorship."
+        )
 
-    sendActionEmail(
-        to=invite.receiver.getEmail(),
-        username=invite.receiver.getFName(),
-        subject=f"Core Project Moderation Accepted",
-        header=f"This is to inform you that you've accepted the moderatorship of {invite.coreproject.name}.",
-        actions=[{
-            'text': 'View Core Project',
-            'url': invite.coreproject.get_link
-        }],
-        footer=f"Now you have the control and will be shown as moderator of the core project at {PUBNAME}",
-        conclusion=f"This email was sent because you've accepted the core project's moderatorship."
-    )
 
-
-def coreProjectModTransferDeclinedInvitation(invite: CoreModerationTransferInvitation):
+def coreProjectModTransferDeclinedInvitation(invite: CoreModerationTransferInvitation) -> str:
     """
-    Invitation to accept project moderatorship
+    To notify sender about decline of core project moderatorship
+
+    Args:
+        invite (CoreModerationTransferInvitation): CoreModerationTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Core Project Moderation Transfer Failed",
@@ -394,15 +481,19 @@ def coreProjectModTransferDeclinedInvitation(invite: CoreModerationTransferInvit
     )
 
 
-def verProjectDeletionRequest(invite: VerProjectDeletionRequest):
+def verProjectDeletionRequest(invite: VerProjectDeletionRequest) -> str:
     """
-    Request to delete a verified project
+    To notify sender & receiver about deletion request of verified project
+
+    Args:
+        invite (VerProjectDeletionRequest): VerProjectDeletionRequest instance
+
+    Returns:
+        str: task ID of email task
     """
-    if invite.resolved:
+    if invite.resolved or invite.expired:
         return False
-    if invite.expired:
-        return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Verified Project Deletion Request",
@@ -413,53 +504,64 @@ def verProjectDeletionRequest(invite: VerProjectDeletionRequest):
         }],
         footer=f"Visit the above link to decide whether you'd accept or decline to do so.",
         conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
-    )
-    return sendActionEmail(
-        to=invite.sender.getEmail(),
-        username=invite.sender.getFName(),
-        subject=f"Verified Project Deletion Requested",
-        header=f"This is to inform you that you've requested {invite.receiver.getName()} ({invite.receiver.getEmail()}) to delete the verified project {invite.project.name}.",
-        actions=[{
-            'text': 'View Verified Project',
-            'url': invite.project.get_link
-        }],
-        footer=f"If they decline, then the project will not get deleted, else, deletion will start permanently.",
-        conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this verified project on {PUBNAME}, as soon as possible."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.sender.getEmail(),
+            username=invite.sender.getFName(),
+            subject=f"Verified Project Deletion Requested",
+            header=f"This is to inform you that you've requested {invite.receiver.getName()} ({invite.receiver.getEmail()}) to delete the verified project {invite.project.name}.",
+            actions=[{
+                'text': 'View Verified Project',
+                'url': invite.project.get_link
+            }],
+            footer=f"If they decline, then the project will not get deleted, else, deletion will start permanently.",
+            conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this verified project on {PUBNAME}, as soon as possible."
+        )
 
 
-def verProjectDeletionAcceptedRequest(invite: VerProjectDeletionRequest):
+def verProjectDeletionAcceptedRequest(invite: VerProjectDeletionRequest) -> str:
     """
-    Accepted request to verified project deletion
+    To notify sender & receiver about acceptence of verified project deletion request
+
+    Args:
+        invite (VerProjectDeletionRequest): VerProjectDeletionRequest instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Verified Project Deletion Accepted",
         header=f"This is to inform you that your request to delete the verified project, {invite.project.name}, has been accepted by {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
         footer=f"This action was irreversible, and the project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon.",
         conclusion=f"This email was sent because you had requested deletion of a verified project."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.receiver.getEmail(),
+            username=invite.receiver.getFName(),
+            subject=f"Verified Project Deletion Accepted",
+            header=f"This is to inform you that you've accepted to delete the verified project {invite.project.name}.",
+            footer=f"The project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon. This action was irreversible, as you should know already.",
+            conclusion=f"This email was sent because you've deleted a verified project."
+        )
 
-    sendActionEmail(
-        to=invite.receiver.getEmail(),
-        username=invite.receiver.getFName(),
-        subject=f"Verified Project Deletion Accepted",
-        header=f"This is to inform you that you've accepted to delete the verified project {invite.project.name}.",
-        footer=f"The project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon. This action was irreversible, as you should know already.",
-        conclusion=f"This email was sent because you've deleted a verified project."
-    )
 
-
-def verProjectDeletionDeclinedRequest(invite: VerProjectDeletionRequest):
+def verProjectDeletionDeclinedRequest(invite: VerProjectDeletionRequest) -> str:
     """
-    Declinded request to verified project deletion
+    To notify sender about decline of verified project deletion request
+
+    Args:
+        invite (VerProjectDeletionRequest): VerProjectDeletionRequest instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Verified Project Deletion Failed",
@@ -473,15 +575,19 @@ def verProjectDeletionDeclinedRequest(invite: VerProjectDeletionRequest):
     )
 
 
-def coreProjectDeletionRequest(invite: CoreProjectDeletionRequest):
+def coreProjectDeletionRequest(invite: CoreProjectDeletionRequest) -> str:
     """
-    Request to delete a core project
+    To notify sender & receiver about deletion request of core project
+
+    Args:
+        invite (CoreProjectDeletionRequest): CoreProjectDeletionRequest instance
+
+    Returns:
+        str: task ID of email task
     """
-    if invite.resolved:
+    if invite.resolved or invite.expired:
         return False
-    if invite.expired:
-        return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Core Project Deletion Request",
@@ -492,53 +598,64 @@ def coreProjectDeletionRequest(invite: CoreProjectDeletionRequest):
         }],
         footer=f"Visit the above link to decide whether you'd accept or decline to do so.",
         conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
-    )
-    return sendActionEmail(
-        to=invite.sender.getEmail(),
-        username=invite.sender.getFName(),
-        subject=f"Core Project Deletion Requested",
-        header=f"This is to inform you that you've requested {invite.receiver.getName()} ({invite.receiver.getEmail()}) to delete the core project {invite.coreproject.name}.",
-        actions=[{
-            'text': 'View Core Project',
-            'url': invite.coreproject.get_link
-        }],
-        footer=f"If they decline, then the project will not get deleted, else, deletion will start permanently.",
-        conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this core project on {PUBNAME}, as soon as possible."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.sender.getEmail(),
+            username=invite.sender.getFName(),
+            subject=f"Core Project Deletion Requested",
+            header=f"This is to inform you that you've requested {invite.receiver.getName()} ({invite.receiver.getEmail()}) to delete the core project {invite.coreproject.name}.",
+            actions=[{
+                'text': 'View Core Project',
+                'url': invite.coreproject.get_link
+            }],
+            footer=f"If they decline, then the project will not get deleted, else, deletion will start permanently.",
+            conclusion=f"If this action is unfamiliar, then you should cancel the request by visiting this core project on {PUBNAME}, as soon as possible."
+        )
 
 
-def coreProjectDeletionAcceptedRequest(invite: CoreProjectDeletionRequest):
+def coreProjectDeletionAcceptedRequest(invite: CoreProjectDeletionRequest) -> str:
     """
-    Accepted Request to core project deletion
+    To notify sender & receiver about acceptence of core project deletion request
+
+    Args:
+        invite (CoreProjectDeletionRequest): CoreProjectDeletionRequest instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Core Project Deletion Accepted",
         header=f"This is to inform you that your request to delete the core project, {invite.coreproject.name}, has been accepted by {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
         footer=f"This action was irreversible, and the project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon.",
         conclusion=f"This email was sent because you had requested deletion of a core project."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.receiver.getEmail(),
+            username=invite.receiver.getFName(),
+            subject=f"Core Project Deletion Accepted",
+            header=f"This is to inform you that you've accepted to delete the core project {invite.coreproject.name}.",
+            footer=f"The project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon. This action was irreversible, as you should know already.",
+            conclusion=f"This email was sent because you've deleted a core project."
+        )
 
-    sendActionEmail(
-        to=invite.receiver.getEmail(),
-        username=invite.receiver.getFName(),
-        subject=f"Core Project Deletion Accepted",
-        header=f"This is to inform you that you've accepted to delete the core project {invite.coreproject.name}.",
-        footer=f"The project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon. This action was irreversible, as you should know already.",
-        conclusion=f"This email was sent because you've deleted a core project."
-    )
 
-
-def coreProjectDeletionDeclinedRequest(invite: CoreProjectDeletionRequest):
+def coreProjectDeletionDeclinedRequest(invite: CoreProjectDeletionRequest) -> str:
     """
-    Declined Request to core project deletion
+    To notify sender about decline of core project deletion request
+
+    Args:
+        invite (CoreProjectDeletionRequest): CoreProjectDeletionRequest instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Core Project Deletion Failed",
@@ -552,15 +669,19 @@ def coreProjectDeletionDeclinedRequest(invite: CoreProjectDeletionRequest):
     )
 
 
-def baseProjectCoCreatorInvitation(invite: BaseProjectCoCreatorInvitation):
+def baseProjectCoCreatorInvitation(invite: BaseProjectCoCreatorInvitation) -> str:
     """
-    To send co-creator invitation
+    To notify sender & receiver about invitation for co-creatorship of base project
+
+    Args:
+        invite (BaseProjectCoCreatorInvitation): BaseProjectCoCreatorInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
-    if invite.resolved:
+    if invite.resolved or invite.expired:
         return False
-    if invite.expired:
-        return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Project Co-Creator Invite",
@@ -571,28 +692,34 @@ def baseProjectCoCreatorInvitation(invite: BaseProjectCoCreatorInvitation):
         }],
         footer=f"Visit the above link to decide whether you'd want to be a co-creator of the project.",
         conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make your decision there."
-    )
-    return sendActionEmail(
-        to=invite.sender.getEmail(),
-        username=invite.sender.getFName(),
-        subject=f"Project Co-Creator Invited",
-        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept co-creatorship of your project {invite.base_project.name}.",
-        actions=[{
-            'text': 'View project',
-            'url': invite.base_project.get_link
-        }],
-        footer=f"If they decline, then they will not be added as a co-creator.",
-        conclusion=f"If this action is unfamiliar, then you should delete the co-creator invite by visiting your project's profile."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.sender.getEmail(),
+            username=invite.sender.getFName(),
+            subject=f"Project Co-Creator Invited",
+            header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept co-creatorship of your project {invite.base_project.name}.",
+            actions=[{
+                'text': 'View project',
+                'url': invite.base_project.get_link
+            }],
+            footer=f"If they decline, then they will not be added as a co-creator.",
+            conclusion=f"If this action is unfamiliar, then you should delete the co-creator invite by visiting your project's profile."
+        )
 
 
-def baseProjectCoCreatorAcceptedInvitation(invite: BaseProjectCoCreatorInvitation):
+def baseProjectCoCreatorAcceptedInvitation(invite: BaseProjectCoCreatorInvitation) -> str:
     """
-    Accepted co-creatorship
+    To notify sender & receiver about acceptence of co-creatorship of base project
+
+    Args:
+        invite (BaseProjectCoCreatorInvitation): BaseProjectCoCreatorInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    elif sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Project Co-creator Invite Success",
@@ -603,29 +730,34 @@ def baseProjectCoCreatorAcceptedInvitation(invite: BaseProjectCoCreatorInvitatio
         }],
         footer=f"Now they can also edit and make changes to your project as a co-creator.",
         conclusion=f"If this action is unfamiliar, then you may contact us."
-    )
+    ):
+        return sendActionEmail(
+            to=invite.receiver.getEmail(),
+            username=invite.receiver.getFName(),
+            subject=f"Project Co-Creatorship Accepted",
+            header=f"This is to inform you that you've accepted the co-creatorship of {invite.base_project.name}.",
+            actions=[{
+                'text': 'View Project',
+                'url': invite.base_project.get_link
+            }],
+            footer=f"Now you have the control and will be shown as co-creator of the project at {PUBNAME}.",
+            conclusion=f"This email was sent because you've accepted the project's co-creatorship."
+        )
 
-    sendActionEmail(
-        to=invite.receiver.getEmail(),
-        username=invite.receiver.getFName(),
-        subject=f"Project Co-Creatorship Accepted",
-        header=f"This is to inform you that you've accepted the co-creatorship of {invite.base_project.name}.",
-        actions=[{
-            'text': 'View Project',
-            'url': invite.base_project.get_link
-        }],
-        footer=f"Now you have the control and will be shown as co-creator of the project at {PUBNAME}.",
-        conclusion=f"This email was sent because you've accepted the project's co-creatorship."
-    )
 
-
-def baseProjectCoCreatorDeclinedInvitation(invite: BaseProjectCoCreatorInvitation):
+def baseProjectCoCreatorDeclinedInvitation(invite: BaseProjectCoCreatorInvitation) -> str:
     """
-    Declined Co-Creatorship  
+    To notify sender & receiver about decline of co-creatorship of base project
+
+    Args:
+        invite (BaseProjectCoCreatorInvitation): BaseProjectCoCreatorInvitation instance
+
+    Returns:
+        str: task ID of email task
     """
     if not invite.resolved:
         return False
-    sendActionEmail(
+    return sendActionEmail(
         to=invite.sender.getEmail(),
         username=invite.sender.getFName(),
         subject=f"Project Co-Creatorship Invite Declined",

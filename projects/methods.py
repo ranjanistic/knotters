@@ -1,10 +1,11 @@
+from re import sub as re_sub
 from traceback import format_exc
 from uuid import UUID
 
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.http.response import HttpResponse
@@ -27,20 +28,59 @@ from .models import (Category, CoreProject, CoreProjectVerificationRequest,
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Renders the given file with the given data under templates/projects
+
+    Args:
+        request: The request object
+        file: The file to render under templates/projects, without the extension
+        data: The data to pass to the template
+
+    Returns:
+        HttpResponse: The rendered text/html view with default and provided context data
+    """
     return renderView(request, file, data, fromApp=APPNAME)
 
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Returns text/html content as http response with the given data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file for html content under templates/projects, without extension.
+        data (dict, optional): The data to pass to the template. Defaults to dict().
+
+    Returns:
+        HttpResponse: The text based html string content http response with default and provided context.
+    """
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
 def renderer_stronly(request: WSGIRequest, file: str, data: dict = dict()) -> str:
+    """Returns text/html content as string with the given context data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file for html content under templates/people, without extension.
+        data (dict, optional): The data to pass to the template. Defaults to dict().
+
+    Returns:
+        str: The text/html string content with default and provided context.
+    """
     return renderString(request, file, data, fromApp=APPNAME)
 
 
-def freeProfileData(request, nickname=None, projectID=None):
-    """
-    Returns profile data for free project.
+def freeProfileData(request, nickname: str = None, projectID: UUID = None) -> dict:
+    """Returns the context data to render a quick (free) project profile page.
+
+    Args:
+        request (WSGIRequest): The request object.
+        nickname (str, optional): The nickname of the project. Defaults to None.
+        projectID (UUID, optional): The id of the project. Defaults to None.
+
+    NOTE: Only one of the projectID or nickname are allowed to be None. If nickname is provided, it will be preferred.
+
+    Returns:
+        dict: The context data to render a quick (free) project profile page.
     """
     try:
         cacheKey = f"{APPNAME}_free_project"
@@ -61,7 +101,7 @@ def freeProfileData(request, nickname=None, projectID=None):
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         if project.suspended and not iscreator:
-            raise ObjectDoesNotExist('suspended', projectID)
+            raise ObjectDoesNotExist(project, iscreator)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
@@ -72,16 +112,26 @@ def freeProfileData(request, nickname=None, projectID=None):
             isAdmirer=isAdmirer,
             iscocreator=iscocreator
         )
-    except ObjectDoesNotExist:
-        return False
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
-def verifiedProfileData(request, reponame=None, projectID=None):
-    """
-    Returns profile data for verified project.
+def verifiedProfileData(request, reponame: str = None, projectID: UUID = None) -> dict:
+    """Returns the context data to render a verified project profile page.
+
+    Args:
+        request (WSGIRequest): The request object.
+        reponame (str, optional): The reponame of the project. Defaults to None.
+        projectID (UUID, optional): The id of the project. Defaults to None.
+
+    NOTE: Only one of the projectID or reponame are allowed to be None. If reponame is provided, it will be preferred.
+
+    Returns:
+        dict: The context data to render a verified project profile page.
     """
     try:
         cacheKey = f"{APPNAME}_verified_project"
@@ -103,7 +153,7 @@ def verifiedProfileData(request, reponame=None, projectID=None):
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
         ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
-            raise ObjectDoesNotExist('suspended', project)
+            raise ObjectDoesNotExist(project, iscreator, ismoderator)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
@@ -115,16 +165,26 @@ def verifiedProfileData(request, reponame=None, projectID=None):
             isAdmirer=isAdmirer,
             iscocreator=iscocreator
         )
-    except ObjectDoesNotExist:
-        return False
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
-def coreProfileData(request, codename=None, projectID=None):
-    """
-    Returns profile data for core project.
+def coreProfileData(request, codename: str = None, projectID: UUID = None) -> dict:
+    """Returns the context data to render a core project profile page.
+
+    Args:
+        request (WSGIRequest): The request object.
+        codename (str, optional): The codename of the project. Defaults to None.
+        projectID (UUID, optional): The id of the project. Defaults to None.
+
+    NOTE: Only one of the projectID or codename are allowed to be None. If codename is provided, it will be preferred.
+
+    Returns:
+        dict: The context data to render a core project profile page.
     """
     try:
         cacheKey = f"{APPNAME}_core_project"
@@ -159,95 +219,137 @@ def coreProfileData(request, codename=None, projectID=None):
             isAdmirer=isAdmirer,
             iscocreator=iscocreator
         )
-    except ObjectDoesNotExist:
-        return False
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
-def createFreeProject(name: str, category: str, nickname: str, description: str, creator: Profile, licenseID: UUID, sociallinks=[]) -> Project or bool:
+def createFreeProject(name: str, category: UUID, nickname: str, description: str, creator: Profile, licenseID: UUID, sociallinks: list = []) -> FreeProject:
     """
-    Creates project on knotters under moderation status.
+    Creates a free project on knotters.
 
-    :name: Display name of project
-    :category: The category of project
-    :reponame: Repository name, a unique indetifier of project
-    :description: Visible about (bio) of project
-    :tags: List of tag strings
-    :creator: The profile of project creator
-    :url: A display link for project, optional
+    Args:
+        name (str): Display name of project
+        category (UUID): The category ID of project
+        nickname (str): Nickname a unique indetifier of project
+        description (str): Visible about (bio) of project
+        creator (Profile): The profile of project creator
+        licenseID (UUID): The id of license
+        sociallinks (list): List of social links
+
+    Returns:
+        FreeProject: The created free project
+        bool: False if exception occured
     """
     try:
         nickname = uniqueRepoName(nickname)
         if not nickname:
             return False
-        license = License.objects.get(id=licenseID, public=True)
-        category = Category.objects.get(id=category)
+        license = License.get_cache_one(id=licenseID)
+        category = Category.get_cache_one(id=category)
         project = FreeProject.objects.create(
-            creator=creator, name=name, description=description, category=category, license=license, nickname=nickname)
-        socials = []
-        for soc in sociallinks:
-            socials.append(ProjectSocial(
-                project=project, site=str(soc).strip()))
+            creator=creator, name=name, description=description, category=category,
+            license=license,
+            nickname=nickname)
+        socials = list(map(lambda s: ProjectSocial(
+            project=project, site=str(s).strip()), sociallinks[:5]))
         ProjectSocial.objects.bulk_create(socials)
         return project
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
-def createProject(name: str, category: str, reponame: str, description: str, creator: Profile, licenseID: UUID, url: str = str(), forConversion=False) -> Project or bool:
+def createProject(name: str, category: str, reponame: str, description: str, creator: Profile, licenseID: UUID, url: str = str(), forConversion=False) -> Project:
     """
-    Creates project on knotters under moderation status.
+    Creates verified project on knotters under moderation status.
 
-    :name: Display name of project
-    :category: The category of project
-    :reponame: Repository name, a unique indetifier of project
-    :description: Visible about (bio) of project
-    :tags: List of tag strings
-    :creator: The profile of project creator
-    :url: A display link for project, optional
+    Args:
+        name (str): Display name of project
+        category (str): The category name of project
+        reponame (str): a unique indetifier of project
+        description (str): Visible about (bio) of project
+        creator (Profile): The profile of project creator
+        licenseID (UUID): The id of license
+        url (str): relevant link
+
+    Returns:
+        Project: The created verified project
+        bool: False if exception occured
     """
     try:
         reponame = uniqueRepoName(reponame, forConversion)
         if not reponame:
             return False
-        license = License.objects.get(id=licenseID, public=True)
+        license = License.get_cache_one(id=licenseID)
         categoryObj = addCategoryToDatabase(category, creator)
         if not categoryObj:
             return False
         return Project.objects.create(
-            creator=creator, name=name, reponame=reponame, description=description, category=categoryObj, url=url, license=license)
+            creator=creator, name=name, reponame=reponame,
+            description=description, category=categoryObj, url=url, license=license
+        )
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
-def createCoreProject(name: str, category: Category, codename: str, description: str, creator: Profile, license: License, budget: int = 0) -> CoreProject or bool:
+def createCoreProject(name: str, category: Category, codename: str, description: str, creator: Profile, license: License, budget: int = 0) -> CoreProject:
     """
     Creates core project on knotters under moderation status.
 
-    :name: Display name of project
-    :category: The category of project
-    :reponame: Repository name, a unique indetifier of project
-    :description: Visible about (bio) of project
-    :tags: List of tag strings
-    :creator: The profile of project creator
+    Args:
+        name (str): Display name of project
+        category (Category): The category of project
+        codename (str): a unique indetifier of project
+        description (str): Visible about (bio) of project
+        creator (Profile): The profile of project creator
+        license (License): The license instance
+        budget (int): The project budget
+
+    Returns:
+        CoreProject: The created core project
+        bool: False if exception occured
     """
     try:
         codename = uniqueRepoName(codename)
         if not codename:
             return False
-        return CoreProject.objects.create(creator=creator, name=name, codename=codename, description=description, category=category, license=license, budget=budget)
+        return CoreProject.objects.create(
+            creator=creator, name=name, codename=codename, description=description,
+            category=category, license=license, budget=budget
+        )
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
 def createConversionProjectFromFree(freeproject: FreeProject) -> Project:
+    """Creates a verified project under moderation status from existing free project
+
+    Args:
+        freeproject (FreeProject): The existing freeproject instance
+
+    Returns:
+        Project: A new verified project instance
+        bool: False if exception occurs
+    """
     try:
-        if Project.objects.filter(reponame=freeproject.nickname, status__in=[Code.MODERATION, Code.APPROVED], trashed=False, suspended=False).exists():
+        if not freeproject.is_normal:
+            return False
+        if Project.objects.filter(reponame=freeproject.nickname, status__in=[Code.MODERATION, Code.APPROVED], trashed=False, suspended=False, is_archived=False).exists():
             return False
         return Project.objects.create(
             creator=freeproject.creator,
@@ -257,16 +359,28 @@ def createConversionProjectFromFree(freeproject: FreeProject) -> Project:
             category=freeproject.category,
             license=freeproject.license
         )
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
 def createConversionProjectFromCore(coreproject: CoreProject, licenseID: UUID) -> Project:
+    """Creates a verified project under moderation status from existing live core project
+
+    Args:
+        coreproject (CoreProject): The existing CoreProject instance
+
+    Returns:
+        Project: A new verified project instance
+        bool: False if exception occurs
+    """
     try:
         if Project.objects.filter(reponame=coreproject.codename, status__in=[Code.MODERATION, Code.APPROVED], trashed=False, suspended=False).exists():
             return False
-        license = License.objects.get(id=licenseID, public=True)
+        license = License.get_cache_one(id=licenseID)
         return Project.objects.create(
             creator=coreproject.creator,
             name=coreproject.name,
@@ -275,16 +389,34 @@ def createConversionProjectFromCore(coreproject: CoreProject, licenseID: UUID) -
             category=coreproject.category,
             license=license
         )
+    except (ObjectDoesNotExist, ValidationError):
+        pass
     except Exception as e:
         errorLog(e)
-        return False
+        pass
+    return False
 
 
-def addCategoryToDatabase(category: str, creator=None) -> Category:
-    category = str(category).strip().replace('\n', str())
+def addCategoryToDatabase(category: str, creator: Profile = None) -> Category:
+    """To add a new category in database
+
+    Args:
+        category (str): The name of new category
+        creator (Profile, optional): The creator profile instance. Defaults to knottersbot.
+
+    Returns:
+        Category: A category instance (new/existing)
+    """
+    category = re_sub(r'[^a-zA-Z0-9\/\- ]', "", category[:50])
+    category = " ".join(list(filter(lambda c: c, category.split(' '))))
+    category = "-".join(list(filter(lambda c: c, category.split('-'))))
+    category = "/".join(list(filter(lambda c: c,
+                        category.split('/')))).capitalize()
     if not category:
         return False
     categoryObj = None
+    # if not creator:
+    #     creator = Profile.KNOTBOT()
     try:
         categoryObj = Category.objects.filter(name__iexact=category).first()
         if not categoryObj:
@@ -297,20 +429,41 @@ def addCategoryToDatabase(category: str, creator=None) -> Category:
     return categoryObj
 
 
-def addTagToDatabase(tag: str, creator=None) -> Tag:
-    tag = str(tag).strip('#').strip().replace(
-        '\n', str()).replace(" ", "_").strip()
-    if not tag or tag == '':
+def addTagToDatabase(tag: str, creator: Profile = None) -> Tag:
+    """To add a new tag in database
+
+    Args:
+        category (str): The name of new tag
+        creator (Profile, optional): The creator profile instance. Defaults to knottersbot.
+
+    Returns:
+        Tag: A tag instance (new/existing)
+    """
+    tag = re_sub(r'[^a-zA-Z0-9\_]', "", tag[:100])
+    tag = "_".join(list(filter(lambda t: t, tag.split('_'))))
+    if not tag:
         return False
     tagobj = uniqueTag(tag)
-    if tagobj == True:
+    if tagobj is True:
+        # if not creator:
+        #     creator = Profile.KNOTBOT()
         tagobj = Tag.objects.create(name=tag, creator=creator)
     return tagobj
 
 
-def uniqueRepoName(reponame: str, forConversion=False) -> bool:
+def uniqueRepoName(reponame: str, forConversion: bool = False) -> str:
     """
     Checks for unique nickname name among all kinds of existing projects
+
+    Args:
+        reponame (str): The nickname to check for uniqueness
+        forConversion (bool, optional): Whether this nickname is for conversion, in that case,
+            the provided reponame is also checked against any pending verification request records, and is 
+            allowed to be unique if any found.
+
+    Returns:
+        str: The reponame, if unique
+        bool: False, if not.
     """
     reponame = str(reponame).strip(
         '-').strip().replace(' ', '-').replace('--', '-').lower()
@@ -350,7 +503,11 @@ def uniqueRepoName(reponame: str, forConversion=False) -> bool:
 
 def uniqueTag(tagname: str) -> Tag:
     """
-    Checks for unique tag name among existing tags. Returns true if given tagname is unique, otherwise returns the matching Tag object
+    Checks for unique tag name among existing tags.
+
+    Returns:
+        Tag: The matching Tag object
+        bool: True, if given tagname is unique
     """
     try:
         return Tag.objects.get(name__iexact=tagname)
@@ -358,61 +515,75 @@ def uniqueTag(tagname: str) -> Tag:
         return True
 
 
-def setupApprovedProject(project: Project, moderator: Profile) -> bool:
+def setupApprovedProject(project: Project, moderator: Profile) -> str:
     """
-    Setup project which has been approved by moderator. (project status should be: LIVE)
+    Setup verified project which has been approved by moderator. (project status should be: LIVE)
 
-    Creates github org repository and setup restrictions & allowances.
+    Args:
+        project (Project): The approved verified project instance
+        moderator (Profile): The moderator of the project (Could've been retrieved from project instance as well!?)
 
-    Creates discord chat channel.
+    Returns:
+        str: The task ID of setting up project
+        bool: False if any exception
     """
     try:
         if not project.isApproved():
             return False
-        task = cache.get(f'approved_project_setup_{project.id}')
-        if task in [Message.SETTING_APPROVED_PROJECT]:
+        taskKey = f'approved_project_setup_{project.id}'
+        task = cache.get(taskKey)
+        if task == Message.SETTING_APPROVED_PROJECT:
             return True
-        cache.set(f'approved_project_setup_{project.id}',
-                  Message.SETTING_APPROVED_PROJECT, settings.CACHE_LONG)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}", project, moderator)
-        return True
+        cache.set(taskKey, Message.SETTING_APPROVED_PROJECT,
+                  settings.CACHE_LONG)
+        return addMethodToAsyncQueue(
+            f"{APPNAME}.methods.{setupOrgGihtubRepository.__name__}", project, moderator, taskKey)
     except Exception as e:
         errorLog(e)
         return False
 
 
-def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> bool:
+def setupApprovedCoreProject(project: CoreProject, moderator: Profile) -> str:
     """
-    Setup project which has been approved by moderator. (project status should be: LIVE)
+    Setup core project which has been approved by moderator. (project status should be: LIVE)
 
-    Creates github org repository and setup restrictions & allowances.
+    Args:
+        project (CoreProject): The approved core project instance
+        moderator (Profile): The moderator of the project (Could've been retrieved from project instance as well!?)
 
-    Creates discord chat channel.
+    Returns:
+        str: The task ID of setting up project
+        bool: False if any exception
     """
     try:
         if not project.isApproved():
             return False
-        task = cache.get(f'approved_coreproject_setup_{project.id}')
-        if task in [Message.SETTING_APPROVED_PROJECT]:
+        taskKey = f'approved_coreproject_setup_{project.id}'
+        task = cache.get(taskKey)
+        if task == Message.SETTING_APPROVED_PROJECT:
             return True
-        cache.set(f'approved_coreproject_setup_{project.id}',
-                  Message.SETTING_APPROVED_PROJECT, settings.CACHE_LONG)
-        addMethodToAsyncQueue(
-            f"{APPNAME}.methods.{setupOrgCoreGihtubRepository.__name__}", project, moderator)
-        return True
+        cache.set(taskKey, Message.SETTING_APPROVED_PROJECT,
+                  settings.CACHE_LONG)
+        return addMethodToAsyncQueue(
+            f"{APPNAME}.methods.{setupOrgCoreGihtubRepository.__name__}", project, moderator, taskKey)
     except Exception as e:
         errorLog(e)
         return False
 
 
-def setupOrgGihtubRepository(project: Project, moderator: Profile):
+def setupOrgGihtubRepository(project: Project, moderator: Profile, taskKey: str) -> bool:
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
-
     Invites creator to organization & created repository
+    Setup discord chat channel.
 
-    :reponame: The name of repository to be created
+    Args:
+        project (Project): The approved verified project instance
+        moderator (Profile): The profile instance of its moderator
+        taskKey (str): The key of task status in cache DB
+
+    Returns:
+        bool, str: True, message if successfully done, else False, error
     """
     try:
         if not project.isApproved():
@@ -554,8 +725,8 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
         except Exception as e:
             msg += f'discord err'
 
-        cache.set(f'approved_project_setup_{project.id}',
-                  Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
+        cache.set(taskKey, Message.SETUP_APPROVED_PROJECT_DONE,
+                  settings.CACHE_LONG)
         sendProjectApprovedNotification(project)
         return True, msg
     except Exception as e:
@@ -563,13 +734,19 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile):
         return False, e
 
 
-def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
+def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile, taskKey: str) -> bool:
     """
     Creates github org repository and setup restrictions & allowances for corresponding project.
-
     Invites creator to organization & created repository
+    Setup private discord chat channel.
 
-    :reponame: The name of repository to be created
+    Args:
+        coreproject (CoreProject): The approved core project instance
+        moderator (Profile): The profile instance of its moderator
+        taskKey (str): The key of task status in cache DB
+
+    Returns:
+        bool, str: True, message if successfully done, else False, error
     """
     try:
         if not coreproject.isApproved():
@@ -684,8 +861,8 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
         except Exception as e:
             msg += f'discord err'
 
-        cache.set(f'approved_coreproject_setup_{coreproject.id}',
-                  Message.SETUP_APPROVED_PROJECT_DONE, settings.CACHE_LONG)
+        cache.set(taskKey, Message.SETUP_APPROVED_PROJECT_DONE,
+                  settings.CACHE_LONG)
         sendCoreProjectApprovedNotification(coreproject)
         return True, msg
     except Exception as e:
@@ -693,47 +870,41 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile):
         return False, e
 
 
-def setupVProjectDiscord(project: Project):
+def setupVProjectDiscord(project: Project) -> str:
+    """Setup a Discord channel for the verified project
+
+    Args:
+        project (Project): The verified project instance
+
+    Returns:
+        str: The discord channel ID
+        bool: False if failed to create a channel
+    """
     return Discord.createChannel(project.reponame, public=True, category="PROJECTS", message=f"Official discord channel for {project.name} {project.get_abs_link}")
 
 
-def setupCProjectDiscord(coreproject: CoreProject):
+def setupCProjectDiscord(coreproject: CoreProject) -> str:
+    """Setup a Discord channel for the core project
+
+    Args:
+        project (Project): The core project instance
+
+    Returns:
+        str: The discord channel ID
+        bool: False if failed to create a channel
+    """
     return Discord.createChannel(coreproject.codename, public=False, category="PROJECTS", message=f"Official discord channel for {coreproject.name} {coreproject.get_abs_link}")
 
 
-def getGhOrgRepo(reponame: str) -> Repository:
-    try:
-        return GithubKnotters.get_repo(name=reponame)
-    except Exception as e:
-        return None
+def getProjectLiveData(project: Project) -> list:
+    """Returns third party platform data of verified/core project instance
 
+    Args:
+        project (Project/CoreProject): A verified or core project instance
 
-def getGhOrgTeam(teamname: str) -> Repository:
-    try:
-        return GithubKnotters.get_team_by_slug(teamname)
-    except Exception as e:
-        return None
-
-
-def inviteMemberToGithubOrg(ghUser: NamedUser) -> bool:
-    try:
-        already = GithubKnotters.has_in_members(ghUser)
-        if not already:
-            GithubKnotters.invite_user(user=ghUser, role="direct_member")
-        return True
-    except Exception as e:
-        errorLog(e)
-        return False
-
-
-def setupProjectDiscordChannel(reponame: str, creator: Profile, moderator: Profile) -> bool:
+    Returns:
+        list<NamedUser>, list<, list: contributors, languages, commits
     """
-    Creates discord chat channel for corresponding project.
-    """
-    return True
-
-
-def getProjectLiveData(project):
     try:
         ghOrgRepo = project.gh_repo()
         contributors = cache.get(
@@ -776,7 +947,15 @@ def getProjectLiveData(project):
         return [], [], []
 
 
-def deleteGhOrgVerifiedRepository(project: Project):
+def deleteGhOrgVerifiedRepository(project: Project) -> bool:
+    """To delete github repository & team of a verified project, or at least archive it.
+
+    Args:
+        project (Project): The verified project instance
+
+    Returns:
+        bool: True (it tries, so anyway)
+    """
     try:
         ghOrgteam = project.gh_team()
         if ghOrgteam:

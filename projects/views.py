@@ -29,6 +29,7 @@ from moderation.methods import (assignModeratorToObject,
                                 requestModerationForCoreProject,
                                 requestModerationForObject)
 from moderation.models import Moderation
+from people.methods import addTopicToDatabase
 from people.models import Profile, Topic
 from ratelimit.decorators import ratelimit
 
@@ -832,16 +833,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
 
             projecttopics = []
             for top in addtopics:
-                if len(top) > 35:
-                    continue
-                top = re_sub('[^a-zA-Z \\\s-]', '', top)
-                if len(top) > 35:
-                    continue
-                topic, created = Topic.objects.get_or_create(name__iexact=top, defaults=dict(
-                    name=str(top).capitalize(), creator=request.user.profile))
-                if created:
-                    for tag in project.getTags:
-                        topic.tags.add(tag)
+                topic = addTopicToDatabase(top, request.user.profile, project.getTags)
                 projecttopics.append(ProjectTopic(
                     topic=topic, project=project))
             if len(projecttopics) > 0:

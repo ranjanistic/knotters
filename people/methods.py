@@ -1,3 +1,6 @@
+from uuid import UUID
+
+from re import sub as re_sub
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -7,7 +10,7 @@ from allauth.socialaccount.providers.linkedin_oauth2.provider import \
 from compete.models import Competition, CompetitionJudge, Result
 from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http.response import HttpResponse
@@ -24,7 +27,7 @@ from .models import (Framework, Profile, ProfileSetting, Topic, User,
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    """Renders the given file with the given data.
+    """Renders the given file with the given data under templates/people
 
     Args:
         request (WSGIRequest): The request object.
@@ -38,15 +41,15 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRespon
 
 
 def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
-    """Returns text based html content as http response with the given data.
+    """Returns text/html content as http response with the given data.
 
     Args:
         request (WSGIRequest): The request object.
         file (str): The file for html content under templates/people, without extension.
         data (dict, optional): The data to pass to the template. Defaults to dict().
-    
+
     Returns:
-        HttpResponse: The text based html string content http response with default and provided context.
+        HttpResponse: The text/html string content http response with default and provided context.
     """
     return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
@@ -56,7 +59,7 @@ def convertToFLname(string: str) -> str:
 
     Args:
         string (str): The string to convert.
-    
+
     Returns:
         str, str: firstname, lastname.
 
@@ -81,7 +84,7 @@ def filterBio(string: str) -> str:
 
     Args:
         string (str): Assuming this to be user profile bio, operations will take place.
-    
+
     Returns:
         str: Filtered string based profile bio.
     """
@@ -92,11 +95,26 @@ def filterBio(string: str) -> str:
     return bio
 
 
-def addTopicToDatabase(topic: str, creator=None) -> Topic:
-    topic = str(topic).strip().replace('\n', str())
+def addTopicToDatabase(topic: str, creator: Profile = None, tags:list = []) -> Topic:
+    """Adds a new topic to the database.
+
+    Args:
+        topic (str): The topic name to add.
+        creator (Profile, optional): The profile who created the topic. Defaults to knottersbot.
+        tags (list<Tag>, optional): tags to associate with the topic. Defaults to [].
+
+    Returns:
+        Topic: The newly created topic instance.
+    """
+    topic = re_sub(r'[^a-zA-Z0-9\/\- ]', "", topic[:50])
+    topic = " ".join(list(filter(lambda t: t, topic.split(' '))))
+    topic = "-".join(list(filter(lambda t: t, topic.split('-'))))
+    topic = "/".join(list(filter(lambda t: t, topic.split('/')))).capitalize()
     if not topic:
         return False
     topicObj = None
+    # if not creator:
+    #     creator = Profile.KNOTBOT()
     try:
         topicObj = Topic.objects.filter(name__iexact=topic).first()
         if not topicObj:
@@ -104,6 +122,8 @@ def addTopicToDatabase(topic: str, creator=None) -> Topic:
     except:
         if not topicObj:
             topicObj = Topic.objects.create(name=topic, creator=creator)
+    if len(tags):
+        topicObj.tags.set(tags)
     return topicObj
 
 
@@ -115,7 +135,19 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
                     profileString.setting.PREFERENCE, profileString.setting.SECURITY]
 
 
-def profileRenderData(request, userID=None, nickname=None):
+def profileRenderData(request:WSGIRequest, userID: UUID = None, nickname: str = None) -> dict:
+    """Returns the context data to render a profile page.
+
+    Args:
+        request (WSGIRequest): The request object.
+        userID (UUID, optional): The user's id. Defaults to None.
+        nickname (str, optional): The user's nickname. Defaults to None.
+
+    NOTE: Only one of the userID or nickname are allowed to be None. If nickname is provided, it will be preferred.
+
+    Returns:
+        dict: The context data to render a profile page.
+    """
     try:
         cacheKey = f"{APPNAME}_profiledata"
         if userID:
@@ -150,11 +182,15 @@ def profileRenderData(request, userID=None, nickname=None):
         if has_ghID:
             gh_orgID = profile.gh_orgID()
         is_manager = profile.is_manager()
-
         return dict(
-            person=profile.user, self=self, has_ghID=has_ghID, gh_orgID=gh_orgID, is_manager=is_manager, is_admirer=is_admirer
+            person=profile.user,
+            self=self,
+            has_ghID=has_ghID,
+            gh_orgID=gh_orgID,
+            is_manager=is_manager,
+            is_admirer=is_admirer
         )
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist, ValidationError):
         return False
     except Exception as e:
         errorLog(e)
@@ -162,9 +198,18 @@ def profileRenderData(request, userID=None, nickname=None):
 
 
 def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
+    """Returns the context data to render a profile section.
 
+    Args:
+        section (str): The section to render.
+        profile (Profile): The profile to render.
+        requestUser (User): The requesting user.
+
+    Returns:
+        dict: The context data to render a profile section.
+    """
     if requestUser.is_authenticated and profile.isBlocked(requestUser) or not profile.is_active:
-        return None
+        raise ObjectDoesNotExist(profile, requestUser)
     cachekey = f"{section}_{profile.user.id}"
     try:
         selfprofile = requestUser == profile.user
@@ -263,13 +308,24 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
         else:
             return False
         return data
+    except (KeyError, ValidationError, ObjectDoesNotExist):
+        return False
     except Exception as e:
         errorLog(e)
         return False
 
 
 def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) -> str:
-    if not PROFILE_SECTIONS.__contains__(section):
+    """Returns the text/HTML to render a profile section.
+
+    Args:
+        profile (Profile): The profile instance.
+        section (str): The section to render.
+
+    Returns:
+        str: The text/HTML to render a profile section.
+    """
+    if section not in PROFILE_SECTIONS:
         return False
     data = dict()
     for sec in PROFILE_SECTIONS:
@@ -280,6 +336,16 @@ def getProfileSectionHTML(profile: Profile, section: str, request: WSGIRequest) 
 
 
 def getSettingSectionData(section: str, user: User, requestuser: User) -> dict:
+    """Returns the context data to render a settings section.
+
+    Args:
+        section (str): The section to render.
+        user (User): The user instance.
+        requestuser (User): The requsting user instance
+
+    Returns:
+        dict: The context data to render a settings section.
+    """
     data = dict()
     if not requestuser.is_authenticated:
         return data
@@ -297,7 +363,17 @@ def getSettingSectionData(section: str, user: User, requestuser: User) -> dict:
 
 
 def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str:
-    if not SETTING_SECTIONS.__contains__(section) or request.user != user:
+    """Returns the text/HTML to render a settings section.
+
+    Args:
+        user (User): The user instance.
+        section (str): The section to render.
+        request (WSGIRequest): The request object.
+
+    Returns:
+        str: The text/HTML to render a settings section.
+    """
+    if section not in SETTING_SECTIONS or request.user != user:
         return False
     data = dict()
     for sec in SETTING_SECTIONS:
@@ -309,7 +385,13 @@ def getSettingSectionHTML(user: User, section: str, request: WSGIRequest) -> str
 
 def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
     """
-    Returns user profile image url by social account.
+    Returns user profile third party account image URL by social account.
+
+    Args:
+        socialaccount (SocialAccount): The social account instance.
+
+    Returns:
+        str: The user profile third party account image URL, or default image URL.
     """
     try:
         if socialaccount.provider == GitHubProvider.id:
@@ -344,13 +426,19 @@ def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
 def isPictureSocialImage(picture: str) -> str:
     """
     If the given url points to a oauth provider account profile image, returns the provider id.
+
+    Args:
+        picture (str): The picture url.
+
+    Returns:
+        str: The matched provider id, or False.
     """
     if isPictureDeletable(picture):
         return False
 
     providerID = None
     for id in [DiscordProvider.id, GitHubProvider.id, GoogleProvider.id, LinkedInOAuth2Provider.id, "licdn.com"]:
-        if str(picture).__contains__(id):
+        if id in str(picture):
             providerID = id
             break
     return providerID
@@ -359,10 +447,14 @@ def isPictureSocialImage(picture: str) -> str:
 def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
     """
     Extracts github ID of user from their github profile url.
+
+    Args:
+        ghSocial (SocialAccount): The github social account instance.
+
+    Returns:
+        str: The github ID, or None.
     """
     try:
-        url = ghSocial.get_profile_url()
-        urlparts = str(url).split('/')
-        return urlparts[len(urlparts)-1] if urlparts[len(urlparts)-1] else None
+        return ghSocial.get_profile_url().split('/')[-1]
     except:
         return None
