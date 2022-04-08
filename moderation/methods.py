@@ -1,9 +1,12 @@
+from uuid import UUID
+
 from compete.models import Competition
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Q
+from django.http.response import HttpResponse
 from main.exceptions import IllegalModeration, IllegalModerationType
 from main.methods import errorLog, renderView
 from main.strings import COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code
@@ -14,11 +17,32 @@ from .apps import APPNAME
 from .models import LocalStorage, Moderation
 
 
-def renderer(request: WSGIRequest, file: str, data: dict = dict()):
+def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """ Render a moderation view with the given data. 
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file to render, under the templates/moderation directory, without the extension.
+        data (dict, optional): The data to pass to the template. Defaults to an empty dict.
+
+    Returns:
+        HttpResponse: The rendered text/html view with the default and given data.
+    """
     return renderView(request, file, data, fromApp=APPNAME)
 
 
 def getModelByType(type: str) -> models.Model:
+    """ Get the model class for the given moderation type.
+
+    Args:
+        type (str): The type of model to get.
+
+    Raises:
+        IllegalModerationType: If the type is not valid.
+
+    Returns:
+        models.Model: The model class for the given moderation type.
+    """
     if type == PROJECTS:
         return Project
     if type == CORE_PROJECT:
@@ -32,6 +56,16 @@ def getModelByType(type: str) -> models.Model:
 
 
 def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: list = []) -> list:
+    """ Get the IDs of profiles that should be ignored when choosing a moderator for the given moderation type and object.
+
+    Args:
+        modType (str): The type of moderation to get.
+        object (models.Model): The object to get the ignore list for.
+        extraProfiles (list, optional): A list of extra profiles to add to the ignore list. Defaults to an empty list.
+
+    Returns:
+        list: The IDs of profiles that should be ignored for the given moderation type and object.
+    """
     ignoreModProfileIDs = []
     if modType == PROJECTS and isinstance(object, Project):
         ignoreModProfileIDs.append(object.creator.id)
@@ -54,7 +88,18 @@ def getIgnoreModProfileIDs(modType: str, object: models.Model, extraProfiles: li
     return ignoreModProfileIDs
 
 
-def getObjectCreator(object: models.Model):
+def getObjectCreator(object: models.Model) -> Profile:
+    """ Get the creator of the given object.
+
+    Args:
+        object (models.Model): The object to get the creator of.
+
+    Raises:
+        IllegalModerationType: If the type of object is not valid.
+
+    Returns:
+        Profile: The creator of the given object.
+    """
     if isinstance(object, Project) or isinstance(object, CoreProject):
         return object.creator
     elif isinstance(object, Competition):
@@ -66,20 +111,29 @@ def getObjectCreator(object: models.Model):
 
 
 def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModProfiles: list = [], preferModProfiles: list = [], onlyModProfiles=False, samplesize=100, internal=False) -> Profile:
-    """
+    """Get a moderator to assign a moderation to the given object.
     Implementes round robin algorithm to retreive an available moderator, along with other restrictions.
 
-    :type: The type of sub application for which the entity is to be moderated
-    :object: The instance of the entity to be moderated. (Profile | Project | Coreproject | Competition)
-    :ignoreModProfiles: The profile object list of moderators to be ignored, optionally.
-    :preferModProfiles: The profile object list of moderators to be considered preferable, optionally.
-    :onlyModProfiles: The profile object list of moderators to only be considered, optionally. Suitable for organizations.
-    :samplesize: The number of moderators in a set to be considered.
-    :internal: If the moderation is internal or not (useful for managements).
-    If :preferModProfiles: and :onlyModProfiles: are provided simultaneously, :onlyModProfiles: will only be considered.
+    NOTE: In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles: or :preferModProfiles:,
+    :ignoreModProfiles: will be the deciding factor.
 
-    In case of common object(s) between :ignoreModProfiles: and :onlyModProfiles: or :preferModProfiles:, :ignoreModProfiles: will be the deciding factor.
+    NOTE: If :preferModProfiles: and :onlyModProfiles: are provided simultaneously, :onlyModProfiles: will only be considered.
 
+
+    Args:
+        type (str): The type of moderation
+        object (models.Model): The object to assign a moderator to
+        ignoreModProfiles (list<Profile>, optional): The list of moderators Profile instances to ignore. Defaults to an empty list.
+        preferModProfiles (list<Profile>, optional): The list of moderators Profile instances to prefer. Defaults to an empty list.
+        onlyModProfiles (list<Profile>, bool, optional): The list of moderators Profile instances to only consider. Defaults to False.
+        samplesize (int, optional): The size of moderators pool. Defaults to 100.
+        internal (bool, optional): If the moderation is internal or not. Defaults to False.
+
+    Raises:
+        IllegalModeration: If the type is not valid.
+
+    Returns:
+        Profile: A moderator to assign to the given object.
     """
 
     ignoreModProfileIDs = getIgnoreModProfileIDs(
@@ -217,16 +271,23 @@ def requestModerationForObject(
     useInternalMods=False,
     stale_days=3,
     chosenModerator: Profile = None
-) -> Moderation or bool:
-    """
-    Submit a subapplication entity model object for moderation.
+) -> Moderation:
+    """Submit a subapplication entity model object for moderation.
 
-    :object: The subapplication entity model object (Project|Profile|Competition)
-    :type: The subapplication or entity type.
-    :requestData: Relevent string data regarding moderation.
-    :referUrl: Relevant url regarding moderation.
-    :reassignIfRejected: If True, and if a moderation already exists for the :object: with status Code.REJECTED, then a new moderation instance is created for it. Default False.
-    :reassignIfApproved: If True, and if a moderation already exists for the :object: with status Code.APPROVED, then a new moderation instance is created for it. Default False.
+    Args:
+        object (models.Model): The subapplication entity model object (Project|Profile|Competition)
+        type (str): The subapplication or entity type.
+        requestData (str): Relevent string data regarding moderation.
+        referUrl (str): Relevant url regarding moderation.
+        reassignIfRejected (bool, optional): If True, and if a moderation already exists for the :object: with status Code.REJECTED,
+            then a new moderation instance is created for it. Default False.
+        reassignIfApproved (bool, optional): If True, and if a moderation already exists for the :object: with status Code.APPROVED,
+            then a new moderation instance is created for it. Default False.
+        chosenModerator (Profile, optional): If not None, will try to assign this moderator if possible, instead of finding new one. Default None.
+
+    Returns:
+        Moderation: The assigned moderation instance.
+        bool: False if no moderation instance was assigned.
     """
     try:
         if type == PROJECTS:
@@ -315,15 +376,23 @@ def requestModerationForCoreProject(
     stale_days=3,
     chosenModerator: Profile = None,
 ) -> Moderation or bool:
-    """
-    Submit a subapplication entity model object for moderation.
+    """Submit a coreproject object for moderation.
 
-    :object: The subapplication entity model object (Project|Profile|Competition)
-    :type: The subapplication or entity type.
-    :requestData: Relevent string data regarding moderation.
-    :referUrl: Relevant url regarding moderation.
-    :reassignIfRejected: If True, and if a moderation already exists for the :object: with status Code.REJECTED, then a new moderation instance is created for it. Default False.
-    :reassignIfApproved: If True, and if a moderation already exists for the :object: with status Code.APPROVED, then a new moderation instance is created for it. Default False.
+    Args:
+        creproject (CoreProject): The coreproject instance
+        requestData (str): Relevent string data regarding moderation.
+        referUrl (str): Relevant url regarding moderation.
+        reassignIfRejected (bool, optional): If True, and if a moderation already exists for the :object: with status Code.REJECTED,
+            then a new moderation instance is created for it. Default False.
+        reassignIfApproved (bool, optional): If True, and if a moderation already exists for the :object: with status Code.APPROVED,
+            then a new moderation instance is created for it. Default False.
+        useInternalMods (bool, optional): If True, will use internal moderators of the management. Default False.
+        stale_days (int, optional): The number of days after which a moderation is considered stale. Default 3.
+        chosenModerator (Profile, optional): If not None, will try to assign this moderator if possible, instead of finding new one. Default None.
+
+    Returns:
+        Moderation: The assigned moderation instance.
+        bool: False if no moderation instance was assigned.
     """
     try:
 
@@ -388,6 +457,21 @@ def requestModerationForCoreProject(
 
 
 def assignModeratorToObject(type, object, moderator: Profile, requestData='', referURL='', stale_days=3, internal_mod=False):
+    """Assign a moderator to an object, by creating a new moderation instance.
+
+    Args:
+        type (str): The type of the object.
+        object (Object): The object instance.
+        moderator (Profile): The moderator instance.
+        requestData (str, optional): Relevent string data regarding moderation. Default ''.
+        referURL (str, optional): Relevant url regarding moderation. Default ''.
+        stale_days (int, optional): The number of days after which a moderation is considered stale. Default 3.
+        internal_mod (bool, optional): If True, will use internal moderators of the management. Default False.
+
+    Returns:
+        Moderation: The assigned moderation instance.
+        bool: False if no moderation instance was assigned.
+    """
     try:
         if not (moderator.is_moderator and moderator.is_normal):
             raise Exception('Invalid moderator')
@@ -409,6 +493,20 @@ def assignModeratorToObject(type, object, moderator: Profile, requestData='', re
 
 
 def assignModeratorToCoreProject(coreproject: CoreProject, moderator: Profile, requestData='', referURL='', stale_days=3, internal_mod=False):
+    """Assign a moderator to a coreproject, by creating a new moderation instance.
+
+    Args:
+        coreproject (CoreProject): The coreproject instance.
+        moderator (Profile): The moderator instance.
+        requestData (str, optional): Relevent string data regarding moderation. Default ''.
+        referURL (str, optional): Relevant url regarding moderation. Default ''.
+        stale_days (int, optional): The number of days after which a moderation is considered stale. Default 3.
+        internal_mod (bool, optional): If True, will use internal moderators of the management. Default False.
+
+    Returns:
+        Moderation: The assigned moderation instance.
+        bool: False if no moderation instance was assigned.
+    """
     try:
         if not (moderator.is_moderator and moderator.is_normal):
             raise Exception('Invalid moderator', moderator)
@@ -418,7 +516,16 @@ def assignModeratorToCoreProject(coreproject: CoreProject, moderator: Profile, r
         return False
 
 
-def moderationRenderData(request, modID):
+def moderationRenderData(request: WSGIRequest, modID: UUID) -> dict:
+    """Render the data for a moderation view.
+
+    Args:
+        request (WSGIRequest): The request object.
+        modID (UUID): The moderation ID.
+
+    Returns:
+        dict: The rendered data.
+    """
     try:
         moderation = Moderation.objects.get(id=modID)
         isModerator = moderation.moderator == request.user.profile
@@ -445,9 +552,8 @@ def moderationRenderData(request, modID):
                 forwarded = forwardeds[0]
             data = dict(**data, forwarded=forwarded)
         return data
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist, ValidationError):
         return False
     except Exception as e:
         errorLog(e)
         return False
-

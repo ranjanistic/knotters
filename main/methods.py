@@ -467,7 +467,7 @@ def user_device_notify(user_s: str,
                        badge: str = None, actions: list = [],
                        dir: str = None, image: str = None, lang: str = None, renotify: bool = None, requireInteraction: bool = False, silent: bool = False, tag: str = None, timestamp=None, vibrate: list = None
                        ):
-    """Add queue task to send device push notification to a subscription group.
+    """Add queue task to send device push notification to a user of list of users.
 
     Args:
         user_s (User, list<User>): The user instance or list of instances to send to.

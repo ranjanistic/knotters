@@ -582,7 +582,7 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
-
+@ratelimit(key='user_or_ip', rate='1/s', block=True, method=(Code.POST,Code.GET))
 def contact_categories(request: WSGIRequest) -> JsonResponse:
     """To get the contact categories.
 

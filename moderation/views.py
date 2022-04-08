@@ -2,14 +2,14 @@ from uuid import UUID
 
 from compete.mailers import submissionsModeratedAlert
 from compete.models import Submission
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import (decode_JSON, moderator_only,
-                             normal_profile_required, require_JSON_body)
+                             normal_profile_required, require_JSON)
 from main.methods import errorLog, respondJson, user_device_notify
 from main.strings import COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code, Message
 from management.models import ReportCategory
@@ -18,8 +18,8 @@ from projects.mailers import projectRejectedNotification
 from projects.methods import setupApprovedCoreProject, setupApprovedProject
 from projects.models import (CoreProjectVerificationRequest,
                              FreeProjectVerificationRequest)
+from ratelimit.decorators import ratelimit
 
-from .apps import APPNAME
 from .mailers import moderationAssignedAlert
 from .methods import (getModeratorToAssignModeration, moderationRenderData,
                       renderer, requestModerationForCoreProject,
@@ -31,6 +31,18 @@ from .receivers import *
 @normal_profile_required
 @require_GET
 def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
+    """Renders a moderation view.
+
+    Args:
+        request (WSGIRequest): The request object.
+        id (UUID): The id of the moderation.
+
+    Raises:
+        Http404: If the moderation does not exist, or any exception occurs.
+
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+    """
     try:
         data = moderationRenderData(request, id)
         if not data:
@@ -46,26 +58,33 @@ def moderation(request: WSGIRequest, id: UUID) -> HttpResponse:
 @normal_profile_required
 @require_POST
 def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
+    """To save message by moderator or requestor in an active moderation.
+
+    Args:
+        request (WSGIRequest): The request object.
+        modID (UUID): The id of the moderation.
+
+    Raises:
+        Http404: If the moderation does not exist, or any exception occurs.
+
+    Returns:
+        HttpResponseRedirect: The redirect to the moderation view.
     """
-    Message by moderator or requestor.
-    """
+    mod = None
     try:
         now = timezone.now()
         responseData = str(request.POST.get('responsedata', "")).strip()
         requestData = str(request.POST.get('requestdata', "")).strip()
         if not responseData and not requestData:
-            raise Exception()
+            raise ObjectDoesNotExist(modID)
 
-        mod = Moderation.objects.get(id=modID)
-        if mod.resolved:
-            return redirect(mod.getLink(alert=Message.ALREADY_RESOLVED))
+        mod = Moderation.objects.get(id=modID, resoved=False)
+
         if mod.is_stale:
-            raise Exception()
+            raise ObjectDoesNotExist(mod)
 
         isRequester = mod.isRequestor(request.user.profile)
         isModerator = mod.moderator == request.user.profile
-        if not isRequester and not isModerator:
-            raise Exception()
 
         if isModerator:
             if not responseData:
@@ -87,18 +106,33 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
                 mod.save()
             return redirect(mod.getLink(alert=Message.REQ_MESSAGE_SAVED))
         else:
-            raise Exception()
-    except ObjectDoesNotExist as o:
+            raise ObjectDoesNotExist(request.user)
+    except (ObjectDoesNotExist, ValidationError) as o:
+        if mod:
+            redirect(mod.getLink(error=Message.INVALID_REQUEST))
         raise Http404(o)
     except Exception as e:
+        errorLog(e)
+        if mod:
+            redirect(mod.getLink(error=Message.ERROR_OCCURRED))
         raise Http404(e)
 
 
 @moderator_only
-@require_JSON_body
+@require_JSON
 def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
-    """
-    Moderator action on moderation. (Project, primarily)
+    """To take action on moderation, to be used by moderators for verified  or core project primarily.
+
+    Args:
+        request (WSGIRequest): The request object.
+        modID (UUID): The id of the moderation.
+
+    Raises:
+        Http404: If the moderation does not exist, or any exception occurs.
+
+    Returns:
+        JsonResponse: The json response main.strings.Code.OK or main.strings.Code.NO.
+        HttpResponseRedirect: The redirect to the moderation view or relevant view depending upon action status.
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     mod = None
@@ -106,7 +140,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
         mod = Moderation.objects.get(
             id=modID, moderator=request.user.profile, resolved=False)
         if mod.is_stale:
-            raise Exception()
+            raise ObjectDoesNotExist(mod)
         skip = request.POST.get('skip', None)
         if skip:
             if mod.type == CORE_PROJECT or mod.type == COMPETE:
@@ -170,7 +204,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 return respondJson(Code.OK if done else Code.NO, error=Message.ERROR_OCCURRED if not done else str())
             else:
                 return respondJson(Code.NO, error=Message.INVALID_RESPONSE)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         if mod:
@@ -188,9 +222,22 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
 @normal_profile_required
 @require_POST
 @decode_JSON
-def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
-    """
-    Re-request for moderation if possible, and if rejected or stale. (Project, primarily)
+def reapply(request: WSGIRequest, modID: UUID) -> JsonResponse:
+    """To re-request for moderation, if rejected or stale, if possible (Verified or Core Projects, primarily),
+    to be used by requestor via POST method.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        modID (UUID): The id of the moderation.
+
+    Raises:
+        Http404: If the moderation does not exist, or any exception occurs.
+
+    Returns:
+        JsonResponse: The json response main.strings.Code.OK or main.strings.Code.NO.
+        HttpResponseRedirect: The redirect to the moderation view or relevant view depending upon reapplication status.
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
@@ -229,10 +276,21 @@ def reapply(request: WSGIRequest, modID: UUID) -> HttpResponse:
 
 
 @moderator_only
-@require_JSON_body
+@require_JSON
 def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
-    """
-    To finalize valid submissions for judgement of a competition under moderation.
+    """To finalize valid submissions to be sent for judgement of a competition under moderation (For Competitions).
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        modID (UUID): The id of the moderation.
+
+    Raises:
+        Http404: If the moderation does not exist, or any exception occurs.
+
+    Returns:
+        JsonResponse: The json response main.strings.Code.OK or main.strings.Code.NO.
     """
     try:
         mod = Moderation.objects.get(
@@ -269,36 +327,56 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
                 profiletopic.increasePoints(by=modXP)
         request.user.profile.increaseXP(by=modXP)
         return respondJson(Code.OK)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError, KeyError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-def reportCategories(request: WSGIRequest):
+@ratelimit(key='user_or_ip', rate='1/s', block=True, method=(Code.POST, Code.GET))
+def reportCategories(request: WSGIRequest) -> JsonResponse:
+    """To get the categories to be used for reporting.
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response main.strings.Code.OK with report categories (id, name), or main.strings.Code.NO.
+    """
     try:
-        categories = ReportCategory.objects.all()
-        reports = []
-        for cat in categories:
-            reports.append(dict(id=cat.id, name=cat.name))
+        reports = list(ReportCategory.get_all().values_list("id", "name"))
         return respondJson(Code.OK, dict(reports=reports))
+    except (ObjectDoesNotExist, ValidationError, KeyError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
-@require_JSON_body
-def reportModeration(request: WSGIRequest):
+@require_JSON
+def reportModeration(request: WSGIRequest) -> JsonResponse:
+    """To report a moderation.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response main.strings.Code.OK or main.strings.Code.NO.
+    """
     try:
-        report = request.POST['report']
-        moderationID = request.POST['moderationID']
+        report = UUID(request.POST['report'][:20])
+        moderationID = UUID(request.POST['moderationID'][:20])
         moderation = Moderation.objects.get(id=moderationID)
-        category = ReportCategory.objects.get(id=report)
+        category = ReportCategory.get_cache_one(id=report)
         request.user.profile.reportModeration(moderation, category)
         return respondJson(Code.OK)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

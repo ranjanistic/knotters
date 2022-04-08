@@ -6,7 +6,16 @@ from people.models import Profile
 from .models import Moderation
 
 
-def moderationAssignedAlert(moderation: Moderation) -> bool:
+def moderationAssignedAlert(moderation: Moderation) -> str:
+    """Sends an email to the moderator that they have been assigned a moderation.
+
+    Args:
+        moderation (Moderation): The moderation that has been assigned.
+
+    Returns:
+        str: task ID of the email task.
+        bool: False if the email was not sent.
+    """
     return sendActionEmail(
         to=moderation.moderator.getEmail(),
         username=moderation.moderator.getName(),
@@ -21,7 +30,17 @@ def moderationAssignedAlert(moderation: Moderation) -> bool:
     )
 
 
-def moderationActionAlert(moderation: Moderation, status: str) -> bool:
+def moderationActionAlert(moderation: Moderation, status: str) -> str:
+    """Sends an email to the moderator notifying them of a their moderation action.
+
+    Args:
+        moderation (Moderation): The moderation that has been assigned.
+        status (str): The status of the moderation.
+
+    Returns:
+        str: task ID of the email task.
+        bool: False if the email was not sent.
+    """
     return sendAlertEmail(
         to=moderation.moderator.getEmail(),
         username=moderation.moderator.getFName(),
@@ -36,7 +55,16 @@ def moderationActionAlert(moderation: Moderation, status: str) -> bool:
     )
 
 
-def madeModeratorAlert(profile: Profile) -> bool:
+def madeModeratorAlert(profile: Profile) -> str:
+    """Sends an email to the user notifying them that they have been promoted to moderator.
+
+    Args:
+        profile (Profile): The profile that has been promoted.
+
+    Returns:
+        str: task ID of the email task.
+        bool: False if the email was not sent.
+    """
     return sendActionEmail(
         to=profile.getEmail(),
         username=profile.getFName(),

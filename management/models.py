@@ -96,8 +96,39 @@ class ReportCategory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=1000)
 
+    ALL_CACHE_KEY = f"report_categories_all"
+
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        super(ReportCategory, self).save(*args, **kwargs)
+        self.reset_all_cache()
+
+
+    def get_all(*args) -> models.QuerySet:
+        """Get all report categories, preferably from cache
+        """
+        cache_key = ReportCategory.ALL_CACHE_KEY
+        categories = cache.get(cache_key, None)
+        if categories is None:
+            categories = ReportCategory.objects.all()
+            cache.set(cache_key, categories, settings.CACHE_ETERNAL)
+        return categories
+
+    def get_cache_one(id, *args) -> "ReportCategory":
+        """Get one report category by id, preferably from cache
+        """
+        return ReportCategory.get_all().get(id=id)
+
+    
+    def reset_all_cache(*args) -> models.QuerySet:
+        """Reset all cache. Can be used when adding/updating ReportCategory objects.
+        """
+        cache.delete(ReportCategory.ALL_CACHE_KEY)
+        cats = ReportCategory.objects.all()
+        cache.set(ReportCategory.ALL_CACHE_KEY, cats, settings.CACHE_ETERNAL)
+        return cats
 
 
 class HookRecord(models.Model):
