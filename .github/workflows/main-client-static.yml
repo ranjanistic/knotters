@@ -4,9 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "genversion.py"
       - "static/**"
-      - "management/management/commands/preparestatics.py"
 
 jobs:
   testing:
