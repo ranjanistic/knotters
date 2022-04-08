@@ -17,6 +17,8 @@ def main(ENVPATH):
         print(f"Default Database: {env.DBNAME}")
         print(f"Redis Database: {env.REDIS_DB}")
         print(f"Version: {env.VERSION}")
+        print(f"Media Root: {env.MEDIA_ROOT}")
+        print(f"Media URL: {env.MEDIA_URL}")
         print(f"Static Root: {env.STATIC_ROOT}")
         print(f"Static URL: {env.STATIC_URL}")
 
