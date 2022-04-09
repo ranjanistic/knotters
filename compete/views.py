@@ -5,12 +5,12 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from django.views.decorators.cache import cache_control
 from django.db.models import Q, Sum
 from django.http.response import (Http404, HttpResponse,
                                   HttpResponseServerError, JsonResponse)
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import (decode_JSON, manager_only, mentor_only,
                              normal_profile_required, require_JSON)
@@ -1096,7 +1096,12 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        query = request.GET.get('query', request.POST['query'])
+        query = request.GET.get('query', request.POST.get('query', ""))[
+            :100].strip()
+
+        if not query:
+            raise KeyError(query)
+
         limit = request.GET.get('limit', request.POST.get('limit', 10))
 
         cachekey = f'compete_browse_search_{query}{request.LANGUAGE_CODE}'

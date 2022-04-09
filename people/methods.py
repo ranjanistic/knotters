@@ -1,6 +1,6 @@
+from re import sub as re_sub
 from uuid import UUID
 
-from re import sub as re_sub
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from allauth.socialaccount.providers.discord.provider import DiscordProvider
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -95,7 +95,7 @@ def filterBio(string: str) -> str:
     return bio
 
 
-def addTopicToDatabase(topic: str, creator: Profile = None, tags:list = []) -> Topic:
+def addTopicToDatabase(topic: str, creator: Profile = None, tags: list = []) -> Topic:
     """Adds a new topic to the database.
 
     Args:
@@ -113,8 +113,8 @@ def addTopicToDatabase(topic: str, creator: Profile = None, tags:list = []) -> T
     if not topic:
         return False
     topicObj = None
-    # if not creator:
-    #     creator = Profile.KNOTBOT()
+    if not creator:
+        creator = Profile.KNOTBOT()
     try:
         topicObj = Topic.objects.filter(name__iexact=topic).first()
         if not topicObj:
@@ -135,7 +135,7 @@ SETTING_SECTIONS = [profileString.setting.ACCOUNT,
                     profileString.setting.PREFERENCE, profileString.setting.SECURITY]
 
 
-def profileRenderData(request:WSGIRequest, userID: UUID = None, nickname: str = None) -> dict:
+def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str = None) -> dict:
     """Returns the context data to render a profile page.
 
     Args:
@@ -230,14 +230,14 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             if not selfprofile:
                 projects = projects.filter(suspended=False)
                 data[Code.APPROVED] = list(
-                    filter(lambda p: p.is_approved, projects))
+                    filter(lambda p: p.is_approved(), projects))
             else:
                 data[Code.APPROVED] = list(
-                    filter(lambda p: p.is_approved, projects))
+                    filter(lambda p: p.is_approved(), projects))
                 data[Code.MODERATION] = list(
-                    filter(lambda p: p.is_pending, projects))
+                    filter(lambda p: p.is_pending(), projects))
                 data[Code.REJECTED] = list(
-                    filter(lambda p: p.is_rejected, projects))
+                    filter(lambda p: p.is_rejected(), projects))
             if len(projects):
                 cache.set(cachekey, projects, settings.CACHE_INSTANT)
         elif section == profileString.ACHEIVEMENTS:
@@ -245,20 +245,17 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             if not len(results):
                 results = Result.objects.filter(
                     submission__members=profile).order_by('-rank', '-points')
-                if len(results):
-                    cache.set(cachekey, results, settings.CACHE_INSTANT)
+                cache.set(cachekey, results, settings.CACHE_INSTANT)
             judements = cache.get(f"{cachekey}{Code.JUDGEMENTS}", [])
             if not len(judements):
                 judements = CompetitionJudge.objects.filter(
                     competition__resultDeclared=True, judge=profile).order_by("-competition__createdOn")
-                if len(judements):
-                    cache.set(cachekey, judements, settings.CACHE_INSTANT)
+                cache.set(cachekey, judements, settings.CACHE_INSTANT)
             moderations = cache.get(f"{cachekey}{Code.MODERATIONS}", [])
             if not len(moderations):
                 moderations = Moderation.objects.filter(
                     type=COMPETE, moderator=profile, resolved=True, status=Code.APPROVED, competition__resultDeclared=True).order_by('-respondOn')
-                if len(moderations):
-                    cache.set(cachekey, moderations, settings.CACHE_INSTANT)
+                cache.set(cachekey, moderations, settings.CACHE_INSTANT)
             data[Code.RESULTS] = results
             data[Code.JUDGEMENTS] = judements
             data[Code.MODERATIONS] = moderations
@@ -271,8 +268,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                 else:
                     frameworks = Framework.objects.filter(
                         creator=profile, trashed=False, is_draft=False).order_by("-createdOn")
-                if len(frameworks):
-                    cache.set(cachekey, frameworks, settings.CACHE_INSTANT)
+                cache.set(cachekey, frameworks, settings.CACHE_INSTANT)
             data[Code.FRAMEWORKS] = frameworks
         elif section == profileString.CONTRIBUTION:
             pass

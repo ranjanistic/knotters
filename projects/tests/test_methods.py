@@ -23,26 +23,31 @@ class ProjectsMethodTest(TestCase):
             name=getLicName(), description=getLicDesc(), creator=self.bot.profile, public=True)
         return super().setUpTestData()
 
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
+
     def test_uniqueRepoName(self):
         self.assertTrue(uniqueRepoName(getProjRepo()))
 
     def test_addCategoryToDatabase(self):
         self.assertIsInstance(addCategoryToDatabase(
-            getProjCategory()), Category)
+            getProjCategory(), self.bot.profile), Category)
 
     def test_uniqueTag(self):
         self.assertTrue(uniqueTag(getProjRepo()))
 
     def test_addTagToDatabase(self):
-        self.assertIsInstance(addTagToDatabase(getTag()), Tag)
+        self.assertIsInstance(addTagToDatabase(getTag(), self.bot.profile), Tag)
 
     @tag('create')
-    def test_createProject(self):
+    def _test_createProject(self):
         self.assertIsInstance(createProject(getProjName(), getProjCategory(
         ), getProjRepo(), getProjDesc(), self.creator, self.license.getID()), Project)
         pass
 
-    def test_setupApprovedProject(self):
+    @tag('create')
+    def _test_setupApprovedProject(self):
         project = createProject(getProjName(), getProjCategory(
         ), getProjRepo(), getProjDesc(), self.creator, self.license.getID())
         self.assertIsInstance(project, Project)

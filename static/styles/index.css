@@ -279,11 +279,7 @@ h6.text-negative {
         padding-left: 0px !important;
     }
 }
-@media (max-width: 450px) {
-    .swiper-slide {
-        width: 300px;
-    }
-}
+
 .scroll-x {
     overflow-x: scroll;
 }

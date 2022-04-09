@@ -182,7 +182,7 @@
                 <br/>
                 {% for topicdata in project.getTopicsData %}
                     <a href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}">
-                        <button class="big-button topic-name primary positive-text">
+                        <button class="big-button topic-name secondary {{project.theme}}-text">
                         {{topicdata.topic}}
                         </button>
                     </a>

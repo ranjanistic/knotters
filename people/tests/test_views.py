@@ -59,12 +59,14 @@ class TestViews(TestCase):
         return super().setUpTestData()
 
     def setUp(self) -> None:
+        Profile.KNOTBOT()
         resp = self.client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             login=self.email,
             password=self.password,
         ))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTrue(resp.context['user'].is_authenticated)
+        return super().setUp()
 
     def test_index(self):
         resp = self.client.get(follow=True, path=root(url.INDEX))

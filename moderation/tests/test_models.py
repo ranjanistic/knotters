@@ -43,6 +43,10 @@ class ModerationTest(TestCase):
         ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)
 
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_moderation_creation_fail(self):
         with self.assertRaises(ObjectDoesNotExist):
@@ -91,6 +95,10 @@ class ModerationAttributeTest(TestCase):
             title=getCompTitle(), creator=self.mguser.profile, endAt=timezone.now()+timedelta(days=3))
         self.mod = Moderation.objects.create(
             moderator=self.moderator, type=PROJECTS, project=self.project)
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_moderation_methods(self):
         self.assertEqual(self.mod.getID(), self.mod.id.hex)
@@ -146,6 +154,10 @@ class LocalStorageAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.local = LocalStorage.objects.create(
             key=getLocalKey(), value=getLocalValue())
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_localstorage_methods(self):
         self.assertEqual(self.local.__str__(), self.local.key)

@@ -76,6 +76,10 @@ class TestViews(TestCase):
             ))
         EmailAddress.objects.bulk_create(mailaddrs)
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_index(self):
         response = self.client.get(follow=True, path=root(appendslash=True))

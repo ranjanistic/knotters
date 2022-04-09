@@ -25,6 +25,10 @@ class ProjectTest(TestCase):
         self.license = License.objects.create(name=getLicName(
         ), description=getLicDesc(), creator=self.bot.profile, public=True)
 
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
+
     def test_project_create_invalid(self):
         with self.assertRaises(ObjectDoesNotExist):
             Project.objects.create(name=getProjName(), reponame=getProjRepo(),)
@@ -60,6 +64,10 @@ class ProjectAttributeTest(TestCase):
         ), description=getLicDesc(), creator=self.bot.profile, public=True)
         self.project = Project.objects.create(name=getProjName(
         ), creator=self.creator, reponame=getProjRepo(), category=self.category, license=self.license)
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_project_default_methods(self):
         self.assertEqual(self.project.__str__(), self.project.name)
@@ -83,12 +91,11 @@ class ProjectAttributeTest(TestCase):
         self.project.image = projectImagePath(self.project, getProjImage())
         self.project.save()
         self.project.image = defaultImagePath()
-        self.project.save()
         self.project.status = Code.MODERATION
         self.project.save()
         users = User.objects.bulk_create(getTestUsersInst())
         Profile.objects.create(user=users[0], is_moderator=True)
-        requestModerationForObject(self.project, APPNAME)
+        done = requestModerationForObject(self.project, APPNAME)
         self.assertEqual(self.project.getLink(), self.project.getModLink())
         self.assertTrue(self.project.moderationRetriesLeft() > 0)
         self.assertTrue(self.project.canRetryModeration())
@@ -109,6 +116,10 @@ class TagTest(TestCase):
         self.project = Project.objects.create(name=getProjName(
         ), creator=self.creator, reponame=getProjRepo(), category=self.category, license=self.license)
         return super().setUpTestData()
+
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_tag_create(self):
         Tag.objects.create(name=getTag())
@@ -140,6 +151,10 @@ class TagAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.tag = Tag.objects.create(name=getTag())
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_category_methods(self):
         self.assertEqual(self.tag.__str__(), self.tag.name)
@@ -158,6 +173,10 @@ class CategoryTest(TestCase):
         ), description=getLicDesc(), creator=self.bot.profile, public=True)
         self.category = Category.objects.create(name=getProjCategory())
         return super().setUpTestData()
+
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_create_category(self):
         Category.objects.create(name=getProjCategory())
@@ -194,6 +213,10 @@ class CategoryAttributeTest(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.category = Category.objects.create(name=getProjCategory())
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_category_methods(self):
         self.assertEqual(self.category.__str__(), self.category.name)
@@ -214,6 +237,10 @@ class TopicTest(TestCase):
         self.project = Project.objects.create(name=getProjName(
         ), creator=self.creator, reponame=getProjRepo(), category=self.category, license=self.license)
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_topic_assign_project(self):
         topics = Topic.objects.bulk_create(getTestTopicsInst(4))

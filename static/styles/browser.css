@@ -2,6 +2,8 @@
     width: 80%;
     max-height: fit-content;
 }
-.swiper-wrap {
-    padding-left: 18px;
+
+.swiper-slide {
+    margin-left: 16px;
+    margin-right: 0px !important;
 }

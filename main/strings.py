@@ -1064,8 +1064,8 @@ class URL():
             return setPathParams(self.TAGSUPDATE, projID)
 
         USER_GH_REPOS = "github/user/repos"
-        LINK_FREE_REPO = "github/user/repos/link"
-        UNLINK_FREE_REPO = "github/user/repos/unlink"
+        LINK_FREE_REPO = "github/user/repos/link/<str:projectID>/"
+        UNLINK_FREE_REPO = "github/user/repos/unlink/<str:projectID>/"
 
         LIVEDATA = 'livedata/<str:projID>/'
 

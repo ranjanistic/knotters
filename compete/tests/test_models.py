@@ -48,6 +48,10 @@ class CompetitionM2MTest(TestCase):
         self.judges = Profile.objects.filter(user__in=users)
         self.topics = Topic.objects.bulk_create(getTestTopicsInst(4))
 
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
+
     def test_comp_assign_judges(self):
         for judge in self.judges:
             self.comp.judges.add(judge)
@@ -83,6 +87,10 @@ class CompetitionAttributeTest(TestCase):
         self.mgprofile.convertToManagement()
         self.comp = Competition.objects.create(is_draft=False,
             title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mguser.profile)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_default_comp_methods(self):
         self.assertTrue(competeBannerPath(
@@ -181,6 +189,10 @@ class CompetitionJudgeAttributeTest(TestCase):
         self.comp.judges.add(judge)
         self.compjudge = CompetitionJudge.objects.get(
             competition=self.comp, judge=judge)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_comp_judge_methods(self):
         self.assertEqual(self.compjudge.__str__(), self.comp.title)
@@ -202,6 +214,10 @@ class CompetitionTopicAttributeTest(TestCase):
         self.comp.topics.add(topic)
         self.comptopic = CompetitionTopic.objects.get(
             competition=self.comp, topic=topic)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_comp_topic_methods(self):
         self.assertEqual(self.comptopic.__str__(), self.comp.title)
@@ -231,6 +247,10 @@ class SubmissionTest(TestCase):
         for judge in self.judges:
             self.comp.judges.add(judge)
         self.users = Profile.objects.filter(user__in=users)[3:54]
+
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_submission_creation(self):
         submissions = []
@@ -324,6 +344,10 @@ class SubmissionM2MTest(TestCase):
         for sub in Submission.objects.filter(competition=self.comp):
             sub.members.add(self.users[s])
             s += 1
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_submission_members(self):
         s = 0
@@ -353,6 +377,11 @@ class SubmissionAttributeTest(TestCase):
         SubmissionParticipant.objects.filter(
             submission=self.subm, profile=self.firstmem).update(confirmed=True)
         self.invitee = Profile.objects.create(user=users[1])
+
+
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_new_subm_methods(self):
         self.assertEqual(self.subm.__str__(),
@@ -418,6 +447,10 @@ class SubmissionTopicPointTest(TestCase):
             ))
             i += 1
         self.subs = Submission.objects.bulk_create(submissions)
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_assign_topic_point(self):
         topicpoints = []
@@ -466,6 +499,10 @@ class SubmissionTopicPointAttributeTest(TestCase):
             0], submitted=True, submitOn=timezone.now())
         self.submTopicPoint = SubmissionTopicPoint.objects.create(
             submission=self.subm, judge=self.judge, topic=self.topic, points=randint(0, self.comp.eachTopicMaxPoint))
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_default_submtoppoint_method(self):
         self.assertEqual(self.submTopicPoint.__str__(), self.subm.getID())
@@ -522,6 +559,10 @@ class ResultTest(TestCase):
                     ))
         SubmissionTopicPoint.objects.bulk_create(topicpoints)
 
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
+
     def test_comp_results(self):
         done = self.comp.declareResults()
         self.assertIsNotNone(done)
@@ -572,6 +613,10 @@ class ResultAttributeTest(TestCase):
         self.comp.declareResults()
         self.result = Result.objects.get(
             competition=self.comp, submission=self.subm)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_result_methods(self):
         self.assertEqual(self.result.__str__(

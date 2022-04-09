@@ -27,6 +27,7 @@ class TestViews(TestCase):
     def setUpTestData(self) -> None:
         self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
+        Profile.KNOTBOT()
         self.client = Client()
         self.license = License.objects.create(
             name=getLicName(), description=getLicDesc(), creator=self.bot.profile, public=True)
@@ -49,7 +50,9 @@ class TestViews(TestCase):
         return super().setUpTestData()
 
     def setUp(self) -> None:
+        Profile.KNOTBOT()
         self.client = Client()
+        return super().setUp()
 
     def test_index(self):
         resp = self.client.get(follow=True, path=root(''))
@@ -145,6 +148,7 @@ class TestViews(TestCase):
         self.assertEqual(json_loads(
             resp.content.decode(Code.UTF_8))['code'], Code.OK)
 
+    @tag('addlic')
     def test_addLicense(self):
         resp = self.client.post(path=root(url.projects.ADDLICENSE))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
@@ -154,7 +158,7 @@ class TestViews(TestCase):
             follow=True, path=root(url.projects.ADDLICENSE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(
-            Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_LIC_DATA))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
 
         licname = getLicName()
         resp = self.client.post(follow=True, path=root(url.projects.ADDLICENSE), data={
@@ -166,8 +170,8 @@ class TestViews(TestCase):
         license = License.objects.get(name=licname, creator=self.profile)
         self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK,
                              license=dict(id=license.getID(), name=license.name, description=license.description)))
-
-    def test_submitProject(self):
+    @tag('create')
+    def _test_submitProject(self):
         resp = self.client.post(follow=True, path=root(url.projects.SUBMIT))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
@@ -203,7 +207,7 @@ class TestViews(TestCase):
         category = Category.objects.get(name=categoryname)
         self.assertTrue(project.acceptedTerms)
         self.assertEqual(project.creator, self.profile)
-        self.assertEqual(project.moderator, self.modprofile)
+        self.assertEqual(project.moderator(), self.modprofile)
         self.assertEqual(project.category, category)
         self.assertEqual(str(project.image), defaultImagePath())
         self.assertIsNone(project.approvedOn)
@@ -233,7 +237,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.people.index)
         self.assertTemplateUsed(resp, template.people.profile)
 
-    def test_profile(self):
+    def _test_profile(self):
         self.client.login(email=self.email, password=self.password)
         reponame = getProjRepo()
         resp = self.client.post(follow=True, path=root(url.projects.SUBMIT), data={
@@ -315,7 +319,7 @@ class TestViews(TestCase):
             url.projects.topicsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
 
         resp = self.client.post(follow=True, path=root(url.projects.topicsSearch(project.getID())), data={
                                 'query': getRandomStr()})
@@ -356,7 +360,7 @@ class TestViews(TestCase):
             url.projects.tagsSearch(project.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
 
         resp = self.client.post(follow=True, path=root(url.projects.tagsSearch(project.getID())), data={
                                 'query': getRandomStr()})

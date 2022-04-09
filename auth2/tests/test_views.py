@@ -51,6 +51,7 @@ class TestViews(TestCase):
         return super().setUpTestData()
 
     def setUp(self) -> None:
+        Profile.KNOTBOT()
         resp = self.client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             login=self.email,
             password=self.password,
@@ -325,6 +326,10 @@ class TestViewsAuth(TestCase):
         self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_signup(self):
         resp = self.client.get(follow=True, path=authroot(url.auth.SIGNUP))

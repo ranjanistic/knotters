@@ -249,9 +249,8 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                             loader()
                             message("Linking repository...");
                             const data = await postRequest2({
-                                path: URLS.LINK_FREE_REPO,
+                                path: setPathParams(URLS.LINK_FREE_REPO, projectID),
                                 data: {
-                                    projectID,
                                     repoID: result.value,
                                 }
                             })
@@ -283,7 +282,9 @@ const projectcolor = getComputedStyle(document.querySelector(':root')).getProper
                 if(result.isDenied){
                     loader()
                     message('Unlinking...')
-                    const data = await postRequest2({path:URLS.UNLINK_FREE_REPO,data:{projectID}})
+                    const data = await postRequest2({
+                        path:setPathParams(URLS.UNLINK_FREE_REPO, projectID)
+                    })
                     if(!data) return loader(false)
                     if(data.code===code.OK){
                         futuremessage(`Unlinked your '{{project.linked_repo.reponame}}' repository`)

@@ -78,7 +78,7 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
         if not responseData and not requestData:
             raise ObjectDoesNotExist(modID)
 
-        mod = Moderation.objects.get(id=modID, resoved=False)
+        mod: Moderation = Moderation.objects.get(id=modID, resoved=False)
 
         if mod.is_stale:
             raise ObjectDoesNotExist(mod)
@@ -137,7 +137,7 @@ def action(request: WSGIRequest, modID: UUID) -> JsonResponse:
     json_body = request.POST.get(Code.JSON_BODY, False)
     mod = None
     try:
-        mod = Moderation.objects.get(
+        mod: Moderation = Moderation.objects.get(
             id=modID, moderator=request.user.profile, resolved=False)
         if mod.is_stale:
             raise ObjectDoesNotExist(mod)
@@ -241,7 +241,7 @@ def reapply(request: WSGIRequest, modID: UUID) -> JsonResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        mod = Moderation.objects.get(
+        mod: Moderation = Moderation.objects.get(
             id=modID)
         newmod = None
         if mod.type == PROJECTS:
@@ -293,7 +293,7 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
         JsonResponse: The json response main.strings.Code.OK or main.strings.Code.NO.
     """
     try:
-        mod = Moderation.objects.get(
+        mod: Moderation = Moderation.objects.get(
             id=modID, type=COMPETE, status=Code.MODERATION, resolved=False, moderator=request.user.profile)
         submissions = request.POST['submissions']
         invalidSubIDs = []
@@ -347,7 +347,8 @@ def reportCategories(request: WSGIRequest) -> JsonResponse:
         JsonResponse: The json response main.strings.Code.OK with report categories (id, name), or main.strings.Code.NO.
     """
     try:
-        reports = list(ReportCategory.get_all().values_list("id", "name"))
+        reports = list(map(lambda r: dict(id=r[0], name=r[1]), list(
+            ReportCategory.get_all().values_list("id", "name"))))
         return respondJson(Code.OK, dict(reports=reports))
     except (ObjectDoesNotExist, ValidationError, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -370,9 +371,9 @@ def reportModeration(request: WSGIRequest) -> JsonResponse:
         JsonResponse: The json response main.strings.Code.OK or main.strings.Code.NO.
     """
     try:
-        report = UUID(request.POST['report'][:20])
-        moderationID = UUID(request.POST['moderationID'][:20])
-        moderation = Moderation.objects.get(id=moderationID)
+        report = UUID(request.POST['report'][:50])
+        moderationID = UUID(request.POST['moderationID'][:50])
+        moderation: Moderation = Moderation.objects.get(id=moderationID)
         category = ReportCategory.get_cache_one(id=report)
         request.user.profile.reportModeration(moderation, category)
         return respondJson(Code.OK)

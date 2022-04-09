@@ -1072,6 +1072,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         cachekey = f"main_browser_{type}{request.LANGUAGE_CODE}"
         excludeUserIDs = []
         if request.user.is_authenticated:
+            
             excludeUserIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
@@ -1088,8 +1089,12 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 snapIDs = [snap.id for snap in snaps]
 
                 if not len(snaps):
-                    snaps = Snapshot.objects.filter(Q(Q(base_project__admirers=request.user.profile) | Q(base_project__creator=request.user.profile) | Q(creator__admirers=request.user.profile)),
-                                                    base_project__suspended=False, base_project__trashed=False, suspended=False).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
+                    snaps = Snapshot.objects.filter(
+                        Q(Q(base_project__admirers=request.user.profile)
+                        | Q(base_project__creator=request.user.profile)
+                        | Q(creator__admirers=request.user.profile)),
+                        base_project__suspended=False, base_project__trashed=False, suspended=False
+                    ).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
                     cache.set(cachekey, snaps, settings.CACHE_INSTANT)
 
@@ -1122,7 +1127,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                     timezone.now()+timedelta(days=-30)), suspended=False, trashed=False).exclude(creator__user__id__in=excludeUserIDs).order_by('-createdOn')[:limit]
 
                 projects = list(
-                    set(list(filter(lambda p: p.is_approved, projects))))
+                    set(list(filter(lambda p: p.is_approved(), projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
@@ -1148,13 +1153,13 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(
                     creator__user__id__in=excludeUserIDs)[:limit]
                 projects = list(
-                    set(list(filter(lambda p: p.is_approved, projects))))
+                    set(list(filter(lambda p: p.is_approved(), projects))))
                 count = len(projects)
                 if count < 1:
                     projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
                         creator__user__id__in=excludeUserIDs)[:limit]
                     projects = list(
-                        set(list(filter(lambda p: p.is_approved, projects))))
+                        set(list(filter(lambda p: p.is_approved(), projects))))
                     count = len(projects)
 
                 if count:
@@ -1170,7 +1175,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 projects = BaseProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
                     creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 projects = list(
-                    set(list(filter(lambda p: p.is_approved, projects))))
+                    set(list(filter(lambda p: p.is_approved(), projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
@@ -1261,7 +1266,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                     projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
                         creator__user__id__in=excludeUserIDs)[:limit]
                     projects = list(
-                        set(list(filter(lambda p: p.is_approved, projects))))
+                        set(list(filter(lambda p: p.is_approved(), projects))))
                     cache.set(cachekey, projects, settings.CACHE_MINI)
                     cache.set(tcacheKey, topic, settings.CACHE_MINI)
                 return projectsRendererstr(request, Template.Projects.BROWSE_TOPIC_PROJECTS, dict(projects=projects, count=len(projects), topic=topic))

@@ -84,6 +84,10 @@ class UserAttributeTest(TestCase):
         self.setting = ProfileSetting.objects.get(profile=self.profile)
         self.emailaddress = EmailAddress.objects.create(
             user=self.user, email=self.user.email)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_user_methods(self):
         self.assertEqual(self.user.__str__(), self.user.email)
@@ -131,6 +135,10 @@ class ProfileAttributeTest(TestCase):
         self.setting = ProfileSetting.objects.get(profile=self.profile)
         self.emailaddress = EmailAddress.objects.create(
             user=self.user, email=self.user.email, verified=True)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     @tag('testprofilemethods')
     def test_profile_methods(self):
@@ -176,6 +184,10 @@ class ProfileM2MTest(TestCase):
         self.setting = ProfileSetting.objects.get(profile=self.profile)
         self.emailaddress = EmailAddress.objects.create(
             user=self.user, email=self.user.email, verified=True)
+        
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_profile_topics(self):
         topicnames = getTestTopics(3)
@@ -203,6 +215,10 @@ class TopicTest(TestCase):
             topics.append(Topic(name=name))
         Topic.objects.bulk_create(topics)
         self.topics = Topic.objects.filter()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_topic_methods(self):
         self.assertEqual(self.topics.first().__str__(),

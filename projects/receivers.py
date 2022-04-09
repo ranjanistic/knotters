@@ -3,8 +3,9 @@ from django.dispatch import receiver
 
 from .mailers import freeProjectCreated, freeProjectDeleted
 from .models import (Asset, BaseProject, BaseProjectCoCreator,
-                     BaseProjectCoCreatorInvitation, Category, CoreProject, FreeProject,
-                     LegalDoc, Project, Snapshot, defaultImagePath)
+                     BaseProjectCoCreatorInvitation, Category, CoreProject,
+                     FreeProject, LegalDoc, Project, Snapshot,
+                     defaultImagePath)
 
 
 @receiver(post_delete, sender=Category)
@@ -17,6 +18,7 @@ def on_category_delete(sender, instance: Category, **kwargs):
     except Exception as e:
         pass
 
+
 @receiver(post_save, sender=Category)
 def on_category_create(sender, instance: Category, created, **kwargs):
     """
@@ -24,14 +26,16 @@ def on_category_create(sender, instance: Category, created, **kwargs):
     """
     if created:
         instance.reset_all_cache()
-        
+
+
 @receiver(post_save, sender=Project)
 def on_project_create(sender, instance: Project, created, **kwargs):
     """
     Project submitted.
     """
     if created:
-        instance.creator.increaseXP(by=2, reason="Submitted a verified project")
+        instance.creator.increaseXP(
+            by=2, reason="Submitted a verified project")
 
 
 @receiver(post_save, sender=FreeProject)
@@ -57,7 +61,7 @@ def on_project_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=Asset)
-def on_asset_delete(sender, instance, **kwargs):
+def on_asset_delete(sender, instance: Asset, **kwargs):
     """
     Project cleanup.
     """
@@ -68,7 +72,7 @@ def on_asset_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=FreeProject)
-def on_freeproject_delete(sender, instance, **kwargs):
+def on_freeproject_delete(sender, instance: FreeProject, **kwargs):
     """
     Project cleanup.
     """
@@ -82,7 +86,7 @@ def on_freeproject_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=CoreProject)
-def on_coreproject_delete(sender, instance, **kwargs):
+def on_coreproject_delete(sender, instance: CoreProject, **kwargs):
     """
     Project cleanup.
     """
@@ -95,7 +99,7 @@ def on_coreproject_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=Snapshot)
-def on_snap_delete(sender, instance, **kwargs):
+def on_snap_delete(sender, instance: Snapshot, **kwargs):
     """
     Project cleanup.
     """

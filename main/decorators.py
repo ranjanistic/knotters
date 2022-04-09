@@ -52,6 +52,7 @@ def decDec(inner_dec: callable) -> callable:
 @decDec(require_POST)
 def require_JSON(function: callable) -> callable:
     """To make sure that the request method is POST and that the request body is a JSON object.
+    If body is not a JSON object, then allows the request to continue if method is POST.
 
     Args:
         function (callable): The function to be decorated.
@@ -67,13 +68,10 @@ def require_JSON(function: callable) -> callable:
             loadedbody = json_loads(request.body.decode(Code.UTF_8))
             request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
             return function(request, *args, **kwargs)
-        except JSONDecodeError:
+        except Exception:
             if request.method == Code.POST:
                 return function(request, *args, **kwargs)
             return HttpResponseNotAllowed(permitted_methods=[Code.POST])
-        except Exception as e:
-            errorLog(e)
-            return HttpResponseBadRequest()
     return wrap
 
 
@@ -84,7 +82,8 @@ def require_JSON_body(function):
 
 
 def decode_JSON(function: callable) -> callable:
-    """To decode the JSON object in the request body, if it is a JSON object.
+    """To decode the JSON object in the request body, if request is POSt.
+    Does not however enforces request method to be POST.
 
     Args:
         function (callable): The function to be decorated.
@@ -95,8 +94,9 @@ def decode_JSON(function: callable) -> callable:
     @wraps(function)
     def wrap(request, *args, **kwargs):
         try:
-            loadedbody = json_loads(request.body.decode(Code.UTF_8))
-            request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
+            if request.method == Code.POST:
+                loadedbody = json_loads(request.body.decode(Code.UTF_8))
+                request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
             return function(request, *args, **kwargs)
         except JSONDecodeError:
             pass

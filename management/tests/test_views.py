@@ -25,6 +25,10 @@ class TestViews(TestCase):
             email=self.email, password=self.password, first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
         return
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_index(self) -> None:
         response = self.client.get(path=root(appendslash=True))

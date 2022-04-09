@@ -26,6 +26,10 @@ class TestViews(TestCase):
         self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_offline(self):
         resp = self.client.get(follow=True, path=root(url.OFFLINE))

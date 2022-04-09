@@ -6,34 +6,64 @@
 
 <div class="w3-row">
 {% if results.count or judgements.count or moderations.count %}
-    {% for result in results %} 
+    {% for result in results %}
     <div class="w3-col w3-third w3-padding-small">
-        <div class="w3-row pallete-slab">
-        <a href="{{result.submission.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{result.submission.competition.getBanner}}" /></a>
-        <h6>{{result.submission.competition.title}}</h6>
-        <strong>{{result.getRank}} {% trans "position" %}</strong><br/>
-        <a href="{{result.getCertLink|params:person.getID}}" class="w3-right"><button class="accent small" data-icon="open_in_new">{% trans "Certificate" %}</button></a>
-        </div>
+        <a href="{{result.submission.competition.getLink}}" class="text-tertiary" target="_blank">
+            <div class="w3-row">
+                <div class="w3-row pallete" style="background:url('{{result.submission.competition.getBanner}}');" id="view-{{result.submission.competition.id}}">
+                    <div class="w3-col w3-threequarter pallete tertiary">
+                        <div class="w3-row">
+                            <h6>{{result.submission.competition.title}}</h6>
+                            <strong>{{result.getRank}} {% trans "position" %}</strong><br/>
+                            <span>{{result.submission.competition.endAt}}</span>
+                        </div>
+                        <div class="w3-row">
+                            <a href="{{result.getCertLink|params:person.getID}}" target="_blank" class="w3-right"><button class="active small" data-icon="qr_code" title="Certificate"></button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
     {% endfor %}
     {% for judgement in judgements %} 
     <div class="w3-col w3-third w3-padding-small">
-        <div class="w3-row pallete-slab">
-        <a href="{{judgement.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{judgement.competition.getBanner}}" /></a>
-        <h6>{{judgement.competition.title}}</h6>
-        <strong>{% trans "Judge" %}</strong><br/>
-        <a href="{{judgement.get_cert_link}}" class="w3-right"><button class="accent small" data-icon="open_in_new">{% trans "Certificate" %}</button></a>
-        </div>
+        <a href="{{judgement.competition.getLink}}" class="text-tertiary" target="_blank">
+            <div class="w3-row">
+                <div class="w3-row pallete" style="background:url('{{judgement.competition.getBanner}}');" id="view-{{judgement.competition.id}}">
+                    <div class="w3-col w3-threequarter pallete tertiary">
+                        <div class="w3-row">
+                            <h6>{{judgement.competition.title}}</h6>
+                            <strong>{% trans "Judge" %}</strong><br/>
+                            <span>{{judgement.competition.endAt}}</span>
+                        </div>
+                        <div class="w3-row">
+                            <a href="{{judgement.get_cert_link}}" target="_blank" class="w3-right"><button class="active small" data-icon="qr_code" title="Certificate"></button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
     {% endfor %}
     {% for moderation in moderations %} 
     <div class="w3-col w3-third w3-padding-small">
-        <div class="w3-row pallete-slab">
-        <a href="{{moderation.competition.getLink}}"><img class="w3-round w3-right" width="100" src="{{moderation.competition.getBanner}}" /></a>
-        <h6>{{moderation.competition.title}}</h6>
-        <strong>{% trans "Moderator" %}</strong><br/>
-        <a href="{{moderation.competition.getModCertLink}}" class="w3-right"><button class="accent small" data-icon="open_in_new">{% trans "Certificate" %}</button></a>
-        </div>
+        <a href="{{moderation.competition.getLink}}" class="text-tertiary" target="_blank">
+            <div class="w3-row">
+                <div class="w3-row pallete" style="background:url('{{moderation.competition.getBanner}}');" id="view-{{moderation.competition.id}}">
+                    <div class="w3-col w3-threequarter pallete tertiary">
+                        <div class="w3-row">
+                            <h6>{{moderation.competition.title}}</h6>
+                            <strong>{% trans "Moderator" %}</strong><br/>
+                            <span>{{moderation.competition.endAt}}</span>
+                        </div>
+                        <div class="w3-row">
+                            <a href="{{moderation.competition.getModCertLink}}" target="_blank" class="w3-right"><button class="active small" data-icon="qr_code" title="Certificate"></button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
     </div>
     {% endfor %}
 {% else %}

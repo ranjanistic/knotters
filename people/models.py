@@ -469,12 +469,18 @@ class Profile(models.Model):
         """Returns the profile of the knottersbot. 
         This is not specific to a user, but is a global profile.
         """
-        cacheKey = 'profile_knottersbot'
-        knotbot = cache.get(cacheKey)
-        if not knotbot:
-            knotbot = Profile.objects.get(user__email=BOTMAIL)
-            cache.set(cacheKey, knotbot, settings.CACHE_MAX)
-        return knotbot
+        try:
+            cacheKey = 'profile_knottersbot'
+            knotbot = cache.get(cacheKey)
+            if not knotbot:
+                knotbot = Profile.objects.get(user__email=BOTMAIL)
+                print(knotbot)
+                cache.set(cacheKey, knotbot, settings.CACHE_MAX)
+            return knotbot
+        except ObjectDoesNotExist as e:
+            user = User.objects.create_user(email=BOTMAIL, password=BOTMAIL, first_name=BOTMAIL)
+            prof, _ = Profile.objects.get_or_create(user=user)
+            return prof
 
     @property
     def CACHE_KEYS(self):

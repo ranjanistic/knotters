@@ -47,6 +47,11 @@ class ModerationMethodTest(TestCase):
         ), creator=self.profiles[3], reponame=getProjRepo(), category=self.category, license=self.license)
         return super().setUpTestData()
 
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
+
     def test_getModelByType(self):
         self.assertEqual(getModelByType(PROJECTS), Project)
         self.assertEqual(getModelByType(COMPETE), Competition)
@@ -84,6 +89,7 @@ class ModerationMethodTest(TestCase):
         self.assertTrue(
             [self.profiles[2], self.profiles[4]].__contains__(mod3))
 
+    @tag('reqmod')
     def test_requestModerationForObject(self):
         moderation = requestModerationForObject(self.project, PROJECTS)
         self.assertIsInstance(moderation, Moderation)

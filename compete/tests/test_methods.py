@@ -87,6 +87,10 @@ class CompeteMethodsTest(TestCase):
         Moderation.objects.filter(
             type=APPNAME, competition=self.comp, moderator=self.moderator).update(resolved=True)
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_competition_section_data(self):
         self.assertIsNone(getCompetitionSectionData(

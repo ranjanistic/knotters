@@ -20,6 +20,10 @@ class PeopleMethodsTest(TestCase):
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_convertToFLname(self):
         firstname = getTestFName()

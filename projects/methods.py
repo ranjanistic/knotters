@@ -9,19 +9,19 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models.query_utils import Q
 from django.http.response import HttpResponse
-from github import NamedUser, Repository
 from main.bots import Discord, GithubKnotters
 from main.env import SITE
 from main.methods import (addMethodToAsyncQueue, errorLog, renderString,
                           renderView)
 from main.strings import Code, Event, Message, url
 from management.models import HookRecord
-from people.models import Profile, Topic
+from people.methods import addTopicToDatabase
+from people.models import Profile
 
 from .apps import APPNAME
 from .mailers import (sendCoreProjectApprovedNotification,
                       sendProjectApprovedNotification)
-from .models import (Category, CoreProject, CoreProjectVerificationRequest,
+from .models import (BaseProject, Category, CoreProject, CoreProjectVerificationRequest,
                      FileExtension, FreeProject,
                      FreeProjectVerificationRequest, License, Project,
                      ProjectSocial, Tag)
@@ -86,16 +86,16 @@ def freeProfileData(request, nickname: str = None, projectID: UUID = None) -> di
         cacheKey = f"{APPNAME}_free_project"
         if nickname:
             cacheKey = f"{cacheKey}_{nickname}"
-            project = cache.get(cacheKey, None)
+            project: FreeProject = cache.get(cacheKey, None)
             if not project:
-                project = FreeProject.objects.get(
+                project: FreeProject = FreeProject.objects.get(
                     nickname=nickname, trashed=False, suspended=False)
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
         else:
             cacheKey = f"{cacheKey}_{projectID}"
-            project = cache.get(cacheKey, None)
+            project: FreeProject = cache.get(cacheKey, None)
             if not project:
-                project = FreeProject.objects.get(
+                project: FreeProject = FreeProject.objects.get(
                     id=projectID, trashed=False, suspended=False)
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
@@ -137,21 +137,21 @@ def verifiedProfileData(request, reponame: str = None, projectID: UUID = None) -
         cacheKey = f"{APPNAME}_verified_project"
         if reponame:
             cacheKey = f"{cacheKey}_{reponame}"
-            project = cache.get(cacheKey, None)
+            project: Project = cache.get(cacheKey, None)
             if not project:
-                project = Project.objects.get(
+                project: Project = Project.objects.get(
                     reponame=reponame, trashed=False, status=Code.APPROVED)
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
         else:
             cacheKey = f"{cacheKey}_{projectID}"
-            project = cache.get(cacheKey, None)
+            project: Project = cache.get(cacheKey, None)
             if not project:
-                project = Project.objects.get(
+                project: Project = Project.objects.get(
                     id=projectID, trashed=False, status=Code.APPROVED)
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator() == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist(project, iscreator, ismoderator)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
@@ -190,21 +190,21 @@ def coreProfileData(request, codename: str = None, projectID: UUID = None) -> di
         cacheKey = f"{APPNAME}_core_project"
         if codename:
             cacheKey = f"{cacheKey}_{codename}"
-            project = cache.get(cacheKey, None)
+            project: CoreProject = cache.get(cacheKey, None)
             if not project:
-                project = CoreProject.objects.get(
+                project: CoreProject = CoreProject.objects.get(
                     codename=codename, trashed=False, status=Code.APPROVED)
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
         else:
             cacheKey = f"{cacheKey}_{projectID}"
-            project = cache.get(cacheKey, None)
+            project: CoreProject = cache.get(cacheKey, None)
             if not project:
-                project = CoreProject.objects.get(
+                project: CoreProject = CoreProject.objects.get(
                     id=projectID, trashed=False, status=Code.APPROVED)
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        ismoderator = False if not request.user.is_authenticated else project.moderator == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator() == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
@@ -248,9 +248,9 @@ def createFreeProject(name: str, category: UUID, nickname: str, description: str
         nickname = uniqueRepoName(nickname)
         if not nickname:
             return False
-        license = License.get_cache_one(id=licenseID)
-        category = Category.get_cache_one(id=category)
-        project = FreeProject.objects.create(
+        license: License = License.get_cache_one(id=licenseID)
+        category: Category = Category.get_cache_one(id=category)
+        project: FreeProject = FreeProject.objects.create(
             creator=creator, name=name, description=description, category=category,
             license=license,
             nickname=nickname)
@@ -295,8 +295,8 @@ def createProject(name: str, category: str, reponame: str, description: str, cre
             creator=creator, name=name, reponame=reponame,
             description=description, category=categoryObj, url=url, license=license
         )
-    except (ObjectDoesNotExist, ValidationError):
-        pass
+    # except (ObjectDoesNotExist, ValidationError):
+    #     pass
     except Exception as e:
         errorLog(e)
         pass
@@ -347,7 +347,7 @@ def createConversionProjectFromFree(freeproject: FreeProject) -> Project:
         bool: False if exception occurs
     """
     try:
-        if not freeproject.is_normal:
+        if not freeproject.is_normal():
             return False
         if Project.objects.filter(reponame=freeproject.nickname, status__in=[Code.MODERATION, Code.APPROVED], trashed=False, suspended=False, is_archived=False).exists():
             return False
@@ -415,16 +415,17 @@ def addCategoryToDatabase(category: str, creator: Profile = None) -> Category:
     if not category:
         return False
     categoryObj = None
-    # if not creator:
-    #     creator = Profile.KNOTBOT()
+    if not creator:
+        creator = Profile.KNOTBOT()
     try:
-        categoryObj = Category.objects.filter(name__iexact=category).first()
+        categoryObj: Category = Category.objects.filter(
+            name__iexact=category).first()
         if not categoryObj:
-            categoryObj = Category.objects.create(
+            categoryObj: Category = Category.objects.create(
                 name=category, creator=creator)
     except:
         if not categoryObj:
-            categoryObj = Category.objects.create(
+            categoryObj: Category = Category.objects.create(
                 name=category, creator=creator)
     return categoryObj
 
@@ -445,8 +446,8 @@ def addTagToDatabase(tag: str, creator: Profile = None) -> Tag:
         return False
     tagobj = uniqueTag(tag)
     if tagobj is True:
-        # if not creator:
-        #     creator = Profile.KNOTBOT()
+        if not creator:
+            creator = Profile.KNOTBOT()
         tagobj = Tag.objects.create(name=tag, creator=creator)
     return tagobj
 
@@ -471,7 +472,7 @@ def uniqueRepoName(reponame: str, forConversion: bool = False) -> str:
         return False
     if len(reponame) > 20 or len(reponame) < 3:
         return False
-    project = Project.objects.filter(
+    project: Project = Project.objects.filter(
         reponame=str(reponame), trashed=False, is_archived=False).first()
     if project:
         if project.rejected() and project.canRetryModeration():
@@ -485,7 +486,7 @@ def uniqueRepoName(reponame: str, forConversion: bool = False) -> str:
         else:
             return False
 
-    project = CoreProject.objects.filter(
+    project: CoreProject = CoreProject.objects.filter(
         codename=str(reponame), trashed=False, is_archived=False).first()
     if project:
         if project.rejected() and project.canRetryModeration():
@@ -974,6 +975,14 @@ def deleteGhOrgVerifiedRepository(project: Project) -> bool:
 
 
 def deleteGhOrgCoreepository(coreproject: CoreProject):
+    """To delete github repository & team of a core project, or at least archive it.
+
+    Args:
+        coreproject (CoreProject): The core project instance
+
+    Returns:
+        bool: True (it tries, so anyway)
+    """
     try:
         ghOrgteam = coreproject.gh_team()
         if ghOrgteam:
@@ -991,19 +1000,30 @@ def deleteGhOrgCoreepository(coreproject: CoreProject):
     return True
 
 
-def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
+def handleGithubKnottersRepoHook(hookrecordID:UUID, ghevent:str, postData:dict, project:BaseProject):
+    """Handle github repository hook event for any project
+
+    Args:
+        hookrecordID (UUID): The hook record ID
+        ghevent (str): The github event
+        postData (dict): The post data from github
+        project (BaseProject): The base project instance
+    
+    Returns:
+        bool, str: True, message if handled, False, error message if not handled
+    """
     try:
-        status = cache.get(f'gh_event_hook_status_{hookrecordID}', Code.NO)
+        statusKey = f'gh_event_hook_status_{hookrecordID}'
+        status = cache.get(statusKey, Code.NO)
         if status == Code.OK:
             return True, 'Processing or processed'
-        cache.set(
-            f'gh_event_hook_status_{hookrecordID}', Code.OK, settings.CACHE_LONG)
-        hookrecord = HookRecord.objects.get(id=hookrecordID, success=False)
+        cache.set(statusKey, Code.OK, settings.CACHE_LONG)
+        hookrecord: HookRecord = HookRecord.objects.get(
+            id=hookrecordID, success=False)
         if ghevent == Event.PUSH:
             commits = postData["commits"]
             repository = postData["repository"]
-            if not Topic.objects.filter(name__iexact=repository['language']).exists():
-                Topic.objects.create(name=repository['language'])
+            addTopicToDatabase(repository['language'], Profile.KNOTBOT())
             committers = {}
             un_committers = []
             for commit in commits:
@@ -1012,10 +1032,10 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                 if commit_author_ghID not in un_committers:
                     commit_committer = committers.get(commit_author_ghID, None)
                     if not commit_committer:
-                        commit_committer = Profile.objects.filter(Q(Q(githubID=commit_author_ghID) | Q(
+                        commit_committer: Profile = Profile.objects.filter(Q(Q(githubID=commit_author_ghID) | Q(
                             user__email=commit_author_email)), is_active=True, suspended=False, to_be_zombie=False).first()
                         if not commit_committer:
-                            emailaddr = EmailAddress.objects.filter(
+                            emailaddr: EmailAddress = EmailAddress.objects.filter(
                                 email=commit_author_email, verified=True).first()
                             if not emailaddr:
                                 un_committers.append(commit_author_ghID)
@@ -1083,13 +1103,13 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
             action = postData.get('action', None)
             pr_creator_ghID = pr['user']['login']
             if action == 'opened':
-                pr_creator = Profile.objects.filter(
+                pr_creator: Profile = Profile.objects.filter(
                     githubID=pr_creator_ghID, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr_creator:
                     pr_creator.increaseXP(
                         by=2, notify=False, reason=f"PR opened by {pr_creator_ghID} on {project.name}")
             elif action == 'closed':
-                pr_creator = Profile.objects.filter(
+                pr_creator: Profile = Profile.objects.filter(
                     githubID=pr_creator_ghID, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr['merged']:
                     if pr_creator:
@@ -1105,21 +1125,21 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
                         pr_creator.decreaseXP(
                             by=2, notify=False, reason=f"PR by {pr_creator_ghID} closed unmerged on {project.name}")
             elif action == 'reopened':
-                pr_creator = Profile.objects.filter(
+                pr_creator: Profile = Profile.objects.filter(
                     githubID=pr_creator_ghID, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr_creator:
                     pr_creator.increaseXP(
                         by=2, notify=False, reason=f"PR by {pr_creator_ghID} reopened on {project.name}")
             elif action == 'review_requested':
                 reviewer_gh_id = pr['requested_reviewer']['login']
-                pr_reviewer = Profile.objects.filter(
+                pr_reviewer: Profile = Profile.objects.filter(
                     githubID=reviewer_gh_id, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr_reviewer:
                     pr_reviewer.increaseXP(
                         by=2, notify=False, reason=f"PR by {pr_creator_ghID} requested review by {reviewer_gh_id} on {project.name}")
             elif action == 'review_request_removed':
                 reviewer_gh_id = pr['requested_reviewer']['login']
-                pr_reviewer = Profile.objects.filter(
+                pr_reviewer: Profile = Profile.objects.filter(
                     githubID=reviewer_gh_id, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr_reviewer:
                     pr_reviewer.decreaseXP(
@@ -1134,14 +1154,14 @@ def handleGithubKnottersRepoHook(hookrecordID, ghevent, postData, project):
             reviewer_gh_id = review['user']['login']
             # pr['requested_reviewers']
             if action == 'submitted':
-                pr_reviewer = Profile.objects.filter(
+                pr_reviewer: Profile = Profile.objects.filter(
                     githubID=reviewer_gh_id, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr_reviewer:
                     for topic in project.topics.all():
                         pr_reviewer.increaseTopicPoints(
                             topic=topic, by=1, notify=False, reason=f"PR by {pr_creator_ghID} reviewed by {reviewer_gh_id} on {project.name}")
             elif action == 'dismissed':
-                pr_reviewer = Profile.objects.filter(
+                pr_reviewer: Profile = Profile.objects.filter(
                     githubID=reviewer_gh_id, is_active=True, suspended=False, to_be_zombie=False).first()
                 if pr_reviewer:
                     for topic in project.topics.all():

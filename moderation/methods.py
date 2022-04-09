@@ -299,7 +299,7 @@ def requestModerationForObject(
         else:
             return False
 
-        mod = Moderation.objects.filter(query).order_by(
+        mod:Moderation = Moderation.objects.filter(query).order_by(
             '-requestOn', '-respondOn').first()
 
         preferModProfiles = None
@@ -319,7 +319,7 @@ def requestModerationForObject(
         else:
             if type == PROJECTS:
                 preferModProfiles = Profile.objects.filter(
-                    is_moderator=True, suspended=False, is_active=True, to_be_zombie=False, topics__in=object.category.topics).distinct()
+                    is_moderator=True, suspended=False, is_active=True, to_be_zombie=False, topics__in=object.category.topics()).distinct()
 
         if not mod:
             if not preferModProfiles:
@@ -397,7 +397,7 @@ def requestModerationForCoreProject(
     try:
 
         query = Q(type=type, coreproject=coreproject)
-        mod = Moderation.objects.filter(query).order_by(
+        mod:Moderation = Moderation.objects.filter(query).order_by(
             '-requestOn', '-respondOn').first()
         preferModProfiles = None
         onlyModProfiles = None
@@ -476,13 +476,13 @@ def assignModeratorToObject(type, object, moderator: Profile, requestData='', re
         if not (moderator.is_moderator and moderator.is_normal):
             raise Exception('Invalid moderator')
         if type == PROJECTS:
-            newmod = Moderation.objects.create(
+            newmod:Moderation = Moderation.objects.create(
                 project=object, type=type, moderator=moderator, request=requestData, referURL=referURL, stale_days=stale_days, internal_mod=internal_mod)
         elif type == PEOPLE:
-            newmod = Moderation.objects.create(
+            newmod:Moderation = Moderation.objects.create(
                 profile=object, type=type, moderator=moderator, request=requestData, referURL=referURL, stale_days=stale_days, internal_mod=internal_mod)
         elif type == COMPETE:
-            newmod = Moderation.objects.create(
+            newmod:Moderation = Moderation.objects.create(
                 competition=object, type=type, moderator=moderator, request=requestData, referURL=object.getLink(), stale_days=stale_days, internal_mod=internal_mod)
         else:
             return False
@@ -527,7 +527,7 @@ def moderationRenderData(request: WSGIRequest, modID: UUID) -> dict:
         dict: The rendered data.
     """
     try:
-        moderation = Moderation.objects.get(id=modID)
+        moderation:Moderation = Moderation.objects.get(id=modID)
         isModerator = moderation.moderator == request.user.profile
         isRequestor = moderation.isRequestor(request.user.profile)
         if not isRequestor and not isModerator:

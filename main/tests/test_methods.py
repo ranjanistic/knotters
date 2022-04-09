@@ -3,7 +3,7 @@ from django.test import TestCase, tag
 from main.env import BOTMAIL
 from main.methods import *
 from main.strings import Code, Message, classAttrsToDict, setPathParams
-from people.models import User
+from people.models import Profile, User
 
 from .utils import B64
 
@@ -15,6 +15,10 @@ class MainMethodsTest(TestCase):
         self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         return super().setUpTestData()
+    
+    def setUp(self) -> None:
+        Profile.KNOTBOT()
+        return super().setUp()
 
     def test_respondJSON(self):
         response = respondJson(Code.OK)

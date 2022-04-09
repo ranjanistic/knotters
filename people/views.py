@@ -20,9 +20,9 @@ from projects.methods import addTagToDatabase
 from projects.models import Tag
 from ratelimit.decorators import ratelimit
 
-from .methods import (addTopicToDatabase, convertToFLname, filterBio, getProfileSectionHTML,
-                      getSettingSectionHTML, profileRenderData, renderer,
-                      rendererstr)
+from .methods import (addTopicToDatabase, convertToFLname, filterBio,
+                      getProfileSectionHTML, getSettingSectionHTML,
+                      profileRenderData, renderer, rendererstr)
 from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
                      ProfileTopic, Topic, User)
 from .receivers import *
@@ -625,10 +625,10 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> JsonResponse:
         JsonResponse: Responds with json object with main.strings.Code.OK and profile data, or main.strings.Code.NO
     """
     try:
-        profile = list(Profile.objects.filter(id=profileID, successor=request.user,
-                       successor_confirmed=True).values_list("id", "picture", "bio", "xp"))[0]
+        profile = list(map(lambda p: dict(id=p[0], xp=p[1]), list(Profile.objects.filter(id=profileID,
+                       successor_confirmed=True).values_list("id", "xp"))))[0]
         return respondJson(Code.OK, dict(profile=profile))
-    except (ObjectDoesNotExist, ValidationError):
+    except (ObjectDoesNotExist, ValidationError, IndexError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
@@ -649,7 +649,8 @@ def reportCategories(request: WSGIRequest) -> JsonResponse:
     """
     try:
         return respondJson(Code.OK, dict(
-            reports=list(ReportCategory.get_all().values_list("id", "name"))
+            reports=list(map(lambda x: dict(id=x[0], name=x[1]), list(
+                ReportCategory.get_all().values_list("id", "name"))))
         ))
     except Exception as e:
         errorLog(e)
@@ -672,8 +673,8 @@ def reportUser(request: WSGIRequest) -> JsonResponse:
     """
 
     try:
-        report = UUID(request.POST['report'][:20])
-        userID = UUID(request.POST['userID'][:20])
+        report = UUID(request.POST['report'][:50])
+        userID = UUID(request.POST['userID'][:50])
         user = User.objects.get(id=userID)
         category = ReportCategory.get_cache_one(id=report)
         request.user.profile.reportUser(user, category)
@@ -700,7 +701,7 @@ def blockUser(request: WSGIRequest) -> JsonResponse:
         JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
     """
     try:
-        userID = UUID(request.POST['userID'][:20])
+        userID = UUID(request.POST['userID'][:50])
         user = User.objects.get(id=userID)
         done = request.user.profile.blockUser(user)
         if not done:
@@ -727,7 +728,7 @@ def unblockUser(request: WSGIRequest) -> JsonResponse:
         JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
     """
     try:
-        userID = UUID(request.POST['userID'][:20])
+        userID = UUID(request.POST['userID'][:50])
         user = User.objects.get(id=userID)
         done = request.user.profile.unblockUser(user)
         if not done:
@@ -813,7 +814,11 @@ def browseSearch(request: WSGIRequest):
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        query = request.GET.get('query', request.POST['query'])
+        query = request.GET.get('query', request.POST.get('query', ""))[
+            :100].strip()
+
+        if not query:
+            raise KeyError(query)
         limit = request.GET.get('limit', request.POST.get('limit', 10))
         excludeIDs = []
         cachekey = f'people_browse_search_{query}{request.LANGUAGE_CODE}'

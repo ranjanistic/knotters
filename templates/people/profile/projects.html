@@ -11,20 +11,26 @@
   <div class="swiper-container">
 
     <div class="swiper-wrapper">
-      <div class="w3-col w3-padding-small w3-third swiper-slide">
+      <div class="w3-col w3-third swiper-slide">
         <div class="pallete active text-active" style="min-height:65vh; max-height:85vh;">
-          <center>
-          <i title="Visible to everyone">lock_open</i>
-          <h5>{% trans "Live" %}</h5>
+          <center class="align">
+          <i title="Visible to everyone" class="w3-large">lock_open</i>
+          <h6>{% trans "Live" %}</h6>
           </center>
-
           <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
           {% for project in approved %}
-          <div class="w3-row pallete-slab primary">
-            <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
-            <h6>{{ project.name|truncatechars:20 }}</h6>
-            <strong class="align w3-left">{{project.get_nickname}}<i class="positive-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
-            <a href="{{project.getLink}}" class="w3-right"><button class="positive small" data-icon="open_in_new"></button></a>
+          <div class="w3-row pallete-slab no-pad">
+            <div class="w3-col l4 m4 s4">
+                <a href="{{project.get_link}}" target="_blank">
+                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-right: 4px solid var(--{{project.theme}})" />
+                </a>
+            </div>
+            <div class="w3-col l8 m8 s8" >
+                <div class="w3-row w3-padding">
+                <h6>{{ project.name|truncatechars:18 }}</h5>
+                <strong class="align w3-left">{{project.get_nickname}}<i class="positive-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
+                </div>
+            </div>
           </div>
           {% empty %}
           <br/>
@@ -40,17 +46,24 @@
     
       <div class="w3-col w3-padding-small w3-third swiper-slide">
         <div class="pallete accent text-accent" style="min-height:65vh; max-height:85vh;">
-          <center>
-          <i  title="Private to you">lock</i>
-          <h5 class="text-accent">{% trans "Under review" %}</h5>
+          <center class="align">
+          <i  title="Private to you" class="w3-large">lock</i>
+          <h6 class="text-accent">{% trans "Pending" %}</h6>
           </center>
           <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
           {% for project in moderation %}
-          <div class="w3-row pallete-slab">
-            <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
-            <h6>{{ project.name|truncatechars:18 }}</h6>
-            <strong class="align w3-left">{{project.get_nickname}}<i class="dead-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
-            <a href="{{project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new"></button></a>
+          <div class="w3-row pallete-slab no-pad">
+            <div class="w3-col l4 m4 s4">
+                <a href="{{project.get_link}}" target="_blank">
+                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-right: 4px solid var(--{{project.theme}})" />
+                </a>
+            </div>
+            <div class="w3-col l8 m8 s8" >
+                <div class="w3-row w3-padding">
+                <h6>{{ project.name|truncatechars:18 }}</h5>
+                <strong class="align w3-left">{{project.get_nickname}}<i class="dead-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
+                </div>
+            </div>
           </div>
           {% empty %}
           <br/>
@@ -68,17 +81,24 @@
     
       <div class="w3-col w3-padding-small w3-third swiper-slide">
         <div class="pallete tertiary text-tertiary" style="min-height:65vh; max-height:85vh;">
-          <center>
-          <i  title="Private to you">lock</i>
-          <h5 class="text-tertiary">{% trans "Rejected" %}</h5>
+          <center class="align dead-text">
+          <i  title="Private to you" class="w3-large">lock</i>
+          <h6 class="dead-text">{% trans "Rejected" %}</h6>
           </center>
           <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
           {% for project in rejected %}
-          <div class="w3-row pallete-slab dead-text">
-            <img class="w3-right w3-circle" src="{{project.getDP}}" width="30" />
-            <h6>{{ project.name|truncatechars:18 }}</h6>
-            <strong class="align w3-left">{{project.get_nickname}}<i class="dead-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
-            <a href="{{project.getLink}}" class="w3-right"><button class="negative small" data-icon="open_in_new"></button></a>
+          <div class="w3-row pallete-slab no-pad">
+            <div class="w3-col l4 m4 s4">
+                <a href="{{project.get_link}}" target="_blank">
+                    <img class="primary pallete w3-opacity" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-right: 4px solid var(--{{project.theme}})" />
+                </a>
+            </div>
+            <div class="w3-col l8 m8 s8" >
+                <div class="w3-row w3-padding w3-opacity">
+                <h6>{{ project.name|truncatechars:18 }}</h5>
+                <strong class="align w3-left">{{project.get_nickname}}<i class="dead-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
+                </div>
+            </div>
           </div>
           {% empty %}
           <br/>
@@ -96,14 +116,21 @@
   
   {% else %}
     {% for project in approved %} 
-		<div class="w3-col w3-third w3-padding-small">
-			<div class="w3-row pallete-slab">
-			<img class="w3-circle w3-right" width="30" src="{{project.getDP}}" />
-			<h6>{{ project.name|truncatechars:18 }}</h6>
-			<strong class="align w3-left">{{project.get_nickname}}<i class="positive-text w3-large">{% if project.is_verified %}verified{% elif project.is_core %}lock{% endif %}</i></strong>
-			<a href="{{project.getLink}}" class="w3-right"><button class="primary small" data-icon="open_in_new">{% trans "View" %}</button></a>
-        	</div>
+    <div class="w3-col w3-third w3-padding-small">
+      <div class="w3-row pallete-slab no-pad">
+        <div class="w3-col l4 m6 s4">
+            <a href="{{project.get_link}}" target="_blank">
+                <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-right: 8px solid var(--{{project.theme}})" />
+            </a>
         </div>
+        <div class="w3-col l8 m6 s8 w3-padding" align='left'>
+            <div class="w3-row">
+            <h6 class="{% if project.is_verified %}align{% endif %} w3-left">{{ project.name|truncatechars:15 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
+            </div>
+            <strong class="w3-row">{{ project.category }}</strong>
+        </div>
+      </div>
+    </div>
       {% empty %}
         <br/><br/>
             <center class="dead-text">
