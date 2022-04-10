@@ -4,17 +4,18 @@ from allauth.account.models import EmailAddress
 from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
                                getTestPassword)
 from django.db.models import QuerySet
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
-from main.strings import Code, Message, template, url
-from main.tests.utils import getRandomStr
+from main.strings import Action, Code, Message, template, url
+from main.tests.utils import authroot, getRandomStr
 from moderation.models import Moderation
 from people.models import Profile, Topic, User
 from people.tests.utils import getTestTopicsInst
 from projects.apps import APPNAME
-from projects.models import Category, License, Project, Tag, defaultImagePath
+from projects.models import Category, FreeProject, License, Project, Tag, defaultImagePath
+from projects.views import acceptTerms
 
 from .utils import (getLicDesc, getLicName, getProjCategory, getProjDesc,
                     getProjName, getProjRepo, getTestTags, getTestTagsInst,
@@ -37,7 +38,7 @@ class TestViews(TestCase):
         self.user = User.objects.create_user(
             email=self.email, password=self.password, first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
-        self.moduser = User.objects.create_user(
+        self.moduser:User = User.objects.create_user(
             email=getTestEmail(), password=self.password, first_name=getTestName())
         self.modprofile = Profile.objects.get(user=self.moduser)
         self.modprofile.is_moderator = True
@@ -396,3 +397,40 @@ class TestViews(TestCase):
         data = json_loads(resp.content.decode(Code.UTF_8))
         self.assertIsInstance(data['languages'], list)
         self.assertIsInstance(data['contributorsHTML'], str)
+
+    @tag('cocreator')
+    def test_cocreator(self):
+        project:FreeProject = FreeProject.objects.create(name=getProjName(
+        ), creator=self.profile, nickname=getProjRepo(), category=self.category, license=self.license, acceptedTerms=True)
+        client = Client()
+        resp = client.post(authroot(url.auth.LOGIN),dict(login=self.email, password=self.password),follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.get(root(url.projects.inviteProjectCocreator(project.get_id)))
+        self.assertEqual(resp.status_code,HttpResponseNotAllowed.status_code)
+        self.assertTrue(project.can_invite_cocreator_profile(self.modprofile))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=getRandomStr()))
+        self.assertEqual(resp.status_code,HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE,email=self.email))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE,email=self.moduser.email))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.OK))
+        self.assertTrue(project.under_cocreator_invitation())
+        self.assertTrue(project.under_cocreator_invitation_profile(self.modprofile))
+        self.assertEqual(project.total_cocreator_invitations(),1)
+        self.assertEqual(project.total_cocreators(),0)
+        self.assertFalse(project.has_cocreators())
+        self.assertFalse(project.can_invite_cocreator_profile(self.modprofile))
+
+        
+
+
+
+        
+
+
+        
+
+    

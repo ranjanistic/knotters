@@ -1017,7 +1017,7 @@ class BaseProjectCoCreatorInvitation(Invitation):
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the invitation view, to be used by receiver via GET method."""
-        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.viewCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
     @property
     def get_link(self):
@@ -1026,7 +1026,7 @@ class BaseProjectCoCreatorInvitation(Invitation):
     @property
     def get_act_link(self):
         """Returns the link to act on invitation, to be used by receiver via POST method."""
-        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInviteAct(self.get_id)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.cocreatorInviteAct(self.get_id)}"
 
 
 class BaseProjectPrimeCollaboratorInvitation(Invitation):
@@ -1244,7 +1244,7 @@ class Project(BaseProject):
         return (profile not in [self.creator, self.moderator(), self.mentor]) and not (
             self.moderator().isBlockedProfile(profile) or self.creator.isBlockedProfile(
                 profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
-        )
+        ) and profile.is_normal
 
     def can_invite_mod_profile(self, profile) -> bool:
         """Returns True if the profile can be invited as new moderator for the project (approved project)
@@ -1364,7 +1364,7 @@ class Project(BaseProject):
         Returns:
             bool: True if the profile can be invited as new cocreator for the project
         """
-        return self.can_invite_profile(profile)
+        return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 
 def assetFilePath(instance, filename):
@@ -1514,7 +1514,7 @@ class FreeProject(BaseProject):
 
     def can_invite_profile(self, profile) -> bool:
         """Returns True if the profile can be invited to the project (generally)"""
-        return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile))
+        return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile)) and profile.is_normal
 
     def can_delete(self) -> bool:
         """Returns True if the project can be deleted"""
@@ -1588,8 +1588,7 @@ class FreeProject(BaseProject):
 
     def can_invite_cocreator_profile(self, profile) -> bool:
         """Returns True if the profile can be invited to the project as cocreator."""
-        return self.can_invite_profile(profile)
-
+        return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 class FreeRepository(models.Model):
     """
@@ -1895,7 +1894,7 @@ class CoreProject(BaseProject):
         return (profile not in [self.creator, self.moderator(), self.mentor]) and not (
             self.moderator().isBlockedProfile(profile) or self.creator.isBlockedProfile(
                 profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
-        )
+        ) and profile.is_normal
 
     def can_invite_mod_profile(self, profile) -> bool:
         """Returns True if the project can invite a profile for moderatorship (approved project)."""
@@ -2031,7 +2030,7 @@ class CoreProject(BaseProject):
             return False
 
     def can_invite_cocreator_profile(self, profile):
-        return self.can_invite_profile(profile)
+        return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 
 class LegalDoc(models.Model):
