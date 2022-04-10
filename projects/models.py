@@ -385,13 +385,11 @@ class BaseProject(models.Model):
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
         return CKEYS()
 
-    def homepage_project() -> "BaseProject":
+    def homepage_project(*args) -> "BaseProject":
         cacheKey = 'homepage_project'
         project = cache.get(cacheKey, None)
         if not project:
-            from people.models import Profile
-            project = BaseProject.objects.filter(creator=Profile.KNOTBOT(),
-                                                 suspended=False, trashed=False, is_archived=False).order_by("createdOn").first()
+            project = BaseProject.objects.filter(name="Covid Care").first()
             cache.set(cacheKey, project, settings.CACHE_LONG)
         return project
 
