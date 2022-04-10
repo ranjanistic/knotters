@@ -1,6 +1,7 @@
 from json import loads as json_loads
 
 from allauth.account.models import EmailAddress
+from django.dispatch import receiver
 from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
                                getTestPassword)
 from django.db.models import QuerySet
@@ -403,6 +404,8 @@ class TestViews(TestCase):
         project:FreeProject = FreeProject.objects.create(name=getProjName(
         ), creator=self.profile, nickname=getProjRepo(), category=self.category, license=self.license, acceptedTerms=True)
         client = Client()
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE,email=self.moduser.email),follow=True)
+        self.assertTemplateUsed(resp,template.auth.login)
         resp = client.post(authroot(url.auth.LOGIN),dict(login=self.email, password=self.password),follow=True)
         self.assertTrue(resp.context['user'].is_authenticated)
         resp = client.get(root(url.projects.inviteProjectCocreator(project.get_id)))
@@ -411,6 +414,7 @@ class TestViews(TestCase):
         resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=getRandomStr()))
         self.assertEqual(resp.status_code,HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
+
         resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE))
         self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
         resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE,email=self.email))
@@ -423,6 +427,37 @@ class TestViews(TestCase):
         self.assertEqual(project.total_cocreators(),0)
         self.assertFalse(project.has_cocreators())
         self.assertFalse(project.can_invite_cocreator_profile(self.modprofile))
+        client2 = Client()
+        invite_id = project.current_cocreator_invitations().get(receiver=self.modprofile).id
+        resp = client2.get(root(url.projects.viewCocreatorInvite(invite_id)),follow=True)
+        self.assertTemplateUsed(resp,template.auth.login)
+        resp = client2.post(authroot(url.auth.LOGIN),dict(login=self.moduser.email, password=self.password),follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client2.get(root(url.projects.viewCocreatorInvite(invite_id)),follow=True)
+        self.assertTemplateUsed(resp,template.projects.cocreator_invitation)
+        resp = client.get(root(url.projects.viewCocreatorInvite(invite_id)),follow=True)
+        self.assertEqual(resp.status_code,HttpResponseNotFound.status_code)
+
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.REMOVE))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.REMOVE,receiver_id=getRandomStr()))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.NO,error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.REMOVE,receiver_id=self.moduser.get_id))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.OK))
+        self.assertFalse(project.under_cocreator_invitation())
+        self.assertFalse(project.under_cocreator_invitation_profile(self.modprofile))
+        self.assertEqual(project.total_cocreator_invitations(),0)
+        self.assertEqual(project.total_cocreators(),0)
+        self.assertFalse(project.has_cocreators())
+        self.assertTrue(project.can_invite_cocreator_profile(self.modprofile))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.CREATE,email=self.moduser.email))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.OK))
+
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)),dict(action=Action.REMOVE_ALL))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)),dict(code=Code.OK))
+        self.assertEqual(project.total_cocreator_invitations(),0)
+        self.assertEqual(project.total_cocreators(),0)
+
 
         
 
