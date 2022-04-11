@@ -3,10 +3,12 @@ from random import randint
 
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
 from compete.models import *
+from main.env import BOTMAIL
 from django.test import TestCase, tag
 from django.utils import timezone
 from main.strings import Code
 from moderation.methods import requestModerationForObject
+from moderation.models import Moderation
 from people.models import User
 from people.tests.utils import getTestTopicsInst, getTestUsersInst
 

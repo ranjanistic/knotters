@@ -1,16 +1,17 @@
+from datetime import datetime
 from re import sub as re_sub
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.files.base import File
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
-from main.env import BOTMAIL, SITE
+from main.env import SITE
 from main.methods import errorLog, getNumberSuffix
-from main.strings import MANAGEMENT, url
+from main.strings import MANAGEMENT, Message, url
 from management.models import Invitation
-from moderation.models import Moderation
 from people.models import Profile, Topic
 from projects.models import FreeProject
 
@@ -28,7 +29,7 @@ def competeBannerPath(instance: "Competition", rawFilename: str) -> str:
         str: The unique path for the competition banner
     """
     fileparts = rawFilename.split('.')
-    ext = fileparts[len(fileparts)-1]
+    ext = fileparts[-1]
     if not (ext in ['jpg', 'png', 'jpeg']):
         ext = 'png'
     return f"{APPNAME}/banners/{instance.get_id}_{uuid4().hex}.{ext}"
@@ -45,7 +46,7 @@ def competeAssociatePath(instance: "Competition", rawFilename: str) -> str:
         str: The unique path for the competition associate banner
     """
     fileparts = rawFilename.split('.')
-    ext = fileparts[len(fileparts)-1]
+    ext = fileparts[-1]
     if not (ext in ['jpg', 'png', 'jpeg']):
         ext = 'png'
     return f"{APPNAME}/associates/{instance.get_id}_{uuid4().hex}.{ext}"
@@ -64,38 +65,42 @@ class Event(models.Model):
     """The event model.
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=100)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=100)
     """name (CharField): The name of the event"""
-    pseudonym = models.CharField(max_length=50)
+    pseudonym: str = models.CharField(max_length=50)
     """pseudonym (CharField): The pseudonym of the event"""
-    description = models.TextField(max_length=500)
+    description: str = models.TextField(max_length=500)
     """description (TextField): The description of the event"""
-    detail = models.TextField(max_length=2000)
+    detail: str = models.TextField(max_length=2000)
     """detail (TextField): The detail of the event"""
-    start_date = models.DateTimeField(auto_now=False)
+    start_date: datetime = models.DateTimeField(auto_now=False)
     """start_date (DateTimeField): The start date of the event"""
-    end_date = models.DateTimeField(auto_now=False)
+    end_date: datetime = models.DateTimeField(auto_now=False)
     """end_date (DateTimeField): The end date of the event"""
-    banner = models.ImageField(
+    banner: File = models.ImageField(
         upload_to=competeBannerPath, null=True, blank=True)
     """banner (ImageField): The banner of the event"""
-    primary_color = models.CharField(max_length=7, null=True, blank=True)
+    primary_color: str = models.CharField(max_length=7, null=True, blank=True)
     """primary_color (CharField): The primary color of the event"""
-    secondary_color = models.CharField(max_length=7, null=True, blank=True)
+    secondary_color: str = models.CharField(
+        max_length=7, null=True, blank=True)
     """secondary_color (CharField): The secondary color of the event"""
-    associate = models.ImageField(
+    associate: File = models.ImageField(
         upload_to=competeAssociatePath, null=True, blank=True)
     """associate (ImageField): The associate banner of the event"""
-    is_active = models.BooleanField(default=False)
+    is_active: bool = models.BooleanField(default=False)
     """is_active (BooleanField): Whether the event is active or not"""
-    is_public = models.BooleanField(default=False)
+    is_public: bool = models.BooleanField(default=False)
     """is_public (BooleanField): Whether the event is public or not"""
-    created_at = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_at: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """created_at (DateTimeField): The date and time the event was created"""
-    updated_at = models.DateTimeField(auto_now=False, default=timezone.now)
+    updated_at: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """updated_at (DateTimeField): The date and time the event was updated"""
-    creator = models.ForeignKey(
+    creator: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name="event_creator")
     """creator (ForeignKey<Profile>): The creator of the event"""
     competitions = models.ManyToManyField(
@@ -130,12 +135,13 @@ class EventCompetition(models.Model):
     The model for many to many relationship between events and competitions.
 
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
 
-    event = models.ForeignKey(
+    event: Event = models.ForeignKey(
         Event, on_delete=models.CASCADE, related_name="event_competition_eve")
     """event (ForeignKey<Event>): The event"""
-    competition = models.ForeignKey(
+    competition: "Competition" = models.ForeignKey(
         'Competition', on_delete=models.CASCADE, related_name="event_competition_comp")
     """competition (ForeignKey<Competition>): The competition"""
 
@@ -147,30 +153,31 @@ class Competition(models.Model):
     """
     A competition.
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    title = models.CharField(max_length=1000, blank=False,
-                             null=False, help_text='The competition name.')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    title: str = models.CharField(max_length=1000, blank=False,
+                                  null=False, help_text='The competition name.')
     """title (CharField): The competition name"""
-    nickname = models.CharField(
+    nickname: str = models.CharField(
         max_length=50, blank=True, null=True, help_text='The competition nickname')
     """nickname (CharField): The competition nickname"""
-    tagline = models.CharField(max_length=2000, blank=False, null=False,
-                               help_text='This will be shown in introduction and url previews.')
+    tagline: str = models.CharField(max_length=2000, blank=False, null=False,
+                                    help_text='This will be shown in introduction and url previews.')
     """tagline (CharField): The competition tagline"""
-    shortdescription = models.CharField(
+    shortdescription: str = models.TextField(
         max_length=5000, blank=False, null=False, help_text='This will be shown in introduction.')
     """shortdescription (CharField): The competition short description"""
-    description = models.CharField(max_length=20000, blank=False, null=False,
-                                   help_text='This will be shown in the overview, along with perks, only after the competition as started.')
+    description: str = models.TextField(max_length=20000, blank=False, null=False,
+                                        help_text='This will be shown in the overview, along with perks, only after the competition as started.')
     """description (CharField): The competition description"""
-    banner = models.ImageField(
+    banner: File = models.ImageField(
         upload_to=competeBannerPath, default=defaultBannerPath)
     """banner (ImageField): The competition banner"""
 
-    startAt = models.DateTimeField(auto_now=False, default=timezone.now,
-                                   help_text='When this competition will start accepting submissions.')
+    startAt: datetime = models.DateTimeField(auto_now=False, default=timezone.now,
+                                             help_text='When this competition will start accepting submissions.')
     """startAt (DateTimeField): When this competition will start accepting submissions"""
-    endAt = models.DateTimeField(
+    endAt: datetime = models.DateTimeField(
         auto_now=False, help_text='When this competition will stop accepting submissions.')
     """endAt (DateTimeField): When this competition will stop accepting submissions"""
 
@@ -182,59 +189,61 @@ class Competition(models.Model):
         Topic, through='CompetitionTopic', default=[])
     """topics (ManyToManyField<Topic>): The topics of the competition"""
 
-    perks = models.CharField(max_length=1000, null=True, blank=True,
-                             help_text='Use semi-colon (;) separated perks for each rank, starting from 1st.')
+    perks: str = models.CharField(max_length=1000, null=True, blank=True,
+                                  help_text='Use semi-colon (;) separated perks for each rank, starting from 1st.')
     """perks (CharField): Deprecated. Use Perks model."""
 
-    eachTopicMaxPoint = models.IntegerField(
+    eachTopicMaxPoint: int = models.IntegerField(
         default=10, help_text='The maximum points each judge can appoint for each topic to each submission of this competition.')
     """eachTopicMaxPoint (IntegerField): The maximum points each judge can appoint for each topic to each submission of this competition"""
 
-    taskSummary = models.CharField(max_length=50000)
+    taskSummary: str = models.TextField(max_length=50000)
     """taskSummary (CharField): The task summary of the competition"""
-    taskDetail = models.CharField(max_length=100000)
+    taskDetail: str = models.TextField(max_length=100000)
     """taskDetail (CharField): The task detail of the competition"""
-    taskSample = models.CharField(max_length=10000)
+    taskSample: str = models.TextField(max_length=10000)
     """taskSample (CharField): The task sample of the competition"""
-    is_markdown = models.BooleanField(default=True)
+    is_markdown: bool = models.BooleanField(default=True)
     """is_markdown (BooleanField): Whether the task summary and detail are in markdown format or not, should be True. False is for backwards compatibility."""
 
-    resultDeclared = models.BooleanField(
+    resultDeclared: bool = models.BooleanField(
         default=False, help_text='Whether the results have been declared or not. Strictly restricted to be edited via server.')
     """resultDeclared (BooleanField): Whether the results have been declared or not"""
 
-    resultDeclaredOn = models.DateTimeField(
+    resultDeclaredOn: datetime = models.DateTimeField(
         auto_now=False, null=True, blank=True)
     """resultDeclaredOn (DateTimeField): When the results were declared"""
 
-    creator = models.ForeignKey(
+    creator: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='competition_creator')
     """creator (ForeignKey<Profile>): The creator of the competition"""
 
-    associate = models.ImageField(
+    associate: File = models.ImageField(
         upload_to=competeAssociatePath, null=True, blank=True)
     """associate (ImageField): The associate banner of the competition"""
 
-    max_grouping = models.IntegerField(default=5)
+    max_grouping: int = models.IntegerField(default=5)
     """max_grouping (IntegerField): The maximum number of members in one submission group"""
 
-    reg_fee = models.IntegerField(default=0)
+    reg_fee: float = models.FloatField(default=0)
     """reg_fee (IntegerField): Deprecated. The registration fee."""
-    fee_link = models.URLField(max_length=1000, blank=True, null=True)
+    fee_link: str = models.URLField(max_length=1000, blank=True, null=True)
     """fee_link (URLField): The link to the registration fee payment page."""
-    hidden = models.BooleanField(default=False)
+    hidden: bool = models.BooleanField(default=False)
     """hidden (BooleanField): Whether the competition is hidden or not. Not to be used by managers."""
-    is_draft = models.BooleanField(default=True)
+    is_draft: bool = models.BooleanField(default=True)
     """is_draft (BooleanField): Whether the competition is a draft or not"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): When the competition was created"""
-    modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    modifiedOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """modifiedOn (DateTimeField): When the competition was last modified"""
 
-    qualifier = models.ForeignKey(f"{APPNAME}.Competition", on_delete=models.SET_NULL,
-                                  null=True, blank=True, related_name="qualifier_competition")
+    qualifier: "Competition" = models.ForeignKey(f"{APPNAME}.Competition", on_delete=models.SET_NULL,
+                                                 null=True, blank=True, related_name="qualifier_competition")
     """qualifier (ForeignKey<Competition>): The qualifier competition"""
-    qualifier_rank = models.IntegerField(default=0)
+    qualifier_rank: int = models.IntegerField(default=0)
     """qualifier_rank (IntegerField): The maximum required rank from the qualifier competition"""
 
     def __str__(self) -> str:
@@ -243,8 +252,11 @@ class Competition(models.Model):
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
         if not self.nickname:
-            nickname = re_sub(
-                r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:60].strip('-').lower()
+            self.nickname = re_sub(r'[^a-zA-Z0-9\-]', "", self.title[:60])
+            self.nickname = "-".join(list(filter(lambda c: c,
+                                     self.nickname.split('-')))).lower()
+            if Competition.objects.filter(nickname=self.nickname).exclude(id=self.id).exists():
+                self.nickname = f"{self.nickname}-{self.get_id}"
         return super(Competition, self).save(*args, **kwargs)
 
     @property
@@ -273,11 +285,11 @@ class Competition(models.Model):
             str: The nickname.
         """
         if not self.nickname:
-            nickname = re_sub(
-                r'[^a-zA-Z0-9-]', '', self.title.strip().replace(' ', '-'))[:60].strip('-').lower()
-            if Competition.objects.filter(nickname=nickname).exists():
-                nickname = f"{nickname}-{self.id.hex}"
-            self.nickname = nickname
+            self.nickname = re_sub(r'[^a-zA-Z0-9\-]', "", self.title[:60])
+            self.nickname = "-".join(list(filter(lambda c: c,
+                                     self.nickname.split('-')))).lower()
+            if Competition.objects.filter(nickname=self.nickname).exclude(id=self.id).exists():
+                self.nickname = f"{self.nickname}-{self.get_id}"
             self.save()
         return self.nickname
 
@@ -327,7 +339,7 @@ class Competition(models.Model):
             str: The participation link.
         """
 
-        return f"{url.getRoot(APPNAME)}{url.compete.participate(compID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.compete.participate(compID=self.get_id)}"
 
     def isActive(self) -> bool:
         """Check if the competition is active, depending on the start and end dates.
@@ -384,9 +396,9 @@ class Competition(models.Model):
         Returns:
             int: The seconds left or 0 if the competition is already over.
         """
+        time = timezone.now()
         if not self.endAt:
             return 0
-        time = timezone.now()
         if time >= self.endAt:
             return 0
         diff = self.endAt - time
@@ -401,14 +413,14 @@ class Competition(models.Model):
 
         return self.topics.all()
 
-    def getPalleteTopics(self) -> list:
+    def getPalleteTopics(self, limit: int = 3) -> list:
         """Topics to be displayed on palletes
 
         Returns:
             list<Topic>: The pallete topics of this competition.
         """
 
-        return self.topics.filter()[:3]
+        return self.topics.filter()[:limit]
 
     def getPerks(self) -> list:
         """Get the list of perks instances of this competition.
@@ -417,11 +429,8 @@ class Competition(models.Model):
             list<Perk>: The perks of this competition.
         """
         perks = Perk.objects.filter(competition=self).order_by('rank')
-        if perks.count() < 1:
-            perks = []
-            for p in str(self.perks).split(';'):
-                if p and p != '' and p != 'None':
-                    perks.append(p)
+        if len(perks) < 1:
+            perks = list(filter(lambda p: p, str(self.perks).split(';')))
         return perks
 
     def totalTopics(self) -> int:
@@ -441,24 +450,29 @@ class Competition(models.Model):
         """
         return None if not self.associate else f"{settings.MEDIA_URL}{str(self.associate)}"
 
-    @property
+    def moderation(self):
+        """Get the moderation instance of this competition.
+
+        Returns:
+            Moderation: The moderation instance of this competition.
+        """
+        from moderation.models import Moderation
+        return Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn', '-respondOn').first()
+
     def moderator(self) -> Profile:
         """ Get the moderator profile instance of this competition.
 
         Returns:
             Profile: The moderator profile instance of this competition.
         """
-        mod = Moderation.objects.filter(type=APPNAME, competition=self).order_by(
-            '-requestOn', '-respondOn').first()
-        return None if not mod else mod.moderator
-
-    def moderation(self) -> Moderation:
-        """Get the moderation instance of this competition.
-
-        Returns:
-            Moderation: The moderation instance of this competition.
-        """
-        return Moderation.objects.filter(type=APPNAME, competition=self).order_by('-requestOn', '-respondOn').first()
+        try:
+            return self.moderation().moderator
+        except AttributeError:
+            pass
+        except Exception as e:
+            errorLog(e)
+            pass
+        return None
 
     def isModerator(self, profile: Profile) -> bool:
         """Check if the profile is the moderator of this competition.
@@ -469,7 +483,7 @@ class Competition(models.Model):
         Returns:
             bool: Whether the profile is the moderator of this competition.
         """
-        return profile and self.moderator == profile
+        return profile and self.moderator() == profile
 
     def getModerator(self) -> Profile:
         """Get the moderator profile instance of this competition.
@@ -477,7 +491,7 @@ class Competition(models.Model):
         Returns:
             Profile: The moderator profile instance of this competition.
         """
-        return self.moderator
+        return self.moderator()
 
     def moderated(self) -> bool:
         """Whether this competition has been moderated by moderator or not.
@@ -486,8 +500,8 @@ class Competition(models.Model):
         Returns:
             bool: Whether this competition has been moderated by moderator or not.
         """
-        return True if Moderation.objects.filter(
-            type=APPNAME, competition=self, resolved=True).order_by('-requestOn', '-respondOn').first() else False
+        from moderation.models import Moderation
+        return Moderation.objects.filter(type=APPNAME, competition=self, resolved=True).exists()
 
     def isJudge(self, profile: Profile) -> bool:
         """Check if the profile is the judge of this competition.
@@ -498,9 +512,7 @@ class Competition(models.Model):
         Returns:
             bool: Whether the profile is the judge of this competition.
         """
-        if profile in self.judges.all():
-            return True
-        return False
+        return self.judges.filter(id=profile.id).exists()
 
     def getJudges(self) -> list:
         """Get the list of Profile instances of judges of this competition.
@@ -508,7 +520,7 @@ class Competition(models.Model):
         Returns:
             list: The list of Profile instances of judges of this competition.
         """
-        return [] if not self.judges else self.judges.all()
+        return self.judges.all()
 
     def totalJudges(self) -> int:
         """Get the total number of judges in this competition.
@@ -530,11 +542,13 @@ class Competition(models.Model):
             str: The judgement/moderation page link of this competition.
         """
         try:
-            return (Moderation.objects.filter(
-                type=APPNAME, competition=self).order_by("-requestOn").first()).getLink(error=error, alert=alert)
+            return self.moderation().getLink(error=error, alert=alert, success=success)
+        except AttributeError:
+            pass
         except Exception as e:
             errorLog(e)
-            return self.getLink()
+            pass
+        return self.getLink(error=Message.INVALID_REQUEST)
 
     def isAllowedToParticipate(self, profile: Profile, checkqualifier=True) -> bool:
         """Check if the profile is allowed to participate in this competition.
@@ -546,10 +560,10 @@ class Competition(models.Model):
         Returns:
             bool: Whether the profile is allowed to participate in this competition.
         """
-        allowed = not (self.creator == profile or self.moderator == profile or self.isJudge(
-            profile) or profile.is_manager() or profile.getEmail() == BOTMAIL)
+        allowed = not (self.creator == profile or self.isModerator(
+            profile) or self.isJudge(profile) or profile.is_manager())
 
-        if allowed and checkqualifier:
+        if checkqualifier and allowed:
             if self.qualifier:
                 if not self.qualifier.resultDeclared:
                     allowed = False
@@ -579,11 +593,7 @@ class Competition(models.Model):
         Returns:
             bool: Whether the profile is a participant of this competition.
         """
-        try:
-            Submission.objects.get(competition=self, members=profile)
-            return True
-        except:
-            return False
+        return Submission.objects.filter(competition=self, members=profile).exists()
 
     def getMaxScore(self) -> int:
         """Calculated maximum points allowed in this competition for each submission, which depends on topics, eachTopicMaxPoint, topics, and judges.
@@ -607,12 +617,7 @@ class Competition(models.Model):
         Returns:
             list<Profile>: The list of confirmed participant Profile instances of this competition.
         """
-        parts = SubmissionParticipant.objects.filter(
-            submission__competition=self, confirmed=True).only('profile')
-        profiles = []
-        for part in parts:
-            profiles.append(part.profile)
-        return profiles
+        return list(map(lambda x: x.profile, SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True).only('profile')))
 
     def totalParticipants(self) -> int:
         """Get the total number of confirmed participants profiles of this competition.
@@ -628,12 +633,7 @@ class Competition(models.Model):
         Returns:
             list<Profile>: The list of confirmed participant Profile instances of this competition with valid submissions.
         """
-        parts = SubmissionParticipant.objects.filter(
-            submission__competition=self, confirmed=True, submission__valid=True).only('profile')
-        profiles = []
-        for part in parts:
-            profiles.append(part.profile)
-        return profiles
+        return list(map(lambda x: x.profile, SubmissionParticipant.objects.filter(submission__competition=self, confirmed=True, submission__valid=True).only('profile')))
 
     def totalValidSubmissionParticipants(self) -> int:
         """Get the total number of confirmed participants profiles of this competition with valid submissions.
@@ -649,12 +649,7 @@ class Competition(models.Model):
         Returns:
             list<Profile>: The list of participant Profile instances of this competition.
         """
-        parts = SubmissionParticipant.objects.filter(
-            submission__competition=self).only('profile')
-        profiles = list()
-        for part in parts:
-            profiles.append(part.profile)
-        return profiles
+        return list(map(lambda x: x.profile, SubmissionParticipant.objects.filter(submission__competition=self).only('profile')))
 
     def totalAllParticipants(self) -> int:
         """Get the total number of participant profiles of this competition, including unconfirmed participants.
@@ -744,7 +739,7 @@ class Competition(models.Model):
         Returns:
             str: The link to submit the points of submissions of this competition.
         """
-        return f"{url.getRoot(APPNAME)}{url.compete.submitPoints(compID=self.getID())}"
+        return f"{url.getRoot(APPNAME)}{url.compete.submitPoints(compID=self.get_id)}"
 
     def allSubmissionsMarkedByJudge(self, judge: Profile) -> bool:
         """Check if all submissions of this competition are marked by the given judge.
@@ -759,7 +754,7 @@ class Competition(models.Model):
             subslist = self.getValidSubmissions()
             judgeTopicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__in=subslist, judge=judge).count()
-            return len(subslist) > 0 and judgeTopicPointsCount == len(subslist)*self.totalTopics()
+            return (len(subslist) > 0) and judgeTopicPointsCount == (len(subslist)*self.totalTopics())
         except Exception as e:
             errorLog(e)
             return False
@@ -775,31 +770,10 @@ class Competition(models.Model):
             topicPointsCount = SubmissionTopicPoint.objects.filter(
                 submission__competition=self,
                 submission__in=subslist).count()
-            return len(subslist) > 0 and topicPointsCount == len(subslist)*self.totalTopics()*self.totalJudges()
+            return (len(subslist) > 0) and topicPointsCount == (len(subslist)*self.totalTopics()*self.totalJudges())
         except Exception as e:
             errorLog(e)
             return False
-
-    def countJudgesWhoMarkedSubmissions(self) -> int:
-        """Get the number of judges who marked submissions of this competition.
-
-        Returns:
-            int: The number of judges who marked submissions of this competition.
-        """
-        judges = self.getJudges()
-        count = 0
-        for judge in judges:
-            if self.allSubmissionsMarkedByJudge(judge):
-                count = count+1
-        return count
-
-    def countJudgesWhoNotMarkedSubmissions(self) -> int:
-        """Get the number of judges who did not mark submissions of this competition.
-
-        Returns:
-            int: The number of judges who did not mark submissions of this competition.
-        """
-        return self.totalJudges() - self.countJudgesWhoMarkedSubmissions()
 
     def judgesWhoMarkedSubmissions(self) -> list:
         """Get the list of judge profile instances who marked submissions of this competition.
@@ -807,12 +781,7 @@ class Competition(models.Model):
         Returns:
             list<Profile>: The list of judge profile instances who marked submissions of this competition.
         """
-        judges = self.getJudges()
-        markedJudges = []
-        for judge in judges:
-            if self.allSubmissionsMarkedByJudge(judge):
-                markedJudges.append(judge)
-        return markedJudges
+        return list(filter(lambda j: self.allSubmissionsMarkedByJudge(j), self.getJudges()))
 
     def judgesWhoNotMarkedSubmissions(self) -> list:
         """Get the list of judge profile instances who did not mark submissions of this competition.
@@ -820,12 +789,23 @@ class Competition(models.Model):
         Returns:
             list<Profile>: The list of judge profile instances who did not mark submissions of this competition.
         """
-        judges = self.getJudges()
-        unmarkedJudges = []
-        for judge in judges:
-            if not self.allSubmissionsMarkedByJudge(judge):
-                unmarkedJudges.append(judge)
-        return unmarkedJudges
+        return list(filter(lambda j: not self.allSubmissionsMarkedByJudge(j), self.getJudges()))
+
+    def countJudgesWhoMarkedSubmissions(self) -> int:
+        """Get the number of judges who marked submissions of this competition.
+
+        Returns:
+            int: The number of judges who marked submissions of this competition.
+        """
+        return len(self.judgesWhoMarkedSubmissions())
+
+    def countJudgesWhoNotMarkedSubmissions(self) -> int:
+        """Get the number of judges who did not mark submissions of this competition.
+
+        Returns:
+            int: The number of judges who did not mark submissions of this competition.
+        """
+        return len(self.judgesWhoNotMarkedSubmissions())
 
     def declareResultsLink(self) -> str:
         """Get the link to declare the results of this competition, to be used by the creator via POST.
@@ -846,10 +826,10 @@ class Competition(models.Model):
         try:
             if self.resultDeclared:
                 raise Exception(
-                    f"Cannot declare results of {self.title}, already declared")
+                    f"Cannot declare results of {self.title}, already declared", self)
             if not self.allSubmissionsMarked():
                 raise Exception(
-                    f"Cannot declare results of {self.title} unless all valid submissions have been marked.")
+                    f"Cannot declare results of {self.title} unless all valid submissions have been marked.", self)
             subs = self.getValidSubmissions()
             submissionPoints = SubmissionTopicPoint.objects.filter(submission__in=subs).values('submission', 'submission__submitOn').annotate(
                 totalPoints=Sum('points')).order_by('-totalPoints', 'submission__submitOn')
@@ -875,14 +855,14 @@ class Competition(models.Model):
                     rank = rank + 1
                 else:
                     raise Exception(
-                        f"Results declaration: Submission not found (valid) but submission points found! subID: {submissionpoint['submission']}")
+                        f"Results declaration: Submission not found (valid) but submission points found! subID: {submissionpoint['submission']}", submissionpoint, self)
             Result.objects.bulk_create(resultsList)
             self.resultDeclared = True
             self.resultDeclaredOn = timezone.now()
             self.save()
             if not self.allResultsDeclared():
                 raise Exception(
-                    'Results declaration: All results not declared!')
+                    'Results declaration: All results not declared!', self)
             return self
         except Exception as e:
             errorLog(e)
@@ -972,7 +952,7 @@ class Competition(models.Model):
         Returns:
             str: The link to the view page of certificate of the moderator of this competition.
         """
-        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.getID(),userID=self.moderator.get_userid)}"
+        return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.getID(),userID=self.moderator().get_userid)}"
 
     @property
     def getJudgeCertLink(self) -> str:
@@ -1001,13 +981,14 @@ class Perk(models.Model):
     class Meta:
         unique_together = ("competition", "rank")
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    competition = competition = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    competition: Competition = models.ForeignKey(
         Competition, related_name='perk_competition', on_delete=models.CASCADE)
     """competition (ForeignKey<Competition>): The competition this perk belongs to."""
-    rank = models.IntegerField(default=1)
+    rank: int = models.IntegerField(default=1)
     """rank (IntegerField): The rank of this perk."""
-    name = models.CharField(max_length=1000)
+    name: str = models.CharField(max_length=1000)
     """name (CharField): The name of this perk."""
 
 
@@ -1016,11 +997,12 @@ class CompetitionJudge(models.Model):
     The model for many to many relationship between Competition and Judge.
 
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    competition = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    competition: Competition = models.ForeignKey(
         Competition, related_name='judging_competition', on_delete=models.PROTECT)
     """competition (ForeignKey<Competition>): The competition of this relation."""
-    judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
+    judge: Profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
     """judge (ForeignKey<Profile>): The judge of this relation."""
 
     class Meta:
@@ -1045,11 +1027,12 @@ class CompetitionTopic(models.Model):
     """
     class Meta:
         unique_together = ("competition", "topic")
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    competition = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    competition: Competition = models.ForeignKey(
         Competition, on_delete=models.CASCADE, related_name='competition_topic')
     """competition (ForeignKey<Competition>): The competition of this relation."""
-    topic = models.ForeignKey(
+    topic: Topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name='topic_competition')
     """topic (ForeignKey<Topic>): The topic of this relation."""
 
@@ -1061,28 +1044,33 @@ class Submission(models.Model):
     """
     Submission of a competition, including participant(s).
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    competition: Competition = models.ForeignKey(
+        Competition, on_delete=models.PROTECT)
     """competition (ForeignKey<Competition>): The competition of this submission."""
     members = models.ManyToManyField(
         Profile, through='SubmissionParticipant', related_name='submission_participants')
     """members (ManyToManyField<Profile>): The participants of this submission."""
-    repo = models.URLField(max_length=1000, blank=True, null=True)
-    """repo (URLField): Deprecated. Use free_project instead."""
-    free_project = models.ForeignKey(
+    repo: str = models.URLField(max_length=1000, blank=True, null=True)
+    """repo (URLField): Deprecated. Use free_project only."""
+    free_project: FreeProject = models.ForeignKey(
         FreeProject, on_delete=models.SET_NULL, null=True, blank=True)
     """free_project (ForeignKey<FreeProject>): The free project of this submission."""
-    submitted = models.BooleanField(default=False)
+    submitted: bool = models.BooleanField(default=False)
     """submitted (BooleanField): Whether this submission is submitted."""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The time this submission was created."""
-    modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    modifiedOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """modifiedOn (DateTimeField): The time this submission was last modified."""
-    submitOn = models.DateTimeField(auto_now=False, blank=True, null=True)
+    submitOn: datetime = models.DateTimeField(
+        auto_now=False, blank=True, null=True)
     """submitOn (DateTimeField): The time this submission was submitted."""
-    valid = models.BooleanField(default=True)
+    valid: bool = models.BooleanField(default=True)
     """valid (BooleanField): Whether this submission is valid."""
-    late = models.BooleanField(default=False)
+    late: bool = models.BooleanField(default=False)
     """late (BooleanField): Whether this submission is late."""
 
     def __str__(self) -> str:
@@ -1095,8 +1083,12 @@ class Submission(models.Model):
     def getID(self) -> str:
         return self.get_id
 
+    @property
+    def get_compid(self) -> str:
+        return self.competition.get_id
+
     def getCompID(self) -> str:
-        return self.competition.getID()
+        return self.get_compid
 
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
@@ -1120,13 +1112,13 @@ class Submission(models.Model):
         return self.members.count()
 
     def isMember(self, profile: Profile) -> bool:
-        """Check if the given profile is a member of this submission.
+        """Check if the given profile is a confirmed member of this submission.
 
         Args:
             profile (Profile): The profile to check.
 
         Returns:
-            bool: Whether the given profile is a member of this submission.
+            bool: Whether the given profile is a confirmed member of this submission.
         """
         try:
             SubmissionParticipant.objects.get(
@@ -1136,30 +1128,20 @@ class Submission(models.Model):
             return False
 
     def getMembers(self) -> list:
-        """Get the list of member Profile instances in this submission.
+        """Get the list of confirmed member Profile instances in this submission.
 
         Returns:
-            list<Profile>: The list of member Profile instances in this submission.
+            list<Profile>: The list of confirmed member Profile instances in this submission.
         """
-        members = []
-        submps = SubmissionParticipant.objects.filter(
-            submission=self, profile__in=self.members.all(), confirmed=True)
-
-        for submp in submps:
-            members.append(submp.profile)
-        return members
+        return list(map(lambda x: x.profile, SubmissionParticipant.objects.filter(submission=self, confirmed=True)))
 
     def getMembersEmail(self) -> list:
-        """Get the list of member email addresses in this submission.
+        """Get the list of confirmed member email addresses in this submission.
 
         Returns:
-            list<str>: The list of member email addresses in this submission.
+            list<str>: The list of confirmed member email addresses in this submission.
         """
-        members = self.getMembers()
-        emails = []
-        for member in members:
-            emails.append(member.getEmail())
-        return emails
+        return list(map(lambda x: x.profile.getEmail(), SubmissionParticipant.objects.filter(submission=self, confirmed=True)))
 
     def totalActiveMembers(self) -> int:
         """Get the total number of confirmed members in this submission.
@@ -1167,7 +1149,7 @@ class Submission(models.Model):
         Returns:
             int: The total number of confirmed members in this submission.
         """
-        return len(self.getMembers())
+        return SubmissionParticipant.objects.filter(submission=self, confirmed=True).count()
 
     def memberOrMembers(self) -> str:
         """Get the string to describe the number of members in this submission."""
@@ -1257,16 +1239,18 @@ class SubmissionParticipant(models.Model):
     class Meta:
         unique_together = ("profile", "submission")
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    submission = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    submission: Submission = models.ForeignKey(
         Submission, on_delete=models.CASCADE, related_name='participant_submission')
     """submission (ForeignKey<Submission>): The submission in this relationship."""
-    profile = models.ForeignKey(
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_profile')
     """profile (ForeignKey<Profile>): The profile in this relationship."""
-    confirmed = models.BooleanField(default=False)
+    confirmed: bool = models.BooleanField(default=False)
     """confirmed (BooleanField): Whether this relationship is confirmed or not."""
-    confirmed_on = models.DateTimeField(auto_now=False, null=True, blank=True)
+    confirmed_on: datetime = models.DateTimeField(
+        auto_now=False, null=True, blank=True)
     """confirmed_on (DateTimeField): The time when this relationship is confirmed."""
 
     def save(self, *args, **kwargs):
@@ -1284,14 +1268,16 @@ class SubmissionTopicPoint(models.Model):
     class Meta:
         unique_together = (("submission", "judge", "topic"))
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    submission = models.ForeignKey(Submission, on_delete=models.PROTECT)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    submission: Submission = models.ForeignKey(
+        Submission, on_delete=models.PROTECT)
     """submission (ForeignKey<Submission>): The submission in this relationship."""
-    topic = models.ForeignKey(Topic, on_delete=models.PROTECT)
+    topic: Topic = models.ForeignKey(Topic, on_delete=models.PROTECT)
     """topic (ForeignKey<Topic>): The topic in this relationship."""
-    judge = models.ForeignKey(Profile, on_delete=models.PROTECT)
+    judge: Profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
     """judge (ForeignKey<Profile>): The judge in this relationship."""
-    points = models.IntegerField(default=0)
+    points: int = models.IntegerField(default=0)
     """points (IntegerField): The points assigned by the judge in and for this relationship."""
 
     def __str__(self) -> str:
@@ -1306,14 +1292,17 @@ class Result(models.Model):
         unique_together = (("competition", "rank"),
                            ("competition", "submission"))
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    competition = models.ForeignKey(Competition, on_delete=models.PROTECT)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    competition: Competition = models.ForeignKey(
+        Competition, on_delete=models.PROTECT)
     """competition (ForeignKey<Competition>): The competition of this result."""
-    submission = models.OneToOneField(Submission, on_delete=models.PROTECT)
+    submission: Submission = models.OneToOneField(
+        Submission, on_delete=models.PROTECT)
     """submission (OneToOneField<Submission>): The submission of this result."""
-    points = models.IntegerField(default=0)
+    points: int = models.IntegerField(default=0)
     """points (IntegerField): The total points obtained by the submission."""
-    rank = models.IntegerField()
+    rank: int = models.IntegerField()
     """rank (IntegerField): The rank of the submission."""
     xpclaimers = models.ManyToManyField(
         Profile, through='ResultXPClaimer', related_name='result_xpclaimers', default=[])
@@ -1326,21 +1315,30 @@ class Result(models.Model):
         return f"{self.competition} - {self.rank}{self.rankSuptext()}"
 
     @property
-    def get_id(self):
+    def get_id(self) -> str:
         return self.id.hex
 
-    def getID(self):
+    def getID(self) -> str:
         return self.get_id
 
-    def submitOn(self):
+    def submitOn(self) -> datetime:
         return self.submission.submitOn
 
-    def rankSuptext(self, rnk=0) -> str:
-        rank = self.rank if rnk == 0 else rnk
-        return getNumberSuffix(int(rank))
+    def rankSuptext(self, rank: int = 0) -> str:
+        """Get the rank's human readable format suffix only.
 
-    def getRank(self, rnk=0) -> str:
-        return f"{self.rank}{self.rankSuptext(rnk=rnk)}"
+        Args:
+            rank (int, optional): The rank suffix to get. Defaults to the rank suffix of this result.
+        """
+        return getNumberSuffix(int(rank or self.rank or 0))
+
+    def getRank(self, rank: int = 0) -> str:
+        """Get the rank in human readable format.
+
+        Args:
+            rank (int, optional): The rank to get. Defaults to the rank of this result.
+        """
+        return getNumberSuffix(int(rank or self.rank or 0), True)
 
     def hasClaimedXP(self, profile: Profile) -> bool:
         """Check if the given profile has claimed their XPs.
@@ -1418,11 +1416,12 @@ class ResultXPClaimer(models.Model):
     class Meta:
         unique_together = ("result", "profile")
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    result = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    result: Result = models.ForeignKey(
         Result, on_delete=models.PROTECT, related_name='xpclaimer_result')
     """result (ForeignKey<Result>): The result in this relationship."""
-    profile = models.ForeignKey(
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='xpclaimer_profile')
     """profile (ForeignKey<Profile>): The profile in this relationship."""
 
@@ -1434,14 +1433,15 @@ class ParticipantCertificate(models.Model):
     class Meta:
         unique_together = ("result", "profile")
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    result = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    result: Result = models.ForeignKey(
         Result, on_delete=models.PROTECT, related_name='participant_certificate_result')
     """result (ForeignKey<Result>): The result of a competition."""
-    profile = models.ForeignKey(
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='participant_certificate_profile')
     """profile (ForeignKey<Profile>): The participant profile of a competition."""
-    certificate = models.CharField(
+    certificate: str = models.CharField(
         default='', null=True, blank=True, max_length=1000)
     """certificate (CharField): The certificate of a participant."""
 
@@ -1455,7 +1455,7 @@ class ParticipantCertificate(models.Model):
         return f"{str(self.certificate).replace('.pdf','.jpg')}" if self.certificate else None
 
     @property
-    def get_id(self):
+    def get_id(self) -> str:
         return self.id.hex
 
     @property
@@ -1468,7 +1468,7 @@ class ParticipantCertificate(models.Model):
         return f"{url.getRoot(APPNAME)}{url.compete.certificate(resID=self.result.get_id,userID=self.profile.get_userid)}"
 
     @property
-    def get_download_link(self):
+    def get_download_link(self) -> str:
         """Get the link to download the certificate
 
         Returns:
@@ -1477,7 +1477,7 @@ class ParticipantCertificate(models.Model):
         return f"{url.getRoot(APPNAME)}{url.compete.certificateDownload(resID=self.result.get_id,userID=self.profile.get_userid)}"
 
     @property
-    def getCertImage(self):
+    def getCertImage(self) -> str:
         """Get the certificate image URL.
 
         Returns:
@@ -1486,7 +1486,7 @@ class ParticipantCertificate(models.Model):
         return f"{settings.MEDIA_URL}{str(self.certificate).replace('.pdf','.jpg')}" if self.certificate else None
 
     @property
-    def getCert(self):
+    def getCert(self) -> str:
         """Get the certificate URL.
 
         Returns:
@@ -1494,7 +1494,7 @@ class ParticipantCertificate(models.Model):
         """
         return f"{settings.MEDIA_URL}{str(self.certificate)}"
 
-    def getCertificate(self):
+    def getCertificate(self) -> str:
         return self.getCert
 
 
@@ -1502,16 +1502,17 @@ class AppreciationCertificate(models.Model):
     class Meta:
         unique_together = ("competition", "appreciatee")
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    competition = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    competition: Competition = models.ForeignKey(
         Competition, on_delete=models.PROTECT, related_name='appreciation_certificate_competition')
-    appreciatee = models.ForeignKey(
+    appreciatee: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='appreciation_certificate_profile')
-    certificate = models.CharField(
+    certificate: str = models.CharField(
         default='', null=True, blank=True, max_length=1000)
 
     @property
-    def certficateImage(self):
+    def certficateImage(self) -> str:
         """Get the certificate path as image.
 
         Returns:
@@ -1520,11 +1521,11 @@ class AppreciationCertificate(models.Model):
         return f"{str(self.certificate).replace('.pdf','.jpg')}" if self.certificate else None
 
     @property
-    def get_id(self):
+    def get_id(self) -> str:
         return self.id.hex
 
     @property
-    def get_link(self):
+    def get_link(self) -> str:
         """Get the link to the certificate view
 
         Returns:
@@ -1533,7 +1534,7 @@ class AppreciationCertificate(models.Model):
         return f"{url.getRoot(APPNAME)}{url.compete.apprCertificate(compID=self.competition.getID(),userID=self.appreciatee.get_userid)}"
 
     @property
-    def get_download_link(self):
+    def get_download_link(self) -> str:
         """Get the link to download the certificate
 
         Returns:
@@ -1542,7 +1543,7 @@ class AppreciationCertificate(models.Model):
         return f"{url.getRoot(APPNAME)}{url.compete.apprCertificateDownload(compID=self.competition.getID(),userID=self.appreciatee.get_userid)}"
 
     @property
-    def getCertImage(self):
+    def getCertImage(self) -> str:
         """Get the certificate image URL.
 
         Returns:
@@ -1551,7 +1552,7 @@ class AppreciationCertificate(models.Model):
         return f"{settings.MEDIA_URL}{str(self.certificate).replace('.pdf','.jpg')}"
 
     @property
-    def getCertificate(self):
+    def getCertificate(self) -> str:
         """Get the certificate URL.
 
         Returns:
@@ -1564,13 +1565,13 @@ class SubmissionTeamInvitation(Invitation):
     """
     The model of an invitation to join a submission team for a profile.
     """
-    sender = models.ForeignKey(
+    sender: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='team_invitation_sender')
     """sender (ForeignKey<Profile>): The sender of the invitation."""
-    receiver = models.ForeignKey(
+    receiver: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='team_invitation_receiver')
     """receiver (ForeignKey<Profile>): The receiver of the invitation."""
-    submission = models.ForeignKey(
+    submission: Submission = models.ForeignKey(
         Submission, on_delete=models.CASCADE, related_name='invitation_submission')
     """submission (ForeignKey<Submission>): The submission for which the invitation is."""
 

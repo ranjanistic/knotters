@@ -312,7 +312,7 @@ class TestViews(TestCase):
             follow=True, path=root(url.compete.invite(subID)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(
-            Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_ID))
+            Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
 
         resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,

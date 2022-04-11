@@ -22,12 +22,15 @@ def on_notification_create(sender, instance: Notification, created, **kwargs):
 
 
 @receiver(post_delete, sender=User)
-def on_user_delete(sender, instance, **kwargs):
+def on_user_delete(sender, instance: User, **kwargs):
     """
     User cleanup.
     """
     try:
-        Profile.objects.filter(id=instance.profile.id).update(
+        instprofile: Profile = instance.profile
+        if isPictureDeletable(instprofile.picture):
+            instprofile.picture.delete(save=False)
+        Profile.objects.filter(id=instprofile.id).update(
             to_be_zombie=True,
             is_zombie=True,
             githubID=None,
@@ -36,40 +39,38 @@ def on_user_delete(sender, instance, **kwargs):
             zombied_on=timezone.now(),
             picture=defaultImagePath()
         )
-        if isPictureDeletable(instance.profile.picture):
-            instance.profile.picture.delete(save=False)
     except Exception as e:
         errorLog(e)
         pass
-    accountDeleteAlert(instance)
     try:
         Sender.removeUserFromMailingServer(instance.email)
     except Exception as e:
         errorLog(e)
         pass
+    accountDeleteAlert(instance)
 
 
 @receiver(password_changed)
-def user_password_changed(request, user, **kwargs):
+def user_password_changed(request, user: User, **kwargs):
     passordChangeAlert(user)
 
 
 @receiver(password_reset)
-def user_password_reset(request, user, **kwargs):
+def user_password_reset(request, user: User, **kwargs):
     passordChangeAlert(user)
 
 
 @receiver(email_changed)
-def user_email_changed(request, user, from_email_address, to_email_address, **kwargs):
+def user_email_changed(request, user: User, from_email_address: str, to_email_address: str, **kwargs):
     if from_email_address != to_email_address:
         emailUpdateAlert(user, from_email_address, to_email_address)
 
 
 @receiver(email_added)
-def user_email_added(request, user, email_address, **kwargs):
+def user_email_added(request, user: User, email_address: str, **kwargs):
     emailAddAlert(user, email_address)
 
 
 @receiver(email_removed)
-def user_email_removed(request, user, email_address, **kwargs):
+def user_email_removed(request, user: User, email_address: str, **kwargs):
     emailRemoveAlert(user, email_address)

@@ -8,8 +8,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.utils import timezone
 from main.env import ISTESTING, SITE
-from main.methods import (errorLog, renderString,
-                          renderView)
+from main.methods import errorLog, renderString, renderView
 from main.strings import Compete, Message, url
 from people.models import Profile, User
 from PIL import Image, ImageDraw, ImageFont
@@ -236,7 +235,7 @@ def getCompetitionSectionHTML(competition: Competition, section: str, request: W
     return rendererstr(request, f'profile/{section}', data)
 
 
-def generateCertificate(certname: str, certID: str, userdisplayname: str, compname: str, abouttext: str, associate=None, template='certificate'):
+def generateCertificate(certname: str, certID: str, userdisplayname: str, compname: str, abouttext: str, associate: str = None, template: str = 'certificate') -> str:
     """
     Generates a certificate for the given user.
     NOTE: This method depends on dimensions of the template images. If they're changed, then the coordinates utilized in this method
@@ -301,7 +300,7 @@ def generateCertificate(certname: str, certID: str, userdisplayname: str, compna
     return certpath
 
 
-def prepareNameForCertificate(name: str, fname: str, lname: str):
+def prepareNameForCertificate(name: str, fname: str, lname: str) -> str:
     """
     Prepares the display name of user for certificate. (Long names are shortened to initials, and are capitalized)
 
@@ -410,7 +409,7 @@ def generateModCertificate(competition: Competition, certID: UUID) -> str:
         str, bool: Path of generated certificate, pdf. (similar for jpg format), if successful. False otherwise.
     """
     try:
-        mod = competition.moderator
+        mod = competition.moderator()
         name = prepareNameForCertificate(
             mod.getName(), mod.getFName(), mod.getLName())
 
@@ -432,7 +431,7 @@ def generateModCertificate(competition: Competition, certID: UUID) -> str:
         return False
 
 
-def DeclareResults(competition: Competition):
+def DeclareResults(competition: Competition) -> str:
     """Declairs the results of the competition, adds results alerts email task to the queue.
 
     Args:
@@ -471,12 +470,12 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
         if not certificate:
             cache.delete(taskKey)
             raise Exception(f"Couldn't generate certificate (mod)!",
-                            competition.moderator, competition)
+                            competition.moderator(), competition)
         appreciateeCerts.append(
             AppreciationCertificate(
                 id=id,
                 competition=competition,
-                appreciatee=competition.moderator,
+                appreciatee=competition.moderator(),
                 certificate=certificate
             )
         )
@@ -496,7 +495,8 @@ def AllotCompetitionCertificates(results: list, competition: Competition) -> boo
                     certificate=certificate
                 )
             )
-        AppreciationCertificate.objects.bulk_create(appreciateeCerts, ignore_conflicts=True)
+        AppreciationCertificate.objects.bulk_create(
+            appreciateeCerts, ignore_conflicts=True)
         participantCerts = []
         for result in results:
             for member in result.getMembers():

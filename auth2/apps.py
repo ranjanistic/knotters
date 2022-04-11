@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
-APPNAME = 'auth2'
+APPNAME: str = 'auth2'
 
 
 class AuthConfig(AppConfig):

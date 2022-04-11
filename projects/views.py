@@ -111,7 +111,8 @@ def public_licenses(request: WSGIRequest) -> JsonResponse:
     """
 
     try:
-        content = request.POST.get('content', request.GET.get("content", None))
+        content: bool = request.POST.get(
+            'content', request.GET.get("content", None))
         licenses = License.get_all()
         publices = []
         for l in licenses:
@@ -145,9 +146,9 @@ def licence(request: WSGIRequest, id: UUID) -> HttpResponse:
     """
     try:
         try:
-            license = License.get_cache_one(id=id)
+            license: License = License.get_cache_one(id=id)
         except:
-            license = License.objects.get(id=id)
+            license: License = License.objects.get(id=id)
         return renderer(request, Template.Projects.LICENSE_LIC, dict(license=license))
     except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
@@ -280,7 +281,7 @@ def addLicense(request: WSGIRequest) -> JsonResponse:
         name = request.POST['name'][:100].strip()
         description = request.POST['description'][:950].strip()
         content = request.POST['content'][:299950]
-        public = request.POST.get('public', False)
+        public: bool = request.POST.get('public', False)
 
         if not (name and description and content):
             raise KeyError(name, description, content)
@@ -323,7 +324,7 @@ def submitFreeProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     alerted = False
     try:
-        acceptedTerms = request.POST.get("acceptterms", False)
+        acceptedTerms: bool = request.POST.get("acceptterms", False)
         if not acceptedTerms:
             return respondRedirect(APPNAME, URL.Projects.CREATE_FREE, error=Message.TERMS_UNACCEPTED)
         license = request.POST['license'][:50]
@@ -385,7 +386,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        acceptedTerms = request.POST.get("acceptterms", False)
+        acceptedTerms: bool = request.POST.get("acceptterms", False)
         if not acceptedTerms:
             if json_body:
                 return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
@@ -471,7 +472,8 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
     projectobj = None
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        acceptedTerms = request.POST.get("coreproject_acceptterms", False)
+        acceptedTerms: bool = request.POST.get(
+            "coreproject_acceptterms", False)
         if not acceptedTerms:
             if json_body:
                 return respondJson(Code.NO, error=Message.TERMS_UNACCEPTED)
@@ -484,7 +486,7 @@ def submitCoreProject(request: WSGIRequest) -> HttpResponse:
         userRequest = request.POST["coreproject_projectdescription"]
 
         chosenModID = request.POST.get("coreproject_moderator_id", False)
-        useInternalMods = request.POST.get(
+        useInternalMods: bool = request.POST.get(
             "coreproject_internal_moderator", False)
 
         referURL = request.POST.get("coreproject_referurl", "")
@@ -689,14 +691,8 @@ def profileBase(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
         HttpResponseRedirect: redirect to the project page if successful
     """
     try:
-        project: FreeProject = FreeProject.objects.filter(
-            nickname=nickname, trashed=False, is_archived=False).first()
-        if not project:
-            project: Project = Project.objects.filter(
-                reponame=nickname, trashed=False, is_archived=False).first()
-            if not project:
-                project: CoreProject = CoreProject.objects.get(
-                    codename=nickname, trashed=False, is_archived=False)
+        project = BaseProject.get_cache_one(nickname=nickname)
+        print(project)
         return redirect(project.get_link)
     except ObjectDoesNotExist:
         raise Http404(e)
@@ -1013,7 +1009,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             topics=topicslist
         ))
     except (ObjectDoesNotExist, ValidationError, KeyError) as e:
-        
+
         errorLog(e)
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
@@ -1774,7 +1770,8 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        query = request.GET.get('query', request.POST.get('query', ""))[:100].strip()
+        query = request.GET.get('query', request.POST.get('query', ""))[
+            :100].strip()
         if not query:
             raise KeyError(query)
         limit = request.GET.get('limit', request.POST.get('limit', 10))
@@ -1890,7 +1887,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
 
 @ratelimit(key='user_or_ip', rate='2/s')
 @decode_JSON
-def licenseSearch(request: WSGIRequest):
+def licenseSearch(request: WSGIRequest) -> HttpResponse:
     """To search for licenses
 
     METHODS: GET, POST
@@ -2124,7 +2121,8 @@ def reportCategories(request: WSGIRequest) -> JsonResponse:
         JsonResponse: The json response with main.strings.Code.OK and categories, or main.strings.Code.NO
     """
     try:
-        reports = list(map(lambda r: dict(id=r[0], name=r[1]), list(ReportCategory.get_all().values_list("id", "name"))))
+        reports = list(map(lambda r: dict(id=r[0], name=r[1]), list(
+            ReportCategory.get_all().values_list("id", "name"))))
         return respondJson(Code.OK, dict(reports=reports))
     except Exception:
         return respondJson(Code.NO)
@@ -2164,7 +2162,7 @@ def reportProject(request: WSGIRequest) -> JsonResponse:
 @normal_profile_required
 @require_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
-def reportSnapshot(request: WSGIRequest):
+def reportSnapshot(request: WSGIRequest) -> JsonResponse:
     """To report a snapshot
 
     METHODS: POST
@@ -2398,7 +2396,7 @@ def handleVerModInvitation(request: WSGIRequest) -> JsonResponse:
 
 @moderator_only
 @require_GET
-def projectModTransferInvite(request: WSGIRequest, inviteID: UUID):
+def projectModTransferInvite(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To render the verified project moderatorship transfer invitation view
 
     METHODS: GET
@@ -2431,7 +2429,7 @@ def projectModTransferInvite(request: WSGIRequest, inviteID: UUID):
 @moderator_only
 @require_POST
 @decode_JSON
-def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
+def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To handle the verified project moderatorship transfer invite action taken by receiver.
 
     METHODS: POST
@@ -2473,7 +2471,7 @@ def projectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
 
 @moderator_only
 @require_JSON
-def handleCoreModInvitation(request: WSGIRequest):
+def handleCoreModInvitation(request: WSGIRequest) -> JsonResponse:
     """To handle moderatorship invitation creation/deletion of a core project
 
     METHODS: POST
@@ -2544,7 +2542,7 @@ def handleCoreModInvitation(request: WSGIRequest):
 
 @moderator_only
 @require_GET
-def coreProjectModTransferInvite(request: WSGIRequest, inviteID: UUID):
+def coreProjectModTransferInvite(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To render the core project moderatorship transfer invitation view
 
     METHODS: GET
@@ -2576,7 +2574,7 @@ def coreProjectModTransferInvite(request: WSGIRequest, inviteID: UUID):
 
 @moderator_only
 @require_JSON
-def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID):
+def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To handle the core project moderatorship transfer invite action taken by receiver.
 
     METHODS: POST
@@ -3010,7 +3008,7 @@ def handleCocreatorInvitation(request: WSGIRequest, projectID: UUID) -> JsonResp
 
 @normal_profile_required
 @require_GET
-def projectCocreatorInvite(request, inviteID):
+def projectCocreatorInvite(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To render the cocreatorship invitation view
 
     METHODS: GET
@@ -3042,7 +3040,7 @@ def projectCocreatorInvite(request, inviteID):
 
 @normal_profile_required
 @require_JSON
-def projectCocreatorInviteAction(request, inviteID):
+def projectCocreatorInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To handle the project cocreatorship invite action taken by receiver.
 
     METHODS: POST
