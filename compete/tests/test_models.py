@@ -626,14 +626,14 @@ class ResultAttributeTest(TestCase):
         self.assertEqual(self.result.submitOn(),
                          self.result.submission.submitOn)
         self.assertEqual(self.result.rankSuptext(),
-                         self.result.rankSuptext(rnk=1))
-        self.assertEqual(self.result.rankSuptext(rnk=2),
-                         self.result.rankSuptext(rnk=22))
-        self.assertEqual(self.result.rankSuptext(rnk=1),
-                         self.result.rankSuptext(rnk=21))
-        self.assertEqual(self.result.rankSuptext(rnk=3),
-                         self.result.rankSuptext(rnk=23))
-        self.assertEqual(self.result.rankSuptext(rnk=4),
-                         self.result.rankSuptext(rnk=24))
-        self.assertEqual(self.result.rankSuptext(rnk=5),
-                         self.result.rankSuptext(rnk=20))
+                         self.result.rankSuptext(rank=1))
+        self.assertEqual(self.result.rankSuptext(rank=2),
+                         self.result.rankSuptext(rank=22))
+        self.assertEqual(self.result.rankSuptext(rank=1),
+                         self.result.rankSuptext(rank=21))
+        self.assertEqual(self.result.rankSuptext(rank=3),
+                         self.result.rankSuptext(rank=23))
+        self.assertEqual(self.result.rankSuptext(rank=4),
+                         self.result.rankSuptext(rank=24))
+        self.assertEqual(self.result.rankSuptext(rank=5),
+                         self.result.rankSuptext(rank=20))

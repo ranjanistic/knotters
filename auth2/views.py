@@ -302,7 +302,7 @@ def getSuccessor(request: WSGIRequest) -> JsonResponse:
     if request.user.profile.successor:
         return respondJson(Code.OK, dict(
             successorID=(
-                request.user.profile.successor.getEmail() if request.user.profile.successor.getEmail() != BOTMAIL else '')
+                request.user.profile.successor.email if request.user.profile.successor.email != BOTMAIL else '')
         ))
     return respondJson(Code.NO)
 
