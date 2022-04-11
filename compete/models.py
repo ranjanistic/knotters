@@ -430,7 +430,7 @@ class Competition(models.Model):
         """
         perks = Perk.objects.filter(competition=self).order_by('rank')
         if len(perks) < 1:
-            perks = list(filter(lambda p: p, str(self.perks).split(';')))
+            perks = list(filter(lambda p: p, self.perks.split(';')))
         return perks
 
     def totalTopics(self) -> int:

@@ -87,7 +87,7 @@ class CompetitionAttributeTest(TestCase):
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
-        self.comp = Competition.objects.create(is_draft=False,
+        self.comp:Competition = Competition.objects.create(is_draft=False,
             title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mguser.profile)
         
     def setUp(self) -> None:
