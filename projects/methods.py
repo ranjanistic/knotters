@@ -443,7 +443,7 @@ def addTagToDatabase(tag: str, creator: Profile = None) -> Tag:
         Tag: A tag instance (new/existing)
     """
     tag = re_sub(r'[^a-zA-Z0-9\_]', "", tag[:100])
-    tag = "_".join(list(filter(lambda t: t, tag.split('_'))))
+    tag = "_".join(list(filter(lambda t: t, tag.split('_')))).lower()
     if not tag:
         return False
     tagobj = uniqueTag(tag)
