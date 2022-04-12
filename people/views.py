@@ -104,9 +104,9 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
     """
     try:
         if request.user.is_authenticated and request.user.id == userID:
-            profile = request.user.profile
+            profile: Profile = request.user.profile
         else:
-            profile = Profile.objects.get(
+            profile: Profile = Profile.objects.get(
                 user__id=userID)
         if request.user.is_authenticated:
             if profile.isBlocked(request.user):
@@ -199,7 +199,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        profile = Profile.objects.get(user=request.user)
+        profile: Profile = Profile.objects.get(user=request.user)
         nextlink = request.POST.get('next', None)
         if section == 'pallete':
             userchanged = False
@@ -235,7 +235,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                     return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
                 if json_body:
                     return respondJson(Code.OK)
-                return redirect(nextlink or profile.getLink())
+                return redirect(nextlink or profile.get_link)
             except Exception as e:
                 if json_body:
                     return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
@@ -250,18 +250,15 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             sociallinks = list(set(sociallinks))[:5]
             ProfileSocial.objects.filter(profile=request.user.profile).delete()
             if len(sociallinks) > 0:
-                profileSocials = []
-                for link in sociallinks:
-                    profileSocials.append(
-                        ProfileSocial(profile=request.user.profile, site=link))
-                ProfileSocial.objects.bulk_create(profileSocials)
+                ProfileSocial.objects.bulk_create(list(map(lambda link: ProfileSocial(
+                    profile=request.user.profile, site=link), sociallinks)))
                 if json_body:
                     return respondJson(Code.OK, message=Message.PROFILE_UPDATED)
                 return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
             else:
                 if json_body:
                     return respondJson(Code.OK)
-                return redirect(nextlink or profile.getLink())
+                return redirect(nextlink or profile.get_link)
         else:
             raise ObjectDoesNotExist(section)
     except ObjectDoesNotExist as o:
@@ -343,13 +340,10 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
                 | Q(name__iexact=query)
                 | Q(name__icontains=query)
             )[:limit]
-
-            for topic in topics:
-                topicslist.append(dict(
-                    id=topic.get_id,
-                    name=topic.name
-                ))
-
+            topicslist = list(map(lambda topic: dict(
+                id=topic.get_id,
+                name=topic.name
+            ), topics))
             cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
 
         return respondJson(Code.OK, dict(
@@ -381,6 +375,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         JsonResponse: Responds with json object with main.strings.Code.OK, or main.strings.Code.NO
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
+    profile: Profile = request.user.profile
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
@@ -388,81 +383,76 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         addtopics = request.POST.get('addtopics', None)
         updated = False
         if not (addtopicIDs or removetopicIDs or visibleTopicIDs or addtopics):
-            if json_body:
-                return respondJson(Code.NO)
-            if not (addtopicIDs.strip() or removetopicIDs.strip()):
-                return redirect(request.user.profile.getLink())
+            raise KeyError(addtopicIDs, removetopicIDs,
+                           visibleTopicIDs, addtopics)
 
         if removetopicIDs:
             if not json_body:
                 removetopicIDs = removetopicIDs.strip(',').split(',')
             ProfileTopic.objects.filter(
-                profile=request.user.profile, topic__id__in=removetopicIDs).update(trashed=True)
+                profile=profile, topic__id__in=removetopicIDs).update(trashed=True)
             updated = True
 
         if addtopicIDs:
             if not json_body:
                 addtopicIDs = addtopicIDs.strip(',').split(',')
             proftops = ProfileTopic.objects.filter(
-                profile=request.user.profile)
+                profile=profile)
             currentcount = proftops.filter(trashed=False).count()
             if currentcount + len(addtopicIDs) > 5:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
-                return redirect(request.user.profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
+                return redirect(profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
 
             newcount = currentcount + len(addtopicIDs)
             proftops.filter(topic__id__in=addtopicIDs).update(trashed=False)
-            if request.user.profile.totalTopics() != newcount:
-                for topic in Topic.objects.filter(id__in=addtopicIDs):
-                    request.user.profile.topics.add(topic)
+            if profile.totalTopics() != newcount:
+                profile.topics.set(Topic.objects.filter(id__in=addtopicIDs))
                 updated = True
 
         if visibleTopicIDs and len(visibleTopicIDs) > 0:
             if len(visibleTopicIDs) > 5:
                 return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
-            for topic in Topic.objects.filter(id__in=visibleTopicIDs):
-                request.user.profile.topics.add(topic)
-            ProfileTopic.objects.filter(profile=request.user.profile).exclude(
+            profile.topics.set(Topic.objects.filter(id__in=visibleTopicIDs))
+            ProfileTopic.objects.filter(profile=profile).exclude(
                 topic__id__in=visibleTopicIDs).update(trashed=True)
             ProfileTopic.objects.filter(
-                profile=request.user.profile, topic__id__in=visibleTopicIDs).update(trashed=False)
+                profile=profile, topic__id__in=visibleTopicIDs).update(trashed=False)
             updated = True
 
         if addtopics and len(addtopics) > 0:
             count = ProfileTopic.objects.filter(
-                profile=request.user.profile, trashed=False).count()
+                profile=profile, trashed=False).count()
             if not json_body:
                 addtopics = addtopics.strip(',').split(',')
             if count + len(addtopics) > 5:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
-                return redirect(request.user.profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
+                return redirect(profile.getLink(error=Message.MAX_TOPICS_ACHEIVED))
 
-            profiletopics = []
-            for top in addtopics:
-                topic = addTopicToDatabase(top, request.user.profile)
-                profiletopics.append(ProfileTopic(
-                    topic=topic, profile=request.user.profile))
+            profiletopics = list(map(lambda top: ProfileTopic(
+                topic=addTopicToDatabase(top, profile), profile=profile),
+                addtopics
+            ))
             if len(profiletopics) > 0:
                 ProfileTopic.objects.bulk_create(profiletopics)
                 updated = True
 
         if updated:
-            cache.delete(request.user.profile.CACHE_KEYS.topic_ids)
+            cache.delete(profile.CACHE_KEYS.topic_ids)
 
         if json_body:
             return respondJson(Code.OK)
-        return redirect(request.user.profile.getLink())
+        return redirect(profile.get_link)
     except (ObjectDoesNotExist, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        raise Http404(o)
+        return redirect(profile.getLink(error=Message.INVALID_REQUEST))
     except Exception as e:
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        raise Http404(e)
+        return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
 
 
 @normal_profile_required
@@ -486,14 +476,13 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
         if not query:
             raise KeyError(query)
         limit = int(request.POST.get('limit', 5))
-        excludeIDs = []
-        for tag in request.user.profile.tags.all():
-            excludeIDs.append(tag.id)
+        profile: Profile = request.user.profile
+        excludeIDs: list = profile.tags.values_list("id", flat=True)
 
-        cacheKey = f"tagssearch_{query}{request.user.id}" + \
-            "".join(map(lambda i: str(i), excludeIDs))
+        cacheKey = f"tagssearch_{query}" + \
+            "".join(map(lambda i: i.hex, excludeIDs))
+
         tagslist = cache.get(cacheKey, [])
-
         if not len(tagslist):
             tags = Tag.objects.exclude(id__in=excludeIDs).filter(
                 Q(name__istartswith=query)
@@ -501,17 +490,16 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
                 | Q(name__iexact=query)
                 | Q(name__icontains=query)
             )[:limit]
-            for tag in tags:
-                tagslist.append(dict(
-                    id=tag.getID(),
-                    name=tag.name
-                ))
-            cache.set(cacheKey, tagslist, settings.CACHE_INSTANT)
+            tagslist = list(map(lambda tag: dict(
+                id=tag.getID(),
+                name=tag.name
+            ), tags))
+            cache.set(cacheKey, tagslist, settings.CACHE_SHORT)
 
         return respondJson(Code.OK, dict(
-            tags=tagslist
+            tags=tagslist[:limit]
         ))
-    except (ObjectDoesNotExist, KeyError) as o:
+    except (ObjectDoesNotExist, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -539,11 +527,11 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     next = None
+    profile: Profile = request.user.profile
     try:
         addtagIDs = request.POST.get('addtagIDs', None)
         addtags = request.POST.get('addtags', None)
         removetagIDs = request.POST.get('removetagIDs', None)
-        profile = request.user.profile
 
         next = request.POST.get('next', profile.getLink())
 
@@ -569,21 +557,19 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
                     return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
                 return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
 
-            for tag in Tag.objects.filter(id__in=addtagIDs):
-                profile.tags.add(tag)
-                for topic in profile.getTopics():
-                    topic.tags.add(tag)
+            tags = Tag.objects.filter(id__in=addtagIDs)
+            profile.tags.set(tags)
+            map(lambda topic: topic.tags.set(tags), profile.getTopics())
             currentcount = currentcount + len(addtagIDs)
 
         if addtags:
             if not json_body:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
-                for addtag in addtags:
-                    tag = addTagToDatabase(addtag, request.user.profile)
-                    profile.tags.add(tag)
-                    for topic in profile.getTopics():
-                        topic.tags.add(tag)
+                tags = map(lambda addtag: addTagToDatabase(
+                    addtag, request.user.profile), addtags)
+                profile.tags.set(tags)
+                map(lambda topic: topic.tags.set(tags), profile.getTopics())
                 currentcount = currentcount + len(addtags)
             else:
                 if json_body:
@@ -626,7 +612,7 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> JsonResponse:
     """
     try:
         profile = list(map(lambda p: dict(id=p[0], xp=p[1]), list(Profile.objects.filter(id=profileID,
-                       successor_confirmed=True).values_list("id", "xp"))))[0]
+                       successor_confirmed=True, is_zombie=True).values_list("id", "xp"))))[0]
         return respondJson(Code.OK, dict(profile=profile))
     except (ObjectDoesNotExist, ValidationError, IndexError) as e:
         raise Http404(e)
@@ -675,11 +661,12 @@ def reportUser(request: WSGIRequest) -> JsonResponse:
     try:
         report = UUID(request.POST['report'][:50])
         userID = UUID(request.POST['userID'][:50])
-        user = User.objects.get(id=userID)
+        user: User = User.objects.get(id=userID)
         category = ReportCategory.get_cache_one(id=report)
-        request.user.profile.reportUser(user, category)
+        if not request.user.profile.reportUser(user, category):
+            raise ObjectDoesNotExist(user, category)
         return respondJson(Code.OK)
-    except (ValidationError, ObjectDoesNotExist):
+    except (ValidationError, ObjectDoesNotExist, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -702,12 +689,11 @@ def blockUser(request: WSGIRequest) -> JsonResponse:
     """
     try:
         userID = UUID(request.POST['userID'][:50])
-        user = User.objects.get(id=userID)
-        done = request.user.profile.blockUser(user)
-        if not done:
+        user: User = User.objects.get(id=userID)
+        if not request.user.profile.blockUser(user):
             raise ObjectDoesNotExist(user)
         return respondJson(Code.OK)
-    except (ValidationError, ObjectDoesNotExist):
+    except (ValidationError, ObjectDoesNotExist, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -729,9 +715,8 @@ def unblockUser(request: WSGIRequest) -> JsonResponse:
     """
     try:
         userID = UUID(request.POST['userID'][:50])
-        user = User.objects.get(id=userID)
-        done = request.user.profile.unblockUser(user)
-        if not done:
+        user: User = User.objects.get(id=userID)
+        if not request.user.profile.unblockUser(user):
             raise ObjectDoesNotExist(user)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, ValidationError):
@@ -743,7 +728,7 @@ def unblockUser(request: WSGIRequest) -> JsonResponse:
 
 @csrf_exempt
 @github_only
-def githubEventsListener(request, type: str, event: str) -> HttpResponse:
+def githubEventsListener(request: WSGIRequest, type: str, event: str) -> HttpResponse:
     """To listen to github events
 
     METHODS: POST
@@ -769,7 +754,7 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
             if action == Event.MEMBER_ADDED:
                 membership = request.POST.get('membership', None)
                 if membership:
-                    member = Profile.objects.filter(
+                    member: Profile = Profile.objects.filter(
                         githubID=membership['user']['login'], is_active=True).first()
                     if member:
                         member.increaseXP(
@@ -777,7 +762,7 @@ def githubEventsListener(request, type: str, event: str) -> HttpResponse:
             elif action == Event.MEMBER_REMOVED:
                 membership = request.POST.get('membership', None)
                 if membership:
-                    member = Profile.objects.filter(
+                    member: Profile = Profile.objects.filter(
                         githubID=membership['user']['login']).first()
                     if member:
                         member.decreaseXP(
@@ -824,7 +809,7 @@ def browseSearch(request: WSGIRequest):
         cachekey = f'people_browse_search_{query}{request.LANGUAGE_CODE}'
         if request.user.is_authenticated:
             excludeIDs = request.user.profile.blockedIDs()
-            cachekey = f"{cachekey}{request.user.id}"
+            cachekey = f"{cachekey}" + "".join(excludeIDs)
 
         profiles = cache.get(cachekey, [])
 
@@ -967,7 +952,7 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
     profile = None
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        profile = Profile.objects.get(
+        profile: Profile = Profile.objects.get(
             user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
         if request.POST['admire'] in ["true", True]:
             profile.admirers.add(request.user.profile)
@@ -975,7 +960,7 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
             profile.admirers.remove(request.user.profile)
         if json_body:
             return respondJson(Code.OK)
-        return redirect(profile.getLink())
+        return redirect(profile.get_link)
     except (ObjectDoesNotExist, KeyError, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -1009,23 +994,20 @@ def profileAdmirations(request: WSGIRequest, userID: UUID) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        profile = Profile.objects.get(
+        profile: Profile = Profile.objects.get(
             user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
-        admirers = profile.admirers.filter(
+        admirers: list = profile.admirers.filter(
             suspended=False, is_active=True, to_be_zombie=False)
         if request.user.is_authenticated:
-            admirers = request.user.profile.filterBlockedProfiles(admirers)
+            admirers: list = request.user.profile.filterBlockedProfiles(
+                admirers)
         if json_body:
-            jadmirers = []
-            for adm in admirers:
-                jadmirers.append(
-                    dict(
-                        id=adm.get_userid,
-                        name=adm.get_name,
-                        dp=adm.get_dp,
-                        url=adm.get_link,
-                    )
-                )
+            jadmirers = list(map(lambda adm: dict(
+                id=adm.get_userid,
+                name=adm.get_name,
+                dp=adm.get_dp,
+                url=adm.get_link,
+            ), admirers))
             return respondJson(Code.OK, dict(admirers=jadmirers))
         return render(request, Template().admirers, dict(admirers=admirers))
     except (ObjectDoesNotExist, ValidationError) as o:

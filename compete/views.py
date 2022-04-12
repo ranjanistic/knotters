@@ -218,7 +218,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
             id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
         try:
             # NOTE filter.delete doesn't work !?
-            subpart = SubmissionParticipant.objects.get(
+            subpart: SubmissionParticipant = SubmissionParticipant.objects.get(
                 submission__competition=competition, profile=request.user.profile, confirmed=False)
             subpart.delete()
         except ObjectDoesNotExist:
@@ -269,9 +269,9 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
         addr: EmailAddress = EmailAddress.objects.filter(email=userID).first()
         if addr:
-            person = Profile.objects.get(user=addr.user)
+            person: Profile = Profile.objects.get(user=addr.user)
         else:
-            person = Profile.objects.filter(Q(nickname__iexact=userID) | Q(githubID__iexact=userID), Q(
+            person: Profile = Profile.objects.filter(Q(nickname__iexact=userID) | Q(githubID__iexact=userID), Q(
                 is_active=True, suspended=False, to_be_zombie=False)).first()
             if not person:
                 return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
@@ -414,7 +414,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        member = request.user.profile if request.user.getID(
+        member: Profile = request.user.profile if request.user.getID(
         ) == userID else Profile.objects.get(user__id=userID)
         submission: Submission = Submission.objects.get(
             id=subID, members=member, submitted=False, competition__resultDeclared=False)

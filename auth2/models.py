@@ -45,7 +45,8 @@ class State(models.Model):
     """The model for state information of a country."""
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
-    country: Country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='state_country')
+    country: Country = models.ForeignKey(
+        Country, on_delete=models.CASCADE, related_name='state_country')
     """country (ForeignKey<Country>): The country that this state belongs to."""
     name: str = models.CharField(max_length=200)
     """name (CharField): The name of the state."""
@@ -59,17 +60,20 @@ class PhoneNumber(models.Model):
     """The model for phone numbers of users"""
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
-    user = models.ForeignKey(f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='phone_user')
+    user = models.ForeignKey(
+        f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='phone_user')
     """user (OneToOneField<User>): The user who owns this phone number."""
     number: str = models.CharField(max_length=100)
     """number (CharField): The phone number."""
-    country: Country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='phone_country')
+    country: Country = models.ForeignKey(
+        Country, on_delete=models.CASCADE, related_name='phone_country')
     """country (ForeignKey<Country>): The country of this phone number."""
     verified: bool = models.BooleanField(default=False)
     """verified (BooleanField): Whether this phone number is verified."""
     primary: bool = models.BooleanField(default=False)
     """primary (BooleanField): Whether this phone number is the primary one."""
-    created_at: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_at: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """created_at (DateTimeField): The date and time this phone number was created."""
 
     def __str__(self):
@@ -80,7 +84,8 @@ class Address(models.Model):
     """The model for addresses of users"""
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
-    user = models.OneToOneField(f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='address_user')
+    user = models.OneToOneField(
+        f"{PEOPLE}.User", on_delete=models.CASCADE, related_name='address_user')
     """user (OneToOneField<User>): The user who owns this address."""
     locality: str = models.CharField(max_length=200, null=True, blank=True)
     """locality (str): The locality of the address."""
@@ -90,15 +95,19 @@ class Address(models.Model):
     """line_2 (str): The second line of the address."""
     city: str = models.CharField(max_length=200, null=True, blank=True)
     """city (str): The city of the address."""
-    state: State = models.ForeignKey(State, on_delete=models.CASCADE, related_name='phone_country')
+    state: State = models.ForeignKey(
+        State, on_delete=models.CASCADE, related_name='phone_country')
     """state (ForeignKey<State>): The state of the address."""
-    country: Country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='address_country')
+    country: Country = models.ForeignKey(
+        Country, on_delete=models.CASCADE, related_name='address_country')
     """country (ForeignKey<Country>): The country of the address."""
     zip_code: str = models.CharField(max_length=100, null=True, blank=True)
     """zip_code (str): The zip code of the address."""
-    phone_number: PhoneNumber = models.ForeignKey(PhoneNumber, on_delete=models.SET_NULL, related_name='address_phone', null=True, blank=True)
+    phone_number: PhoneNumber = models.ForeignKey(
+        PhoneNumber, on_delete=models.SET_NULL, related_name='address_phone', null=True, blank=True)
     """phone_number (ForeignKey<PhoneNumber>): The phone number of the address."""
-    created_at: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_at: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """created_at (DateTimeField): The date and time the address was created."""
 
     def __str__(self):
@@ -115,9 +124,9 @@ class Notification(models.Model):
     """description (str): The description of the notification channel"""
     disabled: bool = models.BooleanField(default=False)
     """disabled (bool): Whether the notification channel is disabled"""
-    created_at: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_at: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """created_at (datetime): The date and time the notification channel was created"""
-    
 
     def __str__(self) -> str:
         return self.name
@@ -166,7 +175,6 @@ class EmailNotificationSubscriber(models.Model):
     created_at: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now)
     """created_at (DateTimeField): The date and time when the subscription relation was created"""
-    
 
 
 class DeviceNotificationSubscriber(models.Model):

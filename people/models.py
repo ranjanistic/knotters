@@ -1429,7 +1429,7 @@ class Profile(models.Model):
         """Returns whether the user is blocked by the given user, or viceversa"""
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()
 
-    def isBlockedProfile(self, profile:"Profile") -> bool:
+    def isBlockedProfile(self, profile: "Profile") -> bool:
         """Returns whether the user is blocked by the given profile, or viceversa (same as isBlocked method)"""
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=profile.user) | Q(blockeduser=self.user, profile=profile)).exists()
 
@@ -1437,11 +1437,11 @@ class Profile(models.Model):
         """Returns whether the user is blocked by the given user, or viceversa"""
         return self.isBlocked(user)
 
-    def is_blocked_profile(self, profile:"Profile") -> bool:
+    def is_blocked_profile(self, profile: "Profile") -> bool:
         """Returns whether the user is blocked by the given profile, or viceversa (same as is_blocked method)"""
         return self.isBlockedProfile(profile)
 
-    def reportUser(self, user: User, category:ReportCategory) -> "ReportedUser":
+    def reportUser(self, user: User, category: ReportCategory) -> "ReportedUser":
         """Reports the given user in given category
 
         NOTE: Because the reporting is initial liability of the reporter, that's why this and other report methods reside in Profile class.
@@ -1451,7 +1451,7 @@ class Profile(models.Model):
         ))
         return report
 
-    def reportProject(self, baseproject, category:ReportCategory):
+    def reportProject(self, baseproject, category: ReportCategory):
         """Reports the given project in given category"""
         from projects.models import ReportedProject
         report, _ = ReportedProject.objects.get_or_create(baseproject=baseproject, profile=self, category=category, defaults=dict(
@@ -1459,7 +1459,7 @@ class Profile(models.Model):
         ))
         return report
 
-    def reportModeration(self, moderation, category:ReportCategory):
+    def reportModeration(self, moderation, category: ReportCategory):
         """Reports the given moderation in given category"""
         from moderation.models import ReportedModeration
         report, _ = ReportedModeration.objects.get_or_create(moderation=moderation, profile=self, category=category, defaults=dict(
@@ -1467,7 +1467,7 @@ class Profile(models.Model):
         ))
         return report
 
-    def reportSnapshot(self, snapshot, category:ReportCategory):
+    def reportSnapshot(self, snapshot, category: ReportCategory):
         """Reports the given snapshot in given category"""
         from projects.models import ReportedSnapshot
         report, _ = ReportedSnapshot.objects.get_or_create(snapshot=snapshot, profile=self, category=category, defaults=dict(
@@ -1488,13 +1488,9 @@ class Profile(models.Model):
         cachekey = self.CACHE_KEYS.blocked_ids
         ids = cache.get(cachekey, [])
         if not len(ids):
-            for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
-                if block.blockeduser == self.user:
-                    ids.append(block.profile.getUserID())
-                else:
-                    ids.append(block.blockeduser.getID())
-            if len(ids):
-                cache.set(cachekey, ids, settings.CACHE_INSTANT)
+            ids = list(map(lambda block: block.profile.get_userid if block.blockeduser == self.user else block.blockeduser.get_id,
+                           BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user))))
+            cache.set(cachekey, ids, settings.CACHE_INSTANT)
         return ids
 
     def blockedProfiles(self) -> list:
@@ -1506,13 +1502,9 @@ class Profile(models.Model):
         cachekey = self.CACHE_KEYS.blocked_profiles
         profiles = cache.get(cachekey, [])
         if not len(profiles):
-            for block in BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user)):
-                if block.blockeduser == self.user:
-                    profiles.append(block.profile)
-                else:
-                    profiles.append(block.blockeduser.profile)
-                if len(profiles):
-                    cache.set(cachekey, profiles, settings.CACHE_INSTANT)
+            profiles = list(map(lambda block: block.profile if block.blockeduser == self.user else block.blockeduser.profile,
+                                BlockedUser.objects.filter(Q(profile=self) | Q(blockeduser=self.user))))
+            cache.set(cachekey, profiles, settings.CACHE_INSTANT)
         return profiles
 
     def filterBlockedProfiles(self, profiles: list) -> list:
@@ -1529,11 +1521,10 @@ class Profile(models.Model):
     def all_tags(self) -> list:
         """Returns the user's tags instances (linked or unlinked)"""
         cacheKey = self.CACHE_KEYS.tags
-        data = cache.get(cacheKey, None)
-        if data is None:
+        data = cache.get(cacheKey, [])
+        if not len(data):
             data = self.topics.values_list('tags', flat=True).distinct()
-            if len(data):
-                cache.set(cacheKey, data, settings.CACHE_MINI)
+            cache.set(cacheKey, data, settings.CACHE_MINI)
         return data
 
     def recommended_projects(self, atleast: int = 3, atmost: int = 4) -> list:
@@ -1551,11 +1542,14 @@ class Profile(models.Model):
             rec_projects = cache.get(cacheKey, [])
             if not len(rec_projects):
                 from projects.models import BaseProject
-                constquery = ~Q(admirers=self, creator__in=self.blockedProfiles())
+                constquery = ~Q(
+                    admirers=self, creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                rec_projects = BaseProject.get_approved_projects(Q(query, constquery), atmost)
+                rec_projects = BaseProject.get_approved_projects(
+                    Q(query, constquery), atmost)
                 if len(rec_projects) < atleast:
-                    rec_projects = BaseProject.get_approved_projects(constquery, atmost)
+                    rec_projects = BaseProject.get_approved_projects(
+                        constquery, atmost)
                 cache.set(cacheKey, rec_projects, settings.CACHE_SHORT)
             return rec_projects[:atmost]
         except Exception as e:
@@ -1598,7 +1592,7 @@ class Profile(models.Model):
             errorLog(e)
             return []
 
-    def nickname_profile_url(nickname: str) -> str:
+    def nickname_profile_url(nickname: str, *args) -> str:
         """Returns the profile url for the given nickname.
         Independent of the user's profile.
         """
@@ -1610,7 +1604,7 @@ class Profile(models.Model):
             cache.set(cacheKey, profile_url, settings.CACHE_SHORT)
         return profile_url
 
-    def emoticon_profile_url(emoticon: str) -> str:
+    def emoticon_profile_url(emoticon: str, *args) -> str:
         """Returns the profile url for the given emoticon.
         Independent of the user's profile.
         """
@@ -1634,9 +1628,6 @@ class ProfileSetting(models.Model):
         primary_key=True, default=uuid4, editable=False)
     profile: Profile = models.OneToOneField(
         Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False, blank=False)
-    # newsletter = models.BooleanField(default=True)
-    # recommendations = models.BooleanField(default=True)
-    # competitions = models.BooleanField(default=True)
     privatemail: bool = models.BooleanField(default=True)
 
     def __str__(self) -> str:
@@ -1790,7 +1781,7 @@ class ReportedUser(models.Model):
 
 def displayMentorImagePath(instance: "DisplayMentor", filename: str) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/displaymentors/{str(instance.get_id)}.{fileparts[-1]}"
+    return f"{APPNAME}/displaymentors/{instance.get_id}.{fileparts[-1]}"
 
 
 class DisplayMentor(models.Model):
@@ -1897,7 +1888,7 @@ class GHMarketPurchase(models.Model):
 
 def frameworkImagePath(instance: "Framework", filename: str) -> str:
     fileparts = filename.split('.')
-    return f"{APPNAME}/frameworks/{str(instance.id)}_{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
+    return f"{APPNAME}/frameworks/{str(instance.id)}_{uuid4().hex}.{fileparts[len(fileparts)-1]}"
 
 
 class Framework(models.Model):

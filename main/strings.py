@@ -6,7 +6,8 @@ from compete.apps import APPNAME as COMPETE
 from deprecated import deprecated
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.translation import gettext_lazy as _, gettext as __
+from django.utils.translation import gettext as __
+from django.utils.translation import gettext_lazy as _
 from management.apps import APPNAME as MANAGEMENT
 from moderation.apps import APPNAME as MODERATION
 from people.apps import APPNAME as PEOPLE
@@ -18,7 +19,7 @@ AUTH = 'auth'
 DOCS = 'docs'
 
 
-def classAttrsToDict(className, appendCondition: callable = None) -> dict:
+def classAttrsToDict(className: object, appendCondition: callable = None) -> dict:
     """Converts class attributes to dict.
 
     Args:
@@ -39,7 +40,7 @@ def classAttrsToDict(className, appendCondition: callable = None) -> dict:
     return data
 
 
-def setPathParams(parampath: str, *replacingChars: str, lookfor: str = '', extendRemaining=True) -> str:
+def setPathParams(parampath: str, *replacingChars: str, lookfor: str = '', extendRemaining: bool = True) -> str:
     """
     Replaces each param with each element of replacingChars, sequentially using lookfor.
 
@@ -348,7 +349,7 @@ class Message():
     class Custom():
         """To generate custom messages"""
 
-        def already_exists(something):
+        def already_exists(something: str):
             return f"{something} " + __("already exists")
 
 
@@ -369,7 +370,7 @@ class Action():
     REMOVE = "remove"
     REMOVE_ALL = "remove_all"
 
-    def getAllKeys():
+    def getAllKeys() -> dict:
         def cond(key, value):
             return str(key).isupper()
         return classAttrsToDict(Action, cond)
@@ -512,7 +513,7 @@ class Browse():
     TOPIC_PROJECTS = "topic-wise-projects"
     TOPIC_PROFILES = "topic-wise-profiles"
 
-    def getAllKeys():
+    def getAllKeys() -> dict:
         def cond(key, value):
             return str(key).isupper()
         return classAttrsToDict(Browse, cond)
@@ -531,12 +532,12 @@ class URL():
     SERVICE_WORKER = 'service-worker.js'
     SCRIPTS = 'scripts/<str:script>'
 
-    def scripts(self, script):
+    def scripts(self, script: str) -> str:
         return setPathParams(self.SCRIPTS_SUBAPP, script)
 
     SCRIPTS_SUBAPP = f'scripts/<str:subapp>/scripts/<str:script>'
 
-    def scripts_subapp(self, subapp, script):
+    def scripts_subapp(self, subapp: str, script: str) -> str:
         return setPathParams(self.SCRIPTS_SUBAPP, subapp, script)
 
     SWITCH_LANG = 'i18n/'
@@ -549,7 +550,7 @@ class URL():
     WEBPUSH = 'webpush/'
     AT_NICKNAME = "@<str:nickname>"
 
-    def at_nickname(self, nickname):
+    def at_nickname(self, nickname: str) -> str:
         return setPathParams(self.AT_NICKNAME, nickname)
 
     AT_NICKNAME = "@<str:nickname>"
@@ -592,10 +593,10 @@ class URL():
     ON_BOARDING = 'on-boarding/'
     ON_BOARDING_UPDATE = 'on-boarding/update'
 
-    def view_snapshot(self, snapID):
+    def view_snapshot(self, snapID: UUID) -> str:
         return setPathParams(self.VIEW_SNAPSHOT, snapID)
 
-    def getRoot(self, fromApp: str = '', withslash=True) -> str:
+    def getRoot(self, fromApp: str = '', withslash: bool = True) -> str:
         """
         Returns root path of given sub application name.
 
@@ -681,7 +682,7 @@ class URL():
         NOTIFICATION_TOGGLE_EMAIL = "notification/toggle/e/<str:notifID>"
         NOTIFICATION_TOGGLE_DEVICE = "notification/toggle/d/<str:notifID>"
 
-        def getURLSForClient(self):
+        def getURLSForClient(self) -> dict:
             URLS = dict()
 
             def cond(key, value):
@@ -700,7 +701,7 @@ class URL():
         def type(self, type):
             return setPathParams(self.TYPE, type)
 
-        def getURLSForClient(self):
+        def getURLSForClient(self) -> dict:
             URLS = dict()
 
             def cond(key, value):
@@ -834,7 +835,7 @@ class URL():
         def certficateDownload(self, resID, userID):
             return self.certificateDownload(resID, userID)
 
-        def getURLSForClient(self):
+        def getURLSForClient(self) -> dict:
             URLS = dict()
 
             def cond(key, value):
@@ -876,7 +877,7 @@ class URL():
         REPORT_CATEGORIES = 'report/categories/'
         REPORT_MODERATION = 'reportmoderation/'
 
-        def getURLSForClient(self):
+        def getURLSForClient(self) -> dict:
             URLS = dict()
 
             def cond(key, value):
@@ -945,7 +946,7 @@ class URL():
         PUBLISH_FRAME = 'frameworks/publish'
         FRAMEWORK = 'framework/:frameworkID'
 
-        def getURLSForClient(self):
+        def getURLSForClient(self) -> dict:
             URLS = dict()
 
             def cond(key, value):
@@ -1167,7 +1168,7 @@ class URL():
         def manageProjectCocreator(self, projectID):
             return setPathParams(self.MANAGE_PROJECT_COCREATOR, projectID)
 
-        def getURLSForClient(self):
+        def getURLSForClient(self) -> dict:
             URLS = dict()
 
             def cond(key, value):

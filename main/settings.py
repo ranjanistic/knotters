@@ -16,7 +16,6 @@ ALLOWED_HOSTS = env.HOSTS
 SERVER_EMAIL = env.SERVER_EMAIL
 ADMINS = [(env.PUBNAME, env.MAILUSER)]
 
-# mimetypes.add_type("text/javascript", ".js", True)
 
 INSTALLED_APPS = [
     "django.contrib.admin",

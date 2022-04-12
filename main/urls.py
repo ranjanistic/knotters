@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.contrib.auth.decorators import user_passes_test
 from django.urls import include, path
 from django.views.generic.base import RedirectView
+from people.models import User
 from ratelimit.decorators import ratelimit
 
 from .env import ADMINPATH, ISPRODUCTION
@@ -25,34 +26,37 @@ views.login = ratelimit(key='user_or_ip', rate='15/m',
 admin.autodiscover()
 
 
-def staff_or_404(u):
-    if u.is_active and u.profile.is_active:
-        if u.is_staff or u.is_admin:
+def staff_or_404(user: User):
+    if user.is_active and user.profile.is_normal:
+        if user.is_staff or user.is_admin:
             return True
-    raise Http404()
+    raise Http404(user)
 
 
 admin.site.login = login_required(
     user_passes_test(staff_or_404)(admin.site.login))
 
-handler403 = 'main.views.handler403'
+handler403 = f'main.views.{handler403.__name__}'
 
 urlpatterns = [
+    # META/SEO
     path(URL.ROBOTS_TXT, Robots.as_view(), name=URL.ROBOTS_TXT),
     path(URL.MANIFEST, Manifest.as_view(), name=URL.MANIFEST),
     path(URL.SERVICE_WORKER, ServiceWorker.as_view(), name=URL.SERVICE_WORKER),
     path(URL.VERSION_TXT, Version.as_view(), name=URL.VERSION_TXT),
     path(URL.SITEMAP, Sitemap.as_view(), name=URL.SITEMAP),
-    path(URL.SCRIPTS_SUBAPP, scripts_subapp),
-    path(URL.SCRIPTS, scripts),
+    # modules
     path(URL.SWITCH_LANG, include('django.conf.urls.i18n')),
-    path(URL.VERIFY_CAPTCHA, verifyCaptcha),
     path(URL.AUTH, include('allauth_2fa.urls')),
     path(URL.AUTH, include('allauth.urls')),
     path(URL.AUTH, include(f'{AUTH2}.urls')),
-    path(URL.INDEX, index),
-    path(URL.HOME, home),
-    path(URL.HOME_DOMAINS, homeDomains),
+    path(URL.PROJECTS, include(f'{PROJECTS}.urls')),
+    path(URL.COMPETE, include(f'{COMPETE}.urls')),
+    path(URL.PEOPLE, include(f'{PEOPLE}.urls')),
+    path(URL.MODERATION, include(f'{MODERATION}.urls')),
+    path(URL.MANAGEMENT, include(f'{MANAGEMENT}.urls')),
+    path(URL.WEBPUSH, include('webpush.urls')),
+    # redirects
     path(URL.Auth.LOGIN, RedirectView.as_view(
         url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
     path(URL.Auth.SIGNUP, RedirectView.as_view(
@@ -61,7 +65,13 @@ urlpatterns = [
         url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
     path(URL.Auth.REGISTER, RedirectView.as_view(
         url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
-    path(URL.WEBPUSH, include('webpush.urls')),
+    # root urls
+    path(URL.SCRIPTS_SUBAPP, scripts_subapp),
+    path(URL.SCRIPTS, scripts),
+    path(URL.VERIFY_CAPTCHA, verifyCaptcha),
+    path(URL.INDEX, index),
+    path(URL.HOME, home),
+    path(URL.HOME_DOMAINS, homeDomains),
     path(URL.AT_NICKNAME, at_nickname),
     path(URL.AT_EMOTICON, at_emoji),
     path(URL.ON_BOARDING, on_boarding),
@@ -69,11 +79,6 @@ urlpatterns = [
     path(URL.LANDING, landing),
     path(URL.OFFLINE, offline),
     path(URL.BRANDING, branding),
-    path(URL.PROJECTS, include(f'{PROJECTS}.urls')),
-    path(URL.COMPETE, include(f'{COMPETE}.urls')),
-    path(URL.PEOPLE, include(f'{PEOPLE}.urls')),
-    path(URL.MODERATION, include(f'{MODERATION}.urls')),
-    path(URL.MANAGEMENT, include(f'{MANAGEMENT}.urls')),
     path(URL.REDIRECTOR, redirector),
     path(URL.DOCS, docIndex),
     path(URL.DOCTYPE, docs),
@@ -82,6 +87,7 @@ urlpatterns = [
     path(URL.BASE_GITHUB_EVENTS, githubEventsListener),
     path(URL.VIEW_SNAPSHOT, snapshot),
     path(URL.DONATE, donation),
+    # dev/admin
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),

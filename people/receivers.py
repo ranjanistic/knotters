@@ -1,5 +1,5 @@
 from allauth.account.signals import user_logged_in, user_signed_up
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialLogin
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.signals import (pre_social_login,
                                            social_account_added,
@@ -41,7 +41,7 @@ def on_profile_create(sender, instance: Profile, created, **kwargs):
 
 
 @receiver(post_delete, sender=Profile)
-def on_profile_delete(sender, instance, **kwargs):
+def on_profile_delete(sender, instance: Profile, **kwargs):
     """
     Profile cleanup.
     """
@@ -59,7 +59,7 @@ def on_user_login(sender, user, request, **kwargs):
 
 
 @receiver(user_signed_up)
-def on_user_signup(request, user, **kwargs):
+def on_user_signup(request, user: User, **kwargs):
     """On user signup, to update relevant things."""
     try:
         accs = SocialAccount.objects.filter(user=user)
@@ -78,10 +78,10 @@ def on_user_signup(request, user, **kwargs):
 
 
 @receiver(social_account_removed)
-def social_removed(request, socialaccount, **kwargs):
+def social_removed(request, socialaccount: SocialAccount, **kwargs):
     """On social account added, to update relevant things."""
     try:
-        profile = Profile.objects.get(user=socialaccount.user)
+        profile: Profile = Profile.objects.get(user=socialaccount.user)
         if socialaccount.provider == GitHubProvider.id:
             profile.update_githubID(None)
             if profile.is_manager():
@@ -96,11 +96,11 @@ def social_removed(request, socialaccount, **kwargs):
 
 
 @receiver(social_account_added)
-def social_added(request, sociallogin, **kwargs):
+def social_added(request, sociallogin: SocialLogin, **kwargs):
     """On social account added, to update relevant things."""
     try:
         changed = False
-        profile = Profile.objects.get(user=sociallogin.user)
+        profile: Profile = Profile.objects.get(user=sociallogin.user)
         if sociallogin.account.provider == GitHubProvider.id:
             try:
                 data = SocialAccount.objects.get(
@@ -121,14 +121,14 @@ def social_added(request, sociallogin, **kwargs):
 
 
 @receiver(social_account_updated)
-def social_updated(request, sociallogin, **kwargs):
+def social_updated(request, sociallogin: SocialLogin, **kwargs):
     """On social account updated, to update relevant things."""
     try:
-        profile = Profile.objects.get(user=sociallogin.account.user)
+        profile: Profile = Profile.objects.get(user=sociallogin.account.user)
         if sociallogin.account.provider == GitHubProvider.id:
             data = SocialAccount.objects.get(
                 user=sociallogin.account.user, provider=GitHubProvider.id)
-            profile.githubID = getUsernameFromGHSocial(data)
+            profile.update_githubID(getUsernameFromGHSocial(data))
         if str(profile.picture) == defaultImagePath():
             profile.picture = getProfileImageBySocialAccount(
                 sociallogin.account)
@@ -138,21 +138,21 @@ def social_updated(request, sociallogin, **kwargs):
 
 
 @receiver(pre_social_login)
-def before_social_login(request, sociallogin, **kwargs):
+def before_social_login(request, sociallogin: SocialLogin, **kwargs):
     """
     To connect existing account with unconnected social account, if user directly logs in with an unconnected social account.
     """
     if sociallogin.is_existing:
         return
     try:
-        user = User.objects.get(email=sociallogin.user)
+        user: User = User.objects.get(email=sociallogin.user)
         sociallogin.connect(request, user)
     except:
         pass
 
 
 @receiver(post_delete, sender=Framework)
-def on_framework_delete(sender, instance, **kwargs):
+def on_framework_delete(sender, instance: Framework, **kwargs):
     """
     Framework cleanup.
     TODO
@@ -165,7 +165,7 @@ def on_framework_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=Frame)
-def on_frame_delete(sender, instance, **kwargs):
+def on_frame_delete(sender, instance: Frame, **kwargs):
     """
     Frame cleanup.
     TODO

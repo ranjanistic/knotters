@@ -3,10 +3,13 @@ from allauth.account.utils import send_email_confirmation
 from django.core.handlers.wsgi import WSGIRequest
 from main.env import PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail
+from main.strings import url
 from people.models import Profile, User
 
+from .apps import APPNAME
 
-def passordChangeAlert(user: User) -> bool:
+
+def passordChangeAlert(user: User) -> str:
     return sendAlertEmail(to=user.email, username=user.first_name, subject='Account Password Changed',
                           header=f"This is to inform you that your {PUBNAME} account ({user.email}) password was changed recently.",
                           footer="If you acknowledge this action, then this email can be ignored safely.",
@@ -14,7 +17,7 @@ def passordChangeAlert(user: User) -> bool:
                           )
 
 
-def emailUpdateAlert(user: User, oldEmail: str, newEmail: str) -> bool:
+def emailUpdateAlert(user: User, oldEmail: str, newEmail: str) -> str:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
         return sendAlertEmail(to=oldEmail, username=user.first_name, subject='Primary Email Address Changed',
                               header=f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently.",
@@ -23,7 +26,7 @@ def emailUpdateAlert(user: User, oldEmail: str, newEmail: str) -> bool:
                               )
 
 
-def emailAddAlert(user: User, newEmail: str) -> bool:
+def emailAddAlert(user: User, newEmail: str) -> str:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
         return sendAlertEmail(to=user.email, username=user.first_name, subject='New Email Address Added',
                               header=f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently. This however, will NOT affect your existing ({user.email}) login email address.",
@@ -32,7 +35,7 @@ def emailAddAlert(user: User, newEmail: str) -> bool:
                               )
 
 
-def emailRemoveAlert(user: User, removedEmail: str) -> bool:
+def emailRemoveAlert(user: User, removedEmail: str) -> str:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
         return sendAlertEmail(to=user.email, username=user.first_name, subject='Email Address Removed',
                               header=f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account.",
@@ -41,7 +44,7 @@ def emailRemoveAlert(user: User, removedEmail: str) -> bool:
                               )
 
 
-def accountInactiveAlert(profile: Profile) -> bool:
+def accountInactiveAlert(profile: Profile) -> str:
     return sendAlertEmail(to=profile.getEmail(), username=profile.getFName(), subject='Account Deactivated',
                           header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been deactivated.",
                           footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} anytime and re-activate your account.",
@@ -49,7 +52,7 @@ def accountInactiveAlert(profile: Profile) -> bool:
                           )
 
 
-def accountReactiveAlert(profile: Profile) -> bool:
+def accountReactiveAlert(profile: Profile) -> str:
     return sendAlertEmail(to=profile.getEmail(), username=profile.getFName(), subject='Account Re-activated',
                           header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been re-activated.",
                           footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} and deactivate your account anytime.",
@@ -57,7 +60,7 @@ def accountReactiveAlert(profile: Profile) -> bool:
                           )
 
 
-def accountDeleteAlert(user: User) -> bool:
+def accountDeleteAlert(user: User) -> str:
     return sendAlertEmail(to=user.email, username=user.first_name, subject='Account Deleted',
                           header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
                           footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
@@ -65,7 +68,7 @@ def accountDeleteAlert(user: User) -> bool:
                           )
 
 
-def successorInvite(successor: User, predecessor: User) -> bool:
+def successorInvite(successor: User, predecessor: User) -> str:
     return sendActionEmail(to=successor.email, username=successor.first_name, subject='Profile Successor Invitation',
                            header=f"{predecessor.getName()} wants you to be their successor on {PUBNAME}, and therefore has invited you by following link button.",
                            actions=[{
@@ -77,7 +80,7 @@ def successorInvite(successor: User, predecessor: User) -> bool:
                            )
 
 
-def successorAccepted(successor: User, predecessor: User) -> bool:
+def successorAccepted(successor: User, predecessor: User) -> str:
     return sendActionEmail(to=predecessor.email, username=predecessor.first_name, subject='Successor Accepted Invitation',
                            header=f"This is to inform you that {successor.getName()} has accepted to be your successor on {PUBNAME}.",
                            actions=[{
@@ -89,12 +92,27 @@ def successorAccepted(successor: User, predecessor: User) -> bool:
                            )
 
 
-def successorDeclined(successor: User, predecessor: User) -> bool:
+def successorDeclined(successor: User, predecessor: User) -> str:
     return sendAlertEmail(to=predecessor.email, username=predecessor.first_name, subject='Successor Declined Invitation',
                           header=f"This is to inform you that {successor.getName()} has declined to be your successor on {PUBNAME}.",
                           footer=f"You can request another successor using the same way you requested for {successor.getName()}.",
                           conclusion=f"This email was sent because you requested a successor for your {PUBNAME} account. If this wasn't you, then please report to us."
                           )
+
+
+def assetMigrationProblem(predecessor: User) -> str:
+    return sendActionEmail(to=predecessor.email, username=predecessor.first_name, subject='Asset Migration Error',
+                           header="This is to inform you that the migration of your profile assets to the successor was not successful."
+                           "This could happen due to many reasons, including:<br/>"
+                           "+ The successor you chose has not a valid account, or is no longer a valid user.<br/>"
+                           "+ The successor you chose may not be suitable for your assets (difference in type of accounts, etc.)<br/>",
+                           actions=[{
+                               'text': 'View account settings',
+                               'url': f"{url.getRoot(APPNAME)}{url.INDEX}"
+                           }],
+                           footer="Deletion of your account was halted for the moment. Please visit your account settings and choose a new successor and retry deleting your account. If problem persists, you may contact us.",
+                           conclusion=f"This email was sent because your account deletion for {PUBNAME} account encountered problems. If this wasn't you, then please report to us."
+                           )
 
 
 def send_account_verification_email(request: WSGIRequest):

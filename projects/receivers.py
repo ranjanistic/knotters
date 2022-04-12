@@ -41,7 +41,7 @@ def on_project_create(sender, instance: Project, created, **kwargs):
 @receiver(post_save, sender=FreeProject)
 def on_freeproject_create(sender, instance: FreeProject, created, **kwargs):
     """
-    Project submitted.
+    Quick Project submitted.
     """
     if created:
         instance.creator.increaseXP(by=2, reason="Created a Quick project")
@@ -49,24 +49,13 @@ def on_freeproject_create(sender, instance: FreeProject, created, **kwargs):
 
 
 @receiver(post_delete, sender=Project)
-def on_project_delete(sender, instance, **kwargs):
+def on_project_delete(sender, instance: Project, **kwargs):
     """
-    Project cleanup.
+    Verified Project cleanup.
     """
     try:
         if instance.image != defaultImagePath() and not BaseProject.objects.filter(image=instance.image).exists():
             instance.image.delete(save=False)
-    except Exception as e:
-        pass
-
-
-@receiver(post_delete, sender=Asset)
-def on_asset_delete(sender, instance: Asset, **kwargs):
-    """
-    Project cleanup.
-    """
-    try:
-        instance.file.delete(save=False)
     except Exception as e:
         pass
 
@@ -94,6 +83,17 @@ def on_coreproject_delete(sender, instance: CoreProject, **kwargs):
     try:
         if instance.image != defaultImagePath() and not BaseProject.objects.filter(image=instance.image).exists():
             instance.image.delete(save=False)
+    except Exception as e:
+        pass
+
+
+@receiver(post_delete, sender=Asset)
+def on_asset_delete(sender, instance: Asset, **kwargs):
+    """
+    Asset cleanup.
+    """
+    try:
+        instance.file.delete(save=False)
     except Exception as e:
         pass
 

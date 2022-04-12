@@ -13,7 +13,7 @@ from main.strings import Action, Code, Message, Template
 from management.models import Management
 from people.models import Profile, User
 
-from .mailers import (accountInactiveAlert, accountReactiveAlert,
+from .mailers import (accountInactiveAlert, accountReactiveAlert, assetMigrationProblem,
                       successorAccepted, successorDeclined, successorInvite)
 from .methods import get_auth_section_html, migrateUserAssets, renderer
 from .models import DeviceNotification, EmailNotification
@@ -390,9 +390,11 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
 
         deleted = False
         if predprofile.to_be_zombie:
-            migrateUserAssets(predecessor, successor)
-            predecessor.delete()
-            deleted = True
+            if migrateUserAssets(predecessor, successor):
+                predecessor.delete()
+                deleted = True
+            else:
+                assetMigrationProblem(predecessor)
 
         if accept:
             alert = Message.SUCCESSORSHIP_ACCEPTED

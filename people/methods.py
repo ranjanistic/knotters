@@ -116,12 +116,12 @@ def addTopicToDatabase(topic: str, creator: Profile = None, tags: list = []) -> 
     if not creator:
         creator = Profile.KNOTBOT()
     try:
-        topicObj = Topic.objects.filter(name__iexact=topic).first()
+        topicObj: Topic = Topic.objects.filter(name__iexact=topic).first()
         if not topicObj:
-            topicObj = Topic.objects.create(name=topic, creator=creator)
+            topicObj: Topic = Topic.objects.create(name=topic, creator=creator)
     except:
         if not topicObj:
-            topicObj = Topic.objects.create(name=topic, creator=creator)
+            topicObj: Topic = Topic.objects.create(name=topic, creator=creator)
     if len(tags):
         topicObj.tags.set(tags)
     return topicObj
@@ -152,21 +152,21 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         cacheKey = f"{APPNAME}_profiledata"
         if userID:
             cacheKey = f"{cacheKey}_{userID}"
-            profile = cache.get(cacheKey, None)
+            profile: Profile = cache.get(cacheKey, None)
             if not profile:
-                profile = Profile.objects.get(
+                profile: Profile = Profile.objects.get(
                     user__id=userID, to_be_zombie=False, is_active=True)
                 cache.set(cacheKey, profile, settings.CACHE_INSTANT)
         else:
             cacheKey = f"{cacheKey}_{nickname}"
-            profile = cache.get(cacheKey, None)
+            profile: Profile = cache.get(cacheKey, None)
             if not profile:
-                profile = Profile.objects.get(
+                profile: Profile = Profile.objects.get(
                     nickname=nickname, to_be_zombie=False, is_active=True)
                 cache.set(cacheKey, profile, settings.CACHE_INSTANT)
 
         authenticated = request.user.is_authenticated
-        self = authenticated and request.user.profile == profile
+        self: bool = authenticated and request.user.profile == profile
         is_admirer = False
         if not self:
             if profile.suspended:
@@ -174,7 +174,7 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
             if authenticated:
                 if profile.isBlocked(request.user):
                     return False
-                is_admirer = profile.admirers.filter(
+                is_admirer: bool = profile.admirers.filter(
                     user=request.user).exists()
 
         gh_orgID = None
@@ -350,7 +350,7 @@ def getSettingSectionData(section: str, user: User, requestuser: User) -> dict:
     if section == profileString.Setting.PREFERENCE:
         try:
             data[Code.SETTING] = ProfileSetting.objects.get(
-                profile=user.profile)
+                profile__user=user)
         except:
             pass
     if section == profileString.Setting.SECURITY:
@@ -404,14 +404,13 @@ def getProfileImageBySocialAccount(socialaccount: SocialAccount) -> str:
         if socialaccount.provider == LinkedInOAuth2Provider.id:
             avatar = socialaccount.get_avatar_url()
             if not avatar:
-                access_token = SocialToken.objects.get(
+                access_token: SocialToken = SocialToken.objects.get(
                     account=socialaccount, account__provider=LinkedInOAuth2Provider.id)
-                r = getRequest(f"https://api.linkedin.com/v2/me?projection=(profilePicture("
-                               f"displayImage~:playableStreams))&oauth2_access_token={access_token}")
-                profile_pic_json = r.json().get('profilePicture')
+                resp = getRequest(f"https://api.linkedin.com/v2/me?projection=(profilePicture("
+                                  f"displayImage~:playableStreams))&oauth2_access_token={access_token.token}")
+                profile_pic_json = resp.json().get('profilePicture')
                 elements = profile_pic_json['displayImage~']['elements']
-                avatar = elements[len(elements) -
-                                  1]['identifiers'][0]['identifier']
+                avatar = elements[-1]['identifiers'][0]['identifier']
         if avatar:
             return avatar
         return defaultImagePath()

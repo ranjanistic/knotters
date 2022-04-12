@@ -191,7 +191,7 @@ def getEmailHtmlBody(header: str, footer: str, username: str = '', actions: list
         if len(updatedActions):
             data['actions'] = updatedActions
             for action in updatedActions:
-                body = f"{body}{action['url']}\n"
+                body = f"{body}[{action['text']}]({action['url']})\n"
 
     if conclusion:
         data['conclusion'] = conclusion
@@ -329,9 +329,11 @@ def downtimeAlert():
         footer="Any inconvenience is deeply regretted. Thank you for your understanding.",
         conclusion="You received this alert because you are a member of our community. If this is an error, then please report to us."
     )
-    addMethodToAsyncQueue(f'main.mailers.{sendBulkEmails.__name__}', emails, "Scheduled Downtime Alert", html, body)
+    addMethodToAsyncQueue(
+        f'main.mailers.{sendBulkEmails.__name__}', emails, "Scheduled Downtime Alert", html, body)
 
-def sendToAdmin(subject:str, body:str, html:str) -> str:
+
+def sendToAdmin(subject: str, body: str, html: str) -> str:
     """To send email to admin.
 
     Args:
@@ -345,6 +347,7 @@ def sendToAdmin(subject:str, body:str, html:str) -> str:
     """
     return addMethodToAsyncQueue(f"main.mailers.{sendEmail.__name__}", SERVER_EMAIL, subject, html, body)
 
+
 def sendErrorLog(error: Exception) -> bool:
     """To send error log to admin.
 
@@ -356,4 +359,3 @@ def sendErrorLog(error: Exception) -> bool:
         bool: False if task not queued
     """
     return sendToAdmin(f"KnottersERROR LOG", error, error)
-

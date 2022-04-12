@@ -1,4 +1,5 @@
 from github import Github as GHub
+from github.Organization import Organization
 from main.strings import DiscordChannel
 from requests import delete as deleteRequest
 from requests import get as getRequest
@@ -11,15 +12,15 @@ from .settings import (DISCORD_KNOTTERS_API_URL, DISCORD_KNOTTERS_HEADERS,
 
 try:
     if GITHUBBOTTOKEN:
-        Github = GHub(GITHUBBOTTOKEN)
-        GithubKnotters = Github.get_organization(PUBNAME)
+        Github: GHub = GHub(GITHUBBOTTOKEN)
+        GithubKnotters: Organization = Github.get_organization(PUBNAME)
     else:
-        Github = None
-        GithubKnotters = None
+        Github: GHub = None
+        GithubKnotters: Organization = None
 except Exception as e:
     # print(e)
-    Github = None
-    GithubKnotters = None
+    Github: GHub = None
+    GithubKnotters: Organization = None
 
 
 def GH_API(token: str = GITHUBBOTTOKEN) -> GHub:
@@ -124,7 +125,7 @@ class Sender():
         Args:
             email (str): The email of the user.
             fullData (bool, optional): Whether to return full data or or just id. Defaults to False.
-        
+
         Returns:
             dict or str: The user data or id, or None if the user could not be found.
         """

@@ -21,10 +21,10 @@ from people.models import Profile
 from .apps import APPNAME
 from .mailers import (sendCoreProjectApprovedNotification,
                       sendProjectApprovedNotification)
-from .models import (BaseProject, Category, CoreProject, CoreProjectVerificationRequest,
-                     FileExtension, FreeProject,
-                     FreeProjectVerificationRequest, License, Project,
-                     ProjectSocial, Tag)
+from .models import (BaseProject, Category, CoreProject,
+                     CoreProjectVerificationRequest, FileExtension,
+                     FreeProject, FreeProjectVerificationRequest, License,
+                     Project, ProjectSocial, Tag)
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -720,11 +720,10 @@ def setupOrgGihtubRepository(project: Project, moderator: Profile, taskKey: str)
             pass
 
         try:
-            done = setupVProjectDiscord(project)
-            if done:
-                msg += f'discord done {done}'
+            if setupVProjectDiscord(project):
+                msg += f'discord done'
             else:
-                raise Exception()
+                raise Exception(project, "discrod not setup")
         except Exception as e:
             msg += f'discord err'
 
@@ -856,11 +855,10 @@ def setupOrgCoreGihtubRepository(coreproject: CoreProject, moderator: Profile, t
             pass
 
         try:
-            done = setupCProjectDiscord(coreproject)
-            if done:
-                msg += f'discord done {done}'
+            if setupCProjectDiscord(coreproject):
+                msg += f'discord done'
             else:
-                raise Exception()
+                raise Exception(coreproject, "discord error")
         except Exception as e:
             msg += f'discord err'
 
@@ -910,8 +908,10 @@ def getProjectLiveData(project: Project) -> list:
     """
     try:
         ghOrgRepo = project.gh_repo()
-        contributors = cache.get(
-            f"project_livedata_contribs_{project.id}", None)
+        contribKey = f"project_livedata_contribs_{project.id}"
+        langKey = f"project_livedata_langs_{project.id}"
+        commitsKey = f"project_livedata_commits_{project.id}"
+        contributors = cache.get(contribKey, None)
         if not contributors:
             contribs = ghOrgRepo.get_contributors()
             ghIDs = []
@@ -921,18 +921,15 @@ def getProjectLiveData(project: Project) -> list:
                 githubID__in=ghIDs).order_by('-xp')
             contributors = list(
                 filter(lambda c: not c.is_manager(), list(contributors)))
-            cache.set(
-                f"project_livedata_contribs_{project.id}", contributors, settings.CACHE_SHORT)
-        languages = cache.get(f"project_livedata_langs_{project.id}", None)
+            cache.set(contribKey, contributors, settings.CACHE_SHORT)
+        languages = cache.get(langKey, None)
         if not languages:
             languages = ghOrgRepo.get_languages()
-            cache.set(
-                f"project_livedata_langs_{project.id}", languages, settings.CACHE_SHORT)
-        commits = cache.get(f"project_livedata_commits_{project.id}", None)
+            cache.set(langKey, languages, settings.CACHE_SHORT)
+        commits = cache.get(commitsKey, None)
         if not commits:
-            commits = ghOrgRepo.get_commits()[:20]
-            cache.set(
-                f"project_livedata_commits_{project.id}", commits, settings.CACHE_MINI)
+            commits = ghOrgRepo.get_commits()[:2]
+            cache.set(commitsKey, commits, settings.CACHE_MINI)
         commit = None
         for commit in commits:
             if Profile.objects.filter(githubID=commit.author.login).exists():
@@ -1025,7 +1022,7 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
         if ghevent == Event.PUSH:
             commits = postData["commits"]
             repository = postData["repository"]
-            addTopicToDatabase(repository['language'], Profile.KNOTBOT())
+            addTopicToDatabase(repository['language'])
             committers = {}
             un_committers = []
             for commit in commits:
@@ -1043,7 +1040,7 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
                                 un_committers.append(commit_author_ghID)
                                 continue
                             else:
-                                commit_committer = emailaddr.user.profile
+                                commit_committer: Profile = emailaddr.user.profile
                             committers[commit_author_ghID] = commit_committer
                         else:
                             committers[commit_author_ghID] = commit_committer
@@ -1056,12 +1053,13 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
                         parts = change.split('.')
                         if len(parts) < 1:
                             continue
-                        ext = parts[len(parts)-1]
+                        ext = parts[-1]
                         extdic = extensions.get(ext, {})
                         fileext = extdic.get('fileext', None)
                         if not fileext:
-                            fileext, _ = FileExtension.objects.get_or_create(
-                                extension__iexact=ext, defaults=dict(extension=ext))
+                            if not FileExtension.objects.filter(extension__iexact=ext).exists():
+                                fileext: FileExtension = FileExtension.objects.create(
+                                    extension__iexact=ext)
                             extensions[ext] = dict(fileext=fileext, topics=[])
                             try:
                                 ftops = fileext.getTopics()
@@ -1097,8 +1095,8 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
             if len(changed) > 1:
                 project.creator.increaseXP(
                     by=(((len(commits)//len(committers))//2) or 1), notify=False, reason=f"Commits pushed to {project.name}")
-                if project.verified or project.core:
-                    project.moderator.increaseXP(
+                if project.is_not_free():
+                    project.get_moderator().increaseXP(
                         by=(((len(commits)//len(committers))//3) or 1), notify=False, reason=f"Commits pushed to {project.name}")
         elif ghevent == Event.PR:
             pr = postData.get('pull_request', None)
@@ -1119,8 +1117,8 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
                             by=3, notify=False, reason=f"PR by {pr_creator_ghID} merged on {project.name}")
                     project.creator.increaseXP(
                         by=1, notify=False, reason=f"PR by {pr_creator_ghID} merged on {project.name}")
-                    if project.verified or project.core:
-                        project.moderator.increaseXP(
+                    if project.is_not_free():
+                        project.get_moderator().increaseXP(
                             by=1, notify=False, reason=f"PR by {pr_creator_ghID} merged on {project.name}")
                 else:
                     if pr_creator:
@@ -1176,14 +1174,14 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
             if action == 'created':
                 project.creator.increaseXP(
                     by=1, notify=False, reason=f"Starred {project.name}")
-                if project.verified or project.core:
-                    project.moderator.increaseXP(
+                if project.is_not_free():
+                    project.get_moderator().increaseXP(
                         by=1, notify=False, reason=f"Starred {project.name}")
             elif action == 'deleted':
                 project.creator.decreaseXP(
                     by=1, notify=False, reason=f"Unstarred {project.name}")
-                if project.verified or project.core:
-                    project.moderator.decreaseXP(
+                if project.is_not_free():
+                    project.get_moderator().decreaseXP(
                         by=1, notify=False, reason=f"Unstarred {project.name}")
             else:
                 return False, f"Unhandled '{ghevent}' action: {action}"
@@ -1193,6 +1191,6 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
         hookrecord.save()
         return True, f"hook record ID: {hookrecordID}"
     except ObjectDoesNotExist:
-        return False, f"objnotexist hook record ID: {hookrecordID}"
+        return False, f"objectdoesnotexist hook record ID: {hookrecordID}"
     except:
         return False, format_exc()

@@ -697,13 +697,13 @@ class BaseProject(models.Model):
         """Returns the total number of admirers of the project (same as total_admirations)"""
         return self.total_admirations()
 
-    def get_moderator(self):
+    def get_moderator(self) -> Profile:
         """Returns the moderator Profile instance of the project (extracting from child project, None for FreeProject)"""
         if self.is_free():
             return None
         return self.getProject(True).moderator()
 
-    def isAdmirer(self, profile) -> bool:
+    def isAdmirer(self, profile:Profile) -> bool:
         """Returns True if the profile is an admirer of the project"""
         return self.admirers.filter(id=profile.id).exists()
 
@@ -722,7 +722,7 @@ class BaseProject(models.Model):
         """
         return self.is_normal() and not self.under_invitation() and not (self.is_not_free() and (self.getProject().under_mod_invitation() or self.getProject().under_del_request()))
 
-    def can_invite_profile(self, profile) -> bool:
+    def can_invite_profile(self, profile:Profile) -> bool:
         """To check if the given profile can be invited to the project,
             Uses same child project method to check as well.
 
@@ -734,7 +734,7 @@ class BaseProject(models.Model):
         """
         return profile.is_normal and self.getProject().can_invite_profile(profile)
 
-    def can_invite_owner_profile(self, profile) -> bool:
+    def can_invite_owner_profile(self, profile:Profile) -> bool:
         """To check if the given profile can be invited as owner to the project.
 
         Args:
@@ -760,7 +760,7 @@ class BaseProject(models.Model):
         """
         return ProjectTransferInvitation.objects.filter(baseproject=self).delete()[0] >= 1
 
-    def transfer_to(self, newcreator) -> bool:
+    def transfer_to(self, newcreator:Profile) -> bool:
         """Transfers the project to the new creator (primarily on ownership acceptance)
 
         Args:
@@ -828,11 +828,11 @@ class BaseProject(models.Model):
         """Returns the total number of assets of the project."""
         return Asset.objects.filter(baseproject=self).count()
 
-    def can_edit_assets(self, profile) -> bool:
+    def can_edit_assets(self, profile:Profile) -> bool:
         """checks if the profile can edit assets in general"""
         return self.is_cocreator(profile) or self.creator == profile or self.getModerator() == profile
 
-    def can_add_assets(self, profile=None) -> bool:
+    def can_add_assets(self, profile:Profile=None) -> bool:
         """Returns True if the project can add more assets. (If profile is provided, checks if the profile can add assets as well)"""
         if profile:
             return self.is_normal() and self.total_assets() <= self.max_allowed_assets() and self.can_edit_assets(profile)
@@ -858,7 +858,7 @@ class BaseProject(models.Model):
         """Returns the total number of private assets of the project."""
         return Asset.objects.filter(baseproject=self, public=False).count()
 
-    def add_cocreator(self, co_creator) -> bool:
+    def add_cocreator(self, co_creator:Profile) -> bool:
         """Adds a co-creator to the project (primarily on cocreatorship acceptance)
 
         Args:
@@ -887,7 +887,7 @@ class BaseProject(models.Model):
         else:
             return False
 
-    def is_cocreator(self, profile) -> bool:
+    def is_cocreator(self, profile:Profile) -> bool:
         """Returns True if the profile is a co-creator of the project."""
         return self.co_creators.filter(user=profile.user).exists()
 
@@ -924,7 +924,7 @@ class BaseProject(models.Model):
         """Returns the total number of pending cocreator invitations of the project."""
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).count()
 
-    def under_cocreator_invitation_profile(self, profile) -> bool:
+    def under_cocreator_invitation_profile(self, profile:Profile) -> bool:
         """Returns True if the project is under any pending cocreator invitations for the given profile."""
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile, expiresOn__gt=timezone.now()).exists()
 
@@ -936,7 +936,7 @@ class BaseProject(models.Model):
         """Returns True if the project has any cocreators."""
         return self.co_creators.filter().exists()
 
-    def can_invite_cocreator_profile(self, profile) -> bool:
+    def can_invite_cocreator_profile(self, profile:Profile) -> bool:
         """Returns True if the project can invite the given profile as a cocreator."""
         return profile.is_normal and not self.co_creators.filter(user=profile.user).exists() and self.getProject().can_invite_cocreator_profile(profile) and not self.under_cocreator_invitation_profile(profile)
 
@@ -944,7 +944,7 @@ class BaseProject(models.Model):
         """Returns all current pending cocreator invitation instances of the project."""
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False)
 
-    def cancel_cocreator_invitation(self, profile) -> bool:
+    def cancel_cocreator_invitation(self, profile:Profile) -> bool:
         """Cancels the pending cocreator invitation for the given profile, by deleting the invitation record."""
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile).delete()[0] >= 1
 
@@ -976,19 +976,19 @@ class BaseProject(models.Model):
         except:
             return False
 
-    def can_edit_tags(self, profile=None) -> bool:
+    def can_edit_tags(self, profile:Profile=None) -> bool:
         """If the profile provided can edit the tags of the project, or if not provided then general allowance is checked."""
         if profile:
             return profile == self.creator or profile == self.get_moderator() or self.is_cocreator(profile)
         return True
 
-    def can_edit_topics(self, profile=None) -> bool:
+    def can_edit_topics(self, profile:Profile=None) -> bool:
         """If the profile provided can edit the topics of the project, or if not provided then general allowance is checked."""
         if profile:
             return self.is_normal() and (profile == self.creator or profile == self.get_moderator())
         return self.is_normal()
 
-    def can_post_snapshots(self, profile=None) -> bool:
+    def can_post_snapshots(self, profile:Profile=None) -> bool:
         """If the profile provided can post snapshots in the project, or if not provided then general allowance is checked."""
         if profile:
             return self.is_normal() and (profile == self.creator or profile == self.get_moderator() or self.is_cocreator(profile))
@@ -1278,7 +1278,7 @@ class Project(BaseProject):
         """Returns True if moderatorship transfer can be initiated for the project (approved project)"""
         return self.status == Code.APPROVED and not self.trashed and not self.suspended and not self.under_mod_invitation() and not self.under_del_request()
 
-    def can_invite_profile(self, profile) -> bool:
+    def can_invite_profile(self, profile:Profile) -> bool:
         """Returns True if the profile can be invited for the project (general) (approved project)
 
         Args:
@@ -1292,7 +1292,7 @@ class Project(BaseProject):
                 profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
         ) and profile.is_normal
 
-    def can_invite_mod_profile(self, profile) -> bool:
+    def can_invite_mod_profile(self, profile:Profile) -> bool:
         """Returns True if the profile can be invited as new moderator for the project (approved project)
 
         Args:
@@ -1403,7 +1403,7 @@ class Project(BaseProject):
         """Returns the verification request instance for the project"""
         return FreeProjectVerificationRequest.objects.filter(verifiedproject=self).first() or CoreProjectVerificationRequest.objects.filter(verifiedproject=self).first() or None
 
-    def can_invite_cocreator_profile(self, profile) -> bool:
+    def can_invite_cocreator_profile(self, profile:Profile) -> bool:
         """Returns True if the profile can be invited as new cocreator for the project (approved project)
 
         Args:
@@ -1562,7 +1562,7 @@ class FreeProject(BaseProject):
             cache.set(cacheKey, projectbase, settings.CACHE_LONG)
         return projectbase
 
-    def can_invite_profile(self, profile) -> bool:
+    def can_invite_profile(self, profile:Profile) -> bool:
         """Returns True if the profile can be invited to the project (generally)"""
         return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile)) and profile.is_normal
 
@@ -1634,7 +1634,7 @@ class FreeProject(BaseProject):
         from compete.models import Submission
         return Submission.objects.filter(free_project=self).first()
 
-    def can_invite_cocreator_profile(self, profile) -> bool:
+    def can_invite_cocreator_profile(self, profile:Profile) -> bool:
         """Returns True if the profile can be invited to the project as cocreator."""
         return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
@@ -1951,14 +1951,14 @@ class CoreProject(BaseProject):
         """Returns True if the project can invite a new moderator (approved project)."""
         return self.is_normal() and not self.under_mod_invitation() and not self.under_del_request()
 
-    def can_invite_profile(self, profile) -> bool:
+    def can_invite_profile(self, profile:Profile) -> bool:
         """Returns True if the project can invite a profile, generally (approved project)."""
         return (profile not in [self.creator, self.moderator(), self.mentor]) and not (
             self.moderator().isBlockedProfile(profile) or self.creator.isBlockedProfile(
                 profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
         ) and profile.is_normal
 
-    def can_invite_mod_profile(self, profile) -> bool:
+    def can_invite_mod_profile(self, profile:Profile) -> bool:
         """Returns True if the project can invite a profile for moderatorship (approved project)."""
         return self.can_invite_mod() and self.can_invite_profile(profile)
 
@@ -2091,7 +2091,7 @@ class CoreProject(BaseProject):
         except:
             return False
 
-    def can_invite_cocreator_profile(self, profile):
+    def can_invite_cocreator_profile(self, profile:Profile):
         return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 
@@ -2297,7 +2297,7 @@ class Snapshot(models.Model):
         """Returns the link to the standalone snapshot view"""
         return f"{url.getRoot()}{url.view_snapshot(snapID=self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
-    def is_admirer(self, profile) -> bool:
+    def is_admirer(self, profile:Profile) -> bool:
         """Returns whether the profile is an admirer of the snapshot"""
         cacheKey = f"admirer_{profile.id}_of_snap_{self.id}"
         isadm = cache.get(cacheKey, None)

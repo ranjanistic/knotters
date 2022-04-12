@@ -127,7 +127,7 @@ class ProfileActivationMiddleware(object):
         if request.user.is_authenticated and not request.user.profile.is_active:
             if request.method == Code.POST or request.headers.get('X-KNOT-REQ-SCRIPT', False) == 'true':
                 if not allowBypassDeactivated(request.get_full_path()):
-                    return HttpResponseForbidden()
+                    return HttpResponseForbidden(request)
             if request.method == Code.GET:
                 if not (request.get_full_path().startswith(request.user.profile.getLink()) or allowBypassDeactivated(request.get_full_path())):
                     return redirect(request.user.profile.getLink())
@@ -140,7 +140,7 @@ class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
     controlled by BYPASS_2FA_PATHS setting.
     """
 
-    def process_request(self, request):
+    def process_request(self, request: WSGIRequest):
         if request.session.get('allauth_2fa_user_id', None):
             match = resolve(request.path)
             except_list = settings.BYPASS_2FA_PATHS
@@ -224,7 +224,7 @@ class XForwardedForMiddleware(MiddlewareMixin):
     due to it apparently being unable to access IP address from any request headers set by the reverse proxy server.
     """
 
-    def process_request(self, request):
+    def process_request(self, request: WSGIRequest):
         if "HTTP_X_FORWARDED_FOR" in request.META:
             request.META["HTTP_X_PROXY_REMOTE_ADDR"] = request.META["REMOTE_ADDR"]
             parts = request.META["HTTP_X_FORWARDED_FOR"].split(",", 1)

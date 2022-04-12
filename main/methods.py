@@ -355,7 +355,7 @@ def verify_captcha(recaptcha_response: str) -> bool:
         return False
 
 
-def addMethodToAsyncQueue(methodpath, *params) -> str:
+def addMethodToAsyncQueue(methodpath, *args, **kwargs) -> str:
     """Adds method to task queue for cluster execution.
 
     Args:
@@ -367,7 +367,7 @@ def addMethodToAsyncQueue(methodpath, *params) -> str:
     """
     try:
         if ASYNC_CLUSTER:
-            return async_task(methodpath, *params)
+            return async_task(methodpath, *args, **kwargs)
         return True
     except Exception as e:
         errorLog(e)

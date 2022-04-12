@@ -146,7 +146,7 @@ def index(request: WSGIRequest) -> HttpResponse:
 
     """
 
-    competition = Competition.latest_competition()
+    competition: Competition = Competition.latest_competition()
     if request.user.is_authenticated:
         if not request.user.profile.on_boarded:
             return respondRedirect(path=URL.ON_BOARDING)
@@ -172,9 +172,9 @@ def home(request: WSGIRequest) -> HttpResponse:
     """
     if not request.user.is_authenticated:
         return redirect(URL.ROOT)
-    competition = Competition.latest_competition()
+    competition: Competition = Competition.latest_competition()
     topics = Topic.homepage_topics()
-    project = BaseProject.homepage_project()
+    project:BaseProject = BaseProject.homepage_project()
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
 
 
@@ -251,7 +251,7 @@ def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponse:
         if request.user.is_authenticated:
             if nickname == request.user.profile.get_nickname():
                 return redirect(request.user.profile.get_link)
-        profile_url = Profile.nickname_profile_url(nickname)
+        profile_url:str = Profile.nickname_profile_url(nickname)
         return redirect(profile_url)
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -1072,7 +1072,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         cachekey = f"main_browser_{type}{request.LANGUAGE_CODE}"
         excludeUserIDs = []
         if request.user.is_authenticated:
-            
+
             excludeUserIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
@@ -1091,8 +1091,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 if not len(snaps):
                     snaps = Snapshot.objects.filter(
                         Q(Q(base_project__admirers=request.user.profile)
-                        | Q(base_project__creator=request.user.profile)
-                        | Q(creator__admirers=request.user.profile)),
+                          | Q(base_project__creator=request.user.profile)
+                          | Q(creator__admirers=request.user.profile)),
                         base_project__suspended=False, base_project__trashed=False, suspended=False
                     ).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]

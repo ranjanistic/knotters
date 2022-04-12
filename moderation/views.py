@@ -13,7 +13,6 @@ from main.decorators import (decode_JSON, moderator_only,
 from main.methods import errorLog, respondJson, user_device_notify
 from main.strings import COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code, Message
 from management.models import ReportCategory
-from people.models import ProfileTopic
 from projects.mailers import projectRejectedNotification
 from projects.methods import setupApprovedCoreProject, setupApprovedProject
 from projects.models import (CoreProjectVerificationRequest,
@@ -312,20 +311,11 @@ def approveCompetition(request: WSGIRequest, modID: UUID) -> JsonResponse:
         topics = competition.getTopics()
 
         modXP = (totalsubs//(len(topics)+1))//2
-        for topic in topics:
-            profiletopic, created = ProfileTopic.objects.get_or_create(
-                profile=request.user.profile,
-                topic=topic,
-                defaults=dict(
-                    profile=request.user.profile,
-                    topic=topic,
-                    trashed=True,
-                    points=modXP
-                )
-            )
-            if not created:
-                profiletopic.increasePoints(by=modXP)
-        request.user.profile.increaseXP(by=modXP)
+
+        request.user.profile.increaseBulkTopicPoints(
+            topics=topics, by=modXP, reason=f"Moderated submissions of {competition.title}")
+        request.user.profile.increaseXP(
+            by=modXP, reason=f"Moderated submissions of {competition.title}")
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, ValidationError, KeyError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -375,7 +365,8 @@ def reportModeration(request: WSGIRequest) -> JsonResponse:
         moderationID = UUID(request.POST['moderationID'][:50])
         moderation: Moderation = Moderation.objects.get(id=moderationID)
         category = ReportCategory.get_cache_one(id=report)
-        request.user.profile.reportModeration(moderation, category)
+        if not request.user.profile.reportModeration(moderation, category):
+            raise ObjectDoesNotExist(moderation, category)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
