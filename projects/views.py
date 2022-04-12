@@ -989,7 +989,7 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not project.can_edit_topics(request.user.profile):
             raise ObjectDoesNotExist(request.user, project)
 
-        cacheKey = f"project_topics_search"
+        cacheKey = f"project_topics_search_{query}"
 
         excluding = []
         if project:
@@ -1142,7 +1142,7 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
         if not project.can_edit_tags(request.user.profile):
             raise ObjectDoesNotExist(request.user, project)
 
-        cacheKey = "project_tag_search"
+        cacheKey = f"project_tag_search_{query}"
         excludeIDs = []
         if project:
             excludeIDs = list(map(lambda tag: tag.id.hex, project.getTags()))
