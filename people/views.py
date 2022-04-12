@@ -407,13 +407,15 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             newcount = currentcount + len(addtopicIDs)
             proftops.filter(topic__id__in=addtopicIDs).update(trashed=False)
             if profile.totalTopics() != newcount:
-                profile.topics.set(Topic.objects.filter(id__in=addtopicIDs))
+                for topic in Topic.objects.filter(id__in=addtopicIDs):
+                    profile.topics.add(topic)
                 updated = True
 
         if visibleTopicIDs and len(visibleTopicIDs) > 0:
             if len(visibleTopicIDs) > 5:
                 return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
-            profile.topics.set(Topic.objects.filter(id__in=visibleTopicIDs))
+            for topic in Topic.objects.filter(id__in=visibleTopicIDs):
+                profile.topics.add(topic)
             ProfileTopic.objects.filter(profile=profile).exclude(
                 topic__id__in=visibleTopicIDs).update(trashed=True)
             ProfileTopic.objects.filter(
@@ -477,12 +479,13 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
             raise KeyError(query)
         limit = int(request.POST.get('limit', 5))
         profile: Profile = request.user.profile
-        excludeIDs: list = profile.tags.values_list("id", flat=True)
+        excludeIDs: list = list(profile.tags.values_list("id", flat=True))
 
         cacheKey = f"tagssearch_{query}" + \
             "".join(map(lambda i: i.hex, excludeIDs))
 
         tagslist = cache.get(cacheKey, [])
+        print(tagslist, excludeIDs)
         if not len(tagslist):
             tags = Tag.objects.exclude(id__in=excludeIDs).filter(
                 Q(name__istartswith=query)
@@ -490,6 +493,7 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
                 | Q(name__iexact=query)
                 | Q(name__icontains=query)
             )[:limit]
+            print(tagslist)
             tagslist = list(map(lambda tag: dict(
                 id=tag.getID(),
                 name=tag.name
@@ -557,19 +561,19 @@ def tagsUpdate(request: WSGIRequest) -> HttpResponse:
                     return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
                 return redirect(setURLAlerts(next, error=Message.NO_TAGS_SELECTED))
 
-            tags = Tag.objects.filter(id__in=addtagIDs)
-            profile.tags.set(tags)
-            map(lambda topic: topic.tags.set(tags), profile.getTopics())
+            for tag in Tag.objects.filter(id__in=addtagIDs):
+                profile.tags.add(tag)
+                map(lambda topic: topic.tags.add(tag), profile.getTopics())
             currentcount = currentcount + len(addtagIDs)
 
         if addtags:
             if not json_body:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
-                tags = map(lambda addtag: addTagToDatabase(
-                    addtag, request.user.profile), addtags)
-                profile.tags.set(tags)
-                map(lambda topic: topic.tags.set(tags), profile.getTopics())
+                for tag in map(lambda addtag: addTagToDatabase(
+                        addtag, request.user.profile), addtags):
+                    profile.tags.add(tag)
+                    map(lambda topic: topic.tags.add(tag), profile.getTopics())
                 currentcount = currentcount + len(addtags)
             else:
                 if json_body:

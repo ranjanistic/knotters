@@ -1079,9 +1079,10 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(project.getLink(error=Message.MAX_TOPICS_ACHEIVED))
-            topics = Topic.objects.filter(id__in=addtopicIDs)
-            project.topics.set(topics)
-            map(lambda topic: topic.tags.set(project.getTags()), topics)
+            for topic in Topic.objects.filter(id__in=addtopicIDs):
+                project.topics.add(topic)
+                for tag in project.getTags():
+                    topic.tags.add(tag)
 
         if addtopics and len(addtopics) > 0:
             count = ProjectTopic.objects.filter(project=project).count()
@@ -1231,19 +1232,21 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TAGS_ACHEIVED)
                 return redirect(setURLAlerts(next, error=Message.MAX_TAGS_ACHEIVED))
-            tags = Tag.objects.filter(id__in=addtagIDs)
-            project.tags.set(tags)
-            map(lambda topic: topic.tags.set(tags), project.getTopics())
+            for tag in Tag.objects.filter(id__in=addtagIDs):
+                project.tags.add(tag)
+                for topic in project.getTopics():
+                    topic.tags.add(tag)
             currentcount = currentcount + len(addtagIDs)
 
         if addtags:
             if not json_body:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
-                tags = list(map(lambda addtag: addTagToDatabase(
-                    addtag, request.user.profile), addtags))
-                project.tags.set(tags)
-                map(lambda topic: topic.tags.set(tags), project.getTopics())
+                for tag in map(lambda addtag: addTagToDatabase(
+                    addtag, request.user.profile), addtags):
+                    project.tags.add(tag)
+                    for topic in project.getTopics():
+                        topic.tags.add(tag)
                 currentcount = currentcount + len(addtags)
             else:
                 if json_body:
