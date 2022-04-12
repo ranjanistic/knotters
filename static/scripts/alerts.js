@@ -340,7 +340,7 @@ const connectWithGithub = (next = URLS.ROOT, oncancel = (_) => {}) => {
         html: `<div class="w3-row w3-padding">
         <h4>${STRING.must_link_gh_account}</h4>
         </div>`,
-        imageUrl: setUrlParams(STATIC_URL, "graphics/thirdparty/github.png"),
+        imageUrl: setUrlParams(STATIC_URL, "graphics/thirdparty/github.webp"),
         confirmButtonText: `${Icon("open_in_new")} ${STRING.link_gh_account}`,
         cancelButtonText: STRING.leave_it,
         showCancelButton: true,

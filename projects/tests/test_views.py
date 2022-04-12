@@ -4,17 +4,19 @@ from allauth.account.models import EmailAddress
 from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
                                getTestPassword)
 from django.db.models import QuerySet
-from django.http import HttpResponse
-from django.http.response import HttpResponseNotFound, HttpResponseRedirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http.response import HttpResponseNotFound, HttpResponseRedirect, HttpResponseForbidden
 from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
-from main.strings import Code, Message, template, url
-from main.tests.utils import getRandomStr
+from main.strings import Action, Code, Message, template, url
+from main.tests.utils import authroot, getRandomStr
+from moderation.methods import assignModeratorToCoreProject, assignModeratorToObject
 from moderation.models import Moderation
 from people.models import Profile, Topic, User
 from people.tests.utils import getTestTopicsInst
 from projects.apps import APPNAME
-from projects.models import Category, License, Project, Tag, defaultImagePath
+from projects.models import Category, CoreProject, CoreProjectDeletionRequest, FreeProject, License, Project, Tag, VerProjectDeletionRequest, defaultImagePath
 
 from .utils import (getLicDesc, getLicName, getProjCategory, getProjDesc,
                     getProjName, getProjRepo, getTestTags, getTestTagsInst,
@@ -37,7 +39,7 @@ class TestViews(TestCase):
         self.user = User.objects.create_user(
             email=self.email, password=self.password, first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
-        self.moduser = User.objects.create_user(
+        self.moduser: User = User.objects.create_user(
             email=getTestEmail(), password=self.password, first_name=getTestName())
         self.modprofile = Profile.objects.get(user=self.moduser)
         self.modprofile.is_moderator = True
@@ -119,6 +121,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.projects.create)
         self.assertTemplateUsed(resp, template.projects.create_free)
 
+    @tag("projvalid")
     def test_validateField(self):
         self.client.login(email=self.email, password=self.password)
         resp = self.client.post(follow=True, path=root(
@@ -131,8 +134,8 @@ class TestViews(TestCase):
             'reponame': reponame
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json_loads(resp.content.decode(
-            Code.UTF_8)), dict(code=Code.NO, error=Message.Custom.already_exists(reponame)))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(
+            code=Code.NO, error=Message.Custom.already_exists(reponame)))
 
         resp = self.client.post(follow=True, path=root(url.projects.createValidField('reponame')), data={
             'reponame': getProjRepo()
@@ -170,6 +173,7 @@ class TestViews(TestCase):
         license = License.objects.get(name=licname, creator=self.profile)
         self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK,
                              license=dict(id=license.getID(), name=license.name, description=license.description)))
+
     @tag('create')
     def _test_submitProject(self):
         resp = self.client.post(follow=True, path=root(url.projects.SUBMIT))
@@ -202,7 +206,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.moderation.index)
         self.assertTemplateUsed(resp, template.moderation.projects)
-        project = Project.objects.get(
+        project:Project = Project.objects.get(
             reponame=reponame, status=Code.MODERATION)
         category = Category.objects.get(name=categoryname)
         self.assertTrue(project.acceptedTerms)
@@ -214,28 +218,136 @@ class TestViews(TestCase):
 
     @tag('afag')
     def test_trashProject(self):
-        project = Project.objects.create(name=getProjName(
-        ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)
-        resp = self.client.post(follow=True, path=root(
-            url.projects.trash(project.getID())))
+        client = Client()
+        # free project trashing
+        project: FreeProject = FreeProject.objects.create(name=getProjName(
+        ), creator=self.profile, nickname=getProjRepo(), category=self.category, license=self.license)
+        resp = client.post(
+            path=root(url.projects.trash(project.get_id)), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.auth.login)
-
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
-            url.projects.trash(project.getID())))
-        # self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-        self.assertTrue(Project.objects.filter(id=project.id).exists())
-        project.status = Code.REJECTED
-        project.save()
-        resp = self.client.post(follow=True, path=root(
-            url.projects.trash(project.getID())))
+        resp = client.post(authroot(url.auth.LOGIN), dict(
+            login=self.email, password=self.password), follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.post(
+            path=root(url.projects.trash(project.get_id)), follow=True)
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertIsInstance(Project.objects.get(
-            id=project.id, trashed=True), Project)
-        self.assertTemplateUsed(resp, template.index)
-        self.assertTemplateUsed(resp, template.people.index)
         self.assertTemplateUsed(resp, template.people.profile)
+        self.assertRaises(ObjectDoesNotExist, FreeProject.objects.get, id=project.id)
+        # verified project trashing
+        project: Project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)))
+        self.assertTrue(Project.objects.filter(id=project.id, trashed=True).exists())
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)))
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        # verified project rejected trashing
+        project: Project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), status=Code.REJECTED, category=self.category, license=self.license)
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)))
+        self.assertTrue(Project.objects.filter(id=project.id, trashed=True).exists())
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)))
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        # verified project approved invalid trashing
+        project: Project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, reponame=getProjRepo(), category=self.category, license=self.license)
+        self.assertTrue(assignModeratorToObject(APPNAME, project, self.modprofile).approve())
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)))
+        self.assertFalse(Project.objects.filter(id=project.id, trashed=True).exists())
+        self.assertFalse(project.under_del_request())
+        # verified project approved valid trashing
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)), data=dict(
+            action=Action.REMOVE
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
+        self.assertFalse(Project.objects.filter(id=project.id, trashed=True).exists())
+        self.assertFalse(project.under_del_request())
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)), data=dict(
+            action=Action.CREATE
+        ))
+        self.assertTrue(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertFalse(Project.objects.filter(id=project.id, trashed=True).exists())
+        self.assertTrue(project.under_del_request())
+        self.assertIsInstance(project.current_del_request(), VerProjectDeletionRequest)
+        self.assertFalse(project.can_request_deletion())
+        self.assertEqual(project.current_del_request().sender, project.creator)
+        self.assertEqual(project.current_del_request().receiver, project.moderator())
+        resp = client.get(project.current_del_request().get_link, follow=True)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        # verified project approved valid undo trashing
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)), data=dict(
+            action=Action.REMOVE
+        ))
+        self.assertTrue(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertFalse(Project.objects.filter(id=project.id, trashed=True).exists())
+        self.assertFalse(project.under_del_request())
+        self.assertNotIsInstance(project.current_del_request(), VerProjectDeletionRequest)
+        self.assertTrue(project.can_request_deletion())
+        # core project approved valid trashing
+        project: CoreProject = CoreProject.objects.create(name=getProjName(
+        ), creator=self.profile, codename=getProjRepo(), category=self.category, license=self.license)
+        self.assertTrue(assignModeratorToCoreProject(project, self.modprofile).approve())
+        self.assertTrue(project.can_request_deletion())
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)), data=dict(
+            action=Action.CREATE
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertFalse(CoreProject.objects.filter(id=project.id, trashed=True).exists())
+        self.assertFalse(project.can_request_deletion())
+        self.assertTrue(project.under_del_request())
+        self.assertIsInstance(project.current_del_request(), CoreProjectDeletionRequest)
+        self.assertEqual(project.current_del_request().sender, project.creator)
+        self.assertEqual(project.current_del_request().receiver, project.moderator())
+        # core project approved valid trashing decline
+        self.assertTrue(project.current_del_request().decline())
+        self.assertFalse(project.under_del_request())
+        self.assertNotIsInstance(project.current_del_request(), CoreProjectDeletionRequest)
+        self.assertTrue(project.can_request_deletion())
+        # core project approved valid trashing create
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)), data=dict(
+            action=Action.CREATE
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertFalse(CoreProject.objects.filter(id=project.id, trashed=True).exists())
+        self.assertIsInstance(project.current_del_request(), CoreProjectDeletionRequest)
+        # core project approved trashing invite invalid
+        delrequest = project.current_del_request()
+        resp = client.get(delrequest.get_link, follow=True)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        resp = client.post(delrequest.get_act_link, follow=True)
+        self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)        
+        # core project approved trashing invite valid
+        client2 = Client()
+        resp = client2.post(authroot(url.auth.LOGIN), data=dict(login=self.moduser.email, password=self.password))
+        self.assertTrue(resp.context["user"].is_authenticated)
+        resp = client2.get(delrequest.get_link, follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.projects.coredelinvite)
+        self.assertIsInstance(resp.context["invitation"], CoreProjectDeletionRequest)
+        # core project approved trashing invite action
+        resp = client2.post(delrequest.get_act_link, dict(action=Action.DECLINE), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.projects.profile_core)
+        self.assertFalse(project.under_del_request())
+        self.assertNotIsInstance(project.current_del_request(), CoreProjectDeletionRequest)
+        self.assertTrue(project.can_request_deletion())
+        resp = client.post(follow=True, path=root(url.projects.trash(project.get_id)), data=dict(
+            action=Action.CREATE
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertIsInstance(project.current_del_request(), CoreProjectDeletionRequest)
+        resp = client2.post(project.current_del_request().get_act_link, dict(action=Action.ACCEPT), follow=True)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.people.profile)
+        self.assertTrue(CoreProject.objects.filter(id=project.id, trashed=True).exists())
+        self.assertNotEqual(project.codename, CoreProject.objects.filter(id=project.id, trashed=True).first().codename)
+
 
     def _test_profile(self):
         self.client.login(email=self.email, password=self.password)
@@ -396,3 +508,89 @@ class TestViews(TestCase):
         data = json_loads(resp.content.decode(Code.UTF_8))
         self.assertIsInstance(data['languages'], list)
         self.assertIsInstance(data['contributorsHTML'], str)
+
+    @tag('cocreator')
+    def test_cocreator(self):
+        project: FreeProject = FreeProject.objects.create(name=getProjName(
+        ), creator=self.profile, nickname=getProjRepo(), category=self.category, license=self.license, acceptedTerms=True)
+        client = Client()
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)), dict(
+            action=Action.CREATE, email=self.moduser.email), follow=True)
+        self.assertTemplateUsed(resp, template.auth.login)
+        resp = client.post(authroot(url.auth.LOGIN), dict(
+            login=self.email, password=self.password), follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client.get(
+            root(url.projects.inviteProjectCocreator(project.get_id)))
+        self.assertEqual(resp.status_code, HttpResponseNotAllowed.status_code)
+        self.assertTrue(project.can_invite_cocreator_profile(self.modprofile))
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=getRandomStr()))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(
+            code=Code.NO, error=Message.INVALID_REQUEST))
+
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.CREATE))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(
+            code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.CREATE, email=self.email))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(
+            code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.CREATE, email=self.moduser.email))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertTrue(project.under_cocreator_invitation())
+        self.assertTrue(
+            project.under_cocreator_invitation_profile(self.modprofile))
+        self.assertEqual(project.total_cocreator_invitations(), 1)
+        self.assertEqual(project.total_cocreators(), 0)
+        self.assertFalse(project.has_cocreators())
+        self.assertFalse(project.can_invite_cocreator_profile(self.modprofile))
+        client2 = Client()
+        invite_id = project.current_cocreator_invitations().get(receiver=self.modprofile).id
+        resp = client2.get(
+            root(url.projects.viewCocreatorInvite(invite_id)), follow=True)
+        self.assertTemplateUsed(resp, template.auth.login)
+        resp = client2.post(authroot(url.auth.LOGIN), dict(
+            login=self.moduser.email, password=self.password), follow=True)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        resp = client2.get(
+            root(url.projects.viewCocreatorInvite(invite_id)), follow=True)
+        self.assertTemplateUsed(resp, template.projects.cocreator_invitation)
+        resp = client.get(
+            root(url.projects.viewCocreatorInvite(invite_id)), follow=True)
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.REMOVE))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(
+            code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.REMOVE, receiver_id=getRandomStr()))
+        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(
+            code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(root(url.projects.inviteProjectCocreator(project.get_id)), dict(
+            action=Action.REMOVE, receiver_id=self.moduser.get_id))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertFalse(project.under_cocreator_invitation())
+        self.assertFalse(
+            project.under_cocreator_invitation_profile(self.modprofile))
+        self.assertEqual(project.total_cocreator_invitations(), 0)
+        self.assertEqual(project.total_cocreators(), 0)
+        self.assertFalse(project.has_cocreators())
+        self.assertTrue(project.can_invite_cocreator_profile(self.modprofile))
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.CREATE, email=self.moduser.email))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+
+        resp = client.post(root(url.projects.inviteProjectCocreator(
+            project.get_id)), dict(action=Action.REMOVE_ALL))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertEqual(project.total_cocreator_invitations(), 0)
+        self.assertEqual(project.total_cocreators(), 0)

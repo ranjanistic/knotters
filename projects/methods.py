@@ -151,7 +151,8 @@ def verifiedProfileData(request, reponame: str = None, projectID: UUID = None) -
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        ismoderator = False if not request.user.is_authenticated else project.moderator() == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator(
+        ) == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist(project, iscreator, ismoderator)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
@@ -204,7 +205,8 @@ def coreProfileData(request, codename: str = None, projectID: UUID = None) -> di
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        ismoderator = False if not request.user.is_authenticated else project.moderator() == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator(
+        ) == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
@@ -452,7 +454,7 @@ def addTagToDatabase(tag: str, creator: Profile = None) -> Tag:
     return tagobj
 
 
-def uniqueRepoName(reponame: str, forConversion: bool = False) -> str:
+def uniqueRepoName(reponame: str, forConversion: bool = False) -> "str|bool":
     """
     Checks for unique nickname name among all kinds of existing projects
 
@@ -466,40 +468,40 @@ def uniqueRepoName(reponame: str, forConversion: bool = False) -> str:
         str: The reponame, if unique
         bool: False, if not.
     """
-    reponame = str(reponame).strip(
-        '-').strip().replace(' ', '-').replace('--', '-').lower()
-    if reponame.startswith('-') or reponame.endswith('-') or reponame.__contains__('--'):
+    if len(reponame) < 3 or len(reponame) > 20:
         return False
-    if len(reponame) > 20 or len(reponame) < 3:
-        return False
+
+    reponame = re_sub(r'[^a-z0-9\-]', "", reponame[:20])
+    reponame = "-".join(list(filter(lambda c: c, reponame.split('-')))).lower()
+
     project: Project = Project.objects.filter(
-        reponame=str(reponame), trashed=False, is_archived=False).first()
+        reponame=reponame, trashed=False).first()
     if project:
         if project.rejected() and project.canRetryModeration():
             return False
         if project.underModeration() or project.isApproved():
             return False
 
-    if FreeProject.objects.filter(nickname__iexact=str(reponame), trashed=False, is_archived=False).exists():
-        if not (forConversion and FreeProjectVerificationRequest.objects.filter(freeproject__nickname__iexact=str(reponame), resolved=False).exists()):
+    if FreeProject.objects.filter(nickname__iexact=reponame, trashed=False).exists():
+        if not (forConversion and FreeProjectVerificationRequest.objects.filter(freeproject__nickname__iexact=reponame, resolved=False).exists()):
             return False
         else:
             return False
 
     project: CoreProject = CoreProject.objects.filter(
-        codename=str(reponame), trashed=False, is_archived=False).first()
+        codename=reponame, trashed=False).first()
     if project:
         if project.rejected() and project.canRetryModeration():
             return False
         if project.underModeration():
             return False
         if project.isApproved():
-            if not (forConversion and CoreProjectVerificationRequest.objects.filter(coreproject__nickname__iexact=str(reponame), resolved=False).exists()):
+            if not (forConversion and CoreProjectVerificationRequest.objects.filter(coreproject__nickname__iexact=reponame, resolved=False).exists()):
                 return False
             else:
                 return False
 
-    return reponame if reponame and reponame != str() else False
+    return reponame if reponame else False
 
 
 def uniqueTag(tagname: str) -> Tag:
@@ -1000,7 +1002,7 @@ def deleteGhOrgCoreepository(coreproject: CoreProject):
     return True
 
 
-def handleGithubKnottersRepoHook(hookrecordID:UUID, ghevent:str, postData:dict, project:BaseProject):
+def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dict, project: BaseProject):
     """Handle github repository hook event for any project
 
     Args:
@@ -1008,7 +1010,7 @@ def handleGithubKnottersRepoHook(hookrecordID:UUID, ghevent:str, postData:dict, 
         ghevent (str): The github event
         postData (dict): The post data from github
         project (BaseProject): The base project instance
-    
+
     Returns:
         bool, str: True, message if handled, False, error message if not handled
     """

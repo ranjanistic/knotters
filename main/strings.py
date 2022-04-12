@@ -1,4 +1,5 @@
 from re import sub as re_sub
+from uuid import UUID
 
 from auth2.apps import APPNAME as AUTH2
 from compete.apps import APPNAME as COMPETE
@@ -1009,24 +1010,24 @@ class URL():
 
         TRASH = 'trash/<str:projID>/'
 
-        def trash(self, projID):
+        def trash(self, projID: UUID):
             return setPathParams(self.TRASH, projID)
 
         PROFILE_BASE = 'profile/<str:nickname>'
 
         PROFILE_FREE = 'profile/0/<str:nickname>'
 
-        def profileFree(self, nickname):
+        def profileFree(self, nickname: str):
             return setPathParams(self.PROFILE_FREE, nickname)
 
         PROFILE_MOD = 'profile/1/<str:reponame>'
 
-        def profileMod(self, reponame):
+        def profileMod(self, reponame: str):
             return setPathParams(self.PROFILE_MOD, reponame)
 
         PROFILE_CORE = 'profile/2/<str:codename>'
 
-        def profileCore(self, codename):
+        def profileCore(self, codename: str):
             return setPathParams(self.PROFILE_CORE, codename)
 
         PROFILE = PROFILE_MOD
@@ -1154,11 +1155,17 @@ class URL():
         COCREATOR_INVITE_ACT = 'invitation/action/cocreatorship/<str:inviteID>'
         MANAGE_PROJECT_COCREATOR = 'cocreator/manage/<str:projectID>'
 
-        def baseCocreatorInvite(self, inviteID):
+        def inviteProjectCocreator(self, projectID):
+            return setPathParams(self.INVITE_PROJECT_COCREATOR, projectID)
+
+        def viewCocreatorInvite(self, inviteID):
             return setPathParams(self.VIEW_COCREATOR_INVITE, inviteID)
 
-        def baseCocreatorInviteAct(self, inviteID):
+        def cocreatorInviteAct(self, inviteID):
             return setPathParams(self.COCREATOR_INVITE_ACT, inviteID)
+
+        def manageProjectCocreator(self, projectID):
+            return setPathParams(self.MANAGE_PROJECT_COCREATOR, projectID)
 
         def getURLSForClient(self):
             URLS = dict()

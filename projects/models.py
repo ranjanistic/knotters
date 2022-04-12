@@ -1,8 +1,11 @@
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from deprecated import deprecated
 from django.conf import settings
+from django.db.models import Q
 from django.core.cache import cache
+from django.core.files.base import File
 from django.db import models
 from django.utils import timezone
 from github.Repository import Repository
@@ -11,22 +14,24 @@ from jsonfield import JSONField
 from main.bots import Github, GithubKnotters
 from main.env import BOTMAIL
 from main.methods import errorLog, human_readable_size, maxLengthInList
-from main.strings import (CORE_PROJECT, DOCS, MANAGEMENT, PEOPLE, Code,
+from main.strings import (CORE_PROJECT, DOCS, MANAGEMENT, Code,
                           Message, project, url)
 from management.models import (GhMarketApp, HookRecord, Invitation,
                                ReportCategory)
-from moderation.models import Moderation
+
+from people.models import Profile, Topic
 
 from .apps import APPNAME
 
 
 class Tag(models.Model):
     """A tag model"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=150, null=False,
-                            blank=False, unique=True)
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
-                                null=True, blank=True, related_name="tag_creator")
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=150, null=False,
+                                 blank=False, unique=True)
+    creator: Profile = models.ForeignKey(Profile, on_delete=models.SET_NULL,
+                                         null=True, blank=True, related_name="tag_creator")
 
     def __str__(self):
         return self.name
@@ -38,12 +43,10 @@ class Tag(models.Model):
     def getID(self):
         return self.get_id
 
-    def totalTopics(self):
-        from people.models import Topic
+    def totalTopics(self) -> int:
         return Topic.objects.filter(tags=self).count()
 
-    def getTopics(self):
-        from people.models import Topic
+    def getTopics(self) -> models.QuerySet:
         return Topic.objects.filter(tags=self)
 
     def totalProjects(self):
@@ -61,13 +64,14 @@ class Tag(models.Model):
 
 class Category(models.Model):
     """A project category model"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=100, null=False,
-                            blank=False, unique=True)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=100, null=False,
+                                 blank=False, unique=True)
     """name (CharField): The name of the category"""
 
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
-                                null=True, blank=True, related_name="category_creator")
+    creator: Profile = models.ForeignKey(Profile, on_delete=models.SET_NULL,
+                                         null=True, blank=True, related_name="category_creator")
     """creator (ForeignKey<Profile>): The creator of the category"""
     tags = models.ManyToManyField(Tag, through='CategoryTag', default=[])
     """tags (ManyToManyField<Tag>): The tags of the category"""
@@ -102,7 +106,6 @@ class Category(models.Model):
         return list(filter(lambda x: x, topics))
 
     def topics(self) -> models.QuerySet:
-        from people.models import Topic
         return Topic.objects.filter(id__in=self.topicIDs())
 
     def totalTopics(self):
@@ -152,35 +155,37 @@ class CategoryTag(models.Model):
     class Meta:
         unique_together = ('category', 'tag')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    category: Category = models.ForeignKey(Category, on_delete=models.CASCADE)
     """category (ForeignKey<Category>): The category in relation"""
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    tag: Tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     """tag (ForeignKey<Tag>): The tag in relation"""
 
 
 class License(models.Model):
     """A license model for projects"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=50)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=50)
     """name (CharField): The name of the license"""
-    keyword = models.CharField(max_length=80, null=True, blank=True,
-                               help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
+    keyword: str = models.CharField(max_length=80, null=True, blank=True,
+                                    help_text='The license keyword, refer https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/licensing-a-repository#searching-github-by-license-type')
     """keyword (CharField): The keyword of the license (nickname type)"""
-    description = models.CharField(max_length=1000, null=True, blank=True)
+    description: str = models.CharField(max_length=1000, null=True, blank=True)
     """description (CharField): The description of the license"""
-    content = models.CharField(max_length=300000, null=True, blank=True)
+    content: str = models.CharField(max_length=300000, null=True, blank=True)
     """content (CharField): The content of the license"""
-    public = models.BooleanField(default=False)
+    public: bool = models.BooleanField(default=False)
     """public (BooleanField): Whether the license is public or not (like allowed for open source projects or not)"""
-    default = models.BooleanField(default=False)
+    default: bool = models.BooleanField(default=False)
     """default (BooleanField): Whether the license is default or not (default makes it to the first one in the list)"""
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
+    creator: Profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
     """creator (ForeignKey<Profile>): The creator of the license"""
-    createdOn = models.DateTimeField(
+    createdOn: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now, null=True, blank=True)
     """createdOn (DateTimeField): The creation date of the license"""
-    modifiedOn = models.DateTimeField(
+    modifiedOn: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now, null=True, blank=True)
     """modifiedOn (DateTimeField): The modification date of the license"""
 
@@ -191,7 +196,8 @@ class License(models.Model):
 
     def save(self, *args, **kwargs):
         try:
-            if self.content != License.objects.get(id=self.id).content:
+            license: License = License.objects.get(id=self.id)
+            if self.content != license.content:
                 self.modifiedOn = timezone.now()
         except:
             pass
@@ -257,7 +263,6 @@ class License(models.Model):
         cacheKey = License.ALL_CACHE_KEY
         licenses = cache.get(cacheKey, [])
         if not len(licenses):
-            from people.models import Profile
             licenses = License.objects.filter(
                 creator=Profile.KNOTBOT(), public=True).order_by("-default")
             cache.set(cacheKey, licenses, settings.CACHE_ETERNAL)
@@ -266,7 +271,6 @@ class License(models.Model):
     def reset_all_cache(*args) -> models.QuerySet:
         """Reset all licenses cache"""
         cache.delete(License.ALL_CACHE_KEY)
-        from people.models import Profile
         licenses = License.objects.filter(
             creator=Profile.KNOTBOT(), public=True).order_by("-default")
         cache.set(License.ALL_CACHE_KEY, licenses, settings.CACHE_ETERNAL)
@@ -288,57 +292,62 @@ def defaultImagePath():
 
 class BaseProject(models.Model):
     """The base model for all kinds of projects"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=50, null=False, blank=False)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=50, null=False, blank=False)
     """name (CharField): The name of the project"""
-    image = models.ImageField(upload_to=projectImagePath, max_length=500,
-                              default=defaultImagePath, null=True, blank=True)
+    image: models.ImageField = models.ImageField(upload_to=projectImagePath, max_length=500,
+                                                 default=defaultImagePath, null=True, blank=True)
     """image (ImageField): The image of the project"""
-    description = models.CharField(max_length=5000, null=False, blank=False)
+    description: str = models.CharField(
+        max_length=5000, null=False, blank=False)
     """description (CharField): The description of the project"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The creation date of the project"""
-    modifiedOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    modifiedOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """modifiedOn (DateTimeField): The modification date of the project"""
-    creator = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.PROTECT)
+    creator: Profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
     """creator (ForeignKey<Profile>): The creator of the project"""
-    migrated = models.BooleanField(
+    migrated: bool = models.BooleanField(
         default=False, help_text='Indicates whether this project was created by someone whose account was deleted.')
     """migrated (BooleanField): Indicates whether this project was created by someone else and transferred."""
-    migrated_by = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
-                                    null=True, blank=True, related_name="baseproject_migrated_by")
+    migrated_by: Profile = models.ForeignKey(Profile, on_delete=models.SET_NULL,
+                                             null=True, blank=True, related_name="baseproject_migrated_by")
     """migrated_by (ForeignKey<Profile>): The profile who migrated this project"""
-    migrated_on = models.DateTimeField(auto_now=False, null=True, blank=True)
+    migrated_on: datetime = models.DateTimeField(
+        auto_now=False, null=True, blank=True)
     """migrated_on (DateTimeField): The date when this project was last migrated"""
-    trashed = models.BooleanField(
+    trashed: bool = models.BooleanField(
         default=False, help_text="Deleted for creator, can be used when rejected.")
     """trashed (BooleanField): Indicates whether this project was trashed"""
-    license = models.ForeignKey(License, on_delete=models.PROTECT)
+    license: License = models.ForeignKey(License, on_delete=models.PROTECT)
     """license (ForeignKey<License>): The license of the project"""
-    acceptedTerms = models.BooleanField(default=True)
+    acceptedTerms: bool = models.BooleanField(default=True)
     """acceptedTerms (BooleanField): Indicates whether the creator accepted the terms for this project"""
-    suspended = models.BooleanField(default=False)
+    suspended: bool = models.BooleanField(default=False)
     """suspended (BooleanField): Indicates whether the project is suspended"""
-    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    category: Category = models.ForeignKey(Category, on_delete=models.PROTECT)
     """category (ForeignKey<Category>): The category of the project"""
     tags = models.ManyToManyField(Tag, through='ProjectTag', default=[])
     """tags (ManyToManyField<Tag>): The tags of the project"""
     topics = models.ManyToManyField(
-        f'{PEOPLE}.Topic', through='ProjectTopic', default=[])
+        Topic, through='ProjectTopic', default=[])
     """topics (ManyToManyField<Topic>): The topics of the project"""
-    co_creators = models.ManyToManyField(f"{PEOPLE}.Profile", through="BaseProjectCoCreator", default=[
+    co_creators = models.ManyToManyField(Profile, through="BaseProjectCoCreator", default=[
     ], related_name='base_project_co_creator')
     """co_creators (ManyToManyField<Profile>): The co-creators of the project"""
-    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='ProjectAdmirer', default=[
+    admirers = models.ManyToManyField(Profile, through='ProjectAdmirer', default=[
     ], related_name='base_project_admirer')
     """admirers (ManyToManyField<Profile>): The admirers of the project"""
-    prime_collaborators = models.ManyToManyField(f"{PEOPLE}.Profile", through='BaseProjectPrimeCollaborator', default=[
+    prime_collaborators = models.ManyToManyField(Profile, through='BaseProjectPrimeCollaborator', default=[
     ], related_name='base_project_prime_collaborator')
     """prime_collaborators (ManyToManyField<Profile>): The prime collaborators of the project"""
 
-    is_archived = models.BooleanField(default=False)
+    is_archived: bool = models.BooleanField(default=False)
     """is_archived (BooleanField): Indicates whether the project is archived"""
-    archive_forward_link = models.URLField(
+    archive_forward_link: str = models.URLField(
         max_length=500, null=True, blank=True)
     """archive_forward_link (URLField): The forward link for people to visit if project is archived (optional)"""
 
@@ -412,6 +421,22 @@ class BaseProject(models.Model):
 
     def getTopics(self) -> list:
         return self.topics.all()
+
+    def get_cache_one(*args, nickname) -> "FreeProject|Project|CoreProject":
+        cacheKey = f"nickname_project_{nickname}"
+        project: "FreeProject|Project|CoreProject" = cache.get(cacheKey, None)
+        if not project:
+            project: FreeProject = FreeProject.objects.filter(
+                nickname=nickname, trashed=False, is_archived=False).first()
+            if not project:
+                project: Project = Project.objects.filter(
+                    reponame=nickname, trashed=False, is_archived=False).first()
+                if not project:
+                    project: CoreProject = CoreProject.objects.get(
+                        codename=nickname, trashed=False, is_archived=False)
+            cache.set(cacheKey, project, settings.CACHE_LONG)
+        print("project", project)
+        return project
 
     def getPalleteTopics(self, limit: int = 2) -> models.QuerySet:
         """Returns the topics of the project to be used in the pallete
@@ -514,7 +539,7 @@ class BaseProject(models.Model):
         """
         return ProjectSocial.objects.create(project=self, site=site)
 
-    def removeSocial(self, id: UUID):
+    def removeSocial(self, id: UUID) -> bool:
         """Removes a social site from the project.
 
         Args:
@@ -523,7 +548,7 @@ class BaseProject(models.Model):
         Returns:
             Tuple[int, dict[str, int]]: The number of affected rows, and the affected rows
         """
-        return ProjectSocial.objects.filter(id=id, project=self).delete()
+        return ProjectSocial.objects.filter(id=id, project=self).delete()[0] >= 1
 
     def is_free(self) -> bool:
         """Returns True if the project is of type Quick (Freeproject)"""
@@ -589,7 +614,7 @@ class BaseProject(models.Model):
                 cache.set(cacheKey, isRejected, settings.CACHE_LONG)
         return isRejected
 
-    def getProject(self, onlyApproved: bool = False):
+    def getProject(self, onlyApproved: bool = False) -> "FreeProject|CoreProject|Project":
         """Returns the child project instance.
 
         Args:
@@ -633,7 +658,7 @@ class BaseProject(models.Model):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         return self.getProject().getLink(success, error, alert)
 
-    def get_nickname(self):
+    def get_nickname(self) -> str:
         """Returns the nickname of the project (extracting from child project)"""
         project = self.getProject()
         if project.verified:
@@ -641,6 +666,18 @@ class BaseProject(models.Model):
         if project.core:
             return project.codename
         return project.nickname
+
+    def set_nickname(self, newNickname: str) -> str:
+        """Sets a nickname of the project (extracting from child project)"""
+        project = self.getProject()
+        if project.verified:
+            project.reponame = newNickname
+        elif project.core:
+            project.codename = newNickname
+        else:
+            project.nickname = newNickname
+        project.save()
+        return self.get_nickname()
 
     def total_admirations(self) -> int:
         """Returns the total number of admirers of the project"""
@@ -715,13 +752,13 @@ class BaseProject(models.Model):
         except:
             return None
 
-    def cancel_invitation(self):
+    def cancel_invitation(self) -> bool:
         """Cancels the current owndership invitation for the project by deleting the invitation record.
 
         Returns:
             Tuple[int, dict[str, int]]: The number of affected rows, and the affected rows
         """
-        return ProjectTransferInvitation.objects.filter(baseproject=self).delete()
+        return ProjectTransferInvitation.objects.filter(baseproject=self).delete()[0] >= 1
 
     def transfer_to(self, newcreator) -> bool:
         """Transfers the project to the new creator (primarily on ownership acceptance)
@@ -735,8 +772,7 @@ class BaseProject(models.Model):
         if not self.is_normal():
             return False
         if self.is_free():
-            FreeRepository.objects.filter(
-                free_project=self.getProject()).delete()
+            FreeRepository.objects.filter(free_project=self.getProject())
         oldcreator = self.creator
         self.migrated_by = self.creator
         self.creator = newcreator
@@ -908,13 +944,13 @@ class BaseProject(models.Model):
         """Returns all current pending cocreator invitation instances of the project."""
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False)
 
-    def cancel_cocreator_invitation(self, profile):
+    def cancel_cocreator_invitation(self, profile) -> bool:
         """Cancels the pending cocreator invitation for the given profile, by deleting the invitation record."""
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile).delete()[0] >= 1
 
-    def cancel_all_cocreator_invitations(self):
+    def cancel_all_cocreator_invitations(self) -> bool:
         """Cancels all pending cocreator invitations for the given project, by deleting the invitation records."""
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).delete()[0] >= 1
 
     def moveToArchive(self, archive_forward_link: str = None) -> bool:
         """Move the project to archive.
@@ -934,6 +970,7 @@ class BaseProject(models.Model):
                     free_project=self.getProject()).delete()
             self.archive_forward_link = archive_forward_link
             self.is_archived = True
+            self.set_nickname(self.get_id)
             self.save()
             return True
         except:
@@ -957,39 +994,48 @@ class BaseProject(models.Model):
             return self.is_normal() and (profile == self.creator or profile == self.get_moderator() or self.is_cocreator(profile))
         return self.is_normal()
 
+    def get_approved_projects(*args, query: Q, limit: int = 5) -> list:
+        """Returns only the approved and valid projects that match the query."""
+        return list(filter(lambda p: p.is_approved(), BaseProject.objects.filter(
+            query, suspended=False, is_archived=False,
+            trashed=False).distinct()[:limit]
+        ))
+
 
 class BaseProjectPrimeCollaborator(models.Model):
     """The model for relation between a project and a prime collaborator."""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    prime_collaborator = models.ForeignKey(
-        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="base_project_prime_collaborator_prime_collaborator")
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    prime_collaborator: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="base_project_prime_collaborator_prime_collaborator")
     """prime_collaborator (ForeignKey<Profile>): The prime collaborator profile instance."""
-    base_project = models.ForeignKey(
+    base_project: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, related_name="base_project_prime_collaborator_base_project")
     """base_project (ForeignKey<BaseProject>): The base project instance."""
 
 
 class BaseProjectCoCreator(models.Model):
     """The model for relation between a project and a co-creator."""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    co_creator = models.ForeignKey(
-        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="base_project_co_creator_co_creator")
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    co_creator: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="base_project_co_creator_co_creator")
     """co_creator (ForeignKey<Profile>): The co-creator profile instance."""
-    base_project = models.ForeignKey(
+    base_project: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, related_name="base_project_co_creator_base_project")
     """base_project (ForeignKey<BaseProject>): The base project instance."""
 
 
 class BaseProjectCoCreatorInvitation(Invitation):
     """The model for a co-creator invitation."""
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
-                                     related_name="base_project_co_creator_invitation_base_project")
+    base_project: BaseProject = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
+                                                  related_name="base_project_co_creator_invitation_base_project")
     """base_project (ForeignKey<BaseProject>): The base project instance."""
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                               related_name='base_project_co_creator_invitation_sender')
+    sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                        related_name='base_project_co_creator_invitation_sender')
     """sender (ForeignKey<Profile>): The sender profile instance (owner of the project)."""
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                                 related_name='base_project_co_creator_invitation_receiver')
+    receiver: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                          related_name='base_project_co_creator_invitation_receiver')
     """receiver (ForeignKey<Profile>): The receiver profile instance."""
 
     def accept(self) -> bool:
@@ -1010,12 +1056,11 @@ class BaseProjectCoCreatorInvitation(Invitation):
             return False
         if self.resolved:
             return False
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the invitation view, to be used by receiver via GET method."""
-        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.viewCocreatorInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
     @property
     def get_link(self):
@@ -1024,19 +1069,19 @@ class BaseProjectCoCreatorInvitation(Invitation):
     @property
     def get_act_link(self):
         """Returns the link to act on invitation, to be used by receiver via POST method."""
-        return f"{url.getRoot(APPNAME)}{url.projects.baseCocreatorInviteAct(self.get_id)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.cocreatorInviteAct(self.get_id)}"
 
 
 class BaseProjectPrimeCollaboratorInvitation(Invitation):
     """The model for a prime collaborator invitation."""
-    base_project = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
-                                     related_name="base_project_prime_collaborator_invitation_base_project")
+    base_project: BaseProject = models.ForeignKey(BaseProject, on_delete=models.CASCADE,
+                                                  related_name="base_project_prime_collaborator_invitation_base_project")
     """base_project (ForeignKey<BaseProject>): The base project instance."""
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                               related_name='base_project_prime_collaborator_invitation_sender')
+    sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                        related_name='base_project_prime_collaborator_invitation_sender')
     """sender (ForeignKey<Profile>): The sender profile instance (owner/moderator of the project)."""
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                                 related_name='base_project_prime_collaborator_invitation_receiver')
+    receiver: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                          related_name='base_project_prime_collaborator_invitation_receiver')
     """receiver (ForeignKey<Profile>): The receiver profile instance."""
 
 
@@ -1044,20 +1089,21 @@ class Project(BaseProject):
     """
     This is verified project model
     """
-    url = models.CharField(max_length=500, null=True, blank=True)
-    reponame = models.CharField(
+    url: str = models.CharField(max_length=500, null=True, blank=True)
+    reponame: str = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
     """reponame (CharField): The repository name. (becomes nickname)"""
-    repo_id = models.IntegerField(default=0, null=True, blank=True)
+    repo_id: int = models.IntegerField(default=0, null=True, blank=True)
     """repo_id (IntegerField): The repository id."""
-    status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
+    status: str = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     """status (CharField): The project moderation status."""
-    approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
+    approvedOn: datetime = models.DateTimeField(
+        auto_now=False, blank=True, null=True)
     """approvedOn (DateTimeField): The date and time when the project was approved."""
 
-    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
-                               related_name='verified_project_mentor', null=True, blank=True)
+    mentor: Profile = models.ForeignKey(Profile, on_delete=models.SET_NULL,
+                                        related_name='verified_project_mentor', null=True, blank=True)
     """mentor (ForeignKey<Profile>): The mentor profile instance."""
 
     verified = True
@@ -1175,8 +1221,9 @@ class Project(BaseProject):
         """Returns the nickname of the project (reponame)"""
         return self.reponame
 
-    def moderation(self, pendingOnly=False) -> Moderation:
+    def moderation(self, pendingOnly=False):
         """Returns the moderation instance of the project"""
+        from moderation.models import Moderation
         if pendingOnly:
             return Moderation.objects.filter(project=self, type=APPNAME, status__in=[
                 Code.REJECTED, Code.MODERATION], resolved=False).order_by('-requestOn', '-respondOn').first()
@@ -1187,7 +1234,7 @@ class Project(BaseProject):
         mod = self.moderation()
         return None if not mod else mod.moderator
 
-    def getModerator(self) -> models.Model:
+    def getModerator(self) -> Profile:
         """Returns the moderator profile instance of the project"""
         if not self.isApproved():
             return None
@@ -1204,7 +1251,8 @@ class Project(BaseProject):
     def moderationRetriesLeft(self) -> int:
         """Returns the number of retries left for the moderation re-request"""
         maxtries = 0
-        if self.status != Code.APPROVED:
+        if not self.isApproved():
+            from moderation.models import Moderation
             maxtries = 1 - \
                 Moderation.objects.filter(
                     type=APPNAME, project=self, resolved=True).count()
@@ -1242,7 +1290,7 @@ class Project(BaseProject):
         return (profile not in [self.creator, self.moderator(), self.mentor]) and not (
             self.moderator().isBlockedProfile(profile) or self.creator.isBlockedProfile(
                 profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
-        )
+        ) and profile.is_normal
 
     def can_invite_mod_profile(self, profile) -> bool:
         """Returns True if the profile can be invited as new moderator for the project (approved project)
@@ -1262,9 +1310,9 @@ class Project(BaseProject):
         except:
             return None
 
-    def cancel_moderation_invitation(self):
+    def cancel_moderation_invitation(self) -> bool:
         """Cancels the pending moderatorship transfer invitation for the project (approved project) by deleting the invitation record"""
-        return ProjectModerationTransferInvitation.objects.filter(project=self).delete()
+        return ProjectModerationTransferInvitation.objects.filter(project=self).delete()[0] >= 1
 
     def transfer_moderation_to(self, newmoderator) -> bool:
         """Transfers the moderatorship to the new moderator for the project (approved project), primarily after moderatorship acceptence by new moderator.
@@ -1307,9 +1355,9 @@ class Project(BaseProject):
         """Returns True if the project is under pending deletion request"""
         return VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator(), resolved=False).exists()
 
-    def cancel_del_request(self):
+    def cancel_del_request(self) -> bool:
         """Cancels the pending deletion request for the project (approved project) by deleting the request record"""
-        return VerProjectDeletionRequest.objects.filter(project=self).delete()
+        return VerProjectDeletionRequest.objects.filter(project=self).delete()[0] >= 1
 
     def current_del_request(self) -> "VerProjectDeletionRequest":
         """Returns the current pending deletion request instance for the project (approved project)"""
@@ -1337,12 +1385,14 @@ class Project(BaseProject):
             self.creator.decreaseXP(by=2, reason="Verified project deleted")
             self.save()
             if self.moderation() and self.moderation().isPending():
-                self.moderation().delete()
-                self.delete()
+                if self.moderation().delete()[0] >= 1:
+                    return self.delete()[0] >= 1
         elif VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator(), resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2, reason="Verified project deleted")
             self.save()
+        if self.trashed:
+            self.set_nickname(self.id)
         return self.trashed
 
     def is_from_verification(self) -> bool:
@@ -1362,7 +1412,7 @@ class Project(BaseProject):
         Returns:
             bool: True if the profile can be invited as new cocreator for the project
         """
-        return self.can_invite_profile(profile)
+        return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 
 def assetFilePath(instance, filename):
@@ -1374,21 +1424,24 @@ class Asset(models.Model):
     """
     A project's asset (file) model.
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    baseproject = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    baseproject: BaseProject = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE)
     """baseproject (ForiegnKey<BaseProject>): The project that the asset belongs to"""
-    name = models.CharField(max_length=250, null=False, blank=False)
+    name: str = models.CharField(max_length=250, null=False, blank=False)
     """name (CharField): The name of the asset"""
-    file = models.FileField(upload_to=assetFilePath, max_length=500)
+    file: File = models.FileField(upload_to=assetFilePath, max_length=500)
     """file (FileField): The asset file"""
-    public = models.BooleanField(default=False)
+    public: bool = models.BooleanField(default=False)
     """public (BooleanField): Whether the asset is public or not"""
-    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """created_on (DateTimeField): The date and time the asset was created"""
-    modified_on = models.DateTimeField(auto_now=False)
+    modified_on: datetime = models.DateTimeField(auto_now=False)
     """modified_on (DateTimeField): The date and time the asset was last modified"""
-    creator = models.ForeignKey(
-        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="asset_creator")
+    creator: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="asset_creator")
     """creator (ForeignKey<Profile>): The profile that created the asset"""
 
     @property
@@ -1472,8 +1525,7 @@ class FreeProject(BaseProject):
         if not self.can_delete():
             return False
         self.creator.decreaseXP(by=2, reason="Quick project deleted")
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def has_linked_repo(self) -> bool:
         """Returns True if the project has a linked repo"""
@@ -1512,7 +1564,7 @@ class FreeProject(BaseProject):
 
     def can_invite_profile(self, profile) -> bool:
         """Returns True if the profile can be invited to the project (generally)"""
-        return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile))
+        return profile not in [self.creator] and not (self.creator.isBlockedProfile(profile)) and profile.is_normal
 
     def can_delete(self) -> bool:
         """Returns True if the project can be deleted"""
@@ -1527,8 +1579,7 @@ class FreeProject(BaseProject):
         req = self.current_verification_request()
         if req:
             if not req.verifiedproject.isApproved():
-                req.verifiedproject.delete()
-                return True
+                return req.verifiedproject.delete()[0] >= 1
         return False
 
     def current_verification_request(self) -> "FreeProjectVerificationRequest":
@@ -1567,10 +1618,9 @@ class FreeProject(BaseProject):
             fpvr.verifiedproject.prime_collaborators.set(
                 self.prime_collaborators.all())
             if self.is_submission():
-                self.moveToArchive(fpvr.verifiedproject.get_abs_link)
+                return self.moveToArchive(fpvr.verifiedproject.get_abs_link)
             else:
-                self.delete()
-            return True
+                return self.delete()[0] >= 1
         except:
             return False
 
@@ -1586,17 +1636,19 @@ class FreeProject(BaseProject):
 
     def can_invite_cocreator_profile(self, profile) -> bool:
         """Returns True if the profile can be invited to the project as cocreator."""
-        return self.can_invite_profile(profile)
+        return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 
 class FreeRepository(models.Model):
     """
     One to one linked repository record for Quick (Free) projects
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    free_project = models.OneToOneField(FreeProject, on_delete=models.CASCADE)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    free_project: FreeProject = models.OneToOneField(
+        FreeProject, on_delete=models.CASCADE)
     """free_project (ForiegnKey<FreeProject>): The free (quick) project this repository is linked to"""
-    repo_id = models.IntegerField()
+    repo_id: int = models.IntegerField()
     """repo_id (IntegerField): The repository's ID provided by github."""
 
     def gh_repo(self) -> Repository:
@@ -1642,10 +1694,13 @@ class AppRepository(models.Model):
     """
     Ghmarket app linked with FreeRepository
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    free_repo = models.ForeignKey(FreeRepository, on_delete=models.CASCADE)
-    gh_app = models.ForeignKey(GhMarketApp, on_delete=models.CASCADE)
-    suspended = models.BooleanField(default=False)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    free_repo: FreeRepository = models.ForeignKey(
+        FreeRepository, on_delete=models.CASCADE)
+    gh_app: GhMarketApp = models.ForeignKey(
+        GhMarketApp, on_delete=models.CASCADE)
+    suspended: bool = models.BooleanField(default=False)
     permissions = JSONField(default=dict)
 
     def __str__(self):
@@ -1661,12 +1716,13 @@ class ProjectTag(models.Model):
     class Meta:
         unique_together = ('project', 'tag')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    project = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    project: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, null=True, blank=True)
     """project (ForeignKey<BaseProject>): The project in this relation."""
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE,
-                            related_name='project_tag')
+    tag: Tag = models.ForeignKey(Tag, on_delete=models.CASCADE,
+                                 related_name='project_tag')
     """tag (ForeignKey<Tag>): The tag in this relation."""
 
 
@@ -1675,21 +1731,24 @@ class ProjectTopic(models.Model):
     class Meta:
         unique_together = ('project', 'topic')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    project = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    project: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, null=True, blank=True)
     """project (ForeignKey<BaseProject>): The project in this relation."""
-    topic = models.ForeignKey(f'{PEOPLE}.Topic', on_delete=models.CASCADE,
-                              null=True, blank=True, related_name='project_topic')
+    topic: Topic = models.ForeignKey(Topic, on_delete=models.CASCADE,
+                                     null=True, blank=True, related_name='project_topic')
     """topic (ForeignKey<Topic>): The topic in this relation."""
 
 
 class ProjectSocial(models.Model):
     """The model for social site of a project."""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    project = models.ForeignKey(BaseProject, on_delete=models.CASCADE)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    project: BaseProject = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE)
     """project (ForeignKey<BaseProject>): The project."""
-    site = models.URLField(max_length=800)
+    site: str = models.URLField(max_length=800)
     """site (URLField): The URL of the social site."""
 
 
@@ -1697,23 +1756,24 @@ class CoreProject(BaseProject):
     """
     A core project's model
     """
-    codename = models.CharField(
+    codename: str = models.CharField(
         max_length=500, unique=True, null=False, blank=False)
     """codename (CharField): The project's codename."""
-    repo_id = models.IntegerField(default=0, null=True, blank=True)
+    repo_id: int = models.IntegerField(default=0, null=True, blank=True)
     """repo_id (IntegerField): The project's repository's ID., provided by github."""
-    budget = models.FloatField(default=0)
+    budget: float = models.FloatField(default=0)
     """budget (FloatField): The project's budget."""
-    mentor = models.ForeignKey(f"{PEOPLE}.Profile", on_delete=models.SET_NULL,
-                               related_name='core_project_mentor', null=True, blank=True)
+    mentor: Profile = models.ForeignKey(Profile, on_delete=models.SET_NULL,
+                                        related_name='core_project_mentor', null=True, blank=True)
     """mentor (ForeignKey<Profile>): The project's mentor."""
-    status = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
+    status: str = models.CharField(choices=project.PROJECTSTATESCHOICES, max_length=maxLengthInList(
         project.PROJECTSTATES), default=Code.MODERATION)
     """status (CharField): The project's status."""
-    approvedOn = models.DateTimeField(auto_now=False, blank=True, null=True)
+    approvedOn: datetime = models.DateTimeField(
+        auto_now=False, blank=True, null=True)
     """approvedOn (DateTimeField): The project's approval date."""
-    verified = False
-    core = True
+    verified: bool = False
+    core: bool = True
 
     @property
     def CACHE_KEYS(self):
@@ -1739,7 +1799,8 @@ class CoreProject(BaseProject):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """The link to the project's profile."""
         try:
-            if self.status != Code.APPROVED:
+            if not self.isApproved():
+                from moderation.models import Moderation
                 return (Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[Code.REJECTED, Code.MODERATION]).order_by('-requestOn', '-respondOn').first()).getLink(alert=alert, error=error, success=success)
             return f"{url.getRoot(APPNAME)}{url.projects.profileCore(codename=self.codename)}{url.getMessageQuery(alert,error,success)}"
         except:
@@ -1827,19 +1888,20 @@ class CoreProject(BaseProject):
             cache.set(cacheKey, projectbase, settings.CACHE_LONG)
         return projectbase
 
-    def moderation(self, pendingOnly=False) -> Moderation:
+    def moderation(self, pendingOnly=False):
         """Returns the moderation instance of the project."""
+        from moderation.models import Moderation
         if pendingOnly:
             return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT, status__in=[
                 Code.REJECTED, Code.MODERATION], resolved=False).order_by('-respondOn', '-requestOn').first()
         return Moderation.objects.filter(coreproject=self, type=CORE_PROJECT).order_by('-requestOn', '-respondOn').first()
 
-    def moderator(self) -> models.Model:
+    def moderator(self) -> Profile:
         """Returns the moderator profile instance."""
         mod = self.moderation()
         return None if not mod else mod.moderator
 
-    def getModerator(self) -> models.Model:
+    def getModerator(self) -> Profile:
         """Returns the moderator profile instance but only if the project is approved."""
         if not self.isApproved():
             return None
@@ -1856,6 +1918,7 @@ class CoreProject(BaseProject):
         """Returns the number of moderation retries left."""
         maxtries = 0
         if not self.isApproved():
+            from moderation.models import Moderation
             maxtries = 1 - \
                 Moderation.objects.filter(
                     type=CORE_PROJECT, coreproject=self, resolved=True).count()
@@ -1893,15 +1956,15 @@ class CoreProject(BaseProject):
         return (profile not in [self.creator, self.moderator(), self.mentor]) and not (
             self.moderator().isBlockedProfile(profile) or self.creator.isBlockedProfile(
                 profile) or (self.mentor and self.mentor.isBlockedProfile(profile))
-        )
+        ) and profile.is_normal
 
     def can_invite_mod_profile(self, profile) -> bool:
         """Returns True if the project can invite a profile for moderatorship (approved project)."""
         return self.can_invite_mod() and self.can_invite_profile(profile)
 
-    def cancel_moderation_invitation(self):
+    def cancel_moderation_invitation(self) -> bool:
         """Cancels the pending moderatorship transfer invitation by deleting the instance."""
-        return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
+        return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()[0] >= 1
 
     def transfer_moderation_to(self, newmoderator) -> bool:
         """Transfers the project moderatorship to the new moderator, if invitation has been accepted."""
@@ -1935,7 +1998,7 @@ class CoreProject(BaseProject):
 
     def under_del_request(self) -> bool:
         """Returns True if the project is under deletion request (approved project)"""
-        return CoreProjectDeletionRequest.objects.filter(coreproject=self, resolved=False).exists()
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self,sender=self.creator, receiver=self.moderator(), resolved=False).exists()
 
     def current_del_request(self) -> "CoreProjectDeletionRequest":
         """Returns the pending deletion request instance."""
@@ -1956,7 +2019,7 @@ class CoreProject(BaseProject):
 
     def cancel_del_request(self) -> bool:
         """Cancels the pending deletion request by deleting the instance."""
-        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()[0] >= 1
 
     def moveToTrash(self) -> bool:
         """Moves the project to trash, if deletion request has been accepted.
@@ -1967,12 +2030,14 @@ class CoreProject(BaseProject):
             self.creator.decreaseXP(by=2, reason="Core project deleted")
             self.save()
             if self.moderation() and self.moderation().isPending():
-                self.moderation().delete()
-                self.delete()
+                if self.moderation().delete()[0] >= 1:
+                    return self.delete()[0] >= 1
         elif CoreProjectDeletionRequest.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator(), resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2, reason="Core project deleted")
             self.save()
+        if self.trashed:
+            self.set_nickname(self.id)
         return self.trashed
 
     def under_verification_request(self) -> bool:
@@ -1984,8 +2049,7 @@ class CoreProject(BaseProject):
         req = self.current_verification_request()
         if req:
             if not req.verifiedproject.isApproved():
-                req.verifiedproject.delete()
-                return True
+                return req.verifiedproject.delete()[0] >= 1
         return False
 
     def current_verification_request(self) -> "CoreProjectVerificationRequest":
@@ -2023,13 +2087,12 @@ class CoreProject(BaseProject):
             cpvr.verifiedproject.prime_collaborators.set(
                 self.prime_collaborators.all())
             self.gh_repo().edit(private=False)
-            self.delete()
-            return True
+            return self.delete()[0] >= 1
         except:
             return False
 
     def can_invite_cocreator_profile(self, profile):
-        return self.can_invite_profile(profile)
+        return self.can_invite_profile(profile) and not self.co_creators.filter(user=profile.user).exists() and not self.under_cocreator_invitation_profile(profile)
 
 
 class LegalDoc(models.Model):
@@ -2037,25 +2100,27 @@ class LegalDoc(models.Model):
     class Meta:
         unique_together = ('name', 'pseudonym')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=1000)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=1000)
     """name (CharField): display name of the document"""
-    pseudonym = models.CharField(max_length=1000, unique=True)
+    pseudonym: str = models.CharField(max_length=1000, unique=True)
     """pseudonym (CharField): nickname of the document"""
-    about = models.CharField(max_length=100, null=True, blank=True)
+    about: str = models.CharField(max_length=100, null=True, blank=True)
     """about (CharField): short description of the document"""
-    content = models.CharField(max_length=100000)
+    content: str = models.CharField(max_length=100000)
     """content (CharField): content of the document"""
-    icon = models.CharField(max_length=20, default='policy')
+    icon: str = models.CharField(max_length=20, default='policy')
     """icon (CharField): icon of the document, icon based on Google(TM) material-icons"""
-    contactmail = models.CharField(max_length=30, default=BOTMAIL)
+    contactmail: str = models.EmailField(default=BOTMAIL)
     """contactmail (CharField): contact mail of the document"""
-    lastUpdate = models.DateTimeField(
+    lastUpdate: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now, editable=False)
     """lastUpdate (DateTimeField): last update of the document"""
-    effectiveDate = models.DateTimeField(auto_now=False, default=timezone.now)
+    effectiveDate: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """effectiveDate (DateTimeField): effective date of the document"""
-    notify_all = models.BooleanField(default=False)
+    notify_all: bool = models.BooleanField(default=False)
     """notify_all (BooleanField): notify all users about changes in document.
         This value remains false in database, and only used by admin panel for instant action."""
 
@@ -2172,29 +2237,32 @@ def snapMediaPath(instance, filename):
 
 class Snapshot(models.Model):
     """Model for a snapshot of a project"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    base_project = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    base_project: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, related_name='base_project_snapshot')
     """base_project (ForeignKey<BaseProject>): base project to which the snapshot belongs"""
-    text = models.CharField(max_length=6000, null=True, blank=True)
+    text: str = models.CharField(max_length=6000, null=True, blank=True)
     """text (CharField): text of the snapshot"""
-    image = models.ImageField(upload_to=snapMediaPath,
-                              max_length=500, null=True, blank=True)
+    image: File = models.ImageField(upload_to=snapMediaPath,
+                                    max_length=500, null=True, blank=True)
     """image (ImageField): image of the snapshot"""
-    video = models.FileField(upload_to=snapMediaPath,
-                             max_length=500, null=True, blank=True)
+    video: File = models.FileField(upload_to=snapMediaPath,
+                                   max_length=500, null=True, blank=True)
     """video (FileField): video of the snapshot"""
-    creator = models.ForeignKey(
-        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name='project_snapshot_creator')
+    creator: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='project_snapshot_creator')
     """creator (ForeignKey<Profile>): profile who created the snapshot"""
-    created_on = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """created_on (DateTimeField): date and time when the snapshot was created"""
-    modified_on = models.DateTimeField(auto_now=False, default=timezone.now)
+    modified_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """modified_on (DateTimeField): date and time when the snapshot was last modified"""
-    admirers = models.ManyToManyField(f"{PEOPLE}.Profile", through='SnapshotAdmirer', default=[
+    admirers = models.ManyToManyField(Profile, through='SnapshotAdmirer', default=[
     ], related_name='snapshot_admirer')
     """admirers (ManyToManyField<Profile>): profiles who admire the snapshot"""
-    suspended = models.BooleanField(default=False)
+    suspended: bool = models.BooleanField(default=False)
     """suspended (BooleanField): whether the snapshot is suspended or not"""
 
     @property
@@ -2245,14 +2313,15 @@ class ReportedProject(models.Model):
     class Meta:
         unique_together = ('profile', 'baseproject', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_reporter_profile')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='project_reporter_profile')
     """profile (ForeignKey<Profile>): profile who reported the project"""
-    baseproject = models.ForeignKey(
+    baseproject: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, related_name='reported_baseproject')
     """baseproject (ForeignKey<BaseProject>): base project which was reported"""
-    category = models.ForeignKey(
+    category: ReportCategory = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_project_category')
     """category (ForeignKey<ReportCategory>): category of the report"""
 
@@ -2262,14 +2331,15 @@ class ReportedSnapshot(models.Model):
     class Meta:
         unique_together = ('profile', 'snapshot', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_reporter_profile')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='snapshot_reporter_profile')
     """profile (ForeignKey<Profile>): profile who reported the snapshot"""
-    snapshot = models.ForeignKey(
+    snapshot: Snapshot = models.ForeignKey(
         Snapshot, on_delete=models.CASCADE, related_name='reported_snapshot')
     """snapshot (ForeignKey<Snapshot>): snapshot which was reported"""
-    category = models.ForeignKey(
+    category: ReportCategory = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_snapshot_category')
     """category (ForeignKey<ReportCategory>): category of the report"""
 
@@ -2279,11 +2349,12 @@ class ProjectAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'base_project')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='project_admirer_profile')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='project_admirer_profile')
     """profile (ForeignKey<Profile>): profile who admired the project"""
-    base_project = models.ForeignKey(
+    base_project: BaseProject = models.ForeignKey(
         BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
     """base_project (ForeignKey<BaseProject>): base project which was admired"""
 
@@ -2293,23 +2364,25 @@ class SnapshotAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'snapshot')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='snapshot_admirer_profile')
     """profile (ForeignKey<Profile>): profile who admired the snapshot"""
-    snapshot = models.ForeignKey(
+    snapshot: Snapshot = models.ForeignKey(
         Snapshot, on_delete=models.CASCADE, related_name='admired_snapshot')
     """snapshot (ForeignKey<Snapshot>): snapshot which was admired"""
 
 
 class FileExtension(models.Model):
     """Model for file extensions record, used for contribution tracking purposes."""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    extension = models.CharField(max_length=50, unique=True)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    extension: str = models.CharField(max_length=50, unique=True)
     """extension (CharField<50>): file extension without the dot"""
-    description = models.CharField(max_length=500, null=True, blank=True)
+    description: str = models.CharField(max_length=500, null=True, blank=True)
     """description (CharField<500>): description of the file extension"""
-    topics = models.ManyToManyField(f'{PEOPLE}.Topic', through='TopicFileExtension', default=[
+    topics = models.ManyToManyField(Topic, through='TopicFileExtension', default=[
     ], related_name='file_extension_topics')
     """topics (ManyToManyField<Topic>): topics related to the file extension"""
 
@@ -2335,25 +2408,26 @@ class FileExtension(models.Model):
 
 class TopicFileExtension(models.Model):
     """Model for relation between a topic and a file extension"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    topic = models.ForeignKey(
-        f'{PEOPLE}.Topic', on_delete=models.CASCADE, related_name='topic_file_extension_topic')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    topic: Topic = models.ForeignKey(
+        Topic, on_delete=models.CASCADE, related_name='topic_file_extension_topic')
     """topic (ForeignKey<Topic>): topic related to the file extension"""
-    file_extension = models.ForeignKey(
+    file_extension: FileExtension = models.ForeignKey(
         FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
     """file_extension (ForeignKey<FileExtension>): file extension related to the topic"""
 
 
 class ProjectTransferInvitation(Invitation):
     """Model for project owndership transfer invitation record"""
-    baseproject = models.OneToOneField(
+    baseproject: BaseProject = models.OneToOneField(
         BaseProject, on_delete=models.CASCADE, related_name='invitation_baseproject')
     """baseproject (OneToOneField<BaseProject>): base project of which ownership is being transferred"""
-    sender = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_sender')
+    sender: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='transfer_invitation_sender')
     """sender (ForeignKey<Profile>): sender of the invitation"""
-    receiver = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='transfer_invitation_receiver')
+    receiver: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='transfer_invitation_receiver')
     """receiver (ForeignKey<Profile>): receiver of the invitation"""
 
     class Meta:
@@ -2392,14 +2466,14 @@ class ProjectTransferInvitation(Invitation):
 
 class CoreModerationTransferInvitation(Invitation):
     """Model for core moderation moderatorship transfer invitation record"""
-    coreproject = models.OneToOneField(
+    coreproject: CoreProject = models.OneToOneField(
         CoreProject, on_delete=models.CASCADE, related_name='mod_invitation_coreproject')
     """coreproject (OneToOneField<CoreProject>): core project of which moderatorship is being transferred"""
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                               related_name='mod_coretransfer_invitation_sender')
+    sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                        related_name='mod_coretransfer_invitation_sender')
     """sender (ForeignKey<Profile>): sender of the invitation"""
-    receiver = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_receiver')
+    receiver: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='mod_coretransfer_invitation_receiver')
     """receiver (ForeignKey<Profile>): receiver of the invitation"""
 
     class Meta:
@@ -2438,14 +2512,14 @@ class CoreModerationTransferInvitation(Invitation):
 
 class ProjectModerationTransferInvitation(Invitation):
     """Model for verified project moderatorship transfer invitation record"""
-    project = models.OneToOneField(
+    project: Project = models.OneToOneField(
         Project, on_delete=models.CASCADE, related_name='mod_invitation_verifiedproject')
     """project (OneToOneField<Project>): verified project of which moderatorship is being transferred"""
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                               related_name='mod_verifiedtransfer_invitation_sender')
+    sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                        related_name='mod_verifiedtransfer_invitation_sender')
     """sender (ForeignKey<Profile>): sender of the invitation"""
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                                 related_name='mod_verifiedtransfer_invitation_receiver')
+    receiver: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                          related_name='mod_verifiedtransfer_invitation_receiver')
     """receiver (ForeignKey<Profile>): receiver of the invitation"""
 
     class Meta:
@@ -2484,14 +2558,14 @@ class ProjectModerationTransferInvitation(Invitation):
 
 class VerProjectDeletionRequest(Invitation):
     """Model for approved verified project deletion request record"""
-    project = models.OneToOneField(
+    project: Project = models.OneToOneField(
         Project, on_delete=models.CASCADE, related_name='deletion_request_project')
     """project (OneToOneField<Project>): verified project of which deletion is being requested"""
-    sender = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_sender')
+    sender: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='deletion_request_sender')
     """sender (ForeignKey<Profile>): sender of the invitation, usually the creator"""
-    receiver = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='deletion_request_receiver')
+    receiver: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='deletion_request_receiver')
     """receiver (ForeignKey<Profile>): receiver of the invitation, usually the moderator"""
 
     class Meta:
@@ -2525,20 +2599,19 @@ class VerProjectDeletionRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
 
 class CoreProjectDeletionRequest(Invitation):
     """Model for approved core project deletion request record"""
-    coreproject = models.OneToOneField(
+    coreproject: CoreProject = models.OneToOneField(
         CoreProject, on_delete=models.CASCADE, related_name='deletion_request_coreproject')
     """coreproject (OneToOneField<CoreProject>): core project of which deletion is being requested"""
-    sender = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                               related_name='deletion_coreproject_request_sender')
+    sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                        related_name='deletion_coreproject_request_sender')
     """sender (ForeignKey<Profile>): sender of the invitation, usually the creator"""
-    receiver = models.ForeignKey(f'{PEOPLE}.Profile', on_delete=models.CASCADE,
-                                 related_name='deletion_coreproject_request_receiver')
+    receiver: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                          related_name='deletion_coreproject_request_receiver')
     """receiver (ForeignKey<Profile>): receiver of the invitation, usually the moderator"""
 
     class Meta:
@@ -2572,16 +2645,15 @@ class CoreProjectDeletionRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
 
 class FreeProjectVerificationRequest(Invitation):
     """Model for free project verification request record"""
-    freeproject = models.OneToOneField(
+    freeproject: FreeProject = models.OneToOneField(
         FreeProject, on_delete=models.CASCADE, related_name='free_under_verification_freeproject')
     """freeproject (OneToOneField<FreeProject>): The free project that is under verification"""
-    verifiedproject = models.OneToOneField(
+    verifiedproject: Project = models.OneToOneField(
         Project, on_delete=models.CASCADE, related_name='free_under_verification_verifiedproject')
     """verifiedproject (OneToOneField<Project>): The verified project that the free project is being converted to"""
     from_free = True
@@ -2604,8 +2676,7 @@ class FreeProjectVerificationRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the moderation view (the effective request view), used by receiver(moderator) via GET method"""
@@ -2619,10 +2690,10 @@ class FreeProjectVerificationRequest(Invitation):
 
 class CoreProjectVerificationRequest(Invitation):
     """Model for core project verification request record"""
-    coreproject = models.OneToOneField(
+    coreproject:CoreProject = models.OneToOneField(
         CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
     """coreproject (OneToOneField<CoreProject>): The core project that is under verification"""
-    verifiedproject = models.OneToOneField(
+    verifiedproject:Project = models.OneToOneField(
         Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
     """verifiedproject (OneToOneField<Project>): The verified project that the core project is being converted to"""
     from_free = False
@@ -2645,8 +2716,7 @@ class CoreProjectVerificationRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the moderation view (the effective request view), used by receiver(moderator) via GET method"""

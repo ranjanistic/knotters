@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from allauth.account.models import EmailAddress
@@ -11,6 +12,7 @@ from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin)
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files.base import File
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -23,22 +25,19 @@ from main.methods import errorLog, user_device_notify
 from main.strings import MANAGEMENT, PROJECTS, Code, classAttrsToDict, url
 from management.models import (GhMarketPlan, Invitation, Management,
                                ReportCategory)
-from moderation.models import Moderation, ReportedModeration
-from projects.models import (BaseProject, CoreProject, FreeProject, Project,
-                             ReportedProject, ReportedSnapshot, Snapshot)
 
 from .apps import APPNAME
 
 
 def isPictureDeletable(picture: str) -> bool:
     """
-    Checks whether the given profile picture is stored in web server storage separately, and therefore can be deleted or not.
+    Checks whether the given profile picture is a third-party picture, and therefore can be deleted or not.
     """
     return picture != defaultImagePath() and not (str(picture).startswith('http') and str(picture).startswith(settings.SITE))
 
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, email, first_name, last_name=None, password=None):
+    def create_user(self, email, first_name, last_name=None, password=None) -> "User":
         if not email:
             raise ValueError('Users must have an email address')
         user = self.model(
@@ -51,7 +50,7 @@ class UserAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, first_name, password, last_name=None):
+    def create_superuser(self, email, first_name, password, last_name=None) -> "User":
         user = self.create_user(
             email=self.normalize_email(email),
             password=password,
@@ -71,28 +70,32 @@ class User(AbstractBaseUser, PermissionsMixin):
     models which depend on presence of user proile. Profile model should be the primary choice for user relations.
     """
     USERNAME_FIELD = 'email'
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    email = models.EmailField(verbose_name="email", max_length=60, unique=True)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    email: str = models.EmailField(
+        verbose_name="email", max_length=60, unique=True)
     username = None
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100, null=True, blank=True)
+    first_name: str = models.CharField(max_length=100)
+    last_name: str = models.CharField(max_length=100, null=True, blank=True)
 
-    date_joined = models.DateTimeField(
+    date_joined: datetime = models.DateTimeField(
         verbose_name='date joined', default=timezone.now)
-    last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
-    is_admin = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    last_login: datetime = models.DateTimeField(
+        verbose_name='last login', auto_now=True)
+    is_admin: bool = models.BooleanField(default=False)
+    is_active: bool = models.BooleanField(default=True)
+    is_staff: bool = models.BooleanField(default=False)
 
-    REQUIRED_FIELDS = ['first_name']
+    REQUIRED_FIELDS: list = ['first_name']
 
-    objects = UserAccountManager()
+    objects: UserAccountManager = UserAccountManager()
 
     def __str__(self) -> str:
         return self.email
 
     @property
     def get_id(self) -> str:
+        """Returns the user's ID hex. The is the only ID to be used while referencing the user."""
         return self.id.hex
 
     def getID(self) -> str:
@@ -217,13 +220,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Topic(models.Model):
     """The Topic model."""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=100)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    name: str = models.CharField(max_length=100)
     """name (CharField): The name of the topic."""
-    creator = models.ForeignKey("Profile", on_delete=models.SET_NULL,
-                                related_name='topic_creator', null=True, blank=True)
+    creator: "Profile" = models.ForeignKey("Profile", on_delete=models.SET_NULL,
+                                           related_name='topic_creator', null=True, blank=True)
     """creator (ForeignKey): The profile that created the topic."""
-    createdOn = models.DateTimeField(
+    createdOn: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now, null=True, blank=True)
     """createdOn (DateTimeField): The date and time the topic was created."""
     tags = models.ManyToManyField(
@@ -266,13 +270,13 @@ class Topic(models.Model):
             cache.set(cacheKey, topicprofiles, settings.CACHE_SHORT)
         return topicprofiles
 
-    def totalProfiles(self):
+    def totalProfiles(self) -> int:
         return self.getProfiles().count()
 
-    def getProfilesLimited(self, limit=50):
+    def getProfilesLimited(self, limit=50) -> models.QuerySet:
         return self.getProfiles()[:limit]
 
-    def getTags(self):
+    def getTags(self) -> models.QuerySet:
         cacheKey = f"topic_tags_{self.id}"
         topictags = cache.get(cacheKey, None)
         if topictags is None:
@@ -280,7 +284,7 @@ class Topic(models.Model):
             cache.set(cacheKey, topictags, settings.CACHE_SHORT)
         return topictags
 
-    def totalTags(self):
+    def totalTags(self) -> int:
         cacheKey = f"topic_tagscount_{self.id}"
         topictagscount = cache.get(cacheKey, None)
         if topictagscount is None:
@@ -345,8 +349,9 @@ class TopicTag(models.Model):
     class Meta:
         unique_together = ('topic', 'tag')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    topic: Topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     tag = models.ForeignKey(f'{PROJECTS}.Tag', on_delete=models.CASCADE)
 
 
@@ -365,47 +370,49 @@ class Profile(models.Model):
     NOTE: This model doesn't get deleted when account gets deleted, to maintain relations the many models that depend on user.
     But the user details are replaced by dummy details. (Zombie)
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    user = models.OneToOneField(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    user: User = models.OneToOneField(
         User, null=True, on_delete=models.SET_NULL, related_name='profile', blank=True)
     """user (OneToOneField<User>): The user that is associated with the profile."""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The date and time the profile was created."""
-    picture = models.ImageField(
+    picture: File = models.ImageField(
         upload_to=profileImagePath, default=defaultImagePath, null=True, blank=True)
     """picture (ImageField): The profile picture."""
-    githubID = models.CharField(
+    githubID: str = models.CharField(
         max_length=40, null=True, default=None, blank=True)
     """githubID (CharField): The GitHub ID of the user."""
-    bio = models.CharField(max_length=350, blank=True, null=True)
+    bio: str = models.CharField(max_length=350, blank=True, null=True)
     """bio (CharField): The bio of the user."""
-    successor = models.ForeignKey('User', null=True, blank=True, related_name='successor_profile',
-                                  on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
+    successor: User = models.ForeignKey(User, null=True, blank=True, related_name='successor_profile',
+                                        on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     """successor (ForeignKey<User>): The successor of the user."""
-    successor_confirmed = models.BooleanField(
+    successor_confirmed: bool = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
     """successor_confirmed (BooleanField): Whether the successor is confirmed."""
 
-    is_moderator = models.BooleanField(default=False)
+    is_moderator: bool = models.BooleanField(default=False)
     """is_moderator (BooleanField): Whether the user is a moderator."""
-    is_mentor = models.BooleanField(default=False)
+    is_mentor: bool = models.BooleanField(default=False)
     """is_mentor (BooleanField): Whether the user is a mentor."""
 
-    is_active = models.BooleanField(
+    is_active: bool = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     """is_active (BooleanField): Whether the account is active. This is different from the user's is_active field."""
-    is_verified = models.BooleanField(
+    is_verified: bool = models.BooleanField(
         default=False, help_text='The blue tick.')
     """is_verified (BooleanField): Whether the user is verified."""
-    to_be_zombie = models.BooleanField(
+    to_be_zombie: bool = models.BooleanField(
         default=False, help_text='True if user scheduled for deletion. is_active should be false')
     """to_be_zombie (BooleanField): Whether the user is scheduled for deletion."""
-    is_zombie = models.BooleanField(
+    is_zombie: bool = models.BooleanField(
         default=False, help_text='If user account deleted, this becomes true')
     """is_zombie (BooleanField): Whether the user is deleted. (Profile instance remains)"""
-    zombied_on = models.DateTimeField(blank=True, null=True)
+    zombied_on: datetime = models.DateTimeField(blank=True, null=True)
     """zombied_on (DateTimeField): The date and time the user was deleted."""
-    suspended = models.BooleanField(
+    suspended: bool = models.BooleanField(
         default=False, help_text='Illegal activities make this true.')
     """suspended (BooleanField): Whether the user is suspended."""
 
@@ -415,7 +422,7 @@ class Profile(models.Model):
         f'{PROJECTS}.Tag', through='ProfileTag', default=[])
     """tags (ManyToManyField<Tag>): The tags the user is interested in."""
 
-    xp = models.IntegerField(default=1, help_text='Experience count')
+    xp: int = models.IntegerField(default=1, help_text='Experience count')
     """xp (IntegerField): The profile experience count."""
 
     blocklist = models.ManyToManyField(
@@ -425,16 +432,16 @@ class Profile(models.Model):
         'User', through='ReportedUser', default=[], related_name='reported_users')
     """reportlist (ManyToManyField<User>): The users that the user has reported."""
 
-    on_boarded = models.BooleanField(default=False)
+    on_boarded: bool = models.BooleanField(default=False)
     """on_boarded (BooleanField): Whether the user has completed the onboarding."""
 
     admirers = models.ManyToManyField('Profile', through="ProfileAdmirer", default=[
     ], related_name='admirer_profiles')
     """admirers (ManyToManyField<Profile>): The users that have admired this user."""
-    emoticon = models.CharField(
+    emoticon: str = models.CharField(
         max_length=30, null=True, default=None, blank=True)
     """emoticon (CharField): The emoticon of the user. (unique)"""
-    nickname = models.CharField(
+    nickname: str = models.CharField(
         max_length=30, null=True, default=None, blank=True)
     """nickname (CharField): The nickname of the user.(unique)"""
 
@@ -444,8 +451,8 @@ class Profile(models.Model):
     def getID(self) -> str:
         """Returns Profile model ID in hex form.
         NOTE: DO NOT use this ID or the profile model ID itself to reference the User.
-        To avoid user ID confusion, this profile model has get_userid method for the actual and
-        only user ID to reference a profile or user model of a person.
+        To avoid user ID confusion, this profile model has `get_userid` method for the actual and
+        the only user ID to reference a profile or user model of a person.
 
         Returns:
             str: The profile model ID in hex form.
@@ -469,21 +476,16 @@ class Profile(models.Model):
         """Returns the profile of the knottersbot. 
         This is not specific to a user, but is a global profile.
         """
-        try:
-            cacheKey = 'profile_knottersbot'
-            knotbot = cache.get(cacheKey)
-            if not knotbot:
-                knotbot = Profile.objects.get(user__email=BOTMAIL)
-                print(knotbot)
-                cache.set(cacheKey, knotbot, settings.CACHE_MAX)
-            return knotbot
-        except ObjectDoesNotExist as e:
-            user = User.objects.create_user(email=BOTMAIL, password=BOTMAIL, first_name=BOTMAIL)
-            prof, _ = Profile.objects.get_or_create(user=user)
-            return prof
+        cacheKey = 'profile_knottersbot'
+        knotbot = cache.get(cacheKey)
+        if not knotbot:
+            knotbot = Profile.objects.get(user__email=BOTMAIL)
+            cache.set(cacheKey, knotbot, settings.CACHE_MAX)
+        return knotbot
 
     @property
     def CACHE_KEYS(self):
+        """Returns the cache keys for the profile instance."""
         class CKEYS():
             has_ghID = f"profile_hasghID_{self.id}"
             is_manager = f"profile_ismanager_{self.id}"
@@ -508,7 +510,7 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         try:
-            previous = Profile.objects.get(id=self.id)
+            previous: Profile = Profile.objects.get(id=self.id)
             if previous.picture != self.picture:
                 if isPictureDeletable(previous.picture):
                     previous.picture.delete(False)
@@ -516,16 +518,17 @@ class Profile(models.Model):
             pass
         super(Profile, self).save(*args, **kwargs)
 
-    def is_manager(self):
+    def is_manager(self) -> bool:
         """Returns True if the profile a management profile.
         This will imply that the profile represents an organization.
         """
         cacheKey = self.CACHE_KEYS.is_manager
-        data = cache.get(cacheKey, None)
-        if not data:
-            data = Management.objects.filter(profile=self).exists()
-            cache.set(cacheKey, data, settings.CACHE_SHORT)
-        return data
+        exists = cache.get(cacheKey, None)
+        if not exists:
+            exists = Management.objects.filter(profile=self).exists()
+            cache.set(cacheKey, exists,
+                      settings.CACHE_MAX if exists else settings.CACHE_SHORT)
+        return exists
 
     def phone_number(self) -> "PhoneNumber":
         """Returns the primary & verified phone number instance of the user.
@@ -659,7 +662,7 @@ class Profile(models.Model):
             pass
         return False
 
-    def removeFromManagement(self, mgmID) -> bool:
+    def removeFromManagement(self, mgmID: UUID) -> bool:
         """Removes the user from the management instance with the given ID.
 
         Args:
@@ -679,7 +682,7 @@ class Profile(models.Model):
             pass
         return False
 
-    def convertToManagement(self, force=False) -> bool:
+    def convertToManagement(self, force: bool = False) -> bool:
         """Converts the user to a management account by creating a management instance for it, if possible.
 
         Args:
@@ -691,7 +694,7 @@ class Profile(models.Model):
             bool: True if the user was converted to a management account, False otherwise.
         """
         try:
-            if not self.is_normal or self.is_manager():
+            if (not self.is_normal) or self.is_manager():
                 raise Exception()
             if force:
                 if self.is_moderator:
@@ -730,6 +733,7 @@ class Profile(models.Model):
         Returns:
             bool: True if the moderator status was revoked, False otherwise.
         """
+        from moderation.models import Moderation
         if Moderation.objects.filter(moderator=self, resolved=False).exists():
             if altmoderator and altmoderator.is_moderator:
                 for modn in Moderation.objects.filter(moderator=self, resolved=False):
@@ -764,6 +768,7 @@ class Profile(models.Model):
         Returns:
             bool: True if the moderator status was revoked, False otherwise.
         """
+        from projects.models import CoreProject, Project
         if Project.objects.filter(mentor=self, trashed=False).exists() or CoreProject.objects.filter(mentor=self, trashed=False).exists():
             if altmentor and altmentor.is_mentor:
                 Project.objects.filter(
@@ -1166,7 +1171,7 @@ class Profile(models.Model):
     def getXP(self) -> str:
         return self.get_xp
 
-    def increaseXP(self, by: int = 0, notify=True, reason='') -> int:
+    def increaseXP(self, by: int = 0, notify: bool = True, reason: str = '') -> int:
         """Increases the user's XP by the given amount.
 
         Args:
@@ -1189,7 +1194,7 @@ class Profile(models.Model):
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
-    def decreaseXP(self, by: int = 0, notify=True, reason='') -> int:
+    def decreaseXP(self, by: int = 0, notify: bool = True, reason: str = '') -> int:
         """Decreases the user's XP by the given amount.
 
         Args:
@@ -1219,7 +1224,7 @@ class Profile(models.Model):
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
-    def increaseTopicPoints(self, topic, by: int = 0, notify=True, reason='') -> int:
+    def increaseTopicPoints(self, topic, by: int = 0, notify: bool = True, reason: str = '') -> int:
         """Increases the user's XP in given topic by the given amount.
 
         Args:
@@ -1241,7 +1246,7 @@ class Profile(models.Model):
         )
         return proftop.increasePoints(by, notify, reason)
 
-    def increaseBulkTopicPoints(self, topics, by: int = 0, notify=True, reason='') -> "ProfileBulkTopicXPRecord":
+    def increaseBulkTopicPoints(self, topics, by: int = 0, notify: bool = True, reason: str = '') -> "ProfileBulkTopicXPRecord":
         """Increases the user's XP in given topics by the given amount.
 
         Args:
@@ -1424,7 +1429,7 @@ class Profile(models.Model):
         """Returns whether the user is blocked by the given user, or viceversa"""
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=user) | Q(blockeduser=self.user, profile=user.profile)).exists()
 
-    def isBlockedProfile(self, profile) -> bool:
+    def isBlockedProfile(self, profile:"Profile") -> bool:
         """Returns whether the user is blocked by the given profile, or viceversa (same as isBlocked method)"""
         return BlockedUser.objects.filter(Q(profile=self, blockeduser=profile.user) | Q(blockeduser=self.user, profile=profile)).exists()
 
@@ -1432,11 +1437,11 @@ class Profile(models.Model):
         """Returns whether the user is blocked by the given user, or viceversa"""
         return self.isBlocked(user)
 
-    def is_blocked_profile(self, profile) -> bool:
+    def is_blocked_profile(self, profile:"Profile") -> bool:
         """Returns whether the user is blocked by the given profile, or viceversa (same as is_blocked method)"""
         return self.isBlockedProfile(profile)
 
-    def reportUser(self, user: User, category) -> "ReportedUser":
+    def reportUser(self, user: User, category:ReportCategory) -> "ReportedUser":
         """Reports the given user in given category
 
         NOTE: Because the reporting is initial liability of the reporter, that's why this and other report methods reside in Profile class.
@@ -1446,22 +1451,25 @@ class Profile(models.Model):
         ))
         return report
 
-    def reportProject(self, baseproject, category) -> ReportedProject:
+    def reportProject(self, baseproject, category:ReportCategory):
         """Reports the given project in given category"""
+        from projects.models import ReportedProject
         report, _ = ReportedProject.objects.get_or_create(baseproject=baseproject, profile=self, category=category, defaults=dict(
             baseproject=baseproject, profile=self, category=category
         ))
         return report
 
-    def reportModeration(self, moderation, category) -> ReportedModeration:
+    def reportModeration(self, moderation, category:ReportCategory):
         """Reports the given moderation in given category"""
+        from moderation.models import ReportedModeration
         report, _ = ReportedModeration.objects.get_or_create(moderation=moderation, profile=self, category=category, defaults=dict(
             moderation=moderation, profile=self, category=category
         ))
         return report
 
-    def reportSnapshot(self, snapshot, category) -> ReportedSnapshot:
+    def reportSnapshot(self, snapshot, category:ReportCategory):
         """Reports the given snapshot in given category"""
+        from projects.models import ReportedSnapshot
         report, _ = ReportedSnapshot.objects.get_or_create(snapshot=snapshot, profile=self, category=category, defaults=dict(
             snapshot=snapshot, profile=self, category=category
         ))
@@ -1517,7 +1525,7 @@ class Profile(models.Model):
             list<Profile>: The filtered profiles list
         """
         return list(filter(lambda p: not self.isBlockedProfile(p), profiles))
-        
+
     def all_tags(self) -> list:
         """Returns the user's tags instances (linked or unlinked)"""
         cacheKey = self.CACHE_KEYS.tags
@@ -1539,22 +1547,17 @@ class Profile(models.Model):
             list<BaseProject>: The recommended projects instances list
         """
         try:
-            def approved_only(project):
-                return project.is_approved
             cacheKey = self.CACHE_KEYS.recommended_projects
-            projects = cache.get(cacheKey, None)
-            if projects is None:
-                constquery = ~Q(admirers=self, suspended=True, is_archived=True,
-                                trashed=True, creator__in=self.blockedProfiles())
+            rec_projects = cache.get(cacheKey, [])
+            if not len(rec_projects):
+                from projects.models import BaseProject
+                constquery = ~Q(admirers=self, creator__in=self.blockedProfiles())
                 query = Q(topics__in=self.topics.all())
-                projects = list(set(list(filter(approved_only, BaseProject.objects.filter(
-                    Q(constquery, query)).distinct()[:atmost]))))
-                if len(projects) < atleast:
-                    projects = list(set(list(filter(
-                        approved_only, BaseProject.objects.filter(constquery).distinct()[:atmost]))))
-                if len(projects):
-                    cache.set(cacheKey, projects, settings.CACHE_SHORT)
-            return projects[:atmost]
+                rec_projects = BaseProject.get_approved_projects(Q(query, constquery), atmost)
+                if len(rec_projects) < atleast:
+                    rec_projects = BaseProject.get_approved_projects(constquery, atmost)
+                cache.set(cacheKey, rec_projects, settings.CACHE_SHORT)
+            return rec_projects[:atmost]
         except Exception as e:
             errorLog(e)
             return []
@@ -1566,12 +1569,13 @@ class Profile(models.Model):
             models.QuerySet: The free projects instances list
         """
         try:
+            from projects.models import FreeProject
             return FreeProject.objects.filter(creator=self, trashed=False, suspended=False, is_archived=False)
         except Exception as e:
             errorLog(e)
             return []
 
-    def recommended_topics(self, atleast=1, atmost=5) -> models.QuerySet:
+    def recommended_topics(self, atleast: int = 1, atmost: int = 5) -> models.QuerySet:
         """Returns the user's recommended topics instances
 
         Args:
@@ -1585,7 +1589,8 @@ class Profile(models.Model):
             cacheKey = self.CACHE_KEYS.recommended_topics
             data = cache.get(cacheKey, None)
             if data is None:
-                data = Topic.objects.exclude(id__in=self.getAllTopicIds())
+                data = Topic.objects.exclude(
+                    id__in=self.getAllTopicIds())[:atmost]
                 if len(data):
                     cache.set(cacheKey, data, settings.CACHE_MINI)
             return data[:atmost]
@@ -1625,13 +1630,14 @@ class ProfileSetting(models.Model):
     """Profile settings model
     TODO
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.OneToOneField(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.OneToOneField(
         Profile, on_delete=models.CASCADE, related_name='settings_profile', null=False, blank=False)
     # newsletter = models.BooleanField(default=True)
     # recommendations = models.BooleanField(default=True)
     # competitions = models.BooleanField(default=True)
-    privatemail = models.BooleanField(default=True)
+    privatemail: bool = models.BooleanField(default=True)
 
     def __str__(self) -> str:
         return self.profile.getID()
@@ -1642,8 +1648,9 @@ class ProfileSetting(models.Model):
 
 class ProfileTag(models.Model):
     """The model for relationship between a profile and a tag"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='tag_profile')
     """profile (ForeignKey<Profile>): The profile in relation"""
     tag = models.ForeignKey(
@@ -1656,16 +1663,17 @@ class ProfileTag(models.Model):
 
 class ProfileTopic(models.Model):
     """The model for relationship between a profile and a topic"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='topic_profile')
     """profile (ForeignKey<Profile>): The profile in relation"""
-    topic = models.ForeignKey(
+    topic: Topic = models.ForeignKey(
         Topic, on_delete=models.CASCADE, related_name='profile_topic')
     """topic (ForeignKey<Topic>): The topic in relation"""
-    trashed = models.BooleanField(default=False)
+    trashed: int = models.BooleanField(default=False)
     """trashed (BooleanField): Whether the topic is trashed/invisible or not"""
-    points = models.IntegerField(default=0)
+    points: int = models.IntegerField(default=0)
     """points (IntegerField): The XP of profile in the topic"""
 
     class Meta:
@@ -1675,7 +1683,7 @@ class ProfileTopic(models.Model):
     def hidden(self) -> bool:
         return self.trashed
 
-    def increasePoints(self, by: int = 0, notify=True, reason='', record=True) -> int:
+    def increasePoints(self, by: int = 0, notify: bool = True, reason: str = '', record: bool = True) -> int:
         """Increases the points/XP of the profile in the topic
 
         Args:
@@ -1702,7 +1710,7 @@ class ProfileTopic(models.Model):
                 profile_topic=self, xp=by, reason=reason)
         return self.points
 
-    def decreasePoints(self, by: int = 0, notify=True, reason='') -> int:
+    def decreasePoints(self, by: int = 0, notify: bool = True, reason: str = '') -> int:
         """Decreases the points/XP of the profile in the topic
 
         Args:
@@ -1728,7 +1736,7 @@ class ProfileTopic(models.Model):
             profile_topic=self, xp=by, reason=reason)
         return self.points
 
-    def get_points(self, raw=False):
+    def get_points(self, raw=False) -> str:
         """Returns the human readable points/XP of the profile in the topic
 
         Args:
@@ -1749,11 +1757,12 @@ class ProfileTopic(models.Model):
 
 class BlockedUser(models.Model):
     """The model for relationship between a profile and a blocked user"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='blocker_profile')
     """profile (ForeignKey<Profile>): The profile in relation"""
-    blockeduser = models.ForeignKey(
+    blockeduser: User = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='blocked_user')
     """blockeduser (ForeignKey<User>): The blocked user in relation"""
 
@@ -1766,41 +1775,44 @@ class ReportedUser(models.Model):
     class Meta:
         unique_together = ('profile', 'user', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='user_reporter_profile')
     """profile (ForeignKey<Profile>): The profile in relation"""
-    user = models.ForeignKey(
+    user: User = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reported_user')
     """user (ForeignKey<User>): The reported user in relation"""
-    category = models.ForeignKey(
+    category: ReportCategory = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_user_category')
     """category (ForeignKey<ReportCategory>): The category of the report"""
 
 
-def displayMentorImagePath(instance, filename) -> str:
+def displayMentorImagePath(instance: "DisplayMentor", filename: str) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/displaymentors/{str(instance.get_id)}.{fileparts[-1]}"
 
 
 class DisplayMentor(models.Model):
     """The model for a display mentor (marketing thing)"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='display_mentor_profile', null=True, blank=True)
     """profile (ForeignKey<Profile>): The profile of display mentor, if present."""
-    name = models.CharField(max_length=100, null=True, blank=True)
+    name: datetime = models.CharField(max_length=100, null=True, blank=True)
     """name (CharField): The name of the display mentor"""
-    about = models.CharField(max_length=500, null=True, blank=True)
+    about: str = models.CharField(max_length=500, null=True, blank=True)
     """about (CharField): The about of the display mentor"""
-    picture = models.ImageField(
+    picture: str = models.ImageField(
         upload_to=displayMentorImagePath, default=defaultImagePath, null=True, blank=True)
     """picture (ImageField): The picture of the display mentor"""
-    website = models.URLField(max_length=500, null=True, blank=True)
+    website: datetime = models.URLField(max_length=500, null=True, blank=True)
     """website (URLField): The website of the display mentor"""
-    hidden = models.BooleanField(default=False)
+    hidden: datetime = models.BooleanField(default=False)
     """hidden (BooleanField): Whether the display mentor is hidden"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The time the display mentor was created"""
 
     def __str__(self):
@@ -1818,19 +1830,19 @@ class DisplayMentor(models.Model):
         return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
 
     @property
-    def get_name(self):
+    def get_name(self) -> str:
         if self.profile:
             return self.profile.getName()
         return self.name
 
     @property
-    def get_about(self):
+    def get_about(self) -> str:
         if self.profile:
             return self.profile.getBio()
         return self.about
 
     @property
-    def get_link(self):
+    def get_link(self) -> str:
         if self.profile:
             return self.profile.getLink()
         return self.website
@@ -1838,9 +1850,9 @@ class DisplayMentor(models.Model):
 
 class ProfileSuccessorInvitation(Invitation):
     """The model for a profile successor invitation"""
-    sender = models.ForeignKey(
+    sender: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='successor_invitation_sender')
-    receiver = models.ForeignKey(
+    receiver: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='successor_invitation_receiver')
 
     class Meta:
@@ -1853,35 +1865,37 @@ class GHMarketPurchase(models.Model):
 
     Reference: https://docs.github.com/en/rest/reference/apps#marketplace
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.PROTECT,
-                                related_name='purchaser_profile', null=True, blank=True)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(Profile, on_delete=models.PROTECT,
+                                         related_name='purchaser_profile', null=True, blank=True)
     """profile (ForeignKey<Profile>): The profile of the purchaser"""
-    email = models.EmailField(null=True, blank=True)
+    email: str = models.EmailField(null=True, blank=True)
     """email (EmailField): The email of the purchaser"""
-    gh_app_plan = models.ForeignKey(
+    gh_app_plan: GhMarketPlan = models.ForeignKey(
         GhMarketPlan, on_delete=models.SET_NULL, null=True, blank=True)
     """gh_app_plan (ForeignKey<GhMarketPlan>): The GitHub Marketplace plan of the purchaser"""
-    effective_date = models.DateTimeField(auto_now=False, default=timezone.now)
+    effective_date: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """effective_date (DateTimeField): The time the purchase was effective"""
-    next_billing_date = models.DateTimeField(
+    next_billing_date: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now)
     """next_billing_date (DateTimeField): The time the purchase will be billed"""
-    units_purchased = models.IntegerField(default=1)
+    units_purchased: int = models.IntegerField(default=1)
     """units_purchased (IntegerField): The number of units purchased"""
 
     @property
-    def purchase_by(self):
+    def purchase_by(self) -> "Profile|str":
         return self.profile or self.email
 
     @property
-    def is_active(self):
+    def is_active(self) -> bool:
         if self.effective_date <= timezone.now() and self.next_billing_date > timezone.now():
             return True
         return False
 
 
-def frameworkImagePath(instance, filename) -> str:
+def frameworkImagePath(instance: "Framework", filename: str) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/frameworks/{str(instance.id)}_{str(uuid4().hex)}.{fileparts[len(fileparts)-1]}"
 
@@ -1890,28 +1904,31 @@ class Framework(models.Model):
     """The model for a framework (Frameshot)
     TODO
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    title = models.CharField(max_length=100)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    title: str = models.CharField(max_length=100)
     """title (CharField): The title of the framework"""
-    description = models.CharField(max_length=500)
+    description: str = models.CharField(max_length=500)
     """description (CharField): The description of the framework"""
-    banner = models.ImageField(
+    banner: File = models.ImageField(
         upload_to=frameworkImagePath, default=None, null=True, blank=True)
     """banner (ImageField): The banner of the framework"""
-    primary_color = models.CharField(max_length=10, null=True, blank=True)
+    primary_color: str = models.CharField(max_length=10, null=True, blank=True)
     """primary_color (CharField): The primary color of the framework"""
-    secondary_color = models.CharField(max_length=10, null=True, blank=True)
+    secondary_color: str = models.CharField(
+        max_length=10, null=True, blank=True)
     """secondary_color (CharField): The secondary color of the framework"""
-    is_draft = models.BooleanField(default=True)
+    is_draft: bool = models.BooleanField(default=True)
     """is_draft (BooleanField): Whether the framework is a draft"""
-    creator = models.ForeignKey(
+    creator: Profile = models.ForeignKey(
         Profile, on_delete=models.PROTECT, related_name='framework_creator')
     """creator (ForeignKey<Profile>): The profile of the creator"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The time the framework was created"""
-    trashed = models.BooleanField(default=False)
+    trashed: bool = models.BooleanField(default=False)
     """trashed (BooleanField): Whether the framework is trashed"""
-    suspended = models.BooleanField(default=False)
+    suspended: bool = models.BooleanField(default=False)
     """suspended (BooleanField): Whether the framework is suspended"""
     admirers = models.ManyToManyField(
         Profile, through="FrameworkAdmirer", related_name='framework_admirers', default=[])
@@ -1940,22 +1957,23 @@ class Frame(models.Model):
     """The model for a frame in a framework (Frameshot)
     TODO
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    framework = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    framework: Framework = models.ForeignKey(
         Framework, on_delete=models.CASCADE, related_name='frame_framework')
     """framework (ForeignKey<Framework>): The framework of the frame"""
-    title = models.CharField(max_length=100)
+    title: str = models.CharField(max_length=100)
     """title (CharField): The title of the frame"""
-    image = models.ImageField(
+    image: File = models.ImageField(
         upload_to=frameworkImagePath, default=None, null=True, blank=True)
     """image (ImageField): The image of the frame"""
-    video = models.FileField(upload_to=frameworkImagePath,
-                             default=None, null=True, blank=True)
-    attachment = models.FileField(
+    video: File = models.FileField(upload_to=frameworkImagePath,
+                                   default=None, null=True, blank=True)
+    attachment: File = models.FileField(
         upload_to=frameworkImagePath, default=None, null=True, blank=True)
-    text = models.CharField(max_length=500)
+    text: str = models.CharField(max_length=500)
     snapshot = models.ForeignKey(
-        Snapshot, related_name='frame_snapshot', on_delete=models.SET_NULL, null=True, blank=True)
+        "projects.Snapshot", related_name='frame_snapshot', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -1969,12 +1987,14 @@ class Frame(models.Model):
 
 class FrameworkAdmirer(models.Model):
     """The model relation between a framework and an admirer"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    framework = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    framework: Framework = models.ForeignKey(
         Framework, on_delete=models.CASCADE, related_name='admirer_framework')
-    admirer = models.ForeignKey(
+    admirer: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='admirer_profile')
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
 
 
 class FrameworkReport(models.Model):
@@ -1982,12 +2002,13 @@ class FrameworkReport(models.Model):
     class Meta:
         unique_together = ('profile', 'framework', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='framework_reporter_profile')
-    framework = models.ForeignKey(
+    framework: Framework = models.ForeignKey(
         Framework, on_delete=models.CASCADE, related_name='reported_framework')
-    category = models.ForeignKey(
+    category: ReportCategory = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_framework_category')
 
 
@@ -1996,33 +2017,36 @@ class ProfileAdmirer(models.Model):
     class Meta:
         unique_together = ('profile', 'admirer')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    admirer = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    admirer: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='profile_admirer_profile')
     """admirer (ForeignKey<Profile>): The admirer Profile"""
-    profile = models.ForeignKey(
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='admired_profile')
     """profile (ForeignKey<Profile>): The profile who is admired"""
 
 
 class ProfileSocial(models.Model):
     """The model for a profile social links"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     """profile (ForeignKey<Profile>): The profile of which the link is for"""
-    site = models.URLField(max_length=800)
+    site: str = models.URLField(max_length=800)
     """site (URLField): The url of the social link"""
 
 
 class CoreMember(models.Model):
     """The model for a core member (marketing thing)"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='core_member_profile')
     """profile (ForeignKey<Profile>): The profile linked to core memeber."""
-    hidden = models.BooleanField(default=False)
+    hidden: bool = models.BooleanField(default=False)
     """hidden (BooleanField): Whether the core member is hidden"""
-    about = models.CharField(max_length=500, null=True, blank=True)
+    about: str = models.CharField(max_length=500, null=True, blank=True)
     """about (CharField): The about text of the core member"""
 
     def __str__(self) -> str:
@@ -2034,52 +2058,59 @@ class CoreMember(models.Model):
 
 class ProfileXPRecord(models.Model):
     """The model for a profile xp changes record"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='profile_xp_record_profile')
     """profile (ForeignKey<Profile>): The profile of which the xp changes record is for"""
-    xp = models.IntegerField(default=0, editable=False)
+    xp: int = models.IntegerField(default=0, editable=False)
     """xp (IntegerField): The xp changes"""
-    reason = models.TextField(max_length=500, null=True, blank=True)
+    reason: str = models.TextField(max_length=500, null=True, blank=True)
     """reason (TextField): The reason for the xp changes"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The date and time of the xp changes"""
 
 
 class ProfileTopicXPRecord(models.Model):
     """The model for a profile topic xp changes record"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile_topic = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile_topic: ProfileTopic = models.ForeignKey(
         ProfileTopic, on_delete=models.CASCADE, related_name='profilet_xp_record_profilet')
     """profile_topic (ForeignKey<ProfileTopic>): The profile topic relation instance of which the xp changes record is for"""
-    xp = models.IntegerField(default=0, editable=False)
+    xp: int = models.IntegerField(default=0, editable=False)
     """xp (IntegerField): The xp changes"""
-    reason = models.TextField(max_length=500, null=True, blank=True)
+    reason: str = models.TextField(max_length=500, null=True, blank=True)
     """reason (TextField): The reason for the xp changes"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The date and time of the xp changes"""
 
 
 class ProfileBulkTopicXPRecord(models.Model):
     """The model for a profile bulk topics xp changes record"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
     profile_topics = models.ManyToManyField(
         ProfileTopic, related_name='profilets_xp_record_profilets', through='ProfileBulkTopicXPRecordTopic', default=[])
     """profile_topics (ManyToManyField<ProfileTopic>): The profile topics relation instances of which the xp changes record is for"""
-    xp = models.IntegerField(default=0, editable=False)
+    xp: int = models.IntegerField(default=0, editable=False)
     """xp (IntegerField): The xp changes"""
-    reason = models.TextField(max_length=500, null=True, blank=True)
+    reason: str = models.TextField(max_length=500, null=True, blank=True)
     """reason (TextField): The reason for the xp changes"""
-    createdOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): The date and time of the xp changes"""
 
 
 class ProfileBulkTopicXPRecordTopic(models.Model):
     """The model for relation between a profile topic relation and thier bulk xp changes record"""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile_topic = models.ForeignKey(
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile_topic: ProfileTopic = models.ForeignKey(
         ProfileTopic, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets')
     """profile_topic (ForeignKey<ProfileTopic>): The profile topic relation instance"""
-    profile_bulk_topic_xp_record = models.ForeignKey(
+    profile_bulk_topic_xp_record: ProfileBulkTopicXPRecord = models.ForeignKey(
         ProfileBulkTopicXPRecord, on_delete=models.CASCADE, related_name='profilets_xp_record_topic_profilets_xp_record')
     """profile_bulk_topic_xp_record (ForeignKey<ProfileBulkTopicXPRecord>): The profile bulk topics xp changes record instance"""

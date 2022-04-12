@@ -63,7 +63,7 @@ def require_JSON(function: callable) -> callable:
         callable: The decorated function.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         try:
             loadedbody = json_loads(request.body.decode(Code.UTF_8))
             request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
@@ -92,11 +92,12 @@ def decode_JSON(function: callable) -> callable:
         callable: The decorated function.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         try:
             if request.method == Code.POST:
                 loadedbody = json_loads(request.body.decode(Code.UTF_8))
-                request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
+                request.POST = dict(
+                    **loadedbody, **request.POST, JSON_BODY=True)
             return function(request, *args, **kwargs)
         except JSONDecodeError:
             pass
@@ -117,7 +118,7 @@ def dev_only(function: callable) -> callable:
         callable: The decorated function.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         if settings.DEBUG:
             return function(request, *args, **kwargs)
         else:
@@ -173,7 +174,7 @@ def normal_profile_required(function: callable) -> callable:
         callable: The decorated function, if the requesting user has a normal profile.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         if request.user.profile.is_normal:
             return function(request, *args, **kwargs)
         else:
@@ -198,7 +199,7 @@ def moderator_only(function: callable) -> callable:
         callable: The decorated function, if the requesting user is a moderator.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         if request.user.profile.is_moderator:
             return function(request, *args, **kwargs)
         else:
@@ -223,7 +224,7 @@ def mentor_only(function: callable) -> callable:
         callable: The decorated function, if the requesting user is a mentor.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         if request.user.profile.is_mentor:
             return function(request, *args, **kwargs)
         else:
@@ -248,7 +249,7 @@ def manager_only(function: callable) -> callable:
         callable: The decorated function, if the requesting user is a manager.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         if request.user.profile.is_manager():
             return function(request, *args, **kwargs)
         else:
@@ -277,7 +278,7 @@ def github_only(function: callable) -> callable:
         callable: The decorated function, if the request is properly received from GitHub.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         if not settings.DEBUG:
             whitelist = getRequest(
                 f'{settings.GITHUB_API_URL}/meta').json()['hooks']
@@ -337,7 +338,7 @@ def github_bot_only(function: callable) -> callable:
         callable: The decorated function, if the request is properly received from a GitHub Bot.
     """
     @wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(request: WSGIRequest, *args, **kwargs):
         try:
             if request.headers['Authorization'] != settings.INTERNAL_SHARED_SECRET:
                 return HttpResponseForbidden('Permission denied 0')

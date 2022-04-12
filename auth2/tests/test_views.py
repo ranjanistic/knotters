@@ -369,15 +369,17 @@ class TestViewsAuth(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.signup)
         self.assertFalse(resp.context['user'].is_authenticated)
-
+        
+        client = Client()
         resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
             email=getTestEmail(),
             first_name=getTestName(),
             password1=getTestPassword()
         ))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTemplateUsed(resp, template.index)
         self.assertTrue(resp.context['user'].is_authenticated)
+        self.assertTemplateUsed(resp, template.index)
+        self.assertTemplateUsed(resp, template.on_boarding)
 
     def test_login_post(self):
         client = Client()

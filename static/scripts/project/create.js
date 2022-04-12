@@ -74,17 +74,17 @@ const nextPrev = async (n) => {
     if (n == 1 && !validateForm()) return false;
     if (!currentStep) {
         actionLoader();
-        const data = await postRequest(
-            setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"),
-            {
-                reponame:
-                    formValues[
-                        formValues.indexOf(
-                            formValues.find((input) => input.id === "reponame")
-                        )
-                    ].value,
-            }
-        );
+        let nickname = formValues[formValues.indexOf(formValues.find((input) => input.id === "reponame"))].value
+        nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+        if (!nickname) return;
+        formValues[formValues.indexOf(formValues.find((input) => input.id === "reponame"))].value = nickname;
+        const data = await postRequest2({
+            path: setUrlParams(URLS.CREATEVALIDATEFIELD, "reponame"),
+            data: {
+                reponame:nickname
+            },
+            retainCache: true
+        });
         actionLoader(false);
         if (!data) return;
         if (data.code === code.OK) {
@@ -136,7 +136,7 @@ const nextPrev = async (n) => {
 const __validator_str_regex = {
     reg: {
         projectname: /^[a-zA-Z0-9 ]{1,40}$/,
-        reponame: /^[a-z\-]{2,15}$/,
+        reponame: /^[a-z\-]{2,20}$/,
         projectabout: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{1,200}$/,
         projectcategory: /^[a-zA-Z ]{3,}$/,
         description: /^[a-zA-Z0-9-:,\;\"\&\(\)\!\+\=\]\[\'_.= \?\/\-]{5,5000}$/,
@@ -146,7 +146,7 @@ const __validator_str_regex = {
     err: {
         projectname: "Only alphabets & numbers allowed, max 40.",
         reponame:
-            "Only lowercase alphabets & single hyphens in middle allowed with min 3 & max 15 characeters.",
+            "Only lowercase alphabets & single hyphens in middle allowed with min 3 & max 15 characters.",
         projectabout:
             "Only communicative language characters allowed, max 200.",
         projectcategory: "Please set an appropriate category for your project.",

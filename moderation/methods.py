@@ -456,7 +456,7 @@ def requestModerationForCoreProject(
         return False
 
 
-def assignModeratorToObject(type, object, moderator: Profile, requestData='', referURL='', stale_days=3, internal_mod=False):
+def assignModeratorToObject(type, object, moderator: Profile, requestData='', referURL='', stale_days=3, internal_mod=False) -> Moderation:
     """Assign a moderator to an object, by creating a new moderation instance.
 
     Args:
@@ -492,7 +492,7 @@ def assignModeratorToObject(type, object, moderator: Profile, requestData='', re
         return False
 
 
-def assignModeratorToCoreProject(coreproject: CoreProject, moderator: Profile, requestData='', referURL='', stale_days=3, internal_mod=False):
+def assignModeratorToCoreProject(coreproject: CoreProject, moderator: Profile, requestData='', referURL='', stale_days=3, internal_mod=False) -> Moderation:
     """Assign a moderator to a coreproject, by creating a new moderation instance.
 
     Args:

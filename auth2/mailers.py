@@ -1,5 +1,6 @@
 from allauth.account.models import EmailAddress
 from allauth.account.utils import send_email_confirmation
+from django.core.handlers.wsgi import WSGIRequest
 from main.env import PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail
 from people.models import Profile, User
@@ -96,6 +97,6 @@ def successorDeclined(successor: User, predecessor: User) -> bool:
                           )
 
 
-def send_account_verification_email(request):
+def send_account_verification_email(request: WSGIRequest):
     send_email_confirmation(request, request.user)
     return True

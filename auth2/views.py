@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from allauth.account.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
@@ -21,27 +21,60 @@ from .receivers import *
 
 
 @normal_profile_required
-def notification_enabled(request: WSGIRequest) -> HttpResponse:
+def notification_enabled(request: WSGIRequest) -> JsonResponse:
+    """To send a notification to the user that their notifications are is enabled.
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json reponse with main.strings.Code.OK or main.strings.Code.NO
+    """
     user_device_notify(
-        request.user, body='You have successfully enabled notifications.', title='Notifications Enabled')
+        request.user, body='You have successfully enabled notifications 😊', title='Notifications Enabled')
     return respondJson(Code.OK)
 
 
 @normal_profile_required
 @require_GET
-def auth_index(request: WSGIRequest):
+def auth_index(request: WSGIRequest) -> HttpResponse:
+    """The index page for account management
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The text/html view of the index page.
+    """
     return renderer(request, Template.Auth.INDEX)
 
 
 @normal_profile_required
 @require_GET
-def auth_index_tab(request: WSGIRequest, section: str):
+def auth_index_tab(request: WSGIRequest, section: str) -> HttpResponse:
+    """The index sections html for account management
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        section (str): The section to render.
+
+    Returns:
+        HttpResponse: The text/html string http response.
+    """
     try:
         data = get_auth_section_html(request, section)
         if data:
             return HttpResponse(data)
         else:
-            raise Exception('No section data')
+            raise ValidationError('No auth section data', request)
+    except ValidationError as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
@@ -49,7 +82,17 @@ def auth_index_tab(request: WSGIRequest, section: str):
 
 @normal_profile_required
 @require_JSON
-def verify_authorization_method(request: WSGIRequest):
+def verify_authorization_method(request: WSGIRequest) -> JsonResponse:
+    """To return available verification methods for the user.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK and verification methods, or main.strings.Code.NO
+    """
     try:
         methods = []
         if request.user.has_usable_password():
@@ -64,7 +107,17 @@ def verify_authorization_method(request: WSGIRequest):
 
 @normal_profile_required
 @require_JSON
-def verify_authorization(request: WSGIRequest):
+def verify_authorization(request: WSGIRequest) -> JsonResponse:
+    """To verify user's authorization key.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
+    """
     try:
         password = request.POST.get('password', None)
         totp = request.POST.get('totp', None)
@@ -86,7 +139,17 @@ def verify_authorization(request: WSGIRequest):
 
 @manager_only
 @require_JSON
-def change_ghorg(request: WSGIRequest):
+def change_ghorg(request: WSGIRequest) -> JsonResponse:
+    """To change the github organization for the organization account.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
+    """
     try:
         newghorgID = request.POST['newghorgID']
         if newghorgID == False:
@@ -109,23 +172,30 @@ def change_ghorg(request: WSGIRequest):
 @login_required
 @require_JSON
 def accountActivation(request: WSGIRequest) -> JsonResponse:
-    """
-    Activate or deactivate account.
+    """To Activate or deactivate account.
     Does not delete anything, just meant to hide profile from the world whenever the requesting user wants.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
     """
     activate = request.POST.get('activate', None)
     deactivate = request.POST.get('deactivate', None)
     try:
         if activate == deactivate:
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(activate, deactivate)
         if activate and not request.user.profile.is_active:
             is_active = True
         elif deactivate and request.user.profile.is_active:
             is_active = False
         else:
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(request.user)
         if is_active and request.user.profile.suspended:
-            raise ObjectDoesNotExist()
+            raise ObjectDoesNotExist(request.user)
 
         done = Profile.objects.filter(
             user=request.user).update(is_active=is_active)
@@ -145,11 +215,19 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
 
 @normal_profile_required
 @require_JSON
-def profileSuccessor(request: WSGIRequest):
+def profileSuccessor(request: WSGIRequest) -> JsonResponse:
     """
     To set/modify/unset profile successor. If default is chosen by the requestor, then sets the default successor and successor confirmed as true.
     Otherwise, updates successor and sends invitation email to successor if set, and sets successor confirmed as false,
     which will change only when the invited successor acts on invitation.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
     """
     set = request.POST.get('set', None)
     userID = request.POST.get('userID', None)
@@ -171,7 +249,7 @@ def profileSuccessor(request: WSGIRequest):
             elif userID and request.user.email != userID and not (userID in request.user.emails()):
                 try:
                     if request.user.profile.is_manager():
-                        smgm = Management.objects.get(
+                        smgm: Management = Management.objects.get(
                             profile__user__email=userID)
                         successor = smgm.profile.user
                     else:
@@ -211,6 +289,16 @@ def profileSuccessor(request: WSGIRequest):
 @normal_profile_required
 @require_JSON
 def getSuccessor(request: WSGIRequest) -> JsonResponse:
+    """To get the successor of the requesting user.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK and successor email ID or main.strings.Code.NO
+    """
     if request.user.profile.successor:
         return respondJson(Code.OK, dict(
             successorID=(
@@ -224,13 +312,26 @@ def getSuccessor(request: WSGIRequest) -> JsonResponse:
 def successorInvitation(request: WSGIRequest, predID: UUID) -> HttpResponse:
     """
     Render profile successor invitation view.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        predID (UUID): The predecessor's ID.
+
+    Raises:
+        Http404: If the request is invalid.
+
+    Returns:
+        HttpResponse: The response text/html invitation view.
     """
     try:
-        predecessor = User.objects.get(id=predID)
-        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
-            raise ObjectDoesNotExist(predecessor.profile.successor)
-        return renderer(request, Template.Auth.INVITATION, dict(predecessor=predecessor))
-    except ObjectDoesNotExist as e:
+        predecessor: Profile = Profile.objects.get(
+            user__id=predID, successor=request.user)
+        if predecessor.successor_confirmed:
+            raise ObjectDoesNotExist(predecessor.successor)
+        return renderer(request, Template.Auth.INVITATION, dict(predecessor=predecessor.user))
+    except (ObjectDoesNotExist, ValidationError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
@@ -243,35 +344,52 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
     """
     Sets the successor if accepted, or sets default successor.
     Also deletes the predecessor account and migrates assets, only if it was scheduled to be deleted.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        action (str): The action to be performed.
+
+    Raises:
+        Http404: If the request is invalid.
+
+    Returns:
+        HttpResponseRedirect: The redirect to profile page.
     """
-    predID = request.POST.get('predID', None)
-    accept = action == Action.ACCEPT
 
     try:
-        if (not accept and action != Action.DECLINE) or not predID or predID == request.user.getID():
+        if action not in [Action.ACCEPT, Action.DECLINE]:
+            raise ValidationError(action)
+
+        predID = UUID(request.POST['predID'][:50])
+        accept = action == Action.ACCEPT
+
+        if predID == request.user.getID():
             raise ObjectDoesNotExist(action, predID)
 
         predecessor = User.objects.get(id=predID)
+        predprofile: Profile = predecessor.profile
 
-        if predecessor.profile.successor != request.user or predecessor.profile.successor_confirmed:
+        if predprofile.successor != request.user or predprofile.successor_confirmed:
             raise ObjectDoesNotExist(
-                predecessor.profile, request.user, predecessor.profile.successor)
+                predprofile, request.user, predprofile.successor)
 
         if accept:
             successor = request.user
-            predecessor.profile.successor_confirmed = True
+            predprofile.successor_confirmed = True
         else:
-            if predecessor.profile.to_be_zombie:
+            if predprofile.to_be_zombie:
                 successor = User.objects.get(email=BOTMAIL)
-                predecessor.profile.successor_confirmed = True
+                predprofile.successor_confirmed = True
             else:
                 successor = None
 
-        predecessor.profile.successor = successor
-        predecessor.profile.save()
+        predprofile.successor = successor
+        predprofile.save()
 
         deleted = False
-        if predecessor.profile.to_be_zombie:
+        if predprofile.to_be_zombie:
             migrateUserAssets(predecessor, successor)
             predecessor.delete()
             deleted = True
@@ -285,7 +403,7 @@ def successorInviteAction(request: WSGIRequest, action: str) -> HttpResponse:
             if not deleted:
                 successorDeclined(request.user, predecessor)
         if not deleted:
-            return redirect(predecessor.profile.getLink(alert=alert))
+            return redirect(predprofile.getLink(alert=alert))
         return redirect(request.user.profile.getLink(alert=alert))
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -305,6 +423,14 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
 
     For the requesting user, successfull response of this endpoint should imply permanent inaccess to their account,
     regardless of successor confirmation state.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
     """
     confirmed = request.POST.get('confirmed', False)
     if not confirmed:
@@ -327,16 +453,28 @@ def accountDelete(request: WSGIRequest) -> JsonResponse:
 
 @normal_profile_required
 @require_JSON
-def email_notification_toggle(request: WSGIRequest, notifID: UUID):
+def email_notification_toggle(request: WSGIRequest, notifID: UUID) -> JsonResponse:
+    """Toggles email notification subscription for the requesting user.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        notifID (UUID): The notification ID.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
+    """
     try:
         subscribe = request.POST['subscribe']
-        denotif = EmailNotification.objects.get(notification__id=notifID)
+        enotif: EmailNotification = EmailNotification.objects.get(
+            notification__id=notifID)
         if not subscribe:
-            denotif.subscribers.remove(request.user)
+            enotif.subscribers.remove(request.user)
         else:
-            denotif.subscribers.add(request.user)
+            enotif.subscribers.add(request.user)
         return respondJson(Code.OK)
-    except (KeyError, ObjectDoesNotExist) as o:
+    except (KeyError, ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -345,16 +483,28 @@ def email_notification_toggle(request: WSGIRequest, notifID: UUID):
 
 @normal_profile_required
 @require_JSON
-def device_notifcation_toggle(request: WSGIRequest, notifID: UUID):
+def device_notifcation_toggle(request: WSGIRequest, notifID: UUID) -> JsonResponse:
+    """Toggles device notification subscription for the requesting user.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        notifID (UUID): The notification ID.
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK or main.strings.Code.NO
+    """
     try:
         subscribe = request.POST['subscribe']
-        denotif = DeviceNotification.objects.get(notification__id=notifID)
+        denotif: DeviceNotification = DeviceNotification.objects.get(
+            notification__id=notifID)
         if not subscribe:
             denotif.subscribers.remove(request.user)
         else:
             denotif.subscribers.add(request.user)
         return respondJson(Code.OK)
-    except (KeyError, ObjectDoesNotExist) as o:
+    except (KeyError, ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

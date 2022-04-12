@@ -27,20 +27,20 @@ getElements("create-project-input").forEach((element) => {
 });
 
 getElement("projectcodename").oninput = async (e) => {
-    e.target.value = String(e.target.value)
-        .toLowerCase()
-        .trim()
-        .replaceAll(" ", "-")
-        .replaceAll("--", "-")
-        .replace(/[^a-zA-Z0-9\-]/g, "-");
+    let nickname = String(e.target.value).toLowerCase().trim();
+    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+    if (!nickname) return;
+    e.target.value = nickname;
 };
 
 getElement("projectcodename").onchange = async (e) => {
-    let codename = String(e.target.value).trim();
-    if (!codename) return;
+    let nickname = String(e.target.value).toLowerCase().trim();
+    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+    if (!nickname) return;
+    e.target.value = nickname;
     const data = await postRequest(
         setUrlParams(URLS.CREATEVALIDATEFIELD, "codename"),
-        { codename }
+        { codename:nickname }
     );
     if (!data) return;
     if (data.code !== code.OK) return error(data.error);

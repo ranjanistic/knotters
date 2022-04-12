@@ -1,9 +1,10 @@
 from os import path as os_path
 from uuid import UUID
 
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q, Sum
 from django.http.response import (Http404, HttpResponse,
@@ -107,7 +108,7 @@ def competition(request: WSGIRequest, compID: str) -> HttpResponse:
             data = competitionProfileData(request, nickname=compID)
         if not data:
             raise ObjectDoesNotExist(compID)
-        compete = data['compete']
+        compete: Competition = data['compete']
         if isuuid:
             return redirect(compete.getLink())
         if compete.is_draft:
@@ -115,7 +116,7 @@ def competition(request: WSGIRequest, compID: str) -> HttpResponse:
                 return redirect(compete.getManagementLink())
             raise ObjectDoesNotExist('isdraft: ', compete)
         return renderer(request, Template.Compete.PROFILE, data)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError, AttributeError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -136,12 +137,13 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
         JsonResponse: response main.strings.Code.OK with additional competition data (timeleft, participated, etc.) if available else main.strings.Code.NO
     """
     try:
-        compete = Competition.objects.get(id=compID, is_draft=False)
+        compete: Competition = Competition.objects.get(
+            id=compID, is_draft=False)
         data = dict(timeleft=compete.secondsLeft(),
                     startTimeLeft=compete.startSecondsLeft())
         if request.user.is_authenticated:
             try:
-                submp = SubmissionParticipant.objects.get(
+                submp: SubmissionParticipant = SubmissionParticipant.objects.get(
                     submission__competition=compete, profile=request.user.profile, confirmed=True)
                 data = dict(**data,
                             participated=True,
@@ -152,7 +154,7 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
                             participated=False,
                             )
         return respondJson(Code.OK, data)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO)
     except Exception as e:
         errorLog(e)
@@ -177,13 +179,14 @@ def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResp
         HttpResponse: text/html response with tab section html content
     """
     try:
-        compete = Competition.objects.get(id=compID, is_draft=False)
+        compete: Competition = Competition.objects.get(
+            id=compID, is_draft=False)
         data = getCompetitionSectionHTML(compete, section, request)
         if data:
             return HttpResponse(data)
         else:
-            raise Exception()
-    except ObjectDoesNotExist as o:
+            raise ObjectDoesNotExist(compID, section, request)
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -211,7 +214,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
     """
     try:
         now = timezone.now()
-        competition = Competition.objects.get(
+        competition: Competition = Competition.objects.get(
             id=compID, startAt__lt=now, endAt__gte=now, resultDeclared=False, is_draft=False)
         try:
             # NOTE filter.delete doesn't work !?
@@ -224,14 +227,15 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
             return redirect(competition.getLink(alert=Message.PARTICIPATION_PROHIBITED))
         if competition.isParticipant(request.user.profile):
             return redirect(competition.getLink(alert=Message.ALREADY_PARTICIPATING))
-        submission = Submission.objects.create(competition=competition)
+        submission: Submission = Submission.objects.create(
+            competition=competition)
         submission.members.add(request.user.profile)
         SubmissionParticipant.objects.filter(submission=submission, profile=request.user.profile).update(
             confirmed=True, confirmed_on=submission.createdOn)
         request.user.profile.increaseXP(by=5)
         participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink(alert=Message.PARTICIPATION_CONFIRMED))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -254,22 +258,27 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
         JsonResponse: response with Code.OK if invitation is sent successfully, Code.NO if not.
     """
     try:
-        userID = str(request.POST.get('userID', '')).strip().lower()
-        if not userID or userID == 'None':
+        userID = request.POST['userID'][:100].strip()
+        if not userID:
             return respondJson(Code.NO, error=Message.INVALID_ID)
-        submission = Submission.objects.get(
+        submission: Submission = Submission.objects.get(
             id=subID, members=request.user.profile, submitted=False)
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
         if request.user.email.lower() == userID or str(request.user.profile.ghID()).lower() == userID or (userID in request.user.emails()):
             return respondJson(Code.NO, error=Message.ALREADY_PARTICIPATING)
-        person = Profile.objects.filter(Q(user__email__iexact=userID) | Q(githubID__iexact=userID) | Q(nickname__iexact=userID), Q(
-            is_active=True, suspended=False, to_be_zombie=False)).first()
-        if not person:
-            return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
+        addr: EmailAddress = EmailAddress.objects.filter(email=userID).first()
+        if addr:
+            person = Profile.objects.get(user=addr.user)
+        else:
+            person = Profile.objects.filter(Q(nickname__iexact=userID) | Q(githubID__iexact=userID), Q(
+                is_active=True, suspended=False, to_be_zombie=False)).first()
+            if not person:
+                return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
         if person.isBlocked(request.user):
             return respondJson(Code.NO, error=Message.USER_NOT_EXIST)
-        if not submission.competition.isAllowedToParticipate(person):
+
+        if submission.competition.isNotAllowedToParticipate(person):
             return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
 
         try:
@@ -279,12 +288,10 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
         except:
             if not submission.competition.isActive():
                 raise ObjectDoesNotExist('inactive:', submission.competition)
-            if submission.competition.isJudge(person) or submission.competition.isModerator(person):
-                return respondJson(Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED)
             submission.members.add(person)
             participantInviteAlert(person, request.user.profile, submission)
             return respondJson(Code.OK)
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -313,14 +320,14 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
         HttpResponse: renders text/html page of invitation if user is a valid invitee
     """
     try:
-        if request.user.getID() != userID:
+        if request.user.get_id != userID:
             raise ObjectDoesNotExist(userID)
-        submission = Submission.objects.get(
+        submission: Submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
             raise ObjectDoesNotExist(
                 'inactive competition invite render', submission, request.user)
-        if not submission.competition.isAllowedToParticipate(request.user.profile):
+        if submission.competition.isNotAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist(
                 'not allowed to part invite render', submission, request.user)
         try:
@@ -329,7 +336,7 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission))
         except ObjectDoesNotExist:
             return redirect(submission.competition.getLink(error=Message.INVITE_NOTEXIST))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -357,13 +364,13 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
         HttpResponse: renders text/html page of invitation with proceed action, if user is a valid invitee and action is valid
     """
     try:
-        if request.user.getID() != userID:
+        if request.user.get_id != userID:
             raise ObjectDoesNotExist(userID)
-        submission = Submission.objects.get(
+        submission: Submission = Submission.objects.get(
             id=subID, submitted=False, members=request.user.profile)
         if not submission.competition.isActive():
             raise ObjectDoesNotExist('inactive competition invite action')
-        if not submission.competition.isAllowedToParticipate(request.user.profile):
+        if submission.competition.isNotAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist(request.user.profile)
         if action == Action.DECLINE:
             SubmissionParticipant.objects.filter(
@@ -376,8 +383,8 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
             participantWelcomeAlert(request.user.profile, submission)
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission, accepted=True))
         else:
-            raise ObjectDoesNotExist(action)
-    except ObjectDoesNotExist as o:
+            raise ValidationError(action)
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -409,7 +416,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
     try:
         member = request.user.profile if request.user.getID(
         ) == userID else Profile.objects.get(user__id=userID)
-        submission = Submission.objects.get(
+        submission: Submission = Submission.objects.get(
             id=subID, members=member, submitted=False, competition__resultDeclared=False)
         SubmissionParticipant.objects.get(
             submission=submission, profile=request.user.profile, confirmed=True)
@@ -417,7 +424,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
             raise InactiveCompetitionError(
                 submission.competition, subID, userID)
 
-        conf = SubmissionParticipant.objects.filter(
+        conf: SubmissionParticipant = SubmissionParticipant.objects.filter(
             profile=member, submission=submission, confirmed=True).first()
         submission.members.remove(member)
         if submission.totalActiveMembers() == 0:
@@ -431,7 +438,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         if json_body:
             return respondJson(Code.OK, message=(Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED))
         return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
-    except (InactiveCompetitionError, ObjectDoesNotExist) as c:
+    except (InactiveCompetitionError, ObjectDoesNotExist, ValidationError) as c:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(c)
@@ -467,11 +474,11 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         now = timezone.now()
-        subm = Submission.objects.get(id=subID, competition__id=compID,
-                                      submitted=False, competition__startAt__lt=now,
-                                      competition__endAt__gte=now, competition__resultDeclared=False,
-                                      members=request.user.profile,
-                                      )
+        subm: Submission = Submission.objects.get(id=subID, competition__id=compID,
+                                                  submitted=False, competition__startAt__lt=now,
+                                                  competition__endAt__gte=now, competition__resultDeclared=False,
+                                                  members=request.user.profile,
+                                                  )
         if not subm.competition.isAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist('not allowed to part save subm')
         fprojID = request.POST['submissionfreeproject']
@@ -485,7 +492,7 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(subm.competition.getLink(alert=Message.SAVED))
-    except (ObjectDoesNotExist, KeyError) as o:
+    except (ObjectDoesNotExist, KeyError, ValidationError) as o:
         if json_body:
             return respondJson(Code.NO)
         raise Http404(o)
@@ -514,13 +521,13 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
     """
     try:
         now = timezone.now()
-        submission = Submission.objects.get(
+        submission: Submission = Submission.objects.get(
             id=subID, competition__id=compID, competition__resultDeclared=False, members=request.user.profile, submitted=False)
         message = Message.SUBMITTED_SUCCESS
         if submission.isInvitee(request.user.profile):
             raise ObjectDoesNotExist(
                 'unconfirmed participant', submission, request.user)
-        if not submission.competition.isAllowedToParticipate(request.user.profile):
+        if submission.competition.isNotAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist(
                 'not allowed to participate', submission, request.user)
         if not submission.free_project:
@@ -536,14 +543,11 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         submission.submitOn = now
         submission.submitted = True
         submission.save()
-        for member in submission.getMembers():
-            if submission.late:
-                member.increaseXP(by=1)
-            else:
-                member.increaseXP(by=2)
+        map(lambda member: member.increaseXP(by=1 if submission.late else 2,
+            reason="Competition submission submitted"), submission.getMembers())
         submissionConfirmedAlert(submission)
         return respondJson(Code.OK, message=message)
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -574,13 +578,13 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         JsonResponse: response main.strings.Code.OK if points are alloted successfully, else main.strings.Code.NO
     """
     try:
-        subs = request.POST.get('submissions', None)
+        subs: list = request.POST.get('submissions', None)
         if not subs:
             return respondJson(Code.NO, error=Message.SUBMISSION_MARKING_INVALID)
 
         submissions = Submission.objects.filter(competition__id=compID, competition__judges=request.user.profile,
                                                 competition__resultDeclared=False, competition__endAt__lt=timezone.now(), valid=True).order_by('submitOn')
-        competition = submissions.first().competition
+        competition: Competition = submissions.first().competition
 
         if competition.allSubmissionsMarkedByJudge(judge=request.user.profile):
             raise ObjectDoesNotExist(
@@ -599,16 +603,25 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         for sub in subs:
             subID = str(sub['subID']).strip()
             for top in sub['topics']:
-                topID = str(top['topicID']).strip()
-                points = int(top['points'])
-                modifiedTops[topID].append({
-                    subID: points
-                })
+                modifiedTops[str(top['topicID']).strip()].append(
+                    {subID: int(top['points'])})
 
         """
         The structure of modifiedTops is:
         {
             '<topicID>': [
+                {
+                    '<subID>': <points>
+                },
+                {
+                    '<subID>': <points>
+                },
+                ...
+            ],
+            '<topicID>': [
+                {
+                    '<subID>': <points>
+                },
                 {
                     '<subID>': <points>
                 },
@@ -648,9 +661,10 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         judgeXP = len(submissions)//(len(topics)+1)
         request.user.profile.increaseBulkTopicPoints(
             topics=topics, by=judgeXP, reason=f"Judged submissions of {competition.title}")
-        request.user.profile.increaseXP(by=judgeXP)
+        request.user.profile.increaseXP(
+            by=judgeXP, reason=f"Judged submissions of {competition.title}")
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist, KeyError, ValueError):
+    except (ObjectDoesNotExist, KeyError, ValueError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -677,7 +691,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         HttpResponseRedirect: Redirects to the management competition view.
     """
     try:
-        comp = Competition.objects.get(
+        comp: Competition = Competition.objects.get(
             id=compID, endAt__lt=timezone.now(), resultDeclared=False, creator=request.user.profile, is_draft=False)
 
         if comp.isAllowedToParticipate(request.user.profile):
@@ -694,7 +708,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{DeclareResults.__name__}", comp)
         return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARING))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -723,8 +737,8 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
     """
 
     try:
-        result = Result.objects.get(submission__competition__id=compID,
-                                    submission__id=subID, submission__members=request.user.profile)
+        result: Result = Result.objects.get(submission__competition__id=compID,
+                                            submission__id=subID, submission__members=request.user.profile)
         if result.xpclaimers.filter(user=request.user).exists():
             raise ObjectDoesNotExist(request.user)
         profile = request.user.profile
@@ -754,7 +768,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                     break
         result.xpclaimers.add(profile)
         return redirect(competition.getLink(alert=Message.XP_ADDED))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -776,20 +790,21 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
             if valid request, else main.strings.Code.NO
     """
     try:
-        result = cache.get(f"competition_result_{resID}")
+        cacheKey = f"competition_result_{resID}"
+        result = cache.get(cacheKey, None)
         if not result:
-            result = Result.objects.get(id=resID)
-            cache.set(f"competition_result_{resID}",
-                      result, settings.CACHE_MAX)
-        topics = []
-        for top in result.topic_points:
-            topics.append(dict(
+            result: Result = Result.objects.get(id=resID)
+            cache.set(cacheKey, result, settings.CACHE_MAX)
+        topics = list(map(
+            lambda top: dict(
                 id=top["topic__id"],
                 name=top["topic__name"],
                 score=top["score"]
-            ))
+            ),
+            result.topic_points
+        ))
         return respondJson(Code.OK, dict(topics=topics))
-    except ObjectDoesNotExist:
+    except (ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO)
     except Exception as e:
         errorLog(e)
@@ -824,22 +839,25 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
     Returns:
         HttpResponseRedirect: Redirects to the certificate view, if valid certificate, else redirects to the certificate index page.
     """
-    certID = request.POST.get('certID', request.GET.get('id', None))
     try:
+        certID = UUID(request.POST.get('certID', request.GET.get(
+            'id', request.GET.get('certID', ""))))[:50]
         if not certID:
             return respondRedirect(APPNAME, URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
-        partcert = ParticipantCertificate.objects.filter(
-            id=UUID(str(certID).strip())).first()
-        if partcert and partcert.certificate:
-            return respondRedirect(APPNAME, URL.compete.certficate(partcert.result.getID(), partcert.profile.getUserID()))
+        partcert: ParticipantCertificate = ParticipantCertificate.objects.filter(
+            id=certID).first()
 
-        appcert = AppreciationCertificate.objects.filter(
-            id=UUID(str(certID).strip())).first()
+        if partcert and partcert.certificate:
+            return respondRedirect(APPNAME, URL.compete.certficate(partcert.result.get_id, partcert.profile.get_userid))
+
+        appcert: AppreciationCertificate = AppreciationCertificate.objects.filter(
+            id=certID).first()
+
         if appcert and appcert.certificate:
-            return respondRedirect(APPNAME, URL.compete.apprCertificate(appcert.competition.get_id, appcert.appreciatee.getUserID()))
+            return respondRedirect(APPNAME, URL.compete.apprCertificate(appcert.competition.get_id, appcert.appreciatee.get_userid))
 
         return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
     except Exception as e:
         errorLog(e)
@@ -868,24 +886,25 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
             self = True
-            member = request.user.profile
+            member: Profile = request.user.profile
         else:
             self = False
-            member = Profile.objects.get(
+            member: Profile = Profile.objects.get(
                 user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and member.isBlocked(request.user):
             raise ObjectDoesNotExist(request.user)
 
-        result = Result.objects.get(id=resID, submission__members=member)
+        result: Result = Result.objects.get(
+            id=resID, submission__members=member)
 
-        partcert = ParticipantCertificate.objects.filter(
+        partcert: ParticipantCertificate = ParticipantCertificate.objects.filter(
             result__id=resID, profile=member).first()
 
         certpath = False if not partcert else partcert.getCertImage if partcert.certificate else False
         certID = False if not partcert else partcert.get_id
         return renderer(request, Template.Compete.CERT_CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self, certID=certID))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -914,26 +933,27 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
     try:
         if request.user.is_authenticated and request.user.getID() == userID:
             self = True
-            person = request.user.profile
+            person: Profile = request.user.profile
         else:
             self = False
-            person = Profile.objects.get(
+            person: Profile = Profile.objects.get(
                 user__id=userID, suspended=False, to_be_zombie=False)
 
         if request.user.is_authenticated and person.isBlocked(request.user):
             raise ObjectDoesNotExist(request.user)
 
-        appcert = AppreciationCertificate.objects.filter(
+        appcert: AppreciationCertificate = AppreciationCertificate.objects.filter(
             competition__id=compID, appreciatee=person).first()
 
         certpath = False if not appcert else appcert.getCertImage if appcert.certificate else False
         certID = False if not appcert else appcert.get_id
         if appcert:
-            compete = appcert.competition
+            compete: Competition = appcert.competition
         else:
-            compete = Competition.objects.get(id=compID, is_draft=False)
+            compete: Competition = Competition.objects.get(
+                id=compID, is_draft=False)
         return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(compete=compete, appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -961,7 +981,7 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         HttpResponseRedirect: Redirects to the management's competition page after task is successfully queued.
     """
     try:
-        competition = Competition.objects.get(
+        competition: Competition = Competition.objects.get(
             id=compID, creator=request.user.profile, resultDeclared=True, is_draft=False)
         if not (competition.resultDeclared and competition.allResultsDeclared()):
             return redirect(competition.getManagementLink(alert=Message.RESULT_NOT_DECLARED))
@@ -978,7 +998,7 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{AllotCompetitionCertificates.__name__}", remainingresults, competition)
         return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1010,7 +1030,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
             member = request.user.profile
         else:
             raise ObjectDoesNotExist(userID)
-        partcert = ParticipantCertificate.objects.get(
+        partcert: ParticipantCertificate = ParticipantCertificate.objects.get(
             result__id=resID, profile=member)
         if not partcert.certificate:
             raise ObjectDoesNotExist("Certificate not yet present!", partcert)
@@ -1024,7 +1044,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
                     os_path.basename(file_path)
                 return response
         raise ObjectDoesNotExist(file_path)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1053,10 +1073,10 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
     """
     try:
         if request.user.getID() == userID:
-            person = request.user.profile
+            person: Profile = request.user.profile
         else:
             raise ObjectDoesNotExist(userID)
-        appcert = AppreciationCertificate.objects.get(
+        appcert: AppreciationCertificate = AppreciationCertificate.objects.get(
             competition__id=compID, appreciatee=person)
         if not appcert.certificate:
             raise ObjectDoesNotExist("Certificate not yet present!", appcert)
@@ -1070,7 +1090,7 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
                     os_path.basename(file_path)
                 return response
         raise ObjectDoesNotExist(file_path)
-    except ObjectDoesNotExist as o:
+    except (ObjectDoesNotExist, ValidationError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)

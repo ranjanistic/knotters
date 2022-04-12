@@ -3,10 +3,12 @@ from random import randint
 
 from auth2.tests.utils import getTestEmail, getTestName, getTestPassword
 from compete.models import *
+from main.env import BOTMAIL
 from django.test import TestCase, tag
 from django.utils import timezone
 from main.strings import Code
 from moderation.methods import requestModerationForObject
+from moderation.models import Moderation
 from people.models import User
 from people.tests.utils import getTestTopicsInst, getTestUsersInst
 
@@ -85,13 +87,14 @@ class CompetitionAttributeTest(TestCase):
             email=getTestEmail(), password=getTestPassword(), first_name=getTestName())
         self.mgprofile = self.mguser.profile
         self.mgprofile.convertToManagement()
-        self.comp = Competition.objects.create(is_draft=False,
+        self.comp:Competition = Competition.objects.create(is_draft=False,
             title=getCompTitle(), endAt=timezone.now()+timedelta(days=3), creator=self.mguser.profile)
         
     def setUp(self) -> None:
         Profile.KNOTBOT()
         return super().setUp()
 
+    @tag("defcompmeth")
     def test_default_comp_methods(self):
         self.assertTrue(competeBannerPath(
             self.comp, getCompBanner()).__contains__(self.comp.getID()))
@@ -115,7 +118,7 @@ class CompetitionAttributeTest(TestCase):
         self.assertFalse(self.comp.isJudge(profile=None))
         self.assertCountEqual(self.comp.getJudges(), [])
         self.assertEqual(self.comp.totalJudges(), 0)
-        self.assertEqual(self.comp.getJudgementLink(), self.comp.getLink())
+        self.assertEqual(self.comp.getJudgementLink(), self.comp.getLink(error=Message.INVALID_REQUEST))
         self.assertFalse(self.comp.isParticipant(profile=None))
         self.assertEqual(self.comp.getMaxScore(), 0)
         self.assertCountEqual(self.comp.getSubmissions(), [])
@@ -624,14 +627,14 @@ class ResultAttributeTest(TestCase):
         self.assertEqual(self.result.submitOn(),
                          self.result.submission.submitOn)
         self.assertEqual(self.result.rankSuptext(),
-                         self.result.rankSuptext(rnk=1))
-        self.assertEqual(self.result.rankSuptext(rnk=2),
-                         self.result.rankSuptext(rnk=22))
-        self.assertEqual(self.result.rankSuptext(rnk=1),
-                         self.result.rankSuptext(rnk=21))
-        self.assertEqual(self.result.rankSuptext(rnk=3),
-                         self.result.rankSuptext(rnk=23))
-        self.assertEqual(self.result.rankSuptext(rnk=4),
-                         self.result.rankSuptext(rnk=24))
-        self.assertEqual(self.result.rankSuptext(rnk=5),
-                         self.result.rankSuptext(rnk=20))
+                         self.result.rankSuptext(rank=1))
+        self.assertEqual(self.result.rankSuptext(rank=2),
+                         self.result.rankSuptext(rank=22))
+        self.assertEqual(self.result.rankSuptext(rank=1),
+                         self.result.rankSuptext(rank=21))
+        self.assertEqual(self.result.rankSuptext(rank=3),
+                         self.result.rankSuptext(rank=23))
+        self.assertEqual(self.result.rankSuptext(rank=4),
+                         self.result.rankSuptext(rank=24))
+        self.assertEqual(self.result.rankSuptext(rank=5),
+                         self.result.rankSuptext(rank=20))

@@ -1,6 +1,7 @@
-from datetime import timedelta
-from uuid import uuid4
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
 
+from compete.models import Competition
 from django.db import models
 from django.utils import timezone
 from main.exceptions import IllegalModerationEntity
@@ -8,6 +9,8 @@ from main.methods import maxLengthInList
 from main.strings import (COMPETE, CORE_PROJECT, PEOPLE, PROJECTS, Code,
                           moderation, url)
 from management.models import ReportCategory
+from people.models import Profile
+from projects.models import CoreProject, Project
 
 from .apps import APPNAME
 
@@ -15,54 +18,57 @@ from .apps import APPNAME
 class Moderation(models.Model):
     """The model for moderation instance.
 
-    NOTE/TODO: Need Subclasses for each type of moderation.
+    NOTE|TODO: Need Subclasses for each type of moderation.
         Currently using one class for all types by setting the type field and other instances attributes for other types as None.
     """
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    project = models.ForeignKey(
-        f"{PROJECTS}.Project", on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_project")
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    project: Project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_project")
     """project (ForeignKey<Project>): The verified project that is being moderated."""
-    coreproject = models.ForeignKey(
-        f"{PROJECTS}.CoreProject", on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_coreproject")
+    coreproject: CoreProject = models.ForeignKey(
+        CoreProject, on_delete=models.CASCADE, blank=True, null=True, related_name="moderation_coreproject")
     """coreproject (ForeignKey<CoreProject>): The core project that is being moderated."""
 
-    profile = models.ForeignKey(f"{PEOPLE}.Profile", blank=True, null=True,
-                                on_delete=models.CASCADE, related_name="moderation_profile")
+    profile: Profile = models.ForeignKey(Profile, blank=True, null=True,
+                                         on_delete=models.CASCADE, related_name="moderation_profile")
     """profile (ForeignKey<Profile>): The profile that is being moderated. Not of any use currently."""
 
-    competition = models.ForeignKey(
-        f"{COMPETE}.Competition", blank=True, null=True, on_delete=models.CASCADE, related_name="moderation_compete")
+    competition: Competition = models.ForeignKey(
+        Competition, blank=True, null=True, on_delete=models.CASCADE, related_name="moderation_compete")
     """competition (ForeignKey<Competition>): The competition that is being moderated."""
 
-    type = models.CharField(choices=moderation.TYPECHOICES,
-                            max_length=maxLengthInList(moderation.TYPES))
+    type: str = models.CharField(choices=moderation.TYPECHOICES,
+                                 max_length=maxLengthInList(moderation.TYPES))
     """type (CharField<str>): The type of moderation."""
 
-    moderator = models.ForeignKey(
-        f"{PEOPLE}.Profile", on_delete=models.CASCADE, related_name="moderator_profile")
+    moderator: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="moderator_profile")
     """moderator (ForeignKey<Profile>): The moderator who is assigned to the moderation."""
 
-    request = models.CharField(max_length=100000)
+    request = models.TextField(max_length=100000)
     """request (CharField<str>): The request data for the moderation."""
     referURL = models.URLField(blank=True, null=True)
     """referURL (URLField<str>): The URL for moderator to refer to, set by requestor."""
-    response = models.CharField(
+    response: str = models.TextField(
         max_length=100000, blank=True, null=True, default='')
     """response (CharField<str>): The moderator's response for the moderation."""
 
-    status = models.CharField(choices=moderation.MODSTATESCHOICES, max_length=maxLengthInList(
+    status: str = models.CharField(choices=moderation.MODSTATESCHOICES, max_length=maxLengthInList(
         moderation.MODSTATES), default=Code.MODERATION)
     """status (CharField<str>): The status of the moderation."""
 
-    requestOn = models.DateTimeField(auto_now=False, default=timezone.now)
+    requestOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
     """requestOn (DateTimeField<datetime>): The date and time the moderation was requested."""
-    respondOn = models.DateTimeField(auto_now=False, null=True, blank=True)
+    respondOn: datetime = models.DateTimeField(
+        auto_now=False, null=True, blank=True)
     """respondOn (DateTimeField<datetime>): The date and time the moderation was last responded."""
-    resolved = models.BooleanField(default=False)
+    resolved: bool = models.BooleanField(default=False)
     """resolved (BooleanField<bool>): Whether the moderation is resolved."""
-    stale_days = models.IntegerField(default=3)
+    stale_days: int = models.IntegerField(default=3)
     """stale_days (IntegerField<int>): The number of days before a moderation is considered stale."""
-    internal_mod = models.BooleanField(default=False)
+    internal_mod: bool = models.BooleanField(default=False)
     """internal_mod (BooleanField<bool>): Whether the moderation is internal (inside management)."""
 
     def __str__(self):
@@ -83,7 +89,7 @@ class Moderation(models.Model):
         return self.get_id
 
     @property
-    def object(self) -> models.Model:
+    def object(self) -> "Project|CoreProject|Profile|Competition":
         """Returns the object/instance that is being moderated, depending on the type of moderation.
 
         Returns:
@@ -120,7 +126,7 @@ class Moderation(models.Model):
             return True
         return False
 
-    def reapplyLink(self):
+    def reapplyLink(self) -> str:
         """Returns the link to reapply the moderation, primarily to be used by requestor via POST method.
 
         Returns:
@@ -128,7 +134,7 @@ class Moderation(models.Model):
         """
         return f"{url.getRoot(APPNAME)}{url.moderation.reapply(modID=self.getID())}"
 
-    def approveCompeteLink(self):
+    def approveCompeteLink(self) -> str:
         """Returns the link to approve the competition, primarily to be used by moderator via POST method.
 
         Returns:
@@ -137,7 +143,7 @@ class Moderation(models.Model):
         return f"{url.getRoot(APPNAME)}{url.moderation.approveCompete(modID=self.getID())}"
 
     @property
-    def requestor(self) -> bool:
+    def requestor(self) -> "Profile":
         """Returns the profile instance of the moderation requestor, depending on the type of moderation.
 
         Returns:
@@ -180,7 +186,7 @@ class Moderation(models.Model):
         """Returns whether the moderation is approved."""
         return self.status == Code.APPROVED and self.resolved
 
-    def getModerateeFieldByType(self, type: str = '') -> models.Model:
+    def getModerateeFieldByType(self, type: str = '') -> "Project|CoreProject|Profile|Competition":
         """Returns the object model instance of the moderation, depending on the given of moderation.
 
         Args:
@@ -279,8 +285,8 @@ class Moderation(models.Model):
             by=3, reason=f'Took action on moderation {self.__str__()}')
         self.save()
         return True
-    
-    def alertModerator(self):
+
+    def alertModerator(self) -> str:
         """Alerts the moderator of the moderation."""
         from .mailers import moderationAssignedAlert
         return moderationAssignedAlert(self)
@@ -288,11 +294,12 @@ class Moderation(models.Model):
 
 class LocalStorage(models.Model):
     """The local storage model for application usage."""
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    key = models.CharField(max_length=100, blank=False,
-                           null=False, unique=True)
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    key: str = models.CharField(max_length=100, blank=False,
+                                null=False, unique=True)
     """key (str): The key of the local storage."""
-    value = models.CharField(max_length=5000, blank=False, null=False)
+    value: str = models.CharField(max_length=5000, blank=False, null=False)
     """value (str): The value of the local storage."""
 
     def __str__(self) -> str:
@@ -304,13 +311,14 @@ class ReportedModeration(models.Model):
     class Meta:
         unique_together = ('profile', 'moderation', 'category')
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    profile = models.ForeignKey(
-        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='moderation_reporter_profile')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='moderation_reporter_profile')
     """profile (Profile): The profile who reported the moderation."""
-    moderation = models.ForeignKey(
+    moderation: Moderation = models.ForeignKey(
         Moderation, on_delete=models.CASCADE, related_name='reported_moderation')
     """moderation (Moderation): The reported moderation."""
-    category = models.ForeignKey(
+    category: ReportCategory = models.ForeignKey(
         ReportCategory, on_delete=models.PROTECT, related_name='reported_moderation_category')
     """category (ReportCategory): The category of the reported moderation."""
