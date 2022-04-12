@@ -891,10 +891,11 @@ class BaseProject(models.Model):
         """Returns True if the profile is a co-creator of the project."""
         return self.co_creators.filter(user=profile.user).exists()
 
-    def remove_cocreator(self, co_creator) -> bool:
+    def remove_cocreator(self, co_creator:Profile) -> bool:
         """Removes an existing co-creator from the project"""
         if self.co_creators.filter(id=co_creator.id).exists():
             self.co_creators.remove(co_creator)
+            Asset.objects.filter(baseproject=self, creator=co_creator).delete()
             try:
                 if self.is_not_free() and self.is_approved():
                     getproject = self.getProject()

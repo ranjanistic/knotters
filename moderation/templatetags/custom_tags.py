@@ -3,7 +3,7 @@ from urllib.parse import unquote
 
 from django import template
 from main.methods import getNumberSuffix
-from main.strings import setPathParams
+from main.strings import setPathParams, url, PEOPLE
 
 register = template.Library()
 
@@ -61,3 +61,17 @@ def publicprivateicon(public):
 @register.simple_tag
 def random_int(a=1, b=100):
     return randint(a, b)
+
+@register.filter(name="hashtag")
+def hashtag(text, searchURL):
+    tags = list(filter(lambda x: x.startswith('#'), text.split(" ")))
+    for tag in tags:
+        text = text.replace(tag, f'<a href="{searchURL}{tag[1:]}">{tag}</a>')
+    return text
+
+@register.filter(name="profiletag")
+def profiletag(text):
+    tags = list(filter(lambda x: x.startswith('@'), text.split(" ")))
+    for tag in tags:
+        text = text.replace(tag, f'<a href="{url.getRoot(PEOPLE)}{url.people.profile(tag[1:])}">{tag}</a>')
+    return text
