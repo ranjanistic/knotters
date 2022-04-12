@@ -523,12 +523,12 @@ class Profile(models.Model):
         This will imply that the profile represents an organization.
         """
         cacheKey = self.CACHE_KEYS.is_manager
-        data = cache.get(cacheKey, None)
-        if not data:
+        exists = cache.get(cacheKey, None)
+        if not exists:
             exists = Management.objects.filter(profile=self).exists()
-            cache.set(cacheKey, data,
+            cache.set(cacheKey, exists,
                       settings.CACHE_MAX if exists else settings.CACHE_SHORT)
-        return data
+        return exists
 
     def phone_number(self) -> "PhoneNumber":
         """Returns the primary & verified phone number instance of the user.
@@ -694,7 +694,7 @@ class Profile(models.Model):
             bool: True if the user was converted to a management account, False otherwise.
         """
         try:
-            if not self.is_normal or self.is_manager():
+            if (not self.is_normal) or self.is_manager():
                 raise Exception()
             if force:
                 if self.is_moderator:

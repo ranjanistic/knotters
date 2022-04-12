@@ -151,7 +151,8 @@ def verifiedProfileData(request, reponame: str = None, projectID: UUID = None) -
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        ismoderator = False if not request.user.is_authenticated else project.moderator() == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator(
+        ) == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist(project, iscreator, ismoderator)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
@@ -204,7 +205,8 @@ def coreProfileData(request, codename: str = None, projectID: UUID = None) -> di
                 cache.set(cacheKey, project, settings.CACHE_INSTANT)
 
         iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
-        ismoderator = False if not request.user.is_authenticated else project.moderator() == request.user.profile
+        ismoderator = False if not request.user.is_authenticated else project.moderator(
+        ) == request.user.profile
         if project.suspended and not (iscreator or ismoderator):
             raise ObjectDoesNotExist('suspended', project)
         isAdmirer = request.user.is_authenticated and project.isAdmirer(
@@ -466,11 +468,11 @@ def uniqueRepoName(reponame: str, forConversion: bool = False) -> "str|bool":
         str: The reponame, if unique
         bool: False, if not.
     """
+    if len(reponame) < 3 or len(reponame) > 20:
+        return False
+
     reponame = re_sub(r'[^a-z0-9\-]', "", reponame[:20])
     reponame = "-".join(list(filter(lambda c: c, reponame.split('-')))).lower()
-
-    if len(reponame) < 3:
-        return False
 
     project: Project = Project.objects.filter(
         reponame=reponame, trashed=False).first()
@@ -1000,7 +1002,7 @@ def deleteGhOrgCoreepository(coreproject: CoreProject):
     return True
 
 
-def handleGithubKnottersRepoHook(hookrecordID:UUID, ghevent:str, postData:dict, project:BaseProject):
+def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dict, project: BaseProject):
     """Handle github repository hook event for any project
 
     Args:
@@ -1008,7 +1010,7 @@ def handleGithubKnottersRepoHook(hookrecordID:UUID, ghevent:str, postData:dict, 
         ghevent (str): The github event
         postData (dict): The post data from github
         project (BaseProject): The base project instance
-    
+
     Returns:
         bool, str: True, message if handled, False, error message if not handled
     """

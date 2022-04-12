@@ -39,22 +39,22 @@ getElement("uploadprojectimage").onchange = (e) => {
     });
 };
 getElement("projectnickname").oninput = async (e) => {
-    e.target.value = String(e.target.value)
-        .toLowerCase()
-        .trim()
-        .replaceAll(" ", "-")
-        .replaceAll("--", "-")
-        .replace(/[^a-zA-Z0-9\-]/g, "-");
+    let nickname = String(e.target.value).toLowerCase().trim();
+    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+    if (!nickname) return;
+    e.target.value = nickname;
 };
 
 getElement("projectnickname").onchange = async (e) => {
-    let nickname = String(e.target.value).trim();
+    let nickname = String(e.target.value).toLowerCase().trim();
+    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
     if (!nickname) return;
+    e.target.value = nickname;
     const data = await postRequest(
         setUrlParams(URLS.CREATEVALIDATEFIELD, "nickname"),
         { nickname }
     );
     if (!data) return;
     if (data.code !== code.OK) return error(data.error);
-    return success(`'${String(e.target.value).trim()}' is available!`);
+    return success(`'${nickname}' is available!`);
 };

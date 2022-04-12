@@ -35,29 +35,29 @@ class TestViews(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.email = getTestEmail()
         self.password = getTestPassword()
-        self.user = User.objects.create_user(
+        self.user:User= User.objects.create_user(
             email=self.email, password=self.password, first_name=getTestName())
-        self.profile = Profile.objects.get(user=self.user)
+        self.profile:Profile = Profile.objects.get(user=self.user)
         self.judgeemail = getTestEmail()
         self.judgepassword = getTestPassword()
-        self.judgeuser = User.objects.create_user(
+        self.judgeuser:User= User.objects.create_user(
             email=self.judgeemail, password=self.judgepassword, first_name=getTestName())
-        self.judgeprofile = Profile.objects.get(user=self.judgeuser)
+        self.judgeprofile:Profile = Profile.objects.get(user=self.judgeuser)
         self.modemail = getTestEmail()
         self.modpassword = getTestPassword()
-        self.moduser = User.objects.create_user(
+        self.moduser:User= User.objects.create_user(
             email=self.modemail, password=self.modpassword, first_name=getTestName())
-        self.modprofile = Profile.objects.get(user=self.moduser)
+        self.modprofile:Profile = Profile.objects.get(user=self.moduser)
         self.modprofile.is_moderator = True
         self.modprofile.save()
         self.mgemail = getTestEmail()
         self.mgpassword = getTestPassword()
-        self.mguser = User.objects.create_user(
+        self.mguser:User= User.objects.create_user(
             email=self.mgemail, password=self.mgpassword, first_name=getTestName())
-        self.mgprofile = Profile.objects.get(user=self.mguser)
+        self.mgprofile:Profile = Profile.objects.get(user=self.mguser)
         self.mgprofile.convertToManagement()
         self.mgprofile.save()
-        self.comp = Competition.objects.create(is_draft=False,title=getCompTitle(
+        self.comp:Competition = Competition.objects.create(is_draft=False,title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
         assignModeratorToObject(APPNAME, self.comp, self.modprofile)
         # requestModerationForObject(self.comp, APPNAME)
@@ -288,10 +288,10 @@ class TestViews(TestCase):
 
     @tag("tg")
     def test_invite(self):
-        user = User.objects.create_user(email=getTestEmail(
+        user:User= User.objects.create_user(email=getTestEmail(
         ), password=getTestPassword(), first_name=getTestName())
         P2 = getTestPassword()
-        user2 = User.objects.create_user(
+        user2:User= User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
@@ -368,7 +368,7 @@ class TestViews(TestCase):
 
     def test_invitation(self):
         P2 = getTestPassword()
-        user = User.objects.create_user(
+        user:User= User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
@@ -403,7 +403,7 @@ class TestViews(TestCase):
 
     def test_inviteAction(self):
         P2 = getTestPassword()
-        user = User.objects.create_user(
+        user:User= User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
@@ -464,7 +464,7 @@ class TestViews(TestCase):
 
     def test_removeMember(self):
         P2 = getTestPassword()
-        user = User.objects.create_user(
+        user:User= User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
@@ -670,11 +670,11 @@ class TestViews(TestCase):
                     password=make_password(userpasswords[i], None, 'md5'), is_active=True
                 )
             )
-        users = User.objects.bulk_create(users)
+        users:User= User.objects.bulk_create(users)
         profiles = []
         for u in users:
             profiles.append(Profile(user=u))
-        profiles = Profile.objects.bulk_create(profiles)
+        profiles:Profile = Profile.objects.bulk_create(profiles)
         i = -1
         for profile in profiles:
             i += 1
@@ -709,7 +709,7 @@ class TestViews(TestCase):
 
         modemail = getTestEmail()
         modpassword = getTestPassword()
-        moduser = User.objects.create_user(
+        moduser:User= User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
         EmailAddress.objects.create(
             user=moduser, email=moduser.email, primary=True, verified=True)
@@ -731,11 +731,11 @@ class TestViews(TestCase):
                     password=make_password(judgepasswords[j], None, 'md5'), is_active=True
                 )
             )
-        judges = User.objects.bulk_create(judges)
+        judges:User= User.objects.bulk_create(judges)
         judgeprofiles = []
         for ju in judges:
             judgeprofiles.append(Profile(user=ju, is_mentor=True))
-        judgeprofiles = Profile.objects.bulk_create(judgeprofiles)
+        judgeprofiles:Profile = Profile.objects.bulk_create(judgeprofiles)
 
         for judge in judgeprofiles:
             self.comp.judges.add(judge)
@@ -780,8 +780,7 @@ class TestViews(TestCase):
             login=self.mgemail, password=self.mgpassword))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTrue(resp.context['user'].is_authenticated)
-        resp = client.post(follow=True, path=root(
-            url.compete.declareResults(self.comp.getID())))
+        resp = client.post(follow=True, path=root(url.compete.declareResults(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.management.index)
@@ -798,8 +797,8 @@ class TestViews(TestCase):
         for profile in profiles:
             i += 1
             client = Client()
-            self.assertTrue(client.login(
-                email=useremails[i], password=userpasswords[i]))
+            resp = client.post(authroot(url.auth.LOGIN), data=dict(login=useremails[i], password=userpasswords[i]))
+            self.assertTrue(resp.context['user'].is_authenticated)
             resp = client.post(follow=True, path=root(
                 url.compete.data(self.comp.getID())))
             self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -845,11 +844,11 @@ class TestViews(TestCase):
                     password=make_password(userpasswords[i], None, 'md5'), is_active=True
                 )
             )
-        users = User.objects.bulk_create(users)
+        users:User= User.objects.bulk_create(users)
         profiles = []
         for u in users:
             profiles.append(Profile(user=u))
-        profiles = Profile.objects.bulk_create(profiles)
+        profiles:Profile = Profile.objects.bulk_create(profiles)
         i = -1
         for _ in profiles:
             i += 1
@@ -875,7 +874,7 @@ class TestViews(TestCase):
 
         modemail = getTestEmail()
         modpassword = getTestPassword()
-        moduser = User.objects.create_user(
+        moduser:User= User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
         EmailAddress.objects.create(
             user=moduser, email=moduser.email, primary=True, verified=True)
@@ -897,11 +896,11 @@ class TestViews(TestCase):
                     password=make_password(judgepasswords[j], None, 'md5'), is_active=True
                 )
             )
-        judges = User.objects.bulk_create(judges)
+        judges:User= User.objects.bulk_create(judges)
         judgeprofiles = []
         for ju in judges:
             judgeprofiles.append(Profile(user=ju, is_mentor=True))
-        judgeprofiles = Profile.objects.bulk_create(judgeprofiles)
+        judgeprofiles:Profile = Profile.objects.bulk_create(judgeprofiles)
 
         for judge in judgeprofiles:
             self.comp.judges.add(judge)

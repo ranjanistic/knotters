@@ -540,7 +540,7 @@ class BaseProject(models.Model):
         """
         return ProjectSocial.objects.create(project=self, site=site)
 
-    def removeSocial(self, id: UUID):
+    def removeSocial(self, id: UUID) -> bool:
         """Removes a social site from the project.
 
         Args:
@@ -549,7 +549,7 @@ class BaseProject(models.Model):
         Returns:
             Tuple[int, dict[str, int]]: The number of affected rows, and the affected rows
         """
-        return ProjectSocial.objects.filter(id=id, project=self).delete()
+        return ProjectSocial.objects.filter(id=id, project=self).delete()[0] >= 1
 
     def is_free(self) -> bool:
         """Returns True if the project is of type Quick (Freeproject)"""
@@ -753,13 +753,13 @@ class BaseProject(models.Model):
         except:
             return None
 
-    def cancel_invitation(self):
+    def cancel_invitation(self) -> bool:
         """Cancels the current owndership invitation for the project by deleting the invitation record.
 
         Returns:
             Tuple[int, dict[str, int]]: The number of affected rows, and the affected rows
         """
-        return ProjectTransferInvitation.objects.filter(baseproject=self).delete()
+        return ProjectTransferInvitation.objects.filter(baseproject=self).delete()[0] >= 1
 
     def transfer_to(self, newcreator) -> bool:
         """Transfers the project to the new creator (primarily on ownership acceptance)
@@ -773,8 +773,7 @@ class BaseProject(models.Model):
         if not self.is_normal():
             return False
         if self.is_free():
-            FreeRepository.objects.filter(
-                free_project=self.getProject()).delete()
+            FreeRepository.objects.filter(free_project=self.getProject())
         oldcreator = self.creator
         self.migrated_by = self.creator
         self.creator = newcreator
@@ -946,13 +945,13 @@ class BaseProject(models.Model):
         """Returns all current pending cocreator invitation instances of the project."""
         return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False)
 
-    def cancel_cocreator_invitation(self, profile):
+    def cancel_cocreator_invitation(self, profile) -> bool:
         """Cancels the pending cocreator invitation for the given profile, by deleting the invitation record."""
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False, receiver=profile).delete()[0] >= 1
 
-    def cancel_all_cocreator_invitations(self):
+    def cancel_all_cocreator_invitations(self) -> bool:
         """Cancels all pending cocreator invitations for the given project, by deleting the invitation records."""
-        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).delete()
+        return BaseProjectCoCreatorInvitation.objects.filter(base_project=self, resolved=False).delete()[0] >= 1
 
     def moveToArchive(self, archive_forward_link: str = None) -> bool:
         """Move the project to archive.
@@ -1058,8 +1057,7 @@ class BaseProjectCoCreatorInvitation(Invitation):
             return False
         if self.resolved:
             return False
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the invitation view, to be used by receiver via GET method."""
@@ -1313,9 +1311,9 @@ class Project(BaseProject):
         except:
             return None
 
-    def cancel_moderation_invitation(self):
+    def cancel_moderation_invitation(self) -> bool:
         """Cancels the pending moderatorship transfer invitation for the project (approved project) by deleting the invitation record"""
-        return ProjectModerationTransferInvitation.objects.filter(project=self).delete()
+        return ProjectModerationTransferInvitation.objects.filter(project=self).delete()[0] >= 1
 
     def transfer_moderation_to(self, newmoderator) -> bool:
         """Transfers the moderatorship to the new moderator for the project (approved project), primarily after moderatorship acceptence by new moderator.
@@ -1358,9 +1356,9 @@ class Project(BaseProject):
         """Returns True if the project is under pending deletion request"""
         return VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator(), resolved=False).exists()
 
-    def cancel_del_request(self):
+    def cancel_del_request(self) -> bool:
         """Cancels the pending deletion request for the project (approved project) by deleting the request record"""
-        return VerProjectDeletionRequest.objects.filter(project=self).delete()
+        return VerProjectDeletionRequest.objects.filter(project=self).delete()[0] >= 1
 
     def current_del_request(self) -> "VerProjectDeletionRequest":
         """Returns the current pending deletion request instance for the project (approved project)"""
@@ -1388,8 +1386,8 @@ class Project(BaseProject):
             self.creator.decreaseXP(by=2, reason="Verified project deleted")
             self.save()
             if self.moderation() and self.moderation().isPending():
-                self.moderation().delete()
-                self.delete()
+                if self.moderation().delete()[0] >= 1:
+                    return self.delete()[0] >= 1
         elif VerProjectDeletionRequest.objects.filter(project=self, sender=self.creator, receiver=self.moderator(), resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2, reason="Verified project deleted")
@@ -1528,8 +1526,7 @@ class FreeProject(BaseProject):
         if not self.can_delete():
             return False
         self.creator.decreaseXP(by=2, reason="Quick project deleted")
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def has_linked_repo(self) -> bool:
         """Returns True if the project has a linked repo"""
@@ -1583,8 +1580,7 @@ class FreeProject(BaseProject):
         req = self.current_verification_request()
         if req:
             if not req.verifiedproject.isApproved():
-                req.verifiedproject.delete()
-                return True
+                return req.verifiedproject.delete()[0] >= 1
         return False
 
     def current_verification_request(self) -> "FreeProjectVerificationRequest":
@@ -1623,10 +1619,9 @@ class FreeProject(BaseProject):
             fpvr.verifiedproject.prime_collaborators.set(
                 self.prime_collaborators.all())
             if self.is_submission():
-                self.moveToArchive(fpvr.verifiedproject.get_abs_link)
+                return self.moveToArchive(fpvr.verifiedproject.get_abs_link)
             else:
-                self.delete()
-            return True
+                return self.delete()[0] >= 1
         except:
             return False
 
@@ -1968,9 +1963,9 @@ class CoreProject(BaseProject):
         """Returns True if the project can invite a profile for moderatorship (approved project)."""
         return self.can_invite_mod() and self.can_invite_profile(profile)
 
-    def cancel_moderation_invitation(self):
+    def cancel_moderation_invitation(self) -> bool:
         """Cancels the pending moderatorship transfer invitation by deleting the instance."""
-        return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()
+        return CoreModerationTransferInvitation.objects.filter(coreproject=self).delete()[0] >= 1
 
     def transfer_moderation_to(self, newmoderator) -> bool:
         """Transfers the project moderatorship to the new moderator, if invitation has been accepted."""
@@ -2004,7 +1999,7 @@ class CoreProject(BaseProject):
 
     def under_del_request(self) -> bool:
         """Returns True if the project is under deletion request (approved project)"""
-        return CoreProjectDeletionRequest.objects.filter(coreproject=self, resolved=False).exists()
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self,sender=self.creator, receiver=self.moderator(), resolved=False).exists()
 
     def current_del_request(self) -> "CoreProjectDeletionRequest":
         """Returns the pending deletion request instance."""
@@ -2025,7 +2020,7 @@ class CoreProject(BaseProject):
 
     def cancel_del_request(self) -> bool:
         """Cancels the pending deletion request by deleting the instance."""
-        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()
+        return CoreProjectDeletionRequest.objects.filter(coreproject=self).delete()[0] >= 1
 
     def moveToTrash(self) -> bool:
         """Moves the project to trash, if deletion request has been accepted.
@@ -2036,8 +2031,8 @@ class CoreProject(BaseProject):
             self.creator.decreaseXP(by=2, reason="Core project deleted")
             self.save()
             if self.moderation() and self.moderation().isPending():
-                self.moderation().delete()
-                self.delete()
+                if self.moderation().delete()[0] >= 1:
+                    return self.delete()[0] >= 1
         elif CoreProjectDeletionRequest.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator(), resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2, reason="Core project deleted")
@@ -2055,8 +2050,7 @@ class CoreProject(BaseProject):
         req = self.current_verification_request()
         if req:
             if not req.verifiedproject.isApproved():
-                req.verifiedproject.delete()
-                return True
+                return req.verifiedproject.delete()[0] >= 1
         return False
 
     def current_verification_request(self) -> "CoreProjectVerificationRequest":
@@ -2094,8 +2088,7 @@ class CoreProject(BaseProject):
             cpvr.verifiedproject.prime_collaborators.set(
                 self.prime_collaborators.all())
             self.gh_repo().edit(private=False)
-            self.delete()
-            return True
+            return self.delete()[0] >= 1
         except:
             return False
 
@@ -2607,8 +2600,7 @@ class VerProjectDeletionRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
 
 class CoreProjectDeletionRequest(Invitation):
@@ -2654,8 +2646,7 @@ class CoreProjectDeletionRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
 
 class FreeProjectVerificationRequest(Invitation):
@@ -2686,8 +2677,7 @@ class FreeProjectVerificationRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the moderation view (the effective request view), used by receiver(moderator) via GET method"""
@@ -2701,10 +2691,10 @@ class FreeProjectVerificationRequest(Invitation):
 
 class CoreProjectVerificationRequest(Invitation):
     """Model for core project verification request record"""
-    coreproject = models.OneToOneField(
+    coreproject:CoreProject = models.OneToOneField(
         CoreProject, on_delete=models.CASCADE, related_name='core_under_verification_coreproject')
     """coreproject (OneToOneField<CoreProject>): The core project that is under verification"""
-    verifiedproject = models.OneToOneField(
+    verifiedproject:Project = models.OneToOneField(
         Project, on_delete=models.CASCADE, related_name='core_under_verification_verifiedproject')
     """verifiedproject (OneToOneField<Project>): The verified project that the core project is being converted to"""
     from_free = False
@@ -2727,8 +2717,7 @@ class CoreProjectVerificationRequest(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation by deleting the invitation record"""
-        self.delete()
-        return True
+        return self.delete()[0] >= 1
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the moderation view (the effective request view), used by receiver(moderator) via GET method"""

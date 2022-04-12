@@ -94,6 +94,7 @@ class CompetitionAttributeTest(TestCase):
         Profile.KNOTBOT()
         return super().setUp()
 
+    @tag("defcompmeth")
     def test_default_comp_methods(self):
         self.assertTrue(competeBannerPath(
             self.comp, getCompBanner()).__contains__(self.comp.getID()))
@@ -117,7 +118,7 @@ class CompetitionAttributeTest(TestCase):
         self.assertFalse(self.comp.isJudge(profile=None))
         self.assertCountEqual(self.comp.getJudges(), [])
         self.assertEqual(self.comp.totalJudges(), 0)
-        self.assertEqual(self.comp.getJudgementLink(), self.comp.getLink())
+        self.assertEqual(self.comp.getJudgementLink(), self.comp.getLink(error=Message.INVALID_REQUEST))
         self.assertFalse(self.comp.isParticipant(profile=None))
         self.assertEqual(self.comp.getMaxScore(), 0)
         self.assertCountEqual(self.comp.getSubmissions(), [])

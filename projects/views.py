@@ -655,7 +655,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 if subproject.cancel_del_request():
                     return respondJson(Code.OK)
                 return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            else: raise ValidationError(action)
         else:
             moved = project.getProject().moveToTrash()
             if moved and json_body:

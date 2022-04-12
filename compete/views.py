@@ -1,12 +1,12 @@
 from os import path as os_path
 from uuid import UUID
 
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q, Sum
-from allauth.account.models import EmailAddress
 from django.http.response import (Http404, HttpResponse,
                                   HttpResponseServerError, JsonResponse)
 from django.shortcuts import redirect
@@ -602,15 +602,26 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
 
         for sub in subs:
             subID = str(sub['subID']).strip()
-            map(lambda top: modifiedTops[str(top['topicID']).strip()].append(
-                {subID: int(top['points'])}),
-                sub['topics']
-                )
+            for top in sub['topics']:
+                modifiedTops[str(top['topicID']).strip()].append(
+                    {subID: int(top['points'])})
 
         """
         The structure of modifiedTops is:
         {
             '<topicID>': [
+                {
+                    '<subID>': <points>
+                },
+                {
+                    '<subID>': <points>
+                },
+                ...
+            ],
+            '<topicID>': [
+                {
+                    '<subID>': <points>
+                },
                 {
                     '<subID>': <points>
                 },

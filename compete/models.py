@@ -429,7 +429,7 @@ class Competition(models.Model):
             list<Perk>: The perks of this competition.
         """
         perks = Perk.objects.filter(competition=self).order_by('rank')
-        if len(perks) < 1:
+        if len(perks) < 1 and self.perks:
             perks = list(filter(lambda p: p, self.perks.split(';')))
         return perks
 
@@ -512,7 +512,7 @@ class Competition(models.Model):
         Returns:
             bool: Whether the profile is the judge of this competition.
         """
-        return self.judges.filter(id=profile.id).exists()
+        return self.judges.count() and self.judges.filter(user=profile.user).exists()
 
     def getJudges(self) -> list:
         """Get the list of Profile instances of judges of this competition.
