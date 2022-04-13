@@ -53,18 +53,18 @@ const loadBrowsers = () => {
     Promise.all(
         getElements("browser-view").map(async (view) => {
             browseList = browseList.filter(
-                (t) => t != view.getAttribute("data-type") && t != BROWSE.PROJECT_SNAPSHOTS
+                (t) =>
+                    t != view.getAttribute("data-type") &&
+                    t != BROWSE.PROJECT_SNAPSHOTS
             );
             browseIndex++;
             let method = async () => {
-                let browsekey = view.getAttribute("data-type") || browseList[browseIndex];
-                if(!browsekey) return;
+                let browsekey =
+                    view.getAttribute("data-type") || browseList[browseIndex];
+                if (!browsekey) return;
                 setHtmlContent(view, loaderHTML(`${view.id}-loader`));
                 const data = await getRequest2({
-                    path: setUrlParams(
-                        URLS.BROWSER,
-                        browsekey
-                    ),
+                    path: setUrlParams(URLS.BROWSER, browsekey),
                     silent: true,
                 });
                 if (browseIndex >= browseList.length) {
@@ -88,6 +88,14 @@ const loadBrowsers = () => {
                 loadBrowserSwiper();
                 getElements("browse-admire-project-action").forEach((act) => {
                     act.onclick = async (_) => {
+                        if (!AUTHENTICATED) {
+                            return refer({
+                                path: URLS.Auth.LOGIN,
+                                query: {
+                                    next: window.location.pathname,
+                                },
+                            });
+                        }
                         const pid = act.getAttribute("data-projectID");
                         const admire = act.getAttribute("data-admires") == "0";
                         const data = await postRequest2({
@@ -110,12 +118,50 @@ const loadBrowsers = () => {
                 });
                 getElements("browse-admire-profile-action").forEach((act) => {
                     act.onclick = async (_) => {
+                        if (!AUTHENTICATED) {
+                            return refer({
+                                path: URLS.Auth.LOGIN,
+                                query: {
+                                    next: window.location.pathname,
+                                },
+                            });
+                        }
                         const uid = act.getAttribute("data-userID");
                         const admire = act.getAttribute("data-admires") == "0";
                         const data = await postRequest2({
                             path: setUrlParams(
                                 URLS.People.TOGGLE_ADMIRATION,
                                 uid
+                            ),
+                            data: {
+                                admire,
+                            },
+                            retainCache: true,
+                        });
+                        if (data.code !== code.OK) {
+                            return error(data.error);
+                        }
+                        act.setAttribute("data-admires", admire ? 1 : 0);
+                        act.classList[admire ? "add" : "remove"]("positive");
+                        act.classList[admire ? "remove" : "add"]("primary");
+                    };
+                });
+                getElements("browse-admire-compete-action").forEach((act) => {
+                    act.onclick = async (_) => {
+                        if (!AUTHENTICATED) {
+                            return refer({
+                                path: URLS.Auth.LOGIN,
+                                query: {
+                                    next: window.location.pathname,
+                                },
+                            });
+                        }
+                        const cid = act.getAttribute("data-compID");
+                        const admire = act.getAttribute("data-admires") == "0";
+                        const data = await postRequest2({
+                            path: setUrlParams(
+                                URLS.Compete.TOGGLE_ADMIRATION,
+                                cid
                             ),
                             data: {
                                 admire,

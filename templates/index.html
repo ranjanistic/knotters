@@ -132,6 +132,7 @@
             <span class="w3-right w3-animate-right nav-tabs-span">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
+                <a href="{{URLS.SEARCH}}"><button aria-label="Search" class="primary border-joy" data-icon="search"></button></a>
                 {% block nav_links %}
                     {% block nav_noauth %}
                         {% block nav_noauth_competes %}<a href="{{URLS.COMPETE}}"><button aria-label="Competitions" title="Competitions" class="active" data-icon="psychology"><span class="w3-hide-small w3-hide-medium">{% trans "Competitions" %}</span></button></a>{% endblock %}
@@ -152,13 +153,13 @@
                     {% block nav_auth %}
                         {% if request.user.is_authenticated %}
                             {% block nav_auth_links %}{% endblock %}
-                            {% block nav_auth_user %}<a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.getName}}" class="{{request.user.profile.theme}}"><img src="{{request.user.profile.getDP}}" alt="{{request.user.getName}}" id="navbarprofilepic" /></button></a>{% endblock %}
+                            {% block nav_auth_user %}<a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.getName}}" class="{{request.user.profile.theme}}"><img src="{{request.user.profile.getDP}}" class="circle" alt="{{request.user.getName}}" /></button></a>{% endblock %}
                         {% else %}
                             {% block nav_auth_login %}
-                            <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent"><i class="material-icons">login</i><span class="w3-hide-small w3-hide-medium">{% trans "Login" %}</span></button></a>
+                            <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="secondary accent-text"><i class="material-icons">login</i><span class="w3-hide-small w3-hide-medium">{% trans "Login" %}</span></button></a>
                             {% endblock %}
                             {% block nav_auth_signup %}
-                            <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="secondary secondary accent-text"><i class="material-icons">person_add</i><span class="w3-hide-small w3-hide-medium">{% trans "Join" %}</span></button></a>
+                            <a href="{% url 'account_signup' %}?next={{request.path}}"><button title="Signup" class="border-joy primary"><i class="material-icons">person_add</i><span class="w3-hide-small w3-hide-medium">{% trans "Join" %}</span></button></a>
                             {% endblock %}
                         {% endif %}
                         {% block nav_noauth_donate %}
@@ -201,7 +202,7 @@
                             <div class="w3-col w3-half">
                             {% for topic in competition.getTopics %}
                             <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                <button class="small positive">{{topic.name}}</button>
+                                <button class="w3-tiny secondary active-text">{{topic.name}}</button>
                             </a>
                             {% endfor %}
                             </div>
@@ -240,7 +241,7 @@
                             <br/><br/>
                             <div class='w3-row'>
                                 {% if not request.user.is_authenticated %}
-                                 <a href="{% url 'account_signup' %}?next={{request.path}}"><button class='big-button secondary accent-text' data-icon='person_add'>{% trans "Join" %} {{APPNAME}}</button></a>
+                                 <a href="{% url 'account_signup' %}?next={{request.path}}"><button class='big-button border-joy primary' data-icon='person_add'>{% trans "Join" %} {{APPNAME}}</button></a>
                                 {% else %}
                                  <a href='{{URLS.ROOT}}'><button class='big-button accent' data-icon='arrow_back'>{% trans "Browse everything" %}</button></a>
                                 {% endif %}
@@ -456,7 +457,7 @@
                             <div class='w3-row'>
                             {% for topic in topics %}
                             {% random_int as t %}
-                            <button class="big-button positive message-action" data-message="+{{t}} in {{topic}}. These are dummy values for representational purpose.">+{{t}} {{topic}}</button>
+                            <button class="big-button border-joy primary message-action" data-message="+{{t}} in {{topic}}. These are dummy values for representational purpose.">+{{t}} {{topic}}</button>
                             {% endfor %}
                             </div>
                             <br/>
@@ -515,7 +516,7 @@
                 <div class="w3-row w3-padding-large w3-center">
                         <br/>
                     {% if not request.user.is_authenticated %}
-                        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="w3-margin big-button secondary accent-text" data-icon="person_add">Join {{APPNAME}}</button></a>
+                        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="w3-margin big-button border-joy primary" data-icon="person_add">Join {{APPNAME}}</button></a>
                     {% else %}
                     <a href='{{URLS.ROOT}}'><button class='big-button accent' data-icon='arrow_back'>{% trans "Browse everything" %}</button></a>
                     {% endif %}

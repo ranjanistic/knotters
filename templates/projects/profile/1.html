@@ -449,7 +449,7 @@
                 <input type='file' hidden id='snap-file' accept="image/png, image/jpg, image/jpeg" />
                 <form action="{{URLS.SNAPSHOT|params:project.get_id|params:'create'}}" method="POST">
                     {% csrf_token %}
-                    <textarea class="wide snapshot-input" name='snaptext' rows="3" placeholder="Status report, or anything."></textarea>
+                    <textarea class="wide snapshot-input" name='snaptext' rows="3" placeholder="Status report, or anything. Use @nickname for people, $nickname for projects, *topic for topics and #tag for tags."></textarea>
                     <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
                     <img width='100%' id='snapimageview' hidden class="snapshot-image preview-type-image" />
                     <div class="dead-text" id='add-image-view'>

@@ -139,7 +139,7 @@ python3 genversion.py
 Use the above anytime if you want to have control over client side service worker updates. The above cmdlet will update a version tag on every execution, which is linked directly with the service worker, forcing it to emit an update via web browser.
 
 ```bash
-python3 manage.py makemessages --extension=html,js.txt
+python3 manage.py makemessages --extension=html,js
 ```
 
 To generate `.po` files for translation at locale destination specified in your [`main/.env`](main/.env) file as `LOCALE_ABS_PATH`.

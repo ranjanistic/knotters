@@ -8,7 +8,7 @@
     <center>
         <h3>{% trans "Topics of this competition" %}</h3>
         {% for topic in compete.getTopics %}
-        <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="positive" >{{topic.name}}</button></a>
+        <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="big-button secondary active-text" >{{topic.name}}</button></a>
         {% endfor %}
         <br/>
         <br/>
@@ -18,7 +18,7 @@
     <center><h4>{% trans "Rank prizes" %}<a href="#notice">*</a></h4></center>
     {% for perk in compete.getPerks %}
     <div class="w3-col w3-third w3-padding-small w3-center">
-        <div class="pallete accent">
+        <div class="pallete active">
             <i class="w3-jumbo ">
             {% if forloop.counter == 1%}emoji_events{% elif forloop.counter == 2%}military_tech{% elif forloop.counter == 3%}celebration{% else %}card_giftcard{% endif %}
             </i>
@@ -28,7 +28,7 @@
     </div>
     {% endfor %}
     <div class="w3-col w3-third w3-padding-small w3-center">
-            <div class="pallete accent">
+            <div class="pallete active">
                 <i class="w3-jumbo ">
                   card_giftcard
                 </i>

@@ -526,3 +526,41 @@ initializeTabsView({
     onShowTab: (tab) => loadTabScript(tab.getAttribute("data-id"), tab),
     tabindex,
 });
+
+const toggleAdmiration = getElement("toggle-admiration");
+toggleAdmiration.onclick = async () => {
+    if (!AUTHENTICATED) {
+        return refer({
+            path: URLS.Auth.LOGIN,
+            query: { next: window.location.pathname, admire: 1 },
+        });
+    }
+    const admire = toggleAdmiration.getAttribute("data-admires") == "0";
+    const data = await postRequest2({
+        path: setUrlParams(URLS.TOGGLE_ADMIRATION, compID),
+        data: {
+            admire,
+        },
+        retainCache: true,
+    });
+    if (data.code !== code.OK) {
+        return error(data.error);
+    }
+    if (admire) {
+        firstTimeMessage(STRING.compete_admire_success);
+    }
+    toggleAdmiration.setAttribute("data-admires", admire ? 1 : 0);
+    toggleAdmiration.classList[admire ? "add" : "remove"]("positive");
+    toggleAdmiration.classList[admire ? "remove" : "add"]("primary");
+    getElement(`comp-admirecount`).innerHTML =
+        Number(getElement(`comp-admirecount`).innerHTML) + (admire ? 1 : -1);
+};
+
+getElement("show-admirations").onclick = async (_) => {
+    Swal.fire({
+        html: await getRequest2({
+            path: setUrlParams(URLS.ADMIRATIONS, compID),
+        }),
+        title: "<h4 class='positive-text'>Admirers</h4>",
+    });
+};

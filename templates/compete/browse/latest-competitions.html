@@ -33,13 +33,25 @@
                                     <div class="w3-col w3-half">
                                     {% for topic in competition.getPalleteTopics %}
                                     <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                        <button class="w3-tiny positive">{{topic.name}}</button>
+                                        <button class="w3-tiny secondary active-text">{{topic.name}}</button>
                                     </a>
                                     {% endfor %}
                                     </div>
                                     <div class="w3-col w3-half">
                                         <strong>{{competition.startAt}} till {{competition.endAt}}</strong>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="w3-col l5 m6 s12 w3-padding-small" align='right'>
+                                <div class="w3-row">
+                                    <button class="navigator-share-action active small" data-icon="share" data-title="{{competition.title}}" data-text="Checkout {{competition.title}} competition at {{APPNAME}}!" data-url="{{competition.get_link}}"></button>
+                                    {% if not request.user.is_authenticated %}
+                                    <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{competition.get_link|getquery:'admire=1'}}">
+                                    <button data-compID="{{competition.get_id}}" class="small primary w3-right" data-icon="volunteer_activism"></button>
+                                    </a>
+                                    {% else %}
+                                    <button data-compID="{{competition.get_id}}" data-admires="{{ competition.get_admirers|inlist:request.user.profile|onezero }}" class="small {{ request.user.is_authenticated|onezero:"browse-admire-compete-action|" }} {{ competition.get_admirers|inlist:request.user.profile|onezero:"positive|primary" }} w3-right" data-icon="volunteer_activism"></button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -80,7 +92,7 @@
                                     <div class="w3-col w3-half">
                                     {% for topic in competition.getPalleteTopics %}
                                     <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                        <button class="w3-tiny positive">{{topic.name}}</button>
+                                        <button class="w3-tiny secondary active-text">{{topic.name}}</button>
                                     </a>
                                     {% endfor %}
                                     </div>
@@ -88,6 +100,18 @@
                                         <br/>
                                         <strong>{{competition.startAt}} till {{competition.endAt}}</strong>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="w3-col l5 m6 s12 w3-padding-small" align='right'>
+                                <div class="w3-row">
+                                    <button class="navigator-share-action active small" data-icon="share" data-title="{{competition.title}}" data-text="Checkout {{competition.title}} competition at {{APPNAME}}!" data-url="{{competition.get_link}}"></button>
+                                    {% if not request.user.is_authenticated %}
+                                    <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{competition.get_link|getquery:'admire=1'}}">
+                                    <button data-compID="{{competition.get_id}}" class="small primary w3-right" data-icon="volunteer_activism"></button>
+                                    </a>
+                                    {% else %}
+                                    <button data-compID="{{competition.get_id}}" data-admires="{{ competition.get_admirers|inlist:request.user.profile|onezero }}" class="small {{ request.user.is_authenticated|onezero:"browse-admire-compete-action|" }} {{ competition.get_admirers|inlist:request.user.profile|onezero:"positive|primary" }} w3-right" data-icon="volunteer_activism"></button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

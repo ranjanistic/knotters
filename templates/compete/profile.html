@@ -69,7 +69,9 @@
         <strong>{{compete.shortdescription}}
         </strong>
         <br/><br/>
-        <button class="small navigator-share-action active" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}">{% trans "Share" %}</button>
+        <button class="navigator-share-action active" data-icon="share" data-title="{{compete.title}}" data-text="Checkout {{compete.title}} competition at {{APPNAME}}!" data-url="{{compete.getLink}}"></button>
+        <button class="{{ is_admirer|onezero:"positive|primary" }}" data-admires="{{ is_admirer|onezero }}" id="toggle-admiration" data-icon="volunteer_activism"></button>
+        <a href="#0" id="show-admirations"><strong><span id="comp-admirecount">{{compete.total_admirers}}</span> admirer{{compete.total_admirers|pluralize}}</strong></a>
         </div>
         {% if compete.associate %}
         <div class="w3-col w3-half w3-center dead-text w3-padding">

@@ -9,7 +9,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q, Sum
 from django.http.response import (Http404, HttpResponse,
                                   HttpResponseServerError, JsonResponse)
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_GET, require_POST
@@ -1222,3 +1222,94 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         pass
     raise Http404(e)
+
+
+@normal_profile_required
+@require_POST
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+def toggleAdmiration(request: WSGIRequest, compID: UUID) -> JsonResponse:
+    """To toggle competition admiration
+
+    Args:
+        request (WSGIRequest): The request object
+        copmID (UUID): The competition's ID
+
+    Raises:
+        Http404: If request is invalid
+
+    Returns:
+        HttpResponseRedirect: Redirect to the copmetition page with relvent message
+        JsonResponse: The response json object with main.strings.Code.OK, or main.strings.Code.NO
+    """
+    compete = None
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        compete: Competition = Competition.objects.get(
+            id=compID, is_draft=False)
+        admire = request.POST['admire']
+        if admire in ["true", True]:
+            compete.admirers.add(request.user.profile)
+        elif admire in ["false", False]:
+            compete.admirers.remove(request.user.profile)
+        if json_body:
+            return respondJson(Code.OK)
+        return redirect(compete.get_link)
+    except (ObjectDoesNotExist, KeyError, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if compete:
+            return redirect(compete.getLink(error=Message.INVALID_REQUEST))
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if compete:
+            return redirect(compete.getLink(error=Message.ERROR_OCCURRED))
+        raise Http404(e)
+
+
+@ratelimit(key='user_or_ip', rate='1/s', block=True)
+@decode_JSON
+def competeAdmirations(request: WSGIRequest, compID: UUID) -> HttpResponse:
+    """To view a competition's admirers list
+
+    Args:
+        request (WSGIRequest): The request object
+        userID (UUID): The competition's ID
+
+    Raises:
+        Http404: If request is invalid
+
+    Returns:
+        HttpResponse: The response text/html of admirers list view
+        JsonResponse: The response json object with main.strings.Code.OK and list of admirers, or main.strings.Code.NO
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        compete: Competition = Competition.objects.get(
+            id=compID, is_draft=False)
+        admirers: list = compete.admirers.filter(
+            suspended=False, is_active=True, to_be_zombie=False)
+        if request.user.is_authenticated:
+            admirers: list = request.user.profile.filterBlockedProfiles(
+                admirers)
+        if json_body:
+            jadmirers = list(map(lambda adm: dict(
+                id=adm.get_userid,
+                name=adm.get_name,
+                dp=adm.get_dp,
+                url=adm.get_link,
+            ), admirers))
+            return respondJson(Code.OK, dict(admirers=jadmirers))
+        return render(request, Template().admirers, dict(admirers=admirers))
+    except (ObjectDoesNotExist, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)

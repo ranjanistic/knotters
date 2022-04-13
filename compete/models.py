@@ -245,6 +245,8 @@ class Competition(models.Model):
     """qualifier (ForeignKey<Competition>): The qualifier competition"""
     qualifier_rank: int = models.IntegerField(default=0)
     """qualifier_rank (IntegerField): The maximum required rank from the qualifier competition"""
+    admirers = models.ManyToManyField(
+        Profile, through="CompetitionAdmirer", related_name='competition_admirers', default=[])
 
     def __str__(self) -> str:
         return self.title
@@ -312,6 +314,7 @@ class Competition(models.Model):
 
     @property
     def get_link(self) -> str:
+        """Get the competition public profile link."""
         return self.getLink()
 
     @property
@@ -330,7 +333,33 @@ class Competition(models.Model):
         class CKEYS():
             result_declaration_task = f"results_declaration_task_{self.get_id}"
             certificates_allotment_task = f"certificates_allotment_task_{self.get_id}"
+            total_admirations = f'{self.get_id}_compete_total_admiration'
+            compete_admirers = f'{self.get_id}_compete_admirers'
         return CKEYS()
+
+    def get_cache_one(*args, nickname: str = None, compID: UUID = None, throw: bool = False) -> "Competition":
+        cacheKey = f"{APPNAME}_competition_profile"
+        if nickname:
+            cacheKey = f"{cacheKey}_{nickname}"
+        else:
+            cacheKey = f"{cacheKey}_{compID}"
+        compete: Competition = cache.get(cacheKey, None)
+        if not compete:
+            if throw:
+                if nickname:
+                    compete: Competition = Competition.objects.get(
+                        nickname=nickname)
+                else:
+                    compete: Competition = Competition.objects.get(id=compID)
+            else:
+                if nickname:
+                    compete: Competition = Competition.objects.filter(
+                        nickname=nickname).first()
+                else:
+                    compete: Competition = Competition.objects.filter(
+                        id=compID).first()
+            cache.set(cacheKey, compete, settings.CACHE_SHORT)
+        return compete
 
     def participationLink(self) -> str:
         """Get the participation link. To be used by participants for participating, via POST method.
@@ -432,6 +461,26 @@ class Competition(models.Model):
         if len(perks) < 1 and self.perks:
             perks = list(filter(lambda p: p, self.perks.split(';')))
         return perks
+
+    def total_admirers(self) -> int:
+        """Returns the total number of admirers of this competition
+        """
+        cacheKey = self.CACHE_KEYS.total_admirations
+        count = cache.get(cacheKey, None)
+        if not count:
+            count = self.admirers.count()
+            cache.set(cacheKey, count, settings.CACHE_INSTANT)
+        return count
+
+    def get_admirers(self) -> models.QuerySet:
+        """Returns the admirers of this competition.
+        """
+        cacheKey = self.CACHE_KEYS.compete_admirers
+        admirers = cache.get(cacheKey, [])
+        if not len(admirers):
+            admirers = self.admirers.all()
+            cache.set(cacheKey, admirers, settings.CACHE_INSTANT)
+        return admirers
 
     def totalTopics(self) -> int:
         """Get the total number of topics in this competition.
@@ -1577,3 +1626,15 @@ class SubmissionTeamInvitation(Invitation):
 
     class Meta:
         unique_together = ('sender', 'receiver', 'submission')
+
+
+class CompetitionAdmirer(models.Model):
+    """The model relation between a competition and an admirer"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    compete: Competition = models.ForeignKey(
+        Competition, on_delete=models.CASCADE, related_name='compete_admirer_competition')
+    admirer: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='compete_admirer_profile')
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)

@@ -149,22 +149,7 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         dict: The context data to render a profile page.
     """
     try:
-        cacheKey = f"{APPNAME}_profiledata"
-        if userID:
-            cacheKey = f"{cacheKey}_{userID}"
-            profile: Profile = cache.get(cacheKey, None)
-            if not profile:
-                profile: Profile = Profile.objects.get(
-                    user__id=userID, to_be_zombie=False, is_active=True)
-                cache.set(cacheKey, profile, settings.CACHE_INSTANT)
-        else:
-            cacheKey = f"{cacheKey}_{nickname}"
-            profile: Profile = cache.get(cacheKey, None)
-            if not profile:
-                profile: Profile = Profile.objects.get(
-                    nickname=nickname, to_be_zombie=False, is_active=True)
-                cache.set(cacheKey, profile, settings.CACHE_INSTANT)
-
+        profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=True)
         authenticated = request.user.is_authenticated
         self: bool = authenticated and request.user.profile == profile
         is_admirer = False

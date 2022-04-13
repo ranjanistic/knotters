@@ -43,7 +43,7 @@
     <a href="{{ URLS.AUTH }}"><button class="primary" id="new-settings-action"><i class="">settings</i><span class="w3-hide-small">{% trans "Settings" %}</span></button></a>
     <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">{% trans "Logout" %}</span></button></a>
   {% elif not self and request.user.is_authenticated %}
-    <a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.profile.getName}}" class="{{request.user.profile.theme}}"><img src="{{request.user.profile.getDP}}" id="navbarprofilepic" /></button></a>
+    <a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}"><button title="Logged in as {{request.user.profile.getName}}" class="{{request.user.profile.theme}}"><img src="{{request.user.profile.getDP}}" class="circle" /></button></a>
   {% else %}
       {% block nav_auth_login %}
       <a href="{% url 'account_login' %}?next={{request.path}}"><button title="Login" class="accent" data-icon="login"><span class="w3-hide-small">{% trans "Login" %}</span></button></a>

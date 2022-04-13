@@ -11,6 +11,8 @@ urlpatterns = [
     # profile
     path(URL.Compete.COMPETETABSECTION, competitionTab),
     path(URL.Compete.COMPID, competition),
+    path(URL.Compete.TOGGLE_ADMIRATION, toggleAdmiration),
+    path(URL.Compete.ADMIRATIONS, competeAdmirations),
     path(URL.Compete.PARTICIPATE, createSubmission),
     path(URL.Compete.REMOVEMEMBER, removeMember),
     path(URL.Compete.DATA, data),

@@ -52,14 +52,14 @@
       {% trans "Got it!" %}
     </button>
     {% if not request.user.is_authenticated %}
-    <a href="{{URLS.Auth.SIGNUP}}">
-    <button class='big-button positive' data-icon='person_add'>
+    <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}">
+    <button class='big-button border-joy primary' data-icon='person_add'>
       {% trans "Join" %} {{APPNAME}}
     </button>
     </a>
-    {% elif not request.user.profile.on_boarded %}
+    {% elif request.user.profile.on_boarded %}
     <a href="{{URLS.ON_BOARDING}}">
-    <button class='big-button positive' data-icon='arrow_forward'>
+    <button class='big-button border-joy primary' data-icon='arrow_forward'>
       {% trans "Get started" %}
     </button>
     </a>
@@ -80,7 +80,7 @@
     <div class="w3-col w3-quarter w3-padding-small"></div>
     <form class="no-auto" id="search-people-form">
      <div class="w3-col w3-half w3-center w3-padding-small">
-      <input class="wide primary" type="search" inputmode="search" placeholder="{% trans "Search community as type:mentor, topic:creativity, or anything" %}." id="browse-search-input" />
+      <input class="wide primary bold border-accent" type="search" inputmode="search" placeholder="{% trans "Search community as type:mentor, topic:creativity, or anything" %}." id="browse-search-input" />
      </div>
      <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
       <button type="button" class="negative w3-right browse-search-profiles" data-icon="close" id="browse-search-clear"></button>
@@ -115,6 +115,7 @@
                 <br/>
                 <strong class='text-medium'>{% blocktrans %}Community frameshots, a tutorialist way to help everyone grow on {{APPNAME}}.{% endblocktrans %}</strong>
             </div>
+            <br/>
             <button class='big-button primary' id='close-community-framework-banner' data-icon='pending'>{% trans "Coming soon" %}</button>
             <br/><br/>
         </div>

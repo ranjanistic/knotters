@@ -9,7 +9,7 @@
     <br/>
     <div class="w3-row w3-padding">
         <a href="{{snap.creator.getLink}}" title="{{snap.creator.getName}}"><img alt="{{snap.creator.getName}}" class="w3-right w3-circle" src="{{snap.creator.getDP}}" width="50" /></a>
-        <span class="text-tertiary text-medium " style="overflow-wrap: break-word;">{{snap.text|truncatechars:950|urlize}}</span><br/>
+        <span class="text-tertiary text-medium " style="overflow-wrap: break-word;">{{snap.text|truncatechars:950|urlize|linktags|urlize_blank|linebreaksbr}}</span><br/>
         <span class='dead-text'>{{snap.created_on}}</span><a href="{{snap.getLink}}" target="_blank"><i class="material-icons w3-small">open_in_new</i></a>
     </div>
     <br/>
@@ -25,11 +25,10 @@
         <div class="w3-col l8 m8 s8 w3-center">
             <div class="w3-col l4 m4 s4" >
                 <button
-                    {% if request.user.is_authenticated and request.user.profile in snap.admirers.all %}
-                    data-admires="1"
-                    class="positive snapshot-admire-action"
+                    {% if request.user.is_authenticated %}
+                    data-admires="{{snap.get_admirers|inlist:request.user.profile|onezero }}"
+                    class="{{snap.get_admirers|inlist:request.user.profile|onezero:"positive|primary" }} snapshot-admire-action"
                     {% else %}
-                    data-admires="0"
                     class="primary snapshot-admire-action"
                     {% endif %}
                     data-snapid="{{snap.get_id}}"

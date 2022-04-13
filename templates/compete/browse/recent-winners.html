@@ -32,10 +32,10 @@
                             {% if request.user.profile != profile %}
                                 {% if not request.user.is_authenticated %}
                                 <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{profile.get_link|getquery:'admire=1'}}">
-                                {% endif %}
-                                <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
-                                {% if not request.user.is_authenticated %}
+                                <button data-userID="{{profile.get_userid}}" class="small primary w3-right" data-icon="volunteer_activism"></button>
                                 </a>
+                                {% else %}
+                                <button data-userID="{{profile.get_userid}}" data-admires="{{ profile.get_admirers|inlist:request.user.profile|onezero }}" class="small {{ request.user.is_authenticated|onezero:"browse-admire-profile-action|" }} {{ profile.get_admirers|inlist:request.user.profile|onezero:"positive|primary" }} w3-right" data-icon="volunteer_activism"></button>
                                 {% endif %}
                             {% endif %}
                             </div>
@@ -69,10 +69,10 @@
                             {% if request.user.profile != profile %}
                                 {% if not request.user.is_authenticated %}
                                 <a class="w3-right" href="{{URLS.Auth.LOGIN}}?next={{profile.get_link|getquery:'admire=1'}}">
-                                {% endif %}
-                                <button data-userID="{{profile.get_userid}}" data-admires="{% if request.user.profile in profile.admirers.all %}1{% else %}0{% endif %}" class="small {% if request.user.is_authenticated %}browse-admire-profile-action{% endif %} {% if request.user.profile in profile.admirers.all %}positive{% else %}primary{% endif %} w3-right" data-icon="volunteer_activism"></button>
-                                {% if not request.user.is_authenticated %}
+                                <button data-userID="{{profile.get_userid}}" class="small primary w3-right" data-icon="volunteer_activism"></button>
                                 </a>
+                                {% else %}
+                                <button data-userID="{{profile.get_userid}}" data-admires="{{ profile.get_admirers|inlist:request.user.profile|onezero }}" class="small {{ request.user.is_authenticated|onezero:"browse-admire-profile-action|" }} {{ profile.get_admirers|inlist:request.user.profile|onezero:"positive|primary" }} w3-right" data-icon="volunteer_activism"></button>
                                 {% endif %}
                             {% endif %}
                             </div>

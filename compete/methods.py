@@ -122,36 +122,22 @@ def competitionProfileData(request: WSGIRequest, compID: UUID = None, nickname: 
         dict: The competition profile data.
     """
     try:
-        cacheKey = f"{APPNAME}_competition_profile"
-        if nickname:
-            cacheKey = f"{cacheKey}_{nickname}"
-            compete = cache.get(cacheKey, None)
-            if not compete:
-                compete = Competition.objects.get(nickname=nickname)
-                cache.set(cacheKey, compete, settings.CACHE_MICRO)
-        else:
-            cacheKey = f"{cacheKey}_{compID}"
-            compete = cache.get(cacheKey, None)
-            if not compete:
-                compete = Competition.objects.get(id=compID)
-                cache.set(cacheKey, compete, settings.CACHE_MICRO)
-
+        compete:Competition = Competition.get_cache_one(nickname=nickname, compID=compID, throw=True)
         isManager = request.user.is_authenticated and compete.creator == request.user.profile
         if compete.is_draft and not isManager:
             raise ObjectDoesNotExist('isdraft: ', compete)
 
-        if request.user.is_authenticated:
-            data = dict(
-                compete=compete,
-                isJudge=compete.isJudge(request.user.profile),
-                isMod=compete.isModerator(request.user.profile),
-                isManager=isManager
-            )
-        else:
-            data = dict(
-                compete=compete
-            )
-        return data
+        isJudge = request.user.is_authenticated and compete.isJudge(
+            request.user.profile)
+        isMod = request.user.is_authenticated and compete.isModerator(request.user.profile)
+        is_admirer = request.user.is_authenticated and compete.admirers.filter(user=request.user).exists()
+        return dict(
+            compete=compete,
+            isManager=isManager,
+            isJudge=isJudge,
+            isMod=isMod,
+            is_admirer=is_admirer,
+        )
     except ObjectDoesNotExist:
         return False
     except Exception as e:

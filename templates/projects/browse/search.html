@@ -25,7 +25,7 @@
                         <div class="w3-col m10 l10 s10 w3-left">
                         {% for topic in project.getPalleteTopics %}
                         <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=topic:"}}{{topic}}">
-                            <button class="w3-tiny {{project.theme}} {{project.text_theme}}">{{topic.name}}</button>
+                            <button class="w3-tiny secondary {{project.theme_text}}">{{topic.name}}</button>
                         </a>
                         {% empty %}
                             {% for tag in project.getPalleteTags %}
@@ -66,7 +66,7 @@
                         <div class="w3-col m10 l10 s10 w3-left">
                         {% for topic in project.getPalleteTopics %}
                         <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=topic:"}}{{topic}}">
-                            <button class="w3-tiny {{project.theme}} {{project.text_theme}}">{{topic.name}}</button>
+                            <button class="w3-tiny secondary {{project.theme_text}}">{{topic.name}}</button>
                         </a>
                         {% empty %}
                             {% for tag in project.getPalleteTags %}

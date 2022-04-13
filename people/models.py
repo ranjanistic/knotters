@@ -503,10 +503,13 @@ class Profile(models.Model):
             gh_user_data = f"gh_user_data_{self.id}"
             gh_user_ghorgs = f"gh_user_ghorgs_{self.id}"
             total_admirations = f'{self.id}_profile_total_admiration'
+            profile_admirers = f'{self.id}_profile_admirers'
             profile_socialsites = f"profile_socialsites_{self.id}"
             socialaccount_gh = f"socialaccount_gh_{self.get_userid}"
             pallete_topics = f"pallete_topics_{self.get_userid}"
         return CKEYS()
+
+    MODEL_CACHE_KEY = f"{APPNAME}_profiledata"
 
     def save(self, *args, **kwargs):
         try:
@@ -569,16 +572,69 @@ class Profile(models.Model):
             self.save()
         return self.nickname
 
-    def total_admiration(self) -> int:
+    def get_cache_one(*args, nickname=None, userID=None, throw=False) -> "Profile":
+        """Returns the profile instance of the nickname or userID, preferably from cache.
+
+        Args:
+            nickname (str): The nickname of the user.
+            userID (str): The user ID of the user.
+            throw (bool): If True, will throw an exception if not found.
+
+        Returns:
+            Profile: The profile instance of the nickname or userID.
+        """
+        if nickname:
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}"
+        else:
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}"
+        profile: Profile = cache.get(cacheKey, None)
+        if not profile:
+            if nickname:
+                if throw:
+                    profile: Profile = Profile.objects.get(
+                        nickname=nickname, to_be_zombie=False, is_active=True)
+                else:
+                    profile: Profile = Profile.objects.filter(
+                        nickname=nickname, to_be_zombie=False, is_active=True).first()
+            else:
+                if throw:
+                    profile: Profile = Profile.objects.get(
+                        user__id=userID, to_be_zombie=False, is_active=True)
+                else:
+                    profile: Profile = Profile.objects.filter(
+                        user__id=userID, to_be_zombie=False, is_active=True).first()
+            cache.set(cacheKey, profile, settings.CACHE_SHORT)
+        return profile
+
+    def total_admirers(self) -> int:
         """Returns the total number of admirers of this profile.
         """
         cacheKey = self.CACHE_KEYS.total_admirations
         count = cache.get(cacheKey, None)
         if not count:
             count = self.admirers.count()
-            if count:
-                cache.set(cacheKey, count, settings.CACHE_INSTANT)
+            cache.set(cacheKey, count, settings.CACHE_INSTANT)
         return count
+
+    def get_admirers(self) -> models.QuerySet:
+        """Returns the admirers of this profile.
+        """
+        cacheKey = self.CACHE_KEYS.profile_admirers
+        admirers = cache.get(cacheKey, [])
+        if not len(admirers):
+            admirers = self.admirers.all()
+            cache.set(cacheKey, admirers, settings.CACHE_INSTANT)
+        return admirers
+
+    def total_admiration(self) -> int:
+        """Deprecated. User total_admirers
+        """
+        return self.total_admirers()
+
+    def total_admirations(self) -> int:
+        """Deprecated. User total_admirers
+        """
+        return self.total_admirers()
 
     def management(self) -> Management:
         """Returns the management instance of the user, if this is a management/organization profile.
@@ -890,6 +946,18 @@ class Profile(models.Model):
         if self.is_manager():
             return 'text-vibrant'
         return "text-positive"
+
+    def theme_text(self) -> str:
+        """Returns the user's theme for text
+        This depends on client side theme classes.
+        """
+        if self.is_moderator:
+            return 'accent-text'
+        if self.is_mentor:
+            return 'active-text'
+        if self.is_manager():
+            return 'vibrant-text bold'
+        return "positive-text bold"
 
     def socialsites(self) -> models.QuerySet:
         """Returns the user's social site instances
@@ -1477,11 +1545,13 @@ class Profile(models.Model):
 
     def blockUser(self, user: User):
         """Blocks the given user"""
-        return self.blocklist.add(user)
+        self.blocklist.add(user)
+        return True
 
     def unblockUser(self, user: User):
         """Unblocks the given user"""
-        return self.blocklist.remove(user)
+        self.blocklist.remove(user)
+        return True
 
     def blockedIDs(self) -> list:
         """Returns the blocked user ids (mutually blocked as well)"""

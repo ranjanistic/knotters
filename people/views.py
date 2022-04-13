@@ -1,4 +1,3 @@
-from re import sub as re_sub
 from uuid import UUID
 
 from django.conf import settings
@@ -485,7 +484,6 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
             "".join(map(lambda i: i.hex, excludeIDs))
 
         tagslist = cache.get(cacheKey, [])
-        print(tagslist, excludeIDs)
         if not len(tagslist):
             tags = Tag.objects.exclude(id__in=excludeIDs).filter(
                 Q(name__istartswith=query)
@@ -493,7 +491,6 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
                 | Q(name__iexact=query)
                 | Q(name__icontains=query)
             )[:limit]
-            print(tagslist)
             tagslist = list(map(lambda tag: dict(
                 id=tag.getID(),
                 name=tag.name
@@ -697,7 +694,7 @@ def blockUser(request: WSGIRequest) -> JsonResponse:
         if not request.user.profile.blockUser(user):
             raise ObjectDoesNotExist(user)
         return respondJson(Code.OK)
-    except (ValidationError, ObjectDoesNotExist, KeyError):
+    except (ValidationError, ObjectDoesNotExist, KeyError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

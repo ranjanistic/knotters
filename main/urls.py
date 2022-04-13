@@ -72,6 +72,8 @@ urlpatterns = [
     path(URL.INDEX, index),
     path(URL.HOME, home),
     path(URL.HOME_DOMAINS, homeDomains),
+    path(URL.SEARCH, search_view),
+    path(URL.SEARCH_RESULT, search_results),
     path(URL.AT_NICKNAME, at_nickname),
     path(URL.AT_EMOTICON, at_emoji),
     path(URL.ON_BOARDING, on_boarding),

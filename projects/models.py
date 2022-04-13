@@ -391,6 +391,7 @@ class BaseProject(models.Model):
             baseproject_is_pending = f"baseproject_is_pending_{self.id}"
             baseproject_is_rejected = f"baseproject_is_rejected_{self.id}"
             total_admirations = f'{self.id}_total_admiration'
+            project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
         return CKEYS()
 
@@ -422,9 +423,9 @@ class BaseProject(models.Model):
     def getTopics(self) -> list:
         return self.topics.all()
 
-    def get_cache_one(*args, nickname) -> "FreeProject|Project|CoreProject":
+    def get_cache_one(*args, nickname, throw=False) -> "BaseProject":
         cacheKey = f"nickname_project_{nickname}"
-        project: "FreeProject|Project|CoreProject" = cache.get(cacheKey, None)
+        project: BaseProject = cache.get(cacheKey, None)
         if not project:
             project: FreeProject = FreeProject.objects.filter(
                 nickname=nickname, trashed=False, is_archived=False).first()
@@ -432,10 +433,15 @@ class BaseProject(models.Model):
                 project: Project = Project.objects.filter(
                     reponame=nickname, trashed=False, is_archived=False).first()
                 if not project:
-                    project: CoreProject = CoreProject.objects.get(
-                        codename=nickname, trashed=False, is_archived=False)
+                    if throw:
+                        project: CoreProject = CoreProject.objects.get(
+                            codename=nickname, trashed=False, is_archived=False)
+                    else:
+                        project: CoreProject = CoreProject.objects.filter(
+                            codename=nickname, trashed=False, is_archived=False).first()
+                        if not project: return project
+            project = project.base()
             cache.set(cacheKey, project, settings.CACHE_LONG)
-        print("project", project)
         return project
 
     def getPalleteTopics(self, limit: int = 2) -> models.QuerySet:
@@ -498,6 +504,17 @@ class BaseProject(models.Model):
         if self.is_core():
             return "text-vibrant"
         return "text-positive"
+
+    def theme_text(self) -> str:
+        """Returns the user's theme for text
+        This depends on client side theme classes.
+        """
+        if self.is_verified():
+            return 'accent-text'
+        if self.is_core():
+            return 'vibrant-text bold'
+        return "positive-text bold"
+
 
     def is_normal(self) -> bool:
         """Returns True if the project is a normal project.
@@ -679,7 +696,7 @@ class BaseProject(models.Model):
         project.save()
         return self.get_nickname()
 
-    def total_admirations(self) -> int:
+    def total_admirers(self) -> int:
         """Returns the total number of admirers of the project"""
         cacheKey = self.CACHE_KEYS.total_admirations
         count = cache.get(cacheKey, None)
@@ -688,14 +705,26 @@ class BaseProject(models.Model):
             cache.set(cacheKey, count, settings.CACHE_INSTANT)
         return count
 
-    @deprecated(reason='Use total_admirations() instead')
-    def total_admiration(self) -> int:
-        """Deprecated. Use total_admirations() instead."""
-        return self.total_admirations()
+    def get_admirers(self) -> models.QuerySet:
+        """Returns the admirers of this project
+        """
+        cacheKey = self.CACHE_KEYS.project_admirers
+        admirers = cache.get(cacheKey, [])
+        if not len(admirers):
+            admirers = self.admirers.all()
+            cache.set(cacheKey, admirers, settings.CACHE_INSTANT)
+        return admirers
 
-    def total_admirers(self) -> int:
-        """Returns the total number of admirers of the project (same as total_admirations)"""
-        return self.total_admirations()
+    @deprecated(reason='Use total_admirers instead')
+    def total_admirations(self) -> int:
+        """Deprecated. Use total_admirers instead."""
+        return self.total_admirers()
+
+    @deprecated(reason='Use total_admirers instead')
+    def total_admiration(self) -> int:
+        """Deprecated. Use total_admirers instead."""
+        return self.total_admirers()
+
 
     def get_moderator(self) -> Profile:
         """Returns the moderator Profile instance of the project (extracting from child project, None for FreeProject)"""
@@ -1121,7 +1150,9 @@ class Project(BaseProject):
             baseproject_is_pending = f"baseproject_is_pending_{self.id}"
             baseproject_is_rejected = f"baseproject_is_rejected_{self.id}"
             total_admirations = f'{self.id}_total_admiration'
+            project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
+
             gh_repo_data = f"gh_repo_data_{self.repo_id}"
             gh_team_data = f"gh_team_data_{self.reponame}"
             base_project = f"baseproject_of_project_{self.id}"
@@ -1511,7 +1542,9 @@ class FreeProject(BaseProject):
             baseproject_is_pending = f"baseproject_is_pending_{self.id}"
             baseproject_is_rejected = f"baseproject_is_rejected_{self.id}"
             total_admirations = f'{self.id}_total_admiration'
+            project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
+
             free_repo_exists = f"freeproject_freerepo_exists_{self.id}"
             linked_free_repo = f"freeproject_freerepo_{self.id}"
             base_project = f"baseproject_of_freeproject_{self.id}"
@@ -1787,7 +1820,9 @@ class CoreProject(BaseProject):
             baseproject_is_pending = f"baseproject_is_pending_{self.id}"
             baseproject_is_rejected = f"baseproject_is_rejected_{self.id}"
             total_admirations = f'{self.id}_total_admiration'
+            project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
+
             gh_repo_data = f"gh_repo_data_{self.repo_id}"
             gh_team_data = f"gh_team_data_{self.codename}"
             base_project = f"baseproject_of_coreproject_{self.id}"
@@ -2273,6 +2308,12 @@ class Snapshot(models.Model):
     def save(self, *args, **kwargs):
         self.modified_on = timezone.now()
         super(Snapshot, self).save(*args, **kwargs)
+    
+    @property
+    def CACHE_KEYS(self):
+        class CKEYS():
+            snapshot_admirers = f"snapshot_admirers_{self.id}"
+        return CKEYS()
 
     @property
     def project_id(self) -> str:
@@ -2307,6 +2348,16 @@ class Snapshot(models.Model):
                 snapshot=self, profile=profile).exists()
             cache.set(cacheKey, isadm, settings.CACHE_LONG)
         return isadm
+    
+    def get_admirers(self) -> models.QuerySet:
+        """Returns the admirers of this snapshot
+        """
+        cacheKey = self.CACHE_KEYS.snapshot_admirers
+        admirers = cache.get(cacheKey, [])
+        if not len(admirers):
+            admirers = self.admirers.all()
+            cache.set(cacheKey, admirers, settings.CACHE_INSTANT)
+        return admirers
 
 
 class ReportedProject(models.Model):

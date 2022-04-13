@@ -311,12 +311,20 @@ const loadGlobalEventListeners = () => {
     });
     getElements("future-message-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            futuremessage(action.getAttribute("data-message")||action.getAttribute("data-text")||action.title);
+            futuremessage(
+                action.getAttribute("data-message") ||
+                    action.getAttribute("data-text") ||
+                    action.title
+            );
         });
     });
     getElements("message-action").forEach((action) => {
         action.addEventListener("click", (e) => {
-            message(action.getAttribute("data-message")||action.getAttribute("data-text")||action.title);
+            message(
+                action.getAttribute("data-message") ||
+                    action.getAttribute("data-text") ||
+                    action.title
+            );
         });
     });
     getElements("highlight-action").forEach((action) => {
@@ -657,7 +665,9 @@ const postRequest = async (
         try {
             return JSON.parse(data);
         } catch {
-            return data || true;
+            if (response.status < 300) {
+                return data || true;
+            } else throw Error(data);
         }
     } catch (e) {
         if (!silent) subLoader(false);
@@ -697,7 +707,9 @@ const getRequest = async (
         try {
             return JSON.parse(data);
         } catch {
-            return data || true;
+            if (response.status < 300) {
+                return data || true;
+            } else throw Error(data);
         }
     } catch (e) {
         if (!silent) subLoader(false);
@@ -1052,7 +1064,6 @@ const handleMultiFileUpload = (limit = 3, onSubmit = (files) => {}) => {
     }
 
     const delFunc = (e) => {
-        
         multiFiles.splice(e.value, 1);
         renderFileList();
     };

@@ -695,7 +695,7 @@ def profileBase(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
         HttpResponseRedirect: redirect to the project page if successful
     """
     try:
-        return redirect(BaseProject.get_cache_one(nickname=nickname).get_link)
+        return redirect(BaseProject.get_cache_one(nickname=nickname, throw=True).get_link)
     except (ObjectDoesNotExist, AttributeError):
         raise Http404(e)
     except Exception as e:
@@ -1847,7 +1847,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
             if not invalidQuery:
                 projects: BaseProject = BaseProject.objects.exclude(trashed=True).exclude(
                     suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(dbquery).distinct()[0:limit]
-                if not len(projects):
+                if not len(projects) and pquery:
                     projects: BaseProject = BaseProject.objects.exclude(trashed=True).exclude(suspended=True).exclude(creator__user__id__in=excludecreatorIDs).filter(
                         Q(co_creators__user__last_name__istartswith=pquery)
                         | Q(co_creators__user__email__istartswith=pquery)

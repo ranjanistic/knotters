@@ -3,7 +3,9 @@ from json import dumps as jsondumps
 from json import loads as jsonloads
 from os import path as ospath
 from uuid import UUID
-
+from people.views import browseSearch as peopleSearch
+from projects.views import browseSearch as projectsSearch
+from compete.views import browseSearch as competeSearch
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -12,7 +14,7 @@ from compete.methods import rendererstr as competeRendererstr
 from compete.models import Competition, Result
 from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Count, Q
 from django.http.response import (Http404, HttpResponse,
@@ -26,7 +28,7 @@ from django.utils.decorators import method_decorator
 from django.utils.timezone import is_aware, make_aware
 from django.views.decorators.cache import cache_control, cache_page
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 from management.methods import competitionManagementRenderData, labelRenderData
 from management.models import (GhMarketApp, GhMarketPlan, HookRecord,
@@ -42,6 +44,7 @@ from projects.methods import rendererstr as projectsRendererstr
 from projects.methods import verifiedProfileData
 from projects.models import (BaseProject, CoreProject, FreeProject, LegalDoc,
                              Project, Snapshot)
+from ratelimit.decorators import ratelimit
 from rjsmin import jsmin
 
 from .bots import Github
@@ -53,7 +56,7 @@ from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
                       renderView, respondJson, respondRedirect, verify_captcha)
 from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
                       URL, Browse, Code, Event, Message, Template,
-                      setPathParams)
+                      setPathParams, setURLAlerts)
 
 
 @require_GET
@@ -193,6 +196,62 @@ def homeDomains(request: WSGIRequest, domain: str) -> HttpResponse:
     """
     return renderView(request, domain, fromApp="home")
 
+@require_GET
+def search_view(request: WSGIRequest) -> HttpResponse:
+    """To render the search view
+
+    Methods: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+            
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+    """
+    try:
+        return renderView(request, Template.SEARCH)
+    except Exception as e:
+        raise Http404(e)
+
+@ratelimit(key='user_or_ip', rate='2/s', block=True)
+@decode_JSON
+def search_results(request: WSGIRequest) -> HttpResponse:
+    """To respond with search results.
+
+    Methods: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+            
+    Returns:
+        HttpResponse: The rendered text/html view with context.
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        query = request.GET.get('query', request.POST.get('query', ""))[
+            :100].strip()
+
+        if not query:
+            raise KeyError(query)
+        response1 = peopleSearch(request)
+        people = response1.content.decode(Code.UTF_8)
+        people = people.replace("Results", "Community")
+        response2 = projectsSearch(request)
+        projects = response2.content.decode(Code.UTF_8)
+        projects = projects.replace("Results", "Projects")
+        response3 = competeSearch(request)
+        compete = response3.content.decode(Code.UTF_8)
+        compete = compete.replace("Results", "Competitions")
+        return respondJson(Code.OK, dict(people=people, projects=projects, compete=compete))
+    except (KeyError, ValidationError) as e:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        return redirect(setURLAlerts(f"/{URL.SEARCH}", error=Message.INVALID_REQUEST))
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return redirect(setURLAlerts(f"/{URL.SEARCH}", error=Message.ERROR_OCCURRED))
 
 @require_GET
 def redirector(request: WSGIRequest) -> HttpResponse:
@@ -1012,6 +1071,7 @@ class ServiceWorker(TemplateView):
             netFirstList=jsondumps([
                 f"/{URL.LANDING}",
                 f"/{URL.FAME_WALL}",
+                f"/{URL.SEARCH_RESULT}",
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_MOD}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_CORE}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.PROFILE_FREE}"),

@@ -196,8 +196,8 @@ class Message():
         DO NOT send this whole class to client, only its individual attributes whenever required.
         Treat the attributes of this class as sensitive.
 
-    NOTE: For translations of these messages, a strings.txt file is present in template. Thus, when creating a new Message attribute here,
-    make sure to add the same attribute to strings.txt as well for translation commands to pick it up.
+    NOTE: For translations of these messages, a strings.js file is present in template. Thus, when creating a new Message attribute here,
+    make sure to add the same attribute to strings.js as well for translation commands to pick it up.
     """
     APP_DESCRIPTION = _(
         "India's first open source collaborative community platform. Be a part of Knotters community and explore what everyone's involved into.")
@@ -547,6 +547,8 @@ class URL():
     ROOT = '/'
     HOME = 'home'
     HOME_DOMAINS = 'home/<str:domain>'
+    SEARCH = 'search/'
+    SEARCH_RESULT = 'search-result/'
     WEBPUSH = 'webpush/'
     AT_NICKNAME = "@<str:nickname>"
 
@@ -724,6 +726,13 @@ class URL():
 
         def indexTab(self, tab):
             return setPathParams(self.INDEXTAB, tab)
+
+        TOGGLE_ADMIRATION = 'toggleadmiration/<str:compID>/'
+
+        def toggle_admiration(self, compID: UUID):
+            return setPathParams(self.TOGGLE_ADMIRATION, compID)
+
+        ADMIRATIONS = 'admirations/<str:compID>/'
 
         BROWSE_SEARCH = 'browse/search'
 
@@ -1320,6 +1329,7 @@ class Template():
         ON_BOARDING = "on-boarding.js"
         CONNECTIONS = "connections.js"
         INDEX = "index.js"
+        SEARCH = "search.js"
         ZERO = "0.js"
         ONE = "1.js"
         TWO = "2.js"
@@ -1373,6 +1383,12 @@ class Template():
     @property
     def home(self):
         return f'{self.INDEX}.html'
+
+    SEARCH = 'search'
+
+    @property
+    def search(self):
+        return f'{self.SEARCH}.html'
 
     OFFLINE = 'offline'
 

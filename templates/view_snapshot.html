@@ -33,8 +33,8 @@
     <div class="w3-col w3-twothird s11 l8 tertiary pallete-slab w3-animate-zoom" style="border-radius:10px;margin: 20px auto;padding:0" id='snap-{{snapshot.get_id}}'>
         <br/>
         <div class="w3-row w3-padding">
-            <a href="{{snapshot.creator.getLink}}" title="{{snapshot.creator.getName}}"><img alt="{{snapshot.creator.getName}}" class="w3-right w3-circle" src="{{snapshot.creator.getDP}}" width="50" /></a>
-            <span class="text-tertiary text-medium" style="overflow-wrap: break-word;">{{snapshot.text|truncatechars:950|urlize}}</span><br/>
+            <a href="{{snapshot.creator.getLink}}" class="w3-right" title="{{snapshot.creator.getName}}"><img alt="{{snapshot.creator.getName}}" class="w3-circle" src="{{snapshot.creator.getDP}}" width="50" /></a>
+            <span class="text-tertiary text-medium" style="overflow-wrap: break-word;">{{snapshot.text|urlize|linktags|urlize_blank|linebreaksbr}}</span><br/>
            <span class='dead-text'>{{snapshot.created_on}}</span>
         </div>
         <br/>
@@ -60,11 +60,10 @@
             <div class="w3-col l8 m8 s8 w3-center">
                 <div class="w3-col l4 m4 s4" >
                     <button
-                        {% if request.user.is_authenticated and request.user.profile in snapshot.admirers.all %}
-                        data-admires="1"
-                        class="positive snapshot-admire-action"
+                        {% if request.user.is_authenticated %}
+                        data-admires="{{snapshot.get_admirers|inlist:request.user.profile|onezero }}"
+                        class="{{snapshot.get_admirers|inlist:request.user.profile|onezero:"positive|primary" }} snapshot-admire-action"
                         {% else %}
-                        data-admires="0"
                         class="primary snapshot-admire-action"
                         {% endif %}
                         data-snapid="{{snapshot.get_id}}"
