@@ -57,7 +57,7 @@
       {% trans "Join" %} {{APPNAME}}
     </button>
     </a>
-    {% elif request.user.profile.on_boarded %}
+    {% elif not request.user.profile.on_boarded %}
     <a href="{{URLS.ON_BOARDING}}">
     <button class='big-button border-joy primary' data-icon='arrow_forward'>
       {% trans "Get started" %}
