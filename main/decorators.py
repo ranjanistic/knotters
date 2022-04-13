@@ -99,7 +99,7 @@ def decode_JSON(function: callable) -> callable:
                 request.POST = dict(
                     **loadedbody, **request.POST, JSON_BODY=True)
             return function(request, *args, **kwargs)
-        except JSONDecodeError:
+        except Exception:
             pass
         return function(request, *args, **kwargs)
     return wrap

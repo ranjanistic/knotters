@@ -11,7 +11,7 @@ from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from compete.methods import competitionProfileData
 from compete.methods import rendererstr as competeRendererstr
-from compete.models import Competition, Result
+from compete.models import Competition, Result, Submission
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -1147,13 +1147,18 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                     cachekey = cachekey + "".join(excludeIDs)
                 snaps = cache.get(cachekey, [])
                 snapIDs = [snap.id for snap in snaps]
-
                 if not len(snaps):
+                    projIDs = Submission.objects.filter(competition__admirers=request.user.profile).exclude(free_project=None).values_list("free_project__id", flat=True)
                     snaps = Snapshot.objects.filter(
-                        Q(Q(base_project__admirers=request.user.profile)
+                        Q(
+                            Q(creator=request.user.profile)
                           | Q(base_project__creator=request.user.profile)
-                          | Q(creator__admirers=request.user.profile)),
-                        base_project__suspended=False, base_project__trashed=False, suspended=False
+                          | Q(base_project__co_creators=request.user.profile)
+                          | Q(base_project__id__in=list(projIDs))
+                          | Q(creator__admirers=request.user.profile)
+                          | Q(base_project__admirers=request.user.profile)
+                        ),
+                        base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
                     ).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
                     cache.set(cachekey, snaps, settings.CACHE_INSTANT)

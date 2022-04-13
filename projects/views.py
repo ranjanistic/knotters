@@ -696,7 +696,7 @@ def profileBase(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     """
     try:
         return redirect(BaseProject.get_cache_one(nickname=nickname, throw=True).get_link)
-    except (ObjectDoesNotExist, AttributeError):
+    except (ObjectDoesNotExist, AttributeError) as e:
         raise Http404(e)
     except Exception as e:
         errorLog(e)
