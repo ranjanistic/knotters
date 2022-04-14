@@ -62,6 +62,105 @@
         }
         {% if forloop.counter < SUBAPPSLIST|length %},{% endif %}
     {% endfor %}
+      ,{
+            "name": "Search",
+            "short_name": "Search",
+            "url": "{{ROOT}}{{URLS.SEARCH}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        },{
+            "name": "Create Project",
+            "short_name": "Create Project",
+            "url": "{{ROOT}}{{URLS.Projects.CREATE}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        },{
+            "name": "Licenses",
+            "short_name": "Licenses",
+            "url": "{{ROOT}}{{URLS.Projects.LICENSES}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        },{
+            "name": "Certificate",
+            "short_name": "Certificate",
+            "url": "{{ROOT}}{{URLS.Compete.CERTIFICATE}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        },{
+            "name": "Account",
+            "short_name": "Account",
+            "url": "{{ROOT}}{{URLS.AUTH}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        },{
+            "name": "Docs",
+            "short_name": "Docs",
+            "url": "{{ROOT}}{{URLS.DOCS}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        },{
+            "name": "About",
+            "short_name": "About",
+            "url": "{{ROOT}}{{URLS.HOME}}",
+            "icons": [
+                {% for icon in icons %}
+                {
+                    "src": "{{ icon.src }}",
+                    "type": "image/{{icon.type}}",
+                    "sizes": "{{ icon.size }}",
+                    "purpose": "any"
+                }{% if forloop.counter < icons|length %},{% endif %}
+                {% endfor %}
+            ]
+        }
      {% if request.user.is_authenticated %}
        ,{
             "name": "{{request.user.profile.get_name}}",
