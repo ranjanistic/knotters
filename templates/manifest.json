@@ -14,7 +14,7 @@
     "categories": ["social", "opensource"],
     "dir": "auto",
     "lang": "en-US",
-    "orientation": "any",
+    "orientation": "natural",
     "share_target": {
         "action": "{{URLS.Projects.CREATE_FREE}}",
         "enctype": "APPLICATION/X-WWW-FORM-URLENCODED",
