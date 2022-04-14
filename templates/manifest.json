@@ -65,7 +65,7 @@
       ,{
             "name": "Search",
             "short_name": "Search",
-            "url": "{{ROOT}}{{URLS.SEARCH}}",
+            "url": "{{URLS.SEARCH}}",
             "icons": [
                 {% for icon in icons %}
                 {
@@ -79,7 +79,7 @@
         },{
             "name": "Create Project",
             "short_name": "Create Project",
-            "url": "{{ROOT}}{{URLS.Projects.CREATE}}",
+            "url": "{{URLS.Projects.CREATE}}",
             "icons": [
                 {% for icon in icons %}
                 {
@@ -93,7 +93,7 @@
         },{
             "name": "Licenses",
             "short_name": "Licenses",
-            "url": "{{ROOT}}{{URLS.Projects.LICENSES}}",
+            "url": "{{URLS.Projects.ALLLICENSES}}",
             "icons": [
                 {% for icon in icons %}
                 {
@@ -107,7 +107,7 @@
         },{
             "name": "Certificate",
             "short_name": "Certificate",
-            "url": "{{ROOT}}{{URLS.Compete.CERTIFICATE}}",
+            "url": "{{URLS.Compete.CERT_INDEX}}",
             "icons": [
                 {% for icon in icons %}
                 {
@@ -121,7 +121,7 @@
         },{
             "name": "Account",
             "short_name": "Account",
-            "url": "{{ROOT}}{{URLS.AUTH}}",
+            "url": "{{URLS.AUTH}}",
             "icons": [
                 {% for icon in icons %}
                 {
@@ -135,7 +135,7 @@
         },{
             "name": "Docs",
             "short_name": "Docs",
-            "url": "{{ROOT}}{{URLS.DOCS}}",
+            "url": "{{URLS.DOCS}}",
             "icons": [
                 {% for icon in icons %}
                 {
@@ -149,7 +149,7 @@
         },{
             "name": "About",
             "short_name": "About",
-            "url": "{{ROOT}}{{URLS.HOME}}",
+            "url": "{{URLS.HOME}}",
             "icons": [
                 {% for icon in icons %}
                 {
