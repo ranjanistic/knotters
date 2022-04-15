@@ -37,7 +37,6 @@ django-redis==5.0.0
 django-redis-cache==3.0.1
 django-redis-sessions==0.6.2
 django-rq==2.1.0
-django-translation-manager==1.1.1
 django-two-factor-auth==1.13.1
 django-webpush==0.3.3
 djangorestframework==3.12.4
