@@ -24,13 +24,13 @@
 <br/>
 <div class="w3-row w3-padding w3-center">
 <br/><div class="w3-padding"><i class="material-icons w3-jumbo">fast_forward</i></div>
-<h3>{% trans "We noticed that you were going on to the following link via our platform." %}<br/>{% trans "Are you sure you're on the right path?" %}</h3>
+<h5>{% trans "We noticed that you were going on to the following link via our platform." %}<br/>{% trans "Are you sure you're on the right path?" %}</h3>
 <br/>
 <strong class="dead-text" style="overflow-wrap: break-word;">{{next|truncatechars:100}}</strong>
-<br/>
+<br/><br/>
 <span class="negative-text">By visiting links like this which are outside of {{SITE}}, you understand the risks and accept your responsibility of accessing content which may not be related
  to {{APPNAME}} in any way, and {{APPNAME}} doesn't take responsibility for that.</span>
-<br/>
+<br/><br/>
 <a href="{{next}}"><button class="primary" data-icon="fast_forward">{% trans "Yes" %}, {% trans "let me go" %}</button></a>
 <a href="{{ROOT}}"><button class="positive window-close-action" data-icon="cancel">{% trans "No" %}, {% trans "take me back" %}!</button></a>
 </div>
