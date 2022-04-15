@@ -840,8 +840,7 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
         HttpResponseRedirect: Redirects to the certificate view, if valid certificate, else redirects to the certificate index page.
     """
     try:
-        certID = UUID(request.POST.get('certID', request.GET.get(
-            'id', request.GET.get('certID', ""))))[:50]
+        certID = UUID(request.POST.get('certID', request.GET.get('id', ""))[:50])
         if not certID:
             return respondRedirect(APPNAME, URL.Compete.CERT_INDEX, error=Message.INVALID_REQUEST)
         partcert: ParticipantCertificate = ParticipantCertificate.objects.filter(
