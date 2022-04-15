@@ -1,4 +1,5 @@
 from datetime import datetime
+from re import sub as re_sub
 from uuid import UUID, uuid4
 
 from allauth.account.models import EmailAddress
@@ -568,7 +569,7 @@ class Profile(models.Model):
                 nickname = self.user.email.split('@')[0]
             if Profile.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
                 nickname = nickname + str(self.get_userid)
-            self.nickname = nickname
+            self.nickname = re_sub(r'[^a-zA-Z0-9\-]', "", nickname)[:50]
             self.save()
         return self.nickname
 
