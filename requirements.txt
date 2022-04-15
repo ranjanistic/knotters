@@ -3,7 +3,7 @@ ansicon==1.89.0
 arrow==1.1.1
 asgiref==3.3.4
 async-timeout==3.0.1
-attrs==21.2.0
+attrs==21.4.0
 autopep8==1.5.7
 beautifulsoup4==4.10.0
 blessed==1.18.1
