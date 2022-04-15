@@ -26,10 +26,10 @@
 <br/><div class="w3-padding"><i class="material-icons w3-jumbo">fast_forward</i></div>
 <h3>{% trans "We noticed that you were going on to the following link via our platform." %}<br/>{% trans "Are you sure you're on the right path?" %}</h3>
 <br/>
-<strong class="dead-text break-word">{{next|truncatechars:100}}</strong>
+<strong class="dead-text" style="overflow-wrap: break-word;">{{next|truncatechars:100}}</strong>
 <br/>
-<h6 class="negative-text">By visiting links like this which are outside of {{SITE}}, you understand the risks and accept your responsibility of accessing content which may not be related
- to {{APPNAME}} in any way, and {{APPNAME}} doesn't take responsibility for that.</h6>
+<span class="negative-text">By visiting links like this which are outside of {{SITE}}, you understand the risks and accept your responsibility of accessing content which may not be related
+ to {{APPNAME}} in any way, and {{APPNAME}} doesn't take responsibility for that.</span>
 <br/>
 <a href="{{next}}"><button class="primary" data-icon="fast_forward">{% trans "Yes" %}, {% trans "let me go" %}</button></a>
 <a href="{{ROOT}}"><button class="positive window-close-action" data-icon="cancel">{% trans "No" %}, {% trans "take me back" %}!</button></a>
