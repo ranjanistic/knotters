@@ -693,11 +693,12 @@ class BaseProject(models.Model):
         project = self.getProject()
         if project.verified:
             project.reponame = newNickname
+            project.save()
         elif project.core:
             project.codename = newNickname
         else:
             project.nickname = newNickname
-        project.save()
+            project.save()
         return self.get_nickname()
 
     def total_admirers(self) -> int:
@@ -2067,16 +2068,15 @@ class CoreProject(BaseProject):
         if not self.is_normal():
             self.trashed = True
             self.creator.decreaseXP(by=2, reason="Core project deleted")
-            self.save()
             if self.moderation() and self.moderation().isPending():
                 if self.moderation().delete()[0] >= 1:
                     return self.delete()[0] >= 1
         elif CoreProjectDeletionRequest.objects.filter(coreproject=self, sender=self.creator, receiver=self.moderator(), resolved=True).exists():
             self.trashed = True
             self.creator.decreaseXP(by=2, reason="Core project deleted")
-            self.save()
         if self.trashed:
             self.set_nickname(self.id)
+            self.save()
         return self.trashed
 
     def under_verification_request(self) -> bool:
