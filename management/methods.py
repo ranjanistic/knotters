@@ -176,22 +176,22 @@ def labelRenderData(request: WSGIRequest, type: str, labelID: UUID) -> dict:
         dict: The context data
     """
     try:
-        mgm = request.user.profile.management()
+        mgm:Management = request.user.profile.management()
         cacheKey = f"{APPNAME}_labelrenderdata_{type}_{labelID}_{mgm.id}"
         if type == Code.TOPIC:
-            topic = cache.get(cacheKey, None)
+            topic:Topic = cache.get(cacheKey, None)
             if not topic:
-                topic = Topic.objects.filter(Q(id=labelID), Q(
-                    Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).first()
+                topic:Topic = Topic.objects.filter(Q(id=labelID), Q(
+                    Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile))).first()
                 if not topic:
                     return False
                 cache.set(cacheKey, topic, settings.CACHE_MICRO)
             return dict(topic=topic)
         if type == Code.CATEGORY:
-            category = cache.get(cacheKey, None)
+            category:Category = cache.get(cacheKey, None)
             if not category:
-                category = Category.objects.filter(Q(id=labelID), Q(
-                    Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).first()
+                category:Category = Category.objects.filter(Q(id=labelID), Q(
+                    Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile))).first()
                 if not category:
                     return False
                 cache.set(cacheKey, category, settings.CACHE_MICRO)

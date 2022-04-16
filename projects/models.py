@@ -126,7 +126,7 @@ class Category(models.Model):
     def getProjectsLimited(self, limit=50) -> models.QuerySet:
         return BaseProject.objects.filter(category=self)[0:limit]
 
-    def isDeletable(self):
+    def is_deletable(self):
         return self.totalProjects() == 0
 
     def get_all(*args) -> models.QuerySet:

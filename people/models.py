@@ -324,7 +324,7 @@ class Topic(models.Model):
             cache.set(cacheKey, topictotalxp, settings.CACHE_SHORT)
         return topictotalxp
 
-    def isDeletable(self) -> bool:
+    def is_deletable(self) -> bool:
         """Returns True if the topic is deletable."""
         return self.totalProjects() == 0 and self.totalProfiles() == 0
 

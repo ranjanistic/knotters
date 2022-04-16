@@ -1767,6 +1767,8 @@ class Template():
 
         BROWSE_HIGHEST_MONTH_XP_PROFILES = 'browse/highest-month-xp-profiles'
 
+        BROWSE_TRENDING_TOPICS = 'browse/trending-topics'
+
         PROFILE_OVERVIEW = f"profile/{Profile.OVERVIEW}"
 
         @property

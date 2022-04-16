@@ -521,16 +521,16 @@ def labelUpdate(request: WSGIRequest, type: str, labelID: UUID):
             or main.strings.Code.NO with an error message
     """
     try:
-        mgm = request.user.profile.management()
+        mgm:Management = request.user.profile.management()
         name = request.POST['name']
         if type == Code.TAG:
-            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=[mgm.people.all()]) | Q(
+            Tag.objects.filter(Q(id=labelID), Q(Q(creator__in=mgm.people.all()) | Q(
                 creator=request.user.profile))).update(name=name)
         elif type == Code.TOPIC:
-            Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()]) | Q(
+            Topic.objects.filter((Q(id=labelID), Q(Q(creator__in=mgm.people.all()) | Q(
                 creator=request.user.profile)))).update(name=name)
         elif type == Code.CATEGORY:
-            Category.objects.filter((Q(id=labelID), Q(Q(creator__in=[mgm.people.all()]) | Q(
+            Category.objects.filter((Q(id=labelID), Q(Q(creator__in=mgm.people.all()) | Q(
                 creator=request.user.profile)))).update(name=name)
         else:
             raise ObjectDoesNotExist("invalid label type", type, labelID)
@@ -559,20 +559,20 @@ def labelDelete(request: WSGIRequest, type: str, labelID: UUID):
             or main.strings.Code.NO with an error message
     """
     try:
-        mgm = request.user.profile.management()
+        mgm:Management = request.user.profile.management()
         if type == Code.TOPIC:
-            topic = Topic.objects.filter(Q(id=labelID), Q(
-                Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).first()
-            if topic.isDeletable:
+            topic:Topic = Topic.objects.filter(Q(id=labelID), Q(
+                Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile))).first()
+            if topic.is_deletable():
                 topic.delete()
         elif type == Code.CATEGORY:
-            category = Category.objects.filter(Q(id=labelID), Q(
-                Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).first()
-            if category.isDeletable:
+            category:Category = Category.objects.filter(Q(id=labelID), Q(
+                Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile))).first()
+            if category.is_deletable():
                 category.delete()
         elif type == Code.TAG:
             Tag.objects.filter(Q(id=labelID), Q(
-                Q(creator__in=[mgm.people.all()]) | Q(creator=request.user.profile))).delete()
+                Q(creator__in=mgm.people.all()) | Q(creator=request.user.profile))).delete()
         else:
             raise ObjectDoesNotExist("invalid label type", type, labelID)
         return respondJson(Code.OK)

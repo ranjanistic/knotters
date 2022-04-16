@@ -235,13 +235,10 @@ def search_results(request: WSGIRequest) -> HttpResponse:
             raise KeyError(query)
         response1 = peopleSearch(request)
         people = response1.content.decode(Code.UTF_8)
-        people = people.replace("Results", "Community")
         response2 = projectsSearch(request)
         projects = response2.content.decode(Code.UTF_8)
-        projects = projects.replace("Results", "Projects")
         response3 = competeSearch(request)
         compete = response3.content.decode(Code.UTF_8)
-        compete = compete.replace("Results", "Competitions")
         return respondJson(Code.OK, dict(people=people, projects=projects, compete=compete))
     except (KeyError, ValidationError) as e:
         if json_body:
@@ -1233,6 +1230,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             return projectsRendererstr(request, Template.Projects.BROWSE_RECOMMENDED, dict(projects=projects, count=count))
         elif type == Browse.TRENDING_TOPICS:
             # TODO
+            # topics = Topic.objects.filter()[:10]
+            # return peopleRendererstr(request, Template.People.BROWSE_TRENDING_TOPICS, dict(topics=topics, count=len(topics)))
             pass
         elif type == Browse.TRENDING_PROJECTS:
             projects = cache.get(cachekey, [])

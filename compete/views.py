@@ -154,7 +154,7 @@ def data(request: WSGIRequest, compID: UUID) -> JsonResponse:
                             participated=False,
                             )
         return respondJson(Code.OK, data)
-    except (ObjectDoesNotExist, ValidationError):
+    except (ObjectDoesNotExist, ValidationError, ValueError):
         return respondJson(Code.NO)
     except Exception as e:
         errorLog(e)
@@ -186,7 +186,7 @@ def competitionTab(request: WSGIRequest, compID: UUID, section: str) -> HttpResp
             return HttpResponse(data)
         else:
             raise ObjectDoesNotExist(compID, section, request)
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -235,7 +235,7 @@ def createSubmission(request: WSGIRequest, compID: UUID) -> HttpResponse:
         request.user.profile.increaseXP(by=5)
         participantWelcomeAlert(request.user.profile, submission)
         return redirect(competition.getLink(alert=Message.PARTICIPATION_CONFIRMED))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -291,7 +291,7 @@ def invite(request: WSGIRequest, subID: UUID) -> JsonResponse:
             submission.members.add(person)
             participantInviteAlert(person, request.user.profile, submission)
             return respondJson(Code.OK)
-    except (ObjectDoesNotExist, KeyError, ValidationError):
+    except (ObjectDoesNotExist, KeyError, ValidationError, ValueError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -336,7 +336,7 @@ def invitation(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpResponse:
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission))
         except ObjectDoesNotExist:
             return redirect(submission.competition.getLink(error=Message.INVITE_NOTEXIST))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -384,7 +384,7 @@ def inviteAction(request: WSGIRequest, subID: UUID, userID: UUID, action: str) -
             return renderer(request, Template.Compete.INVITATION, dict(submission=submission, accepted=True))
         else:
             raise ValidationError(action)
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -438,7 +438,7 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         if json_body:
             return respondJson(Code.OK, message=(Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED))
         return redirect(submission.competition.getLink(alert=f"{Message.PARTICIPATION_WITHDRAWN if request.user.profile == member else Message.MEMBER_REMOVED}"))
-    except (InactiveCompetitionError, ObjectDoesNotExist, ValidationError) as c:
+    except (InactiveCompetitionError, ObjectDoesNotExist, ValidationError, ValueError) as c:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(c)
@@ -492,7 +492,7 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(subm.competition.getLink(alert=Message.SAVED))
-    except (ObjectDoesNotExist, KeyError, ValidationError) as o:
+    except (ObjectDoesNotExist, KeyError, ValidationError, ValueError) as o:
         if json_body:
             return respondJson(Code.NO)
         raise Http404(o)
@@ -547,7 +547,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
             reason="Competition submission submitted"), submission.getMembers())
         submissionConfirmedAlert(submission)
         return respondJson(Code.OK, message=message)
-    except (ObjectDoesNotExist, ValidationError):
+    except (ObjectDoesNotExist, ValidationError, ValueError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -664,7 +664,7 @@ def submitPoints(request: WSGIRequest, compID: UUID) -> JsonResponse:
         request.user.profile.increaseXP(
             by=judgeXP, reason=f"Judged submissions of {competition.title}")
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist, KeyError, ValueError, ValidationError):
+    except (ObjectDoesNotExist, KeyError, ValueError, ValidationError, ValueError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -708,7 +708,7 @@ def declareResults(request: WSGIRequest, compID: UUID) -> HttpResponse:
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{DeclareResults.__name__}", comp)
         return redirect(comp.getManagementLink(alert=Message.RESULT_DECLARING))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -768,7 +768,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
                     break
         result.xpclaimers.add(profile)
         return redirect(competition.getLink(alert=Message.XP_ADDED))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -804,7 +804,7 @@ def getTopicScores(request: WSGIRequest, resID: UUID) -> JsonResponse:
             result.topic_points
         ))
         return respondJson(Code.OK, dict(topics=topics))
-    except (ObjectDoesNotExist, ValidationError):
+    except (ObjectDoesNotExist, ValidationError, ValueError):
         return respondJson(Code.NO)
     except Exception as e:
         errorLog(e)
@@ -839,6 +839,7 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
     Returns:
         HttpResponseRedirect: Redirects to the certificate view, if valid certificate, else redirects to the certificate index page.
     """
+    certID = ""
     try:
         certID = UUID(request.POST.get('certID', request.GET.get('id', ""))[:50])
         if not certID:
@@ -856,7 +857,7 @@ def certificateVerify(request: WSGIRequest) -> HttpResponse:
             return respondRedirect(APPNAME, URL.compete.apprCertificate(appcert.competition.get_id, appcert.appreciatee.get_userid))
 
         return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError):
         return respondRedirect(APPNAME, f"{URL.Compete.CERT_INDEX}?certID={certID}", error=Message.CERT_NOT_FOUND)
     except Exception as e:
         errorLog(e)
@@ -903,7 +904,7 @@ def certificate(request: WSGIRequest, resID: UUID, userID: UUID) -> HttpResponse
         certpath = False if not partcert else partcert.getCertImage if partcert.certificate else False
         certID = False if not partcert else partcert.get_id
         return renderer(request, Template.Compete.CERT_CERTIFICATE, dict(result=result, member=member, certpath=certpath, self=self, certID=certID))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -952,7 +953,7 @@ def appCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> HttpResp
             compete: Competition = Competition.objects.get(
                 id=compID, is_draft=False)
         return renderer(request, Template.Compete.CERT_APPCERTIFICATE, dict(compete=compete, appcert=appcert, person=person, certpath=certpath, self=self, certID=certID))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -997,7 +998,7 @@ def generateCertificates(request: WSGIRequest, compID: UUID) -> HttpResponse:
         addMethodToAsyncQueue(
             f"{APPNAME}.methods.{AllotCompetitionCertificates.__name__}", remainingresults, competition)
         return redirect(competition.getManagementLink(alert=Message.CERTS_GENERATING))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1043,7 +1044,7 @@ def downloadCertificate(request: WSGIRequest, resID: UUID, userID: UUID) -> Http
                     os_path.basename(file_path)
                 return response
         raise ObjectDoesNotExist(file_path)
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1089,7 +1090,7 @@ def appDownloadCertificate(request: WSGIRequest, compID: UUID, userID: UUID) -> 
                     os_path.basename(file_path)
                 return response
         raise ObjectDoesNotExist(file_path)
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         raise Http404(o)
     except Exception as e:
         errorLog(e)
@@ -1254,7 +1255,7 @@ def toggleAdmiration(request: WSGIRequest, compID: UUID) -> JsonResponse:
         if json_body:
             return respondJson(Code.OK)
         return redirect(compete.get_link)
-    except (ObjectDoesNotExist, KeyError, ValidationError) as o:
+    except (ObjectDoesNotExist, KeyError, ValidationError, ValueError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         if compete:
@@ -1303,7 +1304,7 @@ def competeAdmirations(request: WSGIRequest, compID: UUID) -> HttpResponse:
             ), admirers))
             return respondJson(Code.OK, dict(admirers=jadmirers))
         return render(request, Template().admirers, dict(admirers=admirers))
-    except (ObjectDoesNotExist, ValidationError) as o:
+    except (ObjectDoesNotExist, ValidationError, ValueError) as o:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)

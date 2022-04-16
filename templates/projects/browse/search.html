@@ -7,7 +7,7 @@
 {% if query %}
 <div class="w3-row tertiary">
     <div class="w3-row w3-animate-right" style="padding:16px 4px">
-    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Results for '{{query}}'{% endblocktrans %}</h4>
+    <h5 class="w3-left">&nbsp;&nbsp;&nbsp;&nbsp;{% blocktrans %}Projects for '{{query}}'{% endblocktrans %}</h4>
     </div>
     <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser w3-animate-left">
         <div class="swiper-wrapper swiper-wrap" xyz="fade front-2 flip-down-40% duration-10 stagger-5">
@@ -44,7 +44,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">search</i>
-                <h5>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h5>
+                <h5>{% blocktrans %}No projects for '{{query}}'{% endblocktrans %}</h5>
             </center>
             </div>
             {% endfor %} 
@@ -86,7 +86,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">search</i>
-                <h5>{% blocktrans %}No results for '{{query}}'{% endblocktrans %}</h5>
+                <h5>{% blocktrans %}No projects for '{{query}}'{% endblocktrans %}</h5>
             </center>
             </div>
 	        {% endfor %} 
