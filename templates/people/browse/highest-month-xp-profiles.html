@@ -28,8 +28,8 @@
                         </div>
                         <div class="w3-col m10 l10 s10">
                         {% for topic in profile.getPalleteTopics %}
-                        <a class="w3-left" href="{{URLS.PEOPLE|getquery:"search=topic:"}}{{topic}}">
-                            <button class="w3-tiny secondary {{profile.theme_text}}">{{topic.name}}</button>
+                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                            <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                         </a>
                         {% endfor %}
                         </div>
@@ -70,8 +70,8 @@
                         </div>
                         <div class="w3-col m10 l10 s10">
                         {% for topic in profile.getPalleteTopics %}
-                        <a class="w3-left" href="{{URLS.PEOPLE|getquery:"search=topic:"}}{{topic}}">
-                            <button class="w3-tiny secondary {{profile.theme_text}}">{{topic.name}}</button>
+                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=tag:"}}{{tag}}">
+                            <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                         </a>
                         {% endfor %}
                         </div>
