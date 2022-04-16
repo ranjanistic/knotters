@@ -22,7 +22,7 @@ from github.NamedUser import NamedUser
 from github.Organization import Organization
 from main.bots import GH_API, GHub
 from main.env import BOTMAIL
-from main.methods import errorLog, user_device_notify
+from main.methods import errorLog, filterNickname, user_device_notify
 from main.strings import MANAGEMENT, PROJECTS, Code, classAttrsToDict, url
 from management.models import (GhMarketPlan, Invitation, Management,
                                ReportCategory)
@@ -567,9 +567,11 @@ class Profile(models.Model):
                 nickname = self.githubID
             else:
                 nickname = self.user.email.split('@')[0]
+            nickname = filterNickname(nickname, 50)
             if Profile.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
                 nickname = nickname + str(self.get_userid)
-            self.nickname = re_sub(r'[^a-zA-Z0-9\-]', "", nickname)[:50]
+                nickname = filterNickname(nickname, 50)
+            self.nickname = nickname
             self.save()
         return self.nickname
 
@@ -1613,14 +1615,15 @@ class Profile(models.Model):
             rec_projects = cache.get(cacheKey, [])
             if not len(rec_projects):
                 from projects.models import BaseProject
-                constquery = ~Q(
-                    admirers=self, creator__in=self.blockedProfiles())
-                query = Q(topics__in=self.topics.all())
+                constquery = ~Q(creator__in=self.blockedProfiles())
+                query = Q()
+                for top in self.getTopics():
+                    query = query & Q(topics=top)
                 rec_projects = BaseProject.get_approved_projects(
-                    Q(query, constquery), atmost)
+                    query=Q(query, constquery), limit=atmost)
                 if len(rec_projects) < atleast:
                     rec_projects = BaseProject.get_approved_projects(
-                        constquery, atmost)
+                        query=Q(constquery), limit=atmost)
                 cache.set(cacheKey, rec_projects, settings.CACHE_SHORT)
             return rec_projects[:atmost]
         except Exception as e:

@@ -29,7 +29,7 @@
                     <div class="w3-row">{{ invitation.baseproject.description|truncatechars:60 }}</div>
                     <br/><br/>
                     {% for topic in invitation.baseproject.getPalleteTopics %}
-                    <a href="{{URLS.PROJECTS|getquery:'search=topic:'}}{{topic.name}}" target="_blank"><button class="{{invitation.baseproject.theme}} small w3-left">{{topic}}</button></a>
+                    <a href="{{URLS.SEARCH|getquery:'query=topic:'}}{{topic.name}}" target="_blank"><button class="primary border-joy small w3-left">{{topic}}</button></a>
                     {% endfor %}
                 </div>
             </div>

@@ -24,6 +24,7 @@ urlpatterns = [
     path(URL.Projects.ACCEPT_TERMS, acceptTerms),
     path(URL.Projects.TRASH, trashProject),
     # Projects profile
+    path(URL.Projects.AT_NICKANAME, at_nickname),
     path(URL.Projects.PROFILE_BASE, profileBase),
     path(URL.Projects.PROFILE_MOD, profileMod),
     path(URL.Projects.PROFILE_FREE, profileFree),

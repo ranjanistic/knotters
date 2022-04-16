@@ -8,7 +8,7 @@
     <center>
         <h3>{% trans "Topics of this competition" %}</h3>
         {% for topic in compete.getTopics %}
-        <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="big-button secondary active-text" >{{topic.name}}</button></a>
+        <a href="{{URLS.COMPETE}}?search=topic:{{topic.name}}"><button class="big-button primary border-joy" >{{topic.name}}</button></a>
         {% endfor %}
         <br/>
         <br/>

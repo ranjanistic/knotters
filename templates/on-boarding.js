@@ -100,7 +100,7 @@ interact(".visible-topics-zone").dropzone({
         let draggableElement = event.relatedTarget;
         let dropzoneElement = event.target;
         dropzoneElement.classList.remove("tertiary");
-        draggableElement.classList.remove("accent", "negative", "positive");
+        draggableElement.classList.remove("primary", "border-joy", "negative", "positive");
         draggableElement.classList.add("secondary");
 
         if (getElement("no-visible-topics-view")) {
@@ -125,7 +125,7 @@ interact(".visible-topics-zone").dropzone({
                 "positive",
                 "negative"
             );
-            draggableElement.classList.add("accent");
+            draggableElement.classList.add("primary", "border-joy");
             if (getElement("no-visible-topics-view")) {
                 getElement("no-visible-topics-view").style.opacity = 0;
             }

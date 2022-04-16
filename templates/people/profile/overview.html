@@ -8,27 +8,18 @@
 <div class="w3-row w3-padding-small">
     <div class="w3-row">
         <div class="w3-col w3-half w3-center">
-            <h1 class="{{ profile.theme }}-text">+{{profile.xp|or:'0'}}{% if not self %} XP {% else %}<span class="dead-text w3-large">/{{profile.xpTarget|or:'100'}} XP</span>{% endif %}</h1>
-            <div class="w3-row" id="view-profiletopics">
+            <h1 class="{{ profile.theme }}-text">+<span class="inc">{{profile.xp|or:'0'}}</span>{% if not self %} XP {% else %}<span class="dead-text w3-large">/{{profile.xpTarget|or:'100'}} XP</span>{% endif %}</h1>
+            <br/>
+            <div class="w3-row" id="view-profiletopics" align='center'>
             {% for topicdata in profile.getTopicsData %}
-                <div class="w3-row pallete-slab w3-padding">
-                    <a href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><h5 class=" w3-left topic-name">{{topicdata.topic}}</h5></a>
-                     {% if not topicdata.points %}
-                     <a title="Search Projects" href="{{URLS.PROJECTS}}?search=topic:{{topicdata.topic}}"><button class="positive w3-right" data-icon="search"></button></a>
-                     <a title="Search Competitions" href="{{URLS.COMPETE}}?search=topic:{{topicdata.topic}}"><button class="active w3-right" data-icon="search"></button></a>
-                     <a title="Search Community" href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><button class="accent w3-right" data-icon="search"></button></a>
-                     {% else %}
-                    <button class="{{ profile.theme }} w3-right message-action" data-message="{{topicdata.points|or:'0'}}XP in {{topicdata.topic}}"><span class="topic-points">+{{topicdata.points|or:'0' }}</span> XP</button>
-                    {% endif %}
-                </div>
+                <a href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><button class="topic-name primary border-joy big-button">+{{topicdata.points}} {{topicdata.topic}}</button></a>     
             {% empty %}
-                <br/>
                 <div class="dead-text w3-padding">
                     <i class="w3-jumbo">scatter_plot</i>
                     <h3>{% trans "No topics yet." %}</h3>
                 {% if self %}
-                    <h6 class="dead-text">We are eager to know which topics you relate to.</h6><br/>
-                    <button class="big-button accent edit-action" data-edittarget="profiletopics" data-icon="add">{% trans "Add topics" %}</button>
+                    <h6 class="dead-text">We are eager to know which topics you relate to.</h6>
+                    <button class="big-button {{profile.theme}} {{profile.text_theme}} edit-action" data-edittarget="profiletopics" data-icon="add">{% trans "Add topics" %}</button>
                 {% else %}
                     <h6>Maybe {{profile.getFName }} is new here. Maybe.</h6>
                 {% endif %}

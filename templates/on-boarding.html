@@ -172,7 +172,7 @@
                     <h3>Your visible topics</h3>
                     <div class="w3-row visible-topics-zone" id="visible-topics-view" style="min-height:30vh" xyz="stagger-5 narrow-100%">
                         {% for topicdata in request.user.profile.getTopicsData %}
-                            <button class="big-button accent draggable-topic xyz-in" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
+                            <button class="big-button primary border-joy draggable-topic xyz-in" data-topicID="{{topicdata.topic.get_id}}" id="editable-topic">{{topicdata.topic}} +{{topicdata.get_points}}</button>
                         {% empty %}
                             <div id="no-visible-topics-view">
                             <i class="w3-jumbo dead-text">drag_indicator</i>
@@ -366,11 +366,19 @@
         </div>
         <br/>
         <div class="w3-row" xyz="fade front-3 flip-down-50% duration-10 stagger-5">
+            <div class="w3-col w3-quarter w3-padding">
+                <a href="{{URLS.HOME}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>The Home Page <i class="w3-right">arrow_forward</i></h3>
+                    <strong>The page about {{APPNAME}}, in brief.</strong>
+                </div>
+                </a>
+            </div>
             <div class="w3-col w3-quarter w3-padding xyz-in">
                 <a href="{{URLS.LANDING}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>The Landing Page <i class="w3-right">arrow_forward</i></h3>
-                    <strong>The page about everything here, in detail.</strong>
+                    <strong>The page about {{APPNAME}}, in detail.</strong>
                 </div>
                 </a>
             </div>
@@ -378,7 +386,7 @@
                 <a href="{{URLS.PROJECTS}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Projects <i class="w3-right">arrow_forward</i></h3>
-                    <strong>Create, browse, admire more quick and verified projects.</strong>
+                    <strong>Create, browse, admire quick, verified, core projects.</strong>
                 </div>
                 </a>
             </div>
@@ -394,7 +402,15 @@
                 <a href="{{URLS.PEOPLE}}" target="_blank">
                 <div class="pallete-slab positive-text">
                     <h3>Community <i class="w3-right">arrow_forward</i></h3>
-                    <strong>See profiles of our beloved moderators 🥰, our respected mentors ✨, and creative people like you 🧠.</strong>
+                    <strong>Our beloved moderators 🥰, respected mentors ✨, creative people like you 🧠.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.SEARCH}}" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Search <i class="w3-right">arrow_forward</i></h3>
+                    <strong>The {{APPNAME}} central search for everything on the platform.</strong>
                 </div>
                 </a>
             </div>
@@ -403,6 +419,14 @@
                 <div class="pallete-slab positive-text">
                     <h3>Your profile <i class="w3-right">arrow_forward</i></h3>
                     <strong>Have a look at how you look to people who look at you 👀.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a href="{{URLS.PROJECTS}}@knottrans" target="_blank">
+                <div class="pallete-slab positive-text">
+                    <h3>Translations <i class="w3-right">arrow_forward</i></h3>
+                    <strong>You can start you journey with our translations project.</strong>
                 </div>
                 </a>
             </div>
@@ -427,6 +451,22 @@
                 <div class="pallete-slab positive-text">
                     <h3>Troubleshooting <i class="w3-right">arrow_forward</i></h3>
                     <strong>A small guide to resolve any problems, at your end.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a class="contact-request-action">
+                <div class="pallete-slab positive-text">
+                    <h3>Contact us <i class="w3-right">arrow_forward</i></h3>
+                    <strong>If you need any help from the maintainers directly.</strong>
+                </div>
+                </a>
+            </div>
+            <div class="w3-col w3-quarter w3-padding xyz-in">
+                <a class="report-feedback-action">
+                <div class="pallete-slab positive-text">
+                    <h3>Report & Feedback <i class="w3-right">arrow_forward</i></h3>
+                    <strong>We're here for help, never hesitate.</strong>
                 </div>
                 </a>
             </div>
@@ -487,7 +527,7 @@
             <button data-current="7" class="big-button moveboarding-action-next positive xyz-in" data-icon="arrow_forward" xyz="right-100%">Got it, next</button>
         </div>
     </div>
-    <div class="w3-row on-boarding-view" id="8">
+    <div class="w3-row on-boarding-view" id="8" hidden>
         <div class="w3-row w3-center" xyz="fade down-100% back-5">
             <i class="w3-jumbo positive-text xyz-in">done_all</i>
             <h1>There, all caught up.</h1>

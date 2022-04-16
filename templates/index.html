@@ -202,7 +202,7 @@
                             <div class="w3-col w3-half">
                             {% for topic in competition.getTopics %}
                             <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                <button class="w3-tiny secondary active-text">{{topic.name}}</button>
+                                <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                             </a>
                             {% endfor %}
                             </div>

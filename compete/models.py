@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
 from main.env import SITE
-from main.methods import errorLog, getNumberSuffix
+from main.methods import errorLog, filterNickname, getNumberSuffix
 from main.strings import MANAGEMENT, Message, url
 from management.models import Invitation
 from people.models import Profile, Topic
@@ -287,11 +287,10 @@ class Competition(models.Model):
             str: The nickname.
         """
         if not self.nickname:
-            self.nickname = re_sub(r'[^a-zA-Z0-9\-]', "", self.title[:60])
-            self.nickname = "-".join(list(filter(lambda c: c,
-                                     self.nickname.split('-')))).lower()
+            self.nickname = filterNickname(self.title, 60)
             if Competition.objects.filter(nickname=self.nickname).exclude(id=self.id).exists():
                 self.nickname = f"{self.nickname}-{self.get_id}"
+                self.nickname = filterNickname(self.title, 60)
             self.save()
         return self.nickname
 

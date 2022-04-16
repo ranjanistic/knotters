@@ -1025,6 +1025,14 @@ class URL():
 
         PROFILE_BASE = 'profile/<str:nickname>'
 
+        def profileBase(self, nickname: str):
+            return setPathParams(self.PROFILE_BASE, nickname)
+
+        AT_NICKANAME = '@<str:nickname>'
+        
+        def at_nickname(self, nickname: str):
+            return setPathParams(self.AT_NICKANAME, nickname)
+
         PROFILE_FREE = 'profile/0/<str:nickname>'
 
         def profileFree(self, nickname: str):

@@ -34,7 +34,7 @@
 
 {% block nav_back_theme %}primary{% endblock %}
 
-{% block nav_text %}{{person.getName}}{% endblock %}   
+{% block nav_text %}{{person.profile.get_nickname}}{% endblock %}   
 {% block nav_style %}{{ person.profile.theme }}{% endblock %}
 {% block nav_text_style %}{{ person.profile.text_theme }}{% endblock %}
 
@@ -56,27 +56,32 @@
 
 {% block content %}
 <div class="w3-row">
-  {% if self and not request.user.profile.is_active %}
-    <br/>
-    <div class="w3-row w3-center w3-padding">
-      <i class="w3-jumbo negative-text">toggle_off</i>
-      <h2>{% trans "Your account is currently deactived." %}</h2><br/>
-      <h3>{% trans "This means your profile is currently not visible to anyone in the world." %}</h3>
-      {% if request.user.profile.suspended %}
-      <strong>{% trans "Your profile is currently suspended. We must have emailed you regarding this, please check your inbox." %}</strong>
-      {% else %}
-      <span class="text-medium">{% trans "If you have changed your mind, then you can reactivate your account." %}</span><br/>
-      <button class="big-button positive" data-icon="restart_alt" id="reactivateaccount">{% trans "Re-activate my account" %}</button><br/><br/>
-      <strong>{% trans "You'll have to login again after reactivating." %}</strong>
-      {% endif %}
-    </div>
-    <br/>
-    <br/>
+  {% if not request.user.profile.is_normal %}
+    {% if self %}
+      <br/>
+      <div class="w3-row w3-center w3-padding">
+        {% if not request.user.profile.is_active %}
+        <i class="w3-jumbo negative-text">toggle_off</i>
+        <h2>{% trans "Your account is currently deactived." %}</h2>
+        <h5>{% trans "This means your profile is currently not visible to anyone in the world." %}</h5>
+          {% if not request.user.profile.suspended %}
+          <span class="text-medium">{% trans "If you have changed your mind, then you can reactivate your account." %}</span><br/><br/>
+          <button class="big-button {{person.profile.theme}}" data-icon="restart_alt" id="reactivateaccount">{% trans "Re-activate my account" %}</button><br/><br/>
+          <strong>{% trans "You'll have to login again after reactivating." %}</strong>
+          {% endif %}
+        {% endif %}
+        {% if request.user.profile.suspended %}
+        <strong>{% trans "Your profile is currently suspended. We must have emailed you regarding this, please check your inbox." %}</strong>
+        {% endif %}
+      </div>
+      <br/>
+      <br/>
+    {% endif %}
   {% else %}
     <div class="w3-row tertiary">
-      {% if self and not request.user.profile.on_boarded %}
-        <div class="w3-row positive w3-padding w3-center">
-          <span>You have not completed on-boarding yet. <a href="{{URLS.ON_BOARDING}}" class="text-positive underline">Click here to do so</a>, and gain free profile XP!</span>
+      {% if self and request.user.profile.on_boarded %}
+        <div class="w3-row {{person.profile.theme}} w3-padding w3-center">
+          <strong>You have not completed on-boarding yet. <a href="{{URLS.ON_BOARDING}}" class="text-positive underline">Click here to do so</a>, and gain free profile XP!</strong>
         </div>
       {% endif %}
       <br/>

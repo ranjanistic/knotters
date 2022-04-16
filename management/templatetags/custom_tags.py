@@ -74,7 +74,7 @@ def random_int(a=1, b=100):
 @register.filter(name="linktags")
 def linktags(text):
     """To convert hashtags, profiletags and projecttags to their respective link tags"""
-    return format_html(projecttag(profiletag(amptopic(hashtag(text)))))
+    return format_html(projecttag(profiletag(linktopic(hashtag(text)))))
 
 
 @register.filter(name="hashtag")
@@ -87,14 +87,14 @@ def hashtag(text):
             f"{tag}", f'<b><a href="/{URL.SEARCH}?query=tag:{tag[1:]}">{tag}</a></b>')
     return format_html(text)
 
-@register.filter(name="amptopic")
-def amptopic(text):
+@register.filter(name="linktopic")
+def linktopic(text):
     topics = list(filter(lambda x: x.startswith("*"), filter(lambda x: x, re_sub(
         r'[^a-zA-Z0-9\*\-]', " ", re_sub(r'(&#|&)+[a-z0-9A-Z]+(;)', "", text)).split(" "))))
     topics.sort(key=lambda x: len(x), reverse=True)
     for topic in topics:
         text = text.replace(
-            f"{topic}", f'<a href="/{URL.SEARCH}?query=topic:{topic[1:]}"><button class="small primary border-joy">{topic[1:]}</button></a>')
+            f"{topic}", f'<a href="/{URL.SEARCH}?query=topic:{topic[1:].capitalize()}"><button class="small primary border-joy">{topic[1:].capitalize()}</button></a>')
     return format_html(text)
 
 

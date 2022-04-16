@@ -22,7 +22,7 @@
                 <i class="w3-left pointer navigator-share-action circle" 
                     data-title="{{project.name}}"
                     data-text="{{project.description|or:'Checkout this core project!'}}"
-                    data-url="{{project.getLink}}"
+                    data-url="{{project.get_short_link}}"
                 >share</i>
             </div>
         </div>
@@ -463,7 +463,7 @@
             <center><h5 class="w3-padding align"><i>camera</i>&nbsp;Snapshots</h5>
             {% if iscreator or ismoderator or iscocreator%}
             <div class="w3-row" id="view-snapshot">
-                <button class="small primary edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
+                <button class="small {{project.theme}} edit-action" data-icon='add' id="create-snap" data-edittarget="snapshot">Create</button>
             </div>
             <div class="w3-row" id="edit-snapshot">
                 <input type='file' hidden id='snap-file' accept="image/png, image/jpg, image/jpeg" />

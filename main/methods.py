@@ -609,3 +609,6 @@ def human_readable_size(num: float, suffix="B") -> str:
             return f"{num:3.1f}{unit}{suffix}"
         num /= 1024.0
     return f"{num:.1f}Yi{suffix}"
+
+def filterNickname(nickname, limit=30):
+    return re_sub(r'[^a-zA-Z0-9\-]', "", "-".join(filter(lambda x: x, nickname.split("-"))))[:limit].lower()
