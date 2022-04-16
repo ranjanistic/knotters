@@ -32,8 +32,8 @@
                                 <div class="w3-row">
                                     <div class="w3-col w3-half">
                                     {% for topic in competition.getPalleteTopics %}
-                                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                        <button class="w3-tiny secondary active-text">{{topic.name}}</button>
+                                    <a href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                                        <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                                     </a>
                                     {% endfor %}
                                     </div>
@@ -79,8 +79,8 @@
                                 <div class="w3-row">
                                     <div class="w3-col w3-half">
                                     {% for topic in competition.getPalleteTopics %}
-                                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                        <button class="w3-tiny secondary active-text">{{topic.name}}</button>
+                                    <a href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                                        <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                                     </a>
                                     {% endfor %}
                                     </div>
