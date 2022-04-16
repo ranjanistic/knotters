@@ -32,8 +32,8 @@
                                 <div class="w3-row">
                                     <div class="w3-col w3-half">
                                     {% for topic in competition.getPalleteTopics %}
-                                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                        <button class="w3-tiny secondary active-text">{{topic.name}}</button>
+                                    <a href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                                        <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                                     </a>
                                     {% endfor %}
                                     </div>
@@ -61,7 +61,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No results yet." %}</h3>
+                <h5>{% trans "No latest competitions." %}</h5>
             </center>
             </div>
 			{% endfor %} 
@@ -91,8 +91,8 @@
                                 <div class="w3-row">
                                     <div class="w3-col w3-half">
                                     {% for topic in competition.getPalleteTopics %}
-                                    <a href="{{URLS.COMPETE|getquery:"search=topic:"}}{{topic}}">
-                                        <button class="w3-tiny secondary active-text">{{topic.name}}</button>
+                                    <a href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                                        <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                                     </a>
                                     {% endfor %}
                                     </div>
@@ -122,7 +122,7 @@
             <div class="w3-padding w3-col">
             <center class="w3-padding">
                 <i class="w3-jumbo">hourglass_top</i>
-                <h3>{% trans "No latest competitions." %}</h3>
+                <h5>{% trans "No latest competitions." %}</h5>
             </center>
             </div>
 			{% endfor %} 
