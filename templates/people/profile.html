@@ -56,21 +56,21 @@
 
 {% block content %}
 <div class="w3-row">
-  {% if not request.user.profile.is_normal %}
+  {% if not person.profile.is_normal %}
     {% if self %}
       <br/>
       <div class="w3-row w3-center w3-padding">
-        {% if not request.user.profile.is_active %}
+        {% if not person.profile.is_active %}
         <i class="w3-jumbo negative-text">toggle_off</i>
         <h2>{% trans "Your account is currently deactived." %}</h2>
         <h5>{% trans "This means your profile is currently not visible to anyone in the world." %}</h5>
-          {% if not request.user.profile.suspended %}
+          {% if not person.profile.suspended %}
           <span class="text-medium">{% trans "If you have changed your mind, then you can reactivate your account." %}</span><br/><br/>
           <button class="big-button {{person.profile.theme}}" data-icon="restart_alt" id="reactivateaccount">{% trans "Re-activate my account" %}</button><br/><br/>
           <strong>{% trans "You'll have to login again after reactivating." %}</strong>
           {% endif %}
         {% endif %}
-        {% if request.user.profile.suspended %}
+        {% if person.profile.suspended %}
         <strong>{% trans "Your profile is currently suspended. We must have emailed you regarding this, please check your inbox." %}</strong>
         {% endif %}
       </div>
