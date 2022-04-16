@@ -110,7 +110,7 @@
             <strong class="w3-right w3-tiny"><br/>{{person.profile.getXP}}</strong>
           {% endif %}
           {% if person.profile.totalAllTopics %}
-            <a href="{{URLS.PEOPLE}}?search=topic:{{person.profile.getAllTopics.0}}"><button class="w3-tiny {{person.profile.theme}} {{person.profile.text_theme}}">{{person.profile.getAllTopics.0.name}}</button></a>
+            <a href="{{URLS.PEOPLE}}?search=topic:{{person.profile.getAllTopics.0}}"><button class="w3-tiny primary border-joy">{{person.profile.getAllTopics.0.name}}</button></a>
           {% endif %}
           </div>
         </div>
