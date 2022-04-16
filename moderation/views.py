@@ -77,7 +77,7 @@ def message(request: WSGIRequest, modID: UUID) -> HttpResponse:
         if not responseData and not requestData:
             raise ObjectDoesNotExist(modID)
 
-        mod: Moderation = Moderation.objects.get(id=modID, resoved=False)
+        mod: Moderation = Moderation.objects.get(id=modID, resolved=False)
 
         if mod.is_stale:
             raise ObjectDoesNotExist(mod)

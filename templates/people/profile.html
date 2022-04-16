@@ -79,7 +79,7 @@
     {% endif %}
   {% else %}
     <div class="w3-row tertiary">
-      {% if self and request.user.profile.on_boarded %}
+      {% if self and not request.user.profile.on_boarded %}
         <div class="w3-row {{person.profile.theme}} w3-padding w3-center">
           <strong>You have not completed on-boarding yet. <a href="{{URLS.ON_BOARDING}}" class="text-positive underline">Click here to do so</a>, and gain free profile XP!</strong>
         </div>
