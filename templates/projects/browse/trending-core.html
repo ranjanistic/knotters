@@ -24,13 +24,13 @@
                         </div>
                         <div class="w3-col m10 l10 s10 w3-left">
                         {% for topic in project.getPalleteTopics %}
-                        <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=topic:"}}{{topic}}">
-                            <button class="w3-tiny secondary {{project.theme_text}}">{{topic.name}}</button>
+                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                            <button class="w3-tiny primary border-joy">{{topic.name}}</button>
                         </a>
                         {% empty %}
                             {% for tag in project.getPalleteTags %}
-                                <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=tag:"}}{{tag}}">
-                                    <button class="w3-tiny primary">#{{tag.name}}</button>
+                                <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=tag:"}}{{tag}}">
+                                    <button class="w3-tiny  {{project.theme}}">#{{tag.name}}</button>
                                 </a>
                             {% empty %}
                                 <br/>
@@ -67,13 +67,13 @@
                         </div>
                         <div class="w3-col m10 l10 s10 w3-left">
                         {% for topic in project.getPalleteTopics %}
-                        <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=topic:"}}{{topic}}">
-                            <button class="w3-tiny secondary {{project.theme_text}}">{{topic.name}}</button>
+                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                            <button class="w3-tiny primary border-joy}">{{topic.name}}</button>
                         </a>
                         {% empty %}
                             {% for tag in project.getPalleteTags %}
-                                <a class="w3-left" href="{{URLS.PROJECTS|getquery:"search=tag:"}}{{tag}}">
-                                    <button class="w3-tiny primary">#{{tag.name}}</button>
+                                <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=tag:"}}{{tag}}">
+                                    <button class="w3-tiny  {{project.theme}}">#{{tag.name}}</button>
                                 </a>
                             {% empty %}
                                 <br/>
