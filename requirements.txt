@@ -93,7 +93,7 @@ python-jose==3.3.0
 python-u2flib-server==5.0.1
 python3-openid==3.2.0
 pytz==2022.1
-pywebpush==1.9.4
+pywebpush==1.14.0
 qrcode==7.3.1
 rcssmin==1.1.0
 redis
