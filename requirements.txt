@@ -52,7 +52,7 @@ google-api-core==2.7.2
 google-api-python-client==2.37.0
 google-auth==2.6.6
 google-auth-httplib2==0.1.0
-googleapis-common-protos==1.54.0
+googleapis-common-protos==1.56.0
 h11==0.13.0
 html5lib==1.1
 http-ece==1.1.0
