@@ -84,7 +84,7 @@ pymongo==3.12.3
 PyNaCl==1.5.0
 pyOpenSSL==22.0.0
 pyotp==2.6.0
-pyparsing==3.0.7
+pyparsing==3.0.8
 PySocks==1.7.1
 python-dateutil==2.8.2
 python-gettext==4.0
@@ -93,7 +93,7 @@ python-jose==3.3.0
 python-u2flib-server==5.0.1
 python3-openid==3.2.0
 pytz==2022.1
-pywebpush==1.9.4
+pywebpush==1.14.0
 qrcode==7.3.1
 rcssmin==1.1.0
 redis
@@ -108,7 +108,7 @@ six==1.16.0
 sniffio==1.2.0
 sortedcontainers==2.4.0
 soupsieve==2.3.2.post1
-sqlparse==0.2.4
+sqlparse==0.4.2
 tblib==1.7.0
 toml==0.10.2
 trio==0.20.0
