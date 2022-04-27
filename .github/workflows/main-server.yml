@@ -132,8 +132,8 @@ jobs:
         git pull origin main --depth=100
     - name: Restart services
       run: |
-        systemctl --user restart knotters.gunicorn.service
-        systemctl --user restart knotters.cluster0
+        sudo -Eu knottersbot systemctl --user restart knotters.gunicorn.service
+        sudo -Eu knottersbot systemctl --user restart knotters.cluster0
 #        systemctl --user restart knotters.cluster1
     - name: Clear environment
       run: |

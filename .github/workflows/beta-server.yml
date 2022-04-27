@@ -54,5 +54,5 @@ jobs:
         ~/Env/beta_knotters/bin/python3 manage.py preparestatics /var/www/beta/knotters/errors/
     - name: Restart services
       run: |
-        systemctl --user restart beta.gunicorn.service
-        systemctl --user restart beta.cluster0
+        sudo -Eu knottersbot systemctl --user restart beta.gunicorn.service
+        sudo -Eu knottersbot systemctl --user restart beta.cluster0
