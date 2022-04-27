@@ -132,9 +132,9 @@ jobs:
         git pull origin main --depth=100
     - name: Restart services
       run: |
-        sudo systemctl restart knotters.gunicorn
-        sudo systemctl restart knotters.cluster0
-#         sudo systemctl restart knotters.cluster1
+        systemctl --user restart knotters.gunicorn.service
+        systemctl --user restart knotters.cluster0
+#        systemctl --user restart knotters.cluster1
     - name: Clear environment
       run: |
         rm -f ${{ secrets.ENVPATH }}

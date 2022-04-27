@@ -126,7 +126,7 @@ jobs:
         ~/Env/knotters/bin/python3 manage.py preparestatics /var/www/knotters/errors/
     - name: Restart server
       run: |
-        sudo systemctl restart knotters.gunicorn
+        systemctl --user restart knotters.gunicorn.service
     - name: Clear environment
       run: |
         rm -f ${{ secrets.ENVPATH }}
