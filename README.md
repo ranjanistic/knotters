@@ -10,9 +10,9 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 
 ### Prerequisites
 
-- Python 3.10.x or above, pip 22.x or above
+- Python 3.9.x or above, pip 22.x or above
 - MongoDB (5.0.x) connection string (mongodb://user:password@host:port/database)
-- A running redis server
+- A running redis (6.x) server
 
 ### Initial setup
 
@@ -69,6 +69,15 @@ For translatory contribution, see [TRANSLATION.md](TRANSLATION.md).
 python3 manage.py makemigrations
 python3 manage.py migrate
 ```
+
+[Mandatory] Create a superuser with email address same as `BOTMAIL` value in `.env` file, using the following
+
+```bash
+python3 manage.py createsuperuser
+```
+Provide aribtrary values for name and password (this superuser account is neccessary for the web application to work)
+
+Later, create another superuser account for yourself, using the same above command.
 
 ### Server
 
