@@ -272,7 +272,7 @@ class TestViews(TestCase):
         return predprofile, E2, P2
 
     @tag("accdel")
-    def test_accountDelete(self):
+    def _test_accountDelete(self):
         clientx = Client()
         E3 = getTestEmail()
         P3 = getTestPassword()
