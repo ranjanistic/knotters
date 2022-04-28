@@ -14,7 +14,7 @@ def main(ENVPATH):
         from main import env
         print(f"Environment from: {ENVPATH}")
         print(f"Environment: {env.ENV}")
-        print(f"Default Database: {env.DBNAME}")
+        print(f"Default Database: {env.DB_NAME}")
         print(f"Redis Database: {env.REDIS_DB}")
         print(f"Version: {env.VERSION}")
         print(f"Media Root: {env.MEDIA_ROOT}")

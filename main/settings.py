@@ -14,7 +14,7 @@ DEBUG = not env.ISPRODUCTION
 
 ALLOWED_HOSTS = env.HOSTS
 SERVER_EMAIL = env.SERVER_EMAIL
-ADMINS = [(env.PUBNAME, env.MAILUSER)]
+ADMINS = [(env.PUBNAME, env.MAIL_USERNAME)]
 
 
 INSTALLED_APPS = [
@@ -143,53 +143,58 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-DB_HOST_API = env.DBLINK
+DEFAULT_DB_CONFIG = {}
 
-if not DEBUG:
-    DATABASES = {
-        DB.DEFAULT: {
-            "ENGINE": "djongo",
-            "CLIENT": {
-                "name": env.DBNAME,
-                "host": DB_HOST_API,
-                "username": env.DBUSER,
-                "password": env.DBPASS,
-                "authMechanism": "SCRAM-SHA-1",
-            },
-            "CONN_MAX_AGE": None
-        }
+if env.ISTESTING:
+    DEFAULT_DB_CONFIG = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+
+    }
+elif env.DB_AUTHMECH:
+    DEFAULT_DB_CONFIG = {
+        "ENGINE": "djongo",
+        "CLIENT": {
+            "name": env.DB_NAME,
+            "host": env.DB_URL,
+            "username": env.DB_USERNAME,
+            "password": env.DB_PASSWORD,
+            "authMechanism": env.DB_AUTHMECH,
+        },
+        "CONN_MAX_AGE": None
     }
 else:
-    if env.ISTESTING:
-        DATABASES = {
-            DB.DEFAULT: {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": ":memory:",
-            }
-        }
-    else:
-        DATABASES = {
-            DB.DEFAULT: {
-                "ENGINE": "djongo",
-                "NAME": env.DBNAME,
-                "CLIENT": {
-                    "host": DB_HOST_API,
-                },
-                "CONN_MAX_AGE": None if env.ISTESTING else 0
-            }
-        }
-
-if not env.ISTESTING and env.ASYNC_CLUSTER:
-    CACHES = {
-        DB.DEFAULT: {} if not env.REDIS_LOCATION else {
-            'BACKEND': 'redis_cache.RedisCache',
-            'LOCATION': env.REDIS_LOCATION,
-            'OPTIONS': {} if not env.REDIS_PASSWORD else {
-                'PASSWORD': env.REDIS_PASSWORD,
-                'db': env.REDIS_DB,
-            },
-            'TIMEOUT': None
+    DEFAULT_DB_CONFIG = {
+        "ENGINE": "djongo",
+        "NAME": env.DB_NAME,
+        "CLIENT": {
+            "host": env.DB_URL,
         },
+        "CONN_MAX_AGE": None if env.ISTESTING else 0
+    }
+
+
+DATABASES = {
+    DB.DEFAULT: DEFAULT_DB_CONFIG
+}
+
+DEFAULT_CACHE_CONFIG = {}
+
+if env.REDIS_LOCATION:
+    DEFAULT_CACHE_CONFIG = {
+        'BACKEND': 'redis_cache.RedisCache',
+        'LOCATION': env.REDIS_LOCATION,
+        'OPTIONS': {} if not env.REDIS_PASSWORD else {
+            'USERNAME': env.REDIS_USER,
+            'PASSWORD': env.REDIS_PASSWORD,
+            'db': env.REDIS_DB,
+        },
+        'TIMEOUT': None
+    }
+
+if not env.ISTESTING:
+    CACHES = {
+        DB.DEFAULT: DEFAULT_CACHE_CONFIG
     }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
@@ -281,8 +286,6 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 120
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-# LOGIN_URL = 'two_factor:login'
-# LOGIN_REDIRECT_URL = 'two_factor:profile'
 LOGIN_URL = f'{url.getRoot(AUTH2)}{url.Auth.LOGIN}'
 LOGIN_REDIRECT_URL = url.getRoot()
 
@@ -309,12 +312,13 @@ if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = f"{env.PUBNAME} <{env.MAILUSER}>"
-EMAIL_HOST_USER = env.MAILUSER
-EMAIL_HOST_PASSWORD = env.MAILPASS
+DEFAULT_FROM_EMAIL = f"{env.PUBNAME} <{env.MAIL_USERNAME}>"
+EMAIL_HOST_USER = env.MAIL_USERNAME
+EMAIL_HOST_PASSWORD = env.MAIL_PASSWORD
 EMAIL_SUBJECT_PREFIX = env.PUBNAME
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -447,7 +451,7 @@ SITE_ID = 1
 SITE = env.SITE
 
 SENDER_API_HEADERS = {
-    "Authorization": f"Bearer {env.SENDERTOKEN}",
+    "Authorization": f"Bearer {env.SENDER_SECRET}",
     "Content-Type": "application/json",
     "Accept": "application/json",
 }
@@ -468,9 +472,8 @@ DISCORD_KNOTTERS_HEADERS = {
     "Accept": "application/json",
 }
 DISCORD_KNOTTERS_API_URL = "https://bot.knotters.org/discord"
-DISCORD_KNOTTERS_SECRET = env.DISCORDBOTTOKEN
+DISCORD_KNOTTERS_SECRET = env.DISCORDBOT_SECRET
 
-# if env.ASYNC_CLUSTER:
 Q_CLUSTER = {
     'name': env.PUBNAME,
     'workers': 8,
@@ -487,6 +490,7 @@ Q_CLUSTER = {
     'redis':  {
         'host': env.REDIS_HOST,
         'port': env.REDIS_PORT,
+        'username': env.REDIS_USER,
         'password': env.REDIS_PASSWORD,
         'db': env.REDIS_DB + 1,
     }
@@ -494,6 +498,7 @@ Q_CLUSTER = {
 
 
 RATELIMIT_ENABLE = env.ISPRODUCTION
+
 if not DEBUG:
     LOGGING = {
         "version": 1,

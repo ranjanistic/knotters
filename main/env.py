@@ -28,19 +28,20 @@ PROJECTKEY = env('PROJECTKEY')
 PUBNAME = env('PUBNAME').strip()
 ENV = env('ENV').strip()
 HOSTS = env('HOSTS').split(',')
-DBNAME = env('DBNAME').strip()
-DBLINK = env('DBLINK').strip()
-DBUSER = env('DBUSER').strip()
-DBPASS = env('DBPASS').strip()
-MAILUSER = env('MAILUSER').strip()
-MAILPASS = env('MAILPASS').strip()
+DB_NAME = env('DB_NAME').strip()
+DB_URL = env('DB_URL').strip()
+DB_USERNAME = env('DB_USERNAME').strip()
+DB_PASSWORD = env('DB_PASSWORD').strip()
+DB_AUTHMECH = env('DB_AUTHMECH').strip()
+MAIL_USERNAME = env('MAIL_USERNAME').strip()
+MAIL_PASSWORD = env('MAIL_PASSWORD').strip()
 BOTMAIL = env('BOTMAIL').strip()
 ADMINPATH = env('ADMINPATH').strip()
-GITHUBBOTTOKEN = env('GITHUBBOTTOKEN').strip()
+GITHUBBOT_SECRET = env('GITHUBBOT_SECRET', default=None)
 DISCORDSERVERID = env('DISCORDSERVER', default=None)
-DISCORDBOTTOKEN = env('DISCORDBOTTOKEN').strip()
+DISCORDBOT_SECRET = env('DISCORDBOT_SECRET', default=None)
 SITE = env('SITE').strip()
-SENDERTOKEN = env('SENDERTOKEN').strip()
+SENDER_SECRET = env('SENDER_SECRET').strip()
 STATIC_URL = env('STATIC_URL').strip()
 MEDIA_URL = env('MEDIA_URL').strip()
 STATIC_ROOT = env('STATIC_ROOT').strip()
@@ -49,6 +50,7 @@ SERVER_EMAIL = env('SERVER_EMAIL').strip()
 GH_HOOK_SECRET = env('GH_HOOK_SECRET').strip()
 REDIS_LOCATION = env('REDIS_LOCATION').strip()
 REDIS_PASSWORD = env('REDIS_PASSWORD').strip()
+REDIS_USER = env('REDIS_USER', default='default').strip()
 REDIS_DB = env('REDIS_DB', default='1').strip()
 RECAPTCHA_KEY = env('RECAPTCHA_KEY').strip()
 RECAPTCHA_SECRET = env('RECAPTCHA_SECRET').strip()
@@ -67,18 +69,18 @@ PROJECTKEY = None if PROJECTKEY == 'none' else PROJECTKEY
 PUBNAME = None if PUBNAME == 'none' else PUBNAME
 ENV = None if ENV == 'none' else ENV
 HOSTS = None if HOSTS == 'none' else HOSTS
-DBNAME = None if DBNAME == 'none' else DBNAME
-DBLINK = None if DBLINK == 'none' else DBLINK
-DBUSER = None if DBUSER == 'none' else DBUSER
-DBPASS = None if DBPASS == 'none' else DBPASS
-MAILUSER = None if MAILUSER == 'none' else MAILUSER
-MAILPASS = None if MAILPASS == 'none' else MAILPASS
+DB_NAME = None if DB_NAME == 'none' else DB_NAME
+DB_URL = None if DB_URL == 'none' else DB_URL
+DB_USERNAME = None if DB_USERNAME == 'none' else DB_USERNAME
+DB_PASSWORD = None if DB_PASSWORD == 'none' else DB_PASSWORD
+MAIL_USERNAME = None if MAIL_USERNAME == 'none' else MAIL_USERNAME
+MAIL_PASSWORD = None if MAIL_PASSWORD == 'none' else MAIL_PASSWORD
 BOTMAIL = None if BOTMAIL == 'none' else BOTMAIL
 ADMINPATH = None if ADMINPATH == 'none' else ADMINPATH
-GITHUBBOTTOKEN = None if GITHUBBOTTOKEN == 'none' else GITHUBBOTTOKEN
-DISCORDBOTTOKEN = None if DISCORDBOTTOKEN == 'none' else DISCORDBOTTOKEN
+GITHUBBOT_SECRET = None if GITHUBBOT_SECRET == 'none' else GITHUBBOT_SECRET
+DISCORDBOT_SECRET = None if DISCORDBOT_SECRET == 'none' else DISCORDBOT_SECRET
 SITE = None if SITE == 'none' else SITE
-SENDERTOKEN = None if SENDERTOKEN == 'none' else SENDERTOKEN
+SENDER_SECRET = None if SENDER_SECRET == 'none' else SENDER_SECRET
 MEDIA_URL = None if MEDIA_URL == 'none' else MEDIA_URL
 STATIC_URL = None if STATIC_URL == 'none' else STATIC_URL
 STATIC_ROOT = None if STATIC_ROOT == 'none' else STATIC_ROOT

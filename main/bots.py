@@ -5,14 +5,14 @@ from requests import delete as deleteRequest
 from requests import get as getRequest
 from requests import post as postRequest
 
-from .env import (DISCORDBOTTOKEN, DISCORDSERVERID, GITHUBBOTTOKEN,
+from .env import (DISCORDBOT_SECRET, DISCORDSERVERID, GITHUBBOT_SECRET,
                   ISPRODUCTION, PUBNAME)
 from .settings import (DISCORD_KNOTTERS_API_URL, DISCORD_KNOTTERS_HEADERS,
                        SENDER_API_HEADERS, SENDER_API_URL_SUBS)
 
 try:
-    if GITHUBBOTTOKEN:
-        Github: GHub = GHub(GITHUBBOTTOKEN)
+    if GITHUBBOT_SECRET:
+        Github: GHub = GHub(GITHUBBOT_SECRET)
         GithubKnotters: Organization = Github.get_organization(PUBNAME)
     else:
         Github: GHub = None
@@ -23,7 +23,7 @@ except Exception as e:
     GithubKnotters: Organization = None
 
 
-def GH_API(token: str = GITHUBBOTTOKEN) -> GHub:
+def GH_API(token: str = GITHUBBOT_SECRET) -> GHub:
     """Github API object for given access token
 
     Args:
@@ -84,7 +84,7 @@ class DiscordServer():
             return False
 
 
-Discord = DiscordServer(token=DISCORDBOTTOKEN, serverID=DISCORDSERVERID)
+Discord = DiscordServer(token=DISCORDBOT_SECRET, serverID=DISCORDSERVERID)
 """DiscordServer object for the Discord server"""
 
 
