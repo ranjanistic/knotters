@@ -25,19 +25,31 @@
 {% if process == "connect" %}
 <h2>{% blocktrans with provider.name as provider %}Link your {{ provider }} account{% endblocktrans %}</h2>
 <br/>
-<strong class="text-medium">{% blocktrans with provider.name as provider %}You are about to connect a new third party account from {{ provider }}.{% endblocktrans %}</strong>
+<strong class="text-medium">{% blocktrans with provider.name as provider %}You are about to connect a new account from {{ provider }}.{% endblocktrans %}</strong>
 {% else %}
 <h2>{% blocktrans with provider.name as provider %}Sign In via {{ provider }}{% endblocktrans %}</h2>
 
 <br/>
-<strong class="text-medium">{% blocktrans with provider.name as provider %}You are about to sign in using a third party account from {{ provider }}.{% endblocktrans %}</strong>
+<strong class="text-medium">{% blocktrans with provider.name as provider %}You are about to login or signup using an account from {{ provider }}.{% endblocktrans %}</strong>
 {% endif %}
 
 <br/><br/>
-<form method="POST">
+<form method="POST" action="{{request.path}}">
   {% csrf_token %}
   <button class="big-button border-joy primary" type="submit" data-icon="arrow_forward">{% trans "Continue via" %} {{provider.name}}</button>
 </form>
+<br/>
+  <span class="text-medium">
+  {{APPNAME}} uses email address to identify a person.<br/>
+  {% blocktrans with provider.name as provider %}Make sure you use the right {{ provider }} account having the email address you want to use.{% endblocktrans %}
+  <br/>If you already have a {{provider.name}} account linked with {{APPNAME}} and you choose a {{ provider.name }} account having different email,<br/>
+  {% if process == "connect" %}
+  then your account might not get linked with {{APPNAME}}.
+  {% else %}
+  then a new account will be created for that on {{APPNAME}}.
+  {% endif %}
+  </span>
 </div>
-<br/><br/>
+<br/>
+<br/>
 {% endblock %}

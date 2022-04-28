@@ -47,7 +47,7 @@ if not env.ISTESTING:
 AUTH_USER_MODEL = f'{PEOPLE}.User'
 SOCIALACCOUNT_ADAPTER = f'{PEOPLE}.adapter.CustomSocialAccountAdapter'
 
-ACCOUNT_ADAPTER = 'allauth_2fa.adapter.OTPAdapter'
+ACCOUNT_ADAPTER = 'main.adapter.CustomOTPAdapter'
 
 ACCOUNT_FORMS = {
     'signup': f'{PEOPLE}.forms.CustomSignupForm',
