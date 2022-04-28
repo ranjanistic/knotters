@@ -159,6 +159,25 @@ python3 manage.py compilemessages
 
 To compile `.po` files to `.mo` files present at your `LOCALE_ABS_PATH`.
 
+## Deployment
+
+There are total 5 runners in the repository, hosted on our own servers. Following list explains the job of each runner.
+
+- tester_knotters: All testing jobs run on this runner. Currently testing is limited to commits & pull requests on branch:main only. Deployment on beta.knotters.org does not uses testing for now (for no special reasons). The testing environment is separate from beta.knotters.org & knotters.org environment.
+
+- beta_builder: Any commit which is pushed on branch:beta triggers the `beta-server.yml` action, which uses this runner to install/update dependencies and setup for beta.knotters.org environment.
+- beta_knotters: Any commit which is pushed on branch:beta triggers the `beta-server.yml` action, which uses this runner to deploy latest changes on beta.knotters.org environment. This job for deployment requires the previous building job to be successful to run.
+
+- builder_knotters: Any commit which is pushed on branch:main triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to install/update dependencies and setup for knotters.org environment. This job for building requires the testing job to be successful to run.
+- deploy_knotters: Any commit which is pushed on branch:beta triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run.
+
+There are total 4 workflows in the repository, for different event trigger cases.
+
+- beta-server.yml: This workflow is triggered on any commit to branch:beta for building and deployment in beta.knotters.org environment
+- main-pr.yml: This workflow is triggered on any pull request to branch:main for testing in test environment.
+- main-server.yml: This workflow is triggered on any commit to branch:main for testing, building and deployment in knotters.org environment, except on changes in static assets of repository, particularly the `static/` folder, as static updates are handled by `main-client-static.yml` workflow.
+- main-client-static.yml: This workflow is triggered on any commit to branch:main for testing, building and deployment in knotters.org environment, but only on changes in static assets of repository, particularly the `static/` folder, as this workflow has additional tasks to release new client side version, compress and deploy new static assets, etc. Also, this workflow does not reload the knotters cluster, assuming that it does not depend on static asset changes.
+
 ## Footnotes
 
 - Any push on beta branch deploys it directly to [beta.knotters.org](https://beta.knotters.org)
