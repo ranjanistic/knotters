@@ -15,24 +15,6 @@
     "dir": "auto",
     "lang": "en-US",
     "orientation": "natural",
-    "share_target": {
-        "action": "{{URLS.Projects.CREATE_FREE}}",
-        "enctype": "APPLICATION/X-WWW-FORM-URLENCODED",
-        "params": {
-            "title": "{{APPNAME}}",
-            "url": "{{URLS.Projects.CREATE_FREE}}",
-            "text": "{{DESCRIPTION|safe}}"
-        },
-        "method": "GET"
-    },
-    "prefer_related_applications": true,
-    "related_applications": [
-        {
-            "platform": "play",
-            "id": "org.knotters.knative",
-            "min_version": "1.0"
-        }
-    ],
     "icons": [
         {% for icon in icons %}
         {

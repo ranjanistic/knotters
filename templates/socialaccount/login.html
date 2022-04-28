@@ -1,0 +1,43 @@
+{% extends 'account/index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load socialaccount %}
+
+{% block title %}{{provider.name}} Login{% endblock %}
+
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+
+{% block nav_href %}{{URLS.Auth.LOGIN}}{% endblock %}
+
+{% block nav_text %}{{provider.name}} Login{% endblock %}
+{% block nav_links %}{% endblock %}
+
+{% block content %}
+<div class="w3-row w3-padding w3-center">
+<br/>
+<img src="{% static '/graphics/thirdparty/' %}{{provider.name|lower}}{% if provider.name == "GitHub" %}{% endif %}.webp" class="{% if provider.name == "GitHub" %}darkimg{% endif %}" width="80" />
+<br/><br/>
+{% if process == "connect" %}
+<h2>{% blocktrans with provider.name as provider %}Link your {{ provider }} account{% endblocktrans %}</h2>
+<br/>
+<strong class="text-medium">{% blocktrans with provider.name as provider %}You are about to connect a new third party account from {{ provider }}.{% endblocktrans %}</strong>
+{% else %}
+<h2>{% blocktrans with provider.name as provider %}Sign In via {{ provider }}{% endblocktrans %}</h2>
+
+<br/>
+<strong class="text-medium">{% blocktrans with provider.name as provider %}You are about to sign in using a third party account from {{ provider }}.{% endblocktrans %}</strong>
+{% endif %}
+
+<br/><br/>
+<form method="POST">
+  {% csrf_token %}
+  <button class="big-button border-joy primary" type="submit" data-icon="arrow_forward">{% trans "Continue via" %} {{provider.name}}</button>
+</form>
+</div>
+<br/><br/>
+{% endblock %}

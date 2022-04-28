@@ -14,7 +14,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        python-version: [3.8]
+        python-version: ["3.10"]
 
     steps:
     - name: Merge changes
@@ -35,7 +35,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        python-version: [3.8]
+        python-version: ["3.10"]
 
     steps:
     - name: Create backup
@@ -54,4 +54,5 @@ jobs:
         ~/Env/beta_knotters/bin/python3 manage.py preparestatics /var/www/beta/knotters/errors/
     - name: Restart services
       run: |
-        systemctl --user --machine=knottersbot@ restart beta.gunicorn.service
+        systemctl --user restart beta.gunicorn.service
+        systemctl --user restart beta.cluster0.service
