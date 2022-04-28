@@ -182,10 +182,10 @@ DEFAULT_CACHE_CONFIG = {}
 
 if env.REDIS_LOCATION:
     DEFAULT_CACHE_CONFIG = {
-        'BACKEND': 'redis_cache.RedisCache',
+        'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': env.REDIS_LOCATION,
-        'OPTIONS': {} if not env.REDIS_PASSWORD else {
-            'USERNAME': env.REDIS_USER,
+        'OPTIONS': {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
             'PASSWORD': env.REDIS_PASSWORD,
             'db': env.REDIS_DB,
         },

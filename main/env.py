@@ -88,6 +88,11 @@ SERVER_EMAIL = None if SERVER_EMAIL == 'none' else SERVER_EMAIL
 GH_HOOK_SECRET = None if GH_HOOK_SECRET == 'none' else GH_HOOK_SECRET
 REDIS_LOCATION = None if REDIS_LOCATION == 'none' else REDIS_LOCATION
 
+if not REDIS_USER:
+    REDIS_USER = "default"
+else:
+    REDIS_LOCATION = f"redis://{REDIS_USER}@{REDIS_LOCATION}"
+
 REDIS_PORT = None if not REDIS_LOCATION else REDIS_LOCATION.split(
     ':')[len(REDIS_LOCATION.split(':'))-1]
 REDIS_HOST = None if not REDIS_LOCATION else REDIS_LOCATION.split(f":{REDIS_PORT}")[
