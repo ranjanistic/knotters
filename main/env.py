@@ -90,8 +90,9 @@ REDIS_LOCATION = None if REDIS_LOCATION == 'none' else REDIS_LOCATION
 
 if not REDIS_USER:
     REDIS_USER = "default"
+    REDIS_URL = REDIS_LOCATION
 else:
-    REDIS_LOCATION = f"redis://{REDIS_USER}@{REDIS_LOCATION}"
+    REDIS_URL = f"redis://{REDIS_USER}@{REDIS_LOCATION}"
 
 REDIS_PORT = None if not REDIS_LOCATION else REDIS_LOCATION.split(
     ':')[len(REDIS_LOCATION.split(':'))-1]
