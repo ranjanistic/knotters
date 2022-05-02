@@ -10,9 +10,10 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 
 ### Prerequisites
 
-- Python 3.9.x or above, pip 22.x or above
+- Python 3.8.x or above
+- pip 20.x or above
 - MongoDB (5.0.x) connection string (mongodb://user:password@host:port/database)
-- A running redis (6.x) server
+- A running redis (6.x or above) server
 
 ### Environment
 
@@ -20,9 +21,27 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 python3 setup.py
 ```
 
-Check values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) manually as well, if not set using setup.py.
+Check values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) manually as well for everything is ok or not.
 
 ### Dependencies
+
+Using a python virtual environment is recommended. Activate using
+
+```bash
+pip install virtualenvwrapper
+mkvirtualenv your-virtual-environment-name
+workon your-virtual-environment-name
+```
+
+or for Windows
+
+```bash
+pip install virtualenvwrapper-win
+mkvirtualenv your-virtual-environment-name
+workon your-virtual-environment-name
+```
+
+Then install dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -37,12 +56,59 @@ pip install rjsmin --install-option="--without-c-extensions"
 pip install -r requirements.txt
 ```
 
+## Static setup
+
+Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of a directory (like `/var/www/knotters/static/` or `C:\Users\static\`) where you can allow server to load static files from the `static` folder. Make sure whichever path you set is not restricted for server by any directory permissions.
+Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
+
+Then, use the following to load static files.
+
+```bash
+python3 manage.py collectstatic
+```
+
+This will prevent tests from failing which depend on the presence of static files at your `STATIC_ROOT` location.
+
 ### Database Setup
 
 ```bash
 python3 manage.py makemigrations
 python3 manage.py migrate
 ```
+
+These will create collections in your `DB_NAME` named value in .env, as database of your MongoDB server.
+
+If the above commands are failing for you due to some kind of database error, then you can follow the steps below to fix the issue.
+
+- In [`main/settings.py`](main/settings.py), find the following piece of code and comment it out (temporarily)
+
+```python
+# before
+...
+if not env.ISTESTING:
+    INSTALLED_APPS.append("django_q")
+...
+```
+
+```python
+# after
+...
+# if not env.ISTESTING:
+#    INSTALLED_APPS.append("django_q")
+...
+```
+
+- Then run the above `makemigrations` and `migrate` commands again.
+- After the commands execute successfully (you're seeing `OK` on your console), then you can uncomment the commented part in [`main/settings.py`](main/settings.py) (or use `git restore .`).
+
+- Then run the following
+
+```bash
+python3 manage.py makemigrations
+python3 manage.py migrate --fake
+```
+
+- This should fix the issue for you.
 
 #### Accounts setup
 
@@ -54,38 +120,24 @@ python3 manage.py createsuperuser
 
 Provide aribtrary values for name and password (this superuser account is neccessary for the web application to work) as this account will be used as the bot.
 
-Then, create another superuser account for yourself, using the same above command. This account can be used to access the administration view at `http://localhost:8000/<ADMINPATH>/`. The `<ADMINPATH>` here is an environment variable from `.env`.
+Then, create another superuser account for yourself, using the same above command. This account can be used to login and access the administration view as well, at `http://localhost:8000/<ADMINPATH>/`. The `<ADMINPATH>` here is an environment variable from your `.env`.
 
 ### Server
 
-Main server process
+Change your working branch (always create any new branch from `branch:beta`)
+
+```bash
+git pull
+git checkout beta
+git checkout -b your-branch-name
+git status
+```
+
+The run the main server process (assuming port 8000 is free)
 
 ```bash
 python3 manage.py runserver
 ```
-
-## Static setup
-
-Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values) to the absolute path of directory where you want to load static files from `static` folder (like `/var/www/knotters/static/`). Make sure whichever path you set is not restricted for server by any directory permissions.
-Make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
-
-Then, use the following to load static files.
-
-```bash
-python3 manage.py collectstatic
-```
-
-This step should be done to prevent failing tests which depend on the presence of static files.
-
-### Update static libraries
-
-```bash
-python3 static.py
-```
-
-This will read libraries source paths mentioned in `static.json`, and overwrite the files present.
-
-Should only be used when static libraries need to be updated. If updated, then re-check if everything from the updated libraries work fine on client side.
 
 ## Testing
 
@@ -132,6 +184,16 @@ If you want to have control over client side service worker updates, the followi
 python3 genversion.py
 ```
 
+#### Static Libraries Update
+
+This should only be used when static libraries need to be updated. If updated, then re-check if everything from the updated libraries work fine on client side.
+
+```bash
+python3 static.py
+```
+
+This will read libraries source paths mentioned in `static.json`, and overwrite the library files present. You should also add the update source for any new client side libraries you may use, in this file.
+
 #### Language setup
 
 Set locale destination path in your [`main/.env`](main/.env) file as `LOCALE_ABS_PATH`.
@@ -153,19 +215,11 @@ python3 manage.py compilemessages
 If you are using the Knotters translation repository for translations, then create your own branch in that repository too, and commit & push the changes as well.
 To actually deploy your new translations, create a pull request in that repository only after your related changes here in this repository have been successfully deployed on `branch:main`.
 
-> **Contributing in translations repository provides you XPs on Knotters platform, if you have signed up and using the same GitHub account for both Knotters platform and committing in Knotters translation repository.**
+**✨ If you have signed up on Knotters platform and using the same GitHub account linked with it and committing in Knotters translation repository, then contributing in our translations repository provides you XPs on Knotters platform too, as it is a part of a [verified project](https://knotters.org/projects/@knottrans) on [knotters.org](https://knotters.org) itself! ✨**
 
 ## Deployment
 
-There are total 5 runners in the repository, hosted on our own servers. Following list explains the job of each runner.
-
-- tester_knotters: All testing jobs run on this runner. Currently testing is limited to commits & pull requests on branch:main only. Deployment on beta.knotters.org does not uses testing for now (for no special reasons). The testing environment is separate from beta.knotters.org & knotters.org environment. tags: `self-hosted, testing`
---
-- beta_builder: Any commit which is pushed on `branch:beta` triggers the `beta-server.yml` action, which uses this runner to install/update dependencies and setup for beta.knotters.org environment. tags: `self-hosted, beta, building`
-- beta_knotters: Any commit which is pushed on `branch:beta` triggers the `beta-server.yml` action, which uses this runner to deploy latest changes on beta.knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, beta, deployment`
---
-- builder_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to install/update dependencies and setup for knotters.org environment. This job for building requires the testing job to be successful to run. tags: `self-hosted, building, production`
-- deploy_knotters: Any commit which is pushed on `branch:beta` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
+All workflows are kept in `.github/workflows/` directory.
 
 There are total 4 workflows in the repository, for different event trigger cases.
 
@@ -174,7 +228,17 @@ There are total 4 workflows in the repository, for different event trigger cases
 - main-pr.yml: This workflow is triggered on any pull request to `branch:main` for testing in test environment.
 --
 - main-server.yml: This workflow is triggered on any commit to `branch:main` for testing, building and deployment in knotters.org environment, except on changes in static assets of repository, particularly the `static/` folder, as static updates are handled by `main-client-static.yml` workflow.
-- main-client-static.yml: This workflow is triggered on any commit to `branch:main` for testing, building and deployment in knotters.org environment, but only on changes in static assets of repository, particularly the `static/` folder, as this workflow has additional tasks to release new client side version, compress and deploy new static assets, etc. Also, this workflow does not reload the knotters cluster, assuming that it does not depend on static asset changes.
+- main-client-static.yml: This workflow is triggered on any commit to `branch:main` for testing, building and deployment in knotters.org environment, but only if changes are restricted to static assets of repository, particularly the `static/` folder, as this workflow has additional tasks to release new client side version, compress and deploy new static assets, etc. Also, this workflow does not reload the knotters cluster, assuming that cluster does not depend on static asset changes. Also, **please make sure that any changes to contents or code in `static/` directory are deployed on a single commit at once, to avoid multiple triggering of client side static updates release caused by separate commits for the same.**
+
+There are total 5 runners in the repository, hosted on our own servers, for the above workflows do their jobs. Following list explains the job of each runner.
+
+- tester_knotters: All testing jobs run on this runner. Currently testing is limited to commits & pull requests on branch:main only. Deployment on beta.knotters.org does not uses testing for now (for no special reasons). The testing environment is separate from beta.knotters.org & knotters.org environment. tags: `self-hosted, testing`
+--
+- beta_builder: Any commit which is pushed on `branch:beta` triggers the `beta-server.yml` action, which uses this runner to install/update dependencies and setup for beta.knotters.org environment. tags: `self-hosted, beta, building`
+- beta_knotters: Any commit which is pushed on `branch:beta` triggers the `beta-server.yml` action, which uses this runner to deploy latest changes on beta.knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, beta, deployment`
+--
+- builder_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to install/update dependencies and setup for knotters.org environment. This job for building requires the testing job to be successful to run. tags: `self-hosted, building, production`
+- deploy_knotters: Any commit which is pushed on `branch:beta` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
 
 ## Footnotes
 
@@ -187,3 +251,5 @@ There are total 4 workflows in the repository, for different event trigger cases
 - Try to publish the server sided changes before client side ones for better update delivery.
 
 - Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates.
+
+- Some tests fail arbitrarily on CI as well as locally too. Please see [#114](https://github.com/knottersbot/knotters/issues/114) for more details. Meanwhile, you can check the status of your deployment in this repository's `Actions` tab. Only if such condition occurs that tests on your deployment CI are failing arbitrarily, you can try re-running the jobs, but only if failure of those tests have no reason linked to your changes in code.
