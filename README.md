@@ -56,7 +56,7 @@ pip install rjsmin --install-option="--without-c-extensions"
 pip install -r requirements.txt
 ```
 
-## Static setup
+### Static setup
 
 Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of a directory (like `/var/www/knotters/static/` or `C:\Users\static\`) where you can allow server to load static files from the `static` folder. Make sure whichever path you set is not restricted for server by any directory permissions.
 Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
