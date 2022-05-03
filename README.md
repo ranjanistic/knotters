@@ -2,6 +2,8 @@
 
 The Knotters Platform source code.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) if you have read the whole README.md and have already setup the repository as instructed in this file. If not, then go through the following steps first, then jump to [CONTRIBUTING.md](CONTRIBUTING.md) for further contribution guidelines.
+
 ## Setup
 
 _All commands/bash scripts should be assumed to be executed in the root of project directory, unless specified explicitly._
@@ -64,10 +66,17 @@ Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` f
 Then, use the following to load static files.
 
 ```bash
+python3 genversion.py
 python3 manage.py collectstatic
 ```
 
 This will prevent tests from failing which depend on the presence of static files at your `STATIC_ROOT` location.
+
+You can also run the follwing to compress the collected static files at your `STATIC_ROOT`, although it is not neccessary for development/testing process.
+
+```bash
+python3 manage.py preparestatics /any/path/to/generate/errors/directory/
+```
 
 ### Database Setup
 
@@ -139,6 +148,8 @@ The run the main server process (assuming port 8000 is free)
 python3 manage.py runserver
 ```
 
+You're now eligible to jump into [CONTRIBUTING.md](CONTRIBUTING.md), but it is recommended only after reading the complete README.md first.
+
 ## Testing
 
 Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.
@@ -165,7 +176,7 @@ coverage html
 
 ## Optionally
 
-The following setups are not neccessary for the server to run, but might be required at some point.
+The following setups are not neccessary for the server to run, but might be required at some point, so it is recommended to go through the following too.
 
 ### Cluster setup
 
@@ -253,3 +264,5 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 - Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates.
 
 - Some tests fail arbitrarily on CI as well as locally too. Please see [#114](https://github.com/knottersbot/knotters/issues/114) for more details. Meanwhile, you can check the status of your deployment in this repository's `Actions` tab. Only if such condition occurs that tests on your deployment CI are failing arbitrarily, you can try re-running the jobs, but only if failure of those tests have no reason linked to your changes in code.
+
+Jump to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guide now.
