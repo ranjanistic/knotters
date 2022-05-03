@@ -56,7 +56,7 @@ pip install rjsmin --install-option="--without-c-extensions"
 pip install -r requirements.txt
 ```
 
-## Static setup
+### Static setup
 
 Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of a directory (like `/var/www/knotters/static/` or `C:\Users\static\`) where you can allow server to load static files from the `static` folder. Make sure whichever path you set is not restricted for server by any directory permissions.
 Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
@@ -122,7 +122,7 @@ Provide aribtrary values for name and password (this superuser account is necces
 
 Then, create another superuser account for yourself, using the same above command. This account can be used to login and access the administration view as well, at `http://localhost:8000/<ADMINPATH>/`. The `<ADMINPATH>` here is an environment variable from your `.env`.
 
-### Server
+## Server
 
 Change your working branch (always create any new branch from `branch:beta`)
 
@@ -163,11 +163,11 @@ coverage report
 coverage html
 ```
 
-### Optionally
+## Optionally
 
 The following setups are not neccessary for the server to run, but might be required at some point.
 
-#### Cluster setup
+### Cluster setup
 
 A `qcluster` can be started in a separate shell process, which runs in parallel with the main server process to handle time consuming tasks.
 
@@ -176,7 +176,7 @@ A `qcluster` can be started in a separate shell process, which runs in parallel 
 python3 manage.py qcluster
 ```
 
-#### Client setup
+### Client setup
 
 If you want to have control over client side service worker updates, the following command will create/update a version tag at [`main/__version__.py`](main/__version__.py) on every execution, which is linked directly with the service worker, forcing it to emit an update via web browser.
 
@@ -184,7 +184,7 @@ If you want to have control over client side service worker updates, the followi
 python3 genversion.py
 ```
 
-#### Static Libraries Update
+### Static Libraries Update
 
 This should only be used when static libraries need to be updated. If updated, then re-check if everything from the updated libraries work fine on client side.
 
@@ -194,7 +194,7 @@ python3 static.py
 
 This will read libraries source paths mentioned in `static.json`, and overwrite the library files present. You should also add the update source for any new client side libraries you may use, in this file.
 
-#### Language setup
+### Language setup
 
 Set locale destination path in your [`main/.env`](main/.env) file as `LOCALE_ABS_PATH`.
 
