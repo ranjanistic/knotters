@@ -122,7 +122,7 @@ Provide aribtrary values for name and password (this superuser account is necces
 
 Then, create another superuser account for yourself, using the same above command. This account can be used to login and access the administration view as well, at `http://localhost:8000/<ADMINPATH>/`. The `<ADMINPATH>` here is an environment variable from your `.env`.
 
-### Server
+## Server
 
 Change your working branch (always create any new branch from `branch:beta`)
 
