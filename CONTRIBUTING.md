@@ -25,7 +25,7 @@ Now assuming that you've ensured everything (or at least a few things) from abov
 
 Before working on the source code, you should know how the source code works. To know the full extent of it and what it is meant to do, you need to understand the working of project from a new developers's perspective in a simpler way.
 
-You visit [`https://knotters.org`](https://knotters.org]) (or in your case, [`http://127.0.0.1:8000`](http://127.0.0.1:8000)) using your modern browser. In case of visiting knotters.org, your browser attaches the default port 443 (on https) or 80 (on http) for equivalence with your 8000 of localhost. The final request is sent your ISP to check for the associated IP address with the name `knotters.org` in something called DNS records. Now since we (us at knotters.org) have provided our server's IP address for our domain name (we use Google Domains service for this, something like GoDaddy), your ISP gets it and proceeds towards the same through the internet, and finally reaches our server for you, carrying your request data (there are many things your browser attaches automatically with your request, like your own IP address). This is exactly what your ISP charges you for.
+You visit [`https://knotters.org`](https://knotters.org) (or in your case, [`http://127.0.0.1:8000`](http://127.0.0.1:8000)) using your modern browser. In case of visiting knotters.org, your browser attaches the default port 443 (on https) or 80 (on http) for equivalence with your 8000 of localhost. The final request is sent your ISP to check for the associated IP address with the name `knotters.org` in something called DNS records. Now since we (us at knotters.org) have provided our server's IP address for our domain name (we use Google Domains service for this, something like GoDaddy), your ISP gets it and proceeds towards the same through the internet, and finally reaches our server for you, carrying your request data (there are many things your browser attaches automatically with your request, like your own IP address). This is exactly what your ISP charges you for.
 
 Now, our server, just like yours at `127.0.0.1:8000`, has this repository set up and running on `server-ip-address:443` (actually it is more complicated, involving - firewall, reverse-proxy, etc., but we're looking at things from user's perspective). Now at this point, the Django application running on server receives the request, and checks the part following the `:PORT`, which is in this scenario, is `/` (like in `https://knotters.org/`, `http://server-ip-address:443/`, `http://127.0.0.1:8000/`, the end `/` part).
 
@@ -119,7 +119,7 @@ The request entry point for this module starts from `/auth`.
 
 Any account related logic is contained and expected to be contained in this module only.
 
-#### `people/`
+#### [`people/`](people/)
 
 This module serves the purpose of handling everything related to community of the platform. The name `people` was what community section was called earlier, but later it was renamed to `community`, although the urls and module name continues to remain the same.
 
@@ -131,17 +131,17 @@ Therefore, all user identifiable sensitive information and database models shoul
 
 Apart from all this, other things like profile admiration, blocking, reporting, and relevant community related logic is contained and expected to be contained in this module only.
 
-#### `projects/`
+#### [`projects/`](projects/)
 
-#### `compete/`
+#### [`compete/`](compete/)
 
-#### `moderation/`
+#### [`moderation/`](moderation/)
 
-#### `management/`
+#### [`management/`](management/)
 
 There are, as a matter of fact, other folders as well which are not essential application modules like previous ones, but are crucial their own purposes, explained following
 
-#### `static/`
+#### [`static/`](static/)
 
 This folder contains and should contain the files/assets which are
 
@@ -183,7 +183,7 @@ The CI deployment steps for updates in `static` folder can be seen in [main-clie
 
 Phew.
 
-#### `templates/`
+#### [`templates/`](templates/)
 
 All the dynamic response serving files for all sections of the platform are kept in this, most of them are supposed to be served as `html` in responses, while some of them as `js` as well. The directory structure inside this folder follows the same pattern of sections, where files are divided as
 
