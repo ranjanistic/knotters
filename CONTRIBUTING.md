@@ -121,9 +121,9 @@ Any account related logic is contained and expected to be contained in this modu
 
 #### [`people/`](people/)
 
-This module serves the purpose of handling everything related to community of the platform. The name `people` was what community section was called earlier, but later it was renamed to `community`, although the urls and module name continues to remain the same.
+This module serves the purpose of handling everything related to community of the platform. The name `people` was what community section was called earlier, but later it was renamed to `community`, however the urls and module name continues to remain the same.
 
-The primary requests this module handles is to serve the profile view of any person in community. Apart from this, the actual `class User` database model for users is stored here. Yes, it may seem that this model fits better in the `auth2/` module, **but changing a model location in a Django project with MongoDB as database, especially involving an important database model like `class User`, brings unintended side-effects for existing records.** Therefore, this `class User` and another related **equally important model `class Profile`** are fated to be contained in this `people/` module, until a migration solution with no side effects is found.
+The primary requests this module handles is to serve the profile view of any person in community. Apart from this, the actual `class User` database model for users is stored here. Although it may seem that this model fits better in the `auth2/` module, **but changing a model location in a Django project with MongoDB as database, especially involving an important database model like `class User`, brings unintended side-effects for existing records.** Therefore, this `class User` and another related **equally important model `class Profile`** are fated to be contained in this `people/` module, until a migration solution with no side effects is found.
 
 Speaking of `class Profile`, this model is actually used to reference a person from other models which require related user record in their attributes. The Profile model record is created as soon as a User model record (one-to-one relation) is created when a new user creates an account. The reason that Profile model is used for relations of a user with other models is because when a user deletes their account, only their `class User` record is deleted, therefore all associated records of the user which cannot be deleted from the platform for the sake of integrity of other features(results, contribution records, etc.) are retained, as their related `class Profile` record is retained. However, if you are concerned about user's privacy, you can go through the [Knotters Privacy Policy](https://knotters.org/docs/privacypolicy). Roughly speaking, we remove all traces of user identifiable information like email addresses, phone numbers, addresses, name, picture, nickname, etc. when a user deletes their account, and only retain the now became **zombie profile** record to maintain integrity of related records.
 
@@ -132,6 +132,14 @@ Therefore, all user identifiable sensitive information and database models shoul
 Apart from all this, other things like profile admiration, blocking, reporting, and relevant community related logic is contained and expected to be contained in this module only.
 
 #### [`projects/`](projects/)
+
+This module serves the purpose of handling everything related to projects section of the platform. The primary purposes are to let a user create a project and host its profile (that's over-simplification).
+
+The main models here are FreeProject (Quick project), Project (verified project), CoreProject (core project). They are used to hold records of the [three categories of projects](https://knotters.org/projects/create/) we have on platform for each user.
+
+This section also listens to the contribution events of users from linked GitHub repositories via webhooks and [our own knottersbot](https://github.com/marketplace/knotters-bot), to allot XPs to users based on the same.
+
+Apart from all this, other things like project admiration, posting snapshots, linking assets, and relevant project related logic is contained and expected to be contained in this module only.
 
 #### [`compete/`](compete/)
 
@@ -204,3 +212,13 @@ Similarly, when you visit some other user's `/@username` path, same procedure ha
 Most of the path functions in our platform work on similar principle. Using data from request which can be anything that your browser sent along (in this case it was the path itself), they prepare and return the dynamic response using template files from `templates/` folder.
 
 > Some dynamic html responses also require javascript files for them to be preset with dynamic code, therefore you'll see a `scripts/` directory inside subdirectories of `templates/` directory for that purpose. Also a single path & function pair handles requests for all dynamic scripts requests, can be found in [`main/urls.py`](main/urls.py)
+
+--
+
+This was an overview for all directories of the project. To make things more clear, all functions, classes etc. have their own description in-code, which works best during suggestions while working on this project in Microsoft VSCode (haven't checked in other code editors)
+
+### User Flow
+
+The previous section roughly explains the code structure of this project. Now, we need to look at the project from user's point of view.
+
+The following steps intend to explain how a user is expected to move around our platform, and therefore will also explain the features of this platform.
