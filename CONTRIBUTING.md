@@ -129,6 +129,15 @@ Speaking of `class Profile`, this model is actually used to reference a person f
 
 Therefore, all user identifiable sensitive information and database models should be put in and related to `class User`, and other records/models which do not require such sensitive information to exist but only user to exist, should relate to `class Profile`.
 
+Also, there can be 4 kinds of users on our platform
+
+- User: A normal user (theme positive) Every user is of this kind for the first time
+- Mentor: A mentor user (theme active) A normal user can be promoted by any organization (which they are a part of) as mentor
+- Moderator: A moderator user (theme accent) A normal user can be promoted by any organization (which they are a part of) as moderator
+- Manager: An organisation account (theme vibrant) Can be converted after signing up as a normal user. Currently user is not allowed to convert themselves, see [#80](https://github.com/knottersbot/knotters/issues/80#issuecomment-1088610164).
+
+More details on the kind of users and their importance will be discussed later on.
+
 Apart from all this, other things like profile admiration, blocking, reporting, and relevant community related logic is contained and expected to be contained in this module only.
 
 #### [`projects/`](projects/)
@@ -137,15 +146,43 @@ This module serves the purpose of handling everything related to projects sectio
 
 The main models here are FreeProject (Quick project), Project (verified project), CoreProject (core project). They are used to hold records of the [three categories of projects](https://knotters.org/projects/create/) we have on platform for each user.
 
+There are three kinds of projects allowed on platform
+
+- Quick Project (code name FreeProject, theme positive): Can be created by anyone, doesn't require any moderation. 
+- Verified Project (code name Project, theme accent): Can be requested by anyone, requires moderation from an auto assigned moderator (organizations can limit auto assigning to their own moderators)
+- Core Project (code name CoreProject, theme vibrant): Can be requested by organizations only, requires moderation from an auto assigned moderator, or a specific moderator, or a moderator from organisation itself.
+
 This section also listens to the contribution events of users from linked GitHub repositories via webhooks and [our own knottersbot](https://github.com/marketplace/knotters-bot), to allot XPs to users based on the same.
 
 Apart from all this, other things like project admiration, posting snapshots, linking assets, and relevant project related logic is contained and expected to be contained in this module only.
 
 #### [`compete/`](compete/)
 
+This module serves the purpose of handling request related to competitions, including but not limited to, participating in a competition, result declaration, certificate allotment and claiming points from a competition.
+
+The main models here are competition submission result. Other models are related to these models for their own specific purposes, related to competitions section of platform.
+
+Competitions can only be created by organizations (managements). Each competition has a moderator, judges, and participants. Moderator and judges are alloted by creators of competitions.
+
+The logic for calculating final scores, points from judgement, generating certificates, and all things related to competitions is contained and expected to be contained in this module.
+
 #### [`moderation/`](moderation/)
 
+This module serves the purpose of handling everything related to moderation.
+
+Allotting allotting a moderator project, moderator to take action on a project or a competition and other kind of moderation related logic is contained and expected to be contained in this module.
+
+Moderator can accept/skip/reject a verified or core project, moderate submission
+
 #### [`management/`](management/)
+
+This module serves the purpose of handling everything related to organisations, including but not limited to, managing people, promoting or demoting mentors and moderators, creating and managing competitions, declaring results of a competition and allotting certificates.
+
+Organisations can also manage topics, categories and tags created by them or their people, plus they can also create new ones.
+
+Any logic for any organization related feature is contained and expected to be contained in this module only.
+
+--
 
 There are, as a matter of fact, other folders as well which are not essential application modules like previous ones, but are crucial their own purposes, explained following
 
@@ -220,5 +257,6 @@ This was an overview for all directories of the project. To make things more cle
 ### User Flow
 
 The previous section roughly explains the code structure of this project. Now, we need to look at the project from user's point of view.
+You can, if you want to, read the details page for user oriented explanation of terminologies and features of the platform by visiting [The landing page](https://knotters.org/landing/) of Knotters.
 
 The following steps intend to explain how a user is expected to move around our platform, and therefore will also explain the features of this platform.
