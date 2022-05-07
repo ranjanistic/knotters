@@ -27,7 +27,7 @@ Check values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.tes
 
 ### Dependencies
 
-Using a python virtual environment is recommended. Activate using
+Using a python virtual environment is recommended. For example
 
 ```bash
 pip install virtualenvwrapper
