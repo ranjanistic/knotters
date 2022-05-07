@@ -1,7 +1,7 @@
 # Contribution Guide
 
 Make sure that you've setup the repository locally as described in the [README](README.md) file first,
-then follow the steps below to start contributing.
+then follow read the explanation below to start contributing.
 
 Contribution in this repository requires:
 
@@ -138,6 +138,8 @@ Also, there can be 4 kinds of users on our platform
 
 More details on the kind of users and their importance will be discussed later on.
 
+The request entry point for this module starts from `/people`.
+
 Apart from all this, other things like profile admiration, blocking, reporting, and relevant community related logic is contained and expected to be contained in this module only.
 
 #### [`projects/`](projects/)
@@ -154,6 +156,8 @@ There are three kinds of projects allowed on platform
 
 This section also listens to the contribution events of users from linked GitHub repositories via webhooks and [our own knottersbot](https://github.com/marketplace/knotters-bot), to allot XPs to users based on the same.
 
+The request entry point for this module starts from `/projects`.
+
 Apart from all this, other things like project admiration, posting snapshots, linking assets, and relevant project related logic is contained and expected to be contained in this module only.
 
 #### [`compete/`](compete/)
@@ -164,6 +168,8 @@ The main models here are competition submission result. Other models are related
 
 Competitions can only be created by organizations (managements). Each competition has a moderator, judges, and participants. Moderator and judges are alloted by creators of competitions.
 
+The request entry point for this module starts from `/compete`.
+
 The logic for calculating final scores, points from judgement, generating certificates, and all things related to competitions is contained and expected to be contained in this module.
 
 #### [`moderation/`](moderation/)
@@ -172,13 +178,18 @@ This module serves the purpose of handling everything related to moderation.
 
 Allotting allotting a moderator project, moderator to take action on a project or a competition and other kind of moderation related logic is contained and expected to be contained in this module.
 
-Moderator can accept/skip/reject a verified or core project, moderate submission
+Moderator can accept/skip/reject a verified or core project, moderate submissions in assigned competitios etc. via this module.
+
+The request entry point for this module starts from `/moderation`.
+
 
 #### [`management/`](management/)
 
 This module serves the purpose of handling everything related to organisations, including but not limited to, managing people, promoting or demoting mentors and moderators, creating and managing competitions, declaring results of a competition and allotting certificates.
 
 Organisations can also manage topics, categories and tags created by them or their people, plus they can also create new ones.
+
+The request entry point for this module starts from `/management`.
 
 Any logic for any organization related feature is contained and expected to be contained in this module only.
 
@@ -259,4 +270,26 @@ This was an overview for all directories of the project. To make things more cle
 The previous section roughly explains the code structure of this project. Now, we need to look at the project from user's point of view.
 You can, if you want to, read the details page for user oriented explanation of terminologies and features of the platform by visiting [The landing page](https://knotters.org/landing/) of Knotters.
 
+Also, [signing up on Knotters](https://knotters.org/register) by yourself can also help you better understand how things work from user's perspective. Plus, you can get also get perks for yourself just like any other user!
+
 The following steps intend to explain how a user is expected to move around our platform, and therefore will also explain the features of this platform.
+
+## Code Contribution
+
+You can start contribution by going through the [issues](https://github.com/knottersbot/knotters/issues) and working upon them as per your knowledge. In doubt, you can always reach out the maintainers of this project.
+
+Recommendations
+
+- Always document your code as much as possible. Every function, class, Global object, or anything worth documenting created by you should be documented by you too. Follow the pattern being followed in existing source code for documentation.
+
+- Write tests for everything you create, especially for the request handling functions.
+
+- Avoid changing database model names once deployed, to avoid problems related to existing records.
+
+- Always create a separate branch for any new task, and always create it from the beta branch.
+
+- Always create a pull request from your branch to beta branch. No changes should be made on main branch directly.
+
+- Updates on beta branch are always deployed on beta.knotters.org
+
+- Before creating anything new, always check whether something already exists for that or not. Especially for frontend part, try to reuse the defined style classes and design patterns to maintain consistency in UI and UX as much as possible.
