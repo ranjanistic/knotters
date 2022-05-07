@@ -274,11 +274,72 @@ Also, [signing up on Knotters](https://knotters.org/register) by yourself can al
 
 The following steps intend to explain how a user is expected to move around our platform, and therefore will also explain the features of this platform.
 
-## Code Contribution
+## Code Guide
 
-You can start contribution by going through the [issues](https://github.com/knottersbot/knotters/issues) and working upon them as per your knowledge. In doubt, you can always reach out the maintainers of this project.
+Follow are some specific coding guides for this project, can be used as reference when programming any part.
 
-Recommendations
+- Use themes (primary, secondary, tertiary, positive, negative, active, accent, vibrant and their related text themes) for designing elements, rather than creating your own colors. Checkout all themes in theme.css.
+  - Projects are primarily associated with positive theme
+  - Community is primarily associated with accent theme (the main theme of Knotters)
+  - Competitions are primarily associated with active theme
+  - Managements are primarily associated with vibrant theme
+  - Mentors are primarily associated with active theme (because of involvement in competitions)
+  - Moderators are primarily associated with accent theme (because of being a core part of the community)
+  - Normal users are primarily associated with positive theme
+  - Quick Projects are primarily associated with positive theme (because of normal users)
+  - Verified Projects are primarily associated with accent theme (because of involvement of moderators)
+  - Core Projects are primarily associated with vibrant theme (because of involvement of managers)
+
+- Some tags have predefined styles, go through all css files for better understanding of existing styles and using them.
+  To create a button with positive theme
+  ```html
+  <button class="positive">Normal postive button</button>
+  ```
+  The above code will simply create a button with positive theme and adjusted styles.
+  ```html
+  <button class="big-button accent">Big accent button</button>
+  <button class="small negative">Small negative button</button>
+  ```
+- Many html code elements have shorthands available, which are decided by underlying javascript.
+  For example, we use material icons for icons which requires `material-icons` class and `<i></i>` tag.
+  But to display an icon in a button,
+  ```html
+  <button class="active" data-icon="arrow_right">Hello</button>
+  ```
+  The `data-icon` property is checked by javascript and icon is injected on runtime.
+  Similarly there are many more such shorthands available. Note that this `data-icon` is only available for button tags.
+  ```html
+  <i>arrow_right</i>
+  ```
+  No need to specify class `material-icons` for `i` tag. You can checkout all such available interpreted shorthands by looking at
+  `loadGlobalEventListeners` function in `static/scripts/index.js`, which does the runtime interpretation for these shorthands.
+
+- Various global template context objects are available for every html template, like object `URLS` for all urls in the project. You can see all available global context objects at `main/context_processors.py`.
+  Note that the `URLS` object itself is not coming from that file, rather is being generated at global renderer functions in `main/methods.py` for every template.
+  Also, the dynamic script `templates/constants.js` makes these global context objects available to all frontend scripts as well.
+
+- Inline scripts are disabled for security reasons. Therefore the concept of dynamic scripts is present in project for scripts depending upon rendered data.
+  Try to get scripts code in static folder if possible (dynamic scripts won't work there). To create a new dynamic script file for an html page,
+    - Create your script file in `scripts` folder of your module's template folder.
+    - In main/strings.py, class Template contains sub-class Script. If the name of your new script file is not already present, then add a new variable in it for that.
+    - In main/views.py, a single function to render all dynamic scripts for html files is present. Add your own script's logic in similar fashion as others in that function.
+    - Now, at client side, in your html file import the script by using the pre-defined dynamic scripts path and add you own script's name using the global `SCRIPTS` context object.
+      Like
+      ```html
+      <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.YOUR_SCRIPT_NAME}}?data={{extra_data}}"></script>
+      ```
+      The `URLS.SCRIPTS_SUBAPP` & `SUBAPPNAME` set the pre-defined path of a dynamic scripts for any html page of any module. The value of `SCRIPTS.YOUR_SCRIPT_NAME` is coming directly from that `class Script`.
+      The `data={{extra_data}}` can be any data you need to use for dynamicity of your script in the script rendering function.
+      For example
+      ```html
+      <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}"></script>
+      ```
+      The above script import example can be found at the bottom of `templates/people/profile.html`.
+
+You can start contribution by going through the [issues](https://github.com/knottersbot/knotters/issues) and working upon them as per your knowledge.
+In doubt, you can always reach out the maintainers of this project.
+
+## Recommendations
 
 - Always document your code as much as possible. Every function, class, Global object, or anything worth documenting created by you should be documented by you too. Follow the pattern being followed in existing source code for documentation.
 
