@@ -267,12 +267,10 @@ This was an overview for all directories of the project. To make things more cle
 
 ### User Flow
 
-The previous section roughly explains the code structure of this project. Now, we need to look at the project from user's point of view.
+The previous section roughly explains the code structure of this project. Now, you need to look at the project from user's point of view.
 You can, if you want to, read the details page for user oriented explanation of terminologies and features of the platform by visiting [The landing page](https://knotters.org/landing/) of Knotters.
 
-Also, [signing up on Knotters](https://knotters.org/register) by yourself can also help you better understand how things work from user's perspective. Plus, you can get also get perks for yourself just like any other user!
-
-The following steps intend to explain how a user is expected to move around our platform, and therefore will also explain the features of this platform.
+Also, [signing up on Knotters](https://knotters.org/register) by yourself can also help you better understand how things work from user's perspective. Plus, you can get also get perks for yourself just like any other user.
 
 ## Code Guide
 
