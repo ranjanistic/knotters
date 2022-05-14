@@ -119,7 +119,7 @@ python3 manage.py migrate --fake
 
 - This should fix the issue for you.
 
-#### Accounts setup
+### Accounts setup
 
 Create a superuser using the same email address as `BOTMAIL` value in `.env` file, using the following
 
@@ -149,6 +149,22 @@ python3 manage.py runserver
 ```
 
 You're now eligible to jump into [CONTRIBUTING.md](CONTRIBUTING.md), but it is recommended only after reading the complete README.md first.
+
+If while navigating in localhost website you're getting an error similar to `site matching query does not exist`, then do the following to resolve it
+
+```bash
+python3 manage.py shell
+```
+
+Then in the python shell
+
+```py
+from django.contrib.sites.models import Site
+Site.objects.create(id=1, name="Knotters", domain="example.com")
+exit()
+```
+
+This should fix the issue for you.
 
 ## Testing
 
