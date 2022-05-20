@@ -53,8 +53,8 @@ from .models import (AppRepository, Asset, BaseProject,
                      ProjectTag, ProjectTopic, ProjectTransferInvitation,
                      Snapshot, Tag, VerProjectDeletionRequest)
 from .receivers import *
-
-
+from main.constants import Notifs
+from auth2.models import EmailNotificationSubscriber
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
     """To render projects home page.
@@ -438,7 +438,11 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
                 return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
             return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
         else:
-            sendProjectSubmissionNotification(projectobj)
+            list1 =  EmailNotificationSubscriber.objects.all()
+            for i in list1:
+                if i.user == request.user and str(i.email_notification)==Notifs.PROJ_MOD_UPDT_NOTIF:
+                    # print("here")
+                    sendProjectSubmissionNotification(projectobj)
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
