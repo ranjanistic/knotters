@@ -1,3 +1,5 @@
+from main.constants import NotificationCode
+from auth2.models import *
 from main.env import PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail
 
@@ -6,6 +8,7 @@ from .models import (BaseProjectCoCreatorInvitation,
                      CoreProjectDeletionRequest, FreeProject, Project,
                      ProjectModerationTransferInvitation,
                      ProjectTransferInvitation, VerProjectDeletionRequest)
+from main.methods import user_device_notify
 
 
 def freeProjectCreated(project: FreeProject) -> str:
@@ -62,18 +65,25 @@ def sendProjectSubmissionNotification(verifiedproject: Project) -> str:
     Returns:
         str: task ID of email task
     """
-    return sendActionEmail(
-        to=verifiedproject.creator.getEmail(),
-        username=verifiedproject.creator.getFName(),
-        subject='Project Status: Moderation',
-        header=f"This is to inform you that we have received your recently submitted project - {verifiedproject.name} - for moderation. A moderator was assigned to review it.",
-        actions=[{
-            'text': 'View moderation state',
-            'url': verifiedproject.getModLink()
-        }],
-        footer=f"We'll notify you as soon as the moderator reviews your project submission. Till then, chill out! NOTE: We're lenient.",
-        conclusion=f"This email was sent because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
-    )
+    if DeviceNotificationSubscriber.objects.filter(user=verifiedproject.creator.user, device_notification__notification__code=NotificationCode.VERIF_PROJ_SUBMITTED).exists():
+
+        user_device_notify(verifiedproject.creator.user, "Project submitted for moderation",
+                           f"We have received your recently submitted project - {verifiedproject.name} - for moderation. A moderator was assigned to review it.", url=verifiedproject.getModLink())
+
+    if EmailNotificationSubscriber.objects.filter(user=verifiedproject.creator.user, email_notification__notification__code=NotificationCode.VERIF_PROJ_SUBMITTED).exists():
+
+        sendActionEmail(
+            to=verifiedproject.creator.getEmail(),
+            username=verifiedproject.creator.getFName(),
+            subject='Project Status: Moderation',
+            header=f"This is to inform you that we have received your recently submitted project - {verifiedproject.name} - for moderation. A moderator was assigned to review it.",
+            actions=[{
+                'text': 'View moderation state',
+                'url': verifiedproject.getModLink()
+            }],
+            footer=f"We'll notify you as soon as the moderator reviews your project submission. Till then, chill out! NOTE: We're lenient.",
+            conclusion=f"This email was sent because we have received a project submission from your Knotters account. If this wasn't you, then please report to us."
+        )
 
 
 def coreProjectSubmissionNotification(coreproject: CoreProject) -> str:

@@ -462,7 +462,7 @@ def sendGroupNotification(groups: list, payload: dict, ttl: int = 1000):
         return False
 
 
-def user_device_notify(user_s: str,
+def user_device_notify(user_s: list,
                        title: str, body: str = None, url: str = None, icon: str = None,
                        badge: str = None, actions: list = [],
                        dir: str = None, image: str = None, lang: str = None, renotify: bool = None, requireInteraction: bool = False, silent: bool = False, tag: str = None, timestamp=None, vibrate: list = None

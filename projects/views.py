@@ -53,8 +53,10 @@ from .models import (AppRepository, Asset, BaseProject,
                      ProjectTag, ProjectTopic, ProjectTransferInvitation,
                      Snapshot, Tag, VerProjectDeletionRequest)
 from .receivers import *
-from main.constants import Notifs
+from main.constants import NotificationCode
 from auth2.models import EmailNotificationSubscriber
+
+
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
     """To render projects home page.
@@ -438,11 +440,7 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
                 return respondJson(Code.NO, error=Message.SUBMISSION_ERROR)
             return respondRedirect(APPNAME, URL.Projects.CREATE_MOD, error=Message.SUBMISSION_ERROR)
         else:
-            list1 =  EmailNotificationSubscriber.objects.all()
-            for i in list1:
-                if i.user == request.user and str(i.email_notification)==Notifs.PROJ_MOD_UPDT_NOTIF:
-                    # print("here")
-                    sendProjectSubmissionNotification(projectobj)
+            sendProjectSubmissionNotification(projectobj)
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
@@ -684,6 +682,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404(e)
 
+
 @require_GET
 def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     try:
@@ -693,6 +692,7 @@ def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @require_GET
 def profileBase(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
@@ -1256,7 +1256,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
                 for tag in map(lambda addtag: addTagToDatabase(
-                    addtag, request.user.profile), addtags):
+                        addtag, request.user.profile), addtags):
                     project.tags.add(tag)
                     for topic in project.getTopics():
                         topic.tags.add(tag)
